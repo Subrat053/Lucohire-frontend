@@ -13,6 +13,10 @@ import { recruiterAPI, localeAPI } from "../services/api";
 import { filterDummyProviders, DUMMY_PROVIDERS } from "../data/skillsData";
 import { toAbsoluteMediaUrl } from "../utils/media";
 import { extractProvidersList, normalizeProviderData } from "../utils/providerData";
+import { detectNearestLocation } from "../utils/location";
+import { getFeaturedProviders } from "../services/providerService";
+import { useAuth } from "../context/AuthContext";
+import SharedProviderCard from "../components/providers/ProviderCard";
 import useTranslation from "../hooks/useTranslation";
 
 /* ─────────── Mock data (keeps providers.map dynamic) ─────────── */
@@ -281,6 +285,7 @@ const ProviderCard = ({ p, onClick }) => (
 /* ═══════════════════════ MAIN PAGE ════════════════════════════════════ */
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const { t } = useTranslation();
 
   const [skill, setSkill] = useState("");
@@ -300,18 +305,28 @@ const LandingPage = () => {
 
     const detectCitySafely = async () => {
       try {
-        if (navigator.geolocation) {
-          const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 4000, maximumAge: 600000, enableHighAccuracy: false });
-          });
-          const lat = position?.coords?.latitude;
-          const lng = position?.coords?.longitude;
-          if (Number.isFinite(lat) && Number.isFinite(lng)) {
-            const { data } = await localeAPI.reverseGeocode(lat, lng);
-            if (isMounted && data?.city) { setLocation(`${data.city}, IN`); return; }
+        const detected = await detectNearestLocation();
+        if (isMounted && detected?.city) {
+          const label = [detected.city, detected.state].filter(Boolean).join(', ');
+          if (label) {
+            setLocation(label);
+            localStorage.setItem('servicehub:lastSearchLocation', label);
+            return;
           }
         }
       } catch (_) {}
+
+      const profileLocation = [profile?.city, profile?.state].filter(Boolean).join(', ');
+      if (isMounted && profileLocation) {
+        setLocation(profileLocation);
+        return;
+      }
+
+      const storedLocation = localStorage.getItem('servicehub:lastSearchLocation');
+      if (isMounted && storedLocation) {
+        setLocation(storedLocation);
+        return;
+      }
 
       try {
         const { data } = await localeAPI.detect();
@@ -322,20 +337,19 @@ const LandingPage = () => {
 
     detectCitySafely();
     return () => { isMounted = false; };
-  }, []);
+  }, [profile]);
 
   const fetchProviders = useCallback(async (s = "", c = "") => {
     const city = c || location.replace(", IN", "");
     setProvidersLoading(true);
     try {
-      const { data } = await recruiterAPI.publicSearch({ skill: s, city, limit: 8 });
-      const apiList = extractProvidersList(data);
+      const { providers: apiList } = await getFeaturedProviders({ skill: s, location: city, city, limit: 4 });
       const fallbackList = filterDummyProviders(s, city);
       const finalList = apiList.length > 0 ? apiList : fallbackList.length > 0 ? fallbackList : DUMMY_PROVIDERS;
-      setProviders(finalList.map(normalizeProvider));
+      setProviders(finalList.map(normalizeProviderData));
     } catch (_) {
       const fallbackList = filterDummyProviders(s, city);
-      setProviders((fallbackList.length > 0 ? fallbackList : DUMMY_PROVIDERS).map(normalizeProvider));
+      setProviders((fallbackList.length > 0 ? fallbackList : DUMMY_PROVIDERS).map(normalizeProviderData));
     } finally {
       setProvidersLoading(false);
     }
@@ -358,7 +372,9 @@ const LandingPage = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    navigate(`/search?skill=${encodeURIComponent(skill)}&city=${encodeURIComponent(location.replace(", IN", ""))}`);
+    const nextLocation = location.replace(", IN", "");
+    localStorage.setItem('servicehub:lastSearchLocation', nextLocation);
+    navigate(`/search?query=${encodeURIComponent(skill)}&location=${encodeURIComponent(nextLocation)}`);
   };
 
   const handleCategoryClick = (categoryName) => {
@@ -366,12 +382,8 @@ const LandingPage = () => {
 
     setActiveCategory(categoryName);
     setSkill(categoryName === "More" ? "" : categoryName);
-
-    if (categoryName === "More") {
-      navigate(`/search?city=${encodeURIComponent(city)}`);
-      return;
-    }
-    navigate(`/search?category=${encodeURIComponent(categoryName)}&city=${encodeURIComponent(city)}`);
+    localStorage.setItem('servicehub:lastSearchLocation', city);
+    navigate(`/search?category=${encodeURIComponent(categoryName)}&location=${encodeURIComponent(city)}`);
   };
 
   const displayedProviders = providers.filter(
@@ -412,7 +424,7 @@ const LandingPage = () => {
 
       {/* ━━━━━━━━ HERO ━━━━━━━━ */}
       <section className="bg-[#F7F9FC] py-16 lg:py-24">
-        <div className="max-w-8xl mx-auto px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-center mb-8">
             <span className="inline-flex items-center gap-2 bg-white border border-[#E7ECF4] rounded-full px-3 py-1 text-xs font-semibold text-[#374151] shadow-[0_4px_12px_rgba(0,0,0,0.04)]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#12B76A] animate-pulse" />
@@ -420,7 +432,7 @@ const LandingPage = () => {
             </span>
           </div>
 
-          <div className="max-w-2xl mx-auto bg-white rounded-3xl border border-[#E7ECF4] shadow-[0_20px_60px_rgba(8,27,58,0.08)] p-8 md:p-10">
+          <div className="max-w-3xl mx-auto bg-white rounded-3xl border border-[#E7ECF4] shadow-[0_20px_60px_rgba(8,27,58,0.08)] p-8 md:p-10">
             <div className="flex items-center justify-between mb-5">
               <span className="inline-flex items-center gap-1.5 bg-[#EAF2FF] text-[#1677FF] text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full">
                 <Sparkles className="w-3 h-3" /> AI Match Engine
@@ -510,8 +522,8 @@ const LandingPage = () => {
                     <div className="h-4 bg-[#EEF2F7] rounded w-1/3" />
                   </div>
                 ))
-              : displayedProviders.map((p) => (
-                  <ProviderCard key={p._id} p={p} onClick={() => navigate(`/provider/${p._id}`)} />
+                : displayedProviders.map((p, index) => (
+                  <SharedProviderCard key={p._id} provider={p} variant="landing" index={index} onClick={() => navigate(`/provider/${p._id}`)} />
                 ))}
           </div>
         </div>
@@ -702,8 +714,8 @@ const LandingPage = () => {
 
           {/* Phone mock */}
           <div className="flex justify-center">
-            <div className="relative w-[280px] bg-[#081B3A] rounded-[42px] p-3 shadow-[0_30px_80px_rgba(8,27,58,0.25)]">
-              <div className="bg-[#FAF7F2] rounded-[32px] overflow-hidden">
+            <div className="relative w-70 bg-[#081B3A] rounded-[42px] p-3 shadow-[0_30px_80px_rgba(8,27,58,0.25)]">
+              <div className="bg-[#FAF7F2] rounded-4xl overflow-hidden">
                 <div className="bg-[#075E54] text-white px-4 py-3 flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm">L</div>
                   <div>
@@ -968,7 +980,7 @@ const LandingPage = () => {
             {[
               { v: "07", l: "Days" }, { v: "11", l: "Hrs" }, { v: "58", l: "Min" }, { v: "27", l: "Sec" },
             ].map((t) => (
-              <div key={t.l} className="bg-white border border-[#E7ECF4] rounded-xl px-4 py-2 min-w-[60px]">
+              <div key={t.l} className="bg-white border border-[#E7ECF4] rounded-xl px-4 py-2 min-w-15">
                 <p className="text-xl font-extrabold text-[#081B3A]">{t.v}</p>
                 <p className="text-[9px] tracking-widest uppercase text-[#6B7280]">{t.l}</p>
               </div>

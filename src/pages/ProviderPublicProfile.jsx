@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { HiStar, HiLocationMarker, HiBadgeCheck, HiPhone, HiMail, HiExternalLink } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
-import { providerAPI, recruiterAPI } from '../services/api';
+import { recruiterAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ReviewSection from '../components/common/ReviewSection';
@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { toAbsoluteMediaUrl } from '../utils/media';
 import { DUMMY_PROVIDERS } from '../data/skillsData';
 import { findProviderById, normalizeProviderData } from '../utils/providerData';
+import { getProviderById as fetchProviderById } from '../services/providerService';
 
 const ProviderPublicProfile = () => {
   const { id } = useParams();
@@ -80,11 +81,10 @@ const ProviderPublicProfile = () => {
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const { data } = await providerAPI.getPublicProfile(id);
-      const fetchedProfile = data?.profile || data?.data?.profile || null;
+      const { profile: fetchedProfile, reviews: fetchedReviews } = await fetchProviderById(id);
       if (fetchedProfile) {
         setProfile(fetchedProfile);
-        setReviews(data?.reviews || data?.data?.reviews || []);
+        setReviews(fetchedReviews || []);
         return;
       }
 
@@ -143,8 +143,8 @@ const ProviderPublicProfile = () => {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Profile Header */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="bg-linear-to-r from-indigo-500 to-purple-600 h-32"></div>
-        <div className="px-6 pb-6 -mt-12">
+        <div className="bg-linear-to-r from-indigo-500 to-purple-600 h-22"></div>
+        <div className="px-6 pb-6 -mt-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end space-y-4 sm:space-y-0 sm:space-x-6">
             <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center border-4 border-white">
               {profile.photo ? (

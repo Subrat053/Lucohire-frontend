@@ -1,93 +1,26 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { HiSearch, HiLocationMarker, HiStar, HiBadgeCheck, HiFilter, HiX, HiChevronRight } from 'react-icons/hi';
-import { recruiterAPI } from '../services/api';
-import { POPULAR_SKILLS, filterDummyProviders, DUMMY_PROVIDERS, fuzzyResolveSkill } from '../data/skillsData';
+import { POPULAR_SKILLS, filterDummyProviders, DUMMY_PROVIDERS } from '../data/skillsData';
 import { toAbsoluteMediaUrl } from '../utils/media';
-import { extractProvidersList, normalizeProviderData } from '../utils/providerData';
+import { normalizeProviderData } from '../utils/providerData';
+import { getProviders as fetchProviderResults } from '../services/providerService';
+import SharedProviderCard from '../components/providers/ProviderCard';
 import useTranslation from '../hooks/useTranslation';
-
-const ProviderCard = ({ provider, badge, onClick, t }) => {
-  const tierColors = { unskilled:'bg-emerald-100 text-emerald-700', 'semi-skilled':'bg-amber-100 text-amber-700', skilled:'bg-indigo-100 text-indigo-700' };
-  const tierLabels = {
-    unskilled: t('search.tierUnskilled'),
-    'semi-skilled': t('search.tierSemiSkilled'),
-    skilled: t('search.tierSkilled'),
-  };
-
-  return (
-    <div onClick={onClick}
-      className={`bg-white rounded-2xl border hover:shadow-md transition-all duration-200 cursor-pointer group p-5 ${badge==='rotation'?'border-amber-300 ring-2 ring-amber-100':badge==='featured'?'border-indigo-200':'border-stone-200'}`}>
-      {badge && (
-        <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold mb-3 ${badge==='rotation'?'bg-amber-100 text-amber-700':'bg-indigo-100 text-indigo-700'}`}>
-          {badge==='rotation' ? t('search.topProvider') : t('search.featured')}
-        </div>
-      )}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-xl bg-stone-100 overflow-hidden shrink-0 border border-stone-200">
-            {(provider.photo || provider.profilePhoto) ? (
-              <img src={toAbsoluteMediaUrl(provider.photo || provider.profilePhoto)} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-amber-50 text-amber-600 font-bold text-xl">
-                {(provider.user?.name || provider.name || 'P')[0].toUpperCase()}
-              </div>
-            )}
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1 mb-0.5">
-              <h3 className="font-semibold text-stone-800 text-sm truncate">{provider.user?.name || provider.name || t('search.provider')}</h3>
-              {provider.isVerified && <HiBadgeCheck className="w-4 h-4 text-blue-500 shrink-0" />}
-            </div>
-            <div className="flex items-center gap-1">
-              <HiStar className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-xs font-medium text-stone-700">{provider.rating || provider.averageRating || 0}</span>
-              <span className="text-xs text-stone-400">({provider.totalReviews || 0})</span>
-            </div>
-            <p className="text-xs text-stone-400 flex items-center gap-0.5 mt-0.5">
-              <HiLocationMarker className="w-3 h-3" />{provider.city}
-              {provider.distanceKm != null && <span>&bull; {provider.distanceKm} km</span>}
-            </p>
-          </div>
-        </div>
-        <div className="text-right shrink-0">
-          <div className="flex items-center gap-1 justify-end mb-1">
-            <span className={`w-2 h-2 rounded-full inline-block ${provider.isAvailable!==false?'bg-emerald-400':'bg-stone-300'}`}></span>
-            <span className={`text-xs font-medium ${provider.isAvailable!==false?'text-emerald-600':'text-stone-400'}`}>
-              {provider.isAvailable!==false ? t('search.available') : t('search.busy')}
-            </span>
-          </div>
-          {provider.ratePerHour && <span className="text-sm font-bold text-stone-800">&#8377;{provider.ratePerHour}<span className="text-xs font-normal text-stone-400">/hr</span></span>}
-        </div>
-      </div>
-      {provider.headline && <p className="text-xs text-stone-500 mb-3 line-clamp-1">{provider.headline}</p>}
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {(provider.skills||[]).slice(0,4).map((s,i)=>(
-          <span key={i} className="px-2.5 py-1 bg-stone-100 text-stone-600 text-xs rounded-full font-medium">{s}</span>
-        ))}
-        {(provider.skills||[]).length>4&&<span className="px-2.5 py-1 bg-stone-50 text-stone-400 text-xs rounded-full">+{provider.skills.length-4}</span>}
-      </div>
-      <div className="flex gap-2 mt-1">
-        <button onClick={(e)=>{e.stopPropagation();onClick&&onClick();}} className="flex-1 bg-stone-900 hover:bg-stone-700 text-white py-2 rounded-xl text-xs font-semibold transition">{t('search.viewProfile')}</button>
-        {provider.tier && (
-          <span className={`self-center text-xs px-2.5 py-1.5 rounded-xl font-medium capitalize ${tierColors[provider.tier]||'bg-stone-100 text-stone-500'}`}>
-            {tierLabels[provider.tier] || provider.tier.replace('-', ' ')}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-};
 
 const SearchPage = () => {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [skill, setSkill] = useState(searchParams.get('skill') || searchParams.get('category') || '');
-  const [city, setCity] = useState(searchParams.get('city') || '');
+  const initialQuery = searchParams.get('query') || searchParams.get('skill') || searchParams.get('category') || '';
+  const [queryText, setQueryText] = useState(initialQuery);
+  const [skill, setSkill] = useState(searchParams.get('skill') || searchParams.get('category') || initialQuery);
+  const [city, setCity] = useState(searchParams.get('location') || searchParams.get('city') || '');
   const [tierFilter, setTierFilter] = useState(searchParams.get('tier') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
   const [results, setResults] = useState({ rotation:[], featured:[], providers:[], pagination:{} });
+  const [searchMeta, setSearchMeta] = useState({});
+  const [interpretedIntent, setInterpretedIntent] = useState({ skill: '', city: '', confidence: 0 });
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ rating: '', experience: '', verified: '' });
   const [showFilters, setShowFilters] = useState(false);
@@ -98,34 +31,47 @@ const SearchPage = () => {
   const updateSearchQuery = useCallback((nextState) => {
     const nextParams = new URLSearchParams();
 
+    if (nextState.query) nextParams.set('query', nextState.query);
     if (nextState.skill) nextParams.set('skill', nextState.skill);
     if (nextState.category) nextParams.set('category', nextState.category);
-    if (nextState.city) nextParams.set('city', nextState.city);
+    if (nextState.city) nextParams.set('location', nextState.city);
     if (nextState.tier) nextParams.set('tier', nextState.tier);
 
     setSearchParams(nextParams, { replace: true });
   }, [setSearchParams]);
 
-  const fetchProviders = useCallback(async (skillVal, cityVal, filtersVal, tierVal, categoryVal = '') => {
+  const fetchProviders = useCallback(async (queryVal, cityVal, filtersVal, tierVal, categoryVal = '') => {
     setLoading(true);
-    const effectiveSearch = skillVal || categoryVal;
-    const resolvedSkill = effectiveSearch ? fuzzyResolveSkill(effectiveSearch) : '';
+    const effectiveSearch = queryVal || categoryVal;
 
     const normalizeList = (list = [], isDummy = false) =>
       list.map((provider, index) => normalizeProviderData(provider, index, { isDummy }));
 
     const buildFallback = () => {
-      const dummy = filterDummyProviders(resolvedSkill || tierVal || categoryVal, cityVal);
+      const dummy = filterDummyProviders(effectiveSearch || tierVal || queryVal, cityVal);
       const providersList = (effectiveSearch || cityVal || tierVal)
         ? dummy
         : (dummy.length > 0 ? dummy : DUMMY_PROVIDERS.slice(0, 9));
 
       setResults({ rotation: [], featured: [], providers: normalizeList(providersList, true), pagination: {} });
+      setSearchMeta({
+        locationMessage: cityVal ? `Showing nearby results for ${cityVal}.` : '',
+        locationLevel: 'fallback',
+      });
     };
 
     try {
-      const { data } = await recruiterAPI.publicSearch({ skill: resolvedSkill, city: cityVal, tier: tierVal, rating: filtersVal.rating, experience: filtersVal.experience, verified: filtersVal.verified });
-      const providers = extractProvidersList(data);
+      const data = await fetchProviderResults({
+        query: queryVal,
+        city: cityVal,
+        location: cityVal,
+        tier: tierVal,
+        rating: filtersVal.rating,
+        experience: filtersVal.experience,
+        verified: filtersVal.verified,
+        limit: 20,
+      });
+      const providers = Array.isArray(data?.providers) ? data.providers : [];
       const rotation = Array.isArray(data?.rotation) ? data.rotation : [];
       const featured = Array.isArray(data?.featured) ? data.featured : [];
       const hasAny = providers.length > 0 || rotation.length > 0 || featured.length > 0;
@@ -133,14 +79,27 @@ const SearchPage = () => {
       if (!hasAny) {
         buildFallback();
       } else {
+        const interpretedSkill = String(data?.intent?.skill || '').trim();
+        const interpretedCity = String(data?.intent?.city || '').trim();
+
+        setInterpretedIntent({
+          skill: interpretedSkill,
+          city: interpretedCity,
+          confidence: Number(data?.intent?.confidence || 0),
+        });
+
+        setSkill(categoryVal || interpretedSkill || queryVal || '');
+        setCity(cityVal || interpretedCity || '');
         setResults({
           rotation: normalizeList(rotation),
           featured: normalizeList(featured),
           providers: normalizeList(providers),
           pagination: data?.pagination || {},
         });
+        setSearchMeta(data?.searchMeta || {});
       }
     } catch {
+      setInterpretedIntent({ skill: '', city: '', confidence: 0 });
       buildFallback();
     } finally {
       setLoading(false);
@@ -148,26 +107,29 @@ const SearchPage = () => {
   }, []);
 
   useEffect(() => {
+    const query = searchParams.get('query') || '';
     const queryCategory = searchParams.get('category') || '';
     const querySkill = searchParams.get('skill') || '';
-    const queryCity = searchParams.get('city') || '';
+    const queryCity = searchParams.get('location') || searchParams.get('city') || '';
     const queryTier = searchParams.get('tier') || '';
-    const resolvedSkill = querySkill || queryCategory;
+    const resolvedSearch = query || querySkill || queryCategory;
 
     setSelectedCategory(queryCategory);
-    setSkill(resolvedSkill);
+    setQueryText(resolvedSearch);
+    setSkill(querySkill || queryCategory || resolvedSearch);
     setCity(queryCity);
     setTierFilter(queryTier);
-    fetchProviders(resolvedSkill, queryCity, filters, queryTier, queryCategory);
+    if (queryCity) localStorage.setItem('servicehub:lastSearchLocation', queryCity);
+    fetchProviders(resolvedSearch, queryCity, filters, queryTier, queryCategory);
   }, [searchParams, fetchProviders]);
 
   // Auto-refresh rotation providers every 60 seconds
   useEffect(() => {
     rotationTimerRef.current = setInterval(() => {
-      fetchProviders(skill, city, filters, tierFilter, selectedCategory);
+      fetchProviders(queryText || skill, city, filters, tierFilter, selectedCategory);
     }, 60000);
     return () => clearInterval(rotationTimerRef.current);
-  }, [skill, city, filters, tierFilter, selectedCategory, fetchProviders]);
+  }, [queryText, skill, city, filters, tierFilter, selectedCategory, fetchProviders]);
 
   const triggerDebounce = (s, c, f, t, categoryVal = '') => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -175,6 +137,7 @@ const SearchPage = () => {
   };
 
   const handleSkillChange = (val) => {
+    setQueryText(val);
     const nextCategory = selectedCategory && val.trim().toLowerCase() === selectedCategory.trim().toLowerCase()
       ? selectedCategory
       : '';
@@ -182,49 +145,53 @@ const SearchPage = () => {
     setSelectedCategory(nextCategory);
     setSkill(val);
     triggerDebounce(val, city, filters, tierFilter, nextCategory);
-    updateSearchQuery({ skill: val, city, tier: tierFilter, category: nextCategory });
+    updateSearchQuery({ query: val, skill: val, city, tier: tierFilter, category: nextCategory });
   };
 
   const handleCityChange = (val) => {
     setCity(val);
-    triggerDebounce(skill, val, filters, tierFilter, selectedCategory);
-    updateSearchQuery({ skill, city: val, tier: tierFilter, category: selectedCategory });
+    localStorage.setItem('servicehub:lastSearchLocation', val);
+    triggerDebounce(queryText || skill, val, filters, tierFilter, selectedCategory);
+    updateSearchQuery({ query: queryText || skill, skill, city: val, tier: tierFilter, category: selectedCategory });
   };
 
   const handleFilterChange = (key, val) => {
     const f = { ...filters, [key]: val };
     setFilters(f);
-    triggerDebounce(skill, city, f, tierFilter, selectedCategory);
+    triggerDebounce(queryText || skill, city, f, tierFilter, selectedCategory);
   };
 
   const handleTierChange = (val) => {
     setTierFilter(val);
-    triggerDebounce(skill, city, filters, val, selectedCategory);
-    updateSearchQuery({ skill, city, tier: val, category: selectedCategory });
+    triggerDebounce(queryText || skill, city, filters, val, selectedCategory);
+    updateSearchQuery({ query: queryText || skill, skill, city, tier: val, category: selectedCategory });
   };
 
   const handlePillClick = (s) => {
     const v = activeSkillPill===s?'':s;
     setActiveSkillPill(v);
     setSelectedCategory(v);
+    setQueryText(v);
     setSkill(v);
     triggerDebounce(v, city, filters, tierFilter, v);
-    updateSearchQuery({ skill: v, city, tier: tierFilter, category: v });
+    updateSearchQuery({ query: v, skill: v, city, tier: tierFilter, category: v });
   };
 
   const clearAll = () => {
+    setQueryText('');
     setSkill('');
     setCity('');
     setFilters({ rating: '', experience: '', verified: '' });
     setTierFilter('');
     setSelectedCategory('');
     setActiveSkillPill('');
-    updateSearchQuery({ skill: '', city: '', tier: '', category: '' });
+    updateSearchQuery({ query: '', skill: '', city: '', tier: '', category: '' });
     fetchProviders('', '', { rating: '', experience: '', verified: '' }, '', '');
   };
 
-  const hasFilters = skill || city || filters.rating || filters.experience || filters.verified || tierFilter;
+  const hasFilters = queryText || skill || city || filters.rating || filters.experience || filters.verified || tierFilter;
   const allProviders = [...(results.rotation||[]), ...(results.featured||[]), ...(results.providers||[])];
+  const searchMessage = searchMeta?.locationMessage || '';
 
   const tiers = [
     {k:'',l:t('search.all')},
@@ -241,7 +208,7 @@ const SearchPage = () => {
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
-              <input value={skill} onChange={(e)=>handleSkillChange(e.target.value)} placeholder={t('search.searchSkillPlaceholder')}
+              <input value={queryText} onChange={(e)=>handleSkillChange(e.target.value)} placeholder={t('search.searchSkillPlaceholder')}
                 className="w-full pl-10 pr-4 py-2.5 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent outline-none text-sm bg-[#faf9f7]" />
             </div>
             <div className="relative flex-1">
@@ -305,7 +272,7 @@ const SearchPage = () => {
         {/* Active chips */}
         {hasFilters && (
           <div className="flex flex-wrap gap-2 mb-5">
-            {skill&&<span className="px-3 py-1 bg-amber-50 text-amber-700 text-xs rounded-full font-medium flex items-center gap-1">{t('search.skill')}: {skill}<button onClick={()=>handleSkillChange('')}><HiX className="w-3 h-3"/></button></span>}
+            {queryText&&<span className="px-3 py-1 bg-amber-50 text-amber-700 text-xs rounded-full font-medium flex items-center gap-1">{t('search.skill')}: {queryText}<button onClick={()=>handleSkillChange('')}><HiX className="w-3 h-3"/></button></span>}
             {city&&<span className="px-3 py-1 bg-amber-50 text-amber-700 text-xs rounded-full font-medium flex items-center gap-1">{t('search.city')}: {city}<button onClick={()=>handleCityChange('')}><HiX className="w-3 h-3"/></button></span>}
             {tierFilter&&<span className="px-3 py-1 bg-stone-100 text-stone-700 text-xs rounded-full font-medium capitalize flex items-center gap-1">{tierFilter.replace('-', ' ')}<button onClick={()=>handleTierChange('')}><HiX className="w-3 h-3"/></button></span>}
             {filters.rating&&<span className="px-3 py-1 bg-amber-50 text-amber-700 text-xs rounded-full font-medium flex items-center gap-1">{filters.rating}+ {t('search.stars')}<button onClick={()=>handleFilterChange('rating', '')}><HiX className="w-3 h-3"/></button></span>}
@@ -315,8 +282,27 @@ const SearchPage = () => {
         {/* Results summary */}
         <div className="text-sm text-stone-500 mb-5">
           <span className="font-semibold text-stone-700">{allProviders.length}</span> {t('search.providersFound')}
-          {(skill||city) && <span> {t('search.for')} <span className="font-medium text-stone-800">{[skill,city].filter(Boolean).join(` ${t('search.in')} `)}</span></span>}
+          {(interpretedIntent.skill || interpretedIntent.city) && (
+            <span> {t('search.for')} <span className="font-medium text-stone-800">{[interpretedIntent.skill || skill, interpretedIntent.city || city].filter(Boolean).join(` ${t('search.in')} `)}</span></span>
+          )}
         </div>
+
+        {(interpretedIntent.skill || interpretedIntent.city) && (
+          <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            <p className="font-medium mb-1">🤖 AI Interpretation</p>
+            <p className="text-xs text-emerald-700">
+              Showing {interpretedIntent.skill || 'service'} results{interpretedIntent.city ? ` in ${interpretedIntent.city}` : ''}.
+              {interpretedIntent.confidence && <span> (Confidence: {Math.round(interpretedIntent.confidence * 100)}%)</span>}
+            </p>
+          </div>
+        )}
+
+        {searchMessage && (
+          <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <p className="font-medium mb-1">📍 Location Info</p>
+            <p className="text-xs text-amber-700">{searchMessage}</p>
+          </div>
+        )}
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -335,7 +321,7 @@ const SearchPage = () => {
                   {t('search.topProviders')} <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">{t('search.rotating')}</span>
                 </h2>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                  {results.rotation.map((p,i)=><ProviderCard key={i} provider={p} badge="rotation" t={t} onClick={()=>navigate(`/provider/${p._id||p.user?._id}`)} />)}
+                  {results.rotation.map((p,i)=><SharedProviderCard key={i} provider={p} badge="rotation" t={t} onClick={()=>navigate(`/provider/${p._id||p.user?._id}`)} />)}
                 </div>
               </div>
             )}
@@ -343,7 +329,7 @@ const SearchPage = () => {
               <div className="mb-8">
                 <h2 className="text-sm font-bold text-stone-700 mb-3 flex items-center gap-2 uppercase tracking-wide">{t('search.featuredProviders')}</h2>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                  {results.featured.map((p,i)=><ProviderCard key={i} provider={p} badge="featured" t={t} onClick={()=>navigate(`/provider/${p._id||p.user?._id}`)} />)}
+                  {results.featured.map((p,i)=><SharedProviderCard key={i} provider={p} badge="featured" t={t} onClick={()=>navigate(`/provider/${p._id||p.user?._id}`)} />)}
                 </div>
               </div>
             )}
@@ -354,7 +340,7 @@ const SearchPage = () => {
                   {results.pagination?.total>0&&<span className="ml-2 text-xs font-normal text-stone-400">({results.pagination.total} {t('search.total')})</span>}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {results.providers.map((p,i)=><ProviderCard key={i} provider={p} t={t} onClick={()=>navigate(`/provider/${p._id||p.user?._id}`)} />)}
+                  {results.providers.map((p,i)=><SharedProviderCard key={i} provider={p} t={t} onClick={()=>navigate(`/provider/${p._id||p.user?._id}`)} />)}
                 </div>
               </>
             ) : (

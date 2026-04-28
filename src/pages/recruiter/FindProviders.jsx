@@ -422,21 +422,35 @@ const FindProviders = () => {
             <HiUsers className="w-12 h-12 mx-auto mb-3 text-gray-300" />
             <p className="font-semibold text-gray-600">No providers found</p>
             <p className="text-sm text-gray-400 mt-1">Try different skill or location keywords</p>
+            {interpreted && (
+              <div className="mt-4 text-left max-w-md mx-auto">
+                <p className="text-xs text-gray-500 font-semibold mb-2">AI interpreted your search as:</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {interpreted.skill && <span className="text-xs px-2 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-700">{interpreted.skill}</span>}
+                  {interpreted.city && <span className="text-xs px-2 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-700">{interpreted.city}</span>}
+                </div>
+              </div>
+            )}
           </div>
         ) : providers.length > 0 ? (
           <>
             {interpreted && (
-              <div className="mb-4 p-3 rounded-xl border border-blue-100 bg-blue-50">
-                <p className="text-xs text-blue-700 font-semibold mb-2">AI interpreted filters</p>
-                <div className="flex flex-wrap gap-2">
-                  {interpreted.skill && <span className="text-xs px-2 py-1 rounded-full bg-white border border-blue-200 text-blue-700">Skill: {interpreted.skill}</span>}
-                  {interpreted.city && <span className="text-xs px-2 py-1 rounded-full bg-white border border-blue-200 text-blue-700">City: {interpreted.city}</span>}
-                  {interpreted.locality && <span className="text-xs px-2 py-1 rounded-full bg-white border border-blue-200 text-blue-700">Locality: {interpreted.locality}</span>}
-                  {typeof interpreted.confidence === 'number' && (
-                    <span className="text-xs px-2 py-1 rounded-full bg-white border border-blue-200 text-blue-700">
-                      Confidence: {Math.round(interpreted.confidence * 100)}%
-                    </span>
-                  )}
+              <div className="mb-4 p-4 rounded-xl border border-emerald-200 bg-emerald-50">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-emerald-900 font-bold mb-2">🤖 AI Interpretation</p>
+                    <p className="text-xs text-emerald-700 mb-3">Your search was interpreted as:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {interpreted.skill && <span className="text-xs px-3 py-1.5 rounded-full bg-white border border-emerald-300 text-emerald-700 font-medium">Service: {interpreted.skill}</span>}
+                      {interpreted.city && <span className="text-xs px-3 py-1.5 rounded-full bg-white border border-emerald-300 text-emerald-700 font-medium">Location: {interpreted.city}</span>}
+                      {interpreted.locality && <span className="text-xs px-3 py-1.5 rounded-full bg-white border border-emerald-300 text-emerald-700 font-medium">Area: {interpreted.locality}</span>}
+                      {typeof interpreted.confidence === 'number' && (
+                        <span className="text-xs px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">
+                          Confidence: {Math.round(interpreted.confidence * 100)}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -456,9 +470,16 @@ const FindProviders = () => {
             )}
 
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-gray-500">
-                {pagination.total ?? providers.length} provider{providers.length !== 1 ? 's' : ''} found
-              </p>
+              <div>
+                <p className="text-sm text-gray-700 font-semibold">
+                  {pagination.total ?? providers.length} provider{providers.length !== 1 ? 's' : ''} found
+                </p>
+                {(interpreted?.skill || interpreted?.city) && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Showing results for <span className="font-medium text-gray-700">{[interpreted?.skill, interpreted?.city].filter(Boolean).join(' in ')}</span>
+                  </p>
+                )}
+              </div>
               <div className="flex items-center gap-3">
                 {providers.length >= 2 && (
                   <button
