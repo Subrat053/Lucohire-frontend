@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   BadgeCheck,
   BadgePercent,
@@ -20,6 +21,7 @@ import {
   getProviderPlans,
   previewPlan,
 } from '../../services/providerPlanService';
+import { useAuth } from '../../context/AuthContext';
 
 const DURATION_OPTIONS = [
   { months: 1, label: '1 Month' },
@@ -72,6 +74,31 @@ const ProviderPlans = () => {
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // =============================================================
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const initials = useMemo(() => {
+    const name = user?.name || 'Provider';
+    return name
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  }, [user]);
+
+  const providerName = user?.name || 'Provider';
+
+  const providerLocation =
+    user?.providerProfile?.city ||
+    user?.profile?.city ||
+    user?.city ||
+    'Noida, UP';
+
+  const providerSubtitle = `Provider • ${providerLocation}`;
+  // ===============================================================
 
   useEffect(() => {
     const loadPlans = async () => {
@@ -189,43 +216,39 @@ const ProviderPlans = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F8FF]">
-      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col gap-6">
-          <div>
-            <h1 className="text-2xl font-bold text-[#06133D]">Choose Your Visibility Plan</h1>
-            <p className="text-sm text-[#64748B] mt-1">Select the perfect plan to boost your visibility and get more leads.</p>
-          </div>
+      <div className="max-w-8xl px-2 lg:grid grid-cols-4 mx-auto gap-3 py-8">
+        <div className='col-span-3'>
 
-          <div className="flex items-center gap-3">
+
+          <div className="flex flex-col gap-6 ">
+            <div>
+              <h1 className="text-2xl font-bold text-[#06133D]">Choose Your Visibility Plan</h1>
+              <p className="text-sm text-[#64748B] mt-1">Select the perfect plan to boost your visibility and get more leads.</p>
+            </div>
+
+            {/* <div className="flex items-center gap-3">
             <div className="flex bg-white border border-[#E8EEF9] rounded-full p-1 shadow-sm">
               <button
                 type="button"
                 onClick={() => setTab('provider')}
-                className={`px-4 py-1.5 text-sm font-semibold rounded-full transition ${
-                  tab === 'provider' ? 'bg-[#005BFF] text-white' : 'text-[#64748B]'
-                }`}
+                className={`px-4 py-1.5 text-sm font-semibold rounded-full transition ${tab === 'provider' ? 'bg-[#005BFF] text-white' : 'text-[#64748B]'
+                  }`}
               >
                 For Providers
               </button>
               <button
                 type="button"
                 onClick={() => setTab('recruiter')}
-                className={`px-4 py-1.5 text-sm font-semibold rounded-full transition ${
-                  tab === 'recruiter' ? 'bg-[#005BFF] text-white' : 'text-[#64748B]'
-                }`}
+                className={`px-4 py-1.5 text-sm font-semibold rounded-full transition ${tab === 'recruiter' ? 'bg-[#005BFF] text-white' : 'text-[#64748B]'
+                  }`}
               >
                 For Recruiters
               </button>
             </div>
-          </div>
+          </div> */}
 
-          {tab === 'recruiter' ? (
-            <div className="bg-white border border-dashed border-[#CBD5F5] rounded-2xl p-8 text-center text-[#64748B]">
-              Recruiter visibility plans are coming soon.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-              <div className="space-y-6">
+            <div className="grid grid-cols-1  ">
+              <div className="space-y-6 ">
                 <div className="bg-[#EEF4FF] border border-[#D6E3FF] rounded-2xl px-5 py-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
@@ -257,9 +280,8 @@ const ProviderPlans = () => {
                       return (
                         <div
                           key={plan._id}
-                          className={`bg-white border rounded-2xl p-4 shadow-sm transition ${
-                            isSelected ? 'border-[#005BFF] ring-2 ring-[#D6E3FF]' : 'border-[#E8EEF9]'
-                          }`}
+                          className={`bg-white border rounded-2xl p-4 shadow-sm transition ${isSelected ? 'border-[#005BFF] ring-2 ring-[#D6E3FF]' : 'border-[#E8EEF9]'
+                            }`}
                         >
                           <div className="flex items-center justify-between mb-3">
                             <div className="w-10 h-10 rounded-xl bg-[#F4F7FF] flex items-center justify-center">
@@ -290,11 +312,10 @@ const ProviderPlans = () => {
                           <button
                             type="button"
                             onClick={() => setSelectedPlan(plan)}
-                            className={`mt-4 w-full text-sm font-semibold px-4 py-2.5 rounded-xl transition ${
-                              isSelected
-                                ? 'bg-[#005BFF] text-white'
-                                : 'border border-[#D6E3FF] text-[#005BFF] hover:bg-[#EEF4FF]'
-                            }`}
+                            className={`mt-4 w-full text-sm font-semibold px-4 py-2.5 rounded-xl transition ${isSelected
+                              ? 'bg-[#005BFF] text-white'
+                              : 'border border-[#D6E3FF] text-[#005BFF] hover:bg-[#EEF4FF]'
+                              }`}
                           >
                             {isSelected ? 'Selected Plan' : 'Select Plan'}
                           </button>
@@ -315,11 +336,10 @@ const ProviderPlans = () => {
                         key={option.months}
                         type="button"
                         onClick={() => setSelectedDuration(option.months)}
-                        className={`border rounded-xl px-3 py-3 text-left transition ${
-                          selectedDuration === option.months
-                            ? 'border-[#005BFF] bg-[#EEF4FF]'
-                            : 'border-[#E8EEF9] hover:border-[#C7DAFF]'
-                        }`}
+                        className={`border rounded-xl px-3 py-3 text-left transition ${selectedDuration === option.months
+                          ? 'border-[#005BFF] bg-[#EEF4FF]'
+                          : 'border-[#E8EEF9] hover:border-[#C7DAFF]'
+                          }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-semibold text-[#06133D]">{option.label}</span>
@@ -380,74 +400,115 @@ const ProviderPlans = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5">
-                  <h3 className="text-sm font-semibold text-[#06133D] mb-4">Your Plan Summary</h3>
-                  {summary ? (
-                    <div className="space-y-3 text-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Plan</span>
-                        <span className="font-semibold text-[#06133D]">{summary.planName}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Plan Type</span>
-                        <span className="font-semibold text-[#06133D]">{summary.planType}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Coverage</span>
-                        <span className="font-semibold text-[#06133D]">{summary.coverage}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Skills</span>
-                        <span className="font-semibold text-[#06133D]">{summary.skills}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Duration</span>
-                        <span className="font-semibold text-[#06133D]">{summary.duration}</span>
-                      </div>
 
-                      <div className="h-px bg-[#EEF2FF]" />
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Subtotal</span>
-                        <span className="font-semibold text-[#06133D]">{formatCurrency(summary.subtotal)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">GST (18%)</span>
-                        <span className="font-semibold text-[#06133D]">{formatCurrency(summary.gstAmount)}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-base">
-                        <span className="font-semibold text-[#06133D]">Total Amount</span>
-                        <span className="font-bold text-[#06133D]">{formatCurrency(summary.totalAmount)}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-[#64748B]">Select a plan to view summary.</div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={handleCheckout}
-                    disabled={!selectedPlan || checkoutLoading}
-                    className="mt-5 w-full bg-[#005BFF] text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-[#0A4EE0] transition disabled:opacity-60"
-                  >
-                    {checkoutLoading ? 'Processing...' : 'Proceed to Payment'}
-                  </button>
+            </div>
+
+
+          </div>
+        </div>
+        <div className="space-y-4 col-span-1">
+          <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5">
+            <div className="flex items-center gap-4">
+              {user?.profilePhoto || user?.avatar ? (
+                <img
+                  src={user.profilePhoto || user.avatar}
+                  alt={providerName}
+                  className="h-16 w-16 rounded-full object-cover border border-[#E5EAF3]"
+                />
+              ) : (
+                <div className="h-16 w-16 rounded-full bg-[#005BFF] flex items-center justify-center text-xl font-bold text-white">
+                  {initials}
+                </div>
+              )}
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-[#06133D] truncate">{providerName}</h3>
+                  <span className="rounded-full bg-[#EEF4FF] px-2 py-0.5 text-[10px] font-semibold text-[#005BFF]">
+                    Profile
+                  </span>
                 </div>
 
-                <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5">
-                  <h4 className="text-sm font-semibold text-[#06133D] mb-3">What you get?</h4>
-                  <ul className="space-y-2 text-xs text-[#64748B]">
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> Top position in entire city</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> More visibility & leads</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> Priority in search results</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> WhatsApp & SMS alerts</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> Cancel or change anytime</li>
-                  </ul>
-                </div>
+                <p className="text-sm text-[#64748B] mt-1 truncate">
+                  {providerSubtitle}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/provider/profile')}
+                  className="mt-2 text-sm font-semibold text-[#005BFF] inline-flex items-center gap-1"
+                >
+                  View Profile <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
-          )}
+          </div>
+          {/* =========================================== */}
+          <div className="bg-white border border-[#E8EEF9] rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-[#06133D] mb-4">Your Plan Summary</h3>
+            {summary ? (
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#64748B]">Plan</span>
+                  <span className="font-semibold text-[#06133D]">{summary.planName}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#64748B]">Plan Type</span>
+                  <span className="font-semibold text-[#06133D]">{summary.planType}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#64748B]">Coverage</span>
+                  <span className="font-semibold text-[#06133D]">{summary.coverage}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#64748B]">Skills</span>
+                  <span className="font-semibold text-[#06133D]">{summary.skills}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#64748B]">Duration</span>
+                  <span className="font-semibold text-[#06133D]">{summary.duration}</span>
+                </div>
+
+                <div className="h-px bg-[#EEF2FF]" />
+                <div className="flex items-center justify-between">
+                  <span className="text-[#64748B]">Subtotal</span>
+                  <span className="font-semibold text-[#06133D]">{formatCurrency(summary.subtotal)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#64748B]">GST (18%)</span>
+                  <span className="font-semibold text-[#06133D]">{formatCurrency(summary.gstAmount)}</span>
+                </div>
+                <div className="flex items-center justify-between text-base">
+                  <span className="font-semibold text-[#06133D]">Total Amount</span>
+                  <span className="font-bold text-[#06133D]">{formatCurrency(summary.totalAmount)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm text-[#64748B]">Select a plan to view summary.</div>
+            )}
+            <button
+              type="button"
+              onClick={handleCheckout}
+              disabled={!selectedPlan || checkoutLoading}
+              className="mt-5 w-full bg-[#005BFF] text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-[#0A4EE0] transition disabled:opacity-60"
+            >
+              {checkoutLoading ? 'Processing...' : 'Proceed to Payment'}
+            </button>
+          </div>
+
+          <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5">
+            <h4 className="text-sm font-semibold text-[#06133D] mb-3">What you get?</h4>
+            <ul className="space-y-2 text-xs text-[#64748B]">
+              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> Top position in entire city</li>
+              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> More visibility & leads</li>
+              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> Priority in search results</li>
+              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> WhatsApp & SMS alerts</li>
+              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> Cancel or change anytime</li>
+            </ul>
+          </div>
         </div>
       </div>
+
     </div>
   );
 };
