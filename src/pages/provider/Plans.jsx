@@ -189,7 +189,7 @@ const ProviderPlans = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F8FF]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col gap-6">
           <div>
             <h1 className="text-2xl font-bold text-[#06133D]">Choose Your Visibility Plan</h1>
@@ -247,7 +247,7 @@ const ProviderPlans = () => {
                     No plans available right now.
                   </div>
                 ) : (
-                  <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-4">
                     {plans.map((plan) => {
                       const Icon = planIconMap[plan.slug] || BadgeCheck;
                       const isSelected = selectedPlan?._id === plan._id;
