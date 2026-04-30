@@ -27,6 +27,10 @@ export const AuthProvider = ({ children }) => {
       roles,
       activeRole,
       role: activeRole,
+      approvalStatus: rawUser.approvalStatus || 'pending',
+      roleIntent: rawUser.roleIntent || (roles.includes('provider') && roles.includes('recruiter') ? 'both' : roles[0] || 'provider'),
+      panelAccess: rawUser.panelAccess || { provider: { enabled: false, source: 'none' }, recruiter: { enabled: false, source: 'none' } },
+      activePanel: rawUser.activePanel || activeRole || null,
     };
   };
 
@@ -98,6 +102,21 @@ export const AuthProvider = ({ children }) => {
     return { user: normalizedUser, profile: meData.profile || null };
   };
 
+  const switchPanel = async (nextPanel) => {
+    const { data } = await authAPI.switchPanel({ panel: nextPanel });
+    const token = data.token || localStorage.getItem('token');
+
+    if (token) localStorage.setItem('token', token);
+    const { data: meData } = await authAPI.getMe();
+    const normalizedUser = normalizeUser(meData.user);
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
+    setUser(normalizedUser);
+    setProfile(meData.profile || null);
+    setIsAuthenticated(true);
+
+    return { user: normalizedUser, profile: meData.profile || null };
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -114,6 +133,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     switchRole,
+    switchPanel,
     fetchUser,
     setProfile,
     showWhatsAppPrompt,

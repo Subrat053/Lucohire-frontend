@@ -9,7 +9,7 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import { HiX, HiSearch, HiPlus, HiChevronDown } from 'react-icons/hi';
-import { skillsAPI } from '../../services/api';
+import { categoriesAPI } from '../../services/api';
 import { SKILL_CATEGORIES } from '../../data/skillsData';
 
 const TIER_LABELS = {
@@ -33,7 +33,7 @@ const SkillPicker = ({
 
   // Fetch from 'backend'; fall back to static data
   useEffect(() => {
-    skillsAPI.getCategories()
+    categoriesAPI.getCategories({ isActive: true })
       .then(({ data }) => {
         if (Array.isArray(data) && data.length > 0) setCategories(data);
         else setCategories(SKILL_CATEGORIES);

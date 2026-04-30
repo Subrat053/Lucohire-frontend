@@ -7,6 +7,8 @@ const API = axios.create({
   timeout: 15000,
 });
 
+export { API };
+
 // Request interceptor to add JWT token
 API.interceptors.request.use(
   (config) => {
@@ -65,6 +67,7 @@ export const authAPI = {
   whatsappVerifyOtp: (data) => API.post('/auth/whatsapp/verify-otp', data),
   getMe: () => API.get('/auth/me'),
   switchRole: (data) => API.post('/auth/switch-role', data),
+  switchPanel: (data) => API.patch('/auth/switch-panel', data),
   sendEmailVerification: () => API.post('/auth/verify-email/send'),
   confirmEmailVerification: (data) => API.post('/auth/verify-email/confirm', data),
   updateWhatsappNumber: (data) => API.put('/auth/whatsapp-number', data),
@@ -116,10 +119,28 @@ export const recruiterAPI = {
   uploadProfilePhoto: (formData) => API.post('/recruiter/profile/photo', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   deleteProfilePhoto: () => API.delete('/recruiter/profile/photo'),
   getHistory: () => API.get('/recruiter/history'),
+
+  // =================================================================
+  getJobPostings: () => API.get('/recruiter/job-postings'),
+
+createJobPosting: (data) => API.post('/recruiter/job-postings', data),
+
+aiSearchCandidates: (params) => API.get('/recruiter/ai-search', { params }),
+
+addCandidateToJob: (jobId, candidateId) =>
+  API.post(`/recruiter/job-postings/${jobId}/candidates`, { candidateId }),
+
+getRecruiterPlans: () => API.get('/recruiter/plans'),
+
+getRecruiterPlanSummary: () => API.get('/recruiter/plan-summary'),
+
+purchaseRecruiterPlan: (planId) =>
+  API.post('/recruiter/plans/purchase', { planId }),
+// ==================================================================
 };
 
 // Skills / Categories APIs (public - no auth needed)
-export const skillsAPI = {
+export const categoriesAPI = {
   getCategories: () => API.get('/skills'),
 };
 
@@ -149,6 +170,8 @@ export const adminAPI = {
   getRotationPools: () => API.get('/admin/rotation-pools'),
   updateRotationPool: (id, data) => API.put(`/admin/rotation-pools/${id}`, data),
   getPayments: (params) => API.get('/admin/payments', { params }),
+  getProviderSubscriptions: (params) => API.get('/admin/provider-subscriptions', { params }),
+  updateProviderSubscriptionStatus: (id, data) => API.patch(`/admin/provider-subscriptions/${id}/status`, data),
   getJobs: () => API.get('/admin/jobs'),
   uploadProfilePhoto: (formData) => API.post('/admin/profile/photo', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   getProfilePhoto: () => API.get('/admin/profile/photo'),
@@ -170,6 +193,7 @@ export const adminAPI = {
   createSkillCategory: (data) => API.post('/admin/skills', data),
   updateSkillCategory: (id, data) => API.put(`/admin/skills/${id}`, data),
   deleteSkillCategory: (id) => API.delete(`/admin/skills/${id}`),
+  updateSkillCategoryStatus: (id, data) => API.patch(`/admin/skills/${id}/status`, data),
   addSkillToCategory: (id, data) => API.post(`/admin/skills/${id}/skills`, data),
   removeSkillFromCategory: (id, skillId) => API.delete(`/admin/skills/${id}/skills/${skillId}`),
   getAIMatchWeights: () => API.get('/admin/ai/match-weights'),

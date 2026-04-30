@@ -274,7 +274,7 @@ const TextInput = ({ icon: Icon, name, type = 'text', value, onChange, placehold
 
 const RolePicker = ({ roles, setRoles, activeRole, setActiveRole, accent = 'blue' }) => (
   <div>
-    <p className="text-xs font-medium text-gray-500 mb-2">Select roles (optional)</p>
+    <p className="text-xs font-medium text-gray-500 mb-2">I want to register as</p>
     <div className="grid grid-cols-2 gap-3">
       {[{ v: 'provider', e: '🛠️', l: 'Service Provider' }, { v: 'recruiter', e: '💼', l: 'Recruiter' }].map(({ v, e, l }) => (
         <button

@@ -127,6 +127,11 @@ export const normalizeProviderData = (provider = {}, index = 0, options = {}) =>
     languages: asArray(provider.languages),
     profileViews: asNumber(provider.profileViews, 0),
     portfolioLinks: asArray(provider.portfolioLinks),
+    planName: provider.planName || provider.plan?.name || '',
+    visibilityLevel: provider.visibilityLevel || '',
+    isBoosted: Boolean(provider.isBoosted),
+    boostedUntil: provider.boostedUntil || null,
+    planBadge: provider.planBadge || '',
   };
 
   return normalized;

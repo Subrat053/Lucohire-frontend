@@ -17,13 +17,17 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   if (!isAuthenticated) return <Navigate to="/" replace />;
   const activeRole = user?.activeRole || user?.role;
 
-  if (
-    (activeRole === 'provider' || activeRole === 'recruiter')
-    && profile
-    && profile.isApproved === false
-    && location.pathname !== '/pending-approval'
-  ) {
-    return <Navigate to="/pending-approval" replace />;
+  if (activeRole === 'provider' || activeRole === 'recruiter') {
+    if (user?.approvalStatus && user.approvalStatus !== 'approved' && location.pathname !== '/pending-approval') {
+      return <Navigate to="/pending-approval" replace />;
+    }
+
+    const needsProviderPlan = activeRole === 'provider' && user?.panelAccess?.provider?.enabled !== true;
+    const needsRecruiterPlan = activeRole === 'recruiter' && user?.panelAccess?.recruiter?.enabled !== true;
+    if (user?.approvalStatus === 'approved' && (needsProviderPlan || needsRecruiterPlan)) {
+      const target = needsProviderPlan ? '/provider/plans' : '/recruiter/plans';
+      if (location.pathname !== target) return <Navigate to={target} replace />;
+    }
   }
 
   if (allowedRoles && !allowedRoles.includes(activeRole)) {

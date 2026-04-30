@@ -12,7 +12,7 @@ const navItems = [
   { label: 'Messages',       path: '/provider/contacted',      icon: HiMail },
   { label: 'Leads',          path: '/provider/leads',          icon: HiUsers },
   { label: 'History',        path: '/provider/history',        icon: HiClock },
-  { label: 'Plans',          path: '/provider/plans',          icon: HiPhone },
+  { label: 'My Plan',        path: '/provider/plans',          icon: HiPhone },
   { label: 'Profile',        path: '/provider/profile',        icon: HiCog },
 ];
 

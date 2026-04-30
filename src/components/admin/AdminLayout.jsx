@@ -16,6 +16,7 @@ const navItems = [
   { labelKey: 'admin.navSkills',     path: '/admin/skills',      icon: HiCollection },
   { labelKey: 'admin.navPlans',      path: '/admin/plans',       icon: HiCurrencyRupee },
   { labelKey: 'admin.navPayments',   path: '/admin/payments',    icon: HiCreditCard },
+  { labelKey: 'Provider Subscriptions', path: '/admin/provider-subscriptions', icon: HiDocumentText },
   { labelKey: 'admin.navWhatsapp',   path: '/admin/whatsapp',    icon: FaWhatsapp },
   { labelKey: 'admin.navCurrency',   path: '/admin/currency',    icon: HiGlobe },
   { labelKey: 'AI Ops',              path: '/admin/ai',          icon: HiCog, adminOnly: true },

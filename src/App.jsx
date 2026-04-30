@@ -35,6 +35,16 @@ import RecruiterFindProviders from "./pages/recruiter/FindProviders";
 import RecruiterApplications from "./pages/recruiter/Applications";
 import PendingApproval from "./pages/PendingApproval";
 
+// =======================================================================
+
+import RecruiterJobPostings from "./pages/recruiter/JobPostings";
+import RecruiterShortlistedCandidates from "./pages/recruiter/ShortlistedCandidates";
+import RecruiterSavedCandidates from "./pages/recruiter/SavedCandidates";
+import RecruiterSearchHistory from "./pages/recruiter/SearchHistory";
+import RecruiterTransactions from "./pages/recruiter/Transactions";
+import RecruiterSettings from "./pages/recruiter/Settings";
+// =======================================================================
+
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
 import AdminProviders from "./pages/admin/Providers";
@@ -44,6 +54,7 @@ import AdminSettings from "./pages/admin/Settings";
 import AdminTerms from "./pages/admin/Terms";
 import AdminPrivacy from "./pages/admin/Privacy";
 import AdminPayments from "./pages/admin/Payments";
+import AdminProviderSubscriptions from "./pages/admin/ProviderSubscriptions";
 import AdminSkills from "./pages/admin/Skills";
 import AdminWhatsApp from "./pages/admin/WhatsApp";
 import AdminCurrency from "./pages/admin/Currency";
@@ -86,7 +97,7 @@ function App() {
       )}
       <Routes>
         {/* Auth pages - full screen, no Navbar/Footer */}
-        <Route path="/login"  element={<AuthPage />} />
+        <Route path="/login" element={<AuthPage />} />
         <Route path="/signup" element={<AuthPage />} />
 
         {/* Public Routes */}
@@ -190,7 +201,68 @@ function App() {
             <PendingApproval />
           </ProtectedRoute>
         )} />
+        {/* =============================================================================== */}
 
+        <Route path="/recruiter/job-postings" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><RecruiterJobPostings /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
+
+        <Route path="/recruiter/interested-candidates" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><RecruiterApplications /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
+
+        <Route path="/recruiter/ai-smart-search" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><RecruiterFindProviders /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
+
+        <Route path="/recruiter/shortlisted-candidates" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><RecruiterShortlistedCandidates /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
+
+        <Route path="/recruiter/saved-candidates" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><RecruiterSavedCandidates /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
+
+        <Route path="/recruiter/search-history" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><RecruiterSearchHistory /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
+
+        <Route path="/recruiter/plans-billing" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><RecruiterPlans /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
+
+        <Route path="/recruiter/transactions" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><RecruiterTransactions /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
+
+        <Route path="/recruiter/company-profile" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><RecruiterProfile /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
+
+        <Route path="/recruiter/settings" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><RecruiterSettings /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
+        {/* =============================================================================== */}
         {/* Admin Routes */}
         <Route path="/admin/dashboard" element={wrap(
           <ProtectedRoute allowedRoles={["admin"]}>
@@ -240,6 +312,11 @@ function App() {
         <Route path="/admin/payments" element={wrap(
           <ProtectedRoute allowedRoles={["admin"]}>
             <AdminLayout><AdminPayments /></AdminLayout>
+          </ProtectedRoute>
+        )} />
+        <Route path="/admin/provider-subscriptions" element={wrap(
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminLayout><AdminProviderSubscriptions /></AdminLayout>
           </ProtectedRoute>
         )} />
         <Route path="/admin/terms" element={wrap(

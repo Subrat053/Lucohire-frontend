@@ -30,6 +30,16 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
   const skills = Array.isArray(provider.skills) ? provider.skills : [];
   const ratePerHour = provider.ratePerHour || provider.rate || 0;
   const available = provider.isAvailable !== false;
+  const planBadge = provider.planBadge || (provider.isBoosted ? 'Boosted' : '');
+  const visibilityLevel = provider.visibilityLevel || '';
+  const badgeStyleByLevel = {
+    country_top: 'bg-[#E6F2FF] text-[#0B6BFF] border border-[#CFE2FF]',
+    city_top: 'bg-[#EAF7F0] text-[#16A34A] border border-[#CDEEDB]',
+    pincode_top: 'bg-[#FFF4E6] text-[#D97706] border border-[#FAD7A0]',
+    custom: 'bg-[#F3F4F6] text-[#374151] border border-[#E5E7EB]',
+    basic: 'bg-[#F3F4F6] text-[#374151] border border-[#E5E7EB]',
+  };
+  const planBadgeStyle = badgeStyleByLevel[visibilityLevel] || 'bg-[#E6F2FF] text-[#0B6BFF] border border-[#CFE2FF]';
 
   if (variant === 'landing') {
     return (
@@ -119,6 +129,11 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
       {badge && (
         <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold mb-3 ${badge==='rotation'?'bg-amber-100 text-amber-700':'bg-indigo-100 text-indigo-700'}`}>
           {badge==='rotation' ? t('search.topProvider') : t('search.featured')}
+        </div>
+      )}
+      {planBadge && (
+        <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold mb-3 ${planBadgeStyle}`}>
+          {planBadge}
         </div>
       )}
       <div className="flex items-start justify-between mb-3">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HiPlus, HiPencil, HiTrash, HiX, HiCheck, HiChevronDown, HiChevronRight } from 'react-icons/hi';
+import { HiPlus, HiPencil, HiTrash, HiX, HiCheck, HiChevronDown, HiChevronRight, HiEye, HiEyeOff } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -23,11 +23,34 @@ const ConfirmModal = ({ message, onConfirm, onCancel }) => (
   </div>
 );
 
+const ToggleStatusModal = ({ category, onConfirm, onCancel }) => {
+  const [reason, setReason] = useState('');
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-2xl shadow-xl p-6 w-96 mx-4">
+        <h3 className="text-lg font-bold text-stone-800 mb-3">Deactivate Category</h3>
+        <p className="text-stone-600 text-sm mb-4">Are you sure you want to deactivate "{category.name}"? Providers will not be able to select this category.</p>
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Reason for deactivation (optional)"
+          className="w-full px-3 py-2 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-400 outline-none mb-5 h-20 resize-none"
+        />
+        <div className="flex gap-3">
+          <button onClick={onCancel} className="flex-1 border border-stone-200 text-stone-600 py-2 rounded-xl text-sm hover:bg-stone-50 transition">Cancel</button>
+          <button onClick={() => onConfirm(reason)} className="flex-1 bg-amber-500 text-white py-2 rounded-xl text-sm hover:bg-amber-600 transition">Deactivate</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AdminSkills = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});       // { catId: bool }
   const [confirm, setConfirm] = useState(null);       // { type, payload }
+  const [toggleModal, setToggleModal] = useState(null); // category to deactivate
 
   // ?"??"? Category form state
   const [catForm, setCatForm] = useState({ name: '', tier: 'unskilled', icon: '⭐', sortOrder: 0 });
@@ -107,6 +130,18 @@ const AdminSkills = () => {
     });
   };
 
+  const handleToggleCategoryStatus = async (cat, reason = '') => {
+    try {
+      const isActive = cat.isActive === false ? true : false;
+      await adminAPI.updateSkillCategoryStatus(cat._id, { isActive, reason });
+      toast.success(`Category ${isActive ? 'activated' : 'deactivated'}`);
+      setToggleModal(null);
+      fetchCategories();
+    } catch (err) {
+      toast.error('Failed to update category status');
+    }
+  };
+
   // ?"??"? Skill CRUD within category ?"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"?
   const addSkill = async (catId) => {
     const name = (newSkillInputs[catId] || '').trim();
@@ -167,6 +202,13 @@ const AdminSkills = () => {
           message={confirm.message}
           onConfirm={confirm.onConfirm}
           onCancel={() => setConfirm(null)}
+        />
+      )}
+      {toggleModal && (
+        <ToggleStatusModal
+          category={toggleModal}
+          onConfirm={(reason) => handleToggleCategoryStatus(toggleModal, reason)}
+          onCancel={() => setToggleModal(null)}
         />
       )}
 
@@ -260,7 +302,7 @@ const AdminSkills = () => {
                 const activeCount = cat.skills?.filter((s) => s.isActive !== false).length || 0;
 
                 return (
-                  <div key={cat._id} className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm">
+                  <div key={cat._id} className={`bg-white border rounded-2xl overflow-hidden shadow-sm ${cat.isActive === false ? 'border-red-200 bg-red-50' : 'border-stone-200'}`}>
                     {/* Category header row */}
                     <div className="flex items-center gap-3 px-4 py-3">
                       <button type="button" onClick={() => toggleExpand(cat._id)} className="text-stone-400 hover:text-stone-700 shrink-0">
@@ -286,8 +328,11 @@ const AdminSkills = () => {
                         <div className="flex-1 flex items-center gap-3">
                           <span className="text-xl">{cat.icon}</span>
                           <div>
-                            <span className="font-semibold text-stone-800 text-sm">{cat.name}</span>
+                            <span className={`font-semibold text-sm ${cat.isActive === false ? 'text-red-700 line-through' : 'text-stone-800'}`}>{cat.name}</span>
                             <span className="text-xs text-stone-400 ml-2">({activeCount} skills)</span>
+                            {cat.isActive === false && (
+                              <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full ml-2 font-bold uppercase">Inactive</span>
+                            )}
                           </div>
                         </div>
                       )}
@@ -305,6 +350,12 @@ const AdminSkills = () => {
                           </>
                         ) : (
                           <>
+                            <button onClick={() => {
+                              if (cat.isActive === false) handleToggleCategoryStatus(cat);
+                              else setToggleModal(cat);
+                            }} title={cat.isActive === false ? 'Activate' : 'Deactivate'} className={`p-1.5 rounded-lg transition ${cat.isActive === false ? 'hover:bg-green-50 text-green-500' : 'hover:bg-amber-50 text-stone-400 hover:text-amber-500'}`}>
+                              {cat.isActive === false ? <HiEye className="w-4 h-4" /> : <HiEyeOff className="w-4 h-4" />}
+                            </button>
                             <button onClick={() => startEditCat(cat)} title="Edit" className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition">
                               <HiPencil className="w-4 h-4" />
                             </button>

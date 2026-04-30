@@ -170,7 +170,7 @@ const RecruiterPlans = () => {
   const currentPlanSortOrder = Number(currentPlanMeta?.sortOrder ?? PLAN_RANK[normalizedCurrentPlan] ?? 0);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
+    <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="bg-white rounded-3xl shadow-lg p-8">
         <button onClick={() => navigate(-1)} className="mb-6 flex items-center gap-2 text-blue-600 hover:underline">
           <HiArrowLeft className="w-5 h-5" /> Back
