@@ -84,14 +84,56 @@ const AdminRecruiters = () => {
     fetchRecruiters();
   };
 
-  const handleApprove = async (id, approve) => {
+  // console.log("SELECTED RECRUITER:", recruiter);
+  // console.log("recruiter._id:", recruiter?._id);
+  // console.log("recruiter.user:", recruiter?.user);
+  // console.log("recruiter.user._id:", recruiter?.user?._id);
+
+  const getUserIdForApproval = (item) => {
+    if (item?.user && typeof item.user === "object" && item.user._id) {
+      return item.user._id;
+    }
+
+    if (item?.user && typeof item.user === "string") {
+      return item.user;
+    }
+
+    // Only use item._id if this is fallback user data, not profile data
+    if (item?.isFallbackUser && item?._id) {
+      return item._id;
+    }
+
+    return null;
+  };
+
+  const handleApprove = async (recruiter, approve) => {
+    const userId = getUserIdForApproval(recruiter);
+
+    console.log("APPROVAL PAYLOAD:", {
+      itemId: recruiter?._id,
+      user: recruiter?.user,
+      finalUserId: userId,
+    });
+
+    if (!userId) {
+      toast.error("User ID missing. Cannot approve.");
+      return;
+    }
+
     try {
-      await adminAPI.approveRecruiter(id, { approved: approve });
-      toast.success(approve ? 'Recruiter approved' : 'Recruiter rejected');
+      if (approve) {
+        await adminAPI.approveUser(userId);
+        toast.success("User approved for both panels");
+      } else {
+        await adminAPI.rejectUser(userId, "Rejected by admin");
+        toast.success("User rejected");
+      }
+
       fetchRecruiters();
       setSelectedRecruiter(null);
-    } catch (_) {
-      toast.error('Action failed');
+    } catch (err) {
+      console.error("Approval error:", err.response?.data || err);
+      toast.error(err.response?.data?.message || "Action failed");
     }
   };
 
@@ -150,8 +192,7 @@ const AdminRecruiters = () => {
             ) : (
               <div className="divide-y divide-gray-50">
                 {recruiters.map((r) => (
-                  <div key={r._id} className={`p-4 flex items-center justify-between hover:bg-gray-50 transition cursor-pointer ${
-                    selectedRecruiter?._id === r._id ? 'bg-blue-50' : ''}`} onClick={() => setSelectedRecruiter(r)}>
+                  <div key={r._id} className={`p-4 flex items-center justify-between hover:bg-gray-50 transition cursor-pointer ${selectedRecruiter?._id === r._id ? 'bg-blue-50' : ''}`} onClick={() => setSelectedRecruiter(r)}>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-linear-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                         {(r.user?.name || r.companyName || '?').charAt(0).toUpperCase()}
@@ -162,9 +203,8 @@ const AdminRecruiters = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        r.isApproved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                      }`}>{r.isApproved ? 'Approved' : 'Pending'}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${r.isApproved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}>{r.isApproved ? 'Approved' : 'Pending'}</span>
                       <HiEye className="w-5 h-5 text-gray-400" />
                     </div>
                   </div>
@@ -205,24 +245,22 @@ const AdminRecruiters = () => {
                 {!selectedRecruiter.isApproved && (
                   <button
                     disabled={selectedRecruiter.isFallbackUser}
-                    onClick={() => handleApprove(selectedRecruiter._id, true)}
-                    className={`flex-1 flex items-center justify-center gap-1 px-4 py-2.5 rounded-xl transition font-medium ${
-                      selectedRecruiter.isFallbackUser
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-green-600 text-white hover:bg-green-700'
-                    }`}
+                    onClick={() => handleApprove(selectedRecruiter, true)}
+                    className={`flex-1 flex items-center justify-center gap-1 px-4 py-2.5 rounded-xl transition font-medium ${selectedRecruiter.isFallbackUser
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-green-600 text-white hover:bg-green-700'
+                      }`}
                   >
                     <HiCheckCircle className="w-5 h-5" /> Approve
                   </button>
                 )}
                 <button
                   disabled={selectedRecruiter.isFallbackUser}
-                  onClick={() => handleApprove(selectedRecruiter._id, false)}
-                  className={`flex-1 flex items-center justify-center gap-1 px-4 py-2.5 rounded-xl transition font-medium ${
-                    selectedRecruiter.isFallbackUser
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-red-50 text-red-700 hover:bg-red-100'
-                  }`}
+                  onClick={() => handleApprove(selectedRecruiter, false)}
+                  className={`flex-1 flex items-center justify-center gap-1 px-4 py-2.5 rounded-xl transition font-medium ${selectedRecruiter.isFallbackUser
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-red-50 text-red-700 hover:bg-red-100'
+                    }`}
                 >
                   <HiXCircle className="w-5 h-5" /> Reject
                 </button>
@@ -230,11 +268,10 @@ const AdminRecruiters = () => {
               <button
                 disabled={selectedRecruiter.isFallbackUser}
                 onClick={() => handleDelete(selectedRecruiter._id, selectedRecruiter.user?.name || 'this recruiter')}
-                className={`w-full flex items-center justify-center gap-1 px-4 py-2.5 rounded-xl transition font-medium ${
-                  selectedRecruiter.isFallbackUser
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-red-600 text-white hover:bg-red-700'
-                }`}
+                className={`w-full flex items-center justify-center gap-1 px-4 py-2.5 rounded-xl transition font-medium ${selectedRecruiter.isFallbackUser
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-red-600 text-white hover:bg-red-700'
+                  }`}
               >
                 <HiTrash className="w-5 h-5" /> Delete Recruiter
               </button>

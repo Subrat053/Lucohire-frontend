@@ -155,10 +155,10 @@ export const adminAPI = {
   getApprovalLogs: (params) => API.get('/admin/approval-logs', { params }),
   toggleBlockUser: (id) => API.put(`/admin/users/${id}/block`),
   deleteUser: (id) => API.delete(`/admin/users/${id}`),
-  approveProvider: (id, data) => API.put(`/admin/providers/${id}/approve`, data),
+  // approveProvider: (id, data) => API.put(`/admin/providers/${id}/approve`, data),
   deleteProvider: (id) => API.delete(`/admin/providers/${id}`),
   getProviders: (params) => API.get('/admin/providers', { params }),
-  approveRecruiter: (id, data) => API.put(`/admin/recruiters/${id}/approve`, data),
+  // approveRecruiter: (id, data) => API.put(`/admin/recruiters/${id}/approve`, data),
   deleteRecruiter: (id) => API.delete(`/admin/recruiters/${id}`),
   getRecruiters: (params) => API.get('/admin/recruiters', { params }),
   getPlans: () => API.get('/admin/plans'),
@@ -212,6 +212,16 @@ export const adminAPI = {
   updateOcrReviewDecision: (id, data) => API.put(`/admin/ai/ocr-review-queue/${id}`, data),
   getAIUsageDashboard: () => API.get('/admin/ai/usage-dashboard'),
   getDemandSnapshots: () => API.get('/admin/ai/demand-snapshots'),
+  // =================================================================
+  approveUser: (userId) => API.patch(`/admin/users/${userId}/approve`),
+
+rejectUser: (userId, reason = "") =>
+  API.patch(`/admin/users/${userId}/reject`, { reason }),
+
+approveProvider: (userId) => API.patch(`/admin/users/${userId}/approve`),
+
+approveRecruiter: (userId) => API.patch(`/admin/users/${userId}/approve`),
+// =================================================================
 };
 
 export const searchAPI = {

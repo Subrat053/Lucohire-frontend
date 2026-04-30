@@ -33,14 +33,34 @@ const AdminProviders = () => {
     fetchProviders();
   };
 
-  const handleApprove = async (id, approve) => {
+  const getUserIdForApproval = (item) => {
+    if (item?.user?._id) return item.user._id;
+    if (typeof item?.user === 'string') return item.user;
+    return null;
+  };
+
+  const handleApprove = async (provider, approve) => {
+    const userId = getUserIdForApproval(provider);
+
+    if (!userId) {
+      console.log('Provider approval item:', provider);
+      toast.error('User ID missing. Cannot approve this provider.');
+      return;
+    }
+
     try {
-      await adminAPI.approveProvider(id, { approved: approve });
-      toast.success(approve ? 'Provider approved' : 'Provider rejected');
+      if (approve) {
+        await adminAPI.approveUser(userId);
+        toast.success('User approved for all eligible panels');
+      } else {
+        await adminAPI.rejectUser(userId, 'Rejected by admin');
+        toast.success('User rejected');
+      }
+
       fetchProviders();
       setSelectedProvider(null);
     } catch (err) {
-      toast.error('Action failed');
+      toast.error(err.response?.data?.message || 'Action failed');
     }
   };
 
@@ -101,8 +121,7 @@ const AdminProviders = () => {
             ) : (
               <div className="divide-y divide-gray-50">
                 {providers.map((p) => (
-                  <div key={p._id} className={`p-4 flex items-center justify-between hover:bg-gray-50 transition cursor-pointer ${
-                    selectedProvider?._id === p._id ? 'bg-blue-50' : ''}`} onClick={() => setSelectedProvider(p)}>
+                  <div key={p._id} className={`p-4 flex items-center justify-between hover:bg-gray-50 transition cursor-pointer ${selectedProvider?._id === p._id ? 'bg-blue-50' : ''}`} onClick={() => setSelectedProvider(p)}>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-linear-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                         {(p.user?.name || p.headline || '?').charAt(0).toUpperCase()}
@@ -113,9 +132,8 @@ const AdminProviders = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        p.isApproved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                      }`}>{p.isApproved ? 'Approved' : 'Pending'}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${p.isApproved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}>{p.isApproved ? 'Approved' : 'Pending'}</span>
                       <HiEye className="w-5 h-5 text-gray-400" />
                     </div>
                   </div>
@@ -170,14 +188,14 @@ const AdminProviders = () => {
               <div className="flex gap-2">
                 {!selectedProvider.isApproved && (
                   <button
-                    onClick={() => handleApprove(selectedProvider._id, true)}
+                    onClick={() => handleApprove(selectedProvider, true)}
                     className="flex-1 flex items-center justify-center gap-1 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition font-medium"
                   >
                     <HiCheckCircle className="w-5 h-5" /> Approve
                   </button>
                 )}
                 <button
-                  onClick={() => handleApprove(selectedProvider._id, false)}
+                  onClick={() => handleApprove(selectedProvider, false)}
                   className="flex-1 flex items-center justify-center gap-1 px-4 py-2.5 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition font-medium"
                 >
                   <HiXCircle className="w-5 h-5" /> Reject
