@@ -34,6 +34,7 @@ API.interceptors.response.use(
       "/auth/google",
       "/auth/whatsapp/send-otp",
       "/auth/whatsapp/verify-otp",
+      "/auth/otp-login",
     ];
     const isAuthPublicRequest = authPublicEndpoints.some((endpoint) =>
       requestUrl.includes(endpoint),
@@ -80,6 +81,7 @@ export const authAPI = {
   updateWhatsappNumber: (data) => API.put("/auth/whatsapp-number", data),
   updateLocale: (data) => API.put("/auth/locale", data),
   toggleWhatsappAlerts: (data) => API.put("/auth/whatsapp-alerts", data),
+  firebaseOtpLogin: (data) => API.post("/auth/otp-login", data),
 };
 
 export const userAPI = {
