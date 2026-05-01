@@ -49,6 +49,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
 import AdminProviders from "./pages/admin/Providers";
 import AdminRecruiters from "./pages/admin/Recruiters";
+import ProfilePhotoApprovals from "./pages/admin/ProfilePhotoApprovals";
 import AdminPlans from "./pages/admin/Plans";
 import AdminSettings from "./pages/admin/Settings";
 import AdminTerms from "./pages/admin/Terms";
@@ -347,6 +348,11 @@ function App() {
         <Route path="/admin/ai" element={wrap(
           <ProtectedRoute allowedRoles={["admin"]}>
             <AdminLayout><AdminAIOps /></AdminLayout>
+          </ProtectedRoute>
+        )} />
+        <Route path="/admin/profile-photo-approvals" element={wrap(
+          <ProtectedRoute allowedRoles={["admin", "manager"]}>
+            <AdminLayout><ProfilePhotoApprovals /></AdminLayout>
           </ProtectedRoute>
         )} />
 

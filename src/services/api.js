@@ -40,17 +40,6 @@ API.interceptors.response.use(
       requestUrl.includes(endpoint),
     );
 
-    if (
-      error.response?.status === 403 &&
-      error.response?.data?.approvalRequired
-    ) {
-      const currentPath = window.location.pathname;
-      if (currentPath !== "/pending-approval") {
-        window.location.href = "/pending-approval";
-      }
-      return Promise.reject(error);
-    }
-
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
@@ -204,6 +193,11 @@ export const adminAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
   getProfilePhoto: () => API.get("/admin/profile/photo"),
+  getProfilePhotoApprovals: () => API.get("/admin/profile-photo-approvals"),
+
+  approveProfilePhoto: (userId) =>API.patch(`/admin/profile-photo-approvals/${userId}/approve`),
+
+  rejectProfilePhoto: (userId, reason = "") => API.patch(`/admin/profile-photo-approvals/${userId}/reject`, { reason }),
   getContent: (type) => API.get(`/admin/content/${type}`),
   updateContent: (type, value) => API.put(`/admin/content/${type}`, { value }),
   getPaymentSettings: () => API.get("/admin/payment-settings"),

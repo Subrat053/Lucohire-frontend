@@ -1,10 +1,9 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user, profile, isAuthenticated, loading } = useAuth();
-  const location = useLocation();
+  const { user, isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
@@ -15,28 +14,12 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (!isAuthenticated) return <Navigate to="/" replace />;
+
   const activeRole = user?.activeRole || user?.role;
-
-  if (activeRole === 'provider' || activeRole === 'recruiter') {
-    if (user?.approvalStatus && user.approvalStatus !== 'approved' && location.pathname !== '/pending-approval') {
-      return <Navigate to="/pending-approval" replace />;
-    }
-
-    // const needsProviderPlan = activeRole === 'provider' && user?.panelAccess?.provider?.enabled !== true;
-    // const needsRecruiterPlan = activeRole === 'recruiter' && user?.panelAccess?.recruiter?.enabled !== true;
-    // if (user?.approvalStatus === 'approved' && (needsProviderPlan || needsRecruiterPlan)) {
-    //   const target = needsProviderPlan ? '/provider/plans' : '/recruiter/plans';
-    //   if (location.pathname !== target) return <Navigate to={target} replace />;
-    // }
-  }
-
-  // if (allowedRoles && !allowedRoles.includes(activeRole)) {
-  //   return <Navigate to="/" replace />;
-  // }
 
   if (allowedRoles && !allowedRoles.includes(activeRole)) {
     if (activeRole === 'provider') {
-      return <Navigate to="/provider/dashboard" replace />;
+      return <Navigate to="/provider/plans" replace />;
     }
 
     if (activeRole === 'recruiter') {

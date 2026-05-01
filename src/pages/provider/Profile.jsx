@@ -315,12 +315,9 @@ const ProviderProfile = () => {
     fd.append('profilePhoto', photoFile);
     try {
       const { data } = await providerAPI.uploadProfilePhoto(fd);
-      const url = toAbsoluteMediaUrl(data.url);
-      setForm(f => ({ ...f, photo: url }));
-      setPhotoPreview(url);
       setPhotoFile(null);
       await fetchUser();
-      toast.success('Photo uploaded!');
+      toast.success('Photo submitted for admin approval. Your current photo will remain until approved.');
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Photo upload failed';
       toast.error(msg);
@@ -597,74 +594,74 @@ const ProviderProfile = () => {
                 aiMeta={aiMeta}
               />
 
-                <div className="mt-3">
-                  <PricingSuggestionCard skill={form.skills?.[0]} city={form.city} />
+              <div className="mt-3">
+                <PricingSuggestionCard skill={form.skills?.[0]} city={form.city} />
+              </div>
+
+              <div className="mt-3 rounded-xl border border-blue-200 bg-white p-3">
+                <p className="text-xs font-semibold text-blue-800 mb-2">Aadhaar Verification</p>
+                <div className="flex flex-wrap gap-2 items-center">
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={(e) => {
+                      setDocumentFile(e.target.files?.[0] || null);
+                      setOcrResult(null);
+                      setOcrError('');
+                    }}
+                    className="text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleDocumentUpload}
+                    disabled={uploadingDocument}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+                  >
+                    {uploadingDocument ? 'Uploading…' : 'Upload & Verify'}
+                  </button>
                 </div>
 
-                <div className="mt-3 rounded-xl border border-blue-200 bg-white p-3">
-                  <p className="text-xs font-semibold text-blue-800 mb-2">Aadhaar Verification</p>
-                  <div className="flex flex-wrap gap-2 items-center">
-                    <input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={(e) => {
-                        setDocumentFile(e.target.files?.[0] || null);
-                        setOcrResult(null);
-                        setOcrError('');
-                      }}
-                      className="text-xs"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleDocumentUpload}
-                      disabled={uploadingDocument}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-                    >
-                      {uploadingDocument ? 'Uploading…' : 'Upload & Verify'}
-                    </button>
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-2 items-center">
-                    <select
-                      value={ocrTestType}
-                      onChange={(e) => setOcrTestType(e.target.value)}
-                      className="px-3 py-1.5 rounded-lg text-xs border border-blue-200"
-                    >
-                      {OCR_TEST_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={handleOcrTest}
-                      disabled={ocrTesting}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-blue-700 border border-blue-300 hover:bg-blue-50 disabled:opacity-60"
-                    >
-                      {ocrTesting ? 'Testing OCR…' : 'Test OCR'}
-                    </button>
-                    <p className="text-[11px] text-blue-700">Test OCR works with image files only.</p>
-                  </div>
-
-                  {ocrError && (
-                    <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                      {ocrError}
-                    </div>
-                  )}
-
-                  {ocrResult && (
-                    <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
-                      <p className="text-xs font-semibold text-blue-800">OCR Test Result</p>
-                      {typeof ocrResult.fullText === 'string' && ocrResult.fullText.trim() && (
-                        <pre className="mt-1 text-[11px] text-blue-900 whitespace-pre-wrap max-h-24 overflow-auto">{ocrResult.fullText}</pre>
-                      )}
-                      <pre className="mt-1 text-[11px] text-blue-900 whitespace-pre-wrap max-h-32 overflow-auto">{JSON.stringify(ocrResult, null, 2)}</pre>
-                    </div>
-                  )}
-
-                  <div className="mt-2">
-                    <DocumentVerificationStatusCard verification={documentVerification} />
-                  </div>
+                <div className="mt-3 flex flex-wrap gap-2 items-center">
+                  <select
+                    value={ocrTestType}
+                    onChange={(e) => setOcrTestType(e.target.value)}
+                    className="px-3 py-1.5 rounded-lg text-xs border border-blue-200"
+                  >
+                    {OCR_TEST_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleOcrTest}
+                    disabled={ocrTesting}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-blue-700 border border-blue-300 hover:bg-blue-50 disabled:opacity-60"
+                  >
+                    {ocrTesting ? 'Testing OCR…' : 'Test OCR'}
+                  </button>
+                  <p className="text-[11px] text-blue-700">Test OCR works with image files only.</p>
                 </div>
+
+                {ocrError && (
+                  <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                    {ocrError}
+                  </div>
+                )}
+
+                {ocrResult && (
+                  <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
+                    <p className="text-xs font-semibold text-blue-800">OCR Test Result</p>
+                    {typeof ocrResult.fullText === 'string' && ocrResult.fullText.trim() && (
+                      <pre className="mt-1 text-[11px] text-blue-900 whitespace-pre-wrap max-h-24 overflow-auto">{ocrResult.fullText}</pre>
+                    )}
+                    <pre className="mt-1 text-[11px] text-blue-900 whitespace-pre-wrap max-h-32 overflow-auto">{JSON.stringify(ocrResult, null, 2)}</pre>
+                  </div>
+                )}
+
+                <div className="mt-2">
+                  <DocumentVerificationStatusCard verification={documentVerification} />
+                </div>
+              </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Skill Tier</label>
@@ -701,8 +698,8 @@ const ProviderProfile = () => {
                 {LANGUAGE_OPTIONS.map(lang => (
                   <button key={lang} type="button" onClick={() => toggleLanguage(lang)}
                     className={`px-3 py-1.5 rounded-full text-sm font-medium border transition ${form.languages.includes(lang)
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'
                       }`}>{lang}</button>
                 ))}
               </div>
@@ -794,16 +791,16 @@ const ProviderProfile = () => {
             )}
 
           </div>
-            {/* ── Save Button ── */}
-            <button type="submit" disabled={saving}
-              className="block mx-auto bg-blue-600 text-white px-10 py-3.5 rounded-2xl font-semibold text-base hover:bg-blue-700 active:scale-[.98] transition disabled:opacity-50 shadow-lg shadow-blue-300/40">
-              {saving ? 'Saving…' : 'Save Profile'}
-            </button>
+          {/* ── Save Button ── */}
+          <button type="submit" disabled={saving}
+            className="block mx-auto bg-blue-600 text-white px-10 py-3.5 rounded-2xl font-semibold text-base hover:bg-blue-700 active:scale-[.98] transition disabled:opacity-50 shadow-lg shadow-blue-300/40">
+            {saving ? 'Saving…' : 'Save Profile'}
+          </button>
 
-            <p className="text-center text-xs text-blue-900/50 pb-6">
-              Your profile is visible to recruiters searching in your service area.
-            </p>
-          
+          <p className="text-center text-xs text-blue-900/50 pb-6">
+            Your profile is visible to recruiters searching in your service area.
+          </p>
+
         </form>
       </div>
       <ProviderAIChat
