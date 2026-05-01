@@ -55,20 +55,117 @@ import useTranslation from "../hooks/useTranslation";
 // Minimal LeftPanel component to avoid runtime ReferenceError.
 // Keeps layout simple and visually consistent with the design.
 const LeftPanel = ({ mode }) => {
+  const isPhoneFlow = mode === "phone-login" || mode === "phone-register";
+  const title = isPhoneFlow ? "Fast phone OTP access" : "ServiceHub";
+  const subtitle = isPhoneFlow
+    ? "Enter your number, verify in seconds, and continue without friction."
+    : "Connect with trusted professionals and grow your business — fast, reliable, and simple.";
+
   return (
-    <div className="hidden lg:flex flex-col items-start justify-center px-12 py-12 bg-gradient-to-br from-white/80 to-indigo-50">
-      <div className="mb-6">
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg animate-float">
-          <FaRocket className="w-6 h-6 text-white" />
-        </div>
+    <div
+      className="hidden lg:flex flex-col items-start justify-between px-12 py-12 relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(239,246,255,0.92) 52%, rgba(224,231,255,0.9) 100%)",
+      }}
+    >
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-blue-200/35 blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-56 h-56 rounded-full bg-emerald-200/30 blur-3xl" />
       </div>
 
-      <h2 className="text-3xl font-extrabold text-gray-900 mb-2">ServiceHub</h2>
-      <p className="text-gray-600 mb-6 max-w-xs">Connect with trusted professionals and grow your business — fast, reliable, and simple.</p>
+      <div className="relative z-10">
+        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl animate-float mb-6">
+          <FaRocket className="w-6 h-6 text-white" />
+        </div>
 
-      <div className="w-full bg-white/70 p-4 rounded-2xl shadow-sm">
-        <div className="h-36 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center">
-          <span className="text-blue-400 font-semibold">Illustration</span>
+        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 text-blue-700 text-xs font-semibold shadow-sm border border-blue-100 mb-5">
+          <HiShieldCheck className="w-4 h-4" /> Secure phone sign-in
+        </span>
+
+        <h2 className="text-3xl font-extrabold text-gray-900 mb-3 max-w-md">
+          {title}
+        </h2>
+
+        <p className="text-gray-600 mb-8 max-w-md leading-7">{subtitle}</p>
+
+        <div className="relative w-full max-w-md bg-white/80 p-5 rounded-[1.75rem] shadow-[0_20px_60px_rgba(15,23,42,0.12)] border border-white/70">
+          <div className="absolute -top-4 right-6 px-3 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-lg">
+            OTP ready
+          </div>
+
+          <div className="grid grid-cols-[1.15fr_0.85fr] gap-4 items-stretch">
+            <div className="rounded-[1.4rem] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white p-5 shadow-lg relative overflow-hidden">
+              <div className="absolute inset-0 opacity-35 bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.55),_transparent_40%)]" />
+              <div className="relative z-10 flex items-center justify-between mb-8">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.25em] text-blue-100/70">
+                    ServiceHub
+                  </p>
+                  <p className="text-lg font-bold">Phone Login</p>
+                </div>
+                <div className="w-10 h-10 rounded-2xl bg-white/12 border border-white/20 flex items-center justify-center">
+                  <HiPhone className="w-5 h-5 text-emerald-300" />
+                </div>
+              </div>
+
+              <div className="relative z-10 space-y-3">
+                <div className="h-3 rounded-full bg-white/12 w-3/5" />
+                <div className="h-3 rounded-full bg-white/12 w-4/5" />
+                <div className="h-3 rounded-full bg-white/12 w-2/3" />
+              </div>
+
+              <div className="relative z-10 mt-6 flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-white/15 text-xs font-semibold text-white/90 border border-white/10">
+                  +91 mobile
+                </span>
+                <span className="px-3 py-1 rounded-full bg-emerald-400/20 text-xs font-semibold text-emerald-200 border border-emerald-300/20">
+                  Verified in seconds
+                </span>
+              </div>
+            </div>
+
+            <div className="grid gap-3 content-start">
+              <div className="rounded-[1.25rem] bg-white p-4 shadow-sm border border-slate-100">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-100 flex items-center justify-center">
+                    <HiCheckCircle className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">
+                      Quick access
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      No password required
+                    </p>
+                  </div>
+                </div>
+                <div className="h-2.5 rounded-full bg-emerald-100 overflow-hidden">
+                  <div className="h-full w-4/5 rounded-full bg-emerald-500" />
+                </div>
+              </div>
+
+              <div className="rounded-[1.25rem] bg-white p-4 shadow-sm border border-slate-100">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-11 h-11 rounded-2xl bg-blue-100 flex items-center justify-center">
+                    <MdVerified className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">
+                      Trusted session
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Session persists after login
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <FaStar className="w-4 h-4 text-amber-400" />
+                  Fast, reliable, simple
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -95,12 +192,17 @@ const BlueBtn = ({ children, className = "", ...props }) => (
 );
 
 const Spinner = ({ size = "sm" }) => (
-  <div className={`inline-block animate-spin border-2 border-white border-t-transparent rounded-full ${size === "lg" ? "w-5 h-5" : "w-4 h-4"}`} />
+  <div
+    className={`inline-block animate-spin border-2 border-white border-t-transparent rounded-full ${size === "lg" ? "w-5 h-5" : "w-4 h-4"}`}
+  />
 );
 
 const ProgressBar = ({ filled = 1 }) => (
   <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-    <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${(filled / 2) * 100}%` }} />
+    <div
+      className="bg-blue-500 h-2 rounded-full"
+      style={{ width: `${(filled / 2) * 100}%` }}
+    />
   </div>
 );
 
@@ -129,7 +231,17 @@ const PhoneField = ({ value, onChange, accent = "blue" }) => (
   />
 );
 
-const TextInput = ({ icon: Icon, name, value, onChange, placeholder, type = "text", rightSlot, accent = "blue", required }) => (
+const TextInput = ({
+  icon: Icon,
+  name,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  rightSlot,
+  accent = "blue",
+  required,
+}) => (
   <div className="flex items-center gap-3">
     {Icon && <Icon className="w-5 h-5 text-gray-400" />}
     <input
@@ -145,7 +257,13 @@ const TextInput = ({ icon: Icon, name, value, onChange, placeholder, type = "tex
   </div>
 );
 
-const RolePicker = ({ roles = [], setRoles = () => {}, activeRole, setActiveRole = () => {}, accent = "blue" }) => {
+const RolePicker = ({
+  roles = [],
+  setRoles = () => {},
+  activeRole,
+  setActiveRole = () => {},
+  accent = "blue",
+}) => {
   const available = ["provider", "recruiter"];
 
   const toggle = (r) => {
@@ -330,10 +448,6 @@ const AuthPage = () => {
         }
       : data;
 
-    login(authData, authData.token);
-
-    const resolvedRole = authData.activeRole || authData.role;
-
     if (authData.isNewUser) {
       toast.success(
         `${t("auth.welcome")}, ${
@@ -348,7 +462,7 @@ const AuthPage = () => {
       );
     }
 
-    redirectToDashboard(resolvedRole);
+    login(authData, authData.token);
   };
 
   const handleOtpBox = (idx, e) => {
@@ -455,16 +569,19 @@ const AuthPage = () => {
 
     try {
       const result = await confirmationResult.confirm(otp);
-      const firebaseToken = await result.user.getIdToken();
+      const firebaseToken = await result.user.getIdToken(true);
+
+      const defaultRoles = selectedRoles.length ? selectedRoles : ["provider"];
+      const defaultActiveRole = activeRole || selectedRoles[0] || "provider";
 
       const payload = {
         firebaseToken,
         phone: result.user.phoneNumber,
         name: form.name || undefined,
         city: form.city || undefined,
-        roles: selectedRoles.length ? selectedRoles : undefined,
-        activeRole: activeRole || selectedRoles[0] || undefined,
-        role: activeRole || selectedRoles[0] || undefined,
+        roles: defaultRoles,
+        activeRole: defaultActiveRole,
+        role: defaultActiveRole,
       };
 
       const { data } = await authAPI.firebaseOtpLogin(payload);
