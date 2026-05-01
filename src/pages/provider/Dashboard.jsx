@@ -4,7 +4,7 @@ import { HiEye, HiUsers, HiPhone, HiTrendingUp, HiStar, HiClock, HiCheckCircle, 
 import { providerAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
+// import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
 import BoostSuggestionCard from '../../components/provider/BoostSuggestionCard';
 import toast from 'react-hot-toast';
 
@@ -14,22 +14,22 @@ const ProviderDashboard = () => {
   const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
-  const [popupReason, setPopupReason] = useState('');
-  const [hasAutoPrompted, setHasAutoPrompted] = useState(false);
+  // const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
+  // const [popupReason, setPopupReason] = useState('');
+  // const [hasAutoPrompted, setHasAutoPrompted] = useState(false);
 
   useEffect(() => { fetchDashboard(); }, []);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const shouldOpenPopup = params.get('showSubscriptionPopup') === '1';
-    if (shouldOpenPopup) {
-      setShowSubscriptionPopup(true);
-      params.delete('showSubscriptionPopup');
-      const cleanedSearch = params.toString();
-      navigate(`${location.pathname}${cleanedSearch ? `?${cleanedSearch}` : ''}`, { replace: true });
-    }
-  }, [location.pathname, location.search, navigate]);
+  // useEffect(() => {
+  //   const params = new URLSearchParams(location.search);
+  //   const shouldOpenPopup = params.get('showSubscriptionPopup') === '1';
+  //   if (shouldOpenPopup) {
+  //     setShowSubscriptionPopup(true);
+  //     params.delete('showSubscriptionPopup');
+  //     const cleanedSearch = params.toString();
+  //     navigate(`${location.pathname}${cleanedSearch ? `?${cleanedSearch}` : ''}`, { replace: true });
+  //   }
+  // }, [location.pathname, location.search, navigate]);
 
   const fetchDashboard = async () => {
     try {
@@ -52,31 +52,31 @@ const ProviderDashboard = () => {
     ? 'Default Monthly Plan'
     : (stats.planName || stats.currentPlan || 'Free');
 
-  useEffect(() => {
-    if (loading || hasAutoPrompted || !dashboard) return;
+  // useEffect(() => {
+  //   if (loading || hasAutoPrompted || !dashboard) return;
 
-    const forcePopupOnProviderPanel = true;
-    const isFree = !stats.currentPlan || stats.currentPlan === 'free';
-    const isExpired =
-      stats.planStatus === 'expired' ||
-      (stats.planEndDate && new Date(stats.planEndDate).getTime() <= Date.now());
-    const applyLeft = Number(stats.remainingApplyLimit);
-    const isExhausted = Number.isFinite(applyLeft) && applyLeft <= 0;
+  //   const forcePopupOnProviderPanel = true;
+  //   const isFree = !stats.currentPlan || stats.currentPlan === 'free';
+  //   const isExpired =
+  //     stats.planStatus === 'expired' ||
+  //     (stats.planEndDate && new Date(stats.planEndDate).getTime() <= Date.now());
+  //   const applyLeft = Number(stats.remainingApplyLimit);
+  //   const isExhausted = Number.isFinite(applyLeft) && applyLeft <= 0;
 
-    if (forcePopupOnProviderPanel || isFree || isExpired || isExhausted) {
-      let reason = 'Choose a subscription plan to get the best visibility and lead conversion.';
-      if (isExpired) {
-        reason = 'Your subscription has ended. Upgrade now to continue premium functionality.';
-      } else if (isExhausted) {
-        reason = 'Your current plan quota is exhausted. Upgrade to continue using premium limits.';
-      } else if (isFree) {
-        reason = 'You are on Free plan. Upgrade your subscription to unlock more functionality.';
-      }
-      setPopupReason(reason);
-      setShowSubscriptionPopup(true);
-      setHasAutoPrompted(true);
-    }
-  }, [loading, hasAutoPrompted, dashboard, stats.currentPlan, stats.planStatus, stats.planEndDate, stats.remainingApplyLimit]);
+  //   if (forcePopupOnProviderPanel || isFree || isExpired || isExhausted) {
+  //     let reason = 'Choose a subscription plan to get the best visibility and lead conversion.';
+  //     if (isExpired) {
+  //       reason = 'Your subscription has ended. Upgrade now to continue premium functionality.';
+  //     } else if (isExhausted) {
+  //       reason = 'Your current plan quota is exhausted. Upgrade to continue using premium limits.';
+  //     } else if (isFree) {
+  //       reason = 'You are on Free plan. Upgrade your subscription to unlock more functionality.';
+  //     }
+  //     setPopupReason(reason);
+  //     setShowSubscriptionPopup(true);
+  //     setHasAutoPrompted(true);
+  //   }
+  // }, [loading, hasAutoPrompted, dashboard, stats.currentPlan, stats.planStatus, stats.planEndDate, stats.remainingApplyLimit]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="lg" text="Loading dashboard..." /></div>;
 
@@ -253,14 +253,14 @@ const ProviderDashboard = () => {
         </div>
       </div>
 
-      <SubscriptionPlansPopup
+      {/* <SubscriptionPlansPopup
         role="provider"
         currentPlan={stats.currentPlan || 'free'}
         open={showSubscriptionPopup}
         onClose={() => setShowSubscriptionPopup(false)}
         redirectTo="/provider/dashboard"
         reason={popupReason}
-      />
+      /> */}
     </div>
   );
 };

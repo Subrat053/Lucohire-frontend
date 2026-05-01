@@ -22,15 +22,35 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       return <Navigate to="/pending-approval" replace />;
     }
 
-    const needsProviderPlan = activeRole === 'provider' && user?.panelAccess?.provider?.enabled !== true;
-    const needsRecruiterPlan = activeRole === 'recruiter' && user?.panelAccess?.recruiter?.enabled !== true;
-    if (user?.approvalStatus === 'approved' && (needsProviderPlan || needsRecruiterPlan)) {
-      const target = needsProviderPlan ? '/provider/plans' : '/recruiter/plans';
-      if (location.pathname !== target) return <Navigate to={target} replace />;
-    }
+    // const needsProviderPlan = activeRole === 'provider' && user?.panelAccess?.provider?.enabled !== true;
+    // const needsRecruiterPlan = activeRole === 'recruiter' && user?.panelAccess?.recruiter?.enabled !== true;
+    // if (user?.approvalStatus === 'approved' && (needsProviderPlan || needsRecruiterPlan)) {
+    //   const target = needsProviderPlan ? '/provider/plans' : '/recruiter/plans';
+    //   if (location.pathname !== target) return <Navigate to={target} replace />;
+    // }
   }
 
+  // if (allowedRoles && !allowedRoles.includes(activeRole)) {
+  //   return <Navigate to="/" replace />;
+  // }
+
   if (allowedRoles && !allowedRoles.includes(activeRole)) {
+    if (activeRole === 'provider') {
+      return <Navigate to="/provider/dashboard" replace />;
+    }
+
+    if (activeRole === 'recruiter') {
+      return <Navigate to="/recruiter/job-postings" replace />;
+    }
+
+    if (activeRole === 'admin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+
+    if (activeRole === 'manager') {
+      return <Navigate to="/admin/providers" replace />;
+    }
+
     return <Navigate to="/" replace />;
   }
 

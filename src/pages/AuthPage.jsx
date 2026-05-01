@@ -17,61 +17,61 @@ import useTranslation from '../hooks/useTranslation';
 const PersonAtLaptop = () => (
   <svg viewBox="0 0 320 300" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-xs drop-shadow-2xl">
     {/* Desk */}
-    <rect x="30" y="228" width="260" height="12" rx="6" fill="white" fillOpacity="0.25"/>
+    <rect x="30" y="228" width="260" height="12" rx="6" fill="white" fillOpacity="0.25" />
     {/* Laptop base */}
-    <rect x="85" y="196" width="150" height="36" rx="6" fill="white" fillOpacity="0.35"/>
-    <rect x="88" y="198" width="144" height="32" rx="4" fill="white" fillOpacity="0.15"/>
+    <rect x="85" y="196" width="150" height="36" rx="6" fill="white" fillOpacity="0.35" />
+    <rect x="88" y="198" width="144" height="32" rx="4" fill="white" fillOpacity="0.15" />
     {/* Laptop screen */}
-    <rect x="82" y="128" width="156" height="72" rx="6" fill="white" fillOpacity="0.2"/>
-    <rect x="86" y="132" width="148" height="64" rx="4" fill="#1e40af" fillOpacity="0.6"/>
+    <rect x="82" y="128" width="156" height="72" rx="6" fill="white" fillOpacity="0.2" />
+    <rect x="86" y="132" width="148" height="64" rx="4" fill="#1e40af" fillOpacity="0.6" />
     {/* Screen glow lines */}
-    <rect x="96" y="142" width="70" height="5" rx="2.5" fill="white" fillOpacity="0.7"/>
-    <rect x="96" y="152" width="50" height="4" rx="2" fill="white" fillOpacity="0.5"/>
-    <rect x="96" y="161" width="88" height="4" rx="2" fill="white" fillOpacity="0.4"/>
-    <rect x="96" y="170" width="40" height="4" rx="2" fill="white" fillOpacity="0.3"/>
+    <rect x="96" y="142" width="70" height="5" rx="2.5" fill="white" fillOpacity="0.7" />
+    <rect x="96" y="152" width="50" height="4" rx="2" fill="white" fillOpacity="0.5" />
+    <rect x="96" y="161" width="88" height="4" rx="2" fill="white" fillOpacity="0.4" />
+    <rect x="96" y="170" width="40" height="4" rx="2" fill="white" fillOpacity="0.3" />
     {/* Screen cursor blink */}
-    <rect x="96" y="178" width="3" height="10" rx="1.5" fill="white" fillOpacity="0.8"/>
+    <rect x="96" y="178" width="3" height="10" rx="1.5" fill="white" fillOpacity="0.8" />
     {/* Body */}
-    <rect x="122" y="96" width="76" height="96" rx="12" fill="#fde68a"/>
+    <rect x="122" y="96" width="76" height="96" rx="12" fill="#fde68a" />
     {/* Shirt collar */}
-    <rect x="132" y="96" width="56" height="18" rx="4" fill="#3b82f6"/>
+    <rect x="132" y="96" width="56" height="18" rx="4" fill="#3b82f6" />
     {/* Head */}
-    <circle cx="160" cy="76" r="34" fill="#fde68a"/>
+    <circle cx="160" cy="76" r="34" fill="#fde68a" />
     {/* Hair */}
-    <path d="M126 64 Q160 36 194 64 Q188 46 160 42 Q132 46 126 64Z" fill="#1e293b"/>
+    <path d="M126 64 Q160 36 194 64 Q188 46 160 42 Q132 46 126 64Z" fill="#1e293b" />
     {/* Eyes */}
-    <circle cx="148" cy="72" r="4.5" fill="#1e293b"/>
-    <circle cx="172" cy="72" r="4.5" fill="#1e293b"/>
-    <circle cx="149.5" cy="71" r="1.5" fill="white"/>
-    <circle cx="173.5" cy="71" r="1.5" fill="white"/>
+    <circle cx="148" cy="72" r="4.5" fill="#1e293b" />
+    <circle cx="172" cy="72" r="4.5" fill="#1e293b" />
+    <circle cx="149.5" cy="71" r="1.5" fill="white" />
+    <circle cx="173.5" cy="71" r="1.5" fill="white" />
     {/* Eyebrows */}
-    <path d="M143 65 Q148 62 153 65" stroke="#1e293b" strokeWidth="2" fill="none" strokeLinecap="round"/>
-    <path d="M167 65 Q172 62 177 65" stroke="#1e293b" strokeWidth="2" fill="none" strokeLinecap="round"/>
+    <path d="M143 65 Q148 62 153 65" stroke="#1e293b" strokeWidth="2" fill="none" strokeLinecap="round" />
+    <path d="M167 65 Q172 62 177 65" stroke="#1e293b" strokeWidth="2" fill="none" strokeLinecap="round" />
     {/* Smile */}
-    <path d="M150 84 Q160 93 170 84" stroke="#1e293b" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+    <path d="M150 84 Q160 93 170 84" stroke="#1e293b" strokeWidth="2.5" fill="none" strokeLinecap="round" />
     {/* Left arm */}
-    <path d="M122 108 Q90 130 96 175" stroke="#fde68a" strokeWidth="18" strokeLinecap="round" fill="none"/>
+    <path d="M122 108 Q90 130 96 175" stroke="#fde68a" strokeWidth="18" strokeLinecap="round" fill="none" />
     {/* Right arm */}
-    <path d="M198 108 Q230 130 224 175" stroke="#fde68a" strokeWidth="18" strokeLinecap="round" fill="none"/>
+    <path d="M198 108 Q230 130 224 175" stroke="#fde68a" strokeWidth="18" strokeLinecap="round" fill="none" />
     {/* Hands on keyboard */}
-    <ellipse cx="96" cy="210" rx="14" ry="8" fill="#fde68a"/>
-    <ellipse cx="224" cy="210" rx="14" ry="8" fill="#fde68a"/>
+    <ellipse cx="96" cy="210" rx="14" ry="8" fill="#fde68a" />
+    <ellipse cx="224" cy="210" rx="14" ry="8" fill="#fde68a" />
     {/* Plant pot decoration */}
-    <ellipse cx="54" cy="245" rx="18" ry="6" fill="white" fillOpacity="0.2"/>
-    <rect x="46" y="228" width="16" height="18" rx="3" fill="white" fillOpacity="0.3"/>
-    <path d="M54 228 Q46 210 36 200" stroke="#4ade80" strokeWidth="3" fill="none" strokeLinecap="round"/>
-    <ellipse cx="34" cy="198" rx="8" ry="6" fill="#4ade80" fillOpacity="0.8"/>
-    <path d="M54 224 Q62 206 72 198" stroke="#4ade80" strokeWidth="3" fill="none" strokeLinecap="round"/>
-    <ellipse cx="74" cy="196" rx="8" ry="6" fill="#4ade80" fillOpacity="0.8"/>
-    <path d="M54 220 Q54 200 54 185" stroke="#4ade80" strokeWidth="3" fill="none" strokeLinecap="round"/>
-    <circle cx="54" cy="183" r="7" fill="#4ade80" fillOpacity="0.8"/>
+    <ellipse cx="54" cy="245" rx="18" ry="6" fill="white" fillOpacity="0.2" />
+    <rect x="46" y="228" width="16" height="18" rx="3" fill="white" fillOpacity="0.3" />
+    <path d="M54 228 Q46 210 36 200" stroke="#4ade80" strokeWidth="3" fill="none" strokeLinecap="round" />
+    <ellipse cx="34" cy="198" rx="8" ry="6" fill="#4ade80" fillOpacity="0.8" />
+    <path d="M54 224 Q62 206 72 198" stroke="#4ade80" strokeWidth="3" fill="none" strokeLinecap="round" />
+    <ellipse cx="74" cy="196" rx="8" ry="6" fill="#4ade80" fillOpacity="0.8" />
+    <path d="M54 220 Q54 200 54 185" stroke="#4ade80" strokeWidth="3" fill="none" strokeLinecap="round" />
+    <circle cx="54" cy="183" r="7" fill="#4ade80" fillOpacity="0.8" />
   </svg>
 );
 
 const ShieldIcon = () => (
   <svg viewBox="0 0 80 80" fill="none" className="w-20 h-20 drop-shadow-xl">
-    <path d="M40 8 L68 20 L68 44 Q68 60 40 72 Q12 60 12 44 L12 20 Z" fill="white" fillOpacity="0.25" stroke="white" strokeOpacity="0.6" strokeWidth="2"/>
-    <path d="M28 40 L36 48 L52 32" stroke="white" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M40 8 L68 20 L68 44 Q68 60 40 72 Q12 60 12 44 L12 20 Z" fill="white" fillOpacity="0.25" stroke="white" strokeOpacity="0.6" strokeWidth="2" />
+    <path d="M28 40 L36 48 L52 32" stroke="white" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -92,15 +92,15 @@ const FloatingSocialChip = ({ icon: Icon, color, style }) => (
 /* ═══════════════════════════ DECORATIVE ARROW ═══════════════════════════ */
 const DashedArrow = ({ color = '#fff', className, rotate = 0 }) => (
   <svg className={`absolute pointer-events-none ${className}`} width="56" height="56" viewBox="0 0 56 56" fill="none" style={{ transform: `rotate(${rotate}deg)`, opacity: 0.55 }}>
-    <path d="M8 48 Q28 8 48 28" stroke={color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeDasharray="6 4"/>
-    <polygon points="44,22 50,32 40,30" fill={color}/>
+    <path d="M8 48 Q28 8 48 28" stroke={color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeDasharray="6 4" />
+    <polygon points="44,22 50,32 40,30" fill={color} />
   </svg>
 );
 
 /* ═══════════════════════════ STAR RATING ═══════════════════════════ */
 const StarRating = () => (
   <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/30">
-    {[1,2,3,4,5].map(i => <FaStar key={i} className="w-3.5 h-3.5 text-yellow-300" />)}
+    {[1, 2, 3, 4, 5].map(i => <FaStar key={i} className="w-3.5 h-3.5 text-yellow-300" />)}
     <span className="text-white text-xs font-semibold ml-1">4.9 / 5K+ users</span>
   </div>
 );
@@ -113,24 +113,24 @@ const LeftPanel = ({ mode }) => {
       style={{ background: 'linear-gradient(145deg,#1d4ed8 0%,#4f46e5 50%,#7c3aed 100%)' }}>
 
       {/* Ambient orbs */}
-      <div className="absolute w-64 h-64 rounded-full bg-white/10 blur-3xl" style={{ top:'-10%', left:'-15%' }} />
-      <div className="absolute w-48 h-48 rounded-full bg-purple-300/20 blur-3xl" style={{ bottom:'5%', right:'-10%' }} />
-      <div className="absolute w-32 h-32 rounded-full bg-blue-200/20 blur-2xl" style={{ top:'45%', left:'60%' }} />
+      <div className="absolute w-64 h-64 rounded-full bg-white/10 blur-3xl" style={{ top: '-10%', left: '-15%' }} />
+      <div className="absolute w-48 h-48 rounded-full bg-purple-300/20 blur-3xl" style={{ bottom: '5%', right: '-10%' }} />
+      <div className="absolute w-32 h-32 rounded-full bg-blue-200/20 blur-2xl" style={{ top: '45%', left: '60%' }} />
 
       {/* Floating social chips */}
-      <FloatingSocialChip icon={FcGoogle}   color=""               style={{ top:'42%',  right:'8%',  animationDelay:'0s'   }} />
-      <FloatingSocialChip icon={FaFacebook} color="text-blue-600"  style={{ top:'54%',  right:'19%',  animationDelay:'0.3s' }} />
-      <FloatingSocialChip icon={FaApple}    color="text-gray-800"  style={{ top:'49%',  left:'6%',  animationDelay:'0.6s' }} />
-      <FloatingSocialChip icon={FaLinkedin} color="text-blue-500"  style={{ top:'68%',  right:'2%',  animationDelay:'0.9s' }} />
-      <FloatingSocialChip icon={FaWhatsapp} color="text-green-500" style={{ top:'65%',  left:'9%',  animationDelay:'1.2s' }} />
+      <FloatingSocialChip icon={FcGoogle} color="" style={{ top: '42%', right: '8%', animationDelay: '0s' }} />
+      <FloatingSocialChip icon={FaFacebook} color="text-blue-600" style={{ top: '54%', right: '19%', animationDelay: '0.3s' }} />
+      <FloatingSocialChip icon={FaApple} color="text-gray-800" style={{ top: '49%', left: '6%', animationDelay: '0.6s' }} />
+      <FloatingSocialChip icon={FaLinkedin} color="text-blue-500" style={{ top: '68%', right: '2%', animationDelay: '0.9s' }} />
+      <FloatingSocialChip icon={FaWhatsapp} color="text-green-500" style={{ top: '65%', left: '9%', animationDelay: '1.2s' }} />
 
       {/* Dashed arrows */}
-      <DashedArrow color="#fff" className="top-16 right-8"  rotate={30}  />
+      <DashedArrow color="#fff" className="top-16 right-8" rotate={30} />
       <DashedArrow color="#a5f3fc" className="bottom-32 left-16" rotate={220} />
 
       {/* Floating trust badges */}
-      <FloatingBadge icon={HiShieldCheck} label="100% Secure"    color="text-green-500" className="top-6 right-6 animate-float" style={{ animationDelay:'0.5s' }} />
-      <FloatingBadge icon={MdVerified}    label="2-Step Verified" color="text-blue-500"  className="bottom-8 right-4 animate-float" style={{ animationDelay:'1s'  }} />
+      <FloatingBadge icon={HiShieldCheck} label="100% Secure" color="text-green-500" className="top-6 right-6 animate-float" style={{ animationDelay: '0.5s' }} />
+      <FloatingBadge icon={MdVerified} label="2-Step Verified" color="text-blue-500" className="bottom-8 right-4 animate-float" style={{ animationDelay: '1s' }} />
 
       {/* Top: brand */}
       <div className="relative z-10">
@@ -172,7 +172,7 @@ const LeftPanel = ({ mode }) => {
         <div className="grid grid-cols-3 gap-3">
           {[
             { n: '10K+', l: 'Providers' },
-            { n: '5K+',  l: 'Recruiters' },
+            { n: '5K+', l: 'Recruiters' },
             { n: '50K+', l: 'Connections' },
           ].map(({ n, l }) => (
             <div key={l} className="text-center bg-white/15 backdrop-blur-sm rounded-2xl py-3 border border-white/20">
@@ -200,7 +200,7 @@ const TrustRow = () => (
   <div className="flex items-center justify-between border-t border-b border-gray-100 py-3 mb-6">
     <div className="flex items-center gap-1.5 text-xs text-gray-600">
       <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
-        <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4h14v2H3V4zm0 5h10v2H3V9zm0 5h12v2H3v-2z"/></svg>
+        <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4h14v2H3V4zm0 5h10v2H3V9zm0 5h12v2H3v-2z" /></svg>
       </div>
       2-Step Signup
     </div>
@@ -252,7 +252,7 @@ const PhoneField = ({ value, onChange, accent = 'blue' }) => (
     <div className="flex items-center gap-1.5 px-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-sm text-gray-700 shrink-0 font-medium">
       <span>🇮🇳</span><span>+91</span>
       <svg className="w-3 h-3 text-gray-400 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
-        <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/>
+        <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
       </svg>
     </div>
     <div className="relative flex-1">
@@ -377,11 +377,11 @@ const AuthPage = () => {
 
   const redirectToDashboard = (userRole) => {
     switch (userRole) {
-      case 'provider':  navigate('/provider/dashboard', { replace: true });  break;
-      case 'recruiter': navigate('/recruiter/dashboard', { replace: true }); break;
-      case 'admin':     navigate('/admin/dashboard', { replace: true });     break;
-      case 'manager':   navigate('/admin/providers', { replace: true });     break;
-      default:          navigate('/', { replace: true });
+      case 'provider': navigate('/provider/dashboard', { replace: true }); break;
+      case 'recruiter': navigate('/recruiter/job-postings', { replace: true }); break;
+      case 'admin': navigate('/admin/dashboard', { replace: true }); break;
+      case 'manager': navigate('/admin/providers', { replace: true }); break;
+      default: navigate('/', { replace: true });
     }
   };
 
@@ -421,18 +421,36 @@ const AuthPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.otp]);
 
+  // const redirectAfterAuth = (data) => {
+  //   login(data, data.token);
+  //   const resolvedRole = data.activeRole || data.role;
+  //   if (data.isNewUser) {
+  //     toast.success(`${t('auth.welcome')}, ${data.name?.split(' ')[0] || t('auth.there')}! ${t('auth.setupProfile')} 🎉`);
+  //     if (resolvedRole === 'provider') navigate('/provider/dashboard?showSubscriptionPopup=1', { replace: true });
+  //     else if (resolvedRole === 'recruiter') navigate('/recruiter/job-postings?showSubscriptionPopup=1', { replace: true });
+  //     else redirectToDashboard(resolvedRole);
+  //   } else {
+  //     toast.success(`${t('auth.welcomeBack')}${data.name ? ', ' + data.name.split(' ')[0] : ''}!`);
+  //     redirectToDashboard(resolvedRole);
+  //   }
+  // };
   const redirectAfterAuth = (data) => {
     login(data, data.token);
+
     const resolvedRole = data.activeRole || data.role;
+
     if (data.isNewUser) {
-      toast.success(`${t('auth.welcome')}, ${data.name?.split(' ')[0] || t('auth.there')}! ${t('auth.setupProfile')} 🎉`);
-      if (resolvedRole === 'provider') navigate('/provider/dashboard?showSubscriptionPopup=1', { replace: true });
-      else if (resolvedRole === 'recruiter') navigate('/recruiter/dashboard?showSubscriptionPopup=1', { replace: true });
-      else redirectToDashboard(resolvedRole);
+      toast.success(
+        `${t('auth.welcome')}, ${data.name?.split(' ')[0] || t('auth.there')
+        }! ${t('auth.setupProfile')} 🎉`
+      );
     } else {
-      toast.success(`${t('auth.welcomeBack')}${data.name ? ', ' + data.name.split(' ')[0] : ''}!`);
-      redirectToDashboard(resolvedRole);
+      toast.success(
+        `${t('auth.welcomeBack')}${data.name ? ', ' + data.name.split(' ')[0] : ''}!`
+      );
     }
+
+    redirectToDashboard(resolvedRole);
   };
 
   /* API calls */
@@ -668,12 +686,12 @@ const AuthPage = () => {
           <ProgressBar filled={2} />
         </div>
 
-        <TextInput icon={HiUser}          name="name"  value={form.name}  onChange={handleChange} placeholder="Full Name" required />
+        <TextInput icon={HiUser} name="name" value={form.name} onChange={handleChange} placeholder="Full Name" required />
         <PhoneField value={form.phone} onChange={handleChange} />
-        <TextInput icon={HiLocationMarker} name="city" value={form.city}  onChange={handleChange} placeholder="City (e.g. Mumbai)" />
-        <TextInput icon={HiMail}          name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email Address" required />
+        <TextInput icon={HiLocationMarker} name="city" value={form.city} onChange={handleChange} placeholder="City (e.g. Mumbai)" />
+        <TextInput icon={HiMail} name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email Address" required />
         <TextInput icon={HiLockClosed} name="password" type={showPassword ? 'text' : 'password'} value={form.password} onChange={handleChange} placeholder="Password (min 6 chars)" required
-          rightSlot={<button type="button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <HiEyeOff className="w-5 h-5 text-gray-400"/> : <HiEye className="w-5 h-5 text-gray-400"/>}</button>} />
+          rightSlot={<button type="button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <HiEyeOff className="w-5 h-5 text-gray-400" /> : <HiEye className="w-5 h-5 text-gray-400" />}</button>} />
 
         <RolePicker roles={selectedRoles} setRoles={setSelectedRoles} activeRole={activeRole} setActiveRole={setActiveRole} />
 
@@ -810,7 +828,7 @@ const AuthPage = () => {
         <div>
           <p className="text-sm font-medium text-gray-600 text-center mb-4">{t('auth.enter6Otp')}</p>
           <div className="flex gap-3 justify-center" onPaste={handleOtpPaste}>
-            {[0,1,2,3,4,5].map(idx => (
+            {[0, 1, 2, 3, 4, 5].map(idx => (
               <input key={idx} ref={el => (otpRefs.current[idx] = el)}
                 type="text" inputMode="numeric" maxLength={1}
                 value={form.otp[idx] && form.otp[idx] !== ' ' ? form.otp[idx] : ''}
@@ -821,7 +839,7 @@ const AuthPage = () => {
           </div>
         </div>
 
-        <GreenBtn onClick={handleWhatsappVerify} disabled={loading || form.otp.replace(/\s/g,'').length !== 6}>
+        <GreenBtn onClick={handleWhatsappVerify} disabled={loading || form.otp.replace(/\s/g, '').length !== 6}>
           {loading ? <><Spinner />{t('auth.verifying')}</> : t('auth.verifyContinue')}
         </GreenBtn>
 
@@ -897,7 +915,7 @@ const AuthPage = () => {
           <div className="space-y-3">
             <TextInput icon={HiMail} name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email Address" required />
             <TextInput icon={HiLockClosed} name="password" type={showPassword ? 'text' : 'password'} value={form.password} onChange={handleChange} placeholder="Password" required
-              rightSlot={<button type="button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <HiEyeOff className="w-5 h-5 text-gray-400"/> : <HiEye className="w-5 h-5 text-gray-400"/>}</button>} />
+              rightSlot={<button type="button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <HiEyeOff className="w-5 h-5 text-gray-400" /> : <HiEye className="w-5 h-5 text-gray-400" />}</button>} />
           </div>
         </div>
 
@@ -924,9 +942,9 @@ const AuthPage = () => {
       style={{ background: 'linear-gradient(135deg,#dbeafe 0%,#ede9fe 45%,#fce7f3 100%)' }}>
 
       {/* Ambient blobs */}
-      <div className="fixed rounded-full blur-3xl opacity-40 pointer-events-none bg-blue-200 w-96 h-96" style={{ top:'-8%', left:'-8%' }} />
-      <div className="fixed rounded-full blur-3xl opacity-30 pointer-events-none bg-purple-300 w-72 h-72" style={{ bottom:'-5%', right:'-5%' }} />
-      <div className="fixed rounded-full blur-3xl opacity-20 pointer-events-none bg-pink-200 w-56 h-56" style={{ top:'40%', left:'3%' }} />
+      <div className="fixed rounded-full blur-3xl opacity-40 pointer-events-none bg-blue-200 w-96 h-96" style={{ top: '-8%', left: '-8%' }} />
+      <div className="fixed rounded-full blur-3xl opacity-30 pointer-events-none bg-purple-300 w-72 h-72" style={{ bottom: '-5%', right: '-5%' }} />
+      <div className="fixed rounded-full blur-3xl opacity-20 pointer-events-none bg-pink-200 w-56 h-56" style={{ top: '40%', left: '3%' }} />
 
       {/* Back to home link */}
       <Link to="/" className="fixed top-5 left-5 flex items-center gap-2 text-gray-600 hover:text-blue-600 transition text-sm font-medium z-20 bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-md">

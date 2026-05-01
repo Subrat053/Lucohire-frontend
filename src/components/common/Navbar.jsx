@@ -8,7 +8,8 @@ import useTranslation from '../../hooks/useTranslation';
 import toast from 'react-hot-toast';
 
 const Navbar = () => {
-  const { user, isAuthenticated, logout, switchRole } = useAuth();
+  // const { user, isAuthenticated, logout, switchRole } = useAuth();
+  const { user, isAuthenticated, logout, switchPanel } = useAuth();
   const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -27,39 +28,84 @@ const Navbar = () => {
     setDropdownOpen(false);
   };
 
+  // const getDashboardLink = () => {
+  //   if (!user) return '/';
+  //   switch (activeRole) {
+  //     case 'provider': return '/provider/dashboard';
+  //     case 'recruiter': return '/recruiter/dashboard';
+  //     case 'admin': return '/admin/dashboard';
+  //     case 'manager': return '/admin/providers';
+  //     default: return '/';
+  //   }
+  // };
   const getDashboardLink = () => {
     if (!user) return '/';
     switch (activeRole) {
       case 'provider': return '/provider/dashboard';
-      case 'recruiter': return '/recruiter/dashboard';
+      case 'recruiter': return '/recruiter/job-postings';
       case 'admin': return '/admin/dashboard';
       case 'manager': return '/admin/providers';
       default: return '/';
     }
   };
 
+  // const openRolePanel = async (targetRole) => {
+  //   if (!canSwitchRoles || switchingRole) return;
+  //   if (targetRole !== 'provider' && targetRole !== 'recruiter') return;
+
+  //   if (activeRole === targetRole) {
+  //     navigate(`/${targetRole}/dashboard?showSubscriptionPopup=1`);
+  //     setDropdownOpen(false);
+  //     setMobileOpen(false);
+  //     return;
+  //   }
+
+  //   setSwitchingRole(true);
+  //   try {
+  //     const result = await switchRole(targetRole);
+  //     const switchedRole = result?.user?.activeRole || targetRole;
+  //     const shouldOpenPopup = switchedRole === 'provider' || switchedRole === 'recruiter';
+  //     navigate(`/${switchedRole}/dashboard${shouldOpenPopup ? '?showSubscriptionPopup=1' : ''}`);
+  //     setDropdownOpen(false);
+  //     setMobileOpen(false);
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error(error?.response?.data?.message || 'Role switch failed. Please try again.');
+  //   } finally {
+  //     setSwitchingRole(false);
+  //   }
+  // };
   const openRolePanel = async (targetRole) => {
     if (!canSwitchRoles || switchingRole) return;
     if (targetRole !== 'provider' && targetRole !== 'recruiter') return;
 
+    const targetPath =
+      targetRole === 'provider'
+        ? '/provider/dashboard'
+        : '/recruiter/job-postings';
+
     if (activeRole === targetRole) {
-      navigate(`/${targetRole}/dashboard?showSubscriptionPopup=1`);
+      navigate(targetPath, { replace: true });
       setDropdownOpen(false);
       setMobileOpen(false);
       return;
     }
 
     setSwitchingRole(true);
+
     try {
-      const result = await switchRole(targetRole);
-      const switchedRole = result?.user?.activeRole || targetRole;
-      const shouldOpenPopup = switchedRole === 'provider' || switchedRole === 'recruiter';
-      navigate(`/${switchedRole}/dashboard${shouldOpenPopup ? '?showSubscriptionPopup=1' : ''}`);
+      await switchPanel(targetRole);
+
+      navigate(targetPath, { replace: true });
+
       setDropdownOpen(false);
       setMobileOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error(error?.response?.data?.message || 'Role switch failed. Please try again.');
+      toast.error(
+        error?.response?.data?.message ||
+        'Panel switch failed. Please try again.'
+      );
     } finally {
       setSwitchingRole(false);
     }
@@ -131,15 +177,15 @@ const Navbar = () => {
                   className="flex items-center space-x-2 bg-gray-50 rounded-full px-3 py-1.5 hover:bg-gray-100 transition"
                 >
                   <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
-                      {user?.profilePhoto ? (
-                        <img
-                          src={
-                            toAbsoluteMediaUrl(user.profilePhoto)
-                          }
-                          alt="Profile"
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
+                    {user?.profilePhoto ? (
+                      <img
+                        src={
+                          toAbsoluteMediaUrl(user.profilePhoto)
+                        }
+                        alt="Profile"
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
                       <HiUser className="text-indigo-600" />
                     )}
                   </div>

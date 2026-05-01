@@ -9,7 +9,7 @@ import { FaBriefcase, FaUserTie, FaRocket } from 'react-icons/fa';
 import { recruiterAPI, searchAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
+// import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
 import toast from 'react-hot-toast';
 
 /* ── Illustrations ──────────────────────────────────────────────────── */
@@ -50,23 +50,23 @@ const RecruiterDashboard = () => {
   const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
-  const [popupReason, setPopupReason] = useState('');
-  const [hasAutoPrompted, setHasAutoPrompted] = useState(false);
+  // const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
+  // const [popupReason, setPopupReason] = useState('');
+  // const [hasAutoPrompted, setHasAutoPrompted] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
 
   useEffect(() => { fetchDashboard(); }, []);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const shouldOpenPopup = params.get('showSubscriptionPopup') === '1';
-    if (shouldOpenPopup) {
-      setShowSubscriptionPopup(true);
-      params.delete('showSubscriptionPopup');
-      const cleanedSearch = params.toString();
-      navigate(`${location.pathname}${cleanedSearch ? `?${cleanedSearch}` : ''}`, { replace: true });
-    }
-  }, [location.pathname, location.search, navigate]);
+  // useEffect(() => {
+  //   const params = new URLSearchParams(location.search);
+  //   const shouldOpenPopup = params.get('showSubscriptionPopup') === '1';
+  //   if (shouldOpenPopup) {
+  //     setShowSubscriptionPopup(true);
+  //     params.delete('showSubscriptionPopup');
+  //     const cleanedSearch = params.toString();
+  //     navigate(`${location.pathname}${cleanedSearch ? `?${cleanedSearch}` : ''}`, { replace: true });
+  //   }
+  // }, [location.pathname, location.search, navigate]);
 
   const fetchDashboard = async () => {
     try {
@@ -86,31 +86,31 @@ const RecruiterDashboard = () => {
   const profile = dashboard?.profile || {};
   const isProfileEmpty = !profile.city && !profile.companyName;
 
-  useEffect(() => {
-    if (loading || hasAutoPrompted || !dashboard) return;
+  // useEffect(() => {
+  //   if (loading || hasAutoPrompted || !dashboard) return;
 
-    const isFree = !stats.currentPlan || stats.currentPlan === 'free';
-    const isExpired =
-      stats.planStatus === 'expired' ||
-      (stats.planEndDate && new Date(stats.planEndDate).getTime() <= Date.now());
-    const postLeft = Number(stats.remainingPostLimit);
-    const unlockLeft = Number(stats.unlocksRemaining);
-    const postExhausted = Number.isFinite(postLeft) && postLeft <= 0;
-    const unlockExhausted = Number.isFinite(unlockLeft) && unlockLeft <= 0;
-    const isExhausted = postExhausted || unlockExhausted;
+  //   const isFree = !stats.currentPlan || stats.currentPlan === 'free';
+  //   const isExpired =
+  //     stats.planStatus === 'expired' ||
+  //     (stats.planEndDate && new Date(stats.planEndDate).getTime() <= Date.now());
+  //   const postLeft = Number(stats.remainingPostLimit);
+  //   const unlockLeft = Number(stats.unlocksRemaining);
+  //   const postExhausted = Number.isFinite(postLeft) && postLeft <= 0;
+  //   const unlockExhausted = Number.isFinite(unlockLeft) && unlockLeft <= 0;
+  //   const isExhausted = postExhausted || unlockExhausted;
 
-    if (isFree || isExpired || isExhausted) {
-      let reason = 'You are on Free plan. Upgrade your subscription to unlock more functionality.';
-      if (isExpired) {
-        reason = 'Your subscription has ended. Upgrade now to continue premium functionality.';
-      } else if (isExhausted) {
-        reason = 'Your current plan quota is exhausted. Upgrade to continue using premium limits.';
-      }
-      setPopupReason(reason);
-      setShowSubscriptionPopup(true);
-      setHasAutoPrompted(true);
-    }
-  }, [loading, hasAutoPrompted, dashboard, stats.currentPlan, stats.planStatus, stats.planEndDate, stats.remainingPostLimit, stats.unlocksRemaining]);
+  //   if (isFree || isExpired || isExhausted) {
+  //     let reason = 'You are on Free plan. Upgrade your subscription to unlock more functionality.';
+  //     if (isExpired) {
+  //       reason = 'Your subscription has ended. Upgrade now to continue premium functionality.';
+  //     } else if (isExhausted) {
+  //       reason = 'Your current plan quota is exhausted. Upgrade to continue using premium limits.';
+  //     }
+  //     setPopupReason(reason);
+  //     setShowSubscriptionPopup(true);
+  //     setHasAutoPrompted(true);
+  //   }
+  // }, [loading, hasAutoPrompted, dashboard, stats.currentPlan, stats.planStatus, stats.planEndDate, stats.remainingPostLimit, stats.unlocksRemaining]);
 
   if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><LoadingSpinner size="lg" text="Loading..." /></div>;
 
@@ -318,7 +318,7 @@ const RecruiterDashboard = () => {
           </div>
         </div>
       </div>
-
+{/* 
       <SubscriptionPlansPopup
         role="recruiter"
         currentPlan={stats.currentPlan || 'free'}
@@ -326,7 +326,7 @@ const RecruiterDashboard = () => {
         onClose={() => setShowSubscriptionPopup(false)}
         redirectTo="/recruiter/dashboard"
         reason={popupReason}
-      />
+      /> */}
     </div>
   );
 };
