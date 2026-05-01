@@ -84,11 +84,9 @@ const RecruiterProfile = () => {
     formData.append('profilePhoto', file);
     try {
       const { data } = await recruiterAPI.uploadProfilePhoto(formData);
-      const url = toAbsoluteMediaUrl(data.url);
-      setSavedPhoto(url);
-      setPhotoPreview(url);
+      setPhotoPreview(savedPhoto);
       await fetchUser();
-      toast.success('Photo uploaded!');
+      toast.success('Photo submitted for admin approval. Your current photo will remain until approved.');
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to upload photo';
       toast.error(msg);

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  HiShieldCheck, HiUsers, HiBriefcase, HiCurrencyRupee, HiCog,
+  HiShieldCheck, HiUsers, HiBriefcase, HiCurrencyRupee, HiCog, HiPhotograph,
   HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe,
 } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -13,6 +13,7 @@ const navItems = [
   { labelKey: 'admin.navUsers',      path: '/admin/users',       icon: HiUsers },
   { labelKey: 'admin.navProviders',  path: '/admin/providers',   icon: HiBriefcase },
   { labelKey: 'admin.navRecruiters', path: '/admin/recruiters',  icon: HiUsers },
+  { labelKey: 'Profile Photos', path: '/admin/profile-photo-approvals', icon: HiPhotograph },
   { labelKey: 'admin.navSkills',     path: '/admin/skills',      icon: HiCollection },
   { labelKey: 'admin.navPlans',      path: '/admin/plans',       icon: HiCurrencyRupee },
   { labelKey: 'admin.navPayments',   path: '/admin/payments',    icon: HiCreditCard },
