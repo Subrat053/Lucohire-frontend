@@ -1,18 +1,28 @@
 import axios from "axios";
 
-// In development (no VITE_API_URL set): Vite proxies /api ? http://localhost:5000
-// In production (separate deployment): set VITE_API_URL=https://your-backend.com/api
+// Base API for existing app routes (/api)
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
   timeout: 15000,
 });
 
-export { API };
+// Auth-only API for v1 endpoints (/api/v1)
+const AUTH_API = axios.create({
+  baseURL: import.meta.env.VITE_AUTH_URL || "/api/v1",
+  timeout: 15000,
+});
 
-// Request interceptor to add JWT token
+// Admin API uses admin token and v1 routes
+const ADMIN_API = axios.create({
+  baseURL: import.meta.env.VITE_ADMIN_API_URL || "/api/v1",
+  timeout: 15000,
+});
+
+export { API, AUTH_API, ADMIN_API };
+
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("userToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -21,31 +31,56 @@ API.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// Response interceptor for auth errors
+AUTH_API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("userToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
+ADMIN_API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("adminToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    const requestUrl = (error.config?.url || "").toLowerCase();
-    const authPublicEndpoints = [
-      "/auth/login",
-      "/auth/register",
-      "/auth/register/send-otp",
-      "/auth/register/verify-otp",
-      "/auth/google",
-      "/auth/whatsapp/send-otp",
-      "/auth/whatsapp/verify-otp",
-      "/auth/otp-login",
-    ];
-    const isAuthPublicRequest = authPublicEndpoints.some((endpoint) =>
-      requestUrl.includes(endpoint),
-    );
-
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
+      localStorage.removeItem("userToken");
       localStorage.removeItem("user");
-      if (!isAuthPublicRequest && window.location.pathname !== "/") {
-        window.location.href = "/";
-      }
+    }
+    return Promise.reject(error);
+  },
+);
+
+AUTH_API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("userToken");
+      localStorage.removeItem("user");
+    }
+    return Promise.reject(error);
+  },
+);
+
+ADMIN_API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("admin");
     }
     return Promise.reject(error);
   },
@@ -53,15 +88,13 @@ API.interceptors.response.use(
 
 // Auth APIs
 export const authAPI = {
-  register: (data) => API.post("/auth/register", data),
+  registerEmail: (data) => AUTH_API.post("/auth/register-email", data),
   sendRegistrationEmailOtp: (data) => API.post("/auth/register/send-otp", data),
-  verifyRegistrationEmailOtp: (data) =>
-    API.post("/auth/register/verify-otp", data),
-  login: (data) => API.post("/auth/login", data),
-  googleAuth: (data) => API.post("/auth/google", data),
-  whatsappSendOtp: (data) => API.post("/auth/whatsapp/send-otp", data),
-  whatsappVerifyOtp: (data) => API.post("/auth/whatsapp/verify-otp", data),
-  getMe: () => API.get("/auth/me"),
+  verifyEmailOtp: (data) => AUTH_API.post("/auth/verify-email-otp", data),
+  loginEmail: (data) => AUTH_API.post("/auth/login-email", data),
+  googleLogin: (data) => AUTH_API.post("/auth/google-login", data),
+  phoneLogin: (data) => AUTH_API.post("/auth/phone-login", data),
+  getMe: () => AUTH_API.get("/auth/me"),
   switchRole: (data) => API.post("/auth/switch-role", data),
   switchPanel: (data) => API.patch("/auth/switch-panel", data),
   sendEmailVerification: () => API.post("/auth/verify-email/send"),
@@ -70,7 +103,6 @@ export const authAPI = {
   updateWhatsappNumber: (data) => API.put("/auth/whatsapp-number", data),
   updateLocale: (data) => API.put("/auth/locale", data),
   toggleWhatsappAlerts: (data) => API.put("/auth/whatsapp-alerts", data),
-  firebaseOtpLogin: (data) => API.post("/auth/otp-login", data),
 };
 
 export const userAPI = {
@@ -158,86 +190,100 @@ export const categoriesAPI = {
 
 // Admin APIs
 export const adminAPI = {
-  getDashboard: () => API.get("/admin/dashboard"),
-  getUsers: (params) => API.get("/admin/users", { params }),
-  getUserDetail: (id) => API.get(`/admin/users/${id}`),
-  getManagers: () => API.get("/admin/managers"),
-  createManager: (data) => API.post("/admin/managers", data),
-  deleteManager: (id) => API.delete(`/admin/managers/${id}`),
-  getApprovalLogs: (params) => API.get("/admin/approval-logs", { params }),
-  toggleBlockUser: (id) => API.put(`/admin/users/${id}/block`),
-  deleteUser: (id) => API.delete(`/admin/users/${id}`),
-  // approveProvider: (id, data) => API.put(`/admin/providers/${id}/approve`, data),
-  deleteProvider: (id) => API.delete(`/admin/providers/${id}`),
-  getProviders: (params) => API.get("/admin/providers", { params }),
-  // approveRecruiter: (id, data) => API.put(`/admin/recruiters/${id}/approve`, data),
-  deleteRecruiter: (id) => API.delete(`/admin/recruiters/${id}`),
-  getRecruiters: (params) => API.get("/admin/recruiters", { params }),
-  getPlans: () => API.get("/admin/plans"),
-  createPlan: (data) => API.post("/admin/plans", data),
-  updatePlan: (id, data) => API.put(`/admin/plans/${id}`, data),
-  deletePlan: (id) => API.delete(`/admin/plans/${id}`),
-  getSettings: () => API.get("/admin/settings"),
-  updateSettings: (data) => API.put("/admin/settings", data),
-  getRotationPools: () => API.get("/admin/rotation-pools"),
+  login: (data) => ADMIN_API.post("/admin/login", data),
+  getMe: () => ADMIN_API.get("/admin/me"),
+  getDashboard: () => ADMIN_API.get("/admin/dashboard"),
+  getUsers: (params) => ADMIN_API.get("/admin/users", { params }),
+  getUserDetail: (id) => ADMIN_API.get(`/admin/users/${id}`),
+  getManagers: () => ADMIN_API.get("/admin/managers"),
+  createManager: (data) => ADMIN_API.post("/admin/managers", data),
+  deleteManager: (id) => ADMIN_API.delete(`/admin/managers/${id}`),
+  getApprovalLogs: (params) => ADMIN_API.get("/admin/approval-logs", { params }),
+  toggleBlockUser: (id) => ADMIN_API.put(`/admin/users/${id}/block`),
+  deleteUser: (id) => ADMIN_API.delete(`/admin/users/${id}`),
+  // approveProvider: (id, data) => ADMIN_API.put(`/admin/providers/${id}/approve`, data),
+  deleteProvider: (id) => ADMIN_API.delete(`/admin/providers/${id}`),
+  getProviders: (params) => ADMIN_API.get("/admin/providers", { params }),
+  // approveRecruiter: (id, data) => ADMIN_API.put(`/admin/recruiters/${id}/approve`, data),
+  deleteRecruiter: (id) => ADMIN_API.delete(`/admin/recruiters/${id}`),
+  getRecruiters: (params) => ADMIN_API.get("/admin/recruiters", { params }),
+  getPlans: () => ADMIN_API.get("/admin/plans"),
+  createPlan: (data) => ADMIN_API.post("/admin/plans", data),
+  updatePlan: (id, data) => ADMIN_API.put(`/admin/plans/${id}`, data),
+  deletePlan: (id) => ADMIN_API.delete(`/admin/plans/${id}`),
+  getSettings: () => ADMIN_API.get("/admin/settings"),
+  updateSettings: (data) => ADMIN_API.put("/admin/settings", data),
+  getRotationPools: () => ADMIN_API.get("/admin/rotation-pools"),
   updateRotationPool: (id, data) =>
-    API.put(`/admin/rotation-pools/${id}`, data),
-  getPayments: (params) => API.get("/admin/payments", { params }),
+    ADMIN_API.put(`/admin/rotation-pools/${id}`, data),
+  getPayments: (params) => ADMIN_API.get("/admin/payments", { params }),
   getProviderSubscriptions: (params) =>
-    API.get("/admin/provider-subscriptions", { params }),
+    ADMIN_API.get("/admin/provider-subscriptions", { params }),
   updateProviderSubscriptionStatus: (id, data) =>
-    API.patch(`/admin/provider-subscriptions/${id}/status`, data),
-  getJobs: () => API.get("/admin/jobs"),
+    ADMIN_API.patch(`/admin/provider-subscriptions/${id}/status`, data),
+  getJobs: () => ADMIN_API.get("/admin/jobs"),
   uploadProfilePhoto: (formData) =>
-    API.post("/admin/profile/photo", formData, {
+    ADMIN_API.post("/admin/profile/photo", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
-  getProfilePhoto: () => API.get("/admin/profile/photo"),
-  getProfilePhotoApprovals: () => API.get("/admin/profile-photo-approvals"),
+  getProfilePhoto: () => ADMIN_API.get("/admin/profile/photo"),
+  getProfilePhotoApprovals: () => ADMIN_API.get("/admin/profile-photo-approvals"),
 
-  approveProfilePhoto: (userId) =>API.patch(`/admin/profile-photo-approvals/${userId}/approve`),
+  approveProfilePhoto: (userId) =>
+    ADMIN_API.patch(`/admin/profile-photo-approvals/${userId}/approve`),
 
-  rejectProfilePhoto: (userId, reason = "") => API.patch(`/admin/profile-photo-approvals/${userId}/reject`, { reason }),
-  getContent: (type) => API.get(`/admin/content/${type}`),
-  updateContent: (type, value) => API.put(`/admin/content/${type}`, { value }),
-  getPaymentSettings: () => API.get("/admin/payment-settings"),
-  updatePaymentSettings: (data) => API.put("/admin/payment-settings", data),
-  getCurrencySettings: () => API.get("/admin/currency-settings"),
-  updateCurrencySettings: (data) => API.put("/admin/currency-settings", data),
-  getCloudinarySettings: () => API.get("/admin/cloudinary-settings"),
+  rejectProfilePhoto: (userId, reason = "") =>
+    ADMIN_API.patch(`/admin/profile-photo-approvals/${userId}/reject`, { reason }),
+  getContent: (type) => ADMIN_API.get(`/admin/content/${type}`),
+  updateContent: (type, value) =>
+    ADMIN_API.put(`/admin/content/${type}`, { value }),
+  getPaymentSettings: () => ADMIN_API.get("/admin/payment-settings"),
+  updatePaymentSettings: (data) =>
+    ADMIN_API.put("/admin/payment-settings", data),
+  getCurrencySettings: () => ADMIN_API.get("/admin/currency-settings"),
+  updateCurrencySettings: (data) =>
+    ADMIN_API.put("/admin/currency-settings", data),
+  getCloudinarySettings: () => ADMIN_API.get("/admin/cloudinary-settings"),
   updateCloudinarySettings: (data) =>
-    API.put("/admin/cloudinary-settings", data),
-  getWhatsappLogs: (params) => API.get("/admin/whatsapp-logs", { params }),
-  getWhatsappSettings: () => API.get("/admin/whatsapp-settings"),
-  updateWhatsappSettings: (data) => API.put("/admin/whatsapp-settings", data),
-  getFeatureFlags: () => API.get("/admin/feature-flags"),
+    ADMIN_API.put("/admin/cloudinary-settings", data),
+  getWhatsappLogs: (params) => ADMIN_API.get("/admin/whatsapp-logs", { params }),
+  getWhatsappSettings: () => ADMIN_API.get("/admin/whatsapp-settings"),
+  updateWhatsappSettings: (data) =>
+    ADMIN_API.put("/admin/whatsapp-settings", data),
+  getFeatureFlags: () => ADMIN_API.get("/admin/feature-flags"),
   updateFeatureFlag: (key, data) =>
-    API.put(`/admin/feature-flags/${encodeURIComponent(key)}`, data),
+    ADMIN_API.put(`/admin/feature-flags/${encodeURIComponent(key)}`, data),
   // Skill categories (admin CRUD)
-  getSkillCategories: () => API.get("/admin/skills"),
-  createSkillCategory: (data) => API.post("/admin/skills", data),
-  updateSkillCategory: (id, data) => API.put(`/admin/skills/${id}`, data),
-  deleteSkillCategory: (id) => API.delete(`/admin/skills/${id}`),
+  getSkillCategories: () => ADMIN_API.get("/admin/skills"),
+  createSkillCategory: (data) => ADMIN_API.post("/admin/skills", data),
+  updateSkillCategory: (id, data) => ADMIN_API.put(`/admin/skills/${id}`, data),
+  deleteSkillCategory: (id) => ADMIN_API.delete(`/admin/skills/${id}`),
   updateSkillCategoryStatus: (id, data) =>
-    API.patch(`/admin/skills/${id}/status`, data),
+    ADMIN_API.patch(`/admin/skills/${id}/status`, data),
   addSkillToCategory: (id, data) =>
-    API.post(`/admin/skills/${id}/skills`, data),
+    ADMIN_API.post(`/admin/skills/${id}/skills`, data),
   removeSkillFromCategory: (id, skillId) =>
-    API.delete(`/admin/skills/${id}/skills/${skillId}`),
-  getAIMatchWeights: () => API.get("/admin/ai/match-weights"),
-  updateAIMatchWeights: (data) => API.put("/admin/ai/match-weights", data),
-  getAITrustWeights: () => API.get("/admin/ai/trust-weights"),
-  updateAITrustWeights: (data) => API.put("/admin/ai/trust-weights", data),
-  getPromptTemplates: () => API.get("/admin/ai/prompt-templates"),
-  createPromptTemplate: (data) => API.post("/admin/ai/prompt-templates", data),
+    ADMIN_API.delete(`/admin/skills/${id}/skills/${skillId}`),
+  getAIMatchWeights: () => ADMIN_API.get("/admin/ai/match-weights"),
+  updateAIMatchWeights: (data) =>
+    ADMIN_API.put("/admin/ai/match-weights", data),
+  getAITrustWeights: () => ADMIN_API.get("/admin/ai/trust-weights"),
+  updateAITrustWeights: (data) =>
+    ADMIN_API.put("/admin/ai/trust-weights", data),
+  getPromptTemplates: () => ADMIN_API.get("/admin/ai/prompt-templates"),
+  createPromptTemplate: (data) =>
+    ADMIN_API.post("/admin/ai/prompt-templates", data),
   updatePromptTemplate: (id, data) =>
-    API.put(`/admin/ai/prompt-templates/${id}`, data),
-  getSkillSynonyms: (params) => API.get("/admin/ai/skill-synonyms", { params }),
-  createSkillSynonym: (data) => API.post("/admin/ai/skill-synonyms", data),
+    ADMIN_API.put(`/admin/ai/prompt-templates/${id}`, data),
+  getSkillSynonyms: (params) =>
+    ADMIN_API.get("/admin/ai/skill-synonyms", { params }),
+  createSkillSynonym: (data) =>
+    ADMIN_API.post("/admin/ai/skill-synonyms", data),
   updateSkillSynonym: (id, data) =>
-    API.put(`/admin/ai/skill-synonyms/${id}`, data),
-  deleteSkillSynonym: (id) => API.delete(`/admin/ai/skill-synonyms/${id}`),
-  getFraudQueue: () => API.get("/admin/ai/fraud-queue"),
+    ADMIN_API.put(`/admin/ai/skill-synonyms/${id}`, data),
+  deleteSkillSynonym: (id) =>
+    ADMIN_API.delete(`/admin/ai/skill-synonyms/${id}`),
+  getFraudQueue: () => ADMIN_API.get("/admin/ai/fraud-queue"),
   getOcrReviewQueue: () => API.get("/admin/ai/ocr-review-queue"),
   updateOcrReviewDecision: (id, data) =>
     API.put(`/admin/ai/ocr-review-queue/${id}`, data),

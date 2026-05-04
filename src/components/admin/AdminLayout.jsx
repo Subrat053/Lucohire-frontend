@@ -5,7 +5,7 @@ import {
   HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe,
 } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
-import { useAuth } from '../../context/AuthContext';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 import useTranslation from '../../hooks/useTranslation';
 
 const navItems = [
@@ -28,14 +28,14 @@ const navItems = [
 ];
 
 const AdminLayout = ({ children }) => {
-  const { logout, user } = useAuth();
+  const { logout, admin } = useAdminAuth();
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleLogout = () => { logout(); navigate('/'); };
+  const handleLogout = () => { logout(); navigate('/admin/login'); };
 
   const SidebarContent = ({ onNavClick }) => (
     <div className="flex flex-col h-full">
@@ -50,7 +50,7 @@ const AdminLayout = ({ children }) => {
       {/* Nav Items */}
       <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
         {navItems.map(({ labelKey, path, icon: Icon, adminOnly }) => {
-          const currentRole = user?.activeRole || user?.role;
+          const currentRole = admin?.role;
           if (currentRole === 'manager' && !['/admin/providers', '/admin/recruiters'].includes(path)) return null;
           if (adminOnly && currentRole !== 'admin') return null;
           const label = t(labelKey);

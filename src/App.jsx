@@ -5,6 +5,7 @@ import ScrollToTop from "./components/common/ScrollToTop";
 import Navbar from "./components/common/Navbar";
 import Footer from "./components/common/Footer";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import AdminProtectedRoute from "./components/common/AdminProtectedRoute";
 import WhatsAppNumberModal from "./components/common/WhatsAppNumberModal";
 import AIChatWidget from "./components/common/AIChatWidget";
 import { useAuth } from "./context/AuthContext";
@@ -43,6 +44,13 @@ import RecruiterSavedCandidates from "./pages/recruiter/SavedCandidates";
 import RecruiterSearchHistory from "./pages/recruiter/SearchHistory";
 import RecruiterTransactions from "./pages/recruiter/Transactions";
 import RecruiterSettings from "./pages/recruiter/Settings";
+
+import PartnerProtectedRoute from "./components/common/PartnerProtectedRoute";
+import PartnerLayout from "./pages/partner/PartnerLayout";
+import PartnerDashboard from "./pages/partner/PartnerDashboard";
+import PartnerPayouts from "./pages/partner/PartnerPayouts";
+import CreatePartnerProvider from "./pages/partner/CreatePartnerProvider";
+import CreatePartnerRecruiter from "./pages/partner/CreatePartnerRecruiter";
 // =======================================================================
 
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -61,6 +69,7 @@ import AdminWhatsApp from "./pages/admin/WhatsApp";
 import AdminCurrency from "./pages/admin/Currency";
 import AdminManagers from "./pages/admin/Managers";
 import AdminAIOps from "./pages/admin/AIControlCenter";
+import AdminLogin from "./pages/admin/Login";
 
 import AdminLayout from "./components/admin/AdminLayout";
 import ProviderLayout from "./components/provider/ProviderLayout";
@@ -100,6 +109,7 @@ function App() {
         {/* Auth pages - full screen, no Navbar/Footer */}
         <Route path="/login" element={<AuthPage />} />
         <Route path="/signup" element={<AuthPage />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
 
         {/* Public Routes */}
         <Route path="/" element={wrap(<LandingPage />)} />
@@ -109,7 +119,7 @@ function App() {
         <Route path="/terms" element={wrap(<TermsPage />)} />
         <Route path="/privacy" element={wrap(<PrivacyPage />)} />
         <Route path="/profile/:id" element={wrap(
-          <ProtectedRoute allowedRoles={["provider", "recruiter", "admin"]}>
+          <ProtectedRoute allowedRoles={["provider", "recruiter"]}>
             <ProfilePage />
           </ProtectedRoute>
         )} />
@@ -266,95 +276,120 @@ function App() {
         {/* =============================================================================== */}
         {/* Admin Routes */}
         <Route path="/admin/dashboard" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminDashboard /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/users" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminUsers /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/providers" element={wrap(
-          <ProtectedRoute allowedRoles={["admin", "manager"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminProviders /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/recruiters" element={wrap(
-          <ProtectedRoute allowedRoles={["admin", "manager"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminRecruiters /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/recruiter" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminRecruiters /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/recriters" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminRecruiters /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/plans" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminPlans /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/settings" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminSettings /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/managers" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminManagers /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/payments" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminPayments /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/provider-subscriptions" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminProviderSubscriptions /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/terms" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminTerms /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/privacy" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminPrivacy /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/skills" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminSkills /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/whatsapp" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminWhatsApp /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/currency" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminCurrency /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/ai" element={wrap(
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProtectedRoute>
             <AdminLayout><AdminAIOps /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
         <Route path="/admin/profile-photo-approvals" element={wrap(
-          <ProtectedRoute allowedRoles={["admin", "manager"]}>
+          <AdminProtectedRoute>
             <AdminLayout><ProfilePhotoApprovals /></AdminLayout>
-          </ProtectedRoute>
+          </AdminProtectedRoute>
         )} />
+
+
+        <Route path="/partner/dashboard" element={
+          <PartnerProtectedRoute>
+            <PartnerLayout><PartnerDashboard /></PartnerLayout>
+          </PartnerProtectedRoute>
+        } />
+
+        <Route path="/partner/payouts" element={
+          <PartnerProtectedRoute>
+            <PartnerLayout><PartnerPayouts /></PartnerLayout>
+          </PartnerProtectedRoute>
+        } />
+
+        <Route path="/partner/create-provider" element={
+          <PartnerProtectedRoute>
+            <PartnerLayout><CreatePartnerProvider /></PartnerLayout>
+          </PartnerProtectedRoute>
+        } />
+
+        <Route path="/partner/create-recruiter" element={
+          <PartnerProtectedRoute>
+            <PartnerLayout><CreatePartnerRecruiter /></PartnerLayout>
+          </PartnerProtectedRoute>
+        } />
 
         {/* 404 */}
         <Route path="*" element={wrap(

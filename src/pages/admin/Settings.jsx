@@ -3,7 +3,7 @@ import { HiSave, HiRefresh, HiCog, HiPhotograph, HiDocumentText, HiEye, HiEyeOff
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
-import { useAuth } from '../../context/AuthContext';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toAbsoluteMediaUrl } from '../../utils/media';
 
 const TABS = [
@@ -15,7 +15,7 @@ const TABS = [
 ];
 
 const AdminSettings = () => {
-  const { fetchUser } = useAuth();
+  const { fetchAdmin } = useAdminAuth();
   const [activeTab, setActiveTab] = useState('general');
 
   // General settings
@@ -45,7 +45,7 @@ const AdminSettings = () => {
   const [privacyContent, setPrivacyContent] = useState('');
   const [savingContent, setSavingContent] = useState('');
 
-  useEffect(() => { fetchSettings(); fetchCloudinary(); fetchRotation(); fetchContent(); }, []);
+  useEffect(() => { fetchAdmin(); fetchSettings(); fetchCloudinary(); fetchRotation(); fetchContent(); }, []);
 
   const fetchSettings = async () => {
     try {
@@ -126,7 +126,7 @@ const AdminSettings = () => {
       const { data } = await adminAPI.uploadProfilePhoto(formData);
       setAdminPhoto(toAbsoluteMediaUrl(data.url));
       setPhotoFile(null);
-      await fetchUser();
+      await fetchAdmin();
       toast.success('Photo uploaded!');
     } catch (err) { const msg = err?.response?.data?.message || err?.message || 'Failed to upload photo'; toast.error(msg); }
     finally { setUploadingPhoto(false); }

@@ -1,6 +1,6 @@
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import LoadingSpinner from './LoadingSpinner';
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import LoadingSpinner from "./LoadingSpinner";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, loading } = useAuth();
@@ -13,25 +13,25 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     );
   }
 
-  if (!isAuthenticated) return <Navigate to="/" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   const activeRole = user?.activeRole || user?.role;
 
   if (allowedRoles && !allowedRoles.includes(activeRole)) {
-    if (activeRole === 'provider') {
+    if (activeRole === "provider") {
       return <Navigate to="/provider/plans" replace />;
     }
 
-    if (activeRole === 'recruiter') {
+    if (activeRole === "recruiter") {
       return <Navigate to="/recruiter/job-postings" replace />;
     }
 
-    if (activeRole === 'admin') {
+    if (activeRole === "admin") {
       return <Navigate to="/admin/dashboard" replace />;
     }
 
-    if (activeRole === 'manager') {
-      return <Navigate to="/admin/providers" replace />;
+    if (activeRole === "manager" || activeRole === "partner") {
+      return <Navigate to="/partner/dashboard" replace />;
     }
 
     return <Navigate to="/" replace />;

@@ -11,6 +11,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -18,20 +19,25 @@ export const AuthProvider = ({ children }) => {
 
   const normalizeUser = (rawUser) => {
     if (!rawUser) return null;
+
     const roles = Array.isArray(rawUser.roles)
       ? rawUser.roles
       : rawUser.role
         ? [rawUser.role]
         : [];
+
     let activeRole = rawUser.activeRole || rawUser.role || roles[0] || null;
-    if (roles.includes("admin")) activeRole = "admin";
+
+    if (roles.includes("partner")) activeRole = "partner";
     else if (roles.includes("manager")) activeRole = "manager";
+    else if (roles.includes("admin")) activeRole = "admin";
+
     return {
       ...rawUser,
       roles,
       activeRole,
       role: activeRole,
-      approvalStatus: rawUser.approvalStatus || "pending",
+      approvalStatus: rawUser.approvalStatus || "approved",
       roleIntent:
         rawUser.roleIntent ||
         (roles.includes("provider") && roles.includes("recruiter")
@@ -45,24 +51,67 @@ export const AuthProvider = ({ children }) => {
     };
   };
 
+  const logout = () => {
+    localStorage.removeItem("userToken");
+    localStorage.removeItem("user");
+    setToken(null);
+    setUser(null);
+    setProfile(null);
+    setIsAuthenticated(false);
+  };
+
+  const fetchUser = async ({ soft = false } = {}) => {
+    try {
+      const { data } = await authAPI.getMe();
+      const normalizedUser = normalizeUser(data?.data?.user || data.user);
+
+      if (!normalizedUser) {
+        if (!soft) logout();
+        return null;
+      }
+
+      const storedToken = localStorage.getItem("userToken");
+
+      setUser(normalizedUser);
+      setProfile(data?.data?.profile || data.profile || null);
+      setIsAuthenticated(!!storedToken);
+
+      if (storedToken) setToken(storedToken);
+      localStorage.setItem("user", JSON.stringify(normalizedUser));
+
+      return normalizedUser;
+    } catch (error) {
+      if (!soft) logout();
+      return null;
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
     const initAuth = async () => {
-      const token = localStorage.getItem("token");
-      const savedUser = localStorage.getItem("user");
+      try {
+        const storedToken = localStorage.getItem("userToken");
+        const savedUser = localStorage.getItem("user");
 
-      if (token && savedUser) {
-        try {
-          setUser(normalizeUser(JSON.parse(savedUser)));
+        if (storedToken && savedUser) {
+          const normalized = normalizeUser(JSON.parse(savedUser));
+
+          setToken(storedToken);
+          setUser(normalized);
           setIsAuthenticated(true);
-          await fetchUser();
-        } catch {
-          logout();
-        }
-      }
 
-      if (mounted) setLoading(false);
+          await fetchUser({ soft: true });
+        } else {
+          setToken(null);
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        logout();
+      } finally {
+        if (mounted) setLoading(false);
+      }
     };
 
     initAuth();
@@ -72,83 +121,102 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const fetchUser = async ({ soft = false } = {}) => {
-    try {
-      const { data } = await authAPI.getMe();
-      const normalizedUser = normalizeUser(data.user);
-      setUser(normalizedUser);
-      setProfile(data.profile);
-      setIsAuthenticated(true);
-      localStorage.setItem("user", JSON.stringify(normalizedUser));
-    } catch {
-      if (!soft) {
-        logout();
-      }
-    }
-  };
+  const saveUserSession = ({ token: nextToken, user: nextUser }) => {
+    if (!nextToken || !nextUser) return null;
 
-  const login = (userData, token) => {
-    const normalizedUser = normalizeUser(userData);
-    localStorage.setItem("token", token);
+    const normalizedUser = normalizeUser(nextUser);
+
+    localStorage.setItem("userToken", nextToken);
     localStorage.setItem("user", JSON.stringify(normalizedUser));
+
+    setToken(nextToken);
     setUser(normalizedUser);
     setIsAuthenticated(true);
+
+    return normalizedUser;
+  };
+
+  const login = (userData, tokenValue) => {
+    const normalizedUser = normalizeUser(userData);
+    const resolvedToken = tokenValue || localStorage.getItem("userToken");
+
+    if (resolvedToken) {
+      localStorage.setItem("userToken", resolvedToken);
+    }
+
+    localStorage.setItem("user", JSON.stringify(normalizedUser));
+
+    setToken(resolvedToken || null);
+    setUser(normalizedUser);
+    setIsAuthenticated(!!resolvedToken);
+
     fetchUser({ soft: true });
-    // Prompt for WhatsApp number if user signed up via email/google and doesn't have one (not for admins)
+
     if (
       normalizedUser &&
-      !["admin", "manager"].includes(normalizedUser.activeRole) &&
+      !["admin", "manager", "partner"].includes(normalizedUser.activeRole) &&
       !normalizedUser.phone &&
       !normalizedUser.whatsappNumber
     ) {
       setTimeout(() => setShowWhatsAppPrompt(true), 1500);
     }
+
+    return normalizedUser;
+  };
+
+  const loginUser = async (credentials) => {
+    const { data } = await authAPI.loginEmail(credentials);
+    const authData = data?.data || {};
+    const normalizedUser = saveUserSession(authData);
+    return { ...authData, user: normalizedUser || authData.user };
+  };
+
+  const loginWithFirebase = async (payload) => {
+    const { data } = await authAPI.phoneLogin(payload);
+    const authData = data?.data || {};
+    const normalizedUser = saveUserSession(authData);
+    return { ...authData, user: normalizedUser || authData.user };
   };
 
   const switchRole = async (nextRole) => {
     const { data } = await authAPI.switchRole({ role: nextRole });
-    const token = data.token || localStorage.getItem("token");
+    const nextToken = data?.data?.token || data.token || localStorage.getItem("userToken");
 
-    if (token) localStorage.setItem("token", token);
-    const { data: meData } = await authAPI.getMe();
-    const normalizedUser = normalizeUser(meData.user);
-    localStorage.setItem("user", JSON.stringify(normalizedUser));
-    setUser(normalizedUser);
-    setProfile(meData.profile || null);
-    setIsAuthenticated(true);
+    if (nextToken) {
+      localStorage.setItem("userToken", nextToken);
+      setToken(nextToken);
+    }
 
-    return { user: normalizedUser, profile: meData.profile || null };
+    const freshUser = await fetchUser({ soft: true });
+
+    return { user: freshUser, profile };
   };
 
   const switchPanel = async (nextPanel) => {
     const { data } = await authAPI.switchPanel({ panel: nextPanel });
-    const token = data.token || localStorage.getItem("token");
+    const nextToken = data?.data?.token || data.token || localStorage.getItem("userToken");
 
-    if (token) localStorage.setItem("token", token);
-    const { data: meData } = await authAPI.getMe();
-    const normalizedUser = normalizeUser(meData.user);
-    localStorage.setItem("user", JSON.stringify(normalizedUser));
-    setUser(normalizedUser);
-    setProfile(meData.profile || null);
-    setIsAuthenticated(true);
+    if (nextToken) {
+      localStorage.setItem("userToken", nextToken);
+      setToken(nextToken);
+    }
 
-    return { user: normalizedUser, profile: meData.profile || null };
-  };
+    const freshUser = await fetchUser({ soft: true });
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-    setProfile(null);
-    setIsAuthenticated(false);
+    return { user: freshUser, profile };
   };
 
   const value = {
     user,
+    token,
+    role: user?.activeRole || user?.role || null,
     profile,
     loading,
     isAuthenticated,
     login,
+    saveUserSession,
+    loginUser,
+    loginWithFirebase,
     logout,
     switchRole,
     switchPanel,
