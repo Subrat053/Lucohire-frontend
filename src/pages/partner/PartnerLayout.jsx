@@ -24,11 +24,15 @@ const PartnerLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const handleLogout = () => {
+    logout();
+  };
+
   const Sidebar = () => (
     <aside className="h-full bg-white border-r border-[#EEE8FA]">
       <div className="p-5 border-b border-[#EEE8FA]">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#6D28D9] to-[#A855F7] text-white flex items-center justify-center font-black shadow-lg shadow-purple-200">
+          <div className="w-11 h-11 rounded-2xl bg-linear-to-br from-[#6D28D9] to-[#A855F7] text-white flex items-center justify-center font-black shadow-lg shadow-purple-200">
             SH
           </div>
           <div>
@@ -77,7 +81,7 @@ const PartnerLayout = ({ children }) => {
             {user?.phone || user?.email}
           </p>
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="mt-4 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl bg-white text-[#7C3AED] text-sm font-bold hover:bg-[#7C3AED] hover:text-white transition"
           >
             <LogOut size={16} />
@@ -92,7 +96,7 @@ const PartnerLayout = ({ children }) => {
     <div className="min-h-screen bg-[#F8F7FB]">
       <header className="lg:hidden h-16 bg-white border-b border-[#EEE8FA] flex items-center justify-between px-4 sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#6D28D9] to-[#A855F7] text-white flex items-center justify-center font-black">
+          <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#6D28D9] to-[#A855F7] text-white flex items-center justify-center font-black">
             SH
           </div>
           <div>
@@ -133,7 +137,7 @@ const PartnerLayout = ({ children }) => {
         )}
 
         <main className="w-full lg:pl-72">
-          <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
+          <div className="p-4 sm:p-6 lg:p-8 max-w-400 mx-auto">
             {children}
           </div>
         </main>

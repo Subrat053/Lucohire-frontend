@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import AdminProtectedRoute from "./components/common/AdminProtectedRoute";
 import WhatsAppNumberModal from "./components/common/WhatsAppNumberModal";
 import AIChatWidget from "./components/common/AIChatWidget";
+import NotFound from "./components/common/NotFound";
 import { useAuth } from "./context/AuthContext";
 import AuthPage from "./pages/AuthPage";
 
@@ -54,6 +55,9 @@ import CreatePartnerRecruiter from "./pages/partner/CreatePartnerRecruiter";
 // =======================================================================
 
 import AdminDashboard from "./pages/admin/Dashboard";
+import Partners from "./pages/admin/Partners";
+import AdminReferrals from "./pages/admin/AdminReferrals";
+import AdminRewardPool from "./pages/admin/AdminRewardPool";
 import AdminUsers from "./pages/admin/Users";
 import AdminProviders from "./pages/admin/Providers";
 import AdminRecruiters from "./pages/admin/Recruiters";
@@ -69,7 +73,6 @@ import AdminWhatsApp from "./pages/admin/WhatsApp";
 import AdminCurrency from "./pages/admin/Currency";
 import AdminManagers from "./pages/admin/Managers";
 import AdminAIOps from "./pages/admin/AIControlCenter";
-import AdminLogin from "./pages/admin/Login";
 
 import AdminLayout from "./components/admin/AdminLayout";
 import ProviderLayout from "./components/provider/ProviderLayout";
@@ -109,7 +112,6 @@ function App() {
         {/* Auth pages - full screen, no Navbar/Footer */}
         <Route path="/login" element={<AuthPage />} />
         <Route path="/signup" element={<AuthPage />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
 
         {/* Public Routes */}
         <Route path="/" element={wrap(<LandingPage />)} />
@@ -280,6 +282,21 @@ function App() {
             <AdminLayout><AdminDashboard /></AdminLayout>
           </AdminProtectedRoute>
         )} />
+        <Route path="/admin/partners" element={wrap(
+          <AdminProtectedRoute>
+            <AdminLayout><Partners /></AdminLayout>
+          </AdminProtectedRoute>
+        )} />
+        <Route path="/admin/referrals" element={wrap(
+          <AdminProtectedRoute>
+            <AdminLayout><AdminReferrals /></AdminLayout>
+          </AdminProtectedRoute>
+        )} />
+        <Route path="/admin/reward-pool" element={wrap(
+          <AdminProtectedRoute>
+            <AdminLayout><AdminRewardPool /></AdminLayout>
+          </AdminProtectedRoute>
+        )} />
         <Route path="/admin/users" element={wrap(
           <AdminProtectedRoute>
             <AdminLayout><AdminUsers /></AdminLayout>
@@ -391,14 +408,8 @@ function App() {
           </PartnerProtectedRoute>
         } />
 
-        {/* 404 */}
-        <Route path="*" element={wrap(
-          <div className="min-h-[60vh] flex flex-col items-center justify-center">
-            <h1 className="text-6xl font-bold text-gray-200">404</h1>
-            <p className="text-gray-500 mt-2">{t('common.pageNotFound')}</p>
-            <a href="/" className="mt-4 text-blue-600 hover:text-blue-700 font-medium">{t('common.goHome')}</a>
-          </div>
-        )} />
+        {/* 404 — role-aware: authenticated users go to dashboard, guests see a proper 404 */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

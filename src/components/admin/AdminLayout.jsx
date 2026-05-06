@@ -1,19 +1,22 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   HiShieldCheck, HiUsers, HiBriefcase, HiCurrencyRupee, HiCog, HiPhotograph,
-  HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe,
+  HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe, HiUserGroup, HiLink, HiGift
 } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
-import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useAuth } from '../../context/AuthContext';
 import useTranslation from '../../hooks/useTranslation';
 
 const navItems = [
   { labelKey: 'admin.navDashboard',  path: '/admin/dashboard',  icon: HiShieldCheck },
+  { labelKey: 'Partners',            path: '/admin/partners',    icon: HiUserGroup },
+  { labelKey: 'Referrals',           path: '/admin/referrals',   icon: HiLink },
+  { labelKey: 'Reward Pool',         path: '/admin/reward-pool', icon: HiGift },
   { labelKey: 'admin.navUsers',      path: '/admin/users',       icon: HiUsers },
   { labelKey: 'admin.navProviders',  path: '/admin/providers',   icon: HiBriefcase },
   { labelKey: 'admin.navRecruiters', path: '/admin/recruiters',  icon: HiUsers },
-  { labelKey: 'Profile Photos', path: '/admin/profile-photo-approvals', icon: HiPhotograph },
+  { labelKey: 'Profile Approvals', path: '/admin/profile-photo-approvals', icon: HiPhotograph, adminOnly: true },
   { labelKey: 'admin.navSkills',     path: '/admin/skills',      icon: HiCollection },
   { labelKey: 'admin.navPlans',      path: '/admin/plans',       icon: HiCurrencyRupee },
   { labelKey: 'admin.navPayments',   path: '/admin/payments',    icon: HiCreditCard },
@@ -21,21 +24,22 @@ const navItems = [
   { labelKey: 'admin.navWhatsapp',   path: '/admin/whatsapp',    icon: FaWhatsapp },
   { labelKey: 'admin.navCurrency',   path: '/admin/currency',    icon: HiGlobe },
   { labelKey: 'AI Ops',              path: '/admin/ai',          icon: HiCog, adminOnly: true },
-  { labelKey: 'Managers',            path: '/admin/managers',    icon: HiUsers, adminOnly: true },
+
   { labelKey: 'admin.navSettings',   path: '/admin/settings',    icon: HiCog },
   { labelKey: 'admin.navTerms',      path: '/admin/terms',       icon: HiDocumentText },
   { labelKey: 'admin.navPrivacy',    path: '/admin/privacy',     icon: HiShieldExclamation },
 ];
 
 const AdminLayout = ({ children }) => {
-  const { logout, admin } = useAdminAuth();
+  const { logout, user: admin } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
-  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleLogout = () => { logout(); navigate('/admin/login'); };
+  const handleLogout = () => {
+    logout();
+  };
 
   const SidebarContent = ({ onNavClick }) => (
     <div className="flex flex-col h-full">

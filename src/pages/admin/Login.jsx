@@ -1,14 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { useAdminAuth } from "../../context/AdminAuthContext";
+import { getDashboardByRole, useAuth } from "../../context/AuthContext";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { loginAdmin } = useAdminAuth();
+  const { login, isAuthenticated, loading: authLoading, role } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate(getDashboardByRole(role), { replace: true });
+    }
+  }, [isAuthenticated, authLoading, role, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,15 +27,33 @@ const AdminLogin = () => {
 
     setLoading(true);
     try {
-      await loginAdmin({ email, password });
+      const result = await login({ email, password }, { mode: "admin" });
       toast.success("Welcome back");
-      navigate("/admin/dashboard", { replace: true });
+      navigate(result?.redirectTo || "/admin/dashboard", { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
   };
+
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <LoadingSpinner size="lg" text="Checking session..." />
+      </div>
+    );
+  }
+
+  // Don't render form if already authenticated (redirect will happen via useEffect)
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <LoadingSpinner size="lg" text="Redirecting..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
@@ -66,3 +92,4 @@ const AdminLogin = () => {
 };
 
 export default AdminLogin;
+

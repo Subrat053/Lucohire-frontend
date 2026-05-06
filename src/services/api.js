@@ -1,28 +1,76 @@
 import axios from "axios";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  "/api";
+const AUTH_BASE_URL =
+  import.meta.env.VITE_AUTH_BASE_URL ||
+  import.meta.env.VITE_AUTH_URL ||
+  "/api/v1";
+const ADMIN_BASE_URL =
+  import.meta.env.VITE_ADMIN_API_BASE_URL ||
+  import.meta.env.VITE_ADMIN_API_URL ||
+  "/api/v1";
+
+const getStoredAuthToken = () => {
+  const existing = localStorage.getItem("authToken");
+  if (existing) return existing;
+
+  const legacyToken =
+    localStorage.getItem("token") ||
+    localStorage.getItem("adminToken") ||
+    localStorage.getItem("userToken") ||
+    localStorage.getItem("providerToken") ||
+    localStorage.getItem("recruiterToken") ||
+    localStorage.getItem("managerToken");
+
+  if (legacyToken) {
+    localStorage.setItem("authToken", legacyToken);
+    return legacyToken;
+  }
+
+  return null;
+};
+
+const shouldSkipAuthInvalidation = (url = "") => {
+  const safeUrl = String(url);
+  return (
+    safeUrl.includes("/auth/login") ||
+    safeUrl.includes("/auth/login-email") ||
+    safeUrl.includes("/auth/register") ||
+    safeUrl.includes("/auth/register-email") ||
+    safeUrl.includes("/auth/verify") ||
+    safeUrl.includes("/admin/login")
+  );
+};
+
 // Base API for existing app routes (/api)
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "/api",
+  baseURL: API_BASE_URL,
   timeout: 15000,
+  withCredentials: true,
 });
 
 // Auth-only API for v1 endpoints (/api/v1)
 const AUTH_API = axios.create({
-  baseURL: import.meta.env.VITE_AUTH_URL || "/api/v1",
+  baseURL: AUTH_BASE_URL,
   timeout: 15000,
+  withCredentials: true,
 });
 
-// Admin API uses admin token and v1 routes
+// Admin API uses v1 routes
 const ADMIN_API = axios.create({
-  baseURL: import.meta.env.VITE_ADMIN_API_URL || "/api/v1",
+  baseURL: ADMIN_BASE_URL,
   timeout: 15000,
+  withCredentials: true,
 });
 
 export { API, AUTH_API, ADMIN_API };
 
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("userToken");
+    const token = getStoredAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -33,7 +81,7 @@ API.interceptors.request.use(
 
 AUTH_API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("userToken");
+    const token = getStoredAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -44,7 +92,7 @@ AUTH_API.interceptors.request.use(
 
 ADMIN_API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("adminToken");
+    const token = getStoredAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -56,9 +104,10 @@ ADMIN_API.interceptors.request.use(
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("userToken");
-      localStorage.removeItem("user");
+    const status = error?.response?.status;
+    const url = error?.config?.url || "";
+    if (status === 401 && !shouldSkipAuthInvalidation(url)) {
+      window.dispatchEvent(new Event("auth:invalid-token"));
     }
     return Promise.reject(error);
   },
@@ -67,9 +116,10 @@ API.interceptors.response.use(
 AUTH_API.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("userToken");
-      localStorage.removeItem("user");
+    const status = error?.response?.status;
+    const url = error?.config?.url || "";
+    if (status === 401 && !shouldSkipAuthInvalidation(url)) {
+      window.dispatchEvent(new Event("auth:invalid-token"));
     }
     return Promise.reject(error);
   },
@@ -78,9 +128,10 @@ AUTH_API.interceptors.response.use(
 ADMIN_API.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("adminToken");
-      localStorage.removeItem("admin");
+    const status = error?.response?.status;
+    const url = error?.config?.url || "";
+    if (status === 401 && !shouldSkipAuthInvalidation(url)) {
+      window.dispatchEvent(new Event("auth:invalid-token"));
     }
     return Promise.reject(error);
   },
@@ -193,12 +244,24 @@ export const adminAPI = {
   login: (data) => ADMIN_API.post("/admin/login", data),
   getMe: () => ADMIN_API.get("/admin/me"),
   getDashboard: () => ADMIN_API.get("/admin/dashboard"),
+  getDashboardStats: () => ADMIN_API.get("/admin/partners/dashboard/stats"),
   getUsers: (params) => ADMIN_API.get("/admin/users", { params }),
   getUserDetail: (id) => ADMIN_API.get(`/admin/users/${id}`),
   getManagers: () => ADMIN_API.get("/admin/managers"),
   createManager: (data) => ADMIN_API.post("/admin/managers", data),
   deleteManager: (id) => ADMIN_API.delete(`/admin/managers/${id}`),
+  getPartners: () => ADMIN_API.get("/admin/partners"),
+  createPartner: (data) => ADMIN_API.post("/admin/partners", data),
+  getPartnerDetails: (id) => ADMIN_API.get(`/admin/partners/${id}`),
+  updatePartner: (id, data) => ADMIN_API.patch(`/admin/partners/${id}`, data),
+  updatePartnerStatus: (id, data) => ADMIN_API.patch(`/admin/partners/${id}/status`, data),
+  updatePartnerCommissionRate: (id, data) => ADMIN_API.patch(`/admin/partners/${id}/commission-rate`, data),
+  getPartnerRewardSettings: () => ADMIN_API.get("/admin/partners/settings/rewards"),
+  updatePartnerRewardSettings: (data) => ADMIN_API.put("/admin/partners/settings/rewards", data),
   getApprovalLogs: (params) => ADMIN_API.get("/admin/approval-logs", { params }),
+  approveUser: (userId) => ADMIN_API.patch(`/admin/users/${userId}/approve`),
+  rejectUser: (userId, reason = "") =>
+    ADMIN_API.patch(`/admin/users/${userId}/reject`, { reason }),
   toggleBlockUser: (id) => ADMIN_API.put(`/admin/users/${id}/block`),
   deleteUser: (id) => ADMIN_API.delete(`/admin/users/${id}`),
   // approveProvider: (id, data) => ADMIN_API.put(`/admin/providers/${id}/approve`, data),
@@ -227,13 +290,15 @@ export const adminAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
   getProfilePhoto: () => ADMIN_API.get("/admin/profile/photo"),
-  getProfilePhotoApprovals: () => ADMIN_API.get("/admin/profile-photo-approvals"),
+  getProfilePhotoApprovals: (params) => ADMIN_API.get("/admin/profile-approvals", { params }),
+
+  getProfileApprovalStats: () => ADMIN_API.get("/admin/profile-approvals/stats"),
 
   approveProfilePhoto: (userId) =>
-    ADMIN_API.patch(`/admin/profile-photo-approvals/${userId}/approve`),
+    ADMIN_API.patch(`/admin/profile-approvals/${userId}/approve`),
 
   rejectProfilePhoto: (userId, reason = "") =>
-    ADMIN_API.patch(`/admin/profile-photo-approvals/${userId}/reject`, { reason }),
+    ADMIN_API.patch(`/admin/profile-approvals/${userId}/reject`, { reason }),
   getContent: (type) => ADMIN_API.get(`/admin/content/${type}`),
   updateContent: (type, value) =>
     ADMIN_API.put(`/admin/content/${type}`, { value }),
@@ -264,26 +329,26 @@ export const adminAPI = {
     ADMIN_API.post(`/admin/skills/${id}/skills`, data),
   removeSkillFromCategory: (id, skillId) =>
     ADMIN_API.delete(`/admin/skills/${id}/skills/${skillId}`),
-  getAIMatchWeights: () => ADMIN_API.get("/admin/ai/match-weights"),
+  getAIMatchWeights: () => API.get("/admin/ai/match-weights"),
   updateAIMatchWeights: (data) =>
-    ADMIN_API.put("/admin/ai/match-weights", data),
-  getAITrustWeights: () => ADMIN_API.get("/admin/ai/trust-weights"),
+    API.put("/admin/ai/match-weights", data),
+  getAITrustWeights: () => API.get("/admin/ai/trust-weights"),
   updateAITrustWeights: (data) =>
-    ADMIN_API.put("/admin/ai/trust-weights", data),
-  getPromptTemplates: () => ADMIN_API.get("/admin/ai/prompt-templates"),
+    API.put("/admin/ai/trust-weights", data),
+  getPromptTemplates: () => API.get("/admin/ai/prompt-templates"),
   createPromptTemplate: (data) =>
-    ADMIN_API.post("/admin/ai/prompt-templates", data),
+    API.post("/admin/ai/prompt-templates", data),
   updatePromptTemplate: (id, data) =>
-    ADMIN_API.put(`/admin/ai/prompt-templates/${id}`, data),
+    API.put(`/admin/ai/prompt-templates/${id}`, data),
   getSkillSynonyms: (params) =>
-    ADMIN_API.get("/admin/ai/skill-synonyms", { params }),
+    API.get("/admin/ai/skill-synonyms", { params }),
   createSkillSynonym: (data) =>
-    ADMIN_API.post("/admin/ai/skill-synonyms", data),
+    API.post("/admin/ai/skill-synonyms", data),
   updateSkillSynonym: (id, data) =>
-    ADMIN_API.put(`/admin/ai/skill-synonyms/${id}`, data),
+    API.put(`/admin/ai/skill-synonyms/${id}`, data),
   deleteSkillSynonym: (id) =>
-    ADMIN_API.delete(`/admin/ai/skill-synonyms/${id}`),
-  getFraudQueue: () => ADMIN_API.get("/admin/ai/fraud-queue"),
+    API.delete(`/admin/ai/skill-synonyms/${id}`),
+  getFraudQueue: () => API.get("/admin/ai/fraud-queue"),
   getOcrReviewQueue: () => API.get("/admin/ai/ocr-review-queue"),
   updateOcrReviewDecision: (id, data) =>
     API.put(`/admin/ai/ocr-review-queue/${id}`, data),

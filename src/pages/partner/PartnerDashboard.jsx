@@ -238,7 +238,8 @@ const PartnerDashboard = () => {
                                 <th className="text-left p-4">Role</th>
                                 <th className="text-left p-4">Plan</th>
                                 <th className="text-left p-4">Registered</th>
-                                <th className="text-left p-4">Status</th>
+                                <th className="text-left p-4">Activity</th>
+                                <th className="text-left p-4">Reward Status</th>
                                 <th className="text-left p-4">Actions</th>
                             </tr>
                         </thead>
@@ -257,29 +258,23 @@ const PartnerDashboard = () => {
                                         {new Date(item.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="p-4">
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-xs font-bold ${item.status === "active"
-                                                ? "bg-green-50 text-green-600"
-                                                : item.status === "pending"
-                                                    ? "bg-orange-50 text-orange-600"
-                                                    : "bg-gray-100 text-gray-500"
-                                                }`}
-                                        >
-                                            {item.status}
-                                        </span>
+                                        {item.referredRole === 'recruiter' ? (
+                                            <span className="text-xs">{item.jobsCreated || 0} Jobs Posted</span>
+                                        ) : (
+                                            <span className="text-xs">{item.jobsCompleted || 0} Jobs Done</span>
+                                        )}
                                     </td>
                                     <td className="p-4">
-                                        <div className="flex gap-2">
-                                            <button className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
-                                                <Phone size={15} />
-                                            </button>
-                                            <button className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
-                                                <MessageCircle size={15} />
-                                            </button>
-                                            <button className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center">
-                                                <MoreHorizontal size={15} />
-                                            </button>
-                                        </div>
+                                        {item.rewardEligible ? (
+                                            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">Eligible</span>
+                                        ) : (
+                                            <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Pending</span>
+                                        )}
+                                    </td>
+                                    <td className="p-4">
+                                        <button className="p-2 text-gray-400 hover:text-[#7C3AED] hover:bg-purple-50 rounded-lg">
+                                            <MoreHorizontal size={18} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

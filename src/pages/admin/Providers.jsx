@@ -39,45 +39,45 @@ const AdminProviders = () => {
     return null;
   };
 
-  // const handleApprove = async (provider, approve) => {
-  //   const userId = getUserIdForApproval(provider);
+  const handleApprove = async (provider, approve) => {
+    const userId = getUserIdForApproval(provider);
 
-  //   if (!userId) {
-  //     console.log('Provider approval item:', provider);
-  //     toast.error('User ID missing. Cannot approve this provider.');
-  //     return;
-  //   }
+    if (!userId) {
+      console.log('Provider approval item:', provider);
+      toast.error('User ID missing. Cannot approve this provider.');
+      return;
+    }
 
-  //   try {
-  //     if (approve) {
-  //       await adminAPI.approveUser(userId);
-  //       toast.success('User approved for all eligible panels');
-  //     } else {
-  //       await adminAPI.rejectUser(userId, 'Rejected by admin');
-  //       toast.success('User rejected');
-  //     }
+    try {
+      if (approve) {
+        await adminAPI.approveUser(userId);
+        toast.success('User approved for all eligible panels');
+      } else {
+        await adminAPI.rejectUser(userId, 'Rejected by admin');
+        toast.success('User rejected');
+      }
 
-  //     fetchProviders();
-  //     setSelectedProvider(null);
-  //   } catch (err) {
-  //     toast.error(err.response?.data?.message || 'Action failed');
-  //   }
-  // };
+      fetchProviders();
+      setSelectedProvider(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Action failed');
+    }
+  };
 
-  // const handleDelete = async (id, name) => {
-  //   if (!confirm(`Are you sure you want to delete provider "${name}"?\n\nThis will permanently delete:\n... Provider profile\n... All leads\n... All reviews\n... User account\n... Rotation pool entries\n\nThis action cannot be undone.`)) {
-  //     return;
-  //   }
+  const handleDelete = async (id, name) => {
+    if (!confirm(`Are you sure you want to delete provider "${name}"?\n\nThis will permanently delete:\n... Provider profile\n... All leads\n... All reviews\n... User account\n... Rotation pool entries\n\nThis action cannot be undone.`)) {
+      return;
+    }
 
-  //   try {
-  //     await adminAPI.deleteProvider(id);
-  //     toast.success('Provider deleted successfully');
-  //     fetchProviders();
-  //     setSelectedProvider(null);
-  //   } catch (err) {
-  //     toast.error(err.response?.data?.message || 'Failed to delete provider');
-  //   }
-  // };
+    try {
+      await adminAPI.deleteProvider(id);
+      toast.success('Provider deleted successfully');
+      fetchProviders();
+      setSelectedProvider(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete provider');
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

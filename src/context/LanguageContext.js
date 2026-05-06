@@ -78,10 +78,10 @@ export const LanguageProvider = ({ children }) => {
       }
     }
     try {
-      const rawUser = localStorage.getItem('user');
+      const rawUser = localStorage.getItem('authUser') || localStorage.getItem('user');
       if (!rawUser) return;
       const parsedUser = JSON.parse(rawUser);
-      localStorage.setItem('user', JSON.stringify({
+      localStorage.setItem('authUser', JSON.stringify({
         ...parsedUser,
         locale: nextLanguage,
         preferredLanguage: nextLanguage,

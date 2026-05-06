@@ -55,7 +55,7 @@ const RecruiterLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleLogout = () => { logout(); navigate('/'); };
+  const handleLogout = () => { logout(); };
 
   const SidebarContent = ({ onNavClick }) => (
     <div className="flex flex-col h-full">
@@ -127,7 +127,7 @@ const RecruiterLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-[#F8FAFF] md:flex">
       {/* Desktop Sidebar */}
-      <aside className={`hidden md:flex  flex-col bg-white border-r border-gray-100 shrink-0 sticky top-0 self-start h-screenhidden md:flex flex-col bg-white border-r border-gray-100 transition-all duration-300 shrink-0 sticky top-0 self-start h-screen
+      <aside className={`hidden md:flex flex-col bg-white border-r border-gray-100 transition-all duration-300 shrink-0 sticky top-0 self-start h-screen
         ${collapsed ? 'w-16' : 'w-60'}
       `}>
         <SidebarContent />

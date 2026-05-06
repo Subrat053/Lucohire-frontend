@@ -1,9 +1,9 @@
 import { Navigate } from "react-router-dom";
-import { useAdminAuth } from "../../context/AdminAuthContext";
+import { useAuth } from "../../context/AuthContext";
 import LoadingSpinner from "./LoadingSpinner";
 
 const AdminProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAdminAuth();
+  const { isAuthenticated, user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -13,11 +13,15 @@ const AdminProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/admin/login" replace />;
+  const role = user?.activeRole || user?.role || user?.roles?.[0];
+  const isAdminOrManager = role === 'admin' || role === 'manager';
+
+  if (!isAuthenticated || !isAdminOrManager) {
+    return <Navigate to="/login" replace />;
   }
 
   return children;
 };
+
 
 export default AdminProtectedRoute;

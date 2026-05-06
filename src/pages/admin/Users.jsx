@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { HiSearch, HiBan, HiCheckCircle, HiChevronLeft, HiChevronRight, HiTrash, HiEye, HiX } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -113,10 +114,12 @@ const UserDetailModal = ({ userId, onClose }) => {
 };
 
 const AdminUsers = () => {
+  const [searchParams] = useSearchParams();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -127,7 +130,13 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data } = await adminAPI.getUsers({ page, limit, search, role: roleFilter });
+      const { data } = await adminAPI.getUsers({ 
+        page, 
+        limit, 
+        search, 
+        role: roleFilter,
+        status: statusFilter 
+      });
       setUsers(data.users || []);
       setTotal(data.pagination?.total || data.total || 0);
     } catch (err) {
@@ -150,6 +159,23 @@ const AdminUsers = () => {
       fetchUsers();
     } catch (err) {
       toast.error('Action failed');
+    }
+  };
+
+  const handleApprove = async (userId, approve) => {
+    try {
+      if (approve) {
+        await adminAPI.approveUser(userId);
+        toast.success('User approved successfully');
+      } else {
+        const reason = prompt('Enter rejection reason:', 'Documents incomplete');
+        if (reason === null) return; // Cancelled
+        await adminAPI.rejectUser(userId, reason);
+        toast.success('User rejected');
+      }
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Action failed');
     }
   };
 
@@ -199,6 +225,16 @@ const AdminUsers = () => {
           <option value="provider">Providers</option>
           <option value="recruiter">Recruiters</option>
           <option value="admin">Admins</option>
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
         </select>
       </div>
 
@@ -259,6 +295,24 @@ const AdminUsers = () => {
                           </button>
                           {user.role !== 'admin' && (
                             <>
+                              {user.approvalStatus !== 'approved' && (
+                                <>
+                                  <button
+                                    onClick={() => handleApprove(user._id, true)}
+                                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition"
+                                    title="Approve user account"
+                                  >
+                                    <HiCheckCircle className="w-4 h-4" /> Approve
+                                  </button>
+                                  <button
+                                    onClick={() => handleApprove(user._id, false)}
+                                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition"
+                                    title="Reject user account"
+                                  >
+                                    <HiX className="w-4 h-4" /> Reject
+                                  </button>
+                                </>
+                              )}
                               <button
                                 onClick={() => toggleBlock(user._id, user.isBlocked)}
                                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition ${

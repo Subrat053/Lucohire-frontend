@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import { authAPI } from "../services/api";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { adminAPI, authAPI } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -9,12 +9,26 @@ export const useAuth = () => {
   return context;
 };
 
+export const getDashboardByRole = (role) => {
+  switch (role) {
+    case "admin":
+      return "/admin/dashboard";
+    case "partner":
+    case "manager":
+      return "/partner/dashboard";
+    case "provider":
+      return "/provider/dashboard";
+    case "recruiter":
+      return "/recruiter/dashboard";
+    default:
+      return "/";
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showWhatsAppPrompt, setShowWhatsAppPrompt] = useState(false);
 
   const normalizeUser = (rawUser) => {
@@ -51,106 +65,173 @@ export const AuthProvider = ({ children }) => {
     };
   };
 
-  const logout = () => {
+  const clearAuthStorage = useCallback(() => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("authUser");
+    localStorage.removeItem("token");
+    localStorage.removeItem("adminToken");
     localStorage.removeItem("userToken");
+    localStorage.removeItem("providerToken");
+    localStorage.removeItem("recruiterToken");
+    localStorage.removeItem("managerToken");
     localStorage.removeItem("user");
-    setToken(null);
-    setUser(null);
-    setProfile(null);
-    setIsAuthenticated(false);
-  };
-
-  const fetchUser = async ({ soft = false } = {}) => {
-    try {
-      const { data } = await authAPI.getMe();
-      const normalizedUser = normalizeUser(data?.data?.user || data.user);
-
-      if (!normalizedUser) {
-        if (!soft) logout();
-        return null;
-      }
-
-      const storedToken = localStorage.getItem("userToken");
-
-      setUser(normalizedUser);
-      setProfile(data?.data?.profile || data.profile || null);
-      setIsAuthenticated(!!storedToken);
-
-      if (storedToken) setToken(storedToken);
-      localStorage.setItem("user", JSON.stringify(normalizedUser));
-
-      return normalizedUser;
-    } catch (error) {
-      if (!soft) logout();
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    let mounted = true;
-
-    const initAuth = async () => {
-      try {
-        const storedToken = localStorage.getItem("userToken");
-        const savedUser = localStorage.getItem("user");
-
-        if (storedToken && savedUser) {
-          const normalized = normalizeUser(JSON.parse(savedUser));
-
-          setToken(storedToken);
-          setUser(normalized);
-          setIsAuthenticated(true);
-
-          await fetchUser({ soft: true });
-        } else {
-          setToken(null);
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        logout();
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    initAuth();
-
-    return () => {
-      mounted = false;
-    };
+    localStorage.removeItem("admin");
   }, []);
 
-  const saveUserSession = ({ token: nextToken, user: nextUser }) => {
-    if (!nextToken || !nextUser) return null;
+  const migrateLegacyToken = useCallback(() => {
+    const legacyToken =
+      localStorage.getItem("authToken") ||
+      localStorage.getItem("token") ||
+      localStorage.getItem("adminToken") ||
+      localStorage.getItem("userToken") ||
+      localStorage.getItem("providerToken") ||
+      localStorage.getItem("recruiterToken") ||
+      localStorage.getItem("managerToken");
 
-    const normalizedUser = normalizeUser(nextUser);
-
-    localStorage.setItem("userToken", nextToken);
-    localStorage.setItem("user", JSON.stringify(normalizedUser));
-
-    setToken(nextToken);
-    setUser(normalizedUser);
-    setIsAuthenticated(true);
-
-    return normalizedUser;
-  };
-
-  const login = (userData, tokenValue) => {
-    const normalizedUser = normalizeUser(userData);
-    const resolvedToken = tokenValue || localStorage.getItem("userToken");
-
-    if (resolvedToken) {
-      localStorage.setItem("userToken", resolvedToken);
+    if (legacyToken && !localStorage.getItem("authToken")) {
+      localStorage.setItem("authToken", legacyToken);
     }
 
-    localStorage.setItem("user", JSON.stringify(normalizedUser));
+    return localStorage.getItem("authToken");
+  }, []);
 
-    setToken(resolvedToken || null);
+  const loadCachedUser = useCallback(() => {
+    const raw =
+      localStorage.getItem("authUser") ||
+      localStorage.getItem("user") ||
+      localStorage.getItem("admin");
+    if (!raw) return null;
+    try {
+      return normalizeUser(JSON.parse(raw));
+    } catch (_) {
+      return null;
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    clearAuthStorage();
+    setUser(null);
+    setProfile(null);
+    setShowWhatsAppPrompt(false);
+    window.location.href = "/";
+  }, [clearAuthStorage]);
+
+  const refreshUser = useCallback(async () => {
+    let resolvedUser = null;
+    const token = migrateLegacyToken();
+    if (!token) {
+      setUser(null);
+      setProfile(null);
+      setLoading(false);
+      return null;
+    }
+
+    try {
+      const { data } = await authAPI.getMe();
+      const currentUser = normalizeUser(data?.data?.user || data.user);
+      if (currentUser) {
+        resolvedUser = currentUser;
+        setUser(currentUser);
+        setProfile(data?.data?.profile || data.profile || null);
+        localStorage.setItem("authUser", JSON.stringify(currentUser));
+        setLoading(false);
+        return currentUser;
+      }
+    } catch (error) {
+      const status = error?.response?.status;
+      if (status === 401 || status === 403) {
+        try {
+          const { data } = await adminAPI.getMe();
+          const adminUser = normalizeUser(data?.data?.admin || data.admin);
+          if (adminUser) {
+            resolvedUser = adminUser;
+            setUser(adminUser);
+            setProfile(null);
+            localStorage.setItem("authUser", JSON.stringify(adminUser));
+            setLoading(false);
+            return adminUser;
+          }
+        } catch (adminError) {
+          const adminStatus = adminError?.response?.status;
+          if (adminStatus === 401 || adminStatus === 403) {
+            clearAuthStorage();
+            setUser(null);
+            setProfile(null);
+            setLoading(false);
+            return null;
+          }
+        }
+      }
+
+      const cachedUser = loadCachedUser();
+      if (cachedUser) {
+        resolvedUser = cachedUser;
+        setUser(cachedUser);
+        setProfile(cachedUser?.profile || null);
+      }
+    } finally {
+      setLoading(false);
+    }
+
+    return resolvedUser;
+  }, [clearAuthStorage, loadCachedUser, migrateLegacyToken]);
+
+  useEffect(() => {
+    refreshUser();
+  }, [refreshUser]);
+
+  useEffect(() => {
+    const handler = () => {
+      if (localStorage.getItem("authToken")) {
+        logout();
+      }
+    };
+    window.addEventListener("auth:invalid-token", handler);
+    return () => window.removeEventListener("auth:invalid-token", handler);
+  }, [logout]);
+
+  const saveUserSession = useCallback(
+    ({ token: nextToken, user: nextUser }) => {
+      if (!nextToken || !nextUser) return null;
+
+      const normalizedUser = normalizeUser(nextUser);
+      localStorage.setItem("authToken", nextToken);
+      localStorage.setItem("authUser", JSON.stringify(normalizedUser));
+
+      setUser(normalizedUser);
+      return normalizedUser;
+    },
+    [],
+  );
+
+  const login = async (credentials, options = {}) => {
+    const mode = options.mode || options.role || "user";
+    const response =
+      mode === "admin"
+        ? await adminAPI.login(credentials)
+        : await authAPI.loginEmail(credentials);
+
+    const data = response?.data || {};
+    const token =
+      data?.data?.token ||
+      data?.token ||
+      data?.accessToken ||
+      data?.data?.accessToken;
+    const loggedUser =
+      data?.data?.user ||
+      data?.data?.admin ||
+      data?.user ||
+      data?.admin;
+
+    if (!token || !loggedUser) {
+      throw new Error("Login response missing token or user");
+    }
+
+    const normalizedUser = normalizeUser(loggedUser);
+    localStorage.setItem("authToken", token);
+    localStorage.setItem("authUser", JSON.stringify(normalizedUser));
     setUser(normalizedUser);
-    setIsAuthenticated(!!resolvedToken);
-
-    fetchUser({ soft: true });
+    setProfile(data?.data?.profile || data?.profile || null);
 
     if (
       normalizedUser &&
@@ -161,7 +242,11 @@ export const AuthProvider = ({ children }) => {
       setTimeout(() => setShowWhatsAppPrompt(true), 1500);
     }
 
-    return normalizedUser;
+    return {
+      user: normalizedUser,
+      role: normalizedUser?.activeRole || normalizedUser?.role,
+      redirectTo: getDashboardByRole(normalizedUser?.activeRole || normalizedUser?.role),
+    };
   };
 
   const loginUser = async (credentials) => {
@@ -180,47 +265,53 @@ export const AuthProvider = ({ children }) => {
 
   const switchRole = async (nextRole) => {
     const { data } = await authAPI.switchRole({ role: nextRole });
-    const nextToken = data?.data?.token || data.token || localStorage.getItem("userToken");
+    const nextToken =
+      data?.data?.token ||
+      data?.token ||
+      localStorage.getItem("authToken");
 
     if (nextToken) {
-      localStorage.setItem("userToken", nextToken);
-      setToken(nextToken);
+      localStorage.setItem("authToken", nextToken);
     }
 
-    const freshUser = await fetchUser({ soft: true });
+    const freshUser = await refreshUser();
 
     return { user: freshUser, profile };
   };
 
   const switchPanel = async (nextPanel) => {
     const { data } = await authAPI.switchPanel({ panel: nextPanel });
-    const nextToken = data?.data?.token || data.token || localStorage.getItem("userToken");
+    const nextToken =
+      data?.data?.token ||
+      data?.token ||
+      localStorage.getItem("authToken");
 
     if (nextToken) {
-      localStorage.setItem("userToken", nextToken);
-      setToken(nextToken);
+      localStorage.setItem("authToken", nextToken);
     }
 
-    const freshUser = await fetchUser({ soft: true });
+    const freshUser = await refreshUser();
 
     return { user: freshUser, profile };
   };
 
+  const role = user?.activeRole || user?.role || null;
+  const isAuthenticated = Boolean(user && localStorage.getItem("authToken"));
+
   const value = {
     user,
-    token,
-    role: user?.activeRole || user?.role || null,
     profile,
+    role,
     loading,
     isAuthenticated,
     login,
-    saveUserSession,
     loginUser,
     loginWithFirebase,
     logout,
+    refreshUser,
     switchRole,
     switchPanel,
-    fetchUser,
+    saveUserSession,
     setProfile,
     showWhatsAppPrompt,
     setShowWhatsAppPrompt,

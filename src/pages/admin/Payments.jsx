@@ -28,6 +28,8 @@ const AdminPayments = () => {
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
   const [configLoading, setConfigLoading] = useState(true);
+  const [configConfigured, setConfigConfigured] = useState(true);
+  const [configSource, setConfigSource] = useState("unknown");
 
   // Payment list state
   const [payments, setPayments] = useState([]);
@@ -48,6 +50,16 @@ const AdminPayments = () => {
         stripe_webhook_secret: data.stripe_webhook_secret || '',
         stripe_simulation_mode: data.stripe_simulation_mode || false,
       });
+      setConfigConfigured(
+        typeof data.configured === 'boolean'
+          ? data.configured
+          : Boolean(
+              data.stripe_publishable_key ||
+              data.stripe_secret_key ||
+              data.stripe_simulation_mode
+            )
+      );
+      setConfigSource(data.source || 'unknown');
     } catch (err) {
       toast.error('Failed to load payment settings');
     } finally {
@@ -114,6 +126,20 @@ const AdminPayments = () => {
         </div>
       )}
 
+      {!configConfigured && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+          <HiExclamationCircle className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
+          <div>
+            <h3 className="font-semibold text-red-800">Payment configuration not set</h3>
+            <p className="text-sm text-red-700 mt-0.5">
+              Add Stripe credentials here or set them in the backend environment
+              (STRIPE_PUBLISHABLE_KEY / STRIPE_SECRET_KEY). If neither is set,
+              payments cannot be initiated.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Razorpay Configuration Card */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex items-center justify-between">
@@ -121,10 +147,21 @@ const AdminPayments = () => {
             <HiShieldCheck className="w-5 h-5 text-green-500" />
             <h2 className="text-lg font-bold text-gray-900">Stripe Configuration</h2>
           </div>
-          <a href="https://dashboard.stripe.com" target="_blank" rel="noopener noreferrer"
-            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-            Stripe Dashboard ↗
-          </a>
+          <div className="flex items-center gap-3">
+            <div className="text-xs text-gray-500">
+              {configSource === 'database' && 'Source: Admin settings'}
+              {configSource === 'env' && 'Source: Environment variables'}
+              {configSource === 'none' && 'Source: Not configured'}
+            </div>
+            <a
+              href="https://dashboard.stripe.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+            >
+              Stripe Dashboard ↗
+            </a>
+          </div>
         </div>
 
         <div className="p-5 space-y-5">

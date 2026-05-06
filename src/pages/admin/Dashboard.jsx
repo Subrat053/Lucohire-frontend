@@ -1,249 +1,225 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { HiUsers, HiBriefcase, HiCurrencyRupee, HiShieldCheck, HiTrendingUp, HiDocumentReport } from 'react-icons/hi';
+import { HiUsers, HiUserAdd, HiBriefcase, HiCheckCircle, HiArrowRight, HiSearch, HiFilter, HiChevronRight, HiPhotograph } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 
-const TrendSparkline = ({ series = [] }) => {
-  const width = 220;
-  const height = 56;
-  const padding = 6;
+// Import all the new dashboard components
+import DashboardStatsCard from '../../components/admin/DashboardStatsCard';
+import RevenueChart from '../../components/admin/RevenueChart';
+import EarningsSourceChart from '../../components/admin/EarningsSourceChart';
+import TopPartnersTable from '../../components/admin/TopPartnersTable';
+import RewardProgramTable from '../../components/admin/RewardProgramTable';
+import PlatformSummary from '../../components/admin/PlatformSummary';
+import PlanSummary from '../../components/admin/PlanSummary';
+import RewardPoolCard from '../../components/admin/RewardPoolCard';
 
-  if (!Array.isArray(series) || series.length === 0) {
-    return <div className="text-xs text-gray-400">No trend data</div>;
-  }
-
-  const values = series.map((item) => Number(item.costUsd || 0));
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-
-  const points = values.map((value, index) => {
-    const x = padding + (index * ((width - (padding * 2)) / Math.max(1, values.length - 1)));
-    const y = height - padding - (((value - min) / range) * (height - (padding * 2)));
-    return `${x},${Number(y.toFixed(2))}`;
-  }).join(' ');
-
-  const areaPoints = `${padding},${height - padding} ${points} ${width - padding},${height - padding}`;
-
-  return (
-    <svg width="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
-      <polyline
-        fill="rgba(79,70,229,0.12)"
-        stroke="none"
-        points={areaPoints}
-      />
-      <polyline
-        fill="none"
-        stroke="rgb(79,70,229)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        points={points}
-      />
-    </svg>
-  );
-};
-
-const AdminDashboard = () => {
-  const [dashboard, setDashboard] = useState(null);
-  const [aiUsage, setAiUsage] = useState({ summary: null, byFeature: [], trend: null });
+const Dashboard = () => {
+  const { user: admin } = useAuth();
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetchDashboard(); }, []);
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
 
-  const fetchDashboard = async () => {
+  const fetchDashboardStats = async () => {
     try {
-      const [dashboardRes, usageRes] = await Promise.allSettled([
-        adminAPI.getDashboard(),
-        adminAPI.getAIUsageDashboard(),
-      ]);
-
-      if (dashboardRes.status === 'fulfilled') {
-        setDashboard(dashboardRes.value.data);
-      }
-
-      if (usageRes.status === 'fulfilled') {
-        setAiUsage({
-          summary: usageRes.value.data?.summary || null,
-          byFeature: usageRes.value.data?.byFeature || [],
-          trend: usageRes.value.data?.trend || null,
-        });
-      }
-
-      if (dashboardRes.status !== 'fulfilled') {
-        throw dashboardRes.reason;
-      }
+      setLoading(true);
+      const { data } = await adminAPI.getDashboardStats();
+      setStats(data);
     } catch (err) {
-      toast.error('Failed to load dashboard');
+      toast.error('Failed to load dashboard stats');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="lg" text="Loading admin panel..." /></div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Loading admin dashboard..." />
+      </div>
+    );
+  }
 
-  const stats = dashboard?.stats || {};
-  const recentUsers = dashboard?.recentUsers || [];
-  const aiSummary = aiUsage.summary || {
-    totalRequests: 0,
-    totalCostUsd: 0,
-    avgLatencyMs: 0,
-  };
-  const topAiCostFeatures = (aiUsage.byFeature || []).slice(0, 3);
-  const wowCostPct = aiUsage.trend?.weekOverWeek?.costDeltaPct;
-  const wowCostDeltaUsd = Number(aiUsage.trend?.weekOverWeek?.costDeltaUsd || 0);
-  const wowPositive = typeof wowCostPct === 'number' ? wowCostPct >= 0 : null;
-  const wowBadgeClass = wowPositive === null
-    ? 'bg-gray-100 text-gray-600'
-    : wowPositive
-      ? 'bg-red-50 text-red-700'
-      : 'bg-green-50 text-green-700';
-  const wowLabel = wowPositive === null
-    ? 'WoW N/A'
-    : `${wowPositive ? '+' : ''}${wowCostPct.toFixed(1)}% WoW`;
-
-  const statsGrid = [
-    { label: 'Recruiter Approvals Pending', value: stats?.pendingRecruiterApprovals || 0, icon: HiBriefcase, color: 'bg-amber-50 text-amber-600' },
-    { label: 'Total Users', value: stats.totalUsers || 0, icon: HiUsers, color: 'bg-blue-50 text-blue-600' },
-    { label: 'Providers', value: stats.totalProviders || 0, icon: HiShieldCheck, color: 'bg-green-50 text-green-600' },
-    { label: 'Recruiters', value: stats.totalRecruiters || 0, icon: HiBriefcase, color: 'bg-purple-50 text-purple-600' },
-    { label: 'Total Revenue', value: `₹${(stats.totalRevenue || 0).toLocaleString()}`, icon: HiCurrencyRupee, color: 'bg-orange-50 text-orange-600' },
-    { label: 'Total Jobs', value: stats.totalJobs || 0, icon: HiDocumentReport, color: 'bg-pink-50 text-pink-600' },
-    { label: 'Total Leads', value: stats.totalLeads || 0, icon: HiTrendingUp, color: 'bg-teal-50 text-teal-600' },
-    { label: 'Payments', value: stats.totalPayments || 0, icon: HiCurrencyRupee, color: 'bg-indigo-50 text-indigo-600' },
-  ];
+  if (!stats) return null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard 📊</h1>
-        <p className="text-gray-500 mt-1">ServiceHub control panel</p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {statsGrid.map((stat, index) => (
-          <div key={index} className={`p-4 rounded-lg shadow ${stat.color}`}>
-            <stat.icon className="w-6 h-6 mb-2" />
-            <div className="text-lg font-bold">{stat.value}</div>
-            <div className="text-sm text-gray-500">{stat.label}</div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50/50 min-h-screen">
+      
+      {/* Top Bar Filters */}
+      <div className="flex flex-col md:flex-row md:items-center gap-4 mb-8 text-xs">
+        <button className="flex items-center gap-1.5 px-3 py-1.5 text-gray-500 font-medium hover:bg-gray-100 rounded-lg">
+          <HiFilter className="w-4 h-4" /> Filters
+        </button>
+        <div className="h-4 w-[1px] bg-gray-200 hidden md:block"></div>
+        <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 hide-scrollbar flex-1">
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <span className="text-gray-400">Date Range:</span>
+            <select className="bg-transparent font-medium text-gray-700 outline-none cursor-pointer">
+              <option>Last 30 days</option>
+            </select>
           </div>
-        ))}
-      </div>
-
-      {/* Quick Links */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        {[
-          { label: 'Manage Users', link: '/admin/users', icon: HiUsers, color: 'bg-blue-600' },
-          { label: 'Manage Providers', link: '/admin/providers', icon: HiShieldCheck, color: 'bg-green-600' },
-          { label: 'Manage Recruiters', link: '/admin/recruiters', icon: HiBriefcase, color: 'bg-amber-600' },
-          { label: 'Manage Plans', link: '/admin/plans', icon: HiCurrencyRupee, color: 'bg-purple-600' },
-          { label: 'Settings', link: '/admin/settings', icon: HiDocumentReport, color: 'bg-orange-600' },
-        ].map((item, i) => (
-          <Link key={i} to={item.link} className={`${item.color} text-white rounded-2xl p-5 hover:opacity-90 transition`}>
-            <item.icon className="w-8 h-8 mb-2 opacity-80" />
-            <span className="font-semibold">{item.label}</span>
-          </Link>
-        ))}
-      </div>
-
-      {/* AI Ops Snapshot */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-lg font-bold text-gray-900">AI Ops Snapshot</h2>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${wowBadgeClass}`}>{wowLabel}</span>
-            </div>
-            <p className="text-sm text-gray-500 mt-0.5">Top AI cost features, performance overview, and weekly spend trend</p>
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <span className="text-gray-400">Group by:</span>
+            <select className="bg-transparent font-medium text-gray-700 outline-none cursor-pointer">
+              <option>Country</option>
+            </select>
           </div>
-          <Link
-            to="/admin/ai"
-            className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700"
-          >
-            Open AI Ops
-          </Link>
-        </div>
-
-        <div className="rounded-xl border border-gray-100 bg-indigo-50/40 p-3 mb-4">
-          <div className="flex items-center justify-between mb-1.5">
-            <p className="text-xs font-medium text-gray-600">Last 7 Days AI Cost Trend</p>
-            <p className="text-xs text-gray-600">{wowPositive === null ? 'No previous week baseline' : `${wowCostDeltaUsd >= 0 ? '+' : ''}$${wowCostDeltaUsd.toFixed(4)} vs previous week`}</p>
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <span className="text-gray-400">Plan Type:</span>
+            <select className="bg-transparent font-medium text-gray-700 outline-none cursor-pointer">
+              <option>All Plans</option>
+            </select>
           </div>
-          <TrendSparkline series={aiUsage.trend?.dailyCostSeries || []} />
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3 mb-4">
-          <div className="rounded-xl border border-gray-100 p-3 bg-gray-50">
-            <p className="text-xs text-gray-500">AI Requests</p>
-            <p className="text-lg font-bold text-gray-900">{Number(aiSummary.totalRequests || 0).toLocaleString()}</p>
-          </div>
-          <div className="rounded-xl border border-gray-100 p-3 bg-gray-50">
-            <p className="text-xs text-gray-500">AI Cost (USD)</p>
-            <p className="text-lg font-bold text-gray-900">${Number(aiSummary.totalCostUsd || 0).toFixed(4)}</p>
-          </div>
-          <div className="rounded-xl border border-gray-100 p-3 bg-gray-50">
-            <p className="text-xs text-gray-500">Avg Latency</p>
-            <p className="text-lg font-bold text-gray-900">{Math.round(Number(aiSummary.avgLatencyMs || 0))} ms</p>
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <span className="text-gray-400">Partner Type:</span>
+            <select className="bg-transparent font-medium text-gray-700 outline-none cursor-pointer">
+              <option>All Partners</option>
+            </select>
           </div>
         </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 text-gray-500 font-medium hover:bg-gray-100 rounded-lg">
+            Reset
+          </button>
+          <button className="px-4 py-1.5 bg-[#7C3AED] text-white rounded-full font-bold shadow-sm hover:bg-[#6D28D9] transition-colors">
+            Apply Filters
+          </button>
+        </div>
+      </div>
 
-        <div>
-          <h3 className="text-sm font-semibold text-gray-800 mb-2">Top Cost Features</h3>
-          {topAiCostFeatures.length === 0 ? (
-            <p className="text-sm text-gray-500">No AI usage records yet.</p>
-          ) : (
-            <div className="space-y-2">
-              {topAiCostFeatures.map((item) => (
-                <div key={item._id || 'unknown'} className="flex items-center justify-between rounded-lg border border-gray-100 p-2.5">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{item._id || 'unknown'}</p>
-                    <p className="text-xs text-gray-500">{Number(item.requests || 0).toLocaleString()} requests · {Number(item.tokens || 0).toLocaleString()} tokens</p>
-                  </div>
-                  <p className="text-sm font-semibold text-gray-800">${Number(item.costUsd || 0).toFixed(4)}</p>
+      {/* Welcome Section */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Welcome back, {admin?.name || 'Admin'} 👋</h1>
+        <p className="text-sm text-gray-500 mt-1">Here's what's happening with your platform today.</p>
+      </div>
+
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        {/* Left Column (Main Content) */}
+        <div className="lg:col-span-3 space-y-6">
+          
+          {/* Purple Revenue Banner */}
+          <div className="bg-gradient-to-br from-[#6D28D9] via-[#7C3AED] to-[#A855F7] rounded-[24px] p-8 text-white relative overflow-hidden shadow-lg">
+            {/* Decorative blurs */}
+            <div className="absolute -top-24 -right-20 w-80 h-80 bg-white/10 rounded-full blur-2xl" />
+            <div className="absolute bottom-0 left-20 w-40 h-40 bg-white/10 rounded-full blur-xl" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row justify-between gap-8">
+              <div className="space-y-6">
+                <div>
+                  <p className="text-xs font-semibold tracking-widest text-purple-200 uppercase mb-2">Total Platform Revenue</p>
+                  <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+                    ₹{(stats.totalRevenue || 0).toLocaleString('en-IN')}
+                  </h2>
                 </div>
-              ))}
+                
+                <div className="flex items-center gap-8 pt-4 border-t border-white/20">
+                  <div>
+                    <p className="text-xs text-purple-200 mb-1">Website Earnings</p>
+                    <p className="text-xl font-bold">₹{(stats.websiteEarnings || 0).toLocaleString('en-IN')}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-purple-200 mb-1">Total Payouts</p>
+                    <p className="text-xl font-bold">₹{(stats.totalPayouts || 0).toLocaleString('en-IN')}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex flex-col justify-end items-start md:items-end">
+                <Link to="/admin/payments" className="inline-flex items-center gap-2 bg-white text-purple-700 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md transition-all hover:scale-105">
+                  View Transactions <HiArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* Recent Users */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Recent Users</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left py-3 px-2 font-medium text-gray-500">Name</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-500">Email</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-500">Role</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-500">Joined</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentUsers.map((user, i) => (
-                <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="py-3 px-2 font-medium">{user.name}</td>
-                  <td className="py-3 px-2 text-gray-500">{user.email}</td>
-                  <td className="py-3 px-2">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      user.role === 'provider' ? 'bg-green-100 text-green-700' :
-                      user.role === 'recruiter' ? 'bg-blue-100 text-blue-700' :
-                      'bg-purple-100 text-purple-700'
-                    }`}>{user.role}</span>
-                  </td>
-                  <td className="py-3 px-2 text-gray-500">{new Date(user.createdAt).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* Activity Stats Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">Platform Activity</h3>
+                <span className="text-[10px] text-gray-400">Total metrics</span>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <DashboardStatsCard 
+                  icon={HiUsers} 
+                  label="Total Users" 
+                  value={(stats.totalUsers || 0).toLocaleString('en-IN')} 
+                />
+                <DashboardStatsCard 
+                  icon={HiUserAdd} 
+                  label="Candidates" 
+                  value={(stats.totalProviders || 0).toLocaleString('en-IN')} 
+                />
+                <DashboardStatsCard 
+                  icon={HiBriefcase} 
+                  label="Recruiters" 
+                  value={(stats.totalRecruiters || 0).toLocaleString('en-IN')} 
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-3 text-red-500">
+                <h3 className="text-[10px] font-extrabold uppercase tracking-widest">Pending Review</h3>
+                <span className="text-[10px]">Action required</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Link to="/admin/users?status=pending">
+                  <DashboardStatsCard 
+                    icon={HiCheckCircle} 
+                    label="Pending Accounts" 
+                    value={(stats.pendingApprovals || 0).toLocaleString('en-IN')} 
+                    isPriority={true}
+                  />
+                </Link>
+                <Link to="/admin/profile-photo-approvals">
+                  <DashboardStatsCard 
+                    icon={HiPhotograph} 
+                    label="Photo Approvals" 
+                    value={(stats.pendingPhotoApprovals || 0).toLocaleString('en-IN')} 
+                    isPriority={true}
+                  />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <RevenueChart data={stats.revenueTrend || []} />
+            <EarningsSourceChart data={stats.earningsBySource || []} />
+          </div>
+
+          {/* Tables Row */}
+          <div className="space-y-6">
+            <TopPartnersTable partners={stats.topPartners || []} />
+            <RewardProgramTable topPartners={stats.topPartners || []} />
+          </div>
+          
         </div>
+
+        {/* Right Column (Sidebar) */}
+        <div className="space-y-6">
+          <PlatformSummary 
+            totalUsers={stats.totalUsers} 
+            totalProviders={stats.totalProviders} 
+            totalRecruiters={stats.totalRecruiters} 
+          />
+          <PlanSummary plans={stats.planSummary || {}} />
+          <RewardPoolCard pool={stats.rewardPool} />
+        </div>
+
       </div>
     </div>
   );
 };
 
-export default AdminDashboard;
+export default Dashboard;
+
