@@ -130,12 +130,12 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data } = await adminAPI.getUsers({ 
-        page, 
-        limit, 
-        search, 
+      const { data } = await adminAPI.getUsers({
+        page,
+        limit,
+        search,
         role: roleFilter,
-        status: statusFilter 
+        status: statusFilter
       });
       setUsers(data.users || []);
       setTotal(data.pagination?.total || data.total || 0);
@@ -273,16 +273,14 @@ const AdminUsers = () => {
                       </td>
                       <td className="py-3 px-4 text-gray-500">{user.email || user.phone || '-'}</td>
                       <td className="py-3 px-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.role === 'provider' ? 'bg-green-100 text-green-700' :
-                          user.role === 'recruiter' ? 'bg-blue-100 text-blue-700' :
-                          'bg-purple-100 text-purple-700'
-                        }`}>{user.role}</span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === 'provider' ? 'bg-green-100 text-green-700' :
+                            user.role === 'recruiter' ? 'bg-blue-100 text-blue-700' :
+                              'bg-purple-100 text-purple-700'
+                          }`}>{user.role}</span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.isBlocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                        }`}>{user.isBlocked ? 'Blocked' : 'Active'}</span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${user.isBlocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                          }`}>{user.isBlocked ? 'Blocked' : 'Active'}</span>
                       </td>
                       <td className="py-3 px-4 text-gray-500">{new Date(user.createdAt).toLocaleDateString()}</td>
                       <td className="py-3 px-4">
@@ -315,11 +313,10 @@ const AdminUsers = () => {
                               )}
                               <button
                                 onClick={() => toggleBlock(user._id, user.isBlocked)}
-                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                                  user.isBlocked
+                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition ${user.isBlocked
                                     ? 'bg-green-50 text-green-700 hover:bg-green-100'
                                     : 'bg-red-50 text-red-700 hover:bg-red-100'
-                                }`}
+                                  }`}
                               >
                                 {user.isBlocked ? <HiCheckCircle className="w-4 h-4" /> : <HiBan className="w-4 h-4" />}
                                 {user.isBlocked ? 'Unblock' : 'Block'}
