@@ -370,15 +370,19 @@ const AuthPage = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const isLoginRoute = location.pathname === "/login";
-  const referralCode = new URLSearchParams(location.search).get("ref") || "";
+  const searchParams = new URLSearchParams(location.search);
+  const referralCode = searchParams.get("ref") || "";
+  const preSelectedRole = searchParams.get("role") || "";
 
   const [mode, setMode] = useState(isLoginRoute ? "login" : "register");
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [selectedRoles, setSelectedRoles] = useState([]);
-  const [activeRole, setActiveRole] = useState(null);
+  const [selectedRoles, setSelectedRoles] = useState(
+    preSelectedRole ? [preSelectedRole] : []
+  );
+  const [activeRole, setActiveRole] = useState(preSelectedRole || null);
 
   const [confirmationResult, setConfirmationResult] = useState(null);
 
@@ -407,7 +411,11 @@ const AuthPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setMode(location.pathname === "/login" ? "login" : "register");
+    const isLogin = location.pathname === "/login";
+    const params = new URLSearchParams(location.search);
+    const roleParam = params.get("role") || "";
+
+    setMode(isLogin ? "login" : "register");
     setStep(1);
     setForm({
       name: "",
@@ -418,11 +426,18 @@ const AuthPage = () => {
       city: "",
       whatsappNumber: "",
     });
-    setSelectedRoles([]);
-    setActiveRole(null);
+
+    if (!isLogin && roleParam) {
+      setSelectedRoles([roleParam]);
+      setActiveRole(roleParam);
+    } else {
+      setSelectedRoles([]);
+      setActiveRole(null);
+    }
+
     setEmailOtpSource("register");
     setConfirmationResult(null);
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     if (mode === "phone-verify" || mode === "email-verify") {

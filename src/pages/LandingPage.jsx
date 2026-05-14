@@ -808,7 +808,7 @@ const LandingPage = () => {
       </section>
 
       {/* ━━━━━━━━ REFERRAL ━━━━━━━━ */}
-      <section className="py-20">
+      <section id="referral-section" className="py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
           <span className="inline-flex items-center gap-2 bg-[#EAF2FF] text-[#1677FF] text-[11px] font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-5">
             <Share2 className="w-3 h-3" /> Referral Partner Program
@@ -939,7 +939,7 @@ const LandingPage = () => {
       </section>
 
       {/* ━━━━━━━━ CONTEST ━━━━━━━━ */}
-      <section className="py-20">
+      <section id="contest-section" className="py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
           <span className="inline-flex items-center gap-2 bg-[#EAF2FF] text-[#1677FF] text-[11px] font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-5">
             <Trophy className="w-3 h-3" /> Registration Champion Contest

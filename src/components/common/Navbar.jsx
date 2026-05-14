@@ -171,7 +171,8 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-3 lg:gap-5">
             <Link to="/" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">{t('navbar.home')}</Link>
             <Link to="/search" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">{t('navbar.findProviders')}</Link>
-            <Link to="/contact" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">{t('navbar.contactUs', 'Contact Us')}</Link>
+            <Link to="/signup?role=recruiter" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">{t('navbar.hireMe', 'Hire Me')}</Link>
+            {/* <Link to="/contact" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">{t('navbar.contactUs', 'Contact Us')}</Link> */}
 
             {/* <LanguageDropdown /> */}
             {canSwitchRoles && <PanelSwitchButtons />}
@@ -233,7 +234,13 @@ const Navbar = () => {
               // </div>
               <div className="flex items-center gap-5">
                 <button
-                  onClick={() => navigate('/signup')}
+                  onClick={() => {
+                    if (window.location.pathname === '/') {
+                      document.getElementById('referral-section')?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate('/#referral-section');
+                    }
+                  }}
                   className="flex items-center gap-1 text-[13px] font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-all"
                 >
                   <span className="text-[15px]">💰</span>
@@ -241,7 +248,13 @@ const Navbar = () => {
                 </button>
 
                 <button
-                  onClick={() => navigate('/signup')}
+                  onClick={() => {
+                    if (window.location.pathname === '/') {
+                      document.getElementById('contest-section')?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate('/#contest-section');
+                    }
+                  }}
                   className="flex items-center gap-1 text-[13px] font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-all"
                 >
                   <span className="text-[15px]">🏆</span>
@@ -292,6 +305,7 @@ const Navbar = () => {
           <div className="md:hidden py-4 border-t border-gray-100 animate-fade-in">
             <Link to="/" className="block py-2 text-gray-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>{t('navbar.home')}</Link>
             <Link to="/search" className="block py-2 text-gray-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>{t('navbar.findProviders')}</Link>
+            <Link to="/signup?role=recruiter" className="block py-2 text-gray-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>{t('navbar.hireMe', 'Hire Me')}</Link>
             <Link to="/contact" className="block py-2 text-gray-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>{t('navbar.contactUs', 'Contact Us')}</Link>
 
             <LanguageDropdown mobile onChangeComplete={() => setMobileOpen(false)} />
@@ -302,9 +316,42 @@ const Navbar = () => {
                 <button onClick={handleLogout} className="block py-2 text-red-600">{t('navbar.logout')}</button>
               </>
             ) : (
-              <div className="flex space-x-3 mt-3">
-                <button onClick={() => { navigate('/login'); setMobileOpen(false); }} className="flex-1 border border-gray-300 py-2 rounded-lg text-sm font-medium">{t('navbar.login')}</button>
-                <button onClick={() => { navigate('/signup'); setMobileOpen(false); }} className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-sm font-medium">{t('navbar.signup')}</button>
+              <div className="space-y-3 mt-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      if (window.location.pathname === '/') {
+                        document.getElementById('referral-section')?.scrollIntoView({ behavior: 'smooth' });
+                      } else {
+                        navigate('/#referral-section');
+                      }
+                    }}
+                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100"
+                  >
+                    <span className="text-xl mb-1">💰</span>
+                    {t('navbar.earnFortyPercent', 'Earn 40%')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      if (window.location.pathname === '/') {
+                        document.getElementById('contest-section')?.scrollIntoView({ behavior: 'smooth' });
+                      } else {
+                        navigate('/#contest-section');
+                      }
+                    }}
+                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-indigo-50 text-indigo-600 font-bold text-xs border border-indigo-100"
+                  >
+                    <span className="text-xl mb-1">🏆</span>
+                    {t('navbar.winOneLakh', 'Win ₹1 Lakh')}
+                  </button>
+                </div>
+
+                <div className="flex space-x-3 mt-3">
+                  <button onClick={() => { navigate('/login'); setMobileOpen(false); }} className="flex-1 border border-gray-300 py-2.5 rounded-xl text-sm font-bold text-gray-700">{t('navbar.login')}</button>
+                  <button onClick={() => { navigate('/signup'); setMobileOpen(false); }} className="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-100">{t('navbar.signup')}</button>
+                </div>
               </div>
             )}
           </div>
