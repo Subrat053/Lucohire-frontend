@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   HiArrowLeft, HiDocumentText, HiCheckCircle, HiClock,
-  HiX, HiEye, HiPhone, HiCheck, HiExclamation,
+  HiX, HiEye, HiPhone, HiCheck, HiExclamation, HiTrash,
 } from 'react-icons/hi';
 import { recruiterAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -38,6 +38,22 @@ const ApplicationCard = ({ application, onStatusChange }) => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this application? This action cannot be undone.")) return;
+    setUpdating(true);
+    try {
+      await recruiterAPI.deleteApplication(application._id);
+      toast.success("Application deleted");
+      onStatusChange?.();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete application");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+
+
   return (
     <div className={`rounded-2xl border p-5 ${statusInfo.bg} ${statusInfo.border}`}>
       <div className="flex items-start justify-between gap-4 mb-3">
@@ -60,7 +76,16 @@ const ApplicationCard = ({ application, onStatusChange }) => {
             Applied {new Date(application.appliedAt || application.createdAt).toLocaleDateString()}
           </p>
         </div>
+        <button
+          onClick={handleDelete}
+          disabled={updating}
+          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+          title="Delete Application"
+        >
+          <HiTrash className="w-5 h-5" />
+        </button>
       </div>
+
 
       {/* Status transition buttons */}
       <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-current/10">

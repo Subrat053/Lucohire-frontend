@@ -74,16 +74,33 @@ const Partners = () => {
     fetchPartners();
   }, []);
 
+  const [deletingPartner, setDeletingPartner] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const fetchPartners = async () => {
     try {
       setLoading(true);
-      // We might need to add this endpoint to api.js as well
       const res = await adminAPI.getPartners();
       setPartners(res.data?.partners || []);
     } catch (error) {
       toast.error('Failed to fetch partners');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeletePartner = async () => {
+    if (!deletingPartner) return;
+    try {
+      setIsDeleting(true);
+      await adminAPI.deletePartner(deletingPartner._id);
+      toast.success('Partner account deleted successfully');
+      setPartners(partners.filter(p => p._id !== deletingPartner._id));
+      setDeletingPartner(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete partner');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -128,16 +145,6 @@ const Partners = () => {
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow text-sm"
             />
           </div>
-          <div className="flex items-center gap-3">
-            <select className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 outline-none">
-              <option value="">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-            </select>
-            <button className="p-2.5 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
-              <HiFilter className="w-5 h-5" />
-            </button>
-          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -151,7 +158,7 @@ const Partners = () => {
                 <tr>
                   <th className="px-6 py-4 text-left">Partner</th>
                   <th className="px-6 py-4 text-left">Referral Code</th>
-                  <th className="px-6 py-4 text-left">Referrals</th>
+                  <th className="px-6 py-4 text-left">Referrals (P/R)</th>
                   <th className="px-6 py-4 text-left">Earnings</th>
                   <th className="px-6 py-4 text-left">Status</th>
                   <th className="px-6 py-4 text-right">Actions</th>
@@ -169,16 +176,22 @@ const Partners = () => {
                           <div>
                             <p className="font-semibold text-gray-900">{partner.name}</p>
                             <p className="text-xs text-gray-500">{partner.email}</p>
+                            <p className="text-[10px] text-gray-400">{partner.phone}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="font-mono text-xs font-semibold bg-gray-100 px-2 py-1 rounded-md text-gray-700">
-                          {partner.referralCode}
+                          {partner.referralCode || 'N/A'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="font-semibold text-gray-900">{partner.totalReferrals || 0}</span>
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-gray-900">{partner.totalReferredMembers || 0} Total</span>
+                          <span className="text-[10px] text-gray-500">
+                            {partner.totalReferredProviders || 0} Providers / {partner.totalReferredRecruiters || 0} Recruiters
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="font-semibold text-gray-900">
@@ -195,12 +208,20 @@ const Partners = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <Link 
-                          to={`/admin/partners/${partner._id}`}
-                          className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
-                        >
-                          <HiEye className="w-4 h-4" /> View
-                        </Link>
+                        <div className="flex items-center justify-end gap-3">
+                          <Link 
+                            to={`/admin/partners/${partner._id}/referrals`}
+                            className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                          >
+                            <HiEye className="w-4 h-4" /> Referrals
+                          </Link>
+                          <button 
+                            onClick={() => setDeletingPartner(partner)}
+                            className="inline-flex items-center gap-1 text-sm font-medium text-red-600 hover:text-red-800"
+                          >
+                            <HiX className="w-4 h-4" /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -226,6 +247,37 @@ const Partners = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deletingPartner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden p-6 text-center">
+            <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <HiX className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Partner Account?</h2>
+            <p className="text-gray-500 mb-6">
+              This will disable the partner account for <strong>{deletingPartner.name}</strong> and prevent partner login. 
+              Referred providers/recruiters, subscriptions, payments, and commission history will remain safe.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setDeletingPartner(null)}
+                className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDeletePartner}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Partner'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

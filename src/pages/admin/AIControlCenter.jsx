@@ -23,6 +23,16 @@ const TRUST_FIELDS = [
   { key: 'fraudPenalty', label: 'Fraud Penalty' },
 ];
 
+const FEATURE_FIELDS = [
+  { key: 'aiEnabled', label: 'Global AI Enabled' },
+  { key: 'chatEnabled', label: 'Chat Assistant' },
+  { key: 'profileEnabled', label: 'Profile Builder' },
+  { key: 'embeddingsEnabled', label: 'Vector Embeddings' },
+  { key: 'ocrEnabled', label: 'OCR Verification' },
+  { key: 'fraudEnabled', label: 'Fraud Detection / AI Review' },
+];
+
+
 const DEFAULT_PROMPT_FORM = {
   key: '',
   role: 'system',
@@ -99,6 +109,8 @@ const AdminAIControlCenter = () => {
 
   const [matchWeights, setMatchWeights] = useState(toInputValueMap(MATCH_FIELDS));
   const [trustWeights, setTrustWeights] = useState(toInputValueMap(TRUST_FIELDS));
+  const [featureSettings, setFeatureSettings] = useState(toInputValueMap(FEATURE_FIELDS));
+
 
   const [promptTemplates, setPromptTemplates] = useState([]);
   const [promptForm, setPromptForm] = useState(DEFAULT_PROMPT_FORM);
@@ -142,9 +154,10 @@ const AdminAIControlCenter = () => {
         synonymRes,
         fraudRes,
         ocrRes,
-        usageRes,
+         usageRes,
         demandRes,
         skillsRes,
+        featureRes,
       ] = await Promise.all([
         adminAPI.getAIMatchWeights(),
         adminAPI.getAITrustWeights(),
@@ -155,10 +168,13 @@ const AdminAIControlCenter = () => {
         adminAPI.getAIUsageDashboard(),
         adminAPI.getDemandSnapshots(),
         adminAPI.getSkillCategories(),
+        adminAPI.getAIFeatureSettings(),
       ]);
 
       setMatchWeights(toInputValueMap(MATCH_FIELDS, matchRes.data?.weights || {}));
       setTrustWeights(toInputValueMap(TRUST_FIELDS, trustRes.data?.weights || {}));
+      setFeatureSettings(toInputValueMap(FEATURE_FIELDS, featureRes.data?.settings || {}));
+
       setPromptTemplates(promptRes.data?.items || []);
       setSkillSynonyms(synonymRes.data?.items || []);
       setFraudQueue(fraudRes.data?.items || []);
@@ -198,6 +214,17 @@ const AdminAIControlCenter = () => {
       toast.error(error.response?.data?.message || 'Failed to update trust weights');
     }
   };
+
+  const saveFeatureSettings = async () => {
+    try {
+      await adminAPI.updateAIFeatureSettings(toNumericPayload(featureSettings));
+      toast.success('AI feature settings updated');
+      fetchAll(true);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update feature settings');
+    }
+  };
+
 
   const submitPrompt = async (event) => {
     event.preventDefault();
@@ -406,9 +433,36 @@ const AdminAIControlCenter = () => {
         </section>
       </div>
 
+      <section className="rounded-2xl border border-gray-100 bg-white p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">AI Feature Toggles</h2>
+          <button type="button" onClick={saveFeatureSettings} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm">Save</button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {FEATURE_FIELDS.map((field) => (
+            <div key={field.key} className="flex flex-col gap-2 p-3 border border-gray-100 rounded-xl bg-gray-50/50">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{field.label}</span>
+              <div className="flex items-center justify-between mt-1">
+                <span className={`text-xs font-bold ${featureSettings[field.key] === '1' ? 'text-green-600' : 'text-red-500'}`}>
+                  {featureSettings[field.key] === '1' ? 'ENABLED' : 'DISABLED'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setFeatureSettings((prev) => ({ ...prev, [field.key]: prev[field.key] === '1' ? '0' : '1' }))}
+                  className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${featureSettings[field.key] === '1' ? 'bg-indigo-600' : 'bg-gray-300'}`}
+                >
+                  <span className={`block w-3.5 h-3.5 bg-white rounded-full shadow absolute top-0.75 transition-transform duration-200 ${featureSettings[field.key] === '1' ? 'translate-x-5.5' : 'translate-x-1'}`} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <div className="grid lg:grid-cols-2 gap-6">
         <section className="rounded-2xl border border-gray-100 bg-white p-5">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Prompt Templates</h2>
+
 
           <form onSubmit={submitPrompt} className="space-y-3">
             <div className="grid sm:grid-cols-2 gap-3">

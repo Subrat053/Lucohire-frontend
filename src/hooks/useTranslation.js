@@ -1,13 +1,28 @@
 import { useLanguage } from '../context/LanguageContext';
 
 const useTranslation = () => {
-  const { t, language, languages, changeLanguage, loading, isRTL } = useLanguage();
-
-  return {
+  const {
     t,
+    selectedLanguage,
     language,
     languages,
     changeLanguage,
+    setSelectedLanguage,
+    translateText,
+    translateBatch,
+    loading,
+    isRTL,
+  } = useLanguage();
+
+  return {
+    t,
+    selectedLanguage: selectedLanguage || language,
+    language: selectedLanguage || language,
+    languages,
+    changeLanguage,
+    setSelectedLanguage,
+    translateText,
+    translateBatch,
     loading,
     isRTL,
   };

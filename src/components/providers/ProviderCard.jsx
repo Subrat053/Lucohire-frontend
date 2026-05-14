@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { MapPin, Phone, MessageCircle, Star, CheckCircle2 } from 'lucide-react';
 import { HiBadgeCheck } from 'react-icons/hi';
 import { toAbsoluteMediaUrl } from '../../utils/media';
+import useTranslation from '../../hooks/useTranslation';
 
 const landingAvatarColors = [
   'bg-[#DFFBF0] text-[#08905B]',
@@ -20,7 +21,8 @@ const getInitials = (name = 'Provider') =>
     .map((part) => part[0]?.toUpperCase())
     .join('') || 'P';
 
-const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, t = (value) => value, index = 0 }) => {
+const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, index = 0 }) => {
+  const { t } = useTranslation();
   const image = provider.image || provider.profilePhoto || provider.photo || provider.avatar || provider.user?.avatar;
   const name = provider.name || provider.user?.name || 'Service Provider';
   const initials = provider.initials || getInitials(name);
@@ -60,14 +62,14 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
               <h3 className="font-bold text-[#081B3A] text-sm truncate">{name}</h3>
               <CheckCircle2 className="w-4 h-4 text-[#12B76A] shrink-0" />
             </div>
-            <p className="text-xs text-[#6B7280] truncate">{provider.role || provider.category || provider.headline || 'Professional'}</p>
+            <p className="text-xs text-[#6B7280] truncate">{provider.role || provider.category || provider.headline || t('common.professional', 'Professional')}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-1.5 text-xs">
           <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" />
           <span className="font-bold text-[#081B3A]">{rating}</span>
-          <span className="text-[#6B7280]">({reviews} reviews)</span>
+          <span className="text-[#6B7280]">({reviews} {t('common.reviews', 'reviews')})</span>
         </div>
 
         <div className="flex items-center gap-1 text-xs text-[#6B7280]">
@@ -98,7 +100,7 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
             onClick={(e) => e.stopPropagation()}
             className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#374151] text-xs font-semibold py-2 rounded-xl hover:bg-[#F7F9FC] transition"
           >
-            <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+            <MessageCircle className="w-3.5 h-3.5" /> {t('common.whatsapp', 'WhatsApp')}
           </button>
           <button
             onClick={(e) => {
@@ -107,7 +109,7 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
             }}
             className="flex-1 flex items-center justify-center gap-1.5 bg-[#1677FF] hover:bg-[#0E5FCC] text-white text-xs font-bold py-2 rounded-xl transition"
           >
-            <Phone className="w-3.5 h-3.5" /> Call Now
+            <Phone className="w-3.5 h-3.5" /> {t('common.callNow', 'Call Now')}
           </button>
         </div>
       </div>

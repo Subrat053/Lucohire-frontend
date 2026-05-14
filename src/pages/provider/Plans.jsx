@@ -22,6 +22,7 @@ import {
   previewPlan,
 } from '../../services/providerPlanService';
 import { useAuth } from '../../context/AuthContext';
+import useTranslation from '../../hooks/useTranslation';
 
 const DURATION_OPTIONS = [
   { months: 1, label: '1 Month' },
@@ -66,6 +67,7 @@ const buildLocalPreview = (plan, months) => {
 };
 
 const ProviderPlans = () => {
+  const { t } = useTranslation();
   const [tab, setTab] = useState('provider');
   const [plans, setPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -74,6 +76,10 @@ const ProviderPlans = () => {
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [selectedPincodes, setSelectedPincodes] = useState([]);
+  const [selectedCities, setSelectedCities] = useState([]);
+
 
   // =============================================================
   const navigate = useNavigate();
@@ -131,12 +137,44 @@ const ProviderPlans = () => {
   }, []);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true' && params.get('sub_id')) {
+      const subId = params.get('sub_id');
+      const sessionId = params.get('session_id');
+
+      const finalizePayment = async () => {
+        try {
+          await confirmPayment({
+            subscriptionId: subId,
+            paymentId: sessionId,
+            orderId: 'stripe_session',
+          });
+          toast.success('Payment confirmed! Your plan is now active.');
+          // Remove query params
+          navigate('/provider/plans', { replace: true });
+          await getMyPlan();
+        } catch (err) {
+          toast.error('Failed to confirm payment status.');
+        }
+      };
+      finalizePayment();
+    } else if (params.get('cancelled') === 'true') {
+      toast.error('Payment was cancelled.');
+      navigate('/provider/plans', { replace: true });
+    }
+  }, [navigate]);
+
+
+  useEffect(() => {
     const runPreview = async () => {
       if (!selectedPlan) return;
       try {
         const preview = await previewPlan({
           planId: selectedPlan._id,
           durationMonths: selectedDuration,
+          selectedSkills,
+          selectedPincodes,
+          selectedCities,
         });
         setPricingPreview(preview?.pricing || null);
       } catch (_) {
@@ -145,7 +183,8 @@ const ProviderPlans = () => {
     };
 
     runPreview();
-  }, [selectedPlan, selectedDuration]);
+  }, [selectedPlan, selectedDuration, selectedSkills, selectedPincodes, selectedCities]);
+
 
   const summary = useMemo(() => {
     if (!selectedPlan) return null;
@@ -170,22 +209,52 @@ const ProviderPlans = () => {
 
     setCheckoutLoading(true);
     try {
+
       const response = await checkoutPlan({
         planId: selectedPlan._id,
         durationMonths: selectedDuration,
+        selectedSkills,
+        selectedPincodes,
+        selectedCities,
       });
 
-      if (response?.checkout?.paymentRequired && response?.checkout?.orderId && window?.Razorpay) {
+      const { checkout, subscription } = response || {};
+
+      if (checkout?.simulationMode) {
+        // Simulation Flow
+        const confirm = window.confirm('Simulation Mode: Click OK to simulate successful payment.');
+        if (confirm) {
+          await confirmPayment({
+            subscriptionId: subscription?._id,
+            paymentId: 'sim_' + Date.now(),
+            orderId: 'sim_order_' + Date.now(),
+          });
+          await getMyPlan();
+          toast.success('Simulation: Payment successful! Plan activated.');
+          return;
+        }
+      }
+
+      if (checkout?.paymentRequired && checkout?.url) {
+        // Stripe Redirect Flow
+        toast.success('Redirecting to payment gateway...');
+        window.location.href = checkout.url;
+        return;
+      }
+
+      if (checkout?.paymentRequired && checkout?.orderId && window?.Razorpay) {
+
+        // Razorpay Flow
         const options = {
-          key: response.checkout.keyId,
-          amount: response.checkout.amount,
-          currency: response.checkout.currency || 'INR',
-          order_id: response.checkout.orderId,
+          key: checkout.publishableKey || checkout.keyId,
+          amount: checkout.amount,
+          currency: checkout.currency || 'INR',
+          order_id: checkout.orderId,
           name: 'ServiceHub',
           description: selectedPlan.name,
           handler: async (payment) => {
             await confirmPayment({
-              subscriptionId: response.subscription?._id,
+              subscriptionId: subscription?._id,
               paymentId: payment?.razorpay_payment_id,
               orderId: payment?.razorpay_order_id,
             });
@@ -195,8 +264,13 @@ const ProviderPlans = () => {
         };
         const razorpay = new window.Razorpay(options);
         razorpay.open();
+      } else if (checkout?.paymentRequired && checkout?.paymentProvider === 'stripe') {
+        // Stripe Flow (Basic redirect or message for now)
+        toast.success('Stripe payment initialized. Redirecting...');
+        // Implement Stripe Elements/Redirect here if needed
+        // For now, if no clientSecret, we might just be in a state where manual is better
       } else {
-        toast.success(response?.checkout?.message || 'Checkout created. Awaiting payment confirmation.');
+        toast.success(checkout?.message || 'Checkout created. Our team will review your request.');
         await getMyPlan();
       }
     } catch (err) {
@@ -204,6 +278,7 @@ const ProviderPlans = () => {
     } finally {
       setCheckoutLoading(false);
     }
+
   };
 
   if (loading) {
@@ -222,8 +297,8 @@ const ProviderPlans = () => {
 
           <div className="flex flex-col gap-6 ">
             <div>
-              <h1 className="text-2xl font-bold text-[#06133D]">Choose Your Visibility Plan</h1>
-              <p className="text-sm text-[#64748B] mt-1">Select the perfect plan to boost your visibility and get more leads.</p>
+              <h1 className="text-2xl font-bold text-[#06133D]">{t('plans.chooseVisibility', 'Choose Your Visibility Plan')}</h1>
+              <p className="text-sm text-[#64748B] mt-1">{t('plans.chooseVisibilityDesc', 'Select the perfect plan to boost your visibility and get more leads.')}</p>
             </div>
 
             {/* <div className="flex items-center gap-3">
@@ -255,8 +330,8 @@ const ProviderPlans = () => {
                       <BadgePercent className="w-5 h-5 text-[#005BFF]" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#06133D]">Your one skill for one pin code is free!</p>
-                      <p className="text-xs text-[#64748B]">For getting more opportunities, go for our economical plans below.</p>
+                      <p className="text-sm font-semibold text-[#06133D]">{t('plans.freePlanTitle', 'Your one skill for one pin code is free!')}</p>
+                      <p className="text-xs text-[#64748B]">{t('plans.freePlanDesc', 'For getting more opportunities, go for our economical plans below.')}</p>
                     </div>
                   </div>
                 </div>
@@ -267,33 +342,36 @@ const ProviderPlans = () => {
 
                 {plans.length === 0 ? (
                   <div className="bg-white border border-[#E8EEF9] rounded-2xl p-10 text-center text-[#64748B]">
-                    No plans available right now.
+                    {t('plans.noPlans', 'No plans available right now.')}
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-4">
                     {plans.map((plan) => {
                       const Icon = planIconMap[plan.slug] || BadgeCheck;
                       const isSelected = selectedPlan?._id === plan._id;
-                      const hasDiscount = Number(plan.discountedPrice || 0) > Number(plan.priceMonthly || plan.price || 0);
+                      const hasOldPrice = Number(plan.oldMonthlyPrice || plan.discountedPrice || 0) > Number(plan.priceMonthly || plan.price || 0);
                       const priceMonthly = Number(plan.priceMonthly || plan.price || 0);
+                      const oldPrice = Number(plan.oldMonthlyPrice || plan.discountedPrice || 0);
 
                       return (
                         <div
                           key={plan._id}
-                          className={`bg-white border rounded-2xl p-4 shadow-sm transition ${isSelected ? 'border-[#005BFF] ring-2 ring-[#D6E3FF]' : 'border-[#E8EEF9]'
+                          className={`bg-white border rounded-2xl p-4 shadow-sm transition relative overflow-hidden ${isSelected ? 'border-[#005BFF] ring-2 ring-[#D6E3FF]' : 'border-[#E8EEF9]'
                             }`}
                         >
+                          {plan.isPopular && (
+                            <div className="absolute top-0 right-0">
+                               <div className="bg-[#005BFF] text-white text-[9px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+                                  {t('common.popular', 'Popular')}
+                               </div>
+                            </div>
+                          )}
                           <div className="flex items-center justify-between mb-3">
                             <div className="w-10 h-10 rounded-xl bg-[#F4F7FF] flex items-center justify-center">
                               <Icon className="w-5 h-5 text-[#005BFF]" />
                             </div>
-                            {plan.isPopular && (
-                              <span className="text-[10px] font-bold uppercase bg-[#E6F2FF] text-[#005BFF] px-2 py-0.5 rounded-full">
-                                Popular
-                              </span>
-                            )}
                           </div>
-                          <h3 className="font-semibold text-[#06133D] text-sm">{plan.name}</h3>
+                          <h3 className="font-bold text-[#06133D] text-sm">{plan.name}</h3>
                           <ul className="mt-3 space-y-2 text-xs text-[#64748B]">
                             {(plan.features || []).slice(0, 5).map((feature) => (
                               <li key={feature} className="flex items-start gap-2">
@@ -302,22 +380,24 @@ const ProviderPlans = () => {
                               </li>
                             ))}
                           </ul>
-                          <div className="mt-4 flex items-baseline gap-2">
-                            <span className="text-lg font-bold text-[#06133D]">{formatCurrency(priceMonthly)}</span>
-                            <span className="text-xs text-[#64748B]">/ month</span>
-                            {hasDiscount && (
-                              <span className="text-xs text-[#94A3B8] line-through">{formatCurrency(plan.discountedPrice)}</span>
+                          <div className="mt-4 flex flex-col gap-0.5">
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-xl font-extrabold text-[#06133D]">{formatCurrency(priceMonthly)}</span>
+                                <span className="text-[10px] font-medium text-[#64748B] uppercase tracking-tighter">/ month</span>
+                            </div>
+                            {hasOldPrice && (
+                              <span className="text-xs text-[#94A3B8] line-through font-medium">{formatCurrency(oldPrice)}</span>
                             )}
                           </div>
                           <button
                             type="button"
                             onClick={() => setSelectedPlan(plan)}
-                            className={`mt-4 w-full text-sm font-semibold px-4 py-2.5 rounded-xl transition ${isSelected
-                              ? 'bg-[#005BFF] text-white'
-                              : 'border border-[#D6E3FF] text-[#005BFF] hover:bg-[#EEF4FF]'
+                            className={`mt-4 w-full text-xs font-bold px-4 py-2.5 rounded-xl transition ${isSelected
+                              ? 'bg-[#005BFF] text-white shadow-lg shadow-blue-200'
+                              : 'border-2 border-[#D6E3FF] text-[#005BFF] hover:bg-[#EEF4FF] hover:border-[#005BFF]'
                               }`}
                           >
-                            {isSelected ? 'Selected Plan' : 'Select Plan'}
+                            {isSelected ? t('plans.currentSelection', 'Current Selection') : t('plans.selectPlan', 'Select Plan')}
                           </button>
                         </div>
                       );
@@ -325,80 +405,158 @@ const ProviderPlans = () => {
                   </div>
                 )}
 
-                <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-[#06133D]">Choose Plan Duration & Save More</h3>
-                    <span className="text-xs text-[#64748B]">Monthly billing</span>
+                
+
+                {/* Coverage Details Section */}
+                {selectedPlan && selectedPlan.slug !== 'free' && (
+                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-base font-bold text-[#06133D] mb-5">{t('plans.configureCoverage', 'Configure Your Coverage')}</h3>
+                    <div className="space-y-6">
+                      {(selectedPlan.coverageType === 'pincode' || selectedPlan.coverageType === 'custom') && (
+                        <div>
+                          <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
+                            {t('plans.targetPincodes', 'Target Pincodes')} {selectedPlan.maxPincodes > 0 && `(Max ${selectedPlan.maxPincodes})`}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 110001, 110002"
+                            className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] focus:ring-2 focus:ring-[#005BFF] focus:border-transparent outline-none text-sm"
+                            value={selectedPincodes.join(', ')}
+                            onChange={(e) => setSelectedPincodes(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                          />
+                        </div>
+                      )}
+
+                      {(selectedPlan.coverageType === 'city' || selectedPlan.coverageType === 'custom') && (
+                        <div>
+                          <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
+                            {t('plans.targetCities', 'Target Cities')} {selectedPlan.maxCities > 0 && `(Max ${selectedPlan.maxCities})`}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Delhi, Mumbai"
+                            className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] focus:ring-2 focus:ring-[#005BFF] focus:border-transparent outline-none text-sm"
+                            value={selectedCities.join(', ')}
+                            onChange={(e) => setSelectedCities(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                          />
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
+                          {t('plans.boostSkills', 'Boost Skills')} {selectedPlan.maxSkills > 0 && `(Max ${selectedPlan.maxSkills})`}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Plumber, Electrician"
+                          className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] focus:ring-2 focus:ring-[#005BFF] focus:border-transparent outline-none text-sm"
+                          value={selectedSkills.join(', ')}
+                          onChange={(e) => setSelectedSkills(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                        />
+                        <p className="text-[10px] text-[#94A3B8] mt-1.5 font-medium">{t('plans.skillsComma', 'Enter skills separated by commas.')}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="grid sm:grid-cols-4 gap-3">
+                )}
+
+                <div className="bg-white border border-[#E8EEF9] rounded-2xl p-6 shadow-sm">
+
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                        <h3 className="text-base font-bold text-[#06133D]">{t('plans.chooseDuration', 'Choose Duration & Save')}</h3>
+                        <p className="text-xs text-[#64748B] mt-0.5">{t('plans.chooseDurationDesc', 'Commit for longer and get massive discounts.')}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F4F7FF] rounded-lg">
+                        <BadgePercent className="w-4 h-4 text-[#005BFF]" />
+                        <span className="text-xs font-bold text-[#005BFF]">{t('plans.saveUpTo', 'Save up to 25%')}</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {DURATION_OPTIONS.map((option) => (
                       <button
                         key={option.months}
                         type="button"
                         onClick={() => setSelectedDuration(option.months)}
-                        className={`border rounded-xl px-3 py-3 text-left transition ${selectedDuration === option.months
-                          ? 'border-[#005BFF] bg-[#EEF4FF]'
-                          : 'border-[#E8EEF9] hover:border-[#C7DAFF]'
+                        className={`relative border-2 rounded-xl px-4 py-4 text-left transition ${selectedDuration === option.months
+                          ? 'border-[#005BFF] bg-[#F4F8FF]'
+                          : 'border-[#F1F5F9] hover:border-[#E2E8F0] bg-white'
                           }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-[#06133D]">{option.label}</span>
-                          {option.badge && (
-                            <span className="text-[10px] font-bold bg-[#E6F2FF] text-[#005BFF] px-2 py-0.5 rounded-full">
-                              {option.badge}
+                        <div className="flex flex-col gap-1">
+                          <span className={`text-sm font-bold ${selectedDuration === option.months ? 'text-[#005BFF]' : 'text-[#06133D]'}`}>{t(`plans.duration${option.months}`, option.label)}</span>
+                          {option.badge ? (
+                            <span className="text-[10px] font-bold text-[#12B76A]">
+                              {t('plans.savePercent', 'Save {{percent}}%', { percent: DISCOUNT_BY_MONTHS[option.months] })} {t('common.discount', 'Discount')}
                             </span>
+                          ) : (
+                            <span className="text-[10px] text-[#64748B]">{t('plans.noDiscount', 'No discount')}</span>
                           )}
                         </div>
+                        {selectedDuration === option.months && (
+                            <div className="absolute top-2 right-2">
+                                <div className="w-4 h-4 rounded-full bg-[#005BFF] flex items-center justify-center">
+                                    <Check className="w-2.5 h-2.5 text-white" />
+                                </div>
+                            </div>
+                        )}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-4">
-                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-4">
-                    <Wallet className="w-6 h-6 text-[#005BFF]" />
-                    <h4 className="mt-3 text-sm font-semibold text-[#06133D]">More Visibility</h4>
-                    <p className="text-xs text-[#64748B] mt-1">Rank higher in search results.</p>
+                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+                    <div className="w-12 h-12 rounded-2xl bg-[#F0F5FF] flex items-center justify-center mb-4">
+                        <Target className="w-6 h-6 text-[#005BFF]" />
+                    </div>
+                    <h4 className="text-base font-bold text-[#06133D]">{t('plans.feature1Title', 'Targeted Visibility')}</h4>
+                    <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">{t('plans.feature1Desc', 'Appear exactly where your customers are searching. Be it a pincode, city or country.')}</p>
                   </div>
-                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-4">
-                    <MapPin className="w-6 h-6 text-[#12B76A]" />
-                    <h4 className="mt-3 text-sm font-semibold text-[#06133D]">Qualified Leads</h4>
-                    <p className="text-xs text-[#64748B] mt-1">Get priority & verified leads.</p>
+                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+                    <div className="w-12 h-12 rounded-2xl bg-[#F0FFF7] flex items-center justify-center mb-4">
+                        <BadgeCheck className="w-6 h-6 text-[#12B76A]" />
+                    </div>
+                    <h4 className="text-base font-bold text-[#06133D]">{t('plans.feature2Title', 'Verified Ranking')}</h4>
+                    <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">{t('plans.feature2Desc', 'Paid plans get priority placement and a verified badge that builds instant trust with recruiters.')}</p>
                   </div>
-                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-4">
-                    <BadgeCheck className="w-6 h-6 text-[#F59E0B]" />
-                    <h4 className="mt-3 text-sm font-semibold text-[#06133D]">Dedicated Support</h4>
-                    <p className="text-xs text-[#64748B] mt-1">Access premium plan support.</p>
+                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+                    <div className="w-12 h-12 rounded-2xl bg-[#FFF8F0] flex items-center justify-center mb-4">
+                        <Building2 className="w-6 h-6 text-[#F59E0B]" />
+                    </div>
+                    <h4 className="text-base font-bold text-[#06133D]">{t('plans.feature3Title', 'Business Growth')}</h4>
+                    <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">{t('plans.feature3Desc', 'Get detailed insights into how many people view your profile and contact you.')}</p>
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#EEF4FF] flex items-center justify-center">
-                      <BadgeCheck className="w-5 h-5 text-[#005BFF]" />
+                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-[#EEF4FF] flex items-center justify-center shrink-0">
+                      <BadgeCheck className="w-6 h-6 text-[#005BFF]" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#06133D]">7-day money-back guarantee</p>
-                      <p className="text-xs text-[#64748B]">Cancel anytime. No hidden charges.</p>
+                      <p className="text-sm font-bold text-[#06133D]">{t('plans.guaranteeTitle', '7-day money-back guarantee')}</p>
+                      <p className="text-xs text-[#64748B] mt-0.5">{t('plans.guaranteeDesc', 'Not satisfied with the leads? Get a full refund within 7 days, no questions asked.')}</p>
                     </div>
                   </div>
-                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#F4F7FF] flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-[#005BFF]" />
+                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-[#F4F7FF] flex items-center justify-center shrink-0">
+                      <SlidersHorizontal className="w-6 h-6 text-[#005BFF]" />
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[#06133D]">Need help choosing?</p>
-                      <p className="text-xs text-[#64748B]">Talk to our plan experts.</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[#06133D]">{t('plans.customTitle', 'Need a custom solution?')}</p>
+                      <p className="text-xs text-[#64748B] mt-0.5 truncate">{t('plans.customDesc', 'For agencies and large businesses needing multi-city coverage.')}</p>
                     </div>
                     <button
                       type="button"
-                      className="ml-auto text-xs font-semibold text-[#005BFF] flex items-center gap-1"
+                      onClick={() => navigate('/contact', { state: { subject: 'Custom Plan Inquiry', message: 'I am interested in a custom plan for my business.' } })}
+                      className="shrink-0 px-4 py-2 bg-[#F4F7FF] text-[#005BFF] text-xs font-bold rounded-lg hover:bg-[#E0E7FF] transition"
                     >
-                      Chat on WhatsApp <ChevronRight className="w-4 h-4" />
+                      {t('plans.inquireNow', 'Inquire Now')}
                     </button>
                   </div>
                 </div>
               </div>
+
 
 
             </div>
@@ -445,46 +603,46 @@ const ProviderPlans = () => {
           </div>
           {/* =========================================== */}
           <div className="bg-white border border-[#E8EEF9] rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-[#06133D] mb-4">Your Plan Summary</h3>
+            <h3 className="text-sm font-semibold text-[#06133D] mb-4">{t('plans.summaryTitle', 'Your Plan Summary')}</h3>
             {summary ? (
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-[#64748B]">Plan</span>
+                  <span className="text-[#64748B]">{t('plans.summaryPlan', 'Plan')}</span>
                   <span className="font-semibold text-[#06133D]">{summary.planName}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#64748B]">Plan Type</span>
+                  <span className="text-[#64748B]">{t('plans.summaryPlanType', 'Plan Type')}</span>
                   <span className="font-semibold text-[#06133D]">{summary.planType}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#64748B]">Coverage</span>
+                  <span className="text-[#64748B]">{t('plans.summaryCoverage', 'Coverage')}</span>
                   <span className="font-semibold text-[#06133D]">{summary.coverage}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#64748B]">Skills</span>
+                  <span className="text-[#64748B]">{t('plans.summarySkills', 'Skills')}</span>
                   <span className="font-semibold text-[#06133D]">{summary.skills}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#64748B]">Duration</span>
+                  <span className="text-[#64748B]">{t('plans.summaryDuration', 'Duration')}</span>
                   <span className="font-semibold text-[#06133D]">{summary.duration}</span>
                 </div>
 
                 <div className="h-px bg-[#EEF2FF]" />
                 <div className="flex items-center justify-between">
-                  <span className="text-[#64748B]">Subtotal</span>
+                  <span className="text-[#64748B]">{t('plans.summarySubtotal', 'Subtotal')}</span>
                   <span className="font-semibold text-[#06133D]">{formatCurrency(summary.subtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#64748B]">GST (18%)</span>
+                  <span className="text-[#64748B]">{t('plans.summaryGst', 'GST (18%)')}</span>
                   <span className="font-semibold text-[#06133D]">{formatCurrency(summary.gstAmount)}</span>
                 </div>
                 <div className="flex items-center justify-between text-base">
-                  <span className="font-semibold text-[#06133D]">Total Amount</span>
+                  <span className="font-semibold text-[#06133D]">{t('plans.summaryTotal', 'Total Amount')}</span>
                   <span className="font-bold text-[#06133D]">{formatCurrency(summary.totalAmount)}</span>
                 </div>
               </div>
             ) : (
-              <div className="text-sm text-[#64748B]">Select a plan to view summary.</div>
+              <div className="text-sm text-[#64748B]">{t('plans.selectPlanToView', 'Select a plan to view summary.')}</div>
             )}
             <button
               type="button"
@@ -492,18 +650,18 @@ const ProviderPlans = () => {
               disabled={!selectedPlan || checkoutLoading}
               className="mt-5 w-full bg-[#005BFF] text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-[#0A4EE0] transition disabled:opacity-60"
             >
-              {checkoutLoading ? 'Processing...' : 'Proceed to Payment'}
+              {checkoutLoading ? t('common.processing', 'Processing...') : t('plans.proceedPayment', 'Proceed to Payment')}
             </button>
           </div>
 
           <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5">
-            <h4 className="text-sm font-semibold text-[#06133D] mb-3">What you get?</h4>
+            <h4 className="text-sm font-semibold text-[#06133D] mb-3">{t('plans.whatYouGet', 'What you get?')}</h4>
             <ul className="space-y-2 text-xs text-[#64748B]">
-              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> Top position in entire city</li>
-              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> More visibility & leads</li>
-              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> Priority in search results</li>
-              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> WhatsApp & SMS alerts</li>
-              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> Cancel or change anytime</li>
+              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> {t('plans.get1', 'Top position in entire city')}</li>
+              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> {t('plans.get2', 'More visibility & leads')}</li>
+              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> {t('plans.get3', 'Priority in search results')}</li>
+              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> {t('plans.get4', 'WhatsApp & SMS alerts')}</li>
+              <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#12B76A]" /> {t('plans.get5', 'Cancel or change anytime')}</li>
             </ul>
           </div>
         </div>

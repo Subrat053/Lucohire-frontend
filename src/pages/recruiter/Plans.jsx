@@ -80,6 +80,12 @@ const RecruiterPlans = () => {
   const [activePeriod, setActivePeriod] = useState('Monthly');
   const { initiatePayment, loading: paymentLoading } = useStripePayment();
   const { formatPrice } = useLocale();
+
+  // Custom Plan States
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [customCredits, setCustomCredits] = useState(10);
+  const [customDuration, setCustomDuration] = useState(30);
+  const [customPrice, setCustomPrice] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
@@ -135,7 +141,26 @@ const RecruiterPlans = () => {
     }
   };
 
-  const handlePurchase = (planId) => {
+  const handlePurchase = (planId, isCustom = false) => {
+    if (isCustom) {
+      initiatePayment({
+        planId: 'custom',
+        customConfig: {
+          name: 'Custom Recruiter Plan',
+          unlockCredits: customCredits,
+          duration: customDuration,
+          price: customPrice,
+        },
+        onSuccess: () => {
+          setActivePlanId(null);
+          setShowCustomModal(false);
+          fetchPlans();
+        },
+        onFailure: () => setActivePlanId(null),
+      });
+      return;
+    }
+
     setActivePlanId(planId);
     initiatePayment({
       planId,
@@ -143,6 +168,15 @@ const RecruiterPlans = () => {
       onFailure: () => setActivePlanId(null),
     });
   };
+
+  useEffect(() => {
+    // Basic pricing logic for custom plans
+    // e.g., 50 INR per credit + base price based on duration
+    const pricePerCredit = 50;
+    const durationMultiplier = customDuration === 30 ? 1 : customDuration === 90 ? 2.5 : customDuration === 180 ? 4.5 : 8;
+    const basePrice = 500 * durationMultiplier;
+    setCustomPrice(Math.round(basePrice + (customCredits * pricePerCredit)));
+  }, [customCredits, customDuration]);
 
   useEffect(() => {
     if (!plans.length) return;
@@ -287,8 +321,102 @@ const RecruiterPlans = () => {
                 </div>
               );
             })}
+
+            {/* Customize Plan Card */}
+            <div className="relative rounded-3xl border-2 border-dashed border-gray-300 p-7 flex flex-col transition-all hover:border-blue-400 hover:bg-blue-50/20">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 bg-gradient-to-br from-gray-400 to-gray-600 shadow-sm">
+                <HiLightningBolt className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-extrabold text-gray-900">Customize Your Plan</h3>
+              <p className="text-sm text-gray-500 mt-2 mb-6">Build a plan that fits your exact needs. Choose credits and duration.</p>
+              <div className="mt-auto">
+                <button
+                  onClick={() => setShowCustomModal(true)}
+                  className="w-full py-3 rounded-xl font-bold text-sm transition shadow-sm bg-gray-800 text-white hover:bg-gray-900"
+                >
+                  Configure Now
+                </button>
+              </div>
+            </div>
           </div>
         )}
+
+        {/* Custom Plan Modal */}
+        {showCustomModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+              <div className="p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Customize Your Plan</h2>
+
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Number of Contact Unlocks
+                    </label>
+                    <input
+                      type="range"
+                      min="5"
+                      max="200"
+                      step="5"
+                      value={customCredits}
+                      onChange={(e) => setCustomCredits(parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    />
+                    <div className="flex justify-between mt-2 text-sm font-bold text-blue-600">
+                      <span>{customCredits} Unlocks</span>
+                      <span>{formatPrice(customCredits * 50)}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Plan Duration
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[30, 90, 180, 365].map(d => (
+                        <button
+                          key={d}
+                          onClick={() => setCustomDuration(d)}
+                          className={`py-2 px-4 rounded-xl border-2 transition text-sm font-bold ${customDuration === d
+                              ? 'border-blue-600 bg-blue-50 text-blue-600'
+                              : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
+                            }`}
+                        >
+                          {PERIOD_LABELS[d] || `${d} Days`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-gray-500 text-sm">Estimated Total</span>
+                      <span className="text-2xl font-extrabold text-gray-900">{formatPrice(customPrice)}</span>
+                    </div>
+                    <p className="text-xs text-gray-400">Tax and local conversions will be applied at checkout.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-8">
+                  <button
+                    onClick={() => setShowCustomModal(false)}
+                    className="flex-1 py-3 rounded-xl font-bold text-sm text-gray-500 hover:bg-gray-100 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handlePurchase('custom', true)}
+                    disabled={paymentLoading}
+                    className="flex-1 py-3 rounded-xl font-bold text-sm bg-blue-600 text-white hover:bg-blue-700 transition shadow-lg shadow-blue-200 disabled:opacity-50"
+                  >
+                    {paymentLoading ? 'Processing...' : 'Purchase Now'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Bottom note */}
         <p className="text-center text-xs text-gray-400 mt-8">
           Free plan includes 2 contact unlocks per month. Secure payment powered by Stripe.

@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   HiBriefcase, HiEye, HiLockOpen, HiUsers,
   HiSearch, HiPlus, HiChevronRight, HiTrendingUp,
-  HiClock, HiCheckCircle, HiExclamationCircle, HiDocumentText,
+  HiClock, HiCheckCircle, HiExclamationCircle, HiDocumentText, HiTrash,
 } from 'react-icons/hi';
 import { FaBriefcase, FaUserTie, FaRocket } from 'react-icons/fa';
 import { recruiterAPI, searchAPI } from '../../services/api';
@@ -11,6 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 // import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
 import toast from 'react-hot-toast';
+import useTranslation from '../../hooks/useTranslation';
 
 /* ── Illustrations ──────────────────────────────────────────────────── */
 const HiringIllustration = () => (
@@ -45,6 +46,7 @@ const StatCard = ({ label, value, Icon, bg, color, trend }) => (
 );
 
 const RecruiterDashboard = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -75,11 +77,31 @@ const RecruiterDashboard = () => {
       const rec = await searchAPI.repeatRecommendations({ limit: 5 });
       setRecommendations(rec.data?.recommendations || []);
     } catch {
-      toast.error('Failed to load dashboard');
+      toast.error(t('recruiter.failedLoadDashboard', 'Failed to load dashboard'));
     } finally {
       setLoading(false);
     }
   };
+
+  const handleDeleteJob = async (id) => {
+    if (!window.confirm(t('recruiter.confirmDeleteJob', "Are you sure you want to delete this job posting?"))) return;
+
+    try {
+      await recruiterAPI.deleteJob(id);
+      toast.success(t('recruiter.jobDeleted', "Job posting deleted"));
+      setDashboard(prev => ({
+        ...prev,
+        jobs: prev.jobs.filter(j => j._id !== id),
+        stats: {
+          ...prev.stats,
+          totalJobsPosted: Math.max(0, (prev.stats.totalJobsPosted || 1) - 1)
+        }
+      }));
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete job");
+    }
+  };
+
   const stats = dashboard?.stats || {};
   const jobs = dashboard?.jobs || [];
   const recentUnlocks = dashboard?.recentUnlocks || [];
@@ -112,14 +134,14 @@ const RecruiterDashboard = () => {
   //   }
   // }, [loading, hasAutoPrompted, dashboard, stats.currentPlan, stats.planStatus, stats.planEndDate, stats.remainingPostLimit, stats.unlocksRemaining]);
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><LoadingSpinner size="lg" text="Loading..." /></div>;
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><LoadingSpinner size="lg" text={t('common.loading', "Loading...")} /></div>;
 
   const statCards = [
-    { label: 'Current Plan',          value: stats.currentPlan || 'Free', Icon: HiTrendingUp,    bg: 'bg-amber-50',  color: 'text-amber-600'  },
-    { label: 'Jobs Posted',            value: stats.totalJobsPosted         || 0, Icon: HiBriefcase,     bg: 'bg-blue-50',   color: 'text-blue-600'   },
-    { label: 'Applications Received',  value: stats.totalApplicationsReceived|| 0, Icon: HiDocumentText,  bg: 'bg-teal-50',   color: 'text-teal-600'  },
-    { label: 'Contacts Unlocked',      value: stats.totalUnlocks             || 0, Icon: HiLockOpen,      bg: 'bg-purple-50', color: 'text-purple-600' },
-    { label: 'Post Limit Remaining',   value: stats.remainingPostLimit !== undefined ? (stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit) : stats.unlocksRemaining || 0, Icon: HiUsers, bg: 'bg-green-50', color: 'text-green-600' },
+    { label: t('recruiter.currentPlan', 'Current Plan'),          value: stats.currentPlan || 'Free', Icon: HiTrendingUp,    bg: 'bg-amber-50',  color: 'text-amber-600'  },
+    { label: t('recruiter.jobsPosted', 'Jobs Posted'),            value: stats.totalJobsPosted         || 0, Icon: HiBriefcase,     bg: 'bg-blue-50',   color: 'text-blue-600'   },
+    { label: t('recruiter.appsReceived', 'Applications Received'),  value: stats.totalApplicationsReceived|| 0, Icon: HiDocumentText,  bg: 'bg-teal-50',   color: 'text-teal-600'  },
+    { label: t('recruiter.contactsUnlocked', 'Contacts Unlocked'),      value: stats.totalUnlocks             || 0, Icon: HiLockOpen,      bg: 'bg-purple-50', color: 'text-purple-600' },
+    { label: t('recruiter.postLimitLeft', 'Post Limit Remaining'),   value: stats.remainingPostLimit !== undefined ? (stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit) : stats.unlocksRemaining || 0, Icon: HiUsers, bg: 'bg-green-50', color: 'text-green-600' },
   ];
 
   return (
@@ -131,12 +153,12 @@ const RecruiterDashboard = () => {
           <div className="bg-linear-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 mb-6 text-white shadow-lg">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-extrabold mb-1">👋 Welcome! Let's set up your recruiter profile</h2>
-                <p className="text-indigo-100 text-sm">Add your company info and hiring needs to unlock full functionality.</p>
+                <h2 className="text-lg font-extrabold mb-1">👋 {t('recruiter.onboardingTitle', "Welcome! Let's set up your recruiter profile")}</h2>
+                <p className="text-indigo-100 text-sm">{t('recruiter.onboardingDesc', "Add your company info and hiring needs to unlock full functionality.")}</p>
               </div>
               <Link to="/recruiter/profile"
                 className="shrink-0 bg-white text-indigo-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-indigo-50 transition shadow">
-                Complete Profile →
+                {t('recruiter.completeProfileBtn', "Complete Profile →")}
               </Link>
             </div>
           </div>
@@ -149,27 +171,27 @@ const RecruiterDashboard = () => {
         >
           <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
           <div className="relative z-10">
-            <p className="text-blue-200 text-sm font-medium mb-1">Welcome back 👋</p>
+            <p className="text-blue-200 text-sm font-medium mb-1">{t('common.welcomeBack', 'Welcome back')} 👋</p>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-              {user?.name?.split(' ')[0] || 'Recruiter'}&apos;s Dashboard
+              {user?.name?.split(' ')[0] || t('common.recruiter', 'Recruiter')}{t('recruiter.dashboardTitle', "'s Dashboard")}
             </h1>
             <p className="text-blue-100 text-sm mt-2">
-              Plan: <span className="font-bold text-white capitalize">{stats.currentPlan || 'Free'}</span>
+              {t('recruiter.planLabel', 'Plan')}: <span className="font-bold text-white capitalize">{stats.currentPlan || 'Free'}</span>
               &nbsp;·&nbsp;
-              {stats.unlocksRemaining || 0} unlocks left
+              {stats.unlocksRemaining || 0} {t('recruiter.unlocksLeft', 'unlocks left')}
             </p>
             <div className="flex flex-wrap gap-3 mt-5">
               <Link
                 to="/recruiter/find-providers"
                 className="inline-flex items-center gap-1.5 bg-white text-blue-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-blue-50 transition shadow-sm"
               >
-                <HiSearch className="w-4 h-4" /> Find Providers
+                <HiSearch className="w-4 h-4" /> {t('recruiter.findProviders', 'Find Providers')}
               </Link>
               <Link
                 to="/recruiter/post-job"
                 className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition border border-white/30"
               >
-                <HiPlus className="w-4 h-4" /> Post a Job
+                <HiPlus className="w-4 h-4" /> {t('recruiter.postJob', 'Post a Job')}
               </Link>
             </div>
           </div>
@@ -188,9 +210,9 @@ const RecruiterDashboard = () => {
           {/* ── Posted Jobs ─────────────────────────────────────────── */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-extrabold text-gray-900">Posted Jobs</h2>
+              <h2 className="text-lg font-extrabold text-gray-900">{t('recruiter.postedJobs', 'Posted Jobs')}</h2>
               <Link to="/recruiter/post-job" className="text-xs text-blue-600 font-semibold hover:underline flex items-center gap-0.5">
-                Post New <HiChevronRight className="w-3.5 h-3.5" />
+                {t('recruiter.postNew', 'Post New')} <HiChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
             {jobs.length === 0 ? (
@@ -198,15 +220,15 @@ const RecruiterDashboard = () => {
                 <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-3">
                   <FaBriefcase className="w-7 h-7 text-blue-400" />
                 </div>
-                <p className="text-gray-500 text-sm font-medium">No jobs posted yet</p>
+                <p className="text-gray-500 text-sm font-medium">{t('recruiter.noJobsPosted', 'No jobs posted yet')}</p>
                 <Link to="/recruiter/post-job" className="mt-3 text-sm text-blue-600 font-semibold hover:underline">
-                  Post your first job →
+                  {t('recruiter.postFirstJob', 'Post your first job →')}
                 </Link>
               </div>
             ) : (
               <div className="space-y-3">
                 {jobs.slice(0, 5).map((job, i) => (
-                  <div key={i} className="flex items-center justify-between p-3.5 bg-gray-50 rounded-xl hover:bg-blue-50/50 transition">
+                  <div key={i} className="group relative flex items-center justify-between p-3.5 bg-gray-50 rounded-xl hover:bg-blue-50/50 transition">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
                         <HiBriefcase className="w-4 h-4 text-blue-600" />
@@ -223,9 +245,20 @@ const RecruiterDashboard = () => {
                         {job.status === 'active' ? <HiCheckCircle className="w-3 h-3" /> : <HiClock className="w-3 h-3" />}
                         {job.status}
                       </span>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDeleteJob(job._id);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                        title={t('common.delete', 'Delete')}
+                      >
+                        <HiTrash className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 ))}
+
               </div>
             )}
           </div>
@@ -239,15 +272,15 @@ const RecruiterDashboard = () => {
                 <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center">
                   <HiTrendingUp className="w-4 h-4 text-indigo-600" />
                 </div>
-                <h3 className="font-extrabold text-gray-900">Plan Details</h3>
+                <h3 className="font-extrabold text-gray-900">{t('recruiter.planDetails', 'Plan Details')}</h3>
               </div>
               <div className="space-y-2.5 text-sm">
                 {[
-                  { label: 'Current Plan',       value: stats.currentPlan || 'Free' },
-                  { label: 'Unlock Credits',     value: stats.unlocksRemaining || 0 },
-                  { label: 'Jobs Posted',        value: stats.totalJobsPosted || 0 },
-                  { label: 'Posts Left (month)', value: stats.remainingPostLimit !== undefined ? (stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit) : '—' },
-                  { label: 'Applications Recv.', value: stats.totalApplicationsReceived || 0 },
+                  { label: t('recruiter.currentPlanLabel', 'Current Plan'),       value: stats.currentPlan || 'Free' },
+                  { label: t('recruiter.unlockCredits', 'Unlock Credits'),     value: stats.unlocksRemaining || 0 },
+                  { label: t('recruiter.jobsPostedLabel', 'Jobs Posted'),        value: stats.totalJobsPosted || 0 },
+                  { label: t('recruiter.postsLeft', 'Posts Left (month)'), value: stats.remainingPostLimit !== undefined ? (stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit) : '—' },
+                  { label: t('recruiter.appsRecv', 'Applications Recv.'), value: stats.totalApplicationsReceived || 0 },
                 ].map((row, i) => (
                   <div key={i} className="flex justify-between py-1 border-b border-gray-50 last:border-0">
                     <span className="text-gray-500">{row.label}</span>
@@ -259,15 +292,15 @@ const RecruiterDashboard = () => {
                 to={`/recruiter/plans?redirect=${encodeURIComponent('/recruiter/dashboard')}`}
                 className="mt-4 flex items-center justify-center gap-1.5 bg-blue-50 text-blue-700 font-bold py-2.5 rounded-xl text-sm hover:bg-blue-100 transition"
               >
-                Upgrade Plan <HiChevronRight className="w-4 h-4" />
+                {t('recruiter.upgradePlanBtn', 'Upgrade Plan')} <HiChevronRight className="w-4 h-4" />
               </Link>
             </div>
 
             {/* Recent unlocks */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
-              <h3 className="font-extrabold text-gray-900 mb-4">Recent Unlocks</h3>
+              <h3 className="font-extrabold text-gray-900 mb-4">{t('recruiter.recentUnlocks', 'Recent Unlocks')}</h3>
               {recentUnlocks.length === 0 ? (
-                <p className="text-xs text-gray-400 text-center py-4">No unlocks yet</p>
+                <p className="text-xs text-gray-400 text-center py-4">{t('recruiter.noUnlocks', 'No unlocks yet')}</p>
               ) : (
                 <div className="space-y-2.5">
                   {recentUnlocks.slice(0, 4).map((u, i) => (
@@ -275,7 +308,7 @@ const RecruiterDashboard = () => {
                       <div className="w-8 h-8 bg-purple-50 rounded-full flex items-center justify-center text-purple-700 font-bold text-xs shrink-0">
                         {(u.provider?.name || 'P')[0].toUpperCase()}
                       </div>
-                      <span className="text-sm text-gray-700 font-medium">{u.provider?.name || 'Provider'}</span>
+                      <span className="text-sm text-gray-700 font-medium">{u.provider?.name || t('common.provider', 'Provider')}</span>
                     </div>
                   ))}
                 </div>
@@ -284,7 +317,7 @@ const RecruiterDashboard = () => {
 
             {recommendations.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <h3 className="font-extrabold text-gray-900 mb-3">Recommended Providers</h3>
+                <h3 className="font-extrabold text-gray-900 mb-3">{t('recruiter.recommended', 'Recommended Providers')}</h3>
                 <div className="space-y-2">
                   {recommendations.map((item) => (
                     <div key={item.providerId} className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2">
@@ -304,13 +337,13 @@ const RecruiterDashboard = () => {
               <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/10 blur-2xl pointer-events-none" />
               <div className="relative z-10">
                 <FaRocket className="w-6 h-6 mb-2 text-yellow-300" />
-                <h3 className="font-extrabold mb-1">Need bulk hiring?</h3>
-                <p className="text-xs text-indigo-100 mb-4">Enterprise plan: unlimited search, contacts & dedicated support.</p>
+                <h3 className="font-extrabold mb-1">{t('recruiter.bulkHiring', 'Need bulk hiring?')}</h3>
+                <p className="text-xs text-indigo-100 mb-4">{t('recruiter.enterpriseDesc', 'Enterprise plan: unlimited search, contacts & dedicated support.')}</p>
                 <Link
                   to={`/recruiter/plans?redirect=${encodeURIComponent('/recruiter/dashboard')}`}
                   className="block text-center bg-white text-indigo-700 font-bold py-2 rounded-xl text-sm hover:bg-gray-50 transition"
                 >
-                  View Plans
+                  {t('recruiter.viewPlans', 'View Plans')}
                 </Link>
               </div>
             </div>

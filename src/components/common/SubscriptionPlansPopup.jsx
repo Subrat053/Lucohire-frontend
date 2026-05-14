@@ -78,7 +78,7 @@ const SubscriptionPlansPopup = ({ role, currentPlan = 'free', open, onClose, red
     [plans]
   );
   const basePath = role === 'provider' ? '/provider/plans' : '/recruiter/plans';
-  const redirectQuery = encodeURIComponent(redirectTo || (role === 'provider' ? '/provider/dashboard' : '/recruiter/dashboard'));
+  const redirectQuery = encodeURIComponent(redirectTo || (role === 'provider' ? '/provider/plans' : '/recruiter/dashboard'));
 
   if (!open) return null;
 

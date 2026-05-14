@@ -95,12 +95,15 @@ const ShieldIcon = () => (
 );
 
 /* ═══════════════════════════ FLOATING BADGES ═══════════════════════════ */
-const FloatingBadge = ({ icon: Icon, label, color, className }) => (
-  <div className={`absolute flex items-center gap-2 bg-white rounded-2xl px-3 py-2 shadow-xl text-xs font-semibold pointer-events-none select-none ${className}`}>
-    <Icon className={`w-4 h-4 ${color}`} />
-    <span className="text-gray-700">{label}</span>
-  </div>
-);
+const FloatingBadge = ({ icon: Icon, label, color, className }) => {
+  const { t } = useTranslation();
+  return (
+    <div className={`absolute flex items-center gap-2 bg-white rounded-2xl px-3 py-2 shadow-xl text-xs font-semibold pointer-events-none select-none ${className}`}>
+      <Icon className={`w-4 h-4 ${color}`} />
+      <span className="text-gray-700">{label}</span>
+    </div>
+  );
+};
 
 const FloatingSocialChip = ({ icon: Icon, color, style }) => (
   <div className="absolute w-11 h-11 bg-white rounded-full shadow-xl flex items-center justify-center pointer-events-none animate-float" style={style}>
@@ -117,12 +120,15 @@ const DashedArrow = ({ color = '#fff', className, rotate = 0 }) => (
 );
 
 /* ═══════════════════════════ STAR RATING ═══════════════════════════ */
-const StarRating = () => (
-  <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/30">
-    {[1, 2, 3, 4, 5].map(i => <FaStar key={i} className="w-3.5 h-3.5 text-yellow-300" />)}
-    <span className="text-white text-xs font-semibold ml-1">4.9 / 5K+ users</span>
-  </div>
-);
+const StarRating = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/30">
+      {[1, 2, 3, 4, 5].map(i => <FaStar key={i} className="w-3.5 h-3.5 text-yellow-300" />)}
+      <span className="text-white text-xs font-semibold ml-1">{t('auth.ratingUsers', '4.9 / 5K+ users')}</span>
+    </div>
+  );
+};
 
 /* ═══════════════════════════ LEFT PANEL ═══════════════════════════ */
 /* IMPORTANT:
@@ -146,6 +152,7 @@ const StarRating = () => (
 */
 
 const LeftPanel = ({ mode }) => {
+  const { t } = useTranslation();
   const isLogin = mode === 'login' || mode === 'whatsapp-login';
   return (
     <div className="hidden lg:flex flex-col justify-between relative overflow-hidden rounded-l-3xl p-10 min-h-full"
@@ -168,8 +175,8 @@ const LeftPanel = ({ mode }) => {
       <DashedArrow color="#a5f3fc" className="bottom-32 left-16" rotate={220} />
 
       {/* Floating trust badges */}
-      <FloatingBadge icon={HiShieldCheck} label="100% Secure" color="text-green-500" className="top-6 right-6 animate-float" style={{ animationDelay: '0.5s' }} />
-      <FloatingBadge icon={MdVerified} label="2-Step Verified" color="text-blue-500" className="bottom-8 right-4 animate-float" style={{ animationDelay: '1s' }} />
+      <FloatingBadge icon={HiShieldCheck} label={t('auth.secure100', '100% Secure')} color="text-green-500" className="top-6 right-6 animate-float" style={{ animationDelay: '0.5s' }} />
+      <FloatingBadge icon={MdVerified} label={t('auth.verified2Step', '2-Step Verified')} color="text-blue-500" className="bottom-8 right-4 animate-float" style={{ animationDelay: '1s' }} />
 
       {/* Top: brand */}
       <div className="relative z-10">
@@ -179,17 +186,17 @@ const LeftPanel = ({ mode }) => {
           </div>
           <div>
             <p className="text-white font-extrabold text-2xl tracking-tight">ServiceHub</p>
-            <p className="text-blue-200 text-xs">Connect. Hire. Grow.</p>
+            <p className="text-blue-200 text-xs">{t('auth.connectHireGrow', 'Connect. Hire. Grow.')}</p>
           </div>
         </div>
 
         <h2 className="text-white text-3xl font-extrabold leading-tight mb-3">
-          {isLogin ? 'Welcome\nBack!' : 'Your Growth\nStarts Here.'}
+          {isLogin ? t('auth.welcomeBackTitle', 'Welcome\nBack!') : t('auth.growthStartsTitle', 'Your Growth\nStarts Here.')}
         </h2>
         <p className="text-blue-100 text-sm leading-relaxed mb-6">
           {isLogin
-            ? 'Sign in to access your dashboard, manage leads, and grow your business.'
-            : 'Join thousands of service providers and recruiters building their network.'}
+            ? t('auth.loginSubtitle', 'Sign in to access your dashboard, manage leads, and grow your business.')
+            : t('auth.signupSubtitle', 'Join thousands of service providers and recruiters building their network.')}
         </p>
         <StarRating />
       </div>
@@ -209,9 +216,9 @@ const LeftPanel = ({ mode }) => {
       <div className="relative z-10">
         <div className="grid grid-cols-3 gap-3">
           {[
-            { n: '10K+', l: 'Providers' },
-            { n: '5K+', l: 'Recruiters' },
-            { n: '50K+', l: 'Connections' },
+            { n: '10K+', l: t('auth.providers', 'Providers') },
+            { n: '5K+', l: t('auth.recruiters', 'Recruiters') },
+            { n: '50K+', l: t('auth.connections', 'Connections') },
           ].map(({ n, l }) => (
             <div key={l} className="text-center bg-white/15 backdrop-blur-sm rounded-2xl py-3 border border-white/20">
               <p className="text-white font-extrabold text-lg">{n}</p>
@@ -233,30 +240,33 @@ const ProgressBar = ({ filled = 1, total = 2 }) => (
   </div>
 );
 
-const TrustRow = () => (
-  <div className="flex items-center justify-between border-t border-b border-gray-100 py-3 mb-6">
-    <div className="flex items-center gap-1.5 text-xs text-gray-600">
-      <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
-        <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4h14v2H3V4zm0 5h10v2H3V9zm0 5h12v2H3v-2z" /></svg>
+const TrustRow = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center justify-between border-t border-b border-gray-100 py-3 mb-6">
+      <div className="flex items-center gap-1.5 text-xs text-gray-600">
+        <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
+          <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4h14v2H3V4zm0 5h10v2H3V9zm0 5h12v2H3v-2z" /></svg>
+        </div>
+        {t('auth.signup2Step', '2-Step Signup')}
       </div>
-      2-Step Signup
-    </div>
-    <div className="w-px h-7 bg-gray-200" />
-    <div className="flex items-center gap-1.5 text-xs text-gray-600">
-      <div className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center">
-        <HiCheckCircle className="w-4 h-4 text-red-500" />
+      <div className="w-px h-7 bg-gray-200" />
+      <div className="flex items-center gap-1.5 text-xs text-gray-600">
+        <div className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center">
+          <HiCheckCircle className="w-4 h-4 text-red-500" />
+        </div>
+        {t('auth.noPasswordReq', 'No Password Required')}
       </div>
-      No Password Required
-    </div>
-    <div className="w-px h-7 bg-gray-200" />
-    <div className="flex items-center gap-1.5 text-xs text-gray-600">
-      <div className="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center">
-        <HiShieldCheck className="w-4 h-4 text-green-600" />
+      <div className="w-px h-7 bg-gray-200" />
+      <div className="flex items-center gap-1.5 text-xs text-gray-600">
+        <div className="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center">
+          <HiShieldCheck className="w-4 h-4 text-green-600" />
+        </div>
+        {t('auth.secure100', '100% Secure')}
       </div>
-      100% Secure
     </div>
-  </div>
-);
+  );
+};
 
 const GreenBtn = ({ onClick, disabled, children }) => (
   <button type="button" onClick={onClick} disabled={disabled}
@@ -280,21 +290,24 @@ const OrLine = ({ label }) => (
     <div className="flex-1 border-t border-dashed border-gray-200" />
   </div>
 );
-const PhoneField = ({ value, onChange, accent = 'blue' }) => (
-  <div className="flex gap-2">
-    <div className="flex items-center gap-1.5 px-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-sm text-gray-700 shrink-0 font-medium">
-      <span>🇮🇳</span><span>+91</span>
-      <svg className="w-3 h-3 text-gray-400 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
-        <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-      </svg>
+const PhoneField = ({ value, onChange, accent = 'blue' }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex gap-2">
+      <div className="flex items-center gap-1.5 px-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-sm text-gray-700 shrink-0 font-medium">
+        <span>🇮🇳</span><span>+91</span>
+        <svg className="w-3 h-3 text-gray-400 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+        </svg>
+      </div>
+      <div className="relative flex-1">
+        <HiPhone className="absolute left-3.5 top-3.5 w-5 h-5 text-gray-400" />
+        <input name="phone" value={value} onChange={onChange} placeholder={t('common.phoneNumber', 'Phone Number')} inputMode="tel"
+          className={`w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl outline-none transition text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-${accent}-400 focus:border-transparent`} />
+      </div>
     </div>
-    <div className="relative flex-1">
-      <HiPhone className="absolute left-3.5 top-3.5 w-5 h-5 text-gray-400" />
-      <input name="phone" value={value} onChange={onChange} placeholder="Phone Number" inputMode="tel"
-        className={`w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl outline-none transition text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-${accent}-400 focus:border-transparent`} />
-    </div>
-  </div>
-);
+  );
+};
 
 const TextInput = ({ icon: Icon, name, type = 'text', value, onChange, placeholder, accent = 'blue', required, rightSlot }) => (
   <div className="relative">
@@ -305,47 +318,50 @@ const TextInput = ({ icon: Icon, name, type = 'text', value, onChange, placehold
   </div>
 );
 
-const RolePicker = ({ roles, setRoles, activeRole, setActiveRole, accent = 'blue' }) => (
-  <div>
-    <p className="text-xs font-medium text-gray-500 mb-2">I want to register as</p>
-    <div className="grid grid-cols-2 gap-3">
-      {[{ v: 'provider', e: '🛠️', l: 'Service Provider' }, { v: 'recruiter', e: '💼', l: 'Recruiter' }].map(({ v, e, l }) => (<button
-        key={v} type="button"
-        onClick={() => {
-          if (roles.includes(v)) {
-            const next = roles.filter((r) => r !== v);
-            setRoles(next);
-            if (activeRole === v) setActiveRole(next[0] || null);
-          } else {
-            const next = [...roles, v];
-            setRoles(next);
-            if (!activeRole) setActiveRole(v);
-          }
-        }}
-        className={`p-3 rounded-2xl border-2 text-center transition text-xs font-semibold ${roles.includes(v) ? `border-${accent}-500 bg-${accent}-50 ring-2 ring-${accent}-200` : 'border-gray-200 hover:border-gray-300 bg-gray-50'}`}>
-        <span className="text-2xl block mb-1">{e}</span>{l}
-        {activeRole === v && <span className="block mt-1 text-[10px] font-bold text-gray-600">Active</span>}</button>
-      ))}
-    </div>
-    {roles.length > 1 && (
-      <div className="mt-3">
-        <p className="text-xs font-medium text-gray-500 mb-1">Default active role</p>
-        <div className="flex gap-2">
-          {roles.map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => setActiveRole(r)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${activeRole === r ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
+const RolePicker = ({ roles, setRoles, activeRole, setActiveRole, accent = 'blue' }) => {
+  const { t } = useTranslation();
+  return (
+    <div>
+      <p className="text-xs font-medium text-gray-500 mb-2">{t('auth.registerAs', 'I want to register as')}</p>
+      <div className="grid grid-cols-2 gap-3">
+        {[{ v: 'provider', e: '🛠️', l: t('common.provider', 'Service Provider') }, { v: 'recruiter', e: '💼', l: t('common.recruiter', 'Recruiter') }].map(({ v, e, l }) => (<button
+          key={v} type="button"
+          onClick={() => {
+            if (roles.includes(v)) {
+              const next = roles.filter((r) => r !== v);
+              setRoles(next);
+              if (activeRole === v) setActiveRole(next[0] || null);
+            } else {
+              const next = [...roles, v];
+              setRoles(next);
+              if (!activeRole) setActiveRole(v);
+            }
+          }}
+          className={`p-3 rounded-2xl border-2 text-center transition text-xs font-semibold ${roles.includes(v) ? `border-${accent}-500 bg-${accent}-50 ring-2 ring-${accent}-200` : 'border-gray-200 hover:border-gray-300 bg-gray-50'}`}>
+          <span className="text-2xl block mb-1">{e}</span>{l}
+          {activeRole === v && <span className="block mt-1 text-[10px] font-bold text-gray-600">{t('common.active', 'Active')}</span>}</button>
+        ))}
       </div>
-    )}
-  </div>
-);
+      {roles.length > 1 && (
+        <div className="mt-3">
+          <p className="text-xs font-medium text-gray-500 mb-1">{t('auth.defaultRole', 'Default active role')}</p>
+          <div className="flex gap-2">
+            {roles.map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setActiveRole(r)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${activeRole === r ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+              >
+                {t(`common.${r}`, r)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 // Minimal LeftPanel component to avoid runtime ReferenceError.
 // Keeps layout simple and visually consistent with the design.
 
@@ -428,7 +444,7 @@ const AuthPage = () => {
   const redirectToDashboard = (userRole) => {
     switch (userRole) {
       case "provider":
-        navigate("/provider/dashboard", { replace: true });
+        navigate("/provider/plans", { replace: true });
         break;
 
       case "recruiter":
@@ -830,7 +846,7 @@ const AuthPage = () => {
       await authAPI.sendRegistrationEmailOtp({ email: form.email });
 
       setForm((f) => ({ ...f, otp: "" }));
-      toast.success("A new OTP has been sent to your email");
+      toast.success(t('auth.otpEmailSent', "A new OTP has been sent to your email"));
 
       setResendTimer(60);
       clearInterval(timerRef.current);
@@ -847,7 +863,7 @@ const AuthPage = () => {
 
       setTimeout(() => otpRefs.current[0]?.focus(), 200);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to resend OTP");
+      toast.error(err.response?.data?.message || t('auth.resendOtpFailed', "Failed to resend OTP"));
     } finally {
       setLoading(false);
     }
@@ -890,11 +906,8 @@ const AuthPage = () => {
 
           <div className="mb-3">
             <GreenBtn onClick={() => setMode("phone-register")}>
-              <HiPhone className="w-6 h-6" /> Signup with Phone OTP
+              <HiPhone className="w-6 h-6" /> {t('auth.signupPhone', 'Signup with Phone OTP')}
             </GreenBtn>
-            {/* <p className="text-center text-xs text-green-600 font-semibold mt-1.5">
-              Firebase OTP Authentication
-            </p> */}
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-2">
@@ -953,7 +966,7 @@ const AuthPage = () => {
             <div className="flex items-center gap-2 mb-1">
               <HiUser className="w-5 h-5 text-blue-500" />
               <h2 className="text-2xl font-extrabold text-gray-900">
-                Tell us about yourself
+                {t('auth.tellAboutYourself', 'Tell us about yourself')}
               </h2>
               <span className="text-sm text-gray-400 font-medium">
                 (Step 2/2)
@@ -1049,7 +1062,7 @@ const AuthPage = () => {
             <div className="flex items-center gap-2 mb-1">
               <HiUser className="w-5 h-5 text-blue-500" />
               <h2 className="text-2xl font-extrabold text-gray-900">
-                Register with Phone OTP
+                {t('auth.registerPhone', 'Register with Phone OTP')}
               </h2>
               <span className="text-sm text-gray-400 font-medium">
                 Firebase
@@ -1063,7 +1076,7 @@ const AuthPage = () => {
             name="name"
             value={form.name}
             onChange={handleChange}
-            placeholder="Full Name"
+            placeholder={t('common.fullName', 'Full Name')}
             accent="green"
           />
 
@@ -1078,7 +1091,7 @@ const AuthPage = () => {
             name="city"
             value={form.city}
             onChange={handleChange}
-            placeholder="City"
+            placeholder={t('common.city', 'City')}
             accent="green"
           />
 
@@ -1124,18 +1137,18 @@ const AuthPage = () => {
             </div>
 
             <h2 className="text-2xl font-extrabold text-gray-900 mb-2">
-              Verify your phone number
+              {t('auth.verifyPhone', 'Verify your phone number')}
             </h2>
 
             <p className="text-gray-500 text-sm">
-              OTP sent to{" "}
+              {t('auth.otpSentTo', 'OTP sent to')}{" "}
               <strong className="text-gray-800">{form.phone}</strong>
             </p>
           </div>
 
           <div>
             <p className="text-sm font-medium text-gray-600 text-center mb-4">
-              Enter 6-digit OTP
+              {t('auth.enter6DigitOtp', 'Enter 6-digit OTP')}
             </p>
             {renderOtpBoxes("green")}
           </div>
@@ -1147,10 +1160,10 @@ const AuthPage = () => {
             {loading ? (
               <>
                 <Spinner />
-                Verifying...
+                {t('common.verifying', 'Verifying...')}
               </>
             ) : (
-              "Verify & Continue"
+              t('auth.verifyContinue', "Verify & Continue")
             )}
           </GreenBtn>
 
@@ -1165,7 +1178,7 @@ const AuthPage = () => {
               }
               className="text-gray-500 hover:text-green-600 transition"
             >
-              &#8592; Change Number
+              &#8592; {t('auth.changeNumber', 'Change Number')}
             </button>
 
             <button
@@ -1173,7 +1186,7 @@ const AuthPage = () => {
               disabled={resendTimer > 0 || loading}
               className="text-green-600 font-bold disabled:text-gray-400 transition"
             >
-              {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
+              {resendTimer > 0 ? `${t('auth.resendIn', 'Resend in')} ${resendTimer}s` : t('auth.resendOtp', "Resend OTP")}
             </button>
           </div>
         </div>
@@ -1189,18 +1202,18 @@ const AuthPage = () => {
             </div>
 
             <h2 className="text-2xl font-extrabold text-gray-900 mb-2">
-              Verify your email
+              {t('auth.verifyEmail', 'Verify your email')}
             </h2>
 
             <p className="text-gray-500 text-sm">
-              Enter the 6-digit OTP sent to{" "}
+              {t('auth.enterOtpSentTo', 'Enter the 6-digit OTP sent to')}{" "}
               <strong className="text-gray-800">{form.email}</strong>
             </p>
           </div>
 
           <div>
             <p className="text-sm font-medium text-gray-600 text-center mb-4">
-              Email OTP
+              {t('auth.emailOtp', 'Email OTP')}
             </p>
             {renderOtpBoxes("blue")}
           </div>
@@ -1211,7 +1224,7 @@ const AuthPage = () => {
               name="whatsappNumber"
               value={form.whatsappNumber}
               onChange={handleChange}
-              placeholder="WhatsApp number optional"
+              placeholder={t('auth.whatsappOptional', 'WhatsApp number optional')}
             />
           </div>
 
@@ -1225,7 +1238,7 @@ const AuthPage = () => {
                 {t("auth.verifying")}
               </>
             ) : (
-              "Verify & Continue"
+              t('auth.verifyContinue', "Verify & Continue")
             )}
           </BlueBtn>
 
@@ -1272,11 +1285,11 @@ const AuthPage = () => {
             </div>
 
             <h2 className="text-2xl font-extrabold text-gray-900 mb-1">
-              Sign in with Phone OTP
+              {t('auth.signinPhone', 'Sign in with Phone OTP')}
             </h2>
 
             <p className="text-gray-500 text-sm">
-              Firebase will send a one-time code.
+              {t('auth.firebaseCodeInfo', 'Firebase will send a one-time code.')}
             </p>
           </div>
 
@@ -1325,11 +1338,11 @@ const AuthPage = () => {
                 setMode("phone-login");
               }}
             >
-              <HiPhone className="w-6 h-6" /> Sign in with Phone OTP
+              <HiPhone className="w-6 h-6" /> {t('auth.signinPhone', 'Sign in with Phone OTP')}
             </GreenBtn>
 
             <p className="text-center text-xs text-green-600 font-semibold mt-1.5">
-              Firebase OTP Authentication
+              {t('auth.firebaseAuthInfo', 'Firebase OTP Authentication')}
             </p>
           </div>
 
@@ -1352,7 +1365,7 @@ const AuthPage = () => {
             <div className="flex items-center gap-2 mb-1">
               <HiUser className="w-5 h-5 text-blue-500" />
               <h3 className="text-base font-bold text-gray-800">
-                Your Credentials
+                {t('auth.yourCredentials', 'Your Credentials')}
               </h3>
               <span className="text-xs text-gray-400">(Step 2/2)</span>
             </div>
@@ -1366,7 +1379,7 @@ const AuthPage = () => {
                 type="email"
                 value={form.email}
                 onChange={handleChange}
-                placeholder="Email Address"
+                placeholder={t('common.emailAddress', 'Email Address')}
                 required
               />
 
@@ -1376,7 +1389,7 @@ const AuthPage = () => {
                 type={showPassword ? "text" : "password"}
                 value={form.password}
                 onChange={handleChange}
-                placeholder="Password"
+                placeholder={t('common.password', 'Password')}
                 required
                 rightSlot={
                   <button
@@ -1391,6 +1404,14 @@ const AuthPage = () => {
                   </button>
                 }
               />
+              <div className="flex justify-end px-1">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-bold text-blue-600 hover:text-blue-500 transition-colors"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
             </div>
           </div>
 

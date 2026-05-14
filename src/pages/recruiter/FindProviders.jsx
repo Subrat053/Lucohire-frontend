@@ -29,7 +29,9 @@ const POPULAR_SKILLS = [
 
 /* ── Provider Card ───────────────────────────────────────────────────── */
 const ProviderCard = ({ provider, onView, onUnlock, unlocking }) => {
+  const navigate = useNavigate();
   const name = provider.user?.name || provider.name || 'Provider';
+
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-all">
@@ -64,7 +66,13 @@ const ProviderCard = ({ provider, onView, onUnlock, unlocking }) => {
           <p className="text-xs text-gray-500 flex items-center gap-0.5">
             <HiLocationMarker className="w-3 h-3" /> {provider.city || 'Location N/A'}
           </p>
+          {provider.pricing && (
+            <p className="text-xs font-bold text-emerald-600 mt-1">
+              ₹{provider.pricing}{provider.pricingType ? ` / ${provider.pricingType}` : ''}
+            </p>
+          )}
         </div>
+
 
         {/* Tier badge */}
         {provider.tier && (
@@ -95,11 +103,14 @@ const ProviderCard = ({ provider, onView, onUnlock, unlocking }) => {
             </a>
           )}
           {provider.whatsapp && (
-            <a href={`https://wa.me/${provider.whatsapp?.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"
-              className="flex items-center justify-center gap-1 text-xs font-semibold text-green-600 hover:text-green-800 px-2 border-l border-green-200">
+            <button 
+              onClick={() => navigate('/contact', { state: { subject: `Enquiry for ${name}`, providerId: provider._id || provider.user?._id } })}
+              className="flex items-center justify-center gap-1 text-xs font-semibold text-green-600 hover:text-green-800 px-2 border-l border-green-200"
+            >
               <FaWhatsapp className="w-3.5 h-3.5" />
-            </a>
+            </button>
           )}
+
         </div>
       )}
 

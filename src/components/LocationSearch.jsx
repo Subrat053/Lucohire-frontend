@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { HiLocationMarker } from 'react-icons/hi';
+import toast from 'react-hot-toast';
+
 import { locationAPI } from '../services/api';
 import useDebounce from '../hooks/useDebounce';
 
@@ -42,7 +44,7 @@ const LocationSearch = ({
 
       setLoading(true);
       try {
-        const { data } = await locationAPI.autocomplete(text);
+        const { data } = await locationAPI.searchPlaces(text);
         const list = Array.isArray(data?.data) ? data.data : [];
         setSuggestions(list);
         setOpen(true);
@@ -52,6 +54,7 @@ const LocationSearch = ({
       } finally {
         setLoading(false);
       }
+
     };
 
     run();
@@ -81,15 +84,27 @@ const LocationSearch = ({
     if (onChange) onChange(next);
   };
 
-  const handleSelect = (item) => {
-    const next = item?.name || '';
-    setQuery(next);
-    setSelectedValue(next);
-    setSuggestions([]);
-    if (onChange) onChange(next);
-    if (onSelect) onSelect(item);
-    setOpen(false);
+  const handleSelect = async (item) => {
+    setLoading(true);
+    try {
+      const { data } = await locationAPI.getPlaceDetails(item.placeId);
+      const details = data?.data || item;
+      const next = details.name || details.formattedAddress || '';
+      
+      setQuery(next);
+      setSelectedValue(next);
+      setSuggestions([]);
+      
+      if (onChange) onChange(next);
+      if (onSelect) onSelect(details);
+      setOpen(false);
+    } catch (error) {
+      toast.error('Failed to fetch place details');
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   return (
     <div className="relative">
@@ -114,13 +129,15 @@ const LocationSearch = ({
           {!loading && suggestions.map((item) => (
             <button
               type="button"
-              key={item.id || `${item.lat}-${item.lon}`}
+              key={item.placeId || `${item.lat}-${item.lon}`}
               onClick={() => handleSelect(item)}
-              className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-blue-50"
+              className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 border-b border-gray-50 last:border-0"
             >
-              {item.name}
+              <div className="font-medium">{item.name}</div>
+              <div className="text-xs text-gray-500 truncate">{item.formattedAddress}</div>
             </button>
           ))}
+
         </div>
       )}
     </div>

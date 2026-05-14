@@ -8,8 +8,8 @@ import {
 import { FaBullhorn } from 'react-icons/fa';
 import { recruiterAPI } from '../../services/api';
 import SkillPicker from '../../components/common/SkillPicker';
-import toast from 'react-hot-toast';
 import LocationSearch from '../../components/LocationSearch';
+import useTranslation from '../../hooks/useTranslation';
 
 /* ── Illustration ─────────────────────────────────────────────────── */
 const PostJobIllustration = () => (
@@ -45,6 +45,7 @@ const Label = ({ text, required }) => (
 );
 
 const PostJob = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
@@ -62,7 +63,7 @@ const PostJob = () => {
   const handleGenerateAI = async () => {
     const prompt = aiPrompt.trim() || form.title.trim() || form.skill.trim() || form.description.trim();
     if (!prompt) {
-      toast.error('Add a short requirement prompt first');
+      toast.error(t('recruiter.aiPromptRequired', 'Add a short requirement prompt first'));
       return;
     }
 
@@ -81,14 +82,18 @@ const PostJob = () => {
         ...prev,
         title: data.title || prev.title,
         description: data.fullDescription || prev.description,
+        skill: (data.skills && data.skills.length > 0) ? data.skills[0] : prev.skill,
+        city: data.city || prev.city,
         requirements: Array.isArray(data.duties) ? data.duties.join(', ') : prev.requirements,
-        budgetMin: data.suggestedBudget?.min ? String(data.suggestedBudget.min) : prev.budgetMin,
-        budgetMax: data.suggestedBudget?.max ? String(data.suggestedBudget.max) : prev.budgetMax,
+        budgetMin: data.budget?.min ? String(data.budget.min) : prev.budgetMin,
+        budgetMax: data.budget?.max ? String(data.budget.max) : prev.budgetMax,
+        budgetType: data.budget?.type || prev.budgetType,
       }));
+
       setAiMeta({ status: data.aiStatus, model: data.model });
-      toast.success('AI draft generated. Review and edit before posting.');
+      toast.success(t('recruiter.aiGenerated', 'AI draft generated. Review and edit before posting.'));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'AI generation failed');
+      toast.error(err.response?.data?.message || t('recruiter.aiGenerationFailed', 'AI generation failed'));
     } finally {
       setAiGenerating(false);
     }
@@ -97,7 +102,7 @@ const PostJob = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.title.trim() || !form.skill || !form.city.trim() || !form.description.trim()) {
-      return toast.error('Please fill all required fields');
+      return toast.error(t('common.fillRequired', 'Please fill all required fields'));
     }
     setLoading(true);
     try {
@@ -113,9 +118,9 @@ const PostJob = () => {
       const { data } = await recruiterAPI.postJob(payload);
       setMatchCount(data.matchedCount || 0);
       setSubmitted(true);
-      toast.success(`Job posted! ${data.matchedCount || 0} providers notified.`);
+      toast.success(t('recruiter.jobPostedSuccess', 'Job posted! {{count}} providers notified.', { count: data.matchedCount || 0 }));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to post job');
+      toast.error(err.response?.data?.message || t('recruiter.failedPostJob', 'Failed to post job'));
     } finally {
       setLoading(false);
     }
@@ -129,22 +134,22 @@ const PostJob = () => {
           <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-5">
             <HiCheckCircle className="w-10 h-10 text-green-500" />
           </div>
-          <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Job Posted!</h2>
+          <h2 className="text-2xl font-extrabold text-gray-900 mb-2">{t('recruiter.jobPostedTitle', 'Job Posted!')}</h2>
           <p className="text-gray-500 text-sm mb-2">
-            Your requirement is live and <span className="font-bold text-blue-600">{matchCount} provider{matchCount !== 1 ? 's' : ''}</span> have been notified via WhatsApp.
+            {t('recruiter.jobPostedDesc', 'Your requirement is live and {{count}} provider(s) have been notified via WhatsApp.', { count: matchCount })}
           </p>
           <div className="flex gap-3 mt-6">
             <button
               onClick={() => { setSubmitted(false); setForm({ title: '', skill: '', city: '', budgetMin: '', budgetMax: '', budgetType: 'negotiable', description: '', requirements: '' }); }}
               className="flex-1 border-2 border-blue-200 text-blue-700 font-bold py-2.5 rounded-xl hover:bg-blue-50 transition text-sm"
             >
-              Post Another
+              {t('recruiter.postAnother', 'Post Another')}
             </button>
             <button
               onClick={() => navigate('/recruiter/dashboard')}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition text-sm shadow-sm"
             >
-              Dashboard
+              {t('common.dashboard', 'Dashboard')}
             </button>
           </div>
         </div>
@@ -167,10 +172,10 @@ const PostJob = () => {
               onClick={() => navigate('/recruiter/dashboard')}
               className="inline-flex items-center gap-1.5 text-blue-200 hover:text-white text-sm mb-3 transition"
             >
-              <HiArrowLeft className="w-4 h-4" /> Back
+              <HiArrowLeft className="w-4 h-4" /> {t('common.back', 'Back')}
             </button>
-            <h1 className="text-2xl font-extrabold text-white">Post a Job</h1>
-            <p className="text-blue-100 text-sm mt-1">Matching providers will be notified automatically via WhatsApp.</p>
+            <h1 className="text-2xl font-extrabold text-white">{t('recruiter.postJob', 'Post a Job')}</h1>
+            <p className="text-blue-100 text-sm mt-1">{t('recruiter.notifyDesc', 'Matching providers will be notified automatically via WhatsApp.')}</p>
           </div>
           <div className="relative z-10 shrink-0">
             <PostJobIllustration />
@@ -179,12 +184,12 @@ const PostJob = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="bg-white rounded-2xl border border-blue-100 p-4">
-            <p className="text-sm font-semibold text-blue-800 mb-2">AI Job Description Helper</p>
+            <p className="text-sm font-semibold text-blue-800 mb-2">{t('recruiter.aiHelper', 'AI Job Description Helper')}</p>
             <div className="grid sm:grid-cols-[1fr_auto] gap-2">
               <input
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="e.g. Maid chahiye for morning cleaning in Andheri"
+                placeholder={t('recruiter.aiPromptPlaceholder', 'e.g. Maid chahiye for morning cleaning in Andheri')}
                 className={inputCls}
               />
               <button
@@ -193,45 +198,45 @@ const PostJob = () => {
                 disabled={aiGenerating}
                 className="px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
               >
-                {aiGenerating ? 'Generating…' : 'Generate with AI'}
+                {aiGenerating ? t('common.generating', 'Generating…') : t('recruiter.generateWithAI', 'Generate with AI')}
               </button>
             </div>
             {aiMeta && (
-              <p className="mt-2 text-xs text-blue-700">Status: {aiMeta.status} {aiMeta.model ? `• Model: ${aiMeta.model}` : ''}</p>
+              <p className="mt-2 text-xs text-blue-700">{t('common.status', 'Status')}: {aiMeta.status} {aiMeta.model ? `• ${t('common.model', 'Model')}: ${aiMeta.model}` : ''}</p>
             )}
           </div>
 
           <div className="grid sm:grid-cols-2 grid-cols-2 gap-4">
             {/* ── Job Details ─────────────────────────────────────────── */}
-            <SectionCard icon={HiBriefcase} iconColor="text-blue-500" title="Job Details">
+            <SectionCard icon={HiBriefcase} iconColor="text-blue-500" title={t('recruiter.jobDetails', 'Job Details')}>
               <div className="space-y-4">
                 <div>
-                  <Label text="Job Title" required />
+                  <Label text={t('recruiter.jobTitle', 'Job Title')} required />
                   <input
                     name="title"
                     value={form.title}
                     onChange={set('title')}
-                    placeholder="e.g. Need a driver for daily commute"
+                    placeholder={t('recruiter.jobTitlePlaceholder', 'e.g. Need a driver for daily commute')}
                     className={inputCls}
                   />
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <Label text="Skill Required" required />
+                    <Label text={t('recruiter.skillRequired', 'Skill Required')} required />
                     <SkillPicker
                       selectedSkills={form.skill ? [form.skill] : []}
                       onChange={(skills) => setForm({ ...form, skill: skills[skills.length - 1] || '' })}
                       maxSkills={1}
-                      placeholder="Pick one skill…"
+                      placeholder={t('recruiter.pickSkill', 'Pick one skill…')}
                     />
                   </div>
                   <div>
-                    <Label text="City" required />
+                    <Label text={t('common.city', 'City')} required />
                     <LocationSearch
                       value={form.city}
                       onChange={(value) => setForm({ ...form, city: value })}
                       onSelect={(item) => setForm({ ...form, city: item?.name || form.city })}
-                      placeholder="e.g. Delhi"
+                      placeholder={t('common.cityPlaceholder', 'e.g. Delhi')}
                     />
                   </div>
                 </div>
@@ -239,10 +244,10 @@ const PostJob = () => {
             </SectionCard>
 
             {/* ── Budget ──────────────────────────────────────────────── */}
-            <SectionCard icon={HiCurrencyRupee} iconColor="text-green-500" title="Budget">
+            <SectionCard icon={HiCurrencyRupee} iconColor="text-green-500" title={t('common.budget', 'Budget')}>
               <div className="grid sm:grid-cols-3 gap-4">
                 <div>
-                  <Label text="Min Budget (₹)" />
+                  <Label text={t('common.minBudget', 'Min Budget (₹)')} />
                   <input
                     type="number"
                     name="budgetMin"
@@ -254,7 +259,7 @@ const PostJob = () => {
                   />
                 </div>
                 <div>
-                  <Label text="Max Budget (₹)" />
+                  <Label text={t('common.maxBudget', 'Max Budget (₹)')} />
                   <input
                     type="number"
                     name="budgetMax"
@@ -266,46 +271,46 @@ const PostJob = () => {
                   />
                 </div>
                 <div>
-                  <Label text="Budget Type" />
+                  <Label text={t('common.budgetType', 'Budget Type')} />
                   <select
                     name="budgetType"
                     value={form.budgetType}
                     onChange={set('budgetType')}
                     className={inputCls}
                   >
-                    <option value="negotiable">Negotiable</option>
-                    <option value="fixed">Fixed</option>
-                    <option value="hourly">Hourly</option>
-                    <option value="monthly">Monthly</option>
+                    <option value="negotiable">{t('common.negotiable', 'Negotiable')}</option>
+                    <option value="fixed">{t('common.fixed', 'Fixed')}</option>
+                    <option value="hourly">{t('common.hourly', 'Hourly')}</option>
+                    <option value="monthly">{t('common.monthly', 'Monthly')}</option>
                   </select>
                 </div>
               </div>
             </SectionCard>
           </div>
           {/* ── Description ─────────────────────────────────────────── */}
-          <SectionCard icon={HiDocumentText} iconColor="text-purple-500" title="Description & Requirements">
+          <SectionCard icon={HiDocumentText} iconColor="text-purple-500" title={t('common.descAndReq', 'Description & Requirements')}>
             <div className="space-y-4">
               <div>
-                <Label text="Job Description" required />
+                <Label text={t('common.jobDescription', 'Job Description')} required />
                 <textarea
                   name="description"
                   value={form.description}
                   onChange={set('description')}
-                  placeholder="Describe your requirement in detail…"
+                  placeholder={t('common.descPlaceholder', 'Describe your requirement in detail…')}
                   rows={4}
                   className={`${inputCls} resize-none`}
                 />
               </div>
               <div>
-                <Label text="Requirements (comma separated)" />
+                <Label text={t('recruiter.reqComma', 'Requirements (comma separated)')} />
                 <input
                   name="requirements"
                   value={form.requirements}
                   onChange={set('requirements')}
-                  placeholder="e.g. Valid license, 3+ years experience, Must have own tools"
+                  placeholder={t('recruiter.reqPlaceholder', 'e.g. Valid license, 3+ years experience, Must have own tools')}
                   className={inputCls}
                 />
-                <p className="text-xs text-gray-400 mt-1">Separate multiple requirements with commas</p>
+                <p className="text-xs text-gray-400 mt-1">{t('recruiter.reqHint', 'Separate multiple requirements with commas')}</p>
               </div>
             </div>
           </SectionCard>
@@ -317,7 +322,7 @@ const PostJob = () => {
               onClick={() => navigate('/recruiter/dashboard')}
               className="flex-1 border-2 border-gray-200 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition text-sm"
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </button>
             <button
               type="submit"
@@ -325,7 +330,7 @@ const PostJob = () => {
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition disabled:opacity-50 flex items-center justify-center gap-2 text-sm shadow-md"
             >
               <FaBullhorn className="w-4 h-4" />
-              {loading ? 'Posting…' : 'Post Job & Notify Providers'}
+              {loading ? t('common.posting', 'Posting…') : t('recruiter.postAndNotify', 'Post Job & Notify Providers')}
             </button>
           </div>
         </form>

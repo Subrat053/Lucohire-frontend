@@ -7,8 +7,10 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 // import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
 import BoostSuggestionCard from '../../components/provider/BoostSuggestionCard';
 import toast from 'react-hot-toast';
+import useTranslation from '../../hooks/useTranslation';
 
 const ProviderDashboard = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ const ProviderDashboard = () => {
       setDashboard(data);
     } catch (err) {
       if (err.response?.status !== 404) {
-        toast.error('Failed to load dashboard');
+        toast.error(t('provider.failedLoadDashboard', 'Failed to load dashboard'));
       }
     } finally {
       setLoading(false);
@@ -78,28 +80,28 @@ const ProviderDashboard = () => {
   //   }
   // }, [loading, hasAutoPrompted, dashboard, stats.currentPlan, stats.planStatus, stats.planEndDate, stats.remainingApplyLimit]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="lg" text="Loading dashboard..." /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="lg" text={t('common.loadingDashboard', "Loading dashboard...")} /></div>;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome, {user?.name?.split(' ')[0]}! 👋</h1>
-          <p className="text-gray-500 mt-1">Here's your provider dashboard overview</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('provider.welcome', 'Welcome')}, {user?.name?.split(' ')[0]}! 👋</h1>
+          <p className="text-gray-500 mt-1">{t('provider.dashboardOverview', "Here's your provider dashboard overview")}</p>
           {stats.subscriptionBadge && (
             <span className="inline-block mt-1.5 text-xs px-2.5 py-0.5 bg-yellow-50 text-yellow-700 rounded-full border border-yellow-200 font-semibold">{stats.subscriptionBadge}</span>
           )}
         </div>
         <div className="flex flex-wrap gap-2 mt-4 sm:mt-0 items-center">
           <Link to="/provider/find-recruiters" className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition flex items-center gap-1.5">
-            <HiBriefcase className="w-4 h-4" /> Find Recruiters
+            <HiBriefcase className="w-4 h-4" /> {t('provider.findRecruiters', 'Find Recruiters')}
           </Link>
           <Link to="/provider/profile" className="border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
-            Edit Profile
+            {t('provider.editProfile', 'Edit Profile')}
           </Link>
           <Link to={`/provider/plans?redirect=${encodeURIComponent('/provider/dashboard')}`} className="border border-indigo-200 text-indigo-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-50 transition">
-            Upgrade Plan
+            {t('provider.upgradePlan', 'Upgrade Plan')}
           </Link>
         </div>
       </div>
@@ -109,12 +111,12 @@ const ProviderDashboard = () => {
         <div className="bg-linear-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 mb-6 text-white shadow-lg">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-extrabold mb-1">👋 Welcome! Complete your profile to get leads</h2>
-              <p className="text-blue-100 text-sm">Add your skills, location, and a photo so recruiters can find you.</p>
+              <h2 className="text-lg font-extrabold mb-1">👋 {t('provider.onboardingTitle', 'Welcome! Complete your profile to get leads')}</h2>
+              <p className="text-blue-100 text-sm">{t('provider.onboardingDesc', 'Add your skills, location, and a photo so recruiters can find you.')}</p>
             </div>
             <Link to="/provider/profile"
               className="shrink-0 bg-white text-blue-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-blue-50 transition shadow">
-              Set Up Profile →
+              {t('provider.setUpProfile', 'Set Up Profile →')}
             </Link>
           </div>
         </div>
@@ -124,25 +126,25 @@ const ProviderDashboard = () => {
       {!isProfileEmpty && stats.profileCompletion < 100 && (
         <div className="bg-linear-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-5 mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="font-semibold text-amber-800">Complete your profile</span>
+            <span className="font-semibold text-amber-800">{t('provider.completeProfile', 'Complete your profile')}</span>
             <span className="text-sm font-bold text-amber-700">{stats.profileCompletion}%</span>
           </div>
           <div className="w-full bg-amber-100 rounded-full h-2.5">
             <div className="bg-amber-500 h-2.5 rounded-full transition-all" style={{ width: `${stats.profileCompletion}%` }}></div>
           </div>
-          <p className="text-sm text-amber-700 mt-2">Complete your profile to get more leads and appear in search results.</p>
+          <p className="text-sm text-amber-700 mt-2">{t('provider.completeProfileDesc', 'Complete your profile to get more leads and appear in search results.')}</p>
         </div>
       )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         {[
-          { label: 'Current Plan',      value: planDisplayName, icon: HiTrendingUp, color: 'bg-orange-50 text-orange-600' },
-          { label: 'Profile Views',     value: stats.profileViews     || 0, icon: HiEye,          color: 'bg-blue-50 text-blue-600'    },
-          { label: 'Leads Received',    value: stats.leadsReceived    || 0, icon: HiUsers,         color: 'bg-green-50 text-green-600'  },
-          { label: 'Contacts Unlocked', value: stats.contactsUnlocked || 0, icon: HiPhone,         color: 'bg-purple-50 text-purple-600' },
-          { label: 'Available Jobs',    value: stats.availableJobs    || 0, icon: HiBriefcase,     color: 'bg-indigo-50 text-indigo-600' },
-          { label: 'Applied Jobs',      value: stats.appliedJobs      || 0, icon: HiDocumentText,  color: 'bg-teal-50 text-teal-600'    },
+          { label: t('provider.currentPlan', 'Current Plan'),      value: planDisplayName, icon: HiTrendingUp, color: 'bg-orange-50 text-orange-600' },
+          { label: t('provider.profileViews', 'Profile Views'),     value: stats.profileViews     || 0, icon: HiEye,          color: 'bg-blue-50 text-blue-600'    },
+          { label: t('provider.leadsReceived', 'Leads Received'),    value: stats.leadsReceived    || 0, icon: HiUsers,         color: 'bg-green-50 text-green-600'  },
+          { label: t('provider.contactsUnlocked', 'Contacts Unlocked'), value: stats.contactsUnlocked || 0, icon: HiPhone,         color: 'bg-purple-50 text-purple-600' },
+          { label: t('provider.availableJobs', 'Available Jobs'),    value: stats.availableJobs    || 0, icon: HiBriefcase,     color: 'bg-indigo-50 text-indigo-600' },
+          { label: t('provider.appliedJobs', 'Applied Jobs'),      value: stats.appliedJobs      || 0, icon: HiDocumentText,  color: 'bg-teal-50 text-teal-600'    },
         ].map((stat, i) => (
           <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition">
             <div className={`w-10 h-10 ${stat.color} rounded-xl flex items-center justify-center mb-3`}>
@@ -158,8 +160,8 @@ const ProviderDashboard = () => {
         {/* Recent Leads */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Recent Leads</h2>
-            <Link to="/provider/leads" className="text-sm text-indigo-600 hover:underline">View All →</Link>
+            <h2 className="text-lg font-bold text-gray-900">{t('provider.recentLeads', 'Recent Leads')}</h2>
+            <Link to="/provider/leads" className="text-sm text-indigo-600 hover:underline">{t('common.viewAll', 'View All →')}</Link>
           </div>
           {leads.length > 0 ? (
             <div className="space-y-3">
@@ -181,7 +183,7 @@ const ProviderDashboard = () => {
           ) : (
             <div className="text-center py-8">
               <HiBell className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-400">No leads yet. Complete your profile to get started!</p>
+              <p className="text-gray-400">{t('provider.noLeads', 'No leads yet. Complete your profile to get started!')}</p>
             </div>
           )}
         </div>
@@ -197,7 +199,7 @@ const ProviderDashboard = () => {
                 ))}
               </ul>
               <p className="text-xs text-gray-500 mt-2">
-                Confidence: {Math.round(Number(aiInsights.confidence || 0) * 100)}%
+                {t('provider.confidence', 'Confidence')}: {Math.round(Number(aiInsights.confidence || 0) * 100)}%
               </p>
             </div>
           )}
@@ -212,41 +214,41 @@ const ProviderDashboard = () => {
 
           {/* Plan Info */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h3 className="font-bold text-gray-900 mb-3">Plan Details</h3>
+            <h3 className="font-bold text-gray-900 mb-3">{t('provider.planDetails', 'Plan Details')}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Current Plan</span>
+                <span className="text-gray-500">{t('provider.currentPlan', 'Current Plan')}</span>
                 <span className="font-medium">{planDisplayName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Plan Status</span>
+                <span className="text-gray-500">{t('provider.planStatus', 'Plan Status')}</span>
                 <span className="font-medium capitalize">{stats.planStatus || 'inactive'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Plan Expires</span>
+                <span className="text-gray-500">{t('provider.planExpires', 'Plan Expires')}</span>
                 <span className="font-medium">{stats.planEndDate ? new Date(stats.planEndDate).toLocaleDateString() : 'N/A'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Apply Limit Left</span>
+                <span className="text-gray-500">{t('provider.applyLimitLeft', 'Apply Limit Left')}</span>
                 <span className="font-medium">{stats.remainingApplyLimit !== undefined ? (stats.remainingApplyLimit === 'unlimited' ? '∞' : stats.remainingApplyLimit) : '—'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Skills Used</span>
+                <span className="text-gray-500">{t('provider.skillsUsed', 'Skills Used')}</span>
                 <span className="font-medium">{profile.skills?.length || 0} / {stats.currentPlan === 'free' ? 4 : '∞'}</span>
               </div>
             </div>
             <Link to={`/provider/plans?redirect=${encodeURIComponent('/provider/dashboard')}`} className="block mt-4 text-center bg-indigo-50 text-indigo-600 py-2 rounded-xl text-sm font-medium hover:bg-indigo-100 transition">
-              Upgrade Plan →
+              {t('provider.upgradePlanBtn', 'Upgrade Plan →')}
             </Link>
           </div>
 
           {/* WhatsApp Alerts */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h3 className="font-bold text-gray-900 mb-3">WhatsApp Alerts</h3>
+            <h3 className="font-bold text-gray-900 mb-3">{t('provider.whatsappAlerts', 'WhatsApp Alerts')}</h3>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Lead notifications</span>
+              <span className="text-sm text-gray-600">{t('provider.leadNotifications', 'Lead notifications')}</span>
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${profile.whatsappAlerts ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                {profile.whatsappAlerts ? 'ON' : 'OFF'}
+                {profile.whatsappAlerts ? t('common.on', 'ON') : t('common.off', 'OFF')}
               </span>
             </div>
           </div>

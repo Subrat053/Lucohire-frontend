@@ -55,7 +55,7 @@ const SearchPage = () => {
 
       setResults({ rotation: [], featured: [], providers: normalizeList(providersList, true), pagination: {} });
       setSearchMeta({
-        locationMessage: cityVal ? `Showing nearby results for ${cityVal}.` : '',
+        locationMessage: cityVal ? t('search.nearbyResults', `Showing nearby results for ${cityVal}.`) : '',
         locationLevel: 'fallback',
       });
     };
@@ -104,7 +104,7 @@ const SearchPage = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const query = searchParams.get('query') || '';
@@ -289,17 +289,17 @@ const SearchPage = () => {
 
         {(interpretedIntent.skill || interpretedIntent.city) && (
           <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            <p className="font-medium mb-1">🤖 AI Interpretation</p>
+            <p className="font-medium mb-1">🤖 {t('search.aiInterpretation', 'AI Interpretation')}</p>
             <p className="text-xs text-emerald-700">
-              Showing {interpretedIntent.skill || 'service'} results{interpretedIntent.city ? ` in ${interpretedIntent.city}` : ''}.
-              {interpretedIntent.confidence && <span> (Confidence: {Math.round(interpretedIntent.confidence * 100)}%)</span>}
+              {t('search.showingResults', 'Showing')} {interpretedIntent.skill || t('search.service', 'service')} {t('search.results', 'results')}{interpretedIntent.city ? ` ${t('search.in', 'in')} ${interpretedIntent.city}` : ''}.
+              {interpretedIntent.confidence && <span> {t('search.confidence', '(Confidence: ')}{Math.round(interpretedIntent.confidence * 100)}%{t('search.confidenceEnd', ')')}</span>}
             </p>
           </div>
         )}
 
         {searchMessage && (
           <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            <p className="font-medium mb-1">📍 Location Info</p>
+            <p className="font-medium mb-1">📍 {t('search.locationInfo', 'Location Info')}</p>
             <p className="text-xs text-amber-700">{searchMessage}</p>
           </div>
         )}

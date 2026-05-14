@@ -33,12 +33,34 @@ const RecruiterProfile = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
-    name: '', companyName: '', companyType: 'individual',
-    city: '', state: '', description: '', skillsNeeded: [],
-    nearestLocation: '', latitude: null, longitude: null,
+    name: '',
+    companyName: '',
+    companyType: 'individual',
+    city: '',
+    state: '',
+    description: '',
+    skillsNeeded: [],
+    nearestLocation: '',
+    latitude: null,
+    longitude: null,
+    location: null,
+    profileName: '',
+    companyLogo: '',
+    businessType: '',
+    companyWebsite: '',
+    hiringLocation: '',
+    contactPersonName: '',
+    designation: '',
+    bio: '',
   });
+
+
+
+
   const [photoPreview, setPhotoPreview] = useState('');
   const [savedPhoto, setSavedPhoto] = useState('');
+  const [profile, setProfile] = useState(null);
+
 
   useEffect(() => { fetchProfile(); }, []);
 
@@ -46,6 +68,8 @@ const RecruiterProfile = () => {
     try {
       const { data } = await recruiterAPI.getDashboard();
       const p = data.profile || {};
+      setProfile(p);
+
       setForm({
         name: user?.name || '',
         companyName: p.companyName || '',
@@ -57,7 +81,17 @@ const RecruiterProfile = () => {
         nearestLocation: p.nearestLocation || '',
         latitude: p.latitude ?? null,
         longitude: p.longitude ?? null,
+        location: p.location || null,
+        profileName: p.profileName || '',
+        companyLogo: p.companyLogo || '',
+        businessType: p.businessType || '',
+        companyWebsite: p.companyWebsite || '',
+        hiringLocation: p.hiringLocation || '',
+        contactPersonName: p.contactPersonName || '',
+        designation: p.designation || '',
+        bio: p.bio || p.description || '',
       });
+
       if (p.profilePhoto) {
         const url = toAbsoluteMediaUrl(p.profilePhoto);
         setSavedPhoto(url);
@@ -153,6 +187,20 @@ const RecruiterProfile = () => {
                 <HiUser className="w-4 h-4 text-blue-500" /> Basic Information
               </h2>
 
+              {/* Photo Status */}
+              {profile?.profilePhotoApproval?.status === 'pending' && (
+                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700 font-medium">
+                  Your new profile photo is pending admin approval.
+                </div>
+              )}
+              {profile?.profilePhotoApproval?.status === 'rejected' && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
+                  Photo rejected: {profile.profilePhotoApproval.rejectionReason}
+                </div>
+              )}
+
+
+
               {/* Photo upload */}
               <div className="flex items-center gap-5 mb-6 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
                 <div className="relative shrink-0">
@@ -214,18 +262,55 @@ const RecruiterProfile = () => {
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     className={inputCls}
-                    placeholder="Your full name"
+                    placeholder="Your account name"
                   />
                 </InputField>
+                <InputField label="Profile / Display Name">
+                  <input
+                    value={form.profileName}
+                    onChange={(e) => setForm({ ...form, profileName: e.target.value })}
+                    className={inputCls}
+                    placeholder="Publicly visible name"
+                  />
+                </InputField>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4 mt-4">
                 <InputField label="Company / Brand Name">
                   <input
                     value={form.companyName}
                     onChange={(e) => setForm({ ...form, companyName: e.target.value })}
                     className={inputCls}
-                    placeholder="Optional"
+                    placeholder="Company name"
+                  />
+                </InputField>
+                <InputField label="Business Type">
+                  <input
+                    value={form.businessType}
+                    onChange={(e) => setForm({ ...form, businessType: e.target.value })}
+                    className={inputCls}
+                    placeholder="e.g. Agency, IT Services"
                   />
                 </InputField>
               </div>
+              <div className="grid sm:grid-cols-2 gap-4 mt-4">
+                <InputField label="Contact Person Name">
+                  <input
+                    value={form.contactPersonName}
+                    onChange={(e) => setForm({ ...form, contactPersonName: e.target.value })}
+                    className={inputCls}
+                    placeholder="Public contact name"
+                  />
+                </InputField>
+                <InputField label="Designation">
+                  <input
+                    value={form.designation}
+                    onChange={(e) => setForm({ ...form, designation: e.target.value })}
+                    className={inputCls}
+                    placeholder="e.g. HR Manager"
+                  />
+                </InputField>
+              </div>
+
             </div>
 
             {/* ── Company Details ─────────────────────────────────────── */}
@@ -253,11 +338,14 @@ const RecruiterProfile = () => {
                     onChange={(value) => setForm({ ...form, city: value })}
                     onSelect={(item) => setForm((prev) => ({
                       ...prev,
-                      city: item?.name || prev.city,
+                      city: item?.city || item?.name || prev.city,
+                      state: item?.state || prev.state,
                       nearestLocation: item?.name || prev.nearestLocation,
-                      latitude: item?.lat ?? prev.latitude,
-                      longitude: item?.lon ?? prev.longitude,
+                      latitude: item?.latitude ?? prev.latitude,
+                      longitude: item?.longitude ?? prev.longitude,
+                      location: item || null,
                     }))}
+
                     placeholder="e.g. Mumbai"
                   />
                 </InputField>
@@ -270,19 +358,39 @@ const RecruiterProfile = () => {
                   />
                 </InputField>
               </div>
+              <div className="grid sm:grid-cols-2 gap-4 mt-4">
+                <InputField label="Company Website">
+                  <input
+                    value={form.companyWebsite}
+                    onChange={(e) => setForm({ ...form, companyWebsite: e.target.value })}
+                    className={inputCls}
+                    placeholder="https://..."
+                  />
+                </InputField>
+                <InputField label="Hiring Location">
+                  <input
+                    value={form.hiringLocation}
+                    onChange={(e) => setForm({ ...form, hiringLocation: e.target.value })}
+                    className={inputCls}
+                    placeholder="e.g. remote or specific office"
+                  />
+                </InputField>
+              </div>
+
               <div className="mt-3">
               </div>
               <div className="mt-4">
-                <InputField label="About / Description">
+                <InputField label="Bio / Description">
                   <textarea
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    rows={3}
+                    value={form.bio}
+                    onChange={(e) => setForm({ ...form, bio: e.target.value })}
+                    rows={4}
                     className={`${inputCls} resize-none`}
                     placeholder="Brief description of your company or hiring needs..."
                   />
                 </InputField>
               </div>
+
             </div>
           </div>
           {/* ── Skills Needed ──────────────────────────────────────── */}

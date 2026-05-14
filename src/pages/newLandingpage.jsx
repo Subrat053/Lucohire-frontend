@@ -216,11 +216,12 @@ const ProviderCard = ({ p, onClick }) => (
 
     <div className="flex gap-2 pt-1">
       <button
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => { e.stopPropagation(); navigate('/contact'); }}
         className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#374151] text-xs font-semibold py-2 rounded-xl hover:bg-[#F7F9FC] transition"
       >
-        <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+        <MessageCircle className="w-3.5 h-3.5" /> Contact Us
       </button>
+
 
       <button
         onClick={(e) => {

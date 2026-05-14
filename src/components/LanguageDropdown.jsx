@@ -3,13 +3,13 @@ import { HiCheck, HiChevronDown, HiGlobeAlt } from 'react-icons/hi';
 import useTranslation from '../hooks/useTranslation';
 
 const LanguageDropdown = ({ mobile = false, onChangeComplete }) => {
-  const { t, language, languages, changeLanguage } = useTranslation();
+  const { t, selectedLanguage, languages, setSelectedLanguage } = useTranslation();
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
 
   const activeLanguage = useMemo(() => {
-    return languages.find((item) => item.code === language) || languages[0];
-  }, [languages, language]);
+    return languages.find((item) => item.code === selectedLanguage) || languages[0];
+  }, [languages, selectedLanguage]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -33,7 +33,7 @@ const LanguageDropdown = ({ mobile = false, onChangeComplete }) => {
   }, [open]);
 
   const handleSelect = async (nextLanguage) => {
-    await changeLanguage(nextLanguage);
+    await setSelectedLanguage(nextLanguage);
     setOpen(false);
     if (onChangeComplete) onChangeComplete();
   };
@@ -43,7 +43,7 @@ const LanguageDropdown = ({ mobile = false, onChangeComplete }) => {
       <div className="py-2">
         <label className="block text-xs font-medium text-gray-500 mb-1">{t('navbar.language')}</label>
         <select
-          value={language}
+          value={selectedLanguage}
           onChange={(event) => handleSelect(event.target.value)}
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white"
         >
@@ -69,15 +69,15 @@ const LanguageDropdown = ({ mobile = false, onChangeComplete }) => {
       {open && (
         <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 py-2 max-h-72 overflow-auto animate-fade-in">
           {languages.map((item) => {
-            const selected = item.code === language;
+            const isSelected = item.code === selectedLanguage;
             return (
               <button
                 key={item.code}
                 onClick={() => handleSelect(item.code)}
-                className={`w-full flex items-center justify-between text-left px-4 py-2 text-sm hover:bg-gray-50 ${selected ? 'text-indigo-600 font-medium' : 'text-gray-700'}`}
+                className={`w-full flex items-center justify-between text-left px-4 py-2 text-sm hover:bg-gray-50 ${isSelected ? 'text-indigo-600 font-medium' : 'text-gray-700'}`}
               >
                 <span>{item.label}</span>
-                {selected && <HiCheck className="text-indigo-500" />}
+                {isSelected && <HiCheck className="text-indigo-500" />}
               </button>
             );
           })}

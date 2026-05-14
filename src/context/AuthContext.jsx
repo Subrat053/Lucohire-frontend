@@ -40,11 +40,15 @@ export const AuthProvider = ({ children }) => {
         ? [rawUser.role]
         : [];
 
-    let activeRole = rawUser.activeRole || rawUser.role || roles[0] || null;
-
-    if (roles.includes("partner")) activeRole = "partner";
-    else if (roles.includes("manager")) activeRole = "manager";
-    else if (roles.includes("admin")) activeRole = "admin";
+    let activeRole = rawUser.activeRole || rawUser.role;
+    
+    // If no valid activeRole, prioritize privileged roles
+    if (!activeRole || !roles.includes(activeRole)) {
+      if (roles.includes("admin")) activeRole = "admin";
+      else if (roles.includes("manager")) activeRole = "manager";
+      else if (roles.includes("partner")) activeRole = "partner";
+      else activeRole = roles[0] || null;
+    }
 
     return {
       ...rawUser,

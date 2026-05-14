@@ -263,11 +263,12 @@ const ProviderCard = ({ p, onClick }) => (
 
     <div className="flex gap-2 pt-1">
       <button
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => { e.stopPropagation(); navigate('/contact'); }}
         className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#374151] text-xs font-semibold py-2 rounded-xl hover:bg-[#F7F9FC] transition"
       >
-        <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+        <MessageCircle className="w-3.5 h-3.5" /> Contact Us
       </button>
+
 
       <button
         onClick={(e) => {
@@ -294,7 +295,7 @@ const LandingPage = () => {
   const [providersLoading, setProvidersLoading] = useState(false);
   const [activeTier, setActiveTier] = useState("all");
   const [activeCategory, setActiveCategory] = useState("");
-  const [openFaq, setOpenFaq] = useState(0);
+  const [openFaq, setOpenFaq] = useState();
   const [email, setEmail] = useState("");
 
   const debounceRef = useRef(null);
@@ -428,48 +429,48 @@ const LandingPage = () => {
           <div className="flex justify-center mb-8">
             <span className="inline-flex items-center gap-2 bg-white border border-[#E7ECF4] rounded-full px-3 py-1 text-xs font-semibold text-[#374151] shadow-[0_4px_12px_rgba(0,0,0,0.04)]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#12B76A] animate-pulse" />
-              1,29,264 verified pros online now
+              {t('landing.verifiedNow', '1,29,264 verified pros online now')}
             </span>
           </div>
 
-          <div className="max-w-3xl mx-auto bg-white rounded-3xl border border-[#E7ECF4] shadow-[0_20px_60px_rgba(8,27,58,0.08)] p-8 md:p-10">
+          <div className="max-w-5xl mx-auto bg-white rounded-3xl border border-[#E7ECF4] shadow-[0_20px_60px_rgba(8,27,58,0.08)] p-6 sm:p-8 md:p-10">
             <div className="flex items-center justify-between mb-5">
-              <span className="inline-flex items-center gap-1.5 bg-[#EAF2FF] text-[#1677FF] text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full">
-                <Sparkles className="w-3 h-3" /> AI Match Engine
+              <span className="inline-flex items-center gap-1.5 bg-[#EAF2FF] text-[#1677FF] lg:text-[11px] text-[8px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full">
+                <Sparkles className="w-3 h-3" /> {t('landing.aiMatchEngine', 'AI Match Engine')}
               </span>
-              <span className="text-sm text-[#6B7280]">Average match in ~ 10.2s</span>
+              <span className="text-[12px] lg:text-sm text-[#6B7280] text-end">{t('landing.averageMatch', 'Average match in ~ 10.2s')}</span>
             </div>
 
             <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight text-[#081B3A]">
-              Tell us what you need.
+              {t('landing.heroTitle', 'Tell us what you need.')}
             </h1>
-            <p className="text-[#1677FF] font-semibold mt-2 text-lg">Get 5 best matches instantly.</p>
+            <p className="text-[#1677FF] font-semibold mt-2 text-lg">{t('landing.heroSubtitle', 'Get 5 best matches instantly.')}</p>
 
             <form onSubmit={handleSearch} className="mt-6 lg:my-10">
-              <div className="bg-[#F7F9FC] border border-[#E7ECF4] rounded-2xl p-2 flex items-center gap-2">
+              <div className="bg-[#F7F9FC] border border-[#E7ECF4] rounded-xl p-1 lg:p-2 flex items-center gap-2">
                 <div className="flex-1 flex items-center gap-2 px-3">
-                  <Search className="w-4 h-4 text-[#6B7280]" />
+                  {/* <Search className="lg:w-4 lg:h-4 text-[#6B7280]" /> */}
                   <input
                     value={skill}
                     onChange={(e) => {
                       setActiveCategory("");
                       setSkill(e.target.value);
                     }}
-                    placeholder="Type like you speak… e.g 'maid morning time Noida'"
-                    className="flex-1 bg-transparent text-sm text-[#081B3A] placeholder-[#9CA3AF] py-3 outline-none"
+                    placeholder={t('landing.searchPrompt', "Type like you speak… e.g 'maid morning time Noida'")}
+                    className="flex-1 bg-transparent text-sm text-[#081B3A] placeholder-[#9CA3AF] lg:py-3 outline-none"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="bg-[#1677FF] hover:bg-[#0E5FCC] text-white text-sm font-bold px-5 py-3 rounded-xl flex items-center gap-1.5 transition shadow-[0_4px_12px_rgba(22,119,255,0.3)]"
+                  className="bg-[#1677FF] hover:bg-[#0E5FCC] text-white lg:text-sm text-[9px] font-bold px-2 py-1 lg:px-5 lg:py-3 rounded-xl flex items-center gap-1.5 transition shadow-[0_4px_12px_rgba(22,119,255,0.3)]"
                 >
-                  Find Match <ArrowRight className="w-4 h-4" />
+                  {t('landing.findMatch', 'Find Match')} <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </form>
 
             <div className="mt-5 flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-bold text-[#6B7280] tracking-wider">TRY:</span>
+              <span className="text-[11px] font-bold text-[#6B7280] tracking-wider">{t('landing.try', 'TRY:')}</span>
               {SUGGESTIONS.map((s) => (
                 <button
                   key={s}
@@ -477,9 +478,9 @@ const LandingPage = () => {
                     setActiveCategory("");
                     setSkill(s);
                   }}
-                  className="text-xs text-[#374151] border border-[#E7ECF4] bg-white px-3 py-1 rounded-full hover:border-[#1677FF] hover:text-[#1677FF] transition"
+                  className="text-[11px] lg:text-xs text-[#374151] border border-[#E7ECF4] bg-white px-3 py-1 rounded-full hover:border-[#1677FF] hover:text-[#1677FF] transition"
                 >
-                  {s}
+                  {t(`landing.suggestion.${s}`, s)}
                 </button>
               ))}
             </div>
@@ -492,25 +493,26 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-end justify-between mb-6 flex-wrap gap-4">
             <div>
-              <SectionLabel>Top Pool</SectionLabel>
+              <SectionLabel>{t('landing.topPool', 'Top Pool')}</SectionLabel>
               <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#081B3A]">
-                Verified pros, ready right now
+                {t('landing.verifiedReady', 'Verified pros, ready right now')}
               </h2>
-              <p className="text-[#6B7280] mt-2 text-sm">Top 5 per skill + city — rotates every 60s for fair lead distribution.</p>
+              <p className="text-[#6B7280] mt-2 text-sm">{t('landing.topPoolSubtitle', 'Top 5 per skill + city — rotates every 60s for fair lead distribution.')}</p>
             </div>
-            <a className="text-sm font-semibold text-[#1677FF] hover:underline cursor-pointer">View all →</a>
+            <a onClick={() => navigate('/search')} className="text-sm font-semibold text-[#1677FF] hover:underline cursor-pointer">{t('common.viewAll', 'View all →')}</a>
           </div>
 
           <div className="flex flex-wrap items-center gap-5 text-xs text-[#6B7280] mb-6">
-            <span className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" /> 4.8 avg rating</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#12B76A]" /> Aadhaar verified</span>
-            <span className="flex items-center gap-1.5"><MessageCircle className="w-3.5 h-3.5 text-[#12B76A]" /> WhatsApp reply ~10 min</span>
+            <span className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" /> {t('landing.avgRating', '4.8 avg rating')}</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#12B76A]" /> {t('landing.aadhaarVerified', 'Aadhaar verified')}</span>
+            <span className="flex items-center gap-1.5"><MessageCircle className="w-3.5 h-3.5 text-[#12B76A]" /> {t('landing.whatsappReplyTime', 'WhatsApp reply ~10 min')}</span>
           </div>
 
           <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
-            <Pill active={activeTier === "all"} onClick={() => setActiveTier("all")}>All</Pill>
-            <Pill active={activeTier === "skilled"} onClick={() => setActiveTier("skilled")}>Skilled</Pill>
-            <Pill active={activeTier === "semi-skilled"} onClick={() => setActiveTier("semi-skilled")}>Semi-skilled</Pill>
+            <Pill active={activeTier === "all"} onClick={() => setActiveTier("all")}>{t('search.all')}</Pill>
+            <Pill active={activeTier === "skilled"} onClick={() => setActiveTier("skilled")}>{t('search.tierSkilled')}</Pill>
+            <Pill active={activeTier === "semi-skilled"} onClick={() => setActiveTier("semi-skilled")}>{t('search.tierSemiSkilled')}</Pill>
+            <Pill active={activeTier === "unskilled"} onClick={() => setActiveTier("unskilled")}>{t('search.tierUnskilled')}</Pill>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -534,12 +536,12 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
             <div>
-              <SectionLabel>Categories</SectionLabel>
+              <SectionLabel>{t('landing.categories', 'Categories')}</SectionLabel>
               <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-                Every household & business need
+                {t('landing.everyNeed', 'Every household & business need')}
               </h2>
             </div>
-            <a className="text-sm font-semibold text-[#1677FF] hover:underline cursor-pointer">View all →</a>
+            <a onClick={() => navigate('/search')} className="text-sm font-semibold text-[#1677FF] hover:underline cursor-pointer">{t('common.viewAll', 'View all →')}</a>
           </div>
 
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -552,8 +554,8 @@ const LandingPage = () => {
                 }`}
               >
                 <Icon className="w-6 h-6 text-[#1677FF]" />
-                <p className="font-bold text-sm text-[#081B3A] mt-1">{name}</p>
-                <p className="text-[11px] text-[#6B7280]">{count}</p>
+                <p className="font-bold text-sm text-[#081B3A] mt-1">{t(`landing.category.${name}`, name)}</p>
+                <p className="text-[11px] text-[#6B7280]">{t(`landing.categoryCount.${name}`, count)}</p>
               </button>
             ))}
           </div>
@@ -564,24 +566,24 @@ const LandingPage = () => {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-12">
-            <SectionLabel>How it works</SectionLabel>
+            <SectionLabel>{t('landing.howItWorks', 'How it works')}</SectionLabel>
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              Two sides. <span className="italic font-serif text-[#1677FF]">One simple flow.</span>
+              {t('landing.twoSides', 'Two sides.')} <span className="italic font-serif text-[#1677FF]">{t('landing.oneFlow', 'One simple flow.')}</span>
             </h2>
             <p className="text-[#6B7280] mt-3 text-sm max-w-xl mx-auto">
-              Whether you're hiring or earning — Lucohire's AI handles matching, alerts and follow-ups.
+              {t('landing.howItWorksDesc', "Whether you're hiring or earning — ServiceHub's AI handles matching, alerts and follow-ups.")}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Recruiters */}
             <div className="bg-white border border-[#E7ECF4] rounded-3xl p-8 shadow-[0_10px_40px_rgba(0,0,0,0.04)]">
-              <SectionLabel>For Recruiters</SectionLabel>
-              <h3 className="text-2xl font-extrabold tracking-tight mb-6">Find. Match. Hire.</h3>
+              <SectionLabel>{t('landing.forRecruiters', 'For Recruiters')}</SectionLabel>
+              <h3 className="text-2xl font-extrabold tracking-tight mb-6">{t('landing.recruiterValue', 'Find. Match. Hire.')}</h3>
               {[
-                { Icon: Search, title: "Search or post", desc: "Type your need in plain Hinglish — AI parses skill, city, budget." },
-                { Icon: CheckCircle2, title: "Get 5 best matches", desc: "Auto-ranked by trust score, distance, response speed." },
-                { Icon: Lock, title: "Unlock & WhatsApp", desc: "Pay-per-unlock or plan. Chat directly. Hire same day." },
+                { Icon: Search, title: t('landing.recruiterStep1Title', "Search or post"), desc: t('landing.recruiterStep1Desc', "Type your need in plain Hinglish — AI parses skill, city, budget.") },
+                { Icon: CheckCircle2, title: t('landing.recruiterStep2Title', "Get 5 best matches"), desc: t('landing.recruiterStep2Desc', "Auto-ranked by trust score, distance, response speed.") },
+                { Icon: Lock, title: t('landing.recruiterStep3Title', "Unlock & WhatsApp"), desc: t('landing.recruiterStep3Desc', "Pay-per-unlock or plan. Chat directly. Hire same day.") },
               ].map((s, i) => (
                 <div key={s.title} className="flex gap-4 py-4 border-t border-[#E7ECF4] first:border-t-0">
                   <div className="w-10 h-10 rounded-xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
@@ -598,12 +600,12 @@ const LandingPage = () => {
 
             {/* Providers */}
             <div className="bg-[#081B3A] text-white border border-[#081B3A] rounded-3xl p-8 shadow-[0_20px_60px_rgba(8,27,58,0.25)]">
-              <p className="text-[11px] font-bold tracking-[0.2em] text-[#1677FF] uppercase mb-3">For Service Providers</p>
-              <h3 className="text-2xl font-extrabold tracking-tight mb-6">Get found. Get paid.</h3>
+              <p className="text-[11px] font-bold tracking-[0.2em] text-[#1677FF] uppercase mb-3">{t('landing.forProviders', 'For Service Providers')}</p>
+              <h3 className="text-2xl font-extrabold tracking-tight mb-6">{t('landing.providerValue', 'Get found. Get paid.')}</h3>
               {[
-                { Icon: Users, title: "Sign up in 60s", desc: "WhatsApp / Google / Email. Pick role, add 2-4 skills. Free." },
-                { Icon: BarChart3, title: "Get rotating leads", desc: "Top pool of 5 rotates every 60s — fair lead distribution." },
-                { Icon: MessageCircle, title: "Reply, deal, earn", desc: "Lead lands on WhatsApp. Confirm deal — rating unlocks." },
+                { Icon: Users, title: t('landing.providerStep1Title', "Sign up in 60s"), desc: t('landing.providerStep1Desc', "WhatsApp / Google / Email. Pick role, add 2-4 skills. Free.") },
+                { Icon: BarChart3, title: t('landing.providerStep2Title', "Get rotating leads"), desc: t('landing.providerStep2Desc', "Top pool of 5 rotates every 60s — fair lead distribution.") },
+                { Icon: MessageCircle, title: t('landing.providerStep3Title', "Reply, deal, earn"), desc: t('landing.providerStep3Desc', "Lead lands on WhatsApp. Confirm deal — rating unlocks.") },
               ].map((s, i) => (
                 <div key={s.title} className="flex gap-4 py-4 border-t border-white/10 first:border-t-0">
                   <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
@@ -625,24 +627,24 @@ const LandingPage = () => {
       <section className="bg-[#F7F9FC] py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-12">
-            <SectionLabel>The Engine</SectionLabel>
+            <SectionLabel>{t('landing.theEngine', 'The Engine')}</SectionLabel>
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              Not just a directory.<br />
-              <span className="italic font-serif text-[#1677FF]">An AI that hires for you.</span>
+              {t('landing.engineTitle', 'Not just a directory.')}<br />
+              <span className="italic font-serif text-[#1677FF]">{t('landing.engineSubtitle', 'An AI that hires for you.')}</span>
             </h2>
             <p className="text-[#6B7280] mt-3 text-sm max-w-2xl mx-auto">
-              We replaced manual sorting with a learning system that ranks, routes and follows up — so you spend seconds, not hours.
+              {t('landing.engineDesc', 'We replaced manual sorting with a learning system that ranks, routes and follows up — so you spend seconds, not hours.')}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { Icon: Globe2, title: "AI Best Match", desc: "Weighted scoring on skill, distance, rating, response speed & boost — picks top 5 instantly." },
-              { Icon: Zap, title: "Auto Lead Distribution", desc: "No manual routing. System rotates leads fairly so every verified pro gets a fair chance." },
-              { Icon: ShieldCheck, title: "AI Trust Score", desc: "Every provider has a 0-100 score from completion, reviews & response time. Fully transparent." },
-              { Icon: Languages, title: "Hinglish Search", desc: "Search the way you speak — 'maid evening part time' just works. No filters needed." },
-              { Icon: ShieldAlert, title: "Fraud Detection", desc: "Spots fake profiles, duplicate accounts and spam patterns automatically." },
-              { Icon: Repeat, title: "Repeat Hire Memory", desc: "Hired before? We remember. One tap to rebook the same provider — or a similar one nearby." },
+              { Icon: Globe2, title: t('landing.engineFeature1Title', "AI Best Match"), desc: t('landing.engineFeature1Desc', "Weighted scoring on skill, distance, rating, response speed & boost — picks top 5 instantly.") },
+              { Icon: Zap, title: t('landing.engineFeature2Title', "Auto Lead Distribution"), desc: t('landing.engineFeature2Desc', "No manual routing. System rotates leads fairly so every verified pro gets a fair chance.") },
+              { Icon: ShieldCheck, title: t('landing.engineFeature3Title', "AI Trust Score"), desc: t('landing.engineFeature3Desc', "Every provider has a 0-100 score from completion, reviews & response time. Fully transparent.") },
+              { Icon: Languages, title: t('landing.engineFeature4Title', "Hinglish Search"), desc: t('landing.engineFeature4Desc', "Search the way you speak — 'maid evening part time' just works. No filters needed.") },
+              { Icon: ShieldAlert, title: t('landing.engineFeature5Title', "Fraud Detection"), desc: t('landing.engineFeature5Desc', "Spots fake profiles, duplicate accounts and spam patterns automatically.") },
+              { Icon: Repeat, title: t('landing.engineFeature6Title', "Repeat Hire Memory"), desc: t('landing.engineFeature6Desc', "Hired before? We remember. One tap to rebook the same provider — or a similar one nearby.") },
             ].map((f) => (
               <div key={f.title} className="bg-white border border-[#E7ECF4] rounded-2xl p-6 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition">
                 <f.Icon className="w-5 h-5 text-[#1677FF] mb-4" />
@@ -658,11 +660,11 @@ const LandingPage = () => {
       <section className="bg-[#081B3A] text-white py-10">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
           {[
-            { v: "1,25,000+", l: "Households served" },
-            { v: "50,000+", l: "Jobs posted" },
-            { v: "4.8★", l: "Average rating" },
-            { v: "~10 min", l: "Avg WhatsApp reply" },
-            { v: "24/7", l: "Verified support" },
+            { v: "1,25,000+", l: t('landing.statHouseholds', "Households served") },
+            { v: "50,000+", l: t('landing.statJobs', "Jobs posted") },
+            { v: "4.8★", l: t('landing.statRating', "Average rating") },
+            { v: "~10 min", l: t('landing.statReply', "Avg WhatsApp reply") },
+            { v: "24/7", l: t('landing.statSupport', "Verified support") },
           ].map((s) => (
             <div key={s.l}>
               <p className="text-2xl md:text-3xl font-extrabold tracking-tight">{s.v}</p>
@@ -671,7 +673,7 @@ const LandingPage = () => {
           ))}
         </div>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-2 text-[12px] text-white/40">
-          {["Aadhaar Verified", "Razorpay Secure", "Meta WhatsApp API", "MSME Registered", "ISO 27001 Aligned"].map((b) => (
+          {[t('landing.trust1', "Aadhaar Verified"), t('landing.trust2', "Razorpay Secure"), t('landing.trust3', "Meta WhatsApp API"), t('landing.trust4', "MSME Registered"), t('landing.trust5', "ISO 27001 Aligned")].map((b) => (
             <span key={b} className="flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-[#1677FF]" />{b}</span>
           ))}
         </div>
@@ -681,22 +683,22 @@ const LandingPage = () => {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <SectionLabel>WhatsApp · Native</SectionLabel>
+            <SectionLabel>{t('landing.whatsappNative', 'WhatsApp · Native')}</SectionLabel>
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">
-              Every lead lands where you actually reply — <span className="italic font-serif text-[#1677FF]">WhatsApp.</span>
+              {t('landing.whatsappTitle', 'Every lead lands where you actually reply —')} <span className="italic font-serif text-[#1677FF]">{t('common.whatsapp', 'WhatsApp.')}</span>
             </h2>
             <p className="text-[#6B7280] mt-4 text-sm leading-relaxed">
-              Built on Meta's Cloud API. From signup to renewal, every moment is a clean, branded message with delivery status and opt-out.
+              {t('landing.whatsappDesc', "Built on Meta's Cloud API. From signup to renewal, every moment is a clean, branded message with delivery status and opt-out.")}
             </p>
 
             <div className="mt-6 grid sm:grid-cols-2 gap-3 text-sm">
               {[
-                "Signup welcome + verification",
-                "Job post confirmation",
-                "Plan / credit expiry reminder",
-                "Payment success & invoice",
-                "New lead alert (skill, city, budget)",
-                "Daily performance summary",
+                t('landing.whatsappFeature1', "Signup welcome + verification"),
+                t('landing.whatsappFeature2', "Job post confirmation"),
+                t('landing.whatsappFeature3', "Plan / credit expiry reminder"),
+                t('landing.whatsappFeature4', "Payment success & invoice"),
+                t('landing.whatsappFeature5', "New lead alert (skill, city, budget)"),
+                t('landing.whatsappFeature6', "Daily performance summary"),
               ].map((b) => (
                 <div key={b} className="flex items-start gap-2 text-[#374151]">
                   <Check className="w-4 h-4 text-[#12B76A] mt-0.5 shrink-0" />
@@ -706,9 +708,9 @@ const LandingPage = () => {
             </div>
 
             <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-[#6B7280]">
-              <span>● Meta Cloud API</span>
-              <span>● Multi-language</span>
-              <span>● Two-way replies</span>
+              <span>● {t('landing.metaApi', 'Meta Cloud API')}</span>
+              <span>● {t('landing.multiLang', 'Multi-language')}</span>
+              <span>● {t('landing.twoWayReply', 'Two-way replies')}</span>
             </div>
           </div>
 
@@ -746,16 +748,16 @@ const LandingPage = () => {
       <section className="bg-[#F7F9FC] py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-12">
-            <SectionLabel>Plans</SectionLabel>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Pay only when you grow.</h2>
-            <p className="text-[#6B7280] mt-2 text-sm">Transparent pricing. No hidden fees. Cancel anytime.</p>
+            <SectionLabel>{t('plans.title', 'Plans')}</SectionLabel>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">{t('landing.pricingTitle', 'Pay only when you grow.')}</h2>
+            <p className="text-[#6B7280] mt-2 text-sm">{t('landing.pricingSubtitle', 'Transparent pricing. No hidden fees. Cancel anytime.')}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
             {[
-              { name: "Starter", price: "Free", note: "For first-time providers", featured: false, perks: ["Profile + 2 skills", "Basic ranking", "WhatsApp lead alerts", "1 city / area"], cta: "Start free", ctaLink: "/signup" },
-              { name: "Pro Boost", price: "₹499", per: "per month", note: "Most popular", featured: true, perks: ["All Starter features", "Top-pool rotation (60s)", "Up to 5 skills", "Priority lead distribution", "AI profile builder"], cta: "Boost my profile", ctaLink: "/login" },
-              { name: "Business", price: "₹1,999", per: "per month", note: "Teams & agencies", featured: false, perks: ["Unlimited skills & areas", "Featured placement", "Bulk hire & unlocks", "Team accounts", "Dedicated success manager"], cta: "Talk to sales", ctaLink: "/contact" },
+              { name: t('plans.starterName', "Starter"), price: t('common.free', "Free"), note: t('plans.starterNote', "For first-time providers"), featured: false, perks: [t('plans.starterPerk1', "Profile + 2 skills"), t('plans.starterPerk2', "Basic ranking"), t('plans.starterPerk3', "WhatsApp lead alerts"), t('plans.starterPerk4', "1 city / area")], cta: t('plans.starterCta', "Start free"), ctaLink: "/signup" },
+              { name: t('plans.proName', "Pro Boost"), price: "₹499", per: t('plans.perMonth', "per month"), note: t('plans.proNote', "Most popular"), featured: true, perks: [t('plans.proPerk1', "All Starter features"), t('plans.proPerk2', "Top-pool rotation (60s)"), t('plans.proPerk3', "Up to 5 skills"), t('plans.proPerk4', "Priority lead distribution"), t('plans.proPerk5', "AI profile builder")], cta: t('plans.proCta', "Boost my profile"), ctaLink: "/login" },
+              { name: t('plans.businessName', "Business"), price: "₹1,999", per: t('plans.perMonth', "per month"), note: t('plans.businessNote', "Teams & agencies"), featured: false, perks: [t('plans.businessPerk1', "Unlimited skills & areas"), t('plans.businessPerk2', "Featured placement"), t('plans.businessPerk3', "Bulk hire & unlocks"), t('plans.businessPerk4', "Team accounts"), t('plans.businessPerk5', "Dedicated success manager")], cta: t('plans.businessCta', "Talk to sales"), ctaLink: "/contact" },
             ].map((p) => (
               <div
                 key={p.name}
@@ -767,7 +769,7 @@ const LandingPage = () => {
               >
                 {p.featured && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F59E0B] text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
-                    Most Popular
+                    {t('common.popular', 'Most Popular')}
                   </span>
                 )}
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 ${p.featured ? "bg-white/10" : "bg-[#EAF2FF]"}`}>
@@ -857,7 +859,7 @@ const LandingPage = () => {
               <SectionLabel>Coverage</SectionLabel>
               <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Live in your city. Growing fast.</h2>
             </div>
-            <a className="text-sm font-semibold text-[#1677FF] hover:underline cursor-pointer">Request your city →</a>
+            {/* <a className="text-sm font-semibold text-[#1677FF] hover:underline cursor-pointer">Request your city →</a> */}
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">

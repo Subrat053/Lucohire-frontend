@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+
 import { HiStar, HiLocationMarker, HiBadgeCheck, HiPhone, HiMail, HiExternalLink } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { recruiterAPI } from '../services/api';
@@ -11,9 +12,13 @@ import { toAbsoluteMediaUrl } from '../utils/media';
 import { DUMMY_PROVIDERS } from '../data/skillsData';
 import { findProviderById, normalizeProviderData } from '../utils/providerData';
 import { getProviderById as fetchProviderById } from '../services/providerService';
+import useTranslation from '../hooks/useTranslation';
 
 const ProviderPublicProfile = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const { user, isAuthenticated } = useAuth();
   const [profile, setProfile] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -116,16 +121,16 @@ const ProviderPublicProfile = () => {
   };
 
   const handleUnlock = async () => {
-    if (!isAuthenticated) return toast.error('Please login first');
-    if ((user?.activeRole || user?.role) !== 'recruiter') return toast.error('Only recruiters can unlock contacts');
+    if (!isAuthenticated) return toast.error(t('common.loginFirst', 'Please login first'));
+    if ((user?.activeRole || user?.role) !== 'recruiter') return toast.error(t('recruiter.onlyRecruitersUnlock', 'Only recruiters can unlock contacts'));
     setUnlocking(true);
     try {
       const { data } = await recruiterAPI.unlockContact(id);
       setContactUnlocked(true);
       setContactInfo(data.contact || data.contactInfo);
-      toast.success('Contact unlocked!');
+      toast.success(t('recruiter.contactUnlocked', 'Contact unlocked!'));
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to unlock';
+      const msg = err.response?.data?.message || t('recruiter.failedUnlock', 'Failed to unlock');
       if (msg.includes('unlock') || msg.includes('plan') || msg.includes('credits')) {
         toast.error(msg);
       } else {
@@ -137,7 +142,7 @@ const ProviderPublicProfile = () => {
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="lg" /></div>;
-  if (!profile) return <div className="text-center py-20"><h2 className="text-xl font-bold">Provider not found</h2></div>;
+  if (!profile) return <div className="text-center py-20"><h2 className="text-xl font-bold">{t('common.providerNotFound', 'Provider not found')}</h2></div>;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -160,8 +165,8 @@ const ProviderPublicProfile = () => {
               </div>
               <div className="flex flex-wrap items-center gap-3 mt-2">
                 <span className="flex items-center text-gray-500"><HiLocationMarker className="w-4 h-4 mr-1" />{profile.city}</span>
-                <span className="flex items-center text-gray-500"><HiStar className="w-4 h-4 text-yellow-400 mr-1" />{profile.rating} ({profile.totalReviews} reviews)</span>
-                <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-xs font-medium rounded-full capitalize">{profile.currentPlan} plan</span>
+                <span className="flex items-center text-gray-500"><HiStar className="w-4 h-4 text-yellow-400 mr-1" />{profile.rating} ({profile.totalReviews} {t('common.reviews', 'reviews')})</span>
+                <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-xs font-medium rounded-full capitalize">{profile.currentPlan} {t('plans.plan', 'plan')}</span>
               </div>
             </div>
           </div>
@@ -173,13 +178,13 @@ const ProviderPublicProfile = () => {
         <div className="lg:col-span-2 space-y-6">
           {/* About */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">About</h2>
-            <p className="text-gray-600">{profile.description || 'No description provided.'}</p>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{t('common.about', 'About')}</h2>
+            <p className="text-gray-600">{profile.description || t('common.noDescription', 'No description provided.')}</p>
           </div>
 
           {/* Skills */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">Skills</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{t('common.skills', 'Skills')}</h2>
             <div className="flex flex-wrap gap-2">
               {(profile.skills || []).map((skill, i) => (
                 <span key={i} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium">{skill}</span>
@@ -189,7 +194,7 @@ const ProviderPublicProfile = () => {
 
           {(profile.services || []).length > 0 && (
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-3">Services</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-3">{t('common.services', 'Services')}</h2>
               <div className="flex flex-wrap gap-2">
                 {(profile.services || []).map((service, i) => (
                   <span key={i} className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium">{service}</span>
@@ -200,19 +205,20 @@ const ProviderPublicProfile = () => {
 
           {/* Experience & Details */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">Details</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{t('common.details', 'Details')}</h2>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div><span className="text-sm text-gray-500">Experience</span><p className="font-medium">{profile.experience || 'N/A'}</p></div>
-              <div><span className="text-sm text-gray-500">Languages</span><p className="font-medium">{(profile.languages || []).join(', ') || 'N/A'}</p></div>
-              <div><span className="text-sm text-gray-500">City</span><p className="font-medium">{profile.city}</p></div>
-              <div><span className="text-sm text-gray-500">Profile Views</span><p className="font-medium">{profile.profileViews || 0}</p></div>
+              <div><span className="text-sm text-gray-500">{t('common.experience', 'Experience')}</span><p className="font-medium">{profile.experience || 'N/A'}</p></div>
+              <div><span className="text-sm text-gray-500">{t('common.languages', 'Languages')}</span><p className="font-medium">{(profile.languages || []).join(', ') || 'N/A'}</p></div>
+              <div><span className="text-sm text-gray-500">{t('common.city', 'City')}</span><p className="font-medium">{profile.city}</p></div>
+              <div><span className="text-sm text-gray-500">{t('common.pricing', 'Pricing')}</span><p className="font-medium text-emerald-600">{profile.pricing ? `₹${profile.pricing}${profile.pricingType ? ` / ${profile.pricingType}` : ''}` : t('common.contactForPricing', 'Contact for Pricing')}</p></div>
+              <div><span className="text-sm text-gray-500">{t('provider.profileViews', 'Profile Views')}</span><p className="font-medium">{profile.profileViews || 0}</p></div>
             </div>
           </div>
 
           {/* Portfolio */}
           {profile.portfolioLinks?.length > 0 && (
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-3">Portfolio</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-3">{t('common.portfolio', 'Portfolio')}</h2>
               <div className="space-y-2">
                 {profile.portfolioLinks.map((link, i) => (
                   <a key={i} href={link} target="_blank" rel="noopener noreferrer"
@@ -241,10 +247,10 @@ const ProviderPublicProfile = () => {
         {/* Sidebar - Contact Card */}
         <div>
           <div className="bg-white rounded-2xl border border-gray-100 p-6 sticky top-24">
-            <h3 className="font-bold text-gray-900 mb-4">Contact {profile.user?.name?.split(' ')[0]}</h3>
+            <h3 className="font-bold text-gray-900 mb-4">{t('common.contactPerson', 'Contact {{name}}', { name: profile.user?.name?.split(' ')[0] })}</h3>
             {profile.isDummy && (
               <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-4 py-3 mb-4 text-sm">
-                Contact is unavailable for demo providers.
+                {t('provider.dummyContactUnavailable', 'Contact is unavailable for demo providers.')}
               </div>
             )}
             {contactUnlocked && contactInfo ? (
@@ -252,13 +258,16 @@ const ProviderPublicProfile = () => {
                 {(contactInfo.phone || contactInfo.whatsappNumber) && (
                   <a href={`tel:${contactInfo.phone || contactInfo.whatsappNumber}`}
                     className="w-full flex items-center justify-center space-x-2 bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 transition">
-                    <HiPhone className="w-5 h-5" /><span>Call: {contactInfo.phone || contactInfo.whatsappNumber}</span>
+                    <HiPhone className="w-5 h-5" /><span>{t('common.callLabel', 'Call')}: {contactInfo.phone || contactInfo.whatsappNumber}</span>
                   </a>
                 )}
-                <a href={`https://wa.me/${(contactInfo.whatsappNumber || contactInfo.phone || '').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center space-x-2 bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition">
-                  <FaWhatsapp className="w-5 h-5" /><span>WhatsApp</span>
-                </a>
+                <button 
+                  onClick={() => navigate('/contact', { state: { subject: `Enquiry for ${profile.user?.name}`, providerId: profile.user?._id } })}
+                  className="w-full flex items-center justify-center space-x-2 bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition"
+                >
+                  <FaWhatsapp className="w-5 h-5" /><span>{t('common.sendEnquiry', 'Send Enquiry')}</span>
+                </button>
+
                 {contactInfo.email && (
                   <a href={`mailto:${contactInfo.email}`}
                     className="w-full flex items-center justify-center space-x-2 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition">
@@ -272,15 +281,15 @@ const ProviderPublicProfile = () => {
                   <div className="text-3xl mb-2">🔒</div>
                   <p className="text-sm text-gray-600">
                     {profile.isDummy
-                      ? 'Demo provider contact is intentionally hidden.'
-                      : 'Contact info is hidden. Unlock to view phone & WhatsApp.'}
+                      ? t('provider.dummyContactHidden', 'Demo provider contact is intentionally hidden.')
+                      : t('provider.contactHidden', 'Contact info is hidden. Unlock to view phone & WhatsApp.')}
                   </p>
                 </div>
                 <button onClick={handleUnlock} disabled={unlocking || profile.isDummy}
                   className="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition disabled:opacity-50 flex items-center justify-center gap-2">
                   {unlocking ? (
-                    <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Unlocking...</>
-                  ) : profile.isDummy ? 'Contact Unavailable' : 'Unlock Contact'}
+                    <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('common.unlocking', 'Unlocking...')}</>
+                  ) : profile.isDummy ? t('common.contactUnavailable', 'Contact Unavailable') : t('recruiter.unlockContact', 'Unlock Contact')}
                 </button>
               </div>
             )}

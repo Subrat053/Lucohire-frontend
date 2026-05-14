@@ -132,7 +132,10 @@ export const normalizeProviderData = (provider = {}, index = 0, options = {}) =>
     isBoosted: Boolean(provider.isBoosted),
     boostedUntil: provider.boostedUntil || null,
     planBadge: provider.planBadge || '',
+    pricing: provider.pricing || '',
+    pricingType: provider.pricingType || '',
   };
+
 
   return normalized;
 };

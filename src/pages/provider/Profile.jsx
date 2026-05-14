@@ -152,7 +152,12 @@ const ProviderProfile = () => {
     name: '', skills: [], locations: [], city: '', state: '',
     tier: 'unskilled', experience: '', languages: [], description: '', portfolioLinks: [],
     photo: '', whatsappAlerts: true, nearestLocation: '', latitude: null, longitude: null,
+    pricing: '', pricingType: '',
+    location: null,
+    profileName: '',
   });
+
+
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
 
@@ -166,7 +171,12 @@ const ProviderProfile = () => {
       const locs = [];
       if (data.city) locs.push(data.city);
       if (data.state && data.state !== data.city) locs.push(data.state);
-      const existingPhoto = data.photo || data.profilePhoto || '';
+      let displayPhoto = data.photo || data.profilePhoto || '';
+      // If there's a pending photo, show that as preview
+      if (data.user?.profilePhotoApproval?.status === 'pending' && data.user?.profilePhotoApproval?.pendingUrl) {
+        displayPhoto = data.user.profilePhotoApproval.pendingUrl;
+      }
+
       setForm({
         name: data.user?.name || '',
         skills: data.skills || [],
@@ -178,13 +188,19 @@ const ProviderProfile = () => {
         languages: data.languages || [],
         description: data.description || '',
         portfolioLinks: data.portfolioLinks || [],
-        photo: toAbsoluteMediaUrl(existingPhoto),
+        photo: toAbsoluteMediaUrl(displayPhoto),
         whatsappAlerts: data.whatsappAlerts !== false,
         nearestLocation: data.nearestLocation || '',
         latitude: data.latitude ?? null,
         longitude: data.longitude ?? null,
+        pricing: data.pricing || '',
+        pricingType: data.pricingType || '',
+        location: data.location || null,
+        profileName: data.profileName || '',
       });
-      if (existingPhoto) setPhotoPreview(toAbsoluteMediaUrl(existingPhoto));
+
+      if (displayPhoto) setPhotoPreview(toAbsoluteMediaUrl(displayPhoto));
+
     } catch {
       toast.error('Failed to load profile');
     } finally {
@@ -353,7 +369,11 @@ const ProviderProfile = () => {
         nearestLocation: form.nearestLocation,
         latitude: form.latitude,
         longitude: form.longitude,
+        pricing: form.pricing,
+        pricingType: form.pricingType,
+        profileName: form.profileName,
       };
+
       const { data } = await providerAPI.updateProfile(payload);
       setCompletion(data.profileCompletion || completion);
       toast.success('Profile updated successfully!');
@@ -470,6 +490,16 @@ const ProviderProfile = () => {
                     </td>
                   </tr>
                   <tr className="border-b border-gray-100">
+                    <td className="px-5 py-4 text-sm font-semibold text-gray-600 w-44 whitespace-nowrap">Profile / Display Name</td>
+                    <td className="px-5 py-4">
+                      <input value={form.profileName}
+                        onChange={e => setForm({ ...form, profileName: e.target.value })}
+                        placeholder="Publicly visible name"
+                        className="w-full text-sm text-gray-800 outline-none bg-transparent placeholder-gray-300 border-b border-transparent focus:border-blue-300 transition" />
+                    </td>
+                  </tr>
+
+                  <tr className="border-b border-gray-100">
                     <td className="px-5 py-4 text-sm font-semibold text-gray-600 align-top pt-4 whitespace-nowrap">
                       WhatsApp /<br />Contact Number
                     </td>
@@ -501,8 +531,13 @@ const ProviderProfile = () => {
             </div>
 
             {/* ── Photo Upload ── */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-6 flex flex-col items-center gap-3">
-              <div className="w-24 h-24 rounded-full border-4 border-blue-200 shadow-md overflow-hidden bg-blue-50 flex items-center justify-center">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-6 flex flex-col items-center gap-3 relative">
+              {user?.profilePhotoApproval?.status === 'pending' && (
+                <div className="absolute top-2 right-2 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-1 rounded-full shadow-xs border border-amber-200 z-10">
+                  PENDING APPROVAL
+                </div>
+              )}
+              <div className="w-24 h-24 rounded-full border-4 border-blue-200 shadow-md overflow-hidden bg-blue-50 flex items-center justify-center relative">
                 {avatarSrc ? (
                   <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
@@ -510,9 +545,14 @@ const ProviderProfile = () => {
                     <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
                   </svg>
                 )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
               </div>
               <div className="text-center">
-                <p className="font-semibold text-gray-800">Upload Photo</p>
+                <p className="font-semibold text-gray-800">Profile Photo</p>
                 <p className="text-xs text-gray-400">JPG/PNG, max 5MB</p>
               </div>
               <input ref={fileInputRef} type="file" accept="image/*"
@@ -522,14 +562,22 @@ const ProviderProfile = () => {
                   onClick={photoFile ? handlePhotoUpload : () => fileInputRef.current?.click()}
                   disabled={uploading}
                   className="px-5 py-2 rounded-full bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-60 shadow-sm">
-                  {uploading ? 'Uploading…' : 'Upload / Change'}
+                  {photoFile ? 'Save New Photo' : 'Change Photo'}
                 </button>
-                <button type="button" onClick={handleRemovePhoto}
-                  className="px-5 py-2 rounded-full border border-gray-300 text-gray-600 text-sm font-medium hover:bg-gray-50 transition">
-                  Remove
-                </button>
+                {(avatarSrc || photoFile) && (
+                  <button type="button" onClick={handleRemovePhoto}
+                    className="px-5 py-2 rounded-full border border-gray-300 text-gray-600 text-sm font-medium hover:bg-gray-50 transition">
+                    Remove
+                  </button>
+                )}
               </div>
+              {user?.profilePhotoApproval?.status === 'rejected' && (
+                <p className="text-[10px] text-red-500 text-center mt-1">
+                  Rejected: {user.profilePhotoApproval.rejectionReason}
+                </p>
+              )}
             </div>
+
 
             {/* ── Speciality ── */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-5">
@@ -561,17 +609,20 @@ const ProviderProfile = () => {
                   value={form.city}
                   onChange={(value) => setForm((prev) => ({ ...prev, city: value }))}
                   onSelect={(item) => {
-                    const nextName = item?.name || '';
-                    if (!nextName) return;
+                    if (!item) return;
+                    const nextName = item.name || item.formattedAddress || '';
                     addLocation(nextName);
                     setForm((prev) => ({
                       ...prev,
-                      city: nextName,
+                      city: item.city || nextName,
+                      state: item.state || '',
                       nearestLocation: nextName,
-                      latitude: item?.lat ?? prev.latitude,
-                      longitude: item?.lon ?? prev.longitude,
+                      latitude: item.latitude ?? prev.latitude,
+                      longitude: item.longitude ?? prev.longitude,
+                      location: item,
                     }));
                   }}
+
                   placeholder="Search and add a service location"
                 />
               </div>
@@ -689,7 +740,35 @@ const ProviderProfile = () => {
                   placeholder="Tell clients about your experience, specialties, and working style…"
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none" />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Pricing (₹)</label>
+                  <input
+                    type="text"
+                    value={form.pricing}
+                    onChange={e => setForm({ ...form, pricing: e.target.value })}
+                    placeholder="e.g. 500"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Pricing Unit</label>
+                  <select
+                    value={form.pricingType}
+                    onChange={e => setForm({ ...form, pricingType: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-white"
+                  >
+                    <option value="">Select Unit</option>
+                    <option value="hourly">per Hour</option>
+                    <option value="daily">per Day</option>
+                    <option value="monthly">per Month</option>
+                    <option value="fixed">Fixed Rate</option>
+                  </select>
+                </div>
+              </div>
             </div>
+
 
             {/* ── Languages ── */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-5">

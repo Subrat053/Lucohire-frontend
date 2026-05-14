@@ -40,7 +40,7 @@ const Navbar = () => {
   const getDashboardLink = () => {
     if (!user) return '/';
     switch (activeRole) {
-      case 'provider': return '/provider/dashboard';
+      case 'provider': return '/provider/plans';
       case 'recruiter': return '/recruiter/job-postings';
       case 'admin': return '/admin/dashboard';
       case 'manager': return '/admin/providers';
@@ -80,7 +80,7 @@ const Navbar = () => {
 
     const targetPath =
       targetRole === 'provider'
-        ? '/provider/dashboard'
+        ? '/provider/plans'
         : '/recruiter/job-postings';
 
     if (activeRole === targetRole) {
@@ -112,9 +112,13 @@ const Navbar = () => {
 
   const getRoleButtonLabel = (role) => {
     if (role === 'provider') {
-      return activeRole === 'provider' ? `Current: Provider` : `Switch to : Provider`;
+      return activeRole === 'provider'
+        ? t('navbar.currentProvider', 'Current: Provider')
+        : t('navbar.switchToProviderPanel', 'Switch to Provider Panel');
     }
-    return activeRole === 'recruiter' ? `Current: Recruiter` : `Switch to : Recruiter`;
+    return activeRole === 'recruiter'
+      ? t('navbar.currentRecruiter', 'Current: Recruiter')
+      : t('navbar.switchToRecruiterPanel', 'Switch to Recruiter Panel');
   };
 
   const PanelSwitchButtons = ({ mobile = false }) => (
@@ -167,7 +171,9 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-3 lg:gap-5">
             <Link to="/" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">{t('navbar.home')}</Link>
             <Link to="/search" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">{t('navbar.findProviders')}</Link>
-            <LanguageDropdown />
+            <Link to="/contact" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">{t('navbar.contactUs', 'Contact Us')}</Link>
+
+            {/* <LanguageDropdown /> */}
             {canSwitchRoles && <PanelSwitchButtons />}
             {isAuthenticated ? (
               <div className="relative">
@@ -212,16 +218,52 @@ const Navbar = () => {
                 )}
               </div>
             ) : (
-              <div className="flex items-center space-x-3">
-                <button onClick={() => navigate('/login')} className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition">
+              // <div className="flex items-center space-x-3">
+              //   <button onClick={() => navigate('/login')} className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition">
+              //     {t('navbar.login')}
+              //   </button>
+              //   <button onClick={() => navigate('/signup')} className="rounded-full bg-indigo-600 text-white px-4 py-2  text-sm font-medium hover:bg-indigo-700 transition shadow-sm">
+              //     {/* {t('navbar.signup')} */}
+              //     Start Earning
+              //   </button>
+              //   <button onClick={() => navigate('/signup')} className="rounded-full bg-indigo-600 text-white px-4 py-2  text-sm font-medium hover:bg-indigo-700 transition shadow-sm">
+              //     {/* {t('navbar.signup')} */}
+              //     Earn 40%
+              //   </button>
+              // </div>
+              <div className="flex items-center gap-5">
+                <button
+                  onClick={() => navigate('/signup')}
+                  className="flex items-center gap-1 text-[13px] font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-all"
+                >
+                  <span className="text-[15px]">💰</span>
+                  <span>{t('navbar.earnFortyPercent', 'Earn 40%')}</span>
+                </button>
+
+                <button
+                  onClick={() => navigate('/signup')}
+                  className="flex items-center gap-1 text-[13px] font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-all"
+                >
+                  <span className="text-[15px]">🏆</span>
+                  <span>{t('navbar.winOneLakh', 'Win ₹1 Lakh')}</span>
+                </button>
+
+                <button
+                  onClick={() => navigate('/login')}
+                  className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
+                >
                   {t('navbar.login')}
                 </button>
-                <button onClick={() => navigate('/signup')} className="rounded-full bg-indigo-600 text-white px-4 py-2  text-sm font-medium hover:bg-indigo-700 transition shadow-sm">
-                  {/* {t('navbar.signup')} */}
-                  Start Earning
+
+                <button
+                  onClick={() => navigate('/signup')}
+                  className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-700 transition shadow-sm"
+                >
+                  {t('navbar.startEarning', 'Start Earning')}
                 </button>
               </div>
             )}
+            <LanguageDropdown />
           </div>
 
           {/* Mobile controls */}
@@ -232,7 +274,11 @@ const Navbar = () => {
                 disabled={switchingRole}
                 className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold shadow-sm disabled:opacity-60 ${nextRole === 'recruiter' ? 'border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-200' : 'border-emerald-300 bg-emerald-100 text-emerald-900 hover:bg-emerald-200'}`}
               >
-                {switchingRole ? t('navbar.openingPanel') : `Switch to : ${nextRoleLabel}`}
+                {switchingRole
+                  ? t('navbar.openingPanel')
+                  : nextRole === 'recruiter'
+                    ? t('navbar.switchToRecruiterPanel', 'Switch to Recruiter Panel')
+                    : t('navbar.switchToProviderPanel', 'Switch to Provider Panel')}
               </button>
             )}
             <button className="p-2" onClick={() => setMobileOpen(!mobileOpen)}>
@@ -246,6 +292,8 @@ const Navbar = () => {
           <div className="md:hidden py-4 border-t border-gray-100 animate-fade-in">
             <Link to="/" className="block py-2 text-gray-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>{t('navbar.home')}</Link>
             <Link to="/search" className="block py-2 text-gray-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>{t('navbar.findProviders')}</Link>
+            <Link to="/contact" className="block py-2 text-gray-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>{t('navbar.contactUs', 'Contact Us')}</Link>
+
             <LanguageDropdown mobile onChangeComplete={() => setMobileOpen(false)} />
             {canSwitchRoles && <PanelSwitchButtons mobile />}
             {isAuthenticated ? (

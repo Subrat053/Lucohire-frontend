@@ -11,6 +11,9 @@ import AIChatWidget from "./components/common/AIChatWidget";
 import NotFound from "./components/common/NotFound";
 import { useAuth } from "./context/AuthContext";
 import AuthPage from "./pages/AuthPage";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+import ChangePassword from "./pages/user/ChangePassword";
 
 import LandingPage from "./pages/LandingPage";
 import SearchPage from "./pages/SearchPage";
@@ -19,6 +22,8 @@ import FaqPage from "./pages/Faq";
 import TermsPage from "./pages/Terms";
 import PrivacyPage from "./pages/Privacy";
 import ProfilePage from "./pages/ProfilePage";
+import ContactUs from "./pages/ContactUs";
+
 
 import ProviderDashboard from "./pages/provider/Dashboard";
 import ProviderProfile from "./pages/provider/Profile";
@@ -55,8 +60,9 @@ import CreatePartnerRecruiter from "./pages/partner/CreatePartnerRecruiter";
 // =======================================================================
 
 import AdminDashboard from "./pages/admin/Dashboard";
-import Partners from "./pages/admin/Partners";
-import AdminReferrals from "./pages/admin/AdminReferrals";
+import Partners from './pages/admin/Partners';
+import PartnerReferrals from './pages/admin/PartnerReferrals';
+import AdminReferrals from './pages/admin/AdminReferrals';
 import AdminRewardPool from "./pages/admin/AdminRewardPool";
 import AdminUsers from "./pages/admin/Users";
 import AdminProviders from "./pages/admin/Providers";
@@ -73,6 +79,7 @@ import AdminWhatsApp from "./pages/admin/WhatsApp";
 import AdminCurrency from "./pages/admin/Currency";
 import AdminManagers from "./pages/admin/Managers";
 import AdminAIOps from "./pages/admin/AIControlCenter";
+import AdminEnquiries from "./pages/admin/Enquiries";
 
 import AdminLayout from "./components/admin/AdminLayout";
 import ProviderLayout from "./components/provider/ProviderLayout";
@@ -112,6 +119,8 @@ function App() {
         {/* Auth pages - full screen, no Navbar/Footer */}
         <Route path="/login" element={<AuthPage />} />
         <Route path="/signup" element={<AuthPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* Public Routes */}
         <Route path="/" element={wrap(<LandingPage />)} />
@@ -120,6 +129,8 @@ function App() {
         <Route path="/faq" element={wrap(<FaqPage />)} />
         <Route path="/terms" element={wrap(<TermsPage />)} />
         <Route path="/privacy" element={wrap(<PrivacyPage />)} />
+        <Route path="/contact" element={wrap(<ContactUs />)} />
+
         <Route path="/profile/:id" element={wrap(
           <ProtectedRoute allowedRoles={["provider", "recruiter"]}>
             <ProfilePage />
@@ -165,6 +176,11 @@ function App() {
         <Route path="/provider/contacted" element={wrap(
           <ProtectedRoute allowedRoles={["provider"]}>
             <ProviderLayout><ProviderContacted /></ProviderLayout>
+          </ProtectedRoute>
+        )} />
+        <Route path="/provider/change-password" element={wrap(
+          <ProtectedRoute allowedRoles={["provider"]}>
+            <ProviderLayout><ChangePassword /></ProviderLayout>
           </ProtectedRoute>
         )} />
 
@@ -275,6 +291,11 @@ function App() {
             <RecruiterLayout><RecruiterSettings /></RecruiterLayout>
           </ProtectedRoute>
         )} />
+        <Route path="/recruiter/change-password" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><ChangePassword /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
         {/* =============================================================================== */}
         {/* Admin Routes */}
         <Route path="/admin/dashboard" element={wrap(
@@ -285,6 +306,11 @@ function App() {
         <Route path="/admin/partners" element={wrap(
           <AdminProtectedRoute>
             <AdminLayout><Partners /></AdminLayout>
+          </AdminProtectedRoute>
+        )} />
+        <Route path="/admin/partners/:partnerId/referrals" element={wrap(
+          <AdminProtectedRoute>
+            <AdminLayout><PartnerReferrals /></AdminLayout>
           </AdminProtectedRoute>
         )} />
         <Route path="/admin/referrals" element={wrap(
@@ -382,6 +408,16 @@ function App() {
             <AdminLayout><ProfilePhotoApprovals /></AdminLayout>
           </AdminProtectedRoute>
         )} />
+        <Route path="/admin/enquiries" element={wrap(
+          <AdminProtectedRoute>
+            <AdminLayout><AdminEnquiries /></AdminLayout>
+          </AdminProtectedRoute>
+        )} />
+        <Route path="/admin/change-password" element={wrap(
+          <AdminProtectedRoute>
+            <AdminLayout><ChangePassword /></AdminLayout>
+          </AdminProtectedRoute>
+        )} />
 
 
         <Route path="/partner/dashboard" element={
@@ -405,6 +441,12 @@ function App() {
         <Route path="/partner/create-recruiter" element={
           <PartnerProtectedRoute>
             <PartnerLayout><CreatePartnerRecruiter /></PartnerLayout>
+          </PartnerProtectedRoute>
+        } />
+
+        <Route path="/partner/change-password" element={
+          <PartnerProtectedRoute>
+            <PartnerLayout><ChangePassword /></PartnerLayout>
           </PartnerProtectedRoute>
         } />
 

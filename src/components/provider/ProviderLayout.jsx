@@ -1,23 +1,27 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail,
+  HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail, HiLockClosed,
 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../common/NotificationBell';
+import LanguageDropdown from '../LanguageDropdown';
+import useTranslation from '../../hooks/useTranslation';
 
 const navItems = [
-  { label: 'Dashboard',      path: '/provider/dashboard',      icon: HiTrendingUp },
-  { label: 'Find Recruiters',path: '/provider/find-recruiters',icon: HiBriefcase },
-  { label: 'Messages',       path: '/provider/contacted',      icon: HiMail },
-  { label: 'Leads',          path: '/provider/leads',          icon: HiUsers },
-  { label: 'History',        path: '/provider/history',        icon: HiClock },
-  { label: 'My Plan',        path: '/provider/plans',          icon: HiPhone },
-  { label: 'Profile',        path: '/provider/profile',        icon: HiCog },
+  { label: 'Dashboard', fallback: 'Dashboard', path: '/provider/dashboard',      icon: HiTrendingUp },
+  { label: 'Find Recruiters', fallback: 'Find Recruiters', path: '/provider/find-recruiters',icon: HiBriefcase },
+  { label: 'Messages', fallback: 'Messages', path: '/provider/contacted',      icon: HiMail },
+  { label: 'Leads', fallback: 'Leads', path: '/provider/leads',          icon: HiUsers },
+  { label: 'History', fallback: 'History', path: '/provider/history',        icon: HiClock },
+  { label: 'My Plan', fallback: 'My Plan', path: '/provider/plans',          icon: HiPhone },
+  { label: 'Profile', fallback: 'Profile', path: '/provider/profile',        icon: HiCog },
+  { label: 'Change Password', fallback: 'Change Password', path: '/provider/change-password', icon: HiLockClosed },
 ];
 
 const ProviderLayout = ({ children }) => {
   const { logout } = useAuth();
+  const { t } = useTranslation();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -31,12 +35,16 @@ const ProviderLayout = ({ children }) => {
         <div className="w-8 h-8 bg-linear-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
           <HiTrendingUp className="text-white w-4 h-4" />
         </div>
-        {!collapsed && <span className="font-bold text-gray-800 text-sm">Provider Panel</span>}
+        {!collapsed && <span className="font-bold text-gray-800 text-sm">{t('provider.panel', 'Provider Panel')}</span>}
       </div>
+
+      {/* <div className="px-2 py-3 border-b border-gray-100">
+        <LanguageDropdown mobile={collapsed} />
+      </div> */}
 
       {/* Nav Items */}
       <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
-        {navItems.map(({ label, path, icon: Icon }) => {
+        {navItems.map(({ label, fallback, path, icon: Icon }) => {
           const active = location.pathname === path;
           return (
             <Link
@@ -53,7 +61,7 @@ const ProviderLayout = ({ children }) => {
               `}
             >
               <Icon className={`w-5 h-5 shrink-0 ${active ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} />
-              {!collapsed && <span>{label}</span>}
+              {!collapsed && <span>{t(label, fallback)}</span>}
             </Link>
           );
         })}
@@ -63,13 +71,13 @@ const ProviderLayout = ({ children }) => {
       <div className="shrink-0 px-2 pb-4 border-t border-gray-100 pt-3">
         <button
           onClick={handleLogout}
-          title={collapsed ? 'Logout' : undefined}
+          title={collapsed ? t('navbar.logout', 'Logout') : undefined}
           className={`flex items-center w-full rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-all
             ${collapsed ? 'justify-center' : 'space-x-3'}
           `}
         >
           <HiLogout className="w-5 h-5 shrink-0" />
-          {!collapsed && <span>Logout</span>}
+          {!collapsed && <span>{t('navbar.logout', 'Logout')}</span>}
         </button>
       </div>
     </div>
@@ -108,9 +116,12 @@ const ProviderLayout = ({ children }) => {
           <button onClick={() => setMobileOpen(true)} className="p-1.5 rounded-lg hover:bg-gray-100 md:hidden">
             <HiMenu className="w-5 h-5 text-gray-600" />
           </button>
-          <span className="font-semibold text-gray-800 text-sm md:hidden">Provider Panel</span>
+          <span className="font-semibold text-gray-800 text-sm md:hidden">{t('provider.panel', 'Provider Panel')}</span>
           <span className="hidden md:block" />
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            {/* <LanguageDropdown /> */}
+            <NotificationBell />
+          </div>
         </div>
 
         <main className="flex-1 overflow-auto p-0 ">

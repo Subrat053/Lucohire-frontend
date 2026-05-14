@@ -1,33 +1,36 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  HiShieldCheck, HiUsers, HiBriefcase, HiCurrencyRupee, HiCog, HiPhotograph,
-  HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe, HiUserGroup, HiLink, HiGift
+  HiShieldCheck, HiUsers, HiMail, HiBriefcase, HiCurrencyRupee, HiCog, HiPhotograph,
+  HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe, HiUserGroup, HiLink, HiGift, HiLockClosed
 } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import useTranslation from '../../hooks/useTranslation';
+import LanguageDropdown from '../LanguageDropdown';
 
 const navItems = [
-  { labelKey: 'admin.navDashboard',  path: '/admin/dashboard',  icon: HiShieldCheck },
-  { labelKey: 'Partners',            path: '/admin/partners',    icon: HiUserGroup },
-  { labelKey: 'Referrals',           path: '/admin/referrals',   icon: HiLink },
-  { labelKey: 'Reward Pool',         path: '/admin/reward-pool', icon: HiGift },
-  { labelKey: 'admin.navUsers',      path: '/admin/users',       icon: HiUsers },
-  { labelKey: 'admin.navProviders',  path: '/admin/providers',   icon: HiBriefcase },
-  { labelKey: 'admin.navRecruiters', path: '/admin/recruiters',  icon: HiUsers },
-  { labelKey: 'Profile Approvals', path: '/admin/profile-photo-approvals', icon: HiPhotograph, adminOnly: true },
-  { labelKey: 'admin.navSkills',     path: '/admin/skills',      icon: HiCollection },
-  { labelKey: 'admin.navPlans',      path: '/admin/plans',       icon: HiCurrencyRupee },
-  { labelKey: 'admin.navPayments',   path: '/admin/payments',    icon: HiCreditCard },
-  { labelKey: 'Provider Subscriptions', path: '/admin/provider-subscriptions', icon: HiDocumentText },
-  { labelKey: 'admin.navWhatsapp',   path: '/admin/whatsapp',    icon: FaWhatsapp },
-  { labelKey: 'admin.navCurrency',   path: '/admin/currency',    icon: HiGlobe },
-  { labelKey: 'AI Ops',              path: '/admin/ai',          icon: HiCog, adminOnly: true },
+  { labelKey: 'admin.navDashboard', fallback: 'Dashboard', path: '/admin/dashboard',  icon: HiShieldCheck },
+  { labelKey: 'admin.partners', fallback: 'Partners', path: '/admin/partners',    icon: HiUserGroup },
+  { labelKey: 'admin.referrals', fallback: 'Referrals', path: '/admin/referrals',   icon: HiLink },
+  { labelKey: 'admin.rewardPool', fallback: 'Reward Pool', path: '/admin/reward-pool', icon: HiGift },
+  { labelKey: 'admin.navUsers', fallback: 'Users', path: '/admin/users',       icon: HiUsers },
+  { labelKey: 'admin.navProviders', fallback: 'Providers', path: '/admin/providers',   icon: HiBriefcase },
+  { labelKey: 'admin.navRecruiters', fallback: 'Recruiters', path: '/admin/recruiters',  icon: HiUsers },
+  { labelKey: 'admin.navEnquiries', fallback: 'Enquiries', path: '/admin/enquiries', icon: HiMail },
+  { labelKey: 'admin.profileApprovals', fallback: 'Profile Approvals', path: '/admin/profile-photo-approvals', icon: HiPhotograph, adminOnly: true },
+  { labelKey: 'admin.navSkills', fallback: 'Skills', path: '/admin/skills',      icon: HiCollection },
+  { labelKey: 'admin.navPlans', fallback: 'Plans', path: '/admin/plans',       icon: HiCurrencyRupee },
+  { labelKey: 'admin.navPayments', fallback: 'Payments', path: '/admin/payments',    icon: HiCreditCard },
+  { labelKey: 'admin.providerSubscriptions', fallback: 'Provider Subscriptions', path: '/admin/provider-subscriptions', icon: HiDocumentText },
+  { labelKey: 'admin.navWhatsapp', fallback: 'WhatsApp', path: '/admin/whatsapp',    icon: FaWhatsapp },
+  { labelKey: 'admin.navCurrency', fallback: 'Currency', path: '/admin/currency',    icon: HiGlobe },
+  { labelKey: 'admin.aiOps', fallback: 'AI Ops', path: '/admin/ai',          icon: HiCog, adminOnly: true },
 
-  { labelKey: 'admin.navSettings',   path: '/admin/settings',    icon: HiCog },
-  { labelKey: 'admin.navTerms',      path: '/admin/terms',       icon: HiDocumentText },
-  { labelKey: 'admin.navPrivacy',    path: '/admin/privacy',     icon: HiShieldExclamation },
+  { labelKey: 'admin.navSettings', fallback: 'Settings', path: '/admin/settings',    icon: HiCog },
+  { labelKey: 'admin.navTerms', fallback: 'Terms', path: '/admin/terms',       icon: HiDocumentText },
+  { labelKey: 'admin.navPrivacy', fallback: 'Privacy', path: '/admin/privacy',     icon: HiShieldExclamation },
+  { labelKey: 'common.changePassword', fallback: 'Change Password', path: '/admin/change-password', icon: HiLockClosed },
 ];
 
 const AdminLayout = ({ children }) => {
@@ -48,16 +51,20 @@ const AdminLayout = ({ children }) => {
         <div className="w-8 h-8 bg-linear-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shrink-0">
           <HiShieldCheck className="text-white w-4 h-4" />
         </div>
-        {!collapsed && <span className="font-bold text-gray-800 text-sm">{t('admin.panel')}</span>}
+        {!collapsed && <span className="font-bold text-gray-800 text-sm">{t('admin.panel', 'Admin Panel')}</span>}
       </div>
+
+      {/* <div className="px-2 py-3 border-b border-gray-100">
+        <LanguageDropdown mobile={collapsed} />
+      </div> */}
 
       {/* Nav Items */}
       <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
-        {navItems.map(({ labelKey, path, icon: Icon, adminOnly }) => {
+        {navItems.map(({ labelKey, fallback, path, icon: Icon, adminOnly }) => {
           const currentRole = admin?.role;
           if (currentRole === 'manager' && !['/admin/providers', '/admin/recruiters'].includes(path)) return null;
           if (adminOnly && currentRole !== 'admin') return null;
-          const label = t(labelKey);
+          const label = t(labelKey, fallback);
           const active = location.pathname === path;
           return (
             <Link
@@ -84,13 +91,13 @@ const AdminLayout = ({ children }) => {
       <div className="shrink-0 px-2 pb-4 border-t border-gray-100 pt-3">
         <button
           onClick={handleLogout}
-          title={collapsed ? t('navbar.logout') : undefined}
+          title={collapsed ? t('navbar.logout', 'Logout') : undefined}
           className={`flex items-center w-full rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-all
             ${collapsed ? 'justify-center' : 'space-x-3'}
           `}
         >
           <HiLogout className="w-5 h-5 shrink-0" />
-          {!collapsed && <span>{t('navbar.logout')}</span>}
+          {!collapsed && <span>{t('navbar.logout', 'Logout')}</span>}
         </button>
       </div>
     </div>
@@ -129,7 +136,7 @@ const AdminLayout = ({ children }) => {
           <button onClick={() => setMobileOpen(true)} className="p-1.5 rounded-lg hover:bg-gray-100">
             <HiMenu className="w-5 h-5 text-gray-600" />
           </button>
-          <span className="font-semibold text-gray-800 text-sm">{t('admin.panel')}</span>
+          <span className="font-semibold text-gray-800 text-sm">{t('admin.panel', 'Admin Panel')}</span>
           <div className="w-8" />
         </div>
 

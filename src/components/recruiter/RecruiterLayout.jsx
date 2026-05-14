@@ -16,9 +16,12 @@ import {
   HiBookmark,
   HiSearch,
   HiBell,
+  HiLockClosed,
 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../common/NotificationBell';
+import LanguageDropdown from '../LanguageDropdown';
+import useTranslation from '../../hooks/useTranslation';
 
 // const navItems = [
 //   { label: 'Dashboard', path: '/recruiter/dashboard', icon: HiTrendingUp },
@@ -35,21 +38,22 @@ import NotificationBell from '../common/NotificationBell';
 // ];
 
 const navItems = [
-  { label: 'Dashboard', path: '/recruiter/dashboard', icon: HiTrendingUp },
+  { label: 'Dashboard', fallback: 'Dashboard', path: '/recruiter/dashboard', icon: HiTrendingUp },
   // { label: 'Job Postings', path: '/recruiter/post-job', icon: HiBriefcase },
-  { label: 'Job Postings', path: '/recruiter/job-postings', icon: HiBriefcase },
-  { label: 'Interested Candidates', path: '/recruiter/interested-candidates', icon: HiUsers },
-  { label: 'AI Smart Search', path: '/recruiter/ai-smart-search', icon: HiSparkles, badge: 'New' },
-  { label: 'Shortlisted Candidates', path: '/recruiter/shortlisted-candidates', icon: HiBookmark },
-  { label: 'Saved Candidates', path: '/recruiter/saved-candidates', icon: HiBookmark },
-  { label: 'Search History', path: '/recruiter/search-history', icon: HiSearch },
-  { label: 'Plans & Billing', path: '/recruiter/plans-billing', icon: HiCurrencyRupee },
-  { label: 'Transactions', path: '/recruiter/transactions', icon: HiCurrencyRupee },
-  { label: 'Company Profile', path: '/recruiter/company-profile', icon: HiDocumentText },
-  // { label: 'Settings', path: '/recruiter/settings', icon: HiCog },
+  { label: 'Job Postings', fallback: 'Job Postings', path: '/recruiter/job-postings', icon: HiBriefcase },
+  { label: 'Interested Candidates', fallback: 'Interested Candidates', path: '/recruiter/interested-candidates', icon: HiUsers },
+  { label: 'AI Smart Search', fallback: 'AI Smart Search', path: '/recruiter/ai-smart-search', icon: HiSparkles, badge: 'New' },
+  { label: 'Shortlisted Candidates', fallback: 'Shortlisted Candidates', path: '/recruiter/shortlisted-candidates', icon: HiBookmark },
+  { label: 'Saved Candidates', fallback: 'Saved Candidates', path: '/recruiter/saved-candidates', icon: HiBookmark },
+  { label: 'Search History', fallback: 'Search History', path: '/recruiter/search-history', icon: HiSearch },
+  { label: 'Plans & Billing', fallback: 'Plans & Billing', path: '/recruiter/plans-billing', icon: HiCurrencyRupee },
+  { label: 'Transactions', fallback: 'Transactions', path: '/recruiter/transactions', icon: HiCurrencyRupee },
+  { label: 'Company Profile', fallback: 'Company Profile', path: '/recruiter/company-profile', icon: HiDocumentText },
+  { label: 'Change Password', fallback: 'Change Password', path: '/recruiter/change-password', icon: HiLockClosed },
 ];
 const RecruiterLayout = ({ children }) => {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
@@ -66,8 +70,12 @@ const RecruiterLayout = ({ children }) => {
         {!collapsed && <span className="font-bold text-[#081B3A] text-sm">Lucohire</span>}
       </div>
 
+      {/* <div className="px-2 py-3 border-b border-gray-100">
+        <LanguageDropdown mobile={collapsed} />
+      </div> */}
+
       <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
-        {navItems.map(({ label, path, icon: Icon, badge }) => {
+        {navItems.map(({ label, fallback, path, icon: Icon, badge }) => {
           // const active = location.pathname === path;
           const active = location.pathname === path || location.pathname.startsWith(`${path}/`);
           return (
@@ -87,8 +95,8 @@ const RecruiterLayout = ({ children }) => {
               <Icon className={`w-5 h-5 shrink-0 ${active ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} />
               {!collapsed && (
                 <div className="flex items-center justify-between w-full">
-                  <span>{label}</span>
-                  {badge && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{badge}</span>}
+                  <span>{t(label, fallback)}</span>
+                  {badge && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{t('common.new', badge)}</span>}
                 </div>
               )}
             </Link>
@@ -98,13 +106,13 @@ const RecruiterLayout = ({ children }) => {
 
       {!collapsed && (
         <div className="mx-3 mb-4 rounded-2xl border border-[#E5EAF3] bg-[#F8FAFF] p-4">
-          <p className="text-xs font-semibold text-[#081B3A]">Upgrade Your Plan</p>
-          <p className="text-[11px] text-gray-500 mt-1">Unlock more candidate contacts and downloads.</p>
+          <p className="text-xs font-semibold text-[#081B3A]">{t('recruiter.upgradeTitle', 'Upgrade Your Plan')}</p>
+          <p className="text-[11px] text-gray-500 mt-1">{t('recruiter.upgradeSubtitle', 'Unlock more candidate contacts and downloads.')}</p>
           <button
             onClick={() => navigate('/recruiter/plans')}
             className="mt-3 w-full rounded-xl bg-[#0066FF] text-white text-xs font-semibold py-2"
           >
-            View Plans
+            {t('recruiter.viewPlans', 'View Plans')}
           </button>
         </div>
       )}
@@ -112,13 +120,13 @@ const RecruiterLayout = ({ children }) => {
       <div className="shrink-0 px-2 pb-4 border-t border-gray-100 pt-3">
         <button
           onClick={handleLogout}
-          title={collapsed ? 'Logout' : undefined}
+          title={collapsed ? t('navbar.logout', 'Logout') : undefined}
           className={`flex items-center w-full rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-all
             ${collapsed ? 'justify-center' : 'space-x-3'}
           `}
         >
           <HiLogout className="w-5 h-5 shrink-0" />
-          {!collapsed && <span>Logout</span>}
+          {!collapsed && <span>{t('navbar.logout', 'Logout')}</span>}
         </button>
       </div>
     </div>
@@ -157,9 +165,12 @@ const RecruiterLayout = ({ children }) => {
           <button onClick={() => setMobileOpen(true)} className="p-1.5 rounded-lg hover:bg-gray-100 md:hidden">
             <HiMenu className="w-5 h-5 text-gray-600" />
           </button>
-          <span className="text-sm text-gray-500">Welcome, {user?.name || 'Recruiter'}!</span>
+          <span className="text-sm text-gray-500">{t('recruiter.welcome', 'Welcome')}, {user?.name || t('recruiter.role', 'Recruiter')}!</span>
           
-          <NotificationBell/>         
+          <div className="flex items-center gap-2">
+            {/* <LanguageDropdown /> */}
+            <NotificationBell/>
+          </div>
         </div>
 
         <main className="flex-1 overflow-auto p-0">

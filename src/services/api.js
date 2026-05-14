@@ -154,6 +154,10 @@ export const authAPI = {
   updateWhatsappNumber: (data) => API.put("/auth/whatsapp-number", data),
   updateLocale: (data) => API.put("/auth/locale", data),
   toggleWhatsappAlerts: (data) => API.put("/auth/whatsapp-alerts", data),
+  changePassword: (data) => API.patch("/auth/change-password", data),
+  forgotPassword: (data) => API.post("/auth/forgot-password", data),
+  resetPassword: (token, data) =>
+    API.post(`/auth/reset-password/${token}`, data),
 };
 
 export const userAPI = {
@@ -231,8 +235,17 @@ export const recruiterAPI = {
 
   purchaseRecruiterPlan: (planId) =>
     API.post("/recruiter/plans/purchase", { planId }),
+  updateJob: (id, data) => API.patch(`/recruiter/jobs/${id}`, data),
+  deleteJob: (id) => API.delete(`/recruiter/jobs/${id}`),
+  updateApplicationStatus: (id, data) => API.patch(`/recruiter/applications/${id}`, data),
+  deleteApplication: (id) => API.delete(`/recruiter/applications/${id}`),
+  // Saved candidates
+  getSavedCandidates: () => API.get('/recruiter/saved-candidates'),
+  saveCandidate: (data) => API.post('/recruiter/saved-candidates', data),
+  removeSavedCandidate: (providerProfileId) => API.delete(`/recruiter/saved-candidates/${providerProfileId}`),
   // ==================================================================
 };
+
 
 // Skills / Categories APIs (public - no auth needed)
 export const categoriesAPI = {
@@ -258,6 +271,8 @@ export const adminAPI = {
   updatePartnerCommissionRate: (id, data) => ADMIN_API.patch(`/admin/partners/${id}/commission-rate`, data),
   getPartnerRewardSettings: () => ADMIN_API.get("/admin/partners/settings/rewards"),
   updatePartnerRewardSettings: (data) => ADMIN_API.put("/admin/partners/settings/rewards", data),
+  getPartnerReferrals: (id, params) => ADMIN_API.get(`/admin/partners/${id}/referrals`, { params }),
+  deletePartner: (id) => ADMIN_API.delete(`/admin/partners/${id}`),
   getApprovalLogs: (params) => ADMIN_API.get("/admin/approval-logs", { params }),
   approveUser: (userId) => ADMIN_API.patch(`/admin/users/${userId}/approve`),
   rejectUser: (userId, reason = "") =>
@@ -294,11 +309,12 @@ export const adminAPI = {
 
   getProfileApprovalStats: () => ADMIN_API.get("/admin/profile-approvals/stats"),
 
-  approveProfilePhoto: (userId) =>
-    ADMIN_API.patch(`/admin/profile-approvals/${userId}/approve`),
+  approveProfilePhoto: (userId, role) =>
+    ADMIN_API.patch(`/admin/profile-approvals/${role}/${userId}/approve`),
 
-  rejectProfilePhoto: (userId, reason = "") =>
-    ADMIN_API.patch(`/admin/profile-approvals/${userId}/reject`, { reason }),
+  rejectProfilePhoto: (userId, role, reason = "") =>
+    ADMIN_API.patch(`/admin/profile-approvals/${role}/${userId}/reject`, { reason }),
+
   getContent: (type) => ADMIN_API.get(`/admin/content/${type}`),
   updateContent: (type, value) =>
     ADMIN_API.put(`/admin/content/${type}`, { value }),
@@ -354,7 +370,10 @@ export const adminAPI = {
     API.put(`/admin/ai/ocr-review-queue/${id}`, data),
   getAIUsageDashboard: () => API.get("/admin/ai/usage-dashboard"),
   getDemandSnapshots: () => API.get("/admin/ai/demand-snapshots"),
+  getAIFeatureSettings: () => API.get("/admin/ai/feature-settings"),
+  updateAIFeatureSettings: (data) => API.put("/admin/ai/feature-settings", data),
   // =================================================================
+
   approveUser: (userId) => API.patch(`/admin/users/${userId}/approve`),
 
   rejectUser: (userId, reason = "") =>
@@ -473,9 +492,23 @@ export const localeAPI = {
     API.get("/locale/reverse-geocode", { params: { lat, lng } }),
 };
 
+export const translationAPI = {
+  translateText: (data) => API.post('/translate/text', data),
+  translateBatch: (data) => API.post('/translate/batch', data),
+};
+
 export const locationAPI = {
   autocomplete: (query) => API.post("/location/autocomplete", { query }),
   nearby: (lat, lon) => API.post("/location/nearby", { lat, lon }),
+  searchPlaces: (query) => API.get("/location/search", { params: { query } }),
+  getPlaceDetails: (placeId) => API.get(`/location/details/${placeId}`),
+};
+
+
+export const enquiryAPI = {
+  create: (data) => API.post('/enquiry', data),
+  getAll: () => API.get('/enquiry'),
 };
 
 export default API;
+
