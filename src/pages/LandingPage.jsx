@@ -9,7 +9,7 @@ import {
   Globe2, ShieldAlert, Repeat, Languages, MessageCircle,
   BarChart3, Lock, CheckCircle2, Flame,
 } from "lucide-react";
-import { recruiterAPI, localeAPI } from "../services/api";
+import { recruiterAPI, localeAPI, planAPI } from "../services/api";
 import { filterDummyProviders, DUMMY_PROVIDERS } from "../data/skillsData";
 import { toAbsoluteMediaUrl } from "../utils/media";
 import { extractProvidersList, normalizeProviderData } from "../utils/providerData";
@@ -293,6 +293,8 @@ const LandingPage = () => {
   const [location, setLocation] = useState("Noida, IN");
   const [providers, setProviders] = useState([]);
   const [providersLoading, setProvidersLoading] = useState(false);
+  const [landingPlans, setLandingPlans] = useState([]);
+  const [plansLoading, setPlansLoading] = useState(false);
   const [activeTier, setActiveTier] = useState("all");
   const [activeCategory, setActiveCategory] = useState("");
   const [openFaq, setOpenFaq] = useState();
@@ -359,6 +361,24 @@ const LandingPage = () => {
   useEffect(() => {
     fetchProviders("");
   }, [fetchProviders]);
+
+  const fetchLandingPlans = useCallback(async () => {
+    setPlansLoading(true);
+    try {
+      const { data } = await planAPI.getLandingPlans();
+      if (Array.isArray(data)) {
+        setLandingPlans(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch landing plans", err);
+    } finally {
+      setPlansLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLandingPlans();
+  }, [fetchLandingPlans]);
 
   useEffect(() => {
     if (activeCategory) return;
@@ -754,55 +774,128 @@ const LandingPage = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
-            {[
-              { name: t('plans.starterName', "Starter"), price: t('common.free', "Free"), note: t('plans.starterNote', "For first-time providers"), featured: false, perks: [t('plans.starterPerk1', "Profile + 2 skills"), t('plans.starterPerk2', "Basic ranking"), t('plans.starterPerk3', "WhatsApp lead alerts"), t('plans.starterPerk4', "1 city / area")], cta: t('plans.starterCta', "Start free"), ctaLink: "/signup" },
-              { name: t('plans.proName', "Pro Boost"), price: "₹499", per: t('plans.perMonth', "per month"), note: t('plans.proNote', "Most popular"), featured: true, perks: [t('plans.proPerk1', "All Starter features"), t('plans.proPerk2', "Top-pool rotation (60s)"), t('plans.proPerk3', "Up to 5 skills"), t('plans.proPerk4', "Priority lead distribution"), t('plans.proPerk5', "AI profile builder")], cta: t('plans.proCta', "Boost my profile"), ctaLink: "/login" },
-              { name: t('plans.businessName', "Business"), price: "₹1,999", per: t('plans.perMonth', "per month"), note: t('plans.businessNote', "Teams & agencies"), featured: false, perks: [t('plans.businessPerk1', "Unlimited skills & areas"), t('plans.businessPerk2', "Featured placement"), t('plans.businessPerk3', "Bulk hire & unlocks"), t('plans.businessPerk4', "Team accounts"), t('plans.businessPerk5', "Dedicated success manager")], cta: t('plans.businessCta', "Talk to sales"), ctaLink: "/contact" },
-            ].map((p) => (
-              <div
-                key={p.name}
-                className={`relative rounded-3xl p-7 border ${
-                  p.featured
-                    ? "bg-[#081B3A] text-white border-[#081B3A] shadow-[0_30px_70px_rgba(8,27,58,0.25)] md:scale-105"
-                    : "bg-white border-[#E7ECF4]"
-                }`}
-              >
-                {p.featured && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F59E0B] text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
-                    {t('common.popular', 'Most Popular')}
-                  </span>
-                )}
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 ${p.featured ? "bg-white/10" : "bg-[#EAF2FF]"}`}>
-                  {p.featured ? <Sparkles className="w-5 h-5 text-[#1677FF]" /> : <Sparkles className="w-5 h-5 text-[#1677FF]" />}
-                </div>
-                <p className={`font-bold ${p.featured ? "text-white" : "text-[#081B3A]"}`}>{p.name}</p>
-                <div className="mt-3 flex items-baseline gap-2">
-                  <span className="text-4xl font-extrabold tracking-tight">{p.price}</span>
-                  {p.per && <span className={`text-xs ${p.featured ? "text-white/60" : "text-[#6B7280]"}`}>{p.per}</span>}
-                </div>
-                <p className={`text-xs mt-1 ${p.featured ? "text-white/60" : "text-[#6B7280]"}`}>{p.note}</p>
+            {plansLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-white border border-[#E7ECF4] rounded-3xl p-7 animate-pulse h-96" />
+              ))
+            ) : landingPlans.length > 0 ? (
+              landingPlans.map((p, index) => {
+                const isFree = Number(p.price) === 0;
+                const ctaLink = isFree ? "/signup" : "/login";
+                // If exactly 3 plans, highlight the middle one (index 1)
+                // If more than 3, highlight index 1 of the first 3, etc.
+                // But usually there are 3. Let's stick to index 1 as the primary highlight.
+                const isDark = index === 1;
+                
+                return (
+                  <div
+                    key={p._id}
+                    className={`relative rounded-3xl p-7 border transition-all hover:shadow-lg ${
+                      isDark
+                        ? "bg-[#081B3A] text-white border-[#081B3A] shadow-[0_30px_70px_rgba(8,27,58,0.25)] md:scale-105 z-10"
+                        : "bg-white border-[#E7ECF4]"
+                    }`}
+                  >
+                    {p.isPopular && (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F59E0B] text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
+                        {t('common.popular', 'Most Popular')}
+                      </span>
+                    )}
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 ${isDark ? "bg-white/10" : "bg-[#EAF2FF]"}`}>
+                      <Sparkles className="w-5 h-5 text-[#1677FF]" />
+                    </div>
+                    <p className={`font-bold ${isDark ? "text-white" : "text-[#081B3A]"}`}>{p.name}</p>
+                    <div className="mt-3 flex items-baseline gap-2">
+                      <span className="text-4xl font-extrabold tracking-tight">
+                        {isFree ? t('common.free', "Free") : `₹${p.price}`}
+                      </span>
+                      {!isFree && (
+                        <span className={`text-xs ${isDark ? "text-white/60" : "text-[#6B7280]"}`}>
+                          {t('plans.perMonth', "per month")}
+                        </span>
+                      )}
+                    </div>
+                    <p className={`text-xs mt-1 ${isDark ? "text-white/60" : "text-[#6B7280]"}`}>
+                      {p.description || (isFree ? t('plans.starterNote', "For first-time providers") : t('plans.proNote', "Most popular"))}
+                    </p>
 
-                <ul className="mt-6 space-y-2.5">
-                  {p.perks.map((perk) => (
-                    <li key={perk} className="flex items-start gap-2 text-sm">
-                      <Check className={`w-4 h-4 mt-0.5 shrink-0 ${p.featured ? "text-[#1677FF]" : "text-[#12B76A]"}`} />
-                      <span className={p.featured ? "text-white/85" : "text-[#374151]"}>{perk}</span>
-                    </li>
-                  ))}
-                </ul>
+                    <ul className="mt-6 space-y-2.5">
+                      {p.features?.map((perk, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm">
+                          <Check className={`w-4 h-4 mt-0.5 shrink-0 ${isDark ? "text-[#1677FF]" : "text-[#12B76A]"}`} />
+                          <span className={isDark ? "text-white/85" : "text-[#374151]"}>{perk}</span>
+                        </li>
+                      ))}
+                    </ul>
 
-                <button
-                  className={`mt-7 w-full py-3 rounded-xl font-bold text-sm transition ${
-                    p.featured
-                      ? "bg-white text-[#081B3A] hover:bg-white/90"
-                      : "bg-[#1677FF] text-white hover:bg-[#0E5FCC]"
-                  }`}
-                  onClick={() => navigate(p.ctaLink)}
-                >
-                  {p.cta}
-                </button>
-              </div>
-            ))}
+                    <button
+                      className={`mt-7 w-full py-3 rounded-xl font-bold text-sm transition ${
+                        isDark
+                          ? "bg-white text-[#081B3A] hover:bg-white/90"
+                          : "bg-[#1677FF] text-white hover:bg-[#0E5FCC]"
+                      }`}
+                      onClick={() => navigate(ctaLink)}
+                    >
+                      {isFree ? t('plans.starterCta', "Start free") : (p.slug === 'business' ? t('plans.businessCta', "Talk to sales") : t('plans.proCta', "Boost my profile"))}
+                    </button>
+                  </div>
+                );
+              })
+            ) : (
+              // Fallback to static if no plans from backend
+              [
+                { name: t('plans.starterName', "Starter"), price: t('common.free', "Free"), note: t('plans.starterNote', "For first-time providers"), featured: false, perks: [t('plans.starterPerk1', "Profile + 2 skills"), t('plans.starterPerk2', "Basic ranking"), t('plans.starterPerk3', "WhatsApp lead alerts"), t('plans.starterPerk4', "1 city / area")], cta: t('plans.starterCta', "Start free"), ctaLink: "/signup" },
+                { name: t('plans.proName', "Pro Boost"), price: "₹499", per: t('plans.perMonth', "per month"), note: t('plans.proNote', "Most popular"), featured: true, perks: [t('plans.proPerk1', "All Starter features"), t('plans.proPerk2', "Top-pool rotation (60s)"), t('plans.proPerk3', "Up to 5 skills"), t('plans.proPerk4', "Priority lead distribution"), t('plans.proPerk5', "AI profile builder")], cta: t('plans.proCta', "Boost my profile"), ctaLink: "/login" },
+                { name: t('plans.businessName', "Business"), price: "₹1,999", per: t('plans.perMonth', "per month"), note: t('plans.businessNote', "Teams & agencies"), featured: false, perks: [t('plans.businessPerk1', "Unlimited skills & areas"), t('plans.businessPerk2', "Featured placement"), t('plans.businessPerk3', "Bulk hire & unlocks"), t('plans.businessPerk4', "Team accounts"), t('plans.businessPerk5', "Dedicated success manager")], cta: t('plans.businessCta', "Talk to sales"), ctaLink: "/contact" },
+              ].map((p, index) => {
+                const isDark = index === 1;
+                return (
+                  <div
+                    key={p.name}
+                    className={`relative rounded-3xl p-7 border transition-all hover:shadow-lg ${
+                      isDark
+                        ? "bg-[#081B3A] text-white border-[#081B3A] shadow-[0_30px_70px_rgba(8,27,58,0.25)] md:scale-105 z-10"
+                        : "bg-white border-[#E7ECF4]"
+                    }`}
+                  >
+                    {p.featured && (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F59E0B] text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
+                        {t('common.popular', 'Most Popular')}
+                      </span>
+                    )}
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 ${isDark ? "bg-white/10" : "bg-[#EAF2FF]"}`}>
+                      <Sparkles className="w-5 h-5 text-[#1677FF]" />
+                    </div>
+                    <p className={`font-bold ${isDark ? "text-white" : "text-[#081B3A]"}`}>{p.name}</p>
+                    <div className="mt-3 flex items-baseline gap-2">
+                      <span className="text-4xl font-extrabold tracking-tight">{p.price}</span>
+                      {p.per && <span className={`text-xs ${isDark ? "text-white/60" : "text-[#6B7280]"}`}>{p.per}</span>}
+                    </div>
+                    <p className={`text-xs mt-1 ${isDark ? "text-white/60" : "text-[#6B7280]"}`}>{p.note}</p>
+
+                    <ul className="mt-6 space-y-2.5">
+                      {p.perks.map((perk) => (
+                        <li key={perk} className="flex items-start gap-2 text-sm">
+                          <Check className={`w-4 h-4 mt-0.5 shrink-0 ${isDark ? "text-[#1677FF]" : "text-[#12B76A]"}`} />
+                          <span className={isDark ? "text-white/85" : "text-[#374151]"}>{perk}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <button
+                      className={`mt-7 w-full py-3 rounded-xl font-bold text-sm transition ${
+                        isDark
+                          ? "bg-white text-[#081B3A] hover:bg-white/90"
+                          : "bg-[#1677FF] text-white hover:bg-[#0E5FCC]"
+                      }`}
+                      onClick={() => navigate(p.ctaLink)}
+                    >
+                      {p.cta}
+                    </button>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </section>

@@ -450,6 +450,11 @@ export const subscriptionAPI = {
   getMySubscription: () => API.get("/subscriptions/me"),
 };
 
+// Plan APIs
+export const planAPI = {
+  getLandingPlans: () => API.get("/plans/landing"),
+};
+
 // Notification APIs
 export const notificationAPI = {
   getMyNotifications: (params) => API.get("/notifications", { params }),

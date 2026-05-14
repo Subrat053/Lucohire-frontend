@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
-import { HiPlus, HiPencil, HiTrash, HiX, HiCheck } from 'react-icons/hi';
+import { HiPlus, HiPencil, HiTrash, HiX, HiCheck, HiStar } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { useLocale } from '../../context/LocaleContext';
 
-const emptyPlan = { name: '', slug: '', type: 'provider', price: '', duration: 30, features: [''], maxSkills: 10, boostWeight: 1, unlockCredits: 0, isActive: true };
+const emptyPlan = { name: '', slug: '', type: 'provider', price: '', duration: 30, features: [''], maxSkills: 10, boostWeight: 1, unlockCredits: 0, isActive: true, showOnLandingPage: false };
 const PLAN_TIERS = [
-  { label: 'Free', slug: 'free' },
-  { label: 'Starter', slug: 'starter' },
-  { label: 'Business', slug: 'business' },
-  { label: 'Enterprise', slug: 'enterprise' },
-  { label: 'Basic (Legacy)', slug: 'basic' },
-  { label: 'Pro (Legacy)', slug: 'pro' },
-  { label: 'Featured (Legacy)', slug: 'featured' },
+  { label: 'Free', slug: 'free', group: 'Main' },
+  { label: 'Starter', slug: 'starter', group: 'Main' },
+  { label: 'Business', slug: 'business', group: 'Main' },
+  { label: 'Enterprise', slug: 'enterprise', group: 'Main' },
+  { label: 'Basic (Legacy)', slug: 'basic', group: 'Legacy' },
+  { label: 'Pro (Legacy)', slug: 'pro', group: 'Legacy' },
+  { label: 'Featured (Legacy)', slug: 'featured', group: 'Legacy' },
 ];
 const DURATION_OPTIONS = [
   { label: 'Monthly', value: 30 },
@@ -21,7 +21,12 @@ const DURATION_OPTIONS = [
   { label: 'Semi Annually', value: 180 },
   { label: 'Annually', value: 365 },
 ];
-const DURATION_LABEL_BY_VALUE = Object.fromEntries(DURATION_OPTIONS.map((opt) => [opt.value, opt.label]));
+const DURATION_LABEL_BY_VALUE = {
+  30: 'Monthly',
+  90: '3 Monthly',
+  180: 'Semi Annually',
+  365: 'Annually'
+};
 const TIER_ORDER = { free: 0, starter: 1, business: 2, enterprise: 3 };
 
 const AdminPlans = () => {
@@ -64,6 +69,7 @@ const AdminPlans = () => {
       boostWeight: target.boostWeight || 1,
       unlockCredits: target.unlockCredits || 0,
       isActive: target.isActive !== false,
+      showOnLandingPage: target.showOnLandingPage === true,
     });
     setShowForm(true);
   };
@@ -74,8 +80,8 @@ const AdminPlans = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!PLAN_TIERS.some((tier) => tier.slug === form.slug)) {
-      toast.error('Select a valid plan tier');
+    if (!form.slug) {
+      toast.error('Please select a plan tier');
       return;
     }
     if (!DURATION_OPTIONS.some((opt) => opt.value === Number(form.duration))) {
@@ -208,9 +214,18 @@ const AdminPlans = () => {
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select plan tier</option>
-                  {PLAN_TIERS.map((tier) => (
-                    <option key={tier.slug} value={tier.slug}>{tier.label}</option>
+                  {['Main', 'Legacy'].map(group => (
+                    <optgroup key={group} label={group}>
+                      {PLAN_TIERS.filter(t => t.group === group).map((tier) => (
+                        <option key={tier.slug} value={tier.slug}>{tier.label}</option>
+                      ))}
+                    </optgroup>
                   ))}
+                  {form.slug && !PLAN_TIERS.some(t => t.slug === form.slug) && (
+                    <optgroup label="Current Custom Tier">
+                      <option value={form.slug}>{form.slug} (Current)</option>
+                    </optgroup>
+                  )}
                 </select>
               </div>
               {form.type === 'provider' && (
@@ -247,11 +262,18 @@ const AdminPlans = () => {
                 ))}
                 <button type="button" onClick={addFeature} className="text-sm text-blue-600 hover:text-blue-700 font-medium">+ Add Feature</button>
               </div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))}
-                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                <span className="text-sm font-medium text-gray-700">Active</span>
-              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                  <span className="text-sm font-medium text-gray-700">Active</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={form.showOnLandingPage} onChange={e => setForm(f => ({ ...f, showOnLandingPage: e.target.checked }))}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                  <span className="text-sm font-medium text-gray-700">Show on Landing Page</span>
+                </label>
+              </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowForm(false)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition font-medium">Cancel</button>
                 <button type="submit" className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium">
@@ -264,48 +286,78 @@ const AdminPlans = () => {
       )}
 
       {/* Plans Display */}
-      {[{ title: 'Provider Plans', list: providerPlans }, { title: 'Recruiter Plans', list: recruiterPlans }].map((section) => (
-        <div key={section.title} className="mb-8">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">{section.title}</h2>
-          {section.list.length === 0 ? (
-            <p className="text-gray-500">No plans yet</p>
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {section.list
-                .slice()
-                .sort((a, b) => {
-                  const byDuration = Number(a.duration || 0) - Number(b.duration || 0);
-                  if (byDuration !== 0) return byDuration;
-                  return (TIER_ORDER[a.slug] || 99) - (TIER_ORDER[b.slug] || 99);
-                })
-                .map((plan) => (
-                <div key={plan._id} className={`bg-white rounded-2xl border-2 p-5 relative ${plan.isActive ? 'border-gray-100' : 'border-red-200 opacity-60'}`}>
-                  {!plan.isActive && <span className="absolute top-3 right-3 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">Inactive</span>}
-                  <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
-                  <p className="text-3xl font-bold text-blue-600 mt-1">{formatPrice(plan.price, plan.priceAED, plan.priceUSD)}<span className="text-sm text-gray-400 font-normal">/{DURATION_LABEL_BY_VALUE[plan.duration] || `${plan.duration}d`}</span></p>
-                  <ul className="mt-3 space-y-1 text-sm">
-                    {plan.features?.map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-gray-600">
-                        <HiCheck className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
-                    <button onClick={() => openEdit(plan)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition text-sm font-medium">
-                      <HiPencil className="w-4 h-4" /> Edit
-                    </button>
-                    <button onClick={() => handleDelete(plan._id)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition text-sm font-medium">
-                      <HiTrash className="w-4 h-4" /> Delete
-                    </button>
-                  </div>
+      {(() => {
+        const landingPlans = plans.filter(p => p.showOnLandingPage);
+        const otherProviderPlans = plans.filter(p => p.type === 'provider' && !p.showOnLandingPage);
+        const otherRecruiterPlans = plans.filter(p => p.type === 'recruiter' && !p.showOnLandingPage);
+
+        return (
+          <>
+            {landingPlans.length > 0 && (
+              <div className="mb-10 bg-blue-50/30 p-6 rounded-3xl border border-blue-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <HiStar className="w-5 h-5 text-blue-600" />
+                  <h2 className="text-lg font-bold text-gray-900">Landing Page Featured Plans</h2>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {landingPlans.sort((a,b) => (a.sortOrder || 0) - (b.sortOrder || 0)).map(plan => (
+                    <PlanCard key={plan._id} plan={plan} formatPrice={formatPrice} openEdit={openEdit} handleDelete={handleDelete} isLanding />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {[{ title: 'All Provider Plans', list: otherProviderPlans }, { title: 'All Recruiter Plans', list: otherRecruiterPlans }].map((section) => (
+              <div key={section.title} className="mb-8">
+                <h2 className="text-lg font-bold text-gray-900 mb-4">{section.title}</h2>
+                {section.list.length === 0 ? (
+                  <p className="text-gray-500">No other plans yet</p>
+                ) : (
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {section.list
+                      .slice()
+                      .sort((a, b) => {
+                        const byDuration = Number(a.duration || 0) - Number(b.duration || 0);
+                        if (byDuration !== 0) return byDuration;
+                        return (TIER_ORDER[a.slug] || 99) - (TIER_ORDER[b.slug] || 99);
+                      })
+                      .map((plan) => (
+                        <PlanCard key={plan._id} plan={plan} formatPrice={formatPrice} openEdit={openEdit} handleDelete={handleDelete} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </>
+        );
+      })()}
     </div>
   );
 };
+
+const PlanCard = ({ plan, formatPrice, openEdit, handleDelete, isLanding }) => (
+  <div className={`bg-white rounded-2xl border-2 p-5 relative transition-all hover:shadow-md ${plan.isActive ? (isLanding ? 'border-blue-200 shadow-sm' : 'border-gray-100') : 'border-red-200 opacity-60'}`}>
+    {isLanding && <span className="absolute -top-2.5 left-4 px-2 py-0.5 bg-blue-600 text-white text-[10px] rounded-full font-bold uppercase tracking-wider">On Landing Page</span>}
+    {!plan.isActive && <span className="absolute top-3 right-3 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">Inactive</span>}
+    <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
+    <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-0.5">{plan.type} • {plan.slug}</p>
+    <p className="text-3xl font-bold text-blue-600 mt-2">{formatPrice(plan.price, plan.priceAED, plan.priceUSD)}<span className="text-sm text-gray-400 font-normal">/{DURATION_LABEL_BY_VALUE[plan.duration] || `${plan.duration}d`}</span></p>
+    <ul className="mt-3 space-y-1 text-sm">
+      {plan.features?.map((f, i) => (
+        <li key={i} className="flex items-start gap-2 text-gray-600">
+          <HiCheck className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> {f}
+        </li>
+      ))}
+    </ul>
+    <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+      <button onClick={() => openEdit(plan)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition text-sm font-medium">
+        <HiPencil className="w-4 h-4" /> Edit
+      </button>
+      <button onClick={() => handleDelete(plan._id)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition text-sm font-medium">
+        <HiTrash className="w-4 h-4" /> Delete
+      </button>
+    </div>
+  </div>
+);
 
 export default AdminPlans;
