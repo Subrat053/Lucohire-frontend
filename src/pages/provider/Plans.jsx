@@ -23,6 +23,7 @@ import {
 } from '../../services/providerPlanService';
 import { useAuth } from '../../context/AuthContext';
 import useTranslation from '../../hooks/useTranslation';
+import GuaranteeModal from '../../components/common/GuaranteeModal';
 
 const DURATION_OPTIONS = [
   { months: 1, label: '1 Month' },
@@ -79,6 +80,7 @@ const ProviderPlans = () => {
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [selectedPincodes, setSelectedPincodes] = useState([]);
   const [selectedCities, setSelectedCities] = useState([]);
+  const [showGuaranteeModal, setShowGuaranteeModal] = useState(false);
 
 
   // =============================================================
@@ -529,12 +531,15 @@ const ProviderPlans = () => {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-[#EEF4FF] flex items-center justify-center shrink-0">
-                      <BadgeCheck className="w-6 h-6 text-[#005BFF]" />
+                  <div 
+                    onClick={() => setShowGuaranteeModal(true)}
+                    className="bg-white border border-[#E8EEF9] rounded-2xl p-5 shadow-sm flex items-center gap-4 cursor-pointer hover:border-emerald-500/50 hover:shadow-md transition-all group"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-[#EEF4FF] flex items-center justify-center shrink-0 group-hover:bg-emerald-50 transition-colors">
+                      <BadgeCheck className="w-6 h-6 text-[#005BFF] group-hover:text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-[#06133D]">{t('plans.guaranteeTitle', '7-day money-back guarantee')}</p>
+                      <p className="text-sm font-bold text-[#06133D] group-hover:text-emerald-700 transition-colors">{t('plans.guaranteeTitle', '7-day money-back guarantee')}</p>
                       <p className="text-xs text-[#64748B] mt-0.5">{t('plans.guaranteeDesc', 'Not satisfied with the leads? Get a full refund within 7 days, no questions asked.')}</p>
                     </div>
                   </div>
@@ -667,6 +672,10 @@ const ProviderPlans = () => {
         </div>
       </div>
 
+      <GuaranteeModal 
+        isOpen={showGuaranteeModal} 
+        onClose={() => setShowGuaranteeModal(false)} 
+      />
     </div>
   );
 };
