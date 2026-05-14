@@ -10,6 +10,7 @@ import {
   X,
   ChevronRight,
   ShieldCheck,
+  Landmark,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -17,6 +18,7 @@ const links = [
   { to: "/partner/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/partner/create-provider", label: "Create Provider", icon: UserPlus },
   { to: "/partner/create-recruiter", label: "Create Recruiter", icon: Users },
+  { to: "/partner/bank-details", label: "Bank Details", icon: Landmark },
   { to: "/partner/payouts", label: "Payouts", icon: Wallet },
   { to: "/partner/change-password", label: "Change Password", icon: ShieldCheck },
 ];

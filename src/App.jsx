@@ -57,11 +57,14 @@ import PartnerDashboard from "./pages/partner/PartnerDashboard";
 import PartnerPayouts from "./pages/partner/PartnerPayouts";
 import CreatePartnerProvider from "./pages/partner/CreatePartnerProvider";
 import CreatePartnerRecruiter from "./pages/partner/CreatePartnerRecruiter";
+import PartnerBankDetails from "./pages/partner/PartnerBankDetails";
 // =======================================================================
 
 import AdminDashboard from "./pages/admin/Dashboard";
 import Partners from './pages/admin/Partners';
 import PartnerReferrals from './pages/admin/PartnerReferrals';
+import AdminManagerBankAccounts from "./pages/admin/ManagerBankAccounts";
+import AdminPartnerPayouts from "./pages/admin/AdminPartnerPayouts";
 import AdminReferrals from './pages/admin/AdminReferrals';
 import AdminRewardPool from "./pages/admin/AdminRewardPool";
 import AdminUsers from "./pages/admin/Users";
@@ -313,6 +316,16 @@ function App() {
             <AdminLayout><PartnerReferrals /></AdminLayout>
           </AdminProtectedRoute>
         )} />
+        <Route path="/admin/manager-bank-accounts" element={wrap(
+          <AdminProtectedRoute>
+            <AdminLayout><AdminManagerBankAccounts /></AdminLayout>
+          </AdminProtectedRoute>
+        )} />
+        <Route path="/admin/partner-payouts" element={wrap(
+          <AdminProtectedRoute>
+            <AdminLayout><AdminPartnerPayouts /></AdminLayout>
+          </AdminProtectedRoute>
+        )} />
         <Route path="/admin/referrals" element={wrap(
           <AdminProtectedRoute>
             <AdminLayout><AdminReferrals /></AdminLayout>
@@ -441,6 +454,11 @@ function App() {
         <Route path="/partner/create-recruiter" element={
           <PartnerProtectedRoute>
             <PartnerLayout><CreatePartnerRecruiter /></PartnerLayout>
+          </PartnerProtectedRoute>
+        } />
+        <Route path="/partner/bank-details" element={
+          <PartnerProtectedRoute>
+            <PartnerLayout><PartnerBankDetails /></PartnerLayout>
           </PartnerProtectedRoute>
         } />
 

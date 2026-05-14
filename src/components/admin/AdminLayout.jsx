@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  HiShieldCheck, HiUsers, HiMail, HiBriefcase, HiCurrencyRupee, HiCog, HiPhotograph,
+  HiShieldCheck, HiUsers, HiMail, HiBriefcase, HiCurrencyRupee, HiCog, HiPhotograph,HiLibrary ,
   HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe, HiUserGroup, HiLink, HiGift, HiLockClosed
 } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -12,6 +12,8 @@ import LanguageDropdown from '../LanguageDropdown';
 const navItems = [
   { labelKey: 'admin.navDashboard', fallback: 'Dashboard', path: '/admin/dashboard',  icon: HiShieldCheck },
   { labelKey: 'admin.partners', fallback: 'Partners', path: '/admin/partners',    icon: HiUserGroup },
+  { labelKey: 'admin.managerBankAccounts', fallback: 'Bank Accounts', path: '/admin/manager-bank-accounts', icon: HiLibrary },
+  { labelKey: 'admin.partnerPayouts', fallback: 'Partner Payouts', path: '/admin/partner-payouts', icon: HiCurrencyRupee },
   { labelKey: 'admin.referrals', fallback: 'Referrals', path: '/admin/referrals',   icon: HiLink },
   { labelKey: 'admin.rewardPool', fallback: 'Reward Pool', path: '/admin/reward-pool', icon: HiGift },
   { labelKey: 'admin.navUsers', fallback: 'Users', path: '/admin/users',       icon: HiUsers },

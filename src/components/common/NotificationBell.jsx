@@ -93,7 +93,7 @@ const NotificationBell = () => {
     const socketUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin;
     const socket = io(socketUrl, {
       withCredentials: true,
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
     });
 
     socketRef.current = socket;
