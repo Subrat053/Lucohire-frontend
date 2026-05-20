@@ -455,23 +455,32 @@ export default function JobPostings() {
                                             <HiBriefcase className="h-7 w-7" />
                                         </div>
 
-                                        <div className="min-w-0 flex-1">
-                                            <h3 className="font-semibold text-[#081B3A] truncate pr-8">
+                                        <div className="min-w-0 flex-1 space-y-1.5">
+                                            <h3 className="font-bold text-[#081B3A] text-sm sm:text-base truncate pr-8">
                                                 {job.title}
                                             </h3>
-                                            <p className="mt-1 text-xs text-gray-500">
-                                                {job.city || "Noida, UP"} • {job.scheduleType || "Full-time"}
+                                            <div className="flex flex-wrap gap-2 text-xs">
+                                                <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md font-semibold">{job.category || 'General'}</span>
+                                                <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md font-semibold">{job.scheduleType || 'Full-time'}</span>
+                                            </div>
+                                            <p className="text-xs text-gray-500 font-medium leading-relaxed max-w-md line-clamp-1 italic">
+                                                {job.description || 'No job summary provided.'}
                                             </p>
-                                            <p className="mt-1 text-xs text-gray-500">
-                                                Posted on {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : "Recently"}
+                                            <p className="text-[10px] text-gray-400 font-semibold">
+                                                Posted on {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Recently'}
                                             </p>
-                                        </div>
-
-                                        <div className="text-right">
-                                            <p className="text-xl font-bold text-[#081B3A]">
-                                                {job.interestedCount || 0}
-                                            </p>
-                                            <p className="text-xs text-gray-500">Interested</p>
+                                            
+                                            <div className="pt-1.5 flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigate(`/recruiter/interested-candidates?jobId=${job._id}`);
+                                                    }}
+                                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#0066FF] hover:bg-blue-600 px-4 py-2 rounded-xl shadow-xs transition"
+                                                >
+                                                    <HiUsers className="w-3.5 h-3.5" /> View Applicants ({job.interestedCount || 0})
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <HiChevronRight className="h-5 w-5 text-gray-400" />

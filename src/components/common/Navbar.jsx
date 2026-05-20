@@ -7,13 +7,15 @@ import LanguageDropdown from '../LanguageDropdown';
 import useTranslation from '../../hooks/useTranslation';
 import toast from 'react-hot-toast';
 
+import RoleCompletionModal from './RoleCompletionModal';
+
 const Navbar = () => {
-  // const { user, isAuthenticated, logout, switchRole } = useAuth();
-  const { user, isAuthenticated, logout, switchPanel } = useAuth();
+  const { user, isAuthenticated, logout, switchPanel, refreshUser } = useAuth();
   const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [switchingRole, setSwitchingRole] = useState(false);
+  const [completionModal, setCompletionModal] = useState({ open: false, role: null });
   const navigate = useNavigate();
   const activeRole = user?.activeRole || user?.role;
   const roleList = Array.isArray(user?.roles) ? user.roles : [];
@@ -27,61 +29,25 @@ const Navbar = () => {
     setDropdownOpen(false);
   };
 
-  // const getDashboardLink = () => {
-  //   if (!user) return '/';
-  //   switch (activeRole) {
-  //     case 'provider': return '/provider/dashboard';
-  //     case 'recruiter': return '/recruiter/dashboard';
-  //     case 'admin': return '/admin/dashboard';
-  //     case 'manager': return '/admin/providers';
-  //     default: return '/';
-  //   }
-  // };
   const getDashboardLink = () => {
     if (!user) return '/';
     switch (activeRole) {
-      case 'provider': return '/provider/plans';
-      case 'recruiter': return '/recruiter/job-postings';
+      case 'provider': return '/provider/dashboard';
+      case 'recruiter': return '/recruiter/dashboard';
       case 'admin': return '/admin/dashboard';
       case 'manager': return '/admin/providers';
       default: return '/';
     }
   };
 
-  // const openRolePanel = async (targetRole) => {
-  //   if (!canSwitchRoles || switchingRole) return;
-  //   if (targetRole !== 'provider' && targetRole !== 'recruiter') return;
-
-  //   if (activeRole === targetRole) {
-  //     navigate(`/${targetRole}/dashboard?showSubscriptionPopup=1`);
-  //     setDropdownOpen(false);
-  //     setMobileOpen(false);
-  //     return;
-  //   }
-
-  //   setSwitchingRole(true);
-  //   try {
-  //     const result = await switchRole(targetRole);
-  //     const switchedRole = result?.user?.activeRole || targetRole;
-  //     const shouldOpenPopup = switchedRole === 'provider' || switchedRole === 'recruiter';
-  //     navigate(`/${switchedRole}/dashboard${shouldOpenPopup ? '?showSubscriptionPopup=1' : ''}`);
-  //     setDropdownOpen(false);
-  //     setMobileOpen(false);
-  //   } catch (error) {
-  //     console.error(error);
-  //     toast.error(error?.response?.data?.message || 'Role switch failed. Please try again.');
-  //   } finally {
-  //     setSwitchingRole(false);
-  //   }
-  // };
   const openRolePanel = async (targetRole) => {
     if (!canSwitchRoles || switchingRole) return;
     if (targetRole !== 'provider' && targetRole !== 'recruiter') return;
 
     const targetPath =
       targetRole === 'provider'
-        ? '/provider/plans'
-        : '/recruiter/job-postings';
+        ? '/provider/dashboard'
+        : '/recruiter/dashboard';
 
     if (activeRole === targetRole) {
       navigate(targetPath, { replace: true });
@@ -93,10 +59,16 @@ const Navbar = () => {
     setSwitchingRole(true);
 
     try {
-      await switchPanel(targetRole);
+      const response = await switchPanel(targetRole);
+      
+      if (response?.needsProfileCompletion) {
+        setCompletionModal({ open: true, role: targetRole });
+        setDropdownOpen(false);
+        setMobileOpen(false);
+        return;
+      }
 
       navigate(targetPath, { replace: true });
-
       setDropdownOpen(false);
       setMobileOpen(false);
     } catch (error) {
@@ -108,6 +80,12 @@ const Navbar = () => {
     } finally {
       setSwitchingRole(false);
     }
+  };
+
+  const handleCompletion = async (updatedUser) => {
+    await refreshUser();
+    const targetPath = completionModal.role === 'provider' ? '/provider/dashboard' : '/recruiter/dashboard';
+    navigate(targetPath, { replace: true });
   };
 
   const getRoleButtonLabel = (role) => {
@@ -357,6 +335,12 @@ const Navbar = () => {
           </div>
         )}
       </div>
+      <RoleCompletionModal
+        isOpen={completionModal.open}
+        role={completionModal.role}
+        onClose={() => setCompletionModal({ open: false, role: null })}
+        onComplete={handleCompletion}
+      />
     </nav>
   );
 };

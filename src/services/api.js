@@ -188,6 +188,10 @@ export const providerAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
   getHistory: () => API.get("/provider/history"),
+  getJobs: (params) => API.get("/provider/jobs", { params }),
+  getJobById: (jobId) => API.get(`/provider/jobs/${jobId}`),
+  applyToJob: (jobId, data) => API.post(`/provider/jobs/${jobId}/apply`, data),
+  getApplications: () => API.get("/provider/applications"),
 };
 
 // Recruiter APIs
@@ -205,9 +209,9 @@ export const recruiterAPI = {
     API.get(`/recruiter/unlock-status/${providerId}`),
   postJob: (data) => API.post("/recruiter/jobs", data),
   getJobs: () => API.get("/recruiter/jobs"),
-  getJobApplications: (jobId) => API.get(`/jobs/${jobId}/applications`),
+  getJobApplications: (jobId) => API.get(`/recruiter/jobs/${jobId}/applications`),
   updateApplicationStatus: (applicationId, data) =>
-    API.put(`/jobs/applications/${applicationId}`, data),
+    API.patch(`/recruiter/applications/${applicationId}/status`, data),
   getPlans: () => API.get("/recruiter/plans"),
   purchasePlan: (data) => API.post("/recruiter/plans/purchase", data),
   addReview: (providerId, data) =>
@@ -243,6 +247,9 @@ export const recruiterAPI = {
   getSavedCandidates: () => API.get('/recruiter/saved-candidates'),
   saveCandidate: (data) => API.post('/recruiter/saved-candidates', data),
   removeSavedCandidate: (providerProfileId) => API.delete(`/recruiter/saved-candidates/${providerProfileId}`),
+  unlockProvider: (providerId, data) => API.post(`/recruiter/provider/${providerId}/unlock`, data),
+  getProviderProfile: (providerId) => API.get(`/recruiter/provider/${providerId}/profile`),
+  getApplicationDetails: (applicationId) => API.get(`/recruiter/applications/${applicationId}`),
   // ==================================================================
 };
 
@@ -382,6 +389,7 @@ export const adminAPI = {
   approveProvider: (userId) => API.patch(`/admin/users/${userId}/approve`),
 
   approveRecruiter: (userId) => API.patch(`/admin/users/${userId}/approve`),
+  getAllReferrals: () => ADMIN_API.get("/admin/referrals"),
   // =================================================================
 };
 
@@ -467,6 +475,7 @@ export const notificationAPI = {
 export const profileAPI = {
   getByUserId: (userId) => API.get(`/profile/${userId}`),
   updateMyProfile: (data) => API.patch("/profile", data),
+  completeRole: (data) => API.post("/profile/complete-role", data),
 };
 
 // Review APIs
@@ -513,6 +522,10 @@ export const locationAPI = {
 export const enquiryAPI = {
   create: (data) => API.post('/enquiry', data),
   getAll: () => API.get('/enquiry'),
+};
+
+export const referralAPI = {
+  getMyStats: () => API.get("/referrals/my-stats"),
 };
 
 export default API;

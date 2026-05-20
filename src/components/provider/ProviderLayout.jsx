@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail, HiLockClosed,
+  HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail, HiLockClosed, HiPlusCircle
 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../common/NotificationBell';
@@ -14,6 +14,7 @@ const navItems = [
   { label: 'Messages', fallback: 'Messages', path: '/provider/contacted',      icon: HiMail },
   { label: 'Leads', fallback: 'Leads', path: '/provider/leads',          icon: HiUsers },
   { label: 'History', fallback: 'History', path: '/provider/history',        icon: HiClock },
+  { label: 'Refer & Earn', fallback: 'Refer & Earn', path: '/provider/referrals', icon: HiPlusCircle },
   { label: 'My Plan', fallback: 'My Plan', path: '/provider/plans',          icon: HiPhone },
   { label: 'Profile', fallback: 'Profile', path: '/provider/profile',        icon: HiCog },
   { label: 'Change Password', fallback: 'Change Password', path: '/provider/change-password', icon: HiLockClosed },

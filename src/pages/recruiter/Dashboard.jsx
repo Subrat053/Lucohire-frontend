@@ -140,8 +140,8 @@ const RecruiterDashboard = () => {
     { label: t('recruiter.currentPlan', 'Current Plan'),          value: stats.currentPlan || 'Free', Icon: HiTrendingUp,    bg: 'bg-amber-50',  color: 'text-amber-600'  },
     { label: t('recruiter.jobsPosted', 'Jobs Posted'),            value: stats.totalJobsPosted         || 0, Icon: HiBriefcase,     bg: 'bg-blue-50',   color: 'text-blue-600'   },
     { label: t('recruiter.appsReceived', 'Applications Received'),  value: stats.totalApplicationsReceived|| 0, Icon: HiDocumentText,  bg: 'bg-teal-50',   color: 'text-teal-600'  },
-    { label: t('recruiter.contactsUnlocked', 'Contacts Unlocked'),      value: stats.totalUnlocks             || 0, Icon: HiLockOpen,      bg: 'bg-purple-50', color: 'text-purple-600' },
-    { label: t('recruiter.postLimitLeft', 'Post Limit Remaining'),   value: stats.remainingPostLimit !== undefined ? (stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit) : stats.unlocksRemaining || 0, Icon: HiUsers, bg: 'bg-green-50', color: 'text-green-600' },
+    { label: t('recruiter.unlockCredits', 'Unlock Credits Remaining'), value: stats.unlocksRemaining ?? 0, Icon: HiLockOpen, bg: 'bg-purple-50', color: 'text-purple-600' },
+    { label: t('recruiter.postLimitLeft', 'Postings Left (Month)'), value: stats.remainingPostLimit !== undefined ? (stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit) : '0', Icon: HiUsers, bg: 'bg-green-50', color: 'text-green-600' },
   ];
 
   return (
@@ -159,6 +159,27 @@ const RecruiterDashboard = () => {
               <Link to="/recruiter/profile"
                 className="shrink-0 bg-white text-indigo-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-indigo-50 transition shadow">
                 {t('recruiter.completeProfileBtn', "Complete Profile →")}
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Out of Credits / Upgrade Banner */}
+        {Number(stats.unlocksRemaining) <= 0 && (
+          <div className="bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl p-5 mb-6 text-white shadow-md">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-bold flex items-center gap-1.5">
+                  <HiExclamationCircle className="w-5 h-5 animate-pulse shrink-0" />
+                  Profile Unlock Credits Exhausted
+                </h2>
+                <p className="text-orange-50 text-xs mt-1">
+                  You have 0 candidate profile unlocks left. Upgrade your plan or purchase a top-up pack to continue viewing applicants' full contact details!
+                </p>
+              </div>
+              <Link to="/recruiter/plans"
+                className="shrink-0 bg-white text-orange-700 font-bold px-4 py-2 rounded-xl text-xs hover:bg-orange-50 transition shadow-sm">
+                Get More Credits
               </Link>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
 import ScrollToTop from "./components/common/ScrollToTop";
@@ -14,6 +14,7 @@ import AuthPage from "./pages/AuthPage";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import ChangePassword from "./pages/user/ChangePassword";
+import ReferralManagement from "./pages/user/ReferralManagement";
 
 import LandingPage from "./pages/LandingPage";
 import SearchPage from "./pages/SearchPage";
@@ -120,6 +121,7 @@ function App() {
       )}
       <Routes>
         {/* Auth pages - full screen, no Navbar/Footer */}
+        <Route path="/auth" element={<Navigate to="/signup" replace />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/signup" element={<AuthPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -184,6 +186,11 @@ function App() {
         <Route path="/provider/change-password" element={wrap(
           <ProtectedRoute allowedRoles={["provider"]}>
             <ProviderLayout><ChangePassword /></ProviderLayout>
+          </ProtectedRoute>
+        )} />
+        <Route path="/provider/referrals" element={wrap(
+          <ProtectedRoute allowedRoles={["provider"]}>
+            <ProviderLayout><ReferralManagement /></ProviderLayout>
           </ProtectedRoute>
         )} />
 
@@ -297,6 +304,11 @@ function App() {
         <Route path="/recruiter/change-password" element={wrap(
           <ProtectedRoute allowedRoles={["recruiter"]}>
             <RecruiterLayout><ChangePassword /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
+        <Route path="/recruiter/referrals" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><ReferralManagement /></RecruiterLayout>
           </ProtectedRoute>
         )} />
         {/* =============================================================================== */}

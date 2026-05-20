@@ -10,6 +10,8 @@ import { recruiterAPI } from '../../services/api';
 import SkillPicker from '../../components/common/SkillPicker';
 import LocationSearch from '../../components/LocationSearch';
 import useTranslation from '../../hooks/useTranslation';
+import toast from 'react-hot-toast';
+import { getPlacePredictions, getPlaceDetails, normalizeGooglePlace } from '../../services/googlePlacesService';
 
 /* ── Illustration ─────────────────────────────────────────────────── */
 const PostJobIllustration = () => (
@@ -56,6 +58,7 @@ const PostJob = () => {
   const [form, setForm] = useState({
     title: '', skill: '', city: '', budgetMin: '', budgetMax: '',
     budgetType: 'negotiable', description: '', requirements: '',
+    location: null,
   });
 
   const set = (field) => (e) => setForm({ ...form, [field]: e.target.value });
@@ -78,12 +81,32 @@ const PostJob = () => {
         budgetType: form.budgetType,
       });
 
+      let resolvedLoc = null;
+      let resolvedCity = data.city || '';
+
+      if (data.city) {
+        try {
+          const predictions = await getPlacePredictions(data.city);
+          if (predictions && predictions.length > 0) {
+            const firstPlace = predictions[0];
+            const details = await getPlaceDetails(firstPlace.place_id);
+            if (details) {
+              resolvedLoc = normalizeGooglePlace(details);
+              resolvedCity = resolvedLoc.city || resolvedLoc.name || data.city;
+            }
+          }
+        } catch (geoErr) {
+          console.warn('[AI Job Location Resolution Error]', geoErr);
+        }
+      }
+
       setForm((prev) => ({
         ...prev,
         title: data.title || prev.title,
         description: data.fullDescription || prev.description,
         skill: (data.skills && data.skills.length > 0) ? data.skills[0] : prev.skill,
-        city: data.city || prev.city,
+        city: resolvedCity || prev.city,
+        location: resolvedLoc || prev.location,
         requirements: Array.isArray(data.duties) ? data.duties.join(', ') : prev.requirements,
         budgetMin: data.budget?.min ? String(data.budget.min) : prev.budgetMin,
         budgetMax: data.budget?.max ? String(data.budget.max) : prev.budgetMax,
@@ -235,7 +258,7 @@ const PostJob = () => {
                     <LocationSearch
                       value={form.city}
                       onChange={(value) => setForm({ ...form, city: value })}
-                      onSelect={(item) => setForm({ ...form, city: item?.name || form.city })}
+                      onSelect={(item) => setForm({ ...form, city: item?.name || form.city, location: item })}
                       placeholder={t('common.cityPlaceholder', 'e.g. Delhi')}
                     />
                   </div>

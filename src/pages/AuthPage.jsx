@@ -427,9 +427,12 @@ const AuthPage = () => {
       whatsappNumber: "",
     });
 
-    if (!isLogin && roleParam) {
+    if (roleParam) {
       setSelectedRoles([roleParam]);
       setActiveRole(roleParam);
+    } else if (isLogin) {
+      setSelectedRoles([]);
+      setActiveRole(null);
     } else {
       setSelectedRoles([]);
       setActiveRole(null);
@@ -459,11 +462,10 @@ const AuthPage = () => {
   const redirectToDashboard = (userRole) => {
     switch (userRole) {
       case "provider":
-        navigate("/provider/plans", { replace: true });
+        navigate("/provider/dashboard", { replace: true });
         break;
-
       case "recruiter":
-        navigate("/recruiter/job-postings", { replace: true });
+        navigate("/recruiter/dashboard", { replace: true });
         break;
 
       case "manager":
@@ -479,6 +481,8 @@ const AuthPage = () => {
         navigate("/", { replace: true });
     }
   };
+
+  const loginHref = preSelectedRole ? `/login?role=${preSelectedRole}` : "/login";
 
   useEffect(() => {
     if (authLoading || !isAuthenticated) return;
@@ -540,10 +544,15 @@ const AuthPage = () => {
   };
 
   const redirectAfterAuth = (data) => {
+    console.log("[AUTH DEBUG] Starting redirectAfterAuth with data:", data);
     const authData = data?.token && data?.user ? data : null;
-    if (!authData) return;
+    if (!authData) {
+      console.log("[AUTH DEBUG] No valid authData, going to /");
+      return;
+    }
 
     const savedUser = saveUserSession(authData) || authData.user;
+    console.log("[AUTH DEBUG] savedUser result:", savedUser);
 
     toast.success(
       `${t("auth.welcomeBack")}${savedUser?.name ? ", " + savedUser.name.split(" ")[0] : ""
@@ -555,6 +564,7 @@ const AuthPage = () => {
       savedUser?.role ||
       savedUser?.roles?.[0];
 
+    console.log("[AUTH DEBUG] resolvedRole:", resolvedRole);
     redirectToDashboard(resolvedRole);
   };
 
@@ -667,14 +677,17 @@ const AuthPage = () => {
       const firebaseToken = await result.user.getIdToken(true);
 
       const defaultRoles = selectedRoles.length ? selectedRoles : ["provider"];
-      const defaultActiveRole = activeRole || selectedRoles[0] || "provider";
+      const defaultActiveRole =
+        mode === "register"
+          ? activeRole || selectedRoles[0] || "provider"
+          : activeRole || preSelectedRole || undefined;
 
       const payload = {
         firebaseToken,
         phone: result.user.phoneNumber,
         name: form.name || undefined,
         city: form.city || undefined,
-        roles: defaultRoles,
+        roles: mode === "register" ? defaultRoles : undefined,
         activeRole: defaultActiveRole,
         role: defaultActiveRole,
         referralCode,
@@ -728,6 +741,8 @@ const AuthPage = () => {
       const { data } = await authAPI.loginEmail({
         email: form.email,
         password: form.password,
+        activeRole: activeRole || preSelectedRole || undefined,
+        role: activeRole || preSelectedRole || undefined,
       });
 
       console.log("[EMAIL LOGIN RESPONSE]", data);
@@ -824,7 +839,13 @@ const AuthPage = () => {
         accessToken,
         roles: mode === "register" ? selectedRoles : undefined,
         activeRole:
-          mode === "register" ? activeRole || selectedRoles[0] : undefined,
+          mode === "register"
+            ? activeRole || selectedRoles[0]
+            : activeRole || preSelectedRole || undefined,
+        role:
+          mode === "register"
+            ? activeRole || selectedRoles[0]
+            : activeRole || preSelectedRole || undefined,
         referralCode,
       });
 
@@ -964,7 +985,7 @@ const AuthPage = () => {
           <p className="text-center text-sm text-gray-500">
             {t("auth.alreadyAccount")}{" "}
             <Link
-              to="/login"
+              to={loginHref}
               className="text-blue-600 font-bold hover:underline"
             >
               {t("navbar.login")}
@@ -1126,7 +1147,7 @@ const AuthPage = () => {
           <p className="text-center text-sm text-gray-500">
             {t("auth.alreadyAccount")}{" "}
             <Link
-              to="/login"
+              to={loginHref}
               className="text-blue-600 font-bold hover:underline"
             >
               {t("navbar.login")}

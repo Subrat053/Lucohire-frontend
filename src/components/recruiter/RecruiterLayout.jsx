@@ -17,6 +17,7 @@ import {
   HiSearch,
   HiBell,
   HiLockClosed,
+  HiPlusCircle,
 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../common/NotificationBell';
@@ -48,6 +49,7 @@ const navItems = [
   { label: 'Search History', fallback: 'Search History', path: '/recruiter/search-history', icon: HiSearch },
   { label: 'Plans & Billing', fallback: 'Plans & Billing', path: '/recruiter/plans-billing', icon: HiCurrencyRupee },
   { label: 'Transactions', fallback: 'Transactions', path: '/recruiter/transactions', icon: HiCurrencyRupee },
+  { label: 'Refer & Earn', fallback: 'Refer & Earn', path: '/recruiter/referrals', icon: HiPlusCircle },
   { label: 'Company Profile', fallback: 'Company Profile', path: '/recruiter/company-profile', icon: HiDocumentText },
   { label: 'Change Password', fallback: 'Change Password', path: '/recruiter/change-password', icon: HiLockClosed },
 ];

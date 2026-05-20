@@ -473,7 +473,19 @@ const ProviderProfile = () => {
         </div>
 
         <form onSubmit={handleSave} className="space-y-4">
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+
+        <div className="mb-4">
+          <AIProfileAssistant
+            aiInput={aiInput}
+            onAiInputChange={setAiInput}
+            onGenerate={handleAISuggest}
+            aiLoading={aiLoading}
+            aiMeta={aiMeta}
+          />
+        </div>
+
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+
 
 
             {/* ── Basic Info Card ── */}
@@ -637,15 +649,7 @@ const ProviderProfile = () => {
 
             {/* ── Experience & About ── */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-5 space-y-4">
-              <AIProfileAssistant
-                aiInput={aiInput}
-                onAiInputChange={setAiInput}
-                onGenerate={handleAISuggest}
-                aiLoading={aiLoading}
-                aiMeta={aiMeta}
-              />
-
-              <div className="mt-3">
+              <div className="mt-1">
                 <PricingSuggestionCard skill={form.skills?.[0]} city={form.city} />
               </div>
 

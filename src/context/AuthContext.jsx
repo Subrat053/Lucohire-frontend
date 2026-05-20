@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [showWhatsAppPrompt, setShowWhatsAppPrompt] = useState(false);
 
-  const normalizeUser = (rawUser) => {
+  const normalizeUser = useCallback((rawUser) => {
     if (!rawUser) return null;
 
     const roles = Array.isArray(rawUser.roles)
@@ -40,34 +40,35 @@ export const AuthProvider = ({ children }) => {
         ? [rawUser.role]
         : [];
 
-    let activeRole = rawUser.activeRole || rawUser.role;
-    
-    // If no valid activeRole, prioritize privileged roles
+    let activeRole = rawUser.activeRole || rawUser.activePanel || rawUser.role;
+
     if (!activeRole || !roles.includes(activeRole)) {
       if (roles.includes("admin")) activeRole = "admin";
       else if (roles.includes("manager")) activeRole = "manager";
       else if (roles.includes("partner")) activeRole = "partner";
+      else if (rawUser.roleIntent === "recruiter" && roles.includes("recruiter")) activeRole = "recruiter";
+      else if (rawUser.roleIntent === "provider" && roles.includes("provider")) activeRole = "provider";
       else activeRole = roles[0] || null;
     }
 
+    const panelAccess = {
+      provider: { enabled: true, source: "free_plan", ...(rawUser.panelAccess?.provider || {}) },
+      recruiter: { enabled: true, source: "free_plan", ...(rawUser.panelAccess?.recruiter || {}) },
+    };
+
     return {
       ...rawUser,
+      id: rawUser._id || rawUser.id,
       roles,
       activeRole,
       role: activeRole,
+      panelAccess,
       approvalStatus: rawUser.approvalStatus || "approved",
-      roleIntent:
-        rawUser.roleIntent ||
-        (roles.includes("provider") && roles.includes("recruiter")
-          ? "both"
-          : roles[0] || "provider"),
-      panelAccess: rawUser.panelAccess || {
-        provider: { enabled: false, source: "none" },
-        recruiter: { enabled: false, source: "none" },
-      },
+      roleIntent: rawUser.roleIntent || (roles.includes("provider") && roles.includes("recruiter") ? "both" : roles[0] || "provider"),
       activePanel: rawUser.activePanel || activeRole || null,
+      isAuthenticated: true,
     };
-  };
+  }, []);
 
   const clearAuthStorage = useCallback(() => {
     localStorage.removeItem("authToken");
@@ -110,7 +111,7 @@ export const AuthProvider = ({ children }) => {
     } catch (_) {
       return null;
     }
-  }, []);
+  }, [normalizeUser]);
 
   const logout = useCallback(() => {
     clearAuthStorage();
@@ -171,14 +172,14 @@ export const AuthProvider = ({ children }) => {
       if (cachedUser) {
         resolvedUser = cachedUser;
         setUser(cachedUser);
-        setProfile(cachedUser?.profile || null);
+        setProfile(cachedUser?.profile || cachedUser?.profileId || null);
       }
     } finally {
       setLoading(false);
     }
 
     return resolvedUser;
-  }, [clearAuthStorage, loadCachedUser, migrateLegacyToken]);
+  }, [clearAuthStorage, loadCachedUser, migrateLegacyToken, normalizeUser]);
 
   useEffect(() => {
     refreshUser();
@@ -203,12 +204,14 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("authUser", JSON.stringify(normalizedUser));
 
       setUser(normalizedUser);
+      setProfile(nextUser.profile || nextUser.profileId || null);
+      setLoading(false);
       return normalizedUser;
     },
-    [],
+    [normalizeUser],
   );
 
-  const login = async (credentials, options = {}) => {
+  const login = useCallback(async (credentials, options = {}) => {
     const mode = options.mode || options.role || "user";
     const response =
       mode === "admin"
@@ -251,23 +254,23 @@ export const AuthProvider = ({ children }) => {
       role: normalizedUser?.activeRole || normalizedUser?.role,
       redirectTo: getDashboardByRole(normalizedUser?.activeRole || normalizedUser?.role),
     };
-  };
+  }, [normalizeUser]);
 
-  const loginUser = async (credentials) => {
+  const loginUser = useCallback(async (credentials) => {
     const { data } = await authAPI.loginEmail(credentials);
     const authData = data?.data || {};
     const normalizedUser = saveUserSession(authData);
     return { ...authData, user: normalizedUser || authData.user };
-  };
+  }, [saveUserSession]);
 
-  const loginWithFirebase = async (payload) => {
+  const loginWithFirebase = useCallback(async (payload) => {
     const { data } = await authAPI.phoneLogin(payload);
     const authData = data?.data || {};
     const normalizedUser = saveUserSession(authData);
     return { ...authData, user: normalizedUser || authData.user };
-  };
+  }, [saveUserSession]);
 
-  const switchRole = async (nextRole) => {
+  const switchRole = useCallback(async (nextRole) => {
     const { data } = await authAPI.switchRole({ role: nextRole });
     const nextToken =
       data?.data?.token ||
@@ -281,9 +284,9 @@ export const AuthProvider = ({ children }) => {
     const freshUser = await refreshUser();
 
     return { user: freshUser, profile };
-  };
+  }, [refreshUser, profile]);
 
-  const switchPanel = async (nextPanel) => {
+  const switchPanel = useCallback(async (nextPanel) => {
     const { data } = await authAPI.switchPanel({ panel: nextPanel });
     const nextToken =
       data?.data?.token ||
@@ -297,7 +300,7 @@ export const AuthProvider = ({ children }) => {
     const freshUser = await refreshUser();
 
     return { user: freshUser, profile };
-  };
+  }, [refreshUser, profile]);
 
   const role = user?.activeRole || user?.role || null;
   const isAuthenticated = Boolean(user && localStorage.getItem("authToken"));
