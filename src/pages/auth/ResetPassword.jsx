@@ -17,15 +17,8 @@ const ResetPassword = () => {
 
   const getPasswordStrength = (password) => {
     if (!password) return { label: "", color: "bg-slate-200" };
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[@$!%*?&#]/.test(password)) strength++;
-
-    if (strength <= 2) return { label: "Weak", color: "bg-red-400" };
-    if (strength <= 4) return { label: "Good", color: "bg-yellow-400" };
+    if (password.length < 6) return { label: "Weak", color: "bg-red-400" };
+    if (password.length < 10) return { label: "Good", color: "bg-yellow-400" };
     return { label: "Strong", color: "bg-green-500" };
   };
 
@@ -37,6 +30,9 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.newPassword.length < 6) {
+      return toast.error("Password must be at least 6 characters long");
+    }
     if (formData.newPassword !== formData.confirmPassword) {
       return toast.error("Passwords do not match");
     }

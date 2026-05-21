@@ -706,7 +706,13 @@ export default function JobPostings() {
                         <h2 className="font-bold text-[#081B3A]">Your Profile</h2>
 
                         <div className="mt-4 flex items-center gap-4">
-                            {user?.profilePhoto || user?.avatar ? (
+                            {user?.profilePhotoApproval?.status === 'pending' && user?.profilePhotoApproval?.pendingUrl ? (
+                                <img
+                                    src={user.profilePhotoApproval.pendingUrl}
+                                    alt={user?.name || "Recruiter"}
+                                    className="h-16 w-16 rounded-full object-cover border border-[#E5EAF3]"
+                                />
+                            ) : user?.profilePhoto || user?.avatar ? (
                                 <img
                                     src={user.profilePhoto || user.avatar}
                                     alt={user?.name || "Recruiter"}

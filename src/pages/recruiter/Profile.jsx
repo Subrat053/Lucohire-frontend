@@ -92,8 +92,12 @@ const RecruiterProfile = () => {
         bio: p.bio || p.description || '',
       });
 
-      if (p.profilePhoto) {
-        const url = toAbsoluteMediaUrl(p.profilePhoto);
+      let displayPhoto = p.profilePhoto || '';
+      if (p.profilePhotoApproval?.status === 'pending' && p.profilePhotoApproval?.pendingUrl) {
+        displayPhoto = p.profilePhotoApproval.pendingUrl;
+      }
+      if (displayPhoto) {
+        const url = toAbsoluteMediaUrl(displayPhoto);
         setSavedPhoto(url);
         setPhotoPreview(url);
       }
@@ -118,9 +122,13 @@ const RecruiterProfile = () => {
     formData.append('profilePhoto', file);
     try {
       const { data } = await recruiterAPI.uploadProfilePhoto(formData);
-      setPhotoPreview(savedPhoto);
+      if (data?.url) {
+        const url = toAbsoluteMediaUrl(data.url);
+        setSavedPhoto(url);
+        setPhotoPreview(url);
+      }
       await fetchUser();
-      toast.success('Photo submitted for admin approval. Your current photo will remain until approved.');
+      toast.success('Profile photo updated successfully!');
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to upload photo';
       toast.error(msg);
@@ -186,20 +194,6 @@ const RecruiterProfile = () => {
               <h2 className="text-base font-extrabold text-gray-900 mb-5 flex items-center gap-2">
                 <HiUser className="w-4 h-4 text-blue-500" /> Basic Information
               </h2>
-
-              {/* Photo Status */}
-              {profile?.profilePhotoApproval?.status === 'pending' && (
-                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700 font-medium">
-                  Your new profile photo is pending admin approval.
-                </div>
-              )}
-              {profile?.profilePhotoApproval?.status === 'rejected' && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
-                  Photo rejected: {profile.profilePhotoApproval.rejectionReason}
-                </div>
-              )}
-
-
 
               {/* Photo upload */}
               <div className="flex items-center gap-5 mb-6 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">

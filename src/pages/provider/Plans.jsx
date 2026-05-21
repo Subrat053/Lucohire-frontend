@@ -151,10 +151,10 @@ const ProviderPlans = () => {
             paymentId: sessionId,
             orderId: 'stripe_session',
           });
-          toast.success('Payment confirmed! Your plan is now active.');
-          // Remove query params
-          navigate('/provider/plans', { replace: true });
-          await getMyPlan();
+            toast.success('Payment confirmed! Your plan is now active.');
+            // Remove query params and redirect to custom plan success page
+            navigate('/provider/custom-plan?redirected=true', { replace: true });
+           await getMyPlan();
         } catch (err) {
           toast.error('Failed to confirm payment status.');
         }
@@ -233,6 +233,7 @@ const ProviderPlans = () => {
           });
           await getMyPlan();
           toast.success('Simulation: Payment successful! Plan activated.');
+          navigate('/provider/custom-plan?redirected=true');
           return;
         }
       }
@@ -262,6 +263,7 @@ const ProviderPlans = () => {
             });
             await getMyPlan();
             toast.success('Payment successful! Plan activated.');
+            navigate('/provider/custom-plan?redirected=true');
           },
         };
         const razorpay = new window.Razorpay(options);
@@ -572,7 +574,13 @@ const ProviderPlans = () => {
         <div className="space-y-4 col-span-1">
           <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5">
             <div className="flex items-center gap-4">
-              {user?.profilePhoto || user?.avatar ? (
+              {user?.profilePhotoApproval?.status === 'pending' && user?.profilePhotoApproval?.pendingUrl ? (
+                <img
+                  src={user.profilePhotoApproval.pendingUrl}
+                  alt={providerName}
+                  className="h-16 w-16 rounded-full object-cover border border-[#E5EAF3]"
+                />
+              ) : user?.profilePhoto || user?.avatar ? (
                 <img
                   src={user.profilePhoto || user.avatar}
                   alt={providerName}

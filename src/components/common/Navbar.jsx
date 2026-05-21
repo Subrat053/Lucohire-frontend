@@ -161,11 +161,15 @@ const Navbar = () => {
                   className="flex items-center space-x-2 bg-gray-50 rounded-full px-3 py-1.5 hover:bg-gray-100 transition"
                 >
                   <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
-                    {user?.profilePhoto ? (
+                    {user?.profilePhotoApproval?.status === 'pending' && user?.profilePhotoApproval?.pendingUrl ? (
                       <img
-                        src={
-                          toAbsoluteMediaUrl(user.profilePhoto)
-                        }
+                        src={toAbsoluteMediaUrl(user.profilePhotoApproval.pendingUrl)}
+                        alt="Profile"
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : user?.profilePhoto ? (
+                      <img
+                        src={toAbsoluteMediaUrl(user.profilePhoto)}
                         alt="Profile"
                         className="w-full h-full object-cover rounded-full"
                       />

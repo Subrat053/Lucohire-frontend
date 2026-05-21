@@ -29,6 +29,7 @@ import ContactUs from "./pages/ContactUs";
 import ProviderDashboard from "./pages/provider/Dashboard";
 import ProviderProfile from "./pages/provider/Profile";
 import ProviderPlans from "./pages/provider/Plans";
+import CustomPlan from "./pages/provider/CustomPlan";
 import ProviderLeads from "./pages/provider/Leads";
 import ProviderHistory from "./pages/provider/History";
 import ProviderJobs from "./pages/provider/Jobs";
@@ -161,6 +162,11 @@ function App() {
         <Route path="/provider/plans" element={wrap(
           <ProtectedRoute allowedRoles={["provider"]}>
             <ProviderLayout><ProviderPlans /></ProviderLayout>
+          </ProtectedRoute>
+        )} />
+        <Route path="/provider/custom-plan" element={wrap(
+          <ProtectedRoute allowedRoles={["provider"]}>
+            <ProviderLayout><CustomPlan /></ProviderLayout>
           </ProtectedRoute>
         )} />
         <Route path="/provider/leads" element={wrap(

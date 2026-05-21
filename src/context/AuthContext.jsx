@@ -316,6 +316,7 @@ export const AuthProvider = ({ children }) => {
     loginWithFirebase,
     logout,
     refreshUser,
+    fetchUser: refreshUser,
     switchRole,
     switchPanel,
     saveUserSession,

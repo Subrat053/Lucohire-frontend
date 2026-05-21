@@ -114,7 +114,7 @@ const TagPicker = ({ available, selected, onAdd, onRemove, placeholder }) => {
               </li>
             )}
             {filtered.map(s => (
-              <li key={s} onClick={() => { onAdd(s); setQuery(''); }}
+              <li key={s} onClick={() => { onAdd(s); setQuery(''); setOpen(false); }}
                 className="px-4 py-2.5 text-sm text-gray-700 cursor-pointer hover:bg-blue-50">{s}</li>
             ))}
           </ul>
@@ -134,6 +134,9 @@ const ProviderProfile = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [plan, setPlan] = useState('free');
+  const [profileData, setProfileData] = useState(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(null);
   const [completion, setCompletion] = useState(0);
   const [newLink, setNewLink] = useState('');
   const [showLinkInput, setShowLinkInput] = useState(false);
@@ -163,14 +166,41 @@ const ProviderProfile = () => {
 
   useEffect(() => { fetchProfile(); }, []);
 
+  useEffect(() => {
+    if (redirectCountdown === null) return;
+    if (redirectCountdown === 0) {
+      navigate('/provider/plans');
+      return;
+    }
+    const timer = setTimeout(() => {
+      setRedirectCountdown(prev => prev - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [redirectCountdown, navigate]);
+
+  // Calculate max locations allowed by plan
+  const maxLocations = (() => {
+    if (!profileData || profileData.currentPlan === 'free' || !profileData.currentPlan) return 1;
+    return Math.max(1, Number(profileData.allowedPincodesCount || 1), Number(profileData.allowedCitiesCount || 1));
+  })();
+
   const fetchProfile = async () => {
     try {
       const { data } = await providerAPI.getProfile();
       setPlan(data.currentPlan || 'free');
+      setProfileData(data);
       setCompletion(data.profileCompletion || 0);
-      const locs = [];
-      if (data.city) locs.push(data.city);
-      if (data.state && data.state !== data.city) locs.push(data.state);
+
+      // Use the persisted locations array from the backend if available,
+      // otherwise fall back to city/state for backwards compat
+      let locs = [];
+      if (Array.isArray(data.locations) && data.locations.length > 0) {
+        locs = data.locations;
+      } else {
+        if (data.city) locs.push(data.city);
+        if (data.state && data.state !== data.city) locs.push(data.state);
+      }
+
       let displayPhoto = data.photo || data.profilePhoto || '';
       // If there's a pending photo, show that as preview
       if (data.user?.profilePhotoApproval?.status === 'pending' && data.user?.profilePhotoApproval?.pendingUrl) {
@@ -211,22 +241,43 @@ const ProviderProfile = () => {
   const addLocation = (loc) => {
     const normalized = String(loc || '').trim();
     if (!normalized) return;
-    // Enforce single selected location.
-    setForm({ ...form, locations: [normalized], city: normalized, state: '' });
+    setForm((prev) => {
+      // Don't add duplicates
+      if (prev.locations.includes(normalized)) return prev;
+      // Check plan limit
+      if (prev.locations.length >= maxLocations) {
+        toast.error(`Your plan allows max ${maxLocations} location${maxLocations > 1 ? 's' : ''}. Upgrade to add more.`);
+        return prev;
+      }
+      const updated = [...prev.locations, normalized];
+      return { ...prev, locations: updated, city: updated[0] || '', state: '' };
+    });
   };
   const removeLocation = (loc) => {
-    const updated = form.locations.filter(l => l !== loc);
-    setForm({ ...form, locations: updated, city: updated[0] || '', state: '' });
+    setForm((prev) => {
+      const updated = prev.locations.filter(l => l !== loc);
+      return { ...prev, locations: updated, city: updated[0] || '', state: '' };
+    });
   };
 
   const addSkill = (skill) => {
-    if (plan === 'free' && form.skills.length >= 4) {
-      toast.error('Free plan allows up to 4 skills. Upgrade to add more!');
+    if (plan === 'free' && form.skills.length >= 1) {
+      if (redirectCountdown !== null) return;
+      setShowUpgradePrompt(true);
+      setRedirectCountdown(3);
+      toast.error('Free tier is limited to 1 speciality. Redirecting to plans...');
       return;
     }
     setForm({ ...form, skills: [...form.skills, skill] });
   };
-  const removeSkill = (skill) => setForm({ ...form, skills: form.skills.filter(s => s !== skill) });
+  const removeSkill = (skill) => {
+    const updated = form.skills.filter(s => s !== skill);
+    setForm({ ...form, skills: updated });
+    if (plan === 'free' && updated.length < 1) {
+      setShowUpgradePrompt(false);
+      setRedirectCountdown(null);
+    }
+  };
 
   const toggleLanguage = (lang) => {
     const langs = form.languages.includes(lang)
@@ -276,7 +327,7 @@ const ProviderProfile = () => {
       const incomingLanguages = profile.language ? [profile.language] : [];
 
       const combinedSkills = [...new Set([...form.skills, ...incomingSkills])];
-      const maxSkills = plan === 'free' ? 4 : combinedSkills.length;
+      const maxSkills = plan === 'free' ? 1 : combinedSkills.length;
 
       const nextCity = String(profile.detectedLocation || '').trim();
       const nextLocations = nextCity ? [nextCity] : form.locations;
@@ -332,8 +383,13 @@ const ProviderProfile = () => {
     try {
       const { data } = await providerAPI.uploadProfilePhoto(fd);
       setPhotoFile(null);
+      if (data?.url) {
+        const absoluteUrl = toAbsoluteMediaUrl(data.url);
+        setPhotoPreview(absoluteUrl);
+        setForm(prev => ({ ...prev, photo: absoluteUrl }));
+      }
       await fetchUser();
-      toast.success('Photo submitted for admin approval. Your current photo will remain until approved.');
+      toast.success('Profile photo updated successfully!');
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Photo upload failed';
       toast.error(msg);
@@ -357,13 +413,14 @@ const ProviderProfile = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!form.city) return toast.error('Add at least one service location');
+    if (!form.city && form.locations.length === 0) return toast.error('Add at least one service location');
     if (form.skills.length === 0) return toast.error('Add at least one speciality');
     setSaving(true);
     try {
       const payload = {
         name: form.name, skills: form.skills, tier: form.tier, experience: form.experience,
-        city: form.city, state: form.state, languages: form.languages,
+        city: form.city, state: form.state, locations: form.locations,
+        languages: form.languages,
         description: form.description, portfolioLinks: form.portfolioLinks,
         whatsappAlerts: form.whatsappAlerts,
         nearestLocation: form.nearestLocation,
@@ -489,66 +546,55 @@ const ProviderProfile = () => {
 
 
             {/* ── Basic Info Card ── */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 overflow-hidden">
-              <table className="w-full">
-                <tbody>
-                  <tr className="border-b border-gray-100">
-                    <td className="px-5 py-4 text-sm font-semibold text-gray-600 w-44 whitespace-nowrap">Full Name</td>
-                    <td className="px-5 py-4">
-                      <input value={form.name}
-                        onChange={e => setForm({ ...form, name: e.target.value })}
-                        placeholder="Your full name"
-                        className="w-full text-sm text-gray-800 outline-none bg-transparent placeholder-gray-300 border-b border-transparent focus:border-blue-300 transition" />
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="px-5 py-4 text-sm font-semibold text-gray-600 w-44 whitespace-nowrap">Profile / Display Name</td>
-                    <td className="px-5 py-4">
-                      <input value={form.profileName}
-                        onChange={e => setForm({ ...form, profileName: e.target.value })}
-                        placeholder="Publicly visible name"
-                        className="w-full text-sm text-gray-800 outline-none bg-transparent placeholder-gray-300 border-b border-transparent focus:border-blue-300 transition" />
-                    </td>
-                  </tr>
-
-                  <tr className="border-b border-gray-100">
-                    <td className="px-5 py-4 text-sm font-semibold text-gray-600 align-top pt-4 whitespace-nowrap">
-                      WhatsApp /<br />Contact Number
-                    </td>
-                    <td className="px-5 py-4 text-sm text-gray-700">
-                      {user?.phone
-                        ? <span className="font-medium">{user.phone}</span>
-                        : <span className="text-gray-400 italic text-xs">Not linked — sign in via WhatsApp to link</span>
-                      }
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-5 py-4 text-sm font-semibold text-gray-600 align-top pt-4 whitespace-nowrap">Your Profession</td>
-                    <td className="px-5 py-4">
-                      <div className="flex flex-wrap gap-2">
-                        {form.skills.slice(0, 4).map(s => (
-                          <span key={s} className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-medium">{s}</span>
-                        ))}
-                        {form.skills.length > 4 && (
-                          <span className="text-xs text-blue-500">+{form.skills.length - 4} more</span>
-                        )}
-                        {form.skills.length === 0 && (
-                          <span className="text-xs text-gray-400 italic">Add specialities below ↓</span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 overflow-hidden p-5 space-y-4">
+              {/* Full Name */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <label className="text-sm font-semibold text-gray-600 sm:w-44 shrink-0">Full Name</label>
+                <input value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                  placeholder="Your full name"
+                  className="w-full text-sm text-gray-800 outline-none bg-transparent placeholder-gray-300 border-b border-gray-200 focus:border-blue-400 transition py-2" />
+              </div>
+              <hr className="border-gray-100" />
+              {/* Profile / Display Name */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <label className="text-sm font-semibold text-gray-600 sm:w-44 shrink-0">Profile / Display Name</label>
+                <input value={form.profileName}
+                  onChange={e => setForm({ ...form, profileName: e.target.value })}
+                  placeholder="Publicly visible name"
+                  className="w-full text-sm text-gray-800 outline-none bg-transparent placeholder-gray-300 border-b border-gray-200 focus:border-blue-400 transition py-2" />
+              </div>
+              <hr className="border-gray-100" />
+              {/* WhatsApp / Contact Number */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <label className="text-sm font-semibold text-gray-600 sm:w-44 shrink-0">WhatsApp / Contact</label>
+                <div className="text-sm text-gray-700 py-2">
+                  {user?.phone
+                    ? <span className="font-medium">{user.phone}</span>
+                    : <span className="text-gray-400 italic text-xs">Not linked — sign in via WhatsApp to link</span>
+                  }
+                </div>
+              </div>
+              <hr className="border-gray-100" />
+              {/* Your Profession */}
+              <div className="flex flex-col sm:flex-row gap-1 sm:gap-4">
+                <label className="text-sm font-semibold text-gray-600 sm:w-44 shrink-0 pt-1">Your Profession</label>
+                <div className="flex flex-wrap gap-2 py-1">
+                  {form.skills.slice(0, 4).map(s => (
+                    <span key={s} className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-medium">{s}</span>
+                  ))}
+                  {form.skills.length > 4 && (
+                    <span className="text-xs text-blue-500">+{form.skills.length - 4} more</span>
+                  )}
+                  {form.skills.length === 0 && (
+                    <span className="text-xs text-gray-400 italic">Add specialities below ↓</span>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* ── Photo Upload ── */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-6 flex flex-col items-center gap-3 relative">
-              {user?.profilePhotoApproval?.status === 'pending' && (
-                <div className="absolute top-2 right-2 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-1 rounded-full shadow-xs border border-amber-200 z-10">
-                  PENDING APPROVAL
-                </div>
-              )}
               <div className="w-24 h-24 rounded-full border-4 border-blue-200 shadow-md overflow-hidden bg-blue-50 flex items-center justify-center relative">
                 {avatarSrc ? (
                   <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
@@ -583,11 +629,6 @@ const ProviderProfile = () => {
                   </button>
                 )}
               </div>
-              {user?.profilePhotoApproval?.status === 'rejected' && (
-                <p className="text-[10px] text-red-500 text-center mt-1">
-                  Rejected: {user.profilePhotoApproval.rejectionReason}
-                </p>
-              )}
             </div>
 
 
@@ -601,11 +642,24 @@ const ProviderProfile = () => {
                 onRemove={removeSkill}
                 placeholder="Speciality"
               />
-              <p className="text-xs text-gray-400 mt-3">
-                {plan === 'free'
-                  ? 'First 2 specialities are free. Add more with a plan.'
-                  : 'Your plan allows unlimited specialities.'}
-              </p>
+              {plan === 'free' && showUpgradePrompt && (
+                <div className="mt-3 p-3.5 bg-red-50 border border-red-200 rounded-2xl">
+                  <p className="text-xs text-red-600 font-semibold">
+                    {redirectCountdown !== null 
+                      ? `First 1 speciality are free. Redirecting to plans page in ${redirectCountdown}s...`
+                      : 'First 1 speciality are free. Upgrade to select more.'}
+                  </p>
+                  {redirectCountdown === null && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/provider/plans')}
+                      className="mt-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-full shadow-xs transition inline-flex items-center gap-1.5"
+                    >
+                      Choose Plan
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* ── Location ── */}
@@ -615,36 +669,83 @@ const ProviderProfile = () => {
                   Location <span className="text-gray-400 font-normal text-sm">(Service Area)</span>
                 </p>
               </div>
-              <p className="text-xs text-gray-400 mb-3 italic">Choose one service location.</p>
+              <p className="text-xs text-gray-400 mb-3 italic">
+                {maxLocations > 1
+                  ? `You can add up to ${maxLocations} service locations.`
+                  : 'Choose one service location.'}
+              </p>
               <div className="mb-3">
                 <LocationSearch
-                  value={form.city}
+                  value={form.nearestLocation || form.city}
                   onChange={(value) => setForm((prev) => ({ ...prev, city: value }))}
                   onSelect={(item) => {
                     if (!item) return;
                     const nextName = item.name || item.formattedAddress || '';
-                    addLocation(nextName);
-                    setForm((prev) => ({
-                      ...prev,
-                      city: item.city || nextName,
-                      state: item.state || '',
-                      nearestLocation: nextName,
-                      latitude: item.latitude ?? prev.latitude,
-                      longitude: item.longitude ?? prev.longitude,
-                      location: item,
-                    }));
+                    // Use a single functional state update to prevent race conditions
+                    setForm((prev) => {
+                      // Check for duplicate
+                      if (prev.locations.includes(nextName)) {
+                        return {
+                          ...prev,
+                          city: item.city || nextName,
+                          state: item.state || '',
+                          nearestLocation: nextName,
+                          latitude: item.latitude ?? prev.latitude,
+                          longitude: item.longitude ?? prev.longitude,
+                          location: item,
+                        };
+                      }
+                      // Check plan limit
+                      if (prev.locations.length >= maxLocations) {
+                        toast.error(`Your plan allows max ${maxLocations} location${maxLocations > 1 ? 's' : ''}. Upgrade to add more.`);
+                        return {
+                          ...prev,
+                          nearestLocation: nextName,
+                          latitude: item.latitude ?? prev.latitude,
+                          longitude: item.longitude ?? prev.longitude,
+                          location: item,
+                        };
+                      }
+                      const updated = [...prev.locations, nextName];
+                      return {
+                        ...prev,
+                        locations: updated,
+                        city: item.city || nextName,
+                        state: item.state || '',
+                        nearestLocation: nextName,
+                        latitude: item.latitude ?? prev.latitude,
+                        longitude: item.longitude ?? prev.longitude,
+                        location: item,
+                      };
+                    });
                   }}
-
                   placeholder="Search and add a service location"
                 />
               </div>
-              <TagPicker
-                available={INDIAN_CITIES}
-                selected={form.locations}
-                onAdd={addLocation}
-                onRemove={removeLocation}
-                placeholder="Location"
-              />
+
+              {/* Location Chips */}
+              {form.locations.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {form.locations.map((loc) => (
+                    <span key={loc} className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-sm px-3 py-1.5 rounded-full font-medium shadow-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {loc}
+                      <button type="button" onClick={() => removeLocation(loc)}
+                        className="text-blue-400 hover:text-red-500 transition leading-none text-base ml-0.5">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Informational hint when at limit */}
+              {form.locations.length >= maxLocations && maxLocations === 1 && (
+                <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                  <span>⚡</span> Upgrade your plan to add multiple service locations.
+                </p>
+              )}
             </div>
 
             {/* ── Experience & About ── */}
