@@ -528,5 +528,24 @@ export const referralAPI = {
   getMyStats: () => API.get("/referrals/my-stats"),
 };
 
+export const providerWalletAPI = {
+  getWallet: () => API.get("/provider/wallet"),
+  sendOtpForPayout: (data) => API.post("/provider/wallet/payout-methods/send-otp", data),
+  savePayoutMethod: (data) => API.post("/provider/wallet/payout-methods", data),
+  uploadQrCode: (formData) => API.post("/provider/wallet/payout-methods/upload-qr", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  }),
+  setDefaultPayoutMethod: (id) => API.put(`/provider/wallet/payout-methods/${id}/default`),
+  deletePayoutMethod: (id) => API.delete(`/provider/wallet/payout-methods/${id}`),
+  requestWithdrawal: (data) => API.post("/provider/wallet/withdraw", data),
+};
+
+export const adminWithdrawalAPI = {
+  getAll: (params) => API.get("/admin/payout-withdrawals", { params }),
+  updateStatus: (id, data) => API.put(`/admin/payout-withdrawals/${id}/status`, data),
+  getCommissionSettings: () => API.get("/admin/payout-withdrawals/commission-settings"),
+  updateCommissionSettings: (data) => API.put("/admin/payout-withdrawals/commission-settings", data),
+};
+
 export default API;
 

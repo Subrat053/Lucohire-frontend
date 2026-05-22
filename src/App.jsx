@@ -34,6 +34,8 @@ import ProviderLeads from "./pages/provider/Leads";
 import ProviderHistory from "./pages/provider/History";
 import ProviderJobs from "./pages/provider/Jobs";
 import ProviderContacted from "./pages/provider/Contacted";
+import ProviderWallet from "./pages/provider/Wallet";
+import ProviderPayoutSettings from "./pages/provider/PayoutSettings";
 
 import RecruiterDashboard from "./pages/recruiter/Dashboard";
 import RecruiterPostJob from "./pages/recruiter/PostJob";
@@ -85,6 +87,8 @@ import AdminCurrency from "./pages/admin/Currency";
 import AdminManagers from "./pages/admin/Managers";
 import AdminAIOps from "./pages/admin/AIControlCenter";
 import AdminEnquiries from "./pages/admin/Enquiries";
+import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
+import AdminCommissionSettings from "./pages/admin/AdminCommissionSettings";
 
 import AdminLayout from "./components/admin/AdminLayout";
 import ProviderLayout from "./components/provider/ProviderLayout";
@@ -179,7 +183,7 @@ function App() {
             <ProviderLayout><ProviderHistory /></ProviderLayout>
           </ProtectedRoute>
         )} />
-        <Route path="/provider/find-recruiters" element={wrap(
+        <Route path="/provider/job-for-me" element={wrap(
           <ProtectedRoute allowedRoles={["provider"]}>
             <ProviderLayout><ProviderJobs /></ProviderLayout>
           </ProtectedRoute>
@@ -197,6 +201,16 @@ function App() {
         <Route path="/provider/referrals" element={wrap(
           <ProtectedRoute allowedRoles={["provider"]}>
             <ProviderLayout><ReferralManagement /></ProviderLayout>
+          </ProtectedRoute>
+        )} />
+        <Route path="/provider/wallet" element={wrap(
+          <ProtectedRoute allowedRoles={["provider"]}>
+            <ProviderLayout><ProviderWallet /></ProviderLayout>
+          </ProtectedRoute>
+        )} />
+        <Route path="/provider/payout-settings" element={wrap(
+          <ProtectedRoute allowedRoles={["provider"]}>
+            <ProviderLayout><ProviderPayoutSettings /></ProviderLayout>
           </ProtectedRoute>
         )} />
 
@@ -322,6 +336,16 @@ function App() {
         <Route path="/admin/dashboard" element={wrap(
           <AdminProtectedRoute>
             <AdminLayout><AdminDashboard /></AdminLayout>
+          </AdminProtectedRoute>
+        )} />
+        <Route path="/admin/withdrawals" element={wrap(
+          <AdminProtectedRoute>
+            <AdminLayout><AdminWithdrawals /></AdminLayout>
+          </AdminProtectedRoute>
+        )} />
+        <Route path="/admin/commission-settings" element={wrap(
+          <AdminProtectedRoute>
+            <AdminLayout><AdminCommissionSettings /></AdminLayout>
           </AdminProtectedRoute>
         )} />
         <Route path="/admin/partners" element={wrap(

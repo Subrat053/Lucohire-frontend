@@ -94,8 +94,8 @@ const ProviderDashboard = () => {
           )}
         </div>
         <div className="flex flex-wrap gap-2 mt-4 sm:mt-0 items-center">
-          <Link to="/provider/find-recruiters" className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition flex items-center gap-1.5">
-            <HiBriefcase className="w-4 h-4" /> {t('provider.findRecruiters', 'Find Recruiters')}
+          <Link to="/provider/job-for-me" className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition flex items-center gap-1.5">
+            <HiBriefcase className="w-4 h-4" /> {t('provider.findRecruiters', 'Jobs for Me')}
           </Link>
           <Link to="/provider/profile" className="border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
             {t('provider.editProfile', 'Edit Profile')}

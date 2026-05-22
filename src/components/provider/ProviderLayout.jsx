@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail, HiLockClosed, HiPlusCircle
+  HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail, HiLockClosed, HiPlusCircle, HiCreditCard
 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../common/NotificationBell';
@@ -10,7 +10,9 @@ import useTranslation from '../../hooks/useTranslation';
 
 const navItems = [
   { label: 'Dashboard', fallback: 'Dashboard', path: '/provider/dashboard',      icon: HiTrendingUp },
-  { label: 'Find Recruiters', fallback: 'Find Recruiters', path: '/provider/find-recruiters',icon: HiBriefcase },
+  { label: 'Wallet', fallback: 'Wallet', path: '/provider/wallet',              icon: HiCreditCard },
+  { label: 'Payment Settings', fallback: 'Payment Settings', path: '/provider/payout-settings', icon: HiCog },
+  { label: 'Jobs for Me', fallback: 'Jobs for Me', path: '/provider/job-for-me',icon: HiBriefcase },
   { label: 'Messages', fallback: 'Messages', path: '/provider/contacted',      icon: HiMail },
   { label: 'Leads', fallback: 'Leads', path: '/provider/leads',          icon: HiUsers },
   { label: 'History', fallback: 'History', path: '/provider/history',        icon: HiClock },

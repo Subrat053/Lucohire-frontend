@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { sendChatMessage } from '../../services/providerAIService';
+import { ALL_SKILLS } from '../../pages/provider/Profile';
 import ProviderAIDebugPanel from './ProviderAIDebugPanel';
 
 const QUICK_CHIPS = [
@@ -13,19 +14,13 @@ function makeId(prefix = 'm') {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-export default function ProviderAIChat({ profileContext = {} }) {
+export default function ProviderAIChat({ profileContext = {}, missingFields = [], onUpdateField }) {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState('');
-  const [messages, setMessages] = useState([
-    {
-      id: 'ai-welcome',
-      author: 'assistant',
-      text: 'Namaste. Main Provider AI Assistant hoon. Aap profile, pricing, aur client reply me help le sakte hain.',
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [debugState, setDebugState] = useState({
     lastApiStatus: 'idle',
     lastIntent: '',
@@ -50,6 +45,29 @@ export default function ProviderAIChat({ profileContext = {} }) {
     container.scrollTop = container.scrollHeight;
   }, [messages, isOpen]);
 
+  const welcomeText = useMemo(() => {
+    if (Array.isArray(missingFields) && missingFields.length > 0) {
+      return `Namaste! Main aapka AI Profile Assistant hoon. Mujhe lagta hai aapki profile me kuch details missing hain:\n- ${missingFields.join('\n- ')}\n\nChaliye inhein complete karte hain! Sabse pehle, aap apna **${missingFields[0]}** bataiye?`;
+    }
+    return 'Namaste! Main aapka AI Profile Assistant hoon. Aapki profile complete hai! Aap mujhse pricing, client reply ya general queries me help le sakte hain.';
+  }, [missingFields]);
+
+  useEffect(() => {
+    setMessages((prev) => {
+      const hasUserMessages = prev.some((m) => m.author === 'user');
+      if (!hasUserMessages) {
+        return [
+          {
+            id: 'ai-welcome',
+            author: 'assistant',
+            text: welcomeText,
+          },
+        ];
+      }
+      return prev;
+    });
+  }, [welcomeText]);
+
   const updateMessage = (id, next) => {
     setMessages((prev) => prev.map((item) => (item.id === id ? { ...item, ...next } : item)));
   };
@@ -57,6 +75,98 @@ export default function ProviderAIChat({ profileContext = {} }) {
   const askAssistant = async (text) => {
     const message = String(text || '').trim();
     if (!message || isLoading) return;
+
+    // Local Regex extraction heuristics
+    const localExtracted = {};
+    const updates = [];
+
+    // 1. Phone number (10-digit number sequence)
+    const phoneMatch = message.match(/\b\d{10}\b/);
+    if (phoneMatch && onUpdateField) {
+      onUpdateField('phone', phoneMatch[0]);
+      localExtracted.phone = phoneMatch[0];
+      updates.push(`WhatsApp/Contact: ${phoneMatch[0]}`);
+    }
+
+    // 2. Pricing unit (Hourly, Monthly, Daily, Fixed)
+    const msgLower = message.toLowerCase();
+    let localPricingType = '';
+    if (msgLower.includes('hour') || msgLower.includes('ghante') || msgLower.includes('per hour') || msgLower.includes('/hr')) {
+      localPricingType = 'hourly';
+    } else if (msgLower.includes('month') || msgLower.includes('mahina') || msgLower.includes('monthly') || msgLower.includes('/mo')) {
+      localPricingType = 'monthly';
+    } else if (msgLower.includes('day') || msgLower.includes('din') || msgLower.includes('daily') || msgLower.includes('/day')) {
+      localPricingType = 'daily';
+    } else if (msgLower.includes('fixed')) {
+      localPricingType = 'fixed';
+    }
+    if (localPricingType && onUpdateField) {
+      onUpdateField('pricingType', localPricingType);
+      localExtracted.pricingType = localPricingType;
+      updates.push(`Pricing Unit: per ${localPricingType}`);
+    }
+
+    // 3. Pricing rate (3-6 digits that are not the 10-digit phone number)
+    const numbers = message.match(/\b\d{3,6}\b/g);
+    if (numbers && (!phoneMatch || numbers.every(num => !phoneMatch[0].includes(num)))) {
+      const rate = numbers[0];
+      if (rate && onUpdateField) {
+        onUpdateField('pricing', rate);
+        localExtracted.pricing = rate;
+        updates.push(`Payout Rate: ₹${rate}`);
+      }
+    }
+
+    // 4. Name (My name is ..., I am ..., name ... hai, etc.)
+    let nameMatch = message.match(/(?:my name is|i am|this is)\s+([a-zA-Z]{3,15}(?:\s+[a-zA-Z]{3,15}){1,2})/i);
+    if (!nameMatch) nameMatch = message.match(/(?:naam|name)\s+([a-zA-Z]{3,15}(?:\s+[a-zA-Z]{3,15}){1,2})\s+(?:hai|hu|hoon)/i);
+    if (!nameMatch) nameMatch = message.match(/\b([a-zA-Z]{3,15}(?:\s+[a-zA-Z]{3,15}){1,2})\s+here\b/i);
+    if (nameMatch && onUpdateField) {
+      const parsedName = nameMatch[1].trim();
+      onUpdateField('name', parsedName);
+      onUpdateField('profileName', parsedName);
+      localExtracted.name = parsedName;
+      updates.push(`Full Name: ${parsedName}`);
+    }
+
+    // 5. Experience (X years, Y months, X saal, etc.)
+    const expYearsMatch = message.match(/(\d+(?:\.\d+)?)\s*(?:saal|sal|year|years|yr|yrs)\b/i);
+    const expMonthsMatch = message.match(/(\d+)\s*(?:mahina|mahine|month|months|mo|mos)\b/i);
+    let parsedExperience = null;
+    if (expYearsMatch) {
+      parsedExperience = `${expYearsMatch[1]} years`;
+    } else if (expMonthsMatch) {
+      parsedExperience = `${expMonthsMatch[1]} months`;
+    }
+    if (parsedExperience && onUpdateField) {
+      onUpdateField('experience', parsedExperience);
+      localExtracted.experience = parsedExperience;
+      updates.push(`Experience: ${parsedExperience}`);
+    }
+
+    // 6. Skills extraction (checking ALL_SKILLS from imported list)
+    const localSkills = [];
+    ALL_SKILLS.forEach(skill => {
+      let keyword = skill.toLowerCase();
+      if (keyword === 'cctv installer') {
+        if (msgLower.includes('cctv')) {
+          localSkills.push(skill);
+        }
+      } else if (keyword === 'ac technician') {
+        if (/\bac\b/i.test(msgLower) || msgLower.includes('ac technician')) {
+          localSkills.push(skill);
+        }
+      } else {
+        if (msgLower.includes(keyword)) {
+          localSkills.push(skill);
+        }
+      }
+    });
+    if (localSkills.length > 0 && onUpdateField) {
+      onUpdateField('skills', localSkills);
+      localExtracted.skills = localSkills;
+      updates.push(`Specialities / Skills: ${localSkills.join(', ')}`);
+    }
 
     const userMessageId = makeId('user');
     const loadingId = makeId('loading');
@@ -90,8 +200,59 @@ export default function ProviderAIChat({ profileContext = {} }) {
         console.log('[ProviderAIChat] response payload', data);
       }
 
+      const extracted = responseData.extracted || {};
+      if (extracted.city && onUpdateField) {
+        onUpdateField('city', extracted.city);
+        updates.push(`Location/City: ${extracted.city}`);
+      }
+      if (extracted.skill && onUpdateField) {
+        onUpdateField('skills', [extracted.skill]);
+        updates.push(`Speciality/Skill: ${extracted.skill}`);
+      }
+      if (extracted.budget && !localExtracted.pricing && onUpdateField) {
+        const cleanBudget = extracted.budget.replace(/[^\d]/g, '');
+        if (cleanBudget) {
+          onUpdateField('pricing', cleanBudget);
+          updates.push(`Payout Rate: ₹${cleanBudget}`);
+        }
+      }
+
+      let assistantReply = responseData.reply || 'Assistant reply unavailable.';
+      if (updates.length > 0) {
+        assistantReply = `✅ **Maine aapki profile update kar di hai!**\n` +
+          updates.map((u) => `- ${u}`).join('\n') +
+          `\n\n` + assistantReply;
+      }
+
+      // Calculate remaining missing fields dynamically
+      const updatedFieldsList = [];
+      if (extracted.city) updatedFieldsList.push('Location / City');
+      if (extracted.skill) updatedFieldsList.push('Speciality / Skill');
+      if (localExtracted.phone) updatedFieldsList.push('WhatsApp / Contact Number');
+      if (localExtracted.pricing || (extracted.budget && extracted.budget.replace(/[^\d]/g, ''))) {
+        updatedFieldsList.push('Payout / Pricing Rate');
+      }
+      if (localExtracted.pricingType) {
+        updatedFieldsList.push('Pricing Unit');
+      }
+
+      const remainingMissing = missingFields.filter((field) => {
+        if (field.includes('Location') && updatedFieldsList.includes('Location / City')) return false;
+        if (field.includes('Speciality') && updatedFieldsList.includes('Speciality / Skill')) return false;
+        if (field.includes('WhatsApp') && updatedFieldsList.includes('WhatsApp / Contact Number')) return false;
+        if (field.includes('Payout') && updatedFieldsList.includes('Payout / Pricing Rate')) return false;
+        if (field.includes('Pricing Unit') && updatedFieldsList.includes('Pricing Unit')) return false;
+        return true;
+      });
+
+      if (remainingMissing.length > 0) {
+        assistantReply += `\n\nAb please apna next missing detail **${remainingMissing[0]}** bataiye?`;
+      } else if (missingFields.length > 0) {
+        assistantReply += `\n\n🎉 **Shabash! Aapki sabhi mandatory details fill ho chuki hain.** Profile ko submit karne ke liye niche scroll karein aur **Save Profile** button pe click karein.`;
+      }
+
       updateMessage(loadingId, {
-        text: responseData.reply || 'Assistant reply unavailable.',
+        text: assistantReply,
         status: 'sent',
       });
 

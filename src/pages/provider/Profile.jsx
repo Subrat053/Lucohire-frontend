@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { providerAPI, aiAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -18,7 +19,7 @@ const INDIAN_CITIES = [
   'Ahmedabad', 'Jaipur', 'Lucknow', 'Noida', 'Gurgaon', 'Delhi NCR',
   'Surat', 'Bhopal', 'Indore', 'Nagpur', 'Patna', 'Chandigarh', 'Coimbatore',
 ];
-const ALL_SKILLS = [
+export const ALL_SKILLS = [
   'Electrician', 'Plumber', 'Carpenter', 'Painter', 'Driver', 'Cook',
   'Welder', 'Mason', 'AC Technician', 'CCTV Installer', 'Tiler',
   'Interior Designer', 'UI/UX Designer', 'Graphic Designer', 'Web Developer',
@@ -26,10 +27,21 @@ const ALL_SKILLS = [
   'Data Entry Operator', 'Receptionist', 'Security Guard', 'Housekeeping',
   'Nurse', 'Caretaker', 'Tailor', 'Beautician', 'Yoga Trainer', 'Tutor',
 ];
-const LANGUAGE_OPTIONS = [
-  'Hindi', 'English', 'Bengali', 'Telugu', 'Marathi', 'Tamil',
-  'Gujarati', 'Kannada', 'Punjabi', 'Urdu',
+export const ALL_LANGUAGES = [
+  'Afrikaans', 'Albanian', 'Amharic', 'Arabic', 'Armenian', 'Assamese', 'Azerbaijani',
+  'Bengali', 'Bhojpuri', 'Bosnian', 'Bulgarian', 'Burmese', 'Cantonese', 'Catalan',
+  'Cebuano', 'Chinese (Mandarin)', 'Croatian', 'Czech', 'Danish', 'Dutch', 'English',
+  'Esperanto', 'Estonian', 'Farsi (Persian)', 'Finnish', 'French', 'Galician', 'Georgian',
+  'German', 'Greek', 'Gujarati', 'Hausa', 'Hebrew', 'Hindi', 'Hungarian', 'Icelandic',
+  'Igbo', 'Indonesian', 'Irish', 'Italian', 'Japanese', 'Javanese', 'Kannada', 'Kazakh',
+  'Khmer', 'Korean', 'Kurdish', 'Lao', 'Latin', 'Latvian', 'Lithuanian', 'Macedonian',
+  'Maithili', 'Malay', 'Malayalam', 'Marathi', 'Mongolian', 'Nepali', 'Norwegian', 'Odia',
+  'Pashto', 'Polish', 'Portuguese', 'Punjabi', 'Romanian', 'Russian', 'Sanskrit', 'Serbian',
+  'Sindhi', 'Sinhala', 'Slovak', 'Slovenian', 'Somali', 'Spanish', 'Swahili', 'Swedish',
+  'Tagalog (Filipino)', 'Tajik', 'Tamil', 'Telugu', 'Thai', 'Tibetan', 'Turkish', 'Ukrainian',
+  'Urdu', 'Uzbek', 'Vietnamese', 'Welsh', 'Yoruba', 'Zulu'
 ];
+
 
 const OCR_TEST_OPTIONS = [
   { value: 'document', label: 'Document OCR' },
@@ -107,10 +119,10 @@ const TagPicker = ({ available, selected, onAdd, onRemove, placeholder }) => {
               className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-400" />
           </div>
           <ul className="max-h-48 overflow-y-auto divide-y divide-gray-50">
-            {filtered.length === 0 && query && (
+            {query.trim() && !selected.includes(query.trim()) && !filtered.some(f => f.toLowerCase() === query.trim().toLowerCase()) && (
               <li onClick={addCustom}
-                className="px-4 py-2.5 text-sm text-blue-600 cursor-pointer hover:bg-blue-50">
-                Add &ldquo;{query}&rdquo;
+                className="px-4 py-2.5 text-sm text-blue-600 cursor-pointer hover:bg-blue-50 border-b">
+                Add &ldquo;{query.trim()}&rdquo;
               </li>
             )}
             {filtered.map(s => (
@@ -158,6 +170,7 @@ const ProviderProfile = () => {
     pricing: '', pricingType: '',
     location: null,
     profileName: '',
+    phone: '',
   });
 
 
@@ -165,6 +178,64 @@ const ProviderProfile = () => {
   const [photoPreview, setPhotoPreview] = useState('');
 
   useEffect(() => { fetchProfile(); }, []);
+
+  const isDirty = useMemo(() => {
+    if (!profileData) return false;
+
+    const areArraysEqual = (a, b) => {
+      const arrA = Array.isArray(a) ? a : [];
+      const arrB = Array.isArray(b) ? b : [];
+      if (arrA.length !== arrB.length) return false;
+      const sortedA = [...arrA].sort();
+      const sortedB = [...arrB].sort();
+      return sortedA.every((val, index) => val === sortedB[index]);
+    };
+
+    let initialLocs = [];
+    if (Array.isArray(profileData.locations) && profileData.locations.length > 0) {
+      initialLocs = profileData.locations;
+    } else {
+      if (profileData.city) initialLocs.push(profileData.city);
+      if (profileData.state && profileData.state !== profileData.city) initialLocs.push(profileData.state);
+    }
+
+    const displayPhoto = profileData.photo || profileData.profilePhoto || '';
+    const initialPhoto = toAbsoluteMediaUrl(
+      profileData.user?.profilePhotoApproval?.status === 'pending' && profileData.user?.profilePhotoApproval?.pendingUrl
+        ? profileData.user.profilePhotoApproval.pendingUrl
+        : displayPhoto
+    );
+
+    return (
+      form.name !== (profileData.user?.name || '') ||
+      form.profileName !== (profileData.profileName || '') ||
+      form.phone !== (profileData.user?.phone || '') ||
+      form.tier !== (profileData.tier || 'unskilled') ||
+      form.experience !== (profileData.experience || '') ||
+      form.description !== (profileData.description || '') ||
+      String(form.pricing) !== String(profileData.pricing || '') ||
+      form.pricingType !== (profileData.pricingType || '') ||
+      form.whatsappAlerts !== (profileData.whatsappAlerts !== false) ||
+      form.nearestLocation !== (profileData.nearestLocation || '') ||
+      form.photo !== initialPhoto ||
+      !areArraysEqual(form.skills, profileData.skills || []) ||
+      !areArraysEqual(form.locations, initialLocs) ||
+      !areArraysEqual(form.languages, profileData.languages || []) ||
+      !areArraysEqual(form.portfolioLinks, profileData.portfolioLinks || [])
+    );
+  }, [form, profileData]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes on your profile. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   useEffect(() => {
     if (redirectCountdown === null) return;
@@ -227,6 +298,7 @@ const ProviderProfile = () => {
         pricingType: data.pricingType || '',
         location: data.location || null,
         profileName: data.profileName || '',
+        phone: data.user?.phone || '',
       });
 
       if (displayPhoto) setPhotoPreview(toAbsoluteMediaUrl(displayPhoto));
@@ -325,18 +397,84 @@ const ProviderProfile = () => {
 
       const incomingSkills = Array.isArray(profile.skills) ? profile.skills : [];
       const incomingLanguages = profile.language ? [profile.language] : [];
+      // Local extraction for name, experience, skills, phone, pricing, and pricingType from the freeText intro
+      const localExtracted = {};
 
-      const combinedSkills = [...new Set([...form.skills, ...incomingSkills])];
+      let nameMatch = aiInput.match(/(?:my name is|i am|this is)\s+([a-zA-Z]{3,15}(?:\s+[a-zA-Z]{3,15}){1,2})/i);
+      if (!nameMatch) nameMatch = aiInput.match(/(?:naam|name)\s+([a-zA-Z]{3,15}(?:\s+[a-zA-Z]{3,15}){1,2})\s+(?:hai|hu|hoon)/i);
+      if (!nameMatch) nameMatch = aiInput.match(/\b([a-zA-Z]{3,15}(?:\s+[a-zA-Z]{3,15}){1,2})\s+here\b/i);
+      if (nameMatch) {
+        localExtracted.name = nameMatch[1].trim();
+      }
+
+      const expYearsMatch = aiInput.match(/(\d+(?:\.\d+)?)\s*(?:saal|sal|year|years|yr|yrs)\b/i);
+      const expMonthsMatch = aiInput.match(/(\d+)\s*(?:mahina|mahine|month|months|mo|mos)\b/i);
+      if (expYearsMatch) {
+        localExtracted.experience = `${expYearsMatch[1]} years`;
+      } else if (expMonthsMatch) {
+        localExtracted.experience = `${expMonthsMatch[1]} months`;
+      }
+
+      const localSkills = [];
+      const lowerInput = aiInput.toLowerCase();
+      ALL_SKILLS.forEach(skill => {
+        let keyword = skill.toLowerCase();
+        if (keyword === 'cctv installer') {
+          if (lowerInput.includes('cctv')) {
+            localSkills.push(skill);
+          }
+        } else if (keyword === 'ac technician') {
+          if (/\bac\b/i.test(lowerInput) || lowerInput.includes('ac technician')) {
+            localSkills.push(skill);
+          }
+        } else {
+          if (lowerInput.includes(keyword)) {
+            localSkills.push(skill);
+          }
+        }
+      });
+
+      const combinedSkills = [...new Set([...form.skills, ...incomingSkills, ...localSkills])];
       const maxSkills = plan === 'free' ? 1 : combinedSkills.length;
 
       const nextCity = String(profile.detectedLocation || '').trim();
-      const nextLocations = nextCity ? [nextCity] : form.locations;
+      let nextLocations = form.locations;
+      if (nextCity) {
+        if (!form.locations.includes(nextCity)) {
+          const combined = [...form.locations, nextCity];
+          const maxLocs = plan === 'free' ? 1 : maxLocations;
+          nextLocations = combined.slice(-maxLocs);
+        }
+      }
 
-      const nextExperience = profile.experienceLabel
+      const nextExperience = localExtracted.experience || profile.experienceLabel
         || (Number(profile.experienceMonths || 0) > 0 ? `${profile.experienceMonths} months` : form.experience);
+      
+      const phoneMatch = aiInput.match(/\b\d{10}\b/);
+      if (phoneMatch) {
+        localExtracted.phone = phoneMatch[0];
+      }
+
+      const msgLower = aiInput.toLowerCase();
+      if (msgLower.includes('hour') || msgLower.includes('ghante') || msgLower.includes('per hour') || msgLower.includes('/hr')) {
+        localExtracted.pricingType = 'hourly';
+      } else if (msgLower.includes('month') || msgLower.includes('mahina') || msgLower.includes('monthly') || msgLower.includes('/mo')) {
+        localExtracted.pricingType = 'monthly';
+      } else if (msgLower.includes('day') || msgLower.includes('din') || msgLower.includes('daily') || msgLower.includes('/day')) {
+        localExtracted.pricingType = 'daily';
+      } else if (msgLower.includes('fixed')) {
+        localExtracted.pricingType = 'fixed';
+      }
+
+      const numbers = aiInput.match(/\b\d{3,6}\b/g);
+      if (numbers && (!phoneMatch || numbers.every(num => !phoneMatch[0].includes(num)))) {
+        localExtracted.pricing = numbers[0];
+      }
 
       setForm((prev) => ({
         ...prev,
+        name: localExtracted.name || prev.name,
+        profileName: localExtracted.name || prev.profileName,
         skills: combinedSkills.slice(0, maxSkills),
         description: profile.description || prev.description,
         languages: [...new Set([...prev.languages, ...incomingLanguages])],
@@ -344,6 +482,9 @@ const ProviderProfile = () => {
         nearestLocation: nextCity || prev.nearestLocation,
         locations: nextLocations,
         experience: nextExperience,
+        phone: localExtracted.phone || prev.phone,
+        pricing: localExtracted.pricing || prev.pricing,
+        pricingType: localExtracted.pricingType || prev.pricingType,
       }));
 
       setAiMeta({
@@ -412,9 +553,24 @@ const ProviderProfile = () => {
   };
 
   const handleSave = async (e) => {
-    e.preventDefault();
-    if (!form.city && form.locations.length === 0) return toast.error('Add at least one service location');
-    if (form.skills.length === 0) return toast.error('Add at least one speciality');
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    if (!form.city && form.locations.length === 0) {
+      return toast.error('Please add at least one service location / city (Location is mandatory)');
+    }
+    if (form.skills.length === 0) {
+      return toast.error('Please select at least one speciality / skill (Speciality is mandatory)');
+    }
+    const cleanPhone = String(form.phone || '').replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length < 10) {
+      return toast.error('Please enter a valid 10-digit WhatsApp/Contact number (Contact number is mandatory)');
+    }
+    if (!form.pricing || Number(form.pricing) <= 0) {
+      return toast.error('Please enter a valid payout / pricing rate (Payout is mandatory)');
+    }
+    if (!form.pricingType) {
+      return toast.error('Please select a pricing unit (Pricing Unit is mandatory)');
+    }
+
     setSaving(true);
     try {
       const payload = {
@@ -429,11 +585,13 @@ const ProviderProfile = () => {
         pricing: form.pricing,
         pricingType: form.pricingType,
         profileName: form.profileName,
+        phone: cleanPhone,
       };
 
       const { data } = await providerAPI.updateProfile(payload);
       setCompletion(data.profileCompletion || completion);
       toast.success('Profile updated successfully!');
+      await fetchProfile();
     } catch (err) {
       if (err.response?.data?.upgradeRequired) {
         toast.error(err.response.data.message);
@@ -529,6 +687,27 @@ const ProviderProfile = () => {
           </div>
         </div>
 
+        {/* Unsaved Changes Banner */}
+        {isDirty && (
+          <div className="mb-4 bg-amber-500/90 text-white backdrop-blur-md px-4 py-3 rounded-2xl shadow-lg flex items-center justify-between gap-3 animate-pulse border border-amber-400/50">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">⚠️</span>
+              <div>
+                <p className="font-bold text-sm">Unsaved Draft Changes</p>
+                <p className="text-xs text-amber-50 leading-tight">Your changes are in draft. Refreshing or leaving the page will discard them.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-white text-amber-700 font-semibold px-4 py-1.5 rounded-full hover:bg-amber-50 transition text-xs shrink-0 shadow-sm animate-none"
+            >
+              {saving ? 'Saving...' : 'Save Now'}
+            </button>
+          </div>
+        )}
+
         <form onSubmit={handleSave} className="space-y-4">
 
         <div className="mb-4">
@@ -567,13 +746,14 @@ const ProviderProfile = () => {
               <hr className="border-gray-100" />
               {/* WhatsApp / Contact Number */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
-                <label className="text-sm font-semibold text-gray-600 sm:w-44 shrink-0">WhatsApp / Contact</label>
-                <div className="text-sm text-gray-700 py-2">
-                  {user?.phone
-                    ? <span className="font-medium">{user.phone}</span>
-                    : <span className="text-gray-400 italic text-xs">Not linked — sign in via WhatsApp to link</span>
-                  }
-                </div>
+                <label className="text-sm font-semibold text-gray-600 sm:w-44 shrink-0">WhatsApp / Contact *</label>
+                <input
+                  type="text"
+                  value={form.phone}
+                  onChange={e => setForm({ ...form, phone: e.target.value })}
+                  placeholder="Enter 10-digit WhatsApp number"
+                  className="w-full text-sm text-gray-800 outline-none bg-transparent placeholder-gray-300 border-b border-gray-200 focus:border-blue-400 transition py-2"
+                />
               </div>
               <hr className="border-gray-100" />
               {/* Your Profession */}
@@ -878,16 +1058,21 @@ const ProviderProfile = () => {
             {/* ── Languages ── */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-5">
               <p className="font-semibold text-gray-800 mb-3">Languages Spoken</p>
-              <div className="flex flex-wrap gap-2">
-                {LANGUAGE_OPTIONS.map(lang => (
-                  <button key={lang} type="button" onClick={() => toggleLanguage(lang)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition ${form.languages.includes(lang)
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'
-                      }`}>{lang}</button>
-                ))}
-              </div>
+              <TagPicker
+                available={ALL_LANGUAGES}
+                selected={form.languages}
+                onAdd={(lang) => {
+                  if (!form.languages.includes(lang)) {
+                    setForm(prev => ({ ...prev, languages: [...prev.languages, lang] }));
+                  }
+                }}
+                onRemove={(lang) => {
+                  setForm(prev => ({ ...prev, languages: prev.languages.filter(l => l !== lang) }));
+                }}
+                placeholder="Language"
+              />
             </div>
+
 
             {/* ── Portfolio Links ── */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-5">
@@ -995,6 +1180,53 @@ const ProviderProfile = () => {
           skillTier: form.tier,
           languages: form.languages,
           skills: form.skills,
+        }}
+        missingFields={(() => {
+          const missing = [];
+          if (!form.city && form.locations.length === 0) missing.push('Location / City');
+          if (form.skills.length === 0) missing.push('Speciality / Skill');
+          const cleanPhone = String(form.phone || '').replace(/\D/g, '');
+          if (!cleanPhone || cleanPhone.length < 10) missing.push('WhatsApp / Contact Number');
+          if (!form.pricing || Number(form.pricing) <= 0) missing.push('Payout / Pricing Rate');
+          if (!form.pricingType) missing.push('Pricing Unit');
+          return missing;
+        })()}
+        onUpdateField={(field, value) => {
+          setForm(prev => {
+            const next = { ...prev };
+            if (field === 'city' || field === 'location') {
+              next.city = value;
+              next.nearestLocation = value;
+              if (value) {
+                const maxLocs = plan === 'free' ? 1 : maxLocations;
+                if (!next.locations.includes(value)) {
+                  const combined = [...next.locations, value];
+                  next.locations = combined.slice(-maxLocs);
+                }
+              }
+            } else if (field === 'skills') {
+              let combined = [];
+              if (Array.isArray(value)) {
+                combined = [...new Set([...next.skills, ...value])];
+              } else if (typeof value === 'string' && value) {
+                combined = [...new Set([...next.skills, value])];
+              }
+              const maxSkills = plan === 'free' ? 1 : combined.length;
+              next.skills = combined.slice(0, maxSkills);
+            } else if (field === 'phone') {
+              next.phone = value;
+            } else if (field === 'pricing') {
+              next.pricing = String(value);
+            } else if (field === 'pricingType') {
+              next.pricingType = value;
+            } else if (field === 'name' || field === 'profileName') {
+              next.name = value;
+              next.profileName = value;
+            } else if (field === 'experience') {
+              next.experience = value;
+            }
+            return next;
+          });
         }}
       />
     </div>
