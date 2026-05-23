@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
 import ScrollToTop from "./components/common/ScrollToTop";
@@ -96,11 +96,33 @@ import RecruiterLayout from "./components/recruiter/RecruiterLayout";
 import useTranslation from "./hooks/useTranslation";
 
 function MainLayout({ children }) {
+  const location = useLocation();
+  const publicPaths = ["/", "/search", "/faq", "/terms", "/privacy", "/contact"];
+  const privateProviderPaths = [
+    "/provider/dashboard",
+    "/provider/profile",
+    "/provider/plans",
+    "/provider/custom-plan",
+    "/provider/leads",
+    "/provider/history",
+    "/provider/job-for-me",
+    "/provider/contacted",
+    "/provider/change-password",
+    "/provider/referrals",
+    "/provider/wallet",
+    "/provider/payout-settings",
+  ];
+  const isPublicProviderProfile =
+    location.pathname.startsWith("/provider/") &&
+    !privateProviderPaths.includes(location.pathname) &&
+    location.pathname.split("/").filter(Boolean).length === 2;
+  const showFooter = publicPaths.includes(location.pathname) || isPublicProviderProfile;
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       <main className="flex-1">{children}</main>
-      <Footer />
+      {showFooter && <Footer />}
     </div>
   );
 }

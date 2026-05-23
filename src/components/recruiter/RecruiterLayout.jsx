@@ -65,11 +65,11 @@ const RecruiterLayout = ({ children }) => {
 
   const SidebarContent = ({ onNavClick }) => (
     <div className="flex flex-col h-full">
-      <div className={`flex items-center px-4 py-5 border-b border-gray-100 ${collapsed ? 'justify-center' : 'space-x-3'}`}>
+      <div className={`flex items-center px-4 py-4 border-b border-gray-100 ${collapsed ? 'justify-center' : 'space-x-3'}`}>
         <div className="w-8 h-8 bg-[#0066FF] rounded-lg flex items-center justify-center shrink-0">
           <HiBriefcase className="text-white w-4 h-4" />
         </div>
-        {!collapsed && <span className="font-bold text-[#081B3A] text-sm">Lucohire</span>}
+        {!collapsed && <span className="font-bold text-[#081B3A] text-sm">Recruiter Panel</span>}
       </div>
 
       {/* <div className="px-2 py-3 border-b border-gray-100">
@@ -106,7 +106,7 @@ const RecruiterLayout = ({ children }) => {
         })}
       </nav>
 
-      {!collapsed && (
+      {/* {!collapsed && (
         <div className="mx-3 mb-4 rounded-2xl border border-[#E5EAF3] bg-[#F8FAFF] p-4">
           <p className="text-xs font-semibold text-[#081B3A]">{t('recruiter.upgradeTitle', 'Upgrade Your Plan')}</p>
           <p className="text-[11px] text-gray-500 mt-1">{t('recruiter.upgradeSubtitle', 'Unlock more candidate contacts and downloads.')}</p>
@@ -117,7 +117,7 @@ const RecruiterLayout = ({ children }) => {
             {t('recruiter.viewPlans', 'View Plans')}
           </button>
         </div>
-      )}
+      )} */}
 
       <div className="shrink-0 px-2 pb-4 border-t border-gray-100 pt-3">
         <button
@@ -163,7 +163,7 @@ const RecruiterLayout = ({ children }) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 ">
         {/* Top Bar */}
-        <div className="flex items-center justify-between bg-white border-b border-gray-100 px-3 py-3">
+        <div className="md:hidden flex items-center justify-between bg-white border-b border-gray-100 px-3 py-3">
           <button onClick={() => setMobileOpen(true)} className="p-1.5 rounded-lg hover:bg-gray-100 md:hidden">
             <HiMenu className="w-5 h-5 text-gray-600" />
           </button>
@@ -171,7 +171,7 @@ const RecruiterLayout = ({ children }) => {
           
           <div className="flex items-center gap-2">
             {/* <LanguageDropdown /> */}
-            <NotificationBell/>
+            {/* <NotificationBell/> */}
           </div>
         </div>
 

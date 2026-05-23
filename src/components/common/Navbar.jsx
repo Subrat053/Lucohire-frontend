@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { HiMenu, HiX, HiUser, HiLogout, HiCog, HiHome } from 'react-icons/hi';
 import { toAbsoluteMediaUrl } from '../../utils/media';
+import NotificationBell from './NotificationBell';
 import LanguageDropdown from '../LanguageDropdown';
 import useTranslation from '../../hooks/useTranslation';
 import toast from 'react-hot-toast';
@@ -153,6 +154,7 @@ const Navbar = () => {
             {/* <Link to="/contact" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">{t('navbar.contactUs', 'Contact Us')}</Link> */}
 
             {/* <LanguageDropdown /> */}
+            
             {canSwitchRoles && <PanelSwitchButtons />}
             {isAuthenticated ? (
               <div className="relative">
@@ -259,10 +261,13 @@ const Navbar = () => {
               </div>
             )}
             <LanguageDropdown />
+            {/* <NotificationBell /> */}
           </div>
+            <div className="lg:absolute hidden md:block right-4 top-4 border-gray-300" ><NotificationBell /></div>
 
           {/* Mobile controls */}
           <div className="md:hidden flex items-center gap-2">
+            <NotificationBell />
             {canSwitchRoles && (
               <button
                 onClick={handleQuickToggle}

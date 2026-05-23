@@ -182,6 +182,8 @@ const NotificationBell = () => {
     }
   };
 
+  if (!isAuthenticated) return null;
+
   return (
     <div className="relative" ref={panelRef}>
       <button
