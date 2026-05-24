@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-
 import { useNavigate } from 'react-router-dom';
 import { providerAPI, aiAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -12,6 +11,12 @@ import DocumentVerificationStatusCard from '../../components/provider/DocumentVe
 import AIProfileAssistant from '../../components/provider/AIProfileAssistant';
 import ProviderAIChat from '../../components/provider/ProviderAIChat';
 import { buildProfile } from '../../services/providerAIService';
+import {
+  User as UserIcon, Phone as PhoneIcon, Sparkles, MapPin, Globe, Calendar, Award, ShieldCheck,
+  Link2, Eye, TrendingUp, CheckCircle2, AlertCircle, ToggleLeft, ToggleRight,
+  Info, ShieldAlert, Plus, X, UploadCloud, Trash2, Camera, Compass, RefreshCw,
+  Search, Shield, CheckCircle, ChevronDown, Check, Briefcase, Zap, Star
+} from 'lucide-react';
 
 // ─── constants ───────────────────────────────────────────────────────────────
 const INDIAN_CITIES = [
@@ -141,6 +146,7 @@ const ProviderProfile = () => {
   const { user, fetchUser } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const hasInitialized = useRef(false);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -219,7 +225,7 @@ const ProviderProfile = () => {
       form.nearestLocation !== (profileData.nearestLocation || '') ||
       form.photo !== initialPhoto ||
       !areArraysEqual(form.skills, profileData.skills || []) ||
-      !areArraysEqual(form.locations, initialLocs) ||
+      !areArraysEqual(form.locations.map(l => l.formattedAddress || l.name || String(l)).filter(Boolean), initialLocs) ||
       !areArraysEqual(form.languages, profileData.languages || []) ||
       !areArraysEqual(form.portfolioLinks, profileData.portfolioLinks || [])
     );
@@ -262,48 +268,57 @@ const ProviderProfile = () => {
       setProfileData(data);
       setCompletion(data.profileCompletion || 0);
 
-      // Use the persisted locations array from the backend if available,
-      // otherwise fall back to city/state for backwards compat
-      let locs = [];
-      if (Array.isArray(data.locations) && data.locations.length > 0) {
-        locs = data.locations;
-      } else {
-        if (data.city) locs.push(data.city);
-        if (data.state && data.state !== data.city) locs.push(data.state);
+      // Only set initial form state once to prevent browser back button or re-renders from overwriting dirty edits
+      if (!hasInitialized.current) {
+        let locs = [];
+        if (Array.isArray(data.serviceLocations) && data.serviceLocations.length > 0) {
+          locs = data.serviceLocations;
+        } else {
+          const sourceLocs = Array.isArray(data.locations) && data.locations.length > 0
+            ? data.locations
+            : [data.city, data.state].filter(Boolean);
+          locs = sourceLocs.map(l => ({
+            placeId: '',
+            name: typeof l === 'string' ? l : l.name || '',
+            formattedAddress: typeof l === 'string' ? l : l.formattedAddress || '',
+            isLegacy: true
+          }));
+        }
+
+        let displayPhoto = data.photo || data.profilePhoto || '';
+        // If there's a pending photo, show that as preview
+        if (data.user?.profilePhotoApproval?.status === 'pending' && data.user?.profilePhotoApproval?.pendingUrl) {
+          displayPhoto = data.user.profilePhotoApproval.pendingUrl;
+        }
+
+        setForm({
+          name: data.user?.name || '',
+          skills: data.skills || [],
+          locations: locs,
+          city: data.city || '',
+          state: data.state || '',
+          tier: data.tier || 'unskilled',
+          experience: data.experience || '',
+          languages: data.languages || [],
+          description: data.description || '',
+          portfolioLinks: data.portfolioLinks || [],
+          photo: toAbsoluteMediaUrl(displayPhoto),
+          whatsappAlerts: data.whatsappAlerts !== false,
+          nearestLocation: data.nearestLocation || '',
+          latitude: data.latitude ?? null,
+          longitude: data.longitude ?? null,
+          pricing: data.pricing || '',
+          pricingType: data.pricingType || '',
+          location: data.location || null,
+          profileName: data.profileName || '',
+          phone: data.user?.phone || '',
+        });
+
+        if (displayPhoto) setPhotoPreview(toAbsoluteMediaUrl(displayPhoto));
+        hasInitialized.current = true;
       }
 
-      let displayPhoto = data.photo || data.profilePhoto || '';
-      // If there's a pending photo, show that as preview
-      if (data.user?.profilePhotoApproval?.status === 'pending' && data.user?.profilePhotoApproval?.pendingUrl) {
-        displayPhoto = data.user.profilePhotoApproval.pendingUrl;
-      }
-
-      setForm({
-        name: data.user?.name || '',
-        skills: data.skills || [],
-        locations: locs,
-        city: data.city || '',
-        state: data.state || '',
-        tier: data.tier || 'unskilled',
-        experience: data.experience || '',
-        languages: data.languages || [],
-        description: data.description || '',
-        portfolioLinks: data.portfolioLinks || [],
-        photo: toAbsoluteMediaUrl(displayPhoto),
-        whatsappAlerts: data.whatsappAlerts !== false,
-        nearestLocation: data.nearestLocation || '',
-        latitude: data.latitude ?? null,
-        longitude: data.longitude ?? null,
-        pricing: data.pricing || '',
-        pricingType: data.pricingType || '',
-        location: data.location || null,
-        profileName: data.profileName || '',
-        phone: data.user?.phone || '',
-      });
-
-      if (displayPhoto) setPhotoPreview(toAbsoluteMediaUrl(displayPhoto));
-
-    } catch {
+    } catch (err) {
       toast.error('Failed to load profile');
     } finally {
       setLoading(false);
@@ -311,24 +326,50 @@ const ProviderProfile = () => {
   };
 
   const addLocation = (loc) => {
-    const normalized = String(loc || '').trim();
-    if (!normalized) return;
+    if (!loc) return;
+    const normalizedName = typeof loc === 'string' ? loc.trim() : (loc.formattedAddress || loc.name || '').trim();
+    if (!normalizedName) return;
+
+    // Build the geocoded location object
+    const newLoc = typeof loc === 'string' ? {
+      placeId: '',
+      name: normalizedName,
+      formattedAddress: normalizedName,
+      isLegacy: true
+    } : {
+      placeId: loc.placeId || '',
+      name: loc.name || '',
+      formattedAddress: loc.formattedAddress || '',
+      city: loc.city || '',
+      state: loc.state || '',
+      country: loc.country || '',
+      lat: loc.lat ?? loc.latitude ?? null,
+      lng: loc.lng ?? loc.longitude ?? null,
+      source: loc.source || 'google'
+    };
+
+    if (form.locations.some(l => (newLoc.placeId && l.placeId === newLoc.placeId) || l.formattedAddress === newLoc.formattedAddress)) {
+      return; // Deduplicate
+    }
+
+    if (form.locations.length >= maxLocations) {
+      toast.error(`Your plan allows max ${maxLocations} location${maxLocations > 1 ? 's' : ''}. Upgrade to add more.`);
+      return;
+    }
+
     setForm((prev) => {
-      // Don't add duplicates
-      if (prev.locations.includes(normalized)) return prev;
-      // Check plan limit
-      if (prev.locations.length >= maxLocations) {
-        toast.error(`Your plan allows max ${maxLocations} location${maxLocations > 1 ? 's' : ''}. Upgrade to add more.`);
-        return prev;
-      }
-      const updated = [...prev.locations, normalized];
-      return { ...prev, locations: updated, city: updated[0] || '', state: '' };
+      const updated = [...prev.locations, newLoc];
+      return { ...prev, locations: updated, city: updated[0]?.city || updated[0]?.name || '', state: '' };
     });
   };
+
   const removeLocation = (loc) => {
     setForm((prev) => {
-      const updated = prev.locations.filter(l => l !== loc);
-      return { ...prev, locations: updated, city: updated[0] || '', state: '' };
+      const updated = prev.locations.filter(l =>
+        (loc.placeId && l.placeId !== loc.placeId) ||
+        (!loc.placeId && l.formattedAddress !== loc.formattedAddress)
+      );
+      return { ...prev, locations: updated, city: updated[0]?.city || updated[0]?.name || '', state: '' };
     });
   };
 
@@ -449,7 +490,7 @@ const ProviderProfile = () => {
 
       const nextExperience = localExtracted.experience || profile.experienceLabel
         || (Number(profile.experienceMonths || 0) > 0 ? `${profile.experienceMonths} months` : form.experience);
-      
+
       const phoneMatch = aiInput.match(/\b\d{10}\b/);
       if (phoneMatch) {
         localExtracted.phone = phoneMatch[0];
@@ -505,6 +546,57 @@ const ProviderProfile = () => {
       toast.error(err.response?.data?.message || err.message || 'Failed to generate AI suggestions');
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  const handleAISuggestPricing = async () => {
+    const activeSkill = form.skills?.[0];
+    const activeCity = form.city || form.locations?.[0]?.city || form.locations?.[0]?.name;
+
+    if (!activeSkill) {
+      toast.error('Please select at least one Speciality first');
+      return;
+    }
+    if (!activeCity) {
+      toast.error('Please specify your Location or City first');
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const { data } = await providerAPI.getPricingSuggestion({
+        skill: activeSkill,
+        city: activeCity
+      });
+
+      if (data && data.avg) {
+        setForm(prev => ({
+          ...prev,
+          pricing: String(Math.round(data.avg)),
+          pricingType: prev.pricingType || 'hourly' // Default to hourly if not set
+        }));
+        toast.success(`AI pricing suggestion of ₹${Math.round(data.avg)} applied to draft`);
+      } else {
+        toast.error('Could not determine suggested pricing. Please set manually.');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to suggest pricing');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleAISuggestVisibility = () => {
+    toast.success('Upgrade your visibility plan for premium placements and direct recruiter leads!');
+    const banner = document.getElementById('visibility-banner');
+    if (banner) {
+      banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      banner.classList.add('ring-4', 'ring-violet-400', 'scale-[1.02]');
+      setTimeout(() => {
+        banner.classList.remove('ring-4', 'ring-violet-400', 'scale-[1.02]');
+      }, 1500);
+    } else {
+      navigate('/provider/plans');
     }
   };
 
@@ -573,9 +665,28 @@ const ProviderProfile = () => {
 
     setSaving(true);
     try {
+      const cleanLocations = form.locations.map(l => l.formattedAddress || l.name || String(l)).filter(Boolean);
+      const cleanServiceLocations = form.locations.map(l => ({
+        placeId: l.placeId || '',
+        name: l.name || '',
+        formattedAddress: l.formattedAddress || '',
+        city: l.city || '',
+        state: l.state || '',
+        country: l.country || '',
+        lat: l.lat ?? null,
+        lng: l.lng ?? null,
+        source: l.source || 'google'
+      }));
+
+      if (import.meta.env.DEV) {
+        console.log('[Profile.jsx] Saving profile payload with serviceLocations:', cleanServiceLocations);
+      }
+
       const payload = {
         name: form.name, skills: form.skills, tier: form.tier, experience: form.experience,
-        city: form.city, state: form.state, locations: form.locations,
+        city: form.city, state: form.state,
+        locations: cleanLocations,
+        serviceLocations: cleanServiceLocations,
         languages: form.languages,
         description: form.description, portfolioLinks: form.portfolioLinks,
         whatsappAlerts: form.whatsappAlerts,
@@ -667,397 +778,398 @@ const ProviderProfile = () => {
   const avatarSrc = photoPreview || form.photo;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-sky-100 via-blue-200 to-blue-500 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-slate-50/50 py-10 px-4 sm:px-6 lg:px-8 font-sans">
+      <div className="max-w-7xl mx-auto">
 
-        {/* ── Header ── */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-blue-900">
-            ServiceHub&nbsp;
-            <span className="font-normal text-blue-700">Service Provider</span>
-            &nbsp;Registration
-          </h1>
-          <div className="h-0.5 bg-linear-to-r from-transparent via-blue-400 to-transparent mt-3 mb-4" />
-          <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-full px-4 py-2 text-sm">
-            <span className="text-blue-800 font-medium">Profile {completion}% complete</span>
-            <div className="w-28 h-2 bg-blue-100 rounded-full overflow-hidden">
-              <div className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                style={{ width: `${completion}%` }} />
-            </div>
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-black text-slate-800 tracking-tight">Manage Profile</h1>
+            <p className="text-xs text-slate-400 font-semibold mt-0.5">Customise your public listing, service areas, and AI optimizations.</p>
+          </div>
+          <div className="flex items-center gap-2 bg-white border border-slate-100 px-4 py-2 rounded-2xl shadow-xs shrink-0">
+            <span className="w-2 h-2 rounded-full bg-violet-600 animate-pulse" />
+            <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Plan:</span>
+            <span className="text-xs text-violet-700 font-black uppercase tracking-wider bg-violet-50 px-3 py-1 rounded-xl border border-violet-100">
+              {plan ? plan.toUpperCase() : 'FREE'}
+            </span>
           </div>
         </div>
 
         {/* Unsaved Changes Banner */}
         {isDirty && (
-          <div className="mb-4 bg-amber-500/90 text-white backdrop-blur-md px-4 py-3 rounded-2xl shadow-lg flex items-center justify-between gap-3 animate-pulse border border-amber-400/50">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">⚠️</span>
+          <div className="mb-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-4 rounded-3xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-amber-400/50 animate-fade-in backdrop-blur-md">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center text-lg">⚠️</div>
               <div>
-                <p className="font-bold text-sm">Unsaved Draft Changes</p>
-                <p className="text-xs text-amber-50 leading-tight">Your changes are in draft. Refreshing or leaving the page will discard them.</p>
+                <p className="font-extrabold text-sm tracking-wide">Unsaved Profile Changes</p>
+                <p className="text-xs text-amber-50 leading-normal mt-0.5">You have unsaved edits in your profile draft. Click save below to update your public details.</p>
               </div>
             </div>
             <button
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="bg-white text-amber-700 font-semibold px-4 py-1.5 rounded-full hover:bg-amber-50 transition text-xs shrink-0 shadow-sm animate-none"
+              className="px-6 py-2 bg-white text-orange-600 font-extrabold rounded-xl hover:bg-slate-50 active:scale-95 transition text-xs shrink-0 shadow-md"
             >
-              {saving ? 'Saving...' : 'Save Now'}
+              {saving ? 'Saving...' : 'Save Draft Now'}
             </button>
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-4">
+        {/* ── Top Section: AI Profile Assistant & Profile Strength ── */}
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden p-6 md:p-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
 
-        <div className="mb-4">
-          <AIProfileAssistant
-            aiInput={aiInput}
-            onAiInputChange={setAiInput}
-            onGenerate={handleAISuggest}
-            aiLoading={aiLoading}
-            aiMeta={aiMeta}
-          />
+            {/* AI Assistant Card Left */}
+            <div className="lg:col-span-2 flex flex-col justify-between space-y-6">
+              <div>
+                <div className="flex items-center gap-2 text-violet-700">
+                  <Sparkles className="w-5 h-5 animate-pulse" />
+                  <h2 className="text-xs font-black uppercase tracking-widest">AI Profile Assistant</h2>
+                </div>
+                <p className="text-slate-500 text-xs mt-1">
+                  Describe your work and experience. Lucohire AI will help you build a premium rank-optimized profile instantly.
+                </p>
+              </div>
+
+              <div className="relative">
+                <textarea
+                  value={aiInput}
+                  onChange={(e) => setAiInput(e.target.value)}
+                  rows={3}
+                  placeholder="Type here..."
+                  className="w-full pl-4 pr-12 py-3.5 text-sm rounded-2xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner resize-none transition"
+                />
+                <div className="absolute right-4 top-4">
+                  <Sparkles className="w-4 h-4 text-violet-500 animate-pulse" />
+                </div>
+              </div>
+
+              <div className="text-[10px] text-slate-400 leading-normal bg-slate-50 p-3 rounded-xl border border-slate-100 italic">
+                <span className="font-bold text-slate-500 block not-italic mb-0.5">Try typing this:</span>
+                "I am a skilled electrician with 5 years of experience in residential wiring, panel installation, and fault repairs."
+              </div>
+
+              {/* AI action buttons */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  onClick={handleAISuggest}
+                  disabled={aiLoading}
+                  className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-100 hover:border-violet-200 hover:bg-violet-50 text-slate-700 font-extrabold text-[11px] transition shadow-xs disabled:opacity-60 bg-white"
+                >
+                  <Zap className="w-3.5 h-3.5 text-violet-600 shrink-0" />
+                  <span>Suggest Specialities</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleAISuggest}
+                  disabled={aiLoading}
+                  className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-100 hover:border-violet-200 hover:bg-violet-50 text-slate-700 font-extrabold text-[11px] transition shadow-xs disabled:opacity-60 bg-white"
+                >
+                  <TrendingUp className="w-3.5 h-3.5 text-violet-600 shrink-0" />
+                  <span>Optimize Skills</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleAISuggestPricing}
+                  disabled={aiLoading}
+                  className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-100 hover:border-violet-200 hover:bg-violet-50 text-slate-700 font-extrabold text-[11px] transition shadow-xs disabled:opacity-60 bg-white"
+                >
+                  <span className="text-violet-600 font-black text-xs shrink-0">₹</span>
+                  <span>Suggest Pricing</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleAISuggestVisibility}
+                  disabled={aiLoading}
+                  className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-100 hover:border-violet-200 hover:bg-violet-50 text-slate-700 font-extrabold text-[11px] transition shadow-xs disabled:opacity-60 bg-white"
+                >
+                  <Eye className="w-3.5 h-3.5 text-violet-600 shrink-0" />
+                  <span>Improve Visibility</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Profile Strength Right */}
+            <div className="border-t lg:border-t-0 lg:border-l border-slate-100 pt-6 lg:pt-0 lg:pl-8 flex flex-col justify-between">
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-sm">Profile Strength</h3>
+                <p className="text-slate-400 text-xs">Complete your profile to maximize placement rankings.</p>
+              </div>
+
+              <div className="flex items-center justify-center gap-6 my-4">
+                <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                      cx="56"
+                      cy="56"
+                      r="40"
+                      className="text-slate-100"
+                      strokeWidth="8"
+                      stroke="currentColor"
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="56"
+                      cy="56"
+                      r="40"
+                      className="text-violet-600 transition-all duration-500"
+                      strokeWidth="8"
+                      strokeDasharray={2 * Math.PI * 40}
+                      strokeDashoffset={2 * Math.PI * 40 - (completion / 100) * (2 * Math.PI * 40)}
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="transparent"
+                    />
+                  </svg>
+                  <div className="absolute font-black text-slate-800 text-lg">{completion}%</div>
+                </div>
+                <div className="text-left flex flex-col gap-2">
+                  <span className={`px-3 py-1.5 rounded-full text-xs font-black tracking-wide text-center ${completion >= 80 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                      completion >= 50 ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                        'bg-amber-50 text-amber-600 border border-amber-100'
+                    }`}>
+                    {completion >= 80 ? 'Excellent' : completion >= 50 ? 'Good' : 'Weak'}
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-violet-50 text-violet-700 border border-violet-100/50 text-center">
+                    Plan: {plan ? plan.toUpperCase() : 'FREE'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Strength Checklist */}
+              <div className="space-y-2 text-xs font-bold text-slate-500">
+                <div className="flex items-center gap-2">
+                  {form.skills.length > 0 ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                  )}
+                  <span>Add more specialities</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {(documentVerification?.status === 'approved' || profileData?.user?.approvalStatus === 'approved' || profileData?.isApproved) ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                  )}
+                  <span>Verify your documents</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {form.portfolioLinks.length > 0 ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                  )}
+                  <span>Add portfolio links</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {(form.pricing && form.pricingType) ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                  )}
+                  <span>Set pricing & services</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
 
-        <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+        {/* ── Two-Column Main Layout ── */}
+        <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
+          {/* LEFT COLUMN: Basic Information, Location, Languages, Experience, Aadhaar, Portfolio */}
+          <div className="space-y-8">
 
-
-            {/* ── Basic Info Card ── */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 overflow-hidden p-5 space-y-4">
-              {/* Full Name */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
-                <label className="text-sm font-semibold text-gray-600 sm:w-44 shrink-0">Full Name</label>
-                <input value={form.name}
-                  onChange={e => setForm({ ...form, name: e.target.value })}
-                  placeholder="Your full name"
-                  className="w-full text-sm text-gray-800 outline-none bg-transparent placeholder-gray-300 border-b border-gray-200 focus:border-blue-400 transition py-2" />
-              </div>
-              <hr className="border-gray-100" />
-              {/* Profile / Display Name */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
-                <label className="text-sm font-semibold text-gray-600 sm:w-44 shrink-0">Profile / Display Name</label>
-                <input value={form.profileName}
-                  onChange={e => setForm({ ...form, profileName: e.target.value })}
-                  placeholder="Publicly visible name"
-                  className="w-full text-sm text-gray-800 outline-none bg-transparent placeholder-gray-300 border-b border-gray-200 focus:border-blue-400 transition py-2" />
-              </div>
-              <hr className="border-gray-100" />
-              {/* WhatsApp / Contact Number */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
-                <label className="text-sm font-semibold text-gray-600 sm:w-44 shrink-0">WhatsApp / Contact *</label>
-                <input
-                  type="text"
-                  value={form.phone}
-                  onChange={e => setForm({ ...form, phone: e.target.value })}
-                  placeholder="Enter 10-digit WhatsApp number"
-                  className="w-full text-sm text-gray-800 outline-none bg-transparent placeholder-gray-300 border-b border-gray-200 focus:border-blue-400 transition py-2"
-                />
-              </div>
-              <hr className="border-gray-100" />
-              {/* Your Profession */}
-              <div className="flex flex-col sm:flex-row gap-1 sm:gap-4">
-                <label className="text-sm font-semibold text-gray-600 sm:w-44 shrink-0 pt-1">Your Profession</label>
-                <div className="flex flex-wrap gap-2 py-1">
-                  {form.skills.slice(0, 4).map(s => (
-                    <span key={s} className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-medium">{s}</span>
-                  ))}
-                  {form.skills.length > 4 && (
-                    <span className="text-xs text-blue-500">+{form.skills.length - 4} more</span>
-                  )}
-                  {form.skills.length === 0 && (
-                    <span className="text-xs text-gray-400 italic">Add specialities below ↓</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* ── Photo Upload ── */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-6 flex flex-col items-center gap-3 relative">
-              <div className="w-24 h-24 rounded-full border-4 border-blue-200 shadow-md overflow-hidden bg-blue-50 flex items-center justify-center relative">
-                {avatarSrc ? (
-                  <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-blue-300" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
-                  </svg>
-                )}
-                {uploading && (
-                  <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                )}
-              </div>
-              <div className="text-center">
-                <p className="font-semibold text-gray-800">Profile Photo</p>
-                <p className="text-xs text-gray-400">JPG/PNG, max 5MB</p>
-              </div>
-              <input ref={fileInputRef} type="file" accept="image/*"
-                onChange={handlePhotoChange} className="hidden" />
-              <div className="flex gap-3">
-                <button type="button"
-                  onClick={photoFile ? handlePhotoUpload : () => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="px-5 py-2 rounded-full bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-60 shadow-sm">
-                  {photoFile ? 'Save New Photo' : 'Change Photo'}
-                </button>
-                {(avatarSrc || photoFile) && (
-                  <button type="button" onClick={handleRemovePhoto}
-                    className="px-5 py-2 rounded-full border border-gray-300 text-gray-600 text-sm font-medium hover:bg-gray-50 transition">
-                    Remove
-                  </button>
-                )}
-              </div>
-            </div>
-
-
-            {/* ── Speciality ── */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-5">
-              <p className="font-semibold text-gray-800 mb-3">Speciality</p>
-              <TagPicker
-                available={ALL_SKILLS}
-                selected={form.skills}
-                onAdd={addSkill}
-                onRemove={removeSkill}
-                placeholder="Speciality"
-              />
-              {plan === 'free' && showUpgradePrompt && (
-                <div className="mt-3 p-3.5 bg-red-50 border border-red-200 rounded-2xl">
-                  <p className="text-xs text-red-600 font-semibold">
-                    {redirectCountdown !== null 
-                      ? `First 1 speciality are free. Redirecting to plans page in ${redirectCountdown}s...`
-                      : 'First 1 speciality are free. Upgrade to select more.'}
-                  </p>
-                  {redirectCountdown === null && (
-                    <button
-                      type="button"
-                      onClick={() => navigate('/provider/plans')}
-                      className="mt-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-full shadow-xs transition inline-flex items-center gap-1.5"
-                    >
-                      Choose Plan
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* ── Location ── */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-5">
-              <div className="mb-1">
-                <p className="font-semibold text-gray-800">
-                  Location <span className="text-gray-400 font-normal text-sm">(Service Area)</span>
-                </p>
-              </div>
-              <p className="text-xs text-gray-400 mb-3 italic">
-                {maxLocations > 1
-                  ? `You can add up to ${maxLocations} service locations.`
-                  : 'Choose one service location.'}
-              </p>
-              <div className="mb-3">
-                <LocationSearch
-                  value={form.nearestLocation || form.city}
-                  onChange={(value) => setForm((prev) => ({ ...prev, city: value }))}
-                  onSelect={(item) => {
-                    if (!item) return;
-                    const nextName = item.name || item.formattedAddress || '';
-                    // Use a single functional state update to prevent race conditions
-                    setForm((prev) => {
-                      // Check for duplicate
-                      if (prev.locations.includes(nextName)) {
-                        return {
-                          ...prev,
-                          city: item.city || nextName,
-                          state: item.state || '',
-                          nearestLocation: nextName,
-                          latitude: item.latitude ?? prev.latitude,
-                          longitude: item.longitude ?? prev.longitude,
-                          location: item,
-                        };
-                      }
-                      // Check plan limit
-                      if (prev.locations.length >= maxLocations) {
-                        toast.error(`Your plan allows max ${maxLocations} location${maxLocations > 1 ? 's' : ''}. Upgrade to add more.`);
-                        return {
-                          ...prev,
-                          nearestLocation: nextName,
-                          latitude: item.latitude ?? prev.latitude,
-                          longitude: item.longitude ?? prev.longitude,
-                          location: item,
-                        };
-                      }
-                      const updated = [...prev.locations, nextName];
-                      return {
-                        ...prev,
-                        locations: updated,
-                        city: item.city || nextName,
-                        state: item.state || '',
-                        nearestLocation: nextName,
-                        latitude: item.latitude ?? prev.latitude,
-                        longitude: item.longitude ?? prev.longitude,
-                        location: item,
-                      };
-                    });
-                  }}
-                  placeholder="Search and add a service location"
-                />
+            {/* 1. Basic Information */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
+                <UserIcon className="w-5 h-5 text-violet-600" />
+                <h3 className="font-extrabold text-slate-800 text-sm">Basic Information</h3>
               </div>
 
-              {/* Location Chips */}
-              {form.locations.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {form.locations.map((loc) => (
-                    <span key={loc} className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-sm px-3 py-1.5 rounded-full font-medium shadow-sm">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      {loc}
-                      <button type="button" onClick={() => removeLocation(loc)}
-                        className="text-blue-400 hover:text-red-500 transition leading-none text-base ml-0.5">×</button>
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Informational hint when at limit */}
-              {form.locations.length >= maxLocations && maxLocations === 1 && (
-                <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                  <span>⚡</span> Upgrade your plan to add multiple service locations.
-                </p>
-              )}
-            </div>
-
-            {/* ── Experience & About ── */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-5 space-y-4">
-              <div className="mt-1">
-                <PricingSuggestionCard skill={form.skills?.[0]} city={form.city} />
-              </div>
-
-              <div className="mt-3 rounded-xl border border-blue-200 bg-white p-3">
-                <p className="text-xs font-semibold text-blue-800 mb-2">Aadhaar Verification</p>
-                <div className="flex flex-wrap gap-2 items-center">
-                  <input
-                    type="file"
-                    accept="image/*,.pdf"
-                    onChange={(e) => {
-                      setDocumentFile(e.target.files?.[0] || null);
-                      setOcrResult(null);
-                      setOcrError('');
-                    }}
-                    className="text-xs"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleDocumentUpload}
-                    disabled={uploadingDocument}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-                  >
-                    {uploadingDocument ? 'Uploading…' : 'Upload & Verify'}
-                  </button>
-                </div>
-
-                <div className="mt-3 flex flex-wrap gap-2 items-center">
-                  <select
-                    value={ocrTestType}
-                    onChange={(e) => setOcrTestType(e.target.value)}
-                    className="px-3 py-1.5 rounded-lg text-xs border border-blue-200"
-                  >
-                    {OCR_TEST_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={handleOcrTest}
-                    disabled={ocrTesting}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-blue-700 border border-blue-300 hover:bg-blue-50 disabled:opacity-60"
-                  >
-                    {ocrTesting ? 'Testing OCR…' : 'Test OCR'}
-                  </button>
-                  <p className="text-[11px] text-blue-700">Test OCR works with image files only.</p>
-                </div>
-
-                {ocrError && (
-                  <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                    {ocrError}
-                  </div>
-                )}
-
-                {ocrResult && (
-                  <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
-                    <p className="text-xs font-semibold text-blue-800">OCR Test Result</p>
-                    {typeof ocrResult.fullText === 'string' && ocrResult.fullText.trim() && (
-                      <pre className="mt-1 text-[11px] text-blue-900 whitespace-pre-wrap max-h-24 overflow-auto">{ocrResult.fullText}</pre>
-                    )}
-                    <pre className="mt-1 text-[11px] text-blue-900 whitespace-pre-wrap max-h-32 overflow-auto">{JSON.stringify(ocrResult, null, 2)}</pre>
-                  </div>
-                )}
-
-                <div className="mt-2">
-                  <DocumentVerificationStatusCard verification={documentVerification} />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Skill Tier</label>
-                <select value={form.tier}
-                  onChange={e => setForm({ ...form, tier: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-white">
-                  <option value="unskilled">Unskilled</option>
-                  <option value="semi-skilled">Semi-Skilled</option>
-                  <option value="skilled">Skilled</option>
-                </select>
-                <p className="text-xs text-gray-400 mt-1">Select your skill level category</p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Years of Experience</label>
-                <input value={form.experience}
-                  onChange={e => setForm({ ...form, experience: e.target.value })}
-                  placeholder="e.g. 5 years"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">About You</label>
-                <textarea value={form.description}
-                  onChange={e => setForm({ ...form, description: e.target.value })}
-                  rows={3}
-                  placeholder="Tell clients about your experience, specialties, and working style…"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Pricing (₹)</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
                   <input
                     type="text"
-                    value={form.pricing}
-                    onChange={e => setForm({ ...form, pricing: e.target.value })}
-                    placeholder="e.g. 500"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value, profileName: e.target.value })}
+                    placeholder="e.g. Mritunjay kumar jha"
+                    className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Pricing Unit</label>
-                  <select
-                    value={form.pricingType}
-                    onChange={e => setForm({ ...form, pricingType: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-white"
-                  >
-                    <option value="">Select Unit</option>
-                    <option value="hourly">per Hour</option>
-                    <option value="daily">per Day</option>
-                    <option value="monthly">per Month</option>
-                    <option value="fixed">Fixed Rate</option>
-                  </select>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">WhatsApp / Contact Number</label>
+                  <div className="flex gap-2">
+                    <div className="w-24 shrink-0 relative">
+                      <select
+                        value={form.phone?.startsWith('+') ? form.phone.substring(0, 3) : '+91'}
+                        onChange={(e) => {
+                          const currentVal = form.phone || '';
+                          const cleanNum = currentVal.replace(/^\+\d+\s*/, '');
+                          setForm({ ...form, phone: `${e.target.value} ${cleanNum}` });
+                        }}
+                        className="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 outline-none bg-slate-50/50 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 appearance-none shadow-inner"
+                      >
+                        <option value="+91">+91 (IN)</option>
+                        <option value="+971">+971 (AE)</option>
+                        <option value="+1">+1 (US)</option>
+                        <option value="+44">+44 (UK)</option>
+                      </select>
+                      <div className="absolute right-3 top-3.5 pointer-events-none">
+                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                      </div>
+                    </div>
+
+                    <input
+                      type="text"
+                      value={form.phone?.replace(/^\+\d+\s*/, '')}
+                      onChange={(e) => {
+                        const cleanPhone = e.target.value.replace(/\D/g, '').substring(0, 10);
+                        const prefix = form.phone?.startsWith('+') ? form.phone.split(' ')[0] : '+91';
+                        setForm({ ...form, phone: `${prefix} ${cleanPhone}` });
+                      }}
+                      placeholder="08376022337"
+                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* 2. Location (Service Area) */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
+                <MapPin className="w-5 h-5 text-violet-600" />
+                <div className="flex-1">
+                  <h3 className="font-extrabold text-slate-800 text-sm">Location (Service Area)</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
+                    {maxLocations > 1 ? `Max ${maxLocations} service locations allowed` : '1 service location allowed'}
+                  </p>
+                </div>
+              </div>
 
-            {/* ── Languages ── */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-5">
-              <p className="font-semibold text-gray-800 mb-3">Languages Spoken</p>
+              <div className="space-y-4">
+                <div className="relative z-30">
+                  <LocationSearch
+                    value={form.nearestLocation || form.city}
+                    onChange={(value) => setForm((prev) => ({ ...prev, city: value }))}
+                    onSelect={(item) => {
+                      if (!item) return;
+
+                      const newLoc = {
+                        placeId: item.placeId || '',
+                        name: item.city || item.name || '',
+                        formattedAddress: item.formattedAddress || item.name || '',
+                        city: item.city || '',
+                        state: item.state || '',
+                        country: item.country || '',
+                        lat: item.latitude ?? item.lat ?? null,
+                        lng: item.longitude ?? item.lng ?? null,
+                        source: 'google'
+                      };
+
+                      const displayLabel = newLoc.formattedAddress || newLoc.name;
+
+                      // Duplicate Check
+                      const isDuplicate = form.locations.some(l =>
+                        (newLoc.placeId && l.placeId === newLoc.placeId) ||
+                        l.formattedAddress === newLoc.formattedAddress
+                      );
+
+                      if (isDuplicate) {
+                        setForm((prev) => ({
+                          ...prev,
+                          nearestLocation: displayLabel,
+                          latitude: newLoc.lat ?? prev.latitude,
+                          longitude: newLoc.lng ?? prev.longitude,
+                          location: item,
+                        }));
+                        return;
+                      }
+
+                      // Plan Limit Check
+                      if (form.locations.length >= maxLocations) {
+                        toast.error(`Your plan allows max ${maxLocations} location${maxLocations > 1 ? 's' : ''}. Upgrade to add more.`);
+                        setForm((prev) => ({
+                          ...prev,
+                          nearestLocation: displayLabel,
+                          latitude: newLoc.lat ?? prev.latitude,
+                          longitude: newLoc.lng ?? prev.longitude,
+                          location: item,
+                        }));
+                        return;
+                      }
+
+                      setForm((prev) => {
+                        const updated = [...prev.locations, newLoc];
+                        return {
+                          ...prev,
+                          locations: updated,
+                          city: newLoc.city || newLoc.name,
+                          state: newLoc.state || '',
+                          nearestLocation: displayLabel,
+                          latitude: newLoc.lat ?? prev.latitude,
+                          longitude: newLoc.lng ?? prev.longitude,
+                          location: item,
+                        };
+                      });
+                    }}
+                    placeholder="Search and add a service location"
+                  />
+                </div>
+
+                {/* Location chips */}
+                {form.locations.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {form.locations.map((loc) => {
+                      const displayLabel = loc.formattedAddress || loc.name || String(loc);
+                      const key = loc.placeId || displayLabel;
+                      return (
+                        <span key={key} className="inline-flex items-center gap-1.5 bg-violet-50 border border-violet-100 text-violet-700 text-xs font-bold px-3 py-1.5 rounded-full shadow-xs">
+                          <MapPin className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                          <span className="truncate max-w-[200px]">{displayLabel}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeLocation(loc)}
+                            className="text-violet-400 hover:text-red-500 transition leading-none text-base font-bold ml-1"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                    No service areas added. Search above to boost visibility coverage.
+                  </div>
+                )}
+
+                {form.locations.length >= maxLocations && maxLocations === 1 && (
+                  <p className="text-[10px] text-amber-600 bg-amber-50 p-2.5 rounded-xl border border-amber-100/50 font-semibold flex items-center gap-1">
+                    <span>⚡</span> Upgrade your plan to expand your service reach to multiple pincodes or cities.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* 3. Languages Spoken */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
+                <Globe className="w-5 h-5 text-violet-600" />
+                <h3 className="font-extrabold text-slate-800 text-sm">Languages Spoken</h3>
+              </div>
+
               <TagPicker
                 available={ALL_LANGUAGES}
                 selected={form.languages}
@@ -1073,105 +1185,511 @@ const ProviderProfile = () => {
               />
             </div>
 
-
-            {/* ── Portfolio Links ── */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-5">
-              <div className="flex items-center justify-between mb-3">
-                <p className="font-semibold text-gray-800">Portfolio / Links</p>
-                <button type="button" onClick={() => setShowLinkInput(v => !v)}
-                  className="text-sm text-blue-600 hover:underline">+ Add Link</button>
+            {/* 4. Years of Experience */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
+                <Calendar className="w-5 h-5 text-violet-600" />
+                <h3 className="font-extrabold text-slate-800 text-sm">Years of Experience</h3>
               </div>
-              {form.portfolioLinks.length > 0 && (
-                <div className="space-y-2 mb-3">
+
+              <div className="relative">
+                <select
+                  value={
+                    ['Fresher', '0-1 years', '1-3 years', '3-5 years', '5+ years'].includes(form.experience)
+                      ? form.experience
+                      : '3-5 years' // Default or fallback
+                  }
+                  onChange={(e) => setForm({ ...form, experience: e.target.value })}
+                  className="w-full px-4 py-3 text-sm rounded-xl border border-slate-200 outline-none bg-slate-50/50 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 appearance-none shadow-inner text-slate-700 font-semibold"
+                >
+                  <option value="Fresher">Fresher (Entry-level)</option>
+                  <option value="0-1 years">0-1 years (Junior)</option>
+                  <option value="1-3 years">1-3 years (Intermediate)</option>
+                  <option value="3-5 years">3-5 years (Experienced)</option>
+                  <option value="5+ years">5+ years (Senior Expert)</option>
+                </select>
+                <div className="absolute right-4 top-3.5 pointer-events-none">
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                </div>
+              </div>
+            </div>
+
+            {/* 5. Aadhaar Verification */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
+                <ShieldCheck className="w-5 h-5 text-violet-600" />
+                <h3 className="font-extrabold text-slate-800 text-sm">Aadhaar Verification</h3>
+              </div>
+
+              <div className="space-y-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                <p className="text-xs text-slate-500 font-semibold">Verify your identity to build recruiter trust and unlock premium job opportunities.</p>
+
+                <div className="flex flex-col gap-3 justify-center">
+                  <div className="border border-dashed border-slate-200 bg-white rounded-2xl p-4 flex flex-col items-center justify-center relative cursor-pointer hover:bg-slate-50 transition">
+                    <UploadCloud className="w-8 h-8 text-slate-400 mb-2 animate-bounce" />
+                    <span className="text-xs font-bold text-slate-500">
+                      {documentFile ? documentFile.name : 'Select Aadhaar Document Image (PDF/JPG/PNG)'}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => {
+                        setDocumentFile(e.target.files?.[0] || null);
+                        setOcrResult(null);
+                        setOcrError('');
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleDocumentUpload}
+                    disabled={uploadingDocument || !documentFile}
+                    className="w-full py-2.5 rounded-xl text-xs font-black text-white bg-violet-600 hover:bg-violet-700 disabled:opacity-50 transition shadow-md hover:shadow-violet-200"
+                  >
+                    {uploadingDocument ? 'Uploading Document…' : 'Upload & Verify Aadhaar'}
+                  </button>
+                </div>
+
+                <div className="mt-3">
+                  <DocumentVerificationStatusCard verification={documentVerification} />
+                </div>
+
+                {/* Collapsible/Hidden Sandbox OCR Test Section (Visible to Admins / Developers in dev mode) */}
+                {import.meta.env.DEV && (
+                  <div className="mt-4 pt-4 border-t border-slate-200/60">
+                    <button
+                      type="button"
+                      onClick={() => setShowLinkInput(v => !v)}
+                      className="text-[10px] font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"
+                    >
+                      🛠️ Open Developer OCR Sandbox
+                    </button>
+
+                    {showLinkInput && (
+                      <div className="mt-2 space-y-3 bg-white p-3 rounded-xl border border-slate-200">
+                        <div className="flex items-center justify-between gap-2">
+                          <select
+                            value={ocrTestType}
+                            onChange={(e) => setOcrTestType(e.target.value)}
+                            className="px-2 py-1 text-[11px] rounded border border-slate-200 bg-slate-50"
+                          >
+                            {OCR_TEST_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={handleOcrTest}
+                            disabled={ocrTesting}
+                            className="px-3 py-1 rounded bg-slate-800 text-white text-[10px] font-bold hover:bg-slate-700"
+                          >
+                            {ocrTesting ? 'Running...' : 'Execute Test'}
+                          </button>
+                        </div>
+                        {ocrError && <p className="text-[10px] text-red-500">{ocrError}</p>}
+                        {ocrResult && (
+                          <pre className="text-[9px] text-slate-600 bg-slate-50 p-2 rounded max-h-24 overflow-y-auto whitespace-pre-wrap">{JSON.stringify(ocrResult, null, 2)}</pre>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 6. Portfolio / Links */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-50">
+                <div className="flex items-center gap-2">
+                  <Link2 className="w-5 h-5 text-violet-600" />
+                  <h3 className="font-extrabold text-slate-800 text-sm">Portfolio / Links</h3>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowLinkInput(v => !v)}
+                  className="text-xs font-black text-violet-700 hover:text-violet-900 transition flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Link
+                </button>
+              </div>
+
+              {form.portfolioLinks.length > 0 ? (
+                <div className="space-y-2">
                   {form.portfolioLinks.map((link, i) => (
-                    <div key={i} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2">
-                      <a href={link} target="_blank" rel="noopener noreferrer"
-                        className="text-blue-600 text-sm truncate flex-1">{link}</a>
-                      <button type="button"
+                    <div key={i} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-2 border border-slate-100 shadow-xs animate-fade-in">
+                      <a
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-violet-600 hover:text-violet-800 text-xs font-semibold truncate flex-1"
+                      >
+                        {link}
+                      </a>
+                      <button
+                        type="button"
                         onClick={() => setForm({ ...form, portfolioLinks: form.portfolioLinks.filter((_, j) => j !== i) })}
-                        className="text-gray-400 hover:text-red-500 ml-3 text-lg leading-none">×</button>
+                        className="text-slate-400 hover:text-red-500 ml-3 text-lg leading-none transition-colors"
+                      >
+                        ×
+                      </button>
                     </div>
                   ))}
                 </div>
+              ) : (
+                <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                  No portfolio links configured. Add websites or socials above.
+                </div>
               )}
+
+              {/* Add Link Input Field */}
               {showLinkInput && (
-                <div className="flex gap-2">
-                  <input value={newLink} onChange={e => setNewLink(e.target.value)}
+                <div className="flex gap-2 animate-fade-in">
+                  <input
+                    value={newLink}
+                    onChange={e => setNewLink(e.target.value)}
                     onKeyDown={e => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         if (newLink.trim()) {
                           setForm({ ...form, portfolioLinks: [...form.portfolioLinks, newLink.trim()] });
-                          setNewLink(''); setShowLinkInput(false);
+                          setNewLink('');
+                          setShowLinkInput(false);
                         }
                       }
                     }}
                     placeholder="https://your-portfolio.com"
-                    className="flex-1 px-4 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-400" />
-                  <button type="button"
+                    className="flex-1 px-4 py-2.5 text-xs border border-slate-200 rounded-xl bg-slate-50/50 outline-none focus:ring-4 focus:ring-violet-100 focus:border-violet-500 shadow-inner"
+                  />
+                  <button
+                    type="button"
                     onClick={() => {
                       if (newLink.trim()) {
                         setForm({ ...form, portfolioLinks: [...form.portfolioLinks, newLink.trim()] });
-                        setNewLink(''); setShowLinkInput(false);
+                        setNewLink('');
+                        setShowLinkInput(false);
                       }
                     }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition">Add</button>
+                    className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-violet-200 transition"
+                  >
+                    Add
+                  </button>
                 </div>
               )}
             </div>
 
-            {/* ── WhatsApp Toggle ── */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-white/60 p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-gray-800">WhatsApp Alerts</p>
-                  <p className="text-sm text-gray-400">Get instant notifications for new leads</p>
+          </div>
+
+          {/* RIGHT COLUMN: Profile Photo, Speciality, Rate, WhatsApp Alerts */}
+          <div className="space-y-8">
+
+            {/* 1. Profile Photo */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col items-center gap-4 relative">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-50 w-full">
+                <Camera className="w-5 h-5 text-violet-600" />
+                <h3 className="font-extrabold text-slate-800 text-sm">Profile Photo</h3>
+              </div>
+
+              <div className="w-24 h-24 rounded-full border-4 border-violet-100 shadow-lg overflow-hidden bg-slate-50 flex items-center justify-center relative shadow-inner">
+                {avatarSrc ? (
+                  <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <UserIcon className="w-12 h-12 text-slate-300" />
+                )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-white/60 flex items-center justify-center backdrop-blur-xs">
+                    <RefreshCw className="w-5 h-5 text-violet-600 animate-spin" />
+                  </div>
+                )}
+              </div>
+
+              <div className="text-center">
+                <p className="font-extrabold text-slate-800 text-sm">Upload Profile Portrait</p>
+                <p className="text-[10px] font-bold text-slate-400 mt-0.5">JPG or PNG formats, maximum size 5MB</p>
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                className="hidden"
+              />
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={photoFile ? handlePhotoUpload : () => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="px-5 py-2.5 rounded-full bg-violet-600 text-white text-xs font-black hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-200 transition disabled:opacity-50 shadow-md"
+                >
+                  {photoFile ? 'Save New Photo' : 'Change Photo'}
+                </button>
+
+                {(avatarSrc || photoFile) && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="px-5 py-2.5 rounded-full border border-slate-200 text-slate-600 text-xs font-black hover:bg-slate-50 transition"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* 2. Speciality (1 Free) */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
+                <Award className="w-5 h-5 text-violet-600" />
+                <div className="flex-1">
+                  <h3 className="font-extrabold text-slate-800 text-sm">Speciality</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
+                    {plan === 'free' ? 'First Specialty is Free' : 'Unlimited Specialities Unlocked'}
+                  </p>
                 </div>
-                <button type="button"
+              </div>
+
+              <TagPicker
+                available={ALL_SKILLS}
+                selected={form.skills}
+                onAdd={addSkill}
+                onRemove={removeSkill}
+                placeholder="Speciality"
+              />
+
+              {plan === 'free' && showUpgradePrompt && (
+                <div className="mt-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl animate-pulse">
+                  <p className="text-xs text-amber-800 font-bold leading-normal">
+                    {redirectCountdown !== null
+                      ? `Your free tier allows 1 specialty boost. Redirecting to visibility plans page in ${redirectCountdown}s...`
+                      : 'Your free tier allows 1 specialty boost. Upgrade to select multiple skills.'}
+                  </p>
+
+                  {redirectCountdown === null && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/provider/plans')}
+                      className="mt-2.5 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-black rounded-full shadow-md hover:shadow-violet-200 transition"
+                    >
+                      Choose Plan
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Smart Skill Level (AI Recommended) */}
+              <div className="pt-4 border-t border-slate-100 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-violet-600" />
+                  <span className="font-extrabold text-slate-800 text-xs">Smart Skill Level (AI Recommended)</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { value: 'unskilled', label: 'Unskilled', desc: 'Basic assistance no experience' },
+                    { value: 'semi-skilled', label: 'Semi Skilled', desc: 'Some experience in the field' },
+                    { value: 'skilled', label: 'Skilled', desc: 'Experienced & capable' }
+                  ].map((card) => {
+                    const isActive = form.tier === card.value;
+                    return (
+                      <button
+                        key={card.value}
+                        type="button"
+                        onClick={() => setForm({ ...form, tier: card.value })}
+                        className={`p-4 rounded-2xl border text-left flex flex-col justify-between h-28 relative transition-all ${isActive
+                            ? 'border-violet-600 bg-violet-50/15 ring-2 ring-violet-600/10'
+                            : 'border-slate-100 hover:border-slate-200 bg-white'
+                          }`}
+                      >
+                        {isActive && (
+                          <div className="absolute top-3 right-3 bg-violet-600 text-white rounded-full p-0.5 animate-scale-up">
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          </div>
+                        )}
+                        <h4 className="font-extrabold text-slate-800 text-xs">{card.label}</h4>
+                        <p className="text-[10px] text-slate-400 font-semibold leading-normal mt-2">{card.desc}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Rate (Choose your pricing type) */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-50 w-full justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-violet-600 font-black text-lg">₹</span>
+                  <h3 className="font-extrabold text-slate-800 text-sm">Rate & Payout</h3>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAISuggestPricing}
+                  className="text-xs font-black text-violet-700 hover:text-violet-900 transition flex items-center gap-1 bg-violet-50 border border-violet-100 px-2.5 py-1.5 rounded-full"
+                >
+                  <Sparkles className="w-3.5 h-3.5 animate-pulse text-violet-600" />
+                  <span>AI Suggest</span>
+                </button>
+              </div>
+
+              {/* Pricing Type Cards */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: 'hourly', label: 'Per Hour' },
+                  { value: 'daily', label: 'Per Day' },
+                  { value: 'monthly', label: 'Per Month' }
+                ].map((type) => {
+                  const isActive = form.pricingType === type.value;
+                  return (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => setForm({ ...form, pricingType: type.value })}
+                      className={`py-2 px-3 rounded-xl border text-center font-extrabold text-xs transition-all ${isActive
+                          ? 'border-violet-600 bg-violet-50/20 text-violet-700 ring-2 ring-violet-600/10'
+                          : 'border-slate-100 hover:border-slate-200 text-slate-500 bg-white'
+                        }`}
+                    >
+                      {type.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="relative">
+                <div className="absolute left-4 top-3.5 font-bold text-slate-400 text-sm">₹</div>
+                <input
+                  type="text"
+                  value={form.pricing}
+                  onChange={(e) => setForm({ ...form, pricing: e.target.value })}
+                  placeholder="Enter your rate amount"
+                  className="w-full pl-8 pr-4 py-3 text-sm rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
+                />
+              </div>
+
+              {form.skills?.[0] && (
+                <div className="pt-2 animate-fade-in">
+                  <PricingSuggestionCard skill={form.skills[0]} city={form.city} />
+                </div>
+              )}
+            </div>
+
+            {/* 4. WhatsApp Alerts */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex gap-3">
+                  <div className="w-10 h-10 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center justify-center text-emerald-600">
+                    <svg className="w-5 h-5 fill-emerald-600" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.45L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.966a9.79 9.79 0 0 0-6.979-2.879C5.036 1.961.612 6.331.608 11.76c-.001 1.673.454 3.305 1.319 4.717L1.139 21.03l4.733-1.229c1.603.953 3.193 1.453 4.832 1.454z" /></svg>
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-slate-800 text-sm">WhatsApp Alerts</p>
+                    <p className="text-[10px] font-semibold text-slate-400 mt-0.5">Get instant real-time notification alerts for job leads.</p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
                   onClick={() => setForm(f => ({ ...f, whatsappAlerts: !f.whatsappAlerts }))}
-                  className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${form.whatsappAlerts ? 'bg-green-500' : 'bg-gray-300'}`}>
+                  className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${form.whatsappAlerts ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                >
                   <span className={`block w-5 h-5 bg-white rounded-full shadow absolute top-0.5 transition-transform duration-200 ${form.whatsappAlerts ? 'translate-x-6' : 'translate-x-0.5'}`} />
                 </button>
               </div>
             </div>
 
-            {/* ── Plan Banner ── */}
-            {plan === 'free' ? (
-              <div className="bg-blue-600/90 backdrop-blur-sm rounded-2xl p-5 text-white text-center shadow-lg">
-                <p className="font-bold text-lg mb-1">Unlock More Visibility</p>
-                <p className="text-blue-100 text-sm mb-4">
-                  Upgrade to add unlimited specialities, get top placement &amp; instant job alerts.
-                </p>
-                <button type="button" onClick={() => navigate('/provider/plans')}
-                  className="bg-white text-blue-600 font-semibold px-6 py-2 rounded-full hover:bg-blue-50 transition text-sm shadow">
-                  View Plans →
+          </div>
+
+          {/* ── Bottom Section ── */}
+          <div className="lg:col-span-2 space-y-6 pt-4">
+
+            {/* Unlock More Visibility Banner */}
+            <div
+              id="visibility-banner"
+              className="bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-700 rounded-3xl p-6 md:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl transition-all duration-300"
+            >
+              <div className="flex items-center gap-4 text-left">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center shrink-0 shadow-inner">
+                  <Compass className="w-6 h-6 animate-spin-slow text-violet-100" />
+                </div>
+                <div>
+                  <h4 className="font-black text-lg tracking-wide">Unlock Premium Search Placements</h4>
+                  <p className="text-violet-100 text-xs mt-1 leading-relaxed">
+                    {plan === 'free'
+                      ? 'Upgrade your plan to showcase multiple specialities, secure top ranks, and unlock unlimited service locations.'
+                      : `Active: Premium ${plan.toUpperCase()} Plan. Enjoy high visibility priority weighting across your areas.`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate('/provider/plans')}
+                  className="bg-white text-violet-700 hover:bg-slate-50 font-black px-6 py-3 rounded-2xl transition shadow-md hover:shadow-white/20 text-xs shrink-0"
+                >
+                  {plan === 'free' ? 'Upgrade Plan →' : 'Manage Subscription'}
                 </button>
               </div>
-            ) : (
-              <div className="bg-green-500/20 backdrop-blur-sm border border-green-300/40 rounded-2xl p-4 flex items-center gap-3">
-                <span className="text-2xl">✅</span>
-                <div>
-                  <p className="font-semibold text-green-800 capitalize">Active: {plan} Plan</p>
-                  <p className="text-sm text-green-700">All premium features unlocked.</p>
-                </div>
-                <button type="button" onClick={() => navigate('/provider/plans')}
-                  className="ml-auto text-sm text-green-700 underline hover:text-green-900">Manage</button>
+            </div>
+
+            {/* Save Button */}
+            <div className="text-center flex lg:flex-col items-center justify-center space-y-3 pb-8">
+              <button
+                type="submit"
+                disabled={saving}
+                className="w-full block sm:w-80 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-black py-4 px-8 rounded-2xl transition-all shadow-lg hover:shadow-violet-200/50 flex items-center justify-center gap-2 text-base"
+              >
+                {saving ? (
+                  <>
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    <span>Saving Profile...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Save Profile</span>
+                    <span>→</span>
+                  </>
+                )}
+              </button>
+              <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
+                Your profile will be immediately refreshed for active search results
+              </p>
+            </div>
+
+            {/* Premium feature benefit icons */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-t border-slate-100/60">
+              <div className="flex flex-col items-center text-center p-4 bg-white rounded-2xl border border-slate-100 shadow-xs">
+                <Sparkles className="w-6 h-6 text-violet-600 mb-2" />
+                <h5 className="font-extrabold text-slate-800 text-xs">AI Powered</h5>
+                <p className="text-[10px] text-slate-400 font-semibold mt-1">Smart profile optimization recommendations</p>
               </div>
-            )}
+              <div className="flex flex-col items-center text-center p-4 bg-white rounded-2xl border border-slate-100 shadow-xs">
+                <ShieldCheck className="w-6 h-6 text-violet-600 mb-2" />
+                <h5 className="font-extrabold text-slate-800 text-xs">Verified Badges</h5>
+                <p className="text-[10px] text-slate-400 font-semibold mt-1">OCR document verified profile trust boosts</p>
+              </div>
+              <div className="flex flex-col items-center text-center p-4 bg-white rounded-2xl border border-slate-100 shadow-xs">
+                <Compass className="w-6 h-6 text-violet-600 mb-2" />
+                <h5 className="font-extrabold text-slate-800 text-xs">Maximum Exposure</h5>
+                <p className="text-[10px] text-slate-400 font-semibold mt-1">Rank at the top in recruiter searches</p>
+              </div>
+              <div className="flex flex-col items-center text-center p-4 bg-white rounded-2xl border border-slate-100 shadow-xs">
+                <Zap className="w-6 h-6 text-violet-600 mb-2" />
+                <h5 className="font-extrabold text-slate-800 text-xs">Instant Opportunities</h5>
+                <p className="text-[10px] text-slate-400 font-semibold mt-1">Get immediate WhatsApp push alerts</p>
+              </div>
+            </div>
 
           </div>
-          {/* ── Save Button ── */}
-          <button type="submit" disabled={saving}
-            className="block mx-auto bg-blue-600 text-white px-10 py-3.5 rounded-2xl font-semibold text-base hover:bg-blue-700 active:scale-[.98] transition disabled:opacity-50 shadow-lg shadow-blue-300/40">
-            {saving ? 'Saving…' : 'Save Profile'}
-          </button>
-
-          <p className="text-center text-xs text-blue-900/50 pb-6">
-            Your profile is visible to recruiters searching in your service area.
-          </p>
 
         </form>
+
       </div>
+
       <ProviderAIChat
         profileContext={{
           city: form.city,

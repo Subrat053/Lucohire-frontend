@@ -11,7 +11,10 @@ const LocationSearch = ({
   return (
     <LocationAutocomplete
       value={value}
-      onChange={(locationObj) => {
+      onChange={(text) => {
+        if (onChange) onChange(text);
+      }}
+      onSelect={(locationObj) => {
         if (!locationObj) {
           if (onChange) onChange('');
           if (onSelect) onSelect(null);

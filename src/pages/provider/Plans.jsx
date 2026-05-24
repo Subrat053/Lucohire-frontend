@@ -24,6 +24,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import useTranslation from '../../hooks/useTranslation';
 import GuaranteeModal from '../../components/common/GuaranteeModal';
+import { API } from '../../services/api';
+import LocationSearch from '../../components/LocationSearch';
 
 const DURATION_OPTIONS = [
   { months: 1, label: '1 Month' },
@@ -81,6 +83,42 @@ const ProviderPlans = () => {
   const [selectedPincodes, setSelectedPincodes] = useState([]);
   const [selectedCities, setSelectedCities] = useState([]);
   const [showGuaranteeModal, setShowGuaranteeModal] = useState(false);
+
+  const [availableSkills, setAvailableSkills] = useState([]);
+  const [skillsLoading, setSkillsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      setSkillsLoading(true);
+      try {
+        const { data } = await API.get('/skills');
+        if (Array.isArray(data)) {
+          const all = data.flatMap(cat => cat.skills || []);
+          const names = [...new Set(all.map(s => s.name))].sort();
+          setAvailableSkills(names);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch backend skills, using fallbacks:', err);
+        setAvailableSkills([
+          'Electrician', 'Plumber', 'Carpenter', 'Painter', 'Driver', 'Cook',
+          'Welder', 'Mason', 'AC Technician', 'CCTV Installer', 'Tiler',
+          'Interior Designer', 'UI/UX Designer', 'Graphic Designer', 'Web Developer',
+          'Mobile Developer', 'Content Writer', 'Digital Marketer', 'Accountant',
+          'Data Entry Operator', 'Receptionist', 'Security Guard', 'Housekeeping',
+          'Nurse', 'Caretaker', 'Tailor', 'Beautician', 'Yoga Trainer', 'Tutor'
+        ]);
+      } finally {
+        setSkillsLoading(false);
+      }
+    };
+    fetchSkills();
+  }, []);
+
+  useEffect(() => {
+    setSelectedSkills([]);
+    setSelectedPincodes([]);
+    setSelectedCities([]);
+  }, [selectedPlan]);
 
 
   // =============================================================
@@ -153,7 +191,7 @@ const ProviderPlans = () => {
           });
             toast.success('Payment confirmed! Your plan is now active.');
             // Remove query params and redirect to custom plan success page
-            navigate('/provider/custom-plan?redirected=true', { replace: true });
+            navigate('/provider/customise-plan?redirected=true', { replace: true });
            await getMyPlan();
         } catch (err) {
           toast.error('Failed to confirm payment status.');
@@ -188,20 +226,59 @@ const ProviderPlans = () => {
   }, [selectedPlan, selectedDuration, selectedSkills, selectedPincodes, selectedCities]);
 
 
+  const isConfigurationValid = useMemo(() => {
+    if (!selectedPlan) return false;
+    if (selectedPlan.slug === 'free') return true;
+    if (selectedPlan.slug === 'customise-plan') return true;
+
+    if (selectedPlan.slug === 'add-multiple-skills') {
+      return selectedSkills.length >= 1 && selectedSkills.length <= (selectedPlan.maxSkills || 5);
+    }
+    if (selectedPlan.slug === 'one-pincode-top') {
+      return selectedSkills.length === 1 && selectedPincodes.length === 1;
+    }
+    if (selectedPlan.slug === 'top-in-city') {
+      return selectedSkills.length >= 1 && selectedCities.length === 1;
+    }
+    if (selectedPlan.slug === 'show-top-in-country') {
+      return selectedSkills.length >= 1 && selectedCities.length === 1;
+    }
+
+    return false;
+  }, [selectedPlan, selectedSkills, selectedPincodes, selectedCities]);
+
   const summary = useMemo(() => {
     if (!selectedPlan) return null;
     const pricing = pricingPreview || buildLocalPreview(selectedPlan, selectedDuration);
+    
+    let coverage = 'Basic Coverage';
+    let skillsDisplay = selectedSkills.length > 0 ? selectedSkills.join(', ') : 'No skills selected';
+
+    if (selectedPlan.slug === 'add-multiple-skills') {
+      coverage = null; // Hide coverage from UI
+      skillsDisplay = `${selectedSkills.length} Skill(s) Selected`;
+    } else if (selectedPlan.slug === 'one-pincode-top') {
+      coverage = selectedPincodes[0] || 'No locality selected';
+      skillsDisplay = selectedSkills[0] || 'No skill selected';
+    } else if (selectedPlan.slug === 'top-in-city') {
+      coverage = `City: ${selectedCities[0] || 'No city selected'}`;
+      skillsDisplay = `${selectedSkills.length} Skill(s) Selected`;
+    } else if (selectedPlan.slug === 'show-top-in-country') {
+      coverage = `Country: ${selectedCities[0] || 'No country selected'}`;
+      skillsDisplay = `${selectedSkills.length} Skill(s) Selected`;
+    }
+
     return {
       planName: selectedPlan.name,
-      planType: 'Provider Plan',
-      coverage: coverageLabels[selectedPlan.coverageType] || 'Custom Coverage',
-      skills: Number(selectedPlan.maxSkills || 1) > 1 ? 'Multiple Skills' : 'One Skill',
+      planType: 'Provider Boost',
+      coverage,
+      skills: skillsDisplay,
       duration: `${selectedDuration} Month${selectedDuration > 1 ? 's' : ''}`,
       subtotal: pricing?.subtotal || 0,
       gstAmount: pricing?.gstAmount || 0,
       totalAmount: pricing?.totalAmount || 0,
     };
-  }, [pricingPreview, selectedDuration, selectedPlan]);
+  }, [pricingPreview, selectedDuration, selectedPlan, selectedSkills, selectedPincodes, selectedCities]);
 
   const handleCheckout = async () => {
     if (!selectedPlan) {
@@ -233,7 +310,7 @@ const ProviderPlans = () => {
           });
           await getMyPlan();
           toast.success('Simulation: Payment successful! Plan activated.');
-          navigate('/provider/custom-plan?redirected=true');
+          navigate('/provider/customise-plan?redirected=true');
           return;
         }
       }
@@ -263,7 +340,7 @@ const ProviderPlans = () => {
             });
             await getMyPlan();
             toast.success('Payment successful! Plan activated.');
-            navigate('/provider/custom-plan?redirected=true');
+            navigate('/provider/customise-plan?redirected=true');
           },
         };
         const razorpay = new window.Razorpay(options);
@@ -395,13 +472,21 @@ const ProviderPlans = () => {
                           </div>
                           <button
                             type="button"
-                            onClick={() => setSelectedPlan(plan)}
+                            onClick={() => {
+                              if (plan.slug === 'customise-plan') {
+                                navigate('/provider/customise-plan');
+                              } else {
+                                setSelectedPlan(plan);
+                              }
+                            }}
                             className={`mt-4 w-full text-xs font-bold px-4 py-2.5 rounded-xl transition ${isSelected
                               ? 'bg-[#005BFF] text-white shadow-lg shadow-blue-200'
                               : 'border-2 border-[#D6E3FF] text-[#005BFF] hover:bg-[#EEF4FF] hover:border-[#005BFF]'
                               }`}
                           >
-                            {isSelected ? t('plans.currentSelection', 'Current Selection') : t('plans.selectPlan', 'Select Plan')}
+                            {plan.slug === 'customise-plan'
+                              ? t('plans.customiseNow', 'Customise Plan')
+                              : isSelected ? t('plans.currentSelection', 'Current Selection') : t('plans.selectPlan', 'Select Plan')}
                           </button>
                         </div>
                       );
@@ -412,53 +497,211 @@ const ProviderPlans = () => {
                 
 
                 {/* Coverage Details Section */}
-                {selectedPlan && selectedPlan.slug !== 'free' && (
-                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-6 shadow-sm">
+                {selectedPlan && selectedPlan.slug !== 'free' && selectedPlan.slug !== 'customise-plan' && (
+                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-6 shadow-sm animate-fade-in">
                     <h3 className="text-base font-bold text-[#06133D] mb-5">{t('plans.configureCoverage', 'Configure Your Coverage')}</h3>
                     <div className="space-y-6">
-                      {(selectedPlan.coverageType === 'pincode' || selectedPlan.coverageType === 'custom') && (
+                      
+                      {/* Locality Autocomplete - for Locality Plan */}
+                      {selectedPlan.slug === 'one-pincode-top' && (
                         <div>
                           <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
-                            {t('plans.targetPincodes', 'Target Pincodes')} {selectedPlan.maxPincodes > 0 && `(Max ${selectedPlan.maxPincodes})`}
+                            Target Locality / Area
                           </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. 110001, 110002"
-                            className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] focus:ring-2 focus:ring-[#005BFF] focus:border-transparent outline-none text-sm"
-                            value={selectedPincodes.join(', ')}
-                            onChange={(e) => setSelectedPincodes(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                          <LocationSearch
+                            value={selectedPincodes[0] || ''}
+                            onChange={(val) => {
+                              if (!val) setSelectedPincodes([]);
+                            }}
+                            onSelect={(item) => {
+                              if (item) {
+                                const pincode = item.raw?.address_components?.find(c => c.types.includes('postal_code'))?.long_name || item.pincode || '';
+                                const label = pincode ? `${item.formattedAddress} (${pincode})` : item.formattedAddress || item.name;
+                                setSelectedPincodes([label]);
+                              } else {
+                                setSelectedPincodes([]);
+                              }
+                            }}
+                            placeholder="Search and select locality/area"
                           />
+                          {selectedPincodes.length > 0 ? (
+                            <div className="mt-3 bg-[#F0FFF7] border border-[#D1FADF] rounded-xl p-3 flex items-center gap-2 text-xs font-bold text-[#027A48] animate-scale-up">
+                              <span>📍</span>
+                              <span className="truncate">{selectedPincodes[0]}</span>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedPincodes([])}
+                                className="text-[#027A48] hover:text-red-500 font-extrabold text-sm ml-auto"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-amber-600 mt-1 font-semibold flex items-center gap-1 animate-pulse">
+                              ⚠️ Select locality to continue
+                            </p>
+                          )}
                         </div>
                       )}
 
-                      {(selectedPlan.coverageType === 'city' || selectedPlan.coverageType === 'custom') && (
+                      {/* City Autocomplete - for City Plan */}
+                      {selectedPlan.slug === 'top-in-city' && (
                         <div>
                           <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
-                            {t('plans.targetCities', 'Target Cities')} {selectedPlan.maxCities > 0 && `(Max ${selectedPlan.maxCities})`}
+                            Target City
                           </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. Delhi, Mumbai"
-                            className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] focus:ring-2 focus:ring-[#005BFF] focus:border-transparent outline-none text-sm"
-                            value={selectedCities.join(', ')}
-                            onChange={(e) => setSelectedCities(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                          <LocationSearch
+                            value={selectedCities[0] || ''}
+                            onChange={(val) => {
+                              if (!val) setSelectedCities([]);
+                            }}
+                            onSelect={(item) => {
+                              if (item) {
+                                const city = item.city || item.name || '';
+                                setSelectedCities([city]);
+                              } else {
+                                setSelectedCities([]);
+                              }
+                            }}
+                            placeholder="Search and select city"
                           />
+                          {selectedCities.length > 0 ? (
+                            <div className="mt-3 bg-[#F0FFF7] border border-[#D1FADF] rounded-xl p-3 flex items-center gap-2 text-xs font-bold text-[#027A48] animate-scale-up">
+                              <span>🏢</span>
+                              <span className="truncate">{selectedCities[0]}</span>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedCities([])}
+                                className="text-[#027A48] hover:text-red-500 font-extrabold text-sm ml-auto"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-amber-600 mt-1 font-semibold flex items-center gap-1 animate-pulse">
+                              ⚠️ Select city to continue
+                            </p>
+                          )}
                         </div>
                       )}
 
-                      <div>
-                        <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
-                          {t('plans.boostSkills', 'Boost Skills')} {selectedPlan.maxSkills > 0 && `(Max ${selectedPlan.maxSkills})`}
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Plumber, Electrician"
-                          className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] focus:ring-2 focus:ring-[#005BFF] focus:border-transparent outline-none text-sm"
-                          value={selectedSkills.join(', ')}
-                          onChange={(e) => setSelectedSkills(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-                        />
-                        <p className="text-[10px] text-[#94A3B8] mt-1.5 font-medium">{t('plans.skillsComma', 'Enter skills separated by commas.')}</p>
-                      </div>
+                      {/* Country Autocomplete/Dropdown - for Country Plan */}
+                      {selectedPlan.slug === 'show-top-in-country' && (
+                        <div>
+                          <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
+                            Target Country
+                          </label>
+                          <select
+                            value={selectedCities[0] || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSelectedCities(val ? [val] : []);
+                            }}
+                            className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] focus:ring-2 focus:ring-[#005BFF] focus:border-transparent outline-none text-sm font-semibold text-[#06133D] bg-white"
+                          >
+                            <option value="">-- Select Country --</option>
+                            <option value="India">India (IN)</option>
+                            <option value="United Arab Emirates">United Arab Emirates (AE)</option>
+                            <option value="United States">United States (US)</option>
+                            <option value="United Kingdom">United Kingdom (UK)</option>
+                          </select>
+                          {selectedCities.length > 0 ? (
+                            <div className="mt-3 bg-[#F0FFF7] border border-[#D1FADF] rounded-xl p-3 flex items-center gap-2 text-xs font-bold text-[#027A48] animate-scale-up">
+                              <span>🌐</span>
+                              <span className="truncate">{selectedCities[0]}</span>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedCities([])}
+                                className="text-[#027A48] hover:text-red-500 font-extrabold text-sm ml-auto"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-amber-600 mt-1 font-semibold flex items-center gap-1 animate-pulse">
+                              ⚠️ Select country to continue
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Boost Skills Selector Section */}
+                      {/* Case 1: Single Skill Selector (for Locality Plan) */}
+                      {selectedPlan.maxSkills === 1 ? (
+                        <div>
+                          <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
+                            Select Speciality
+                          </label>
+                          <select
+                            value={selectedSkills[0] || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSelectedSkills(val ? [val] : []);
+                            }}
+                            className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] focus:ring-2 focus:ring-[#005BFF] focus:border-transparent outline-none text-sm font-semibold text-[#06133D] bg-white"
+                          >
+                            <option value="">-- Choose a Speciality --</option>
+                            {availableSkills.map(skill => (
+                              <option key={skill} value={skill}>{skill}</option>
+                            ))}
+                          </select>
+                          {selectedSkills.length === 0 && (
+                            <p className="text-xs text-amber-600 mt-1 font-semibold flex items-center gap-1 animate-pulse">
+                              ⚠️ Please select a speciality to continue
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        /* Case 2: Multi-Skill Selector (for Multiple Skills, City, Country Plans) */
+                        <div>
+                          <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
+                            Boost Skills (Max {selectedPlan.maxSkills})
+                          </label>
+                          <select
+                            value=""
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val && !selectedSkills.includes(val)) {
+                                if (selectedSkills.length >= selectedPlan.maxSkills) {
+                                  toast.error(`Your plan allows max ${selectedPlan.maxSkills} skills.`);
+                                  return;
+                                }
+                                setSelectedSkills([...selectedSkills, val]);
+                              }
+                            }}
+                            className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] focus:ring-2 focus:ring-[#005BFF] focus:border-transparent outline-none text-sm font-semibold text-[#06133D] bg-white"
+                          >
+                            <option value="">-- Add Skills to Boost --</option>
+                            {availableSkills
+                              .filter(s => !selectedSkills.includes(s))
+                              .map(skill => (
+                                <option key={skill} value={skill}>{skill}</option>
+                              ))}
+                          </select>
+                          
+                          {selectedSkills.length > 0 ? (
+                            <div className="flex flex-wrap gap-2 mt-3 animate-fade-in">
+                              {selectedSkills.map(skill => (
+                                <span key={skill} className="inline-flex items-center gap-1.5 bg-[#EEF4FF] border border-[#D6E3FF] text-[#005BFF] text-xs font-bold px-3 py-1.5 rounded-full shadow-xs">
+                                  <span>{skill}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedSkills(selectedSkills.filter(s => s !== skill))}
+                                    className="text-[#005BFF] hover:text-red-500 font-extrabold text-sm ml-1"
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-amber-600 mt-1 font-semibold flex items-center gap-1 animate-pulse">
+                              ⚠️ Select skills to continue
+                            </p>
+                          )}
+                        </div>
+                      )}
+
                     </div>
                   </div>
                 )}
@@ -551,14 +794,14 @@ const ProviderPlans = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-[#06133D]">{t('plans.customTitle', 'Need a custom solution?')}</p>
-                      <p className="text-xs text-[#64748B] mt-0.5 truncate">{t('plans.customDesc', 'For agencies and large businesses needing multi-city coverage.')}</p>
+                      <p className="text-xs text-[#64748B] mt-0.5 truncate">{t('plans.customDesc', 'Configure dynamic visibility for localities, cities, or countries.')}</p>
                     </div>
                     <button
                       type="button"
-                      onClick={() => navigate('/contact', { state: { subject: 'Custom Plan Inquiry', message: 'I am interested in a custom plan for my business.' } })}
+                      onClick={() => navigate('/provider/customise-plan')}
                       className="shrink-0 px-4 py-2 bg-[#F4F7FF] text-[#005BFF] text-xs font-bold rounded-lg hover:bg-[#E0E7FF] transition"
                     >
-                      {t('plans.inquireNow', 'Inquire Now')}
+                      {t('plans.customiseNow', 'Customise Plan')}
                     </button>
                   </div>
                 </div>
@@ -615,7 +858,7 @@ const ProviderPlans = () => {
             </div>
           </div>
           {/* =========================================== */}
-          <div className="bg-white border border-[#E8EEF9] rounded-xl p-5">
+          <div className="bg-white border border-[#E8EEF9] rounded-xl p-5 shadow-sm">
             <h3 className="text-sm font-semibold text-[#06133D] mb-4">{t('plans.summaryTitle', 'Your Plan Summary')}</h3>
             {summary ? (
               <div className="space-y-3 text-sm">
@@ -627,10 +870,12 @@ const ProviderPlans = () => {
                   <span className="text-[#64748B]">{t('plans.summaryPlanType', 'Plan Type')}</span>
                   <span className="font-semibold text-[#06133D]">{summary.planType}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[#64748B]">{t('plans.summaryCoverage', 'Coverage')}</span>
-                  <span className="font-semibold text-[#06133D]">{summary.coverage}</span>
-                </div>
+                {summary.coverage && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#64748B]">{t('plans.summaryCoverage', 'Coverage')}</span>
+                    <span className="font-semibold text-[#06133D]">{summary.coverage}</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="text-[#64748B]">{t('plans.summarySkills', 'Skills')}</span>
                   <span className="font-semibold text-[#06133D]">{summary.skills}</span>
@@ -649,9 +894,9 @@ const ProviderPlans = () => {
                   <span className="text-[#64748B]">{t('plans.summaryGst', 'GST (18%)')}</span>
                   <span className="font-semibold text-[#06133D]">{formatCurrency(summary.gstAmount)}</span>
                 </div>
-                <div className="flex items-center justify-between text-base">
+                <div className="flex items-center justify-between text-base border-t border-dashed border-[#EEF2FF] pt-2">
                   <span className="font-semibold text-[#06133D]">{t('plans.summaryTotal', 'Total Amount')}</span>
-                  <span className="font-bold text-[#06133D]">{formatCurrency(summary.totalAmount)}</span>
+                  <span className="font-bold text-violet-700">{formatCurrency(summary.totalAmount)}</span>
                 </div>
               </div>
             ) : (
@@ -660,8 +905,8 @@ const ProviderPlans = () => {
             <button
               type="button"
               onClick={handleCheckout}
-              disabled={!selectedPlan || checkoutLoading}
-              className="mt-5 w-full bg-[#005BFF] text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-[#0A4EE0] transition disabled:opacity-60"
+              disabled={!isConfigurationValid || checkoutLoading}
+              className="mt-5 w-full bg-[#005BFF] text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-[#0A4EE0] transition disabled:opacity-60 shadow-md hover:shadow-blue-200"
             >
               {checkoutLoading ? t('common.processing', 'Processing...') : t('plans.proceedPayment', 'Proceed to Payment')}
             </button>

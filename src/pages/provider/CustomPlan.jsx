@@ -1,59 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { providerAPI } from '../../services/api';
-import { getProviderPlans, getMyPlan, checkoutPlan, confirmPayment } from '../../services/providerPlanService';
+import { checkoutPlan, confirmPayment, getMyPlan } from '../../services/providerPlanService';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 import { 
   ArrowLeft, Gift, Layers, MapPin, Building2, Globe, Trash2, Plus, Sparkles, 
   ChevronDown, ChevronUp, Lock, CheckCircle, Shield, RefreshCw, X, Search 
 } from 'lucide-react';
 
-const ALL_SKILLS = [
-  'Electrician', 'Plumber', 'Carpenter', 'Painter', 'Driver', 'Cook',
-  'Welder', 'Mason', 'AC Technician', 'CCTV Installer', 'Tiler',
-  'Interior Designer', 'UI/UX Designer', 'Graphic Designer', 'Web Developer',
-  'Mobile Developer', 'Content Writer', 'Digital Marketer', 'Accountant',
-  'Data Entry Operator', 'Receptionist', 'Security Guard', 'Housekeeping',
-  'Nurse', 'Caretaker', 'Tailor', 'Beautician', 'Yoga Trainer', 'Tutor',
-  'Video Editing'
-];
-
-const LOCALITIES_LIST = [
-  'Andheri West, Mumbai', 'Borivali West, Mumbai', 'Goregaon East, Mumbai', 
-  'Bandra West, Mumbai', 'Indiranagar, Bengaluru', 'Whitefield, Bengaluru', 
-  'Connaught Place, Delhi', 'Saket, Delhi', 'Ameerpet, Hyderabad', 
-  'Gachibowli, Hyderabad', 'Adyar, Chennai', 'Salt Lake, Kolkata'
-];
-
-const CITIES_LIST = [
-  'Mumbai', 'Pune', 'Thane', 'Nagpur', 'Bengaluru', 'Delhi', 'Noida', 'Gurugram', 
-  'Hyderabad', 'Chennai', 'Kolkata'
-];
-
-const COUNTRIES_LIST = [
-  'India', 'United Arab Emirates', 'Singapore', 'United States', 'United Kingdom', 
-  'Canada', 'Australia', 'Germany', 'Saudi Arabia'
-];
-
-// Predefined Durations & Prices
-const LOCALITY_DURATIONS = [
-  { months: 1, label: '1 Month', price: 300 },
-  { months: 2, label: '2 Months', price: 500 },
-  { months: 3, label: '3 Months', price: 700 },
-  { months: 4, label: '4 Months', price: 800 }
-];
-
-const CITY_DURATIONS = [
-  { months: 1, label: '1 Month (Trial)', price: 250, isTrial: true },
-  { months: 1, label: '1 Month', price: 350 },
-  { months: 3, label: '3 Months', price: 900 }
-];
-
-const COUNTRY_DURATIONS = [
-  { months: 6, label: '6 Months', price: 3500 },
-  { months: 12, label: '12 Months', price: 6000 }
-];
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '/api';
 
 // Helper to get initials
 const getInitials = (skillName) => {
@@ -66,7 +23,10 @@ const getInitials = (skillName) => {
     .toUpperCase();
 };
 
-const SearchSelect = ({ options, selected, onChange, placeholder, icon: Icon }) => {
+/**
+ * Reusable Autocomplete for Skills Search
+ */
+const SkillSearchSelect = ({ options = [], selected, onChange, placeholder, icon: Icon }) => {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -84,7 +44,7 @@ const SearchSelect = ({ options, selected, onChange, placeholder, icon: Icon }) 
   );
 
   return (
-    <div ref={ref} className="relative w-full z-20">
+    <div ref={ref} className="relative w-full z-25">
       <div className="relative">
         <input
           type="text"
@@ -134,45 +94,158 @@ const SearchSelect = ({ options, selected, onChange, placeholder, icon: Icon }) 
   );
 };
 
+/**
+ * Reusable Autocomplete for Google Places
+ */
+const GooglePlaceSearchInput = ({ type, placeholder, onSelect }) => {
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const clickAway = (e) => {
+      if (!ref.current?.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', clickAway);
+    return () => document.removeEventListener('mousedown', clickAway);
+  }, []);
+
+  useEffect(() => {
+    if (!query || query.trim().length < 2 || !open) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+        const res = await axios.get(`${API_BASE_URL}/provider/custom-plan/place-suggestions`, {
+          params: { input: query, type },
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setSuggestions(res.data || []);
+      } catch (err) {
+        console.error('Places Autocomplete Error:', err.message);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query, open, type]);
+
+  const handleSuggestionClick = async (place) => {
+    setLoading(true);
+    setOpen(false);
+    setQuery(place.formattedAddress || place.name);
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const res = await axios.get(`${API_BASE_URL}/provider/custom-plan/place-details`, {
+        params: { placeId: place.placeId, type },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      onSelect(res.data);
+      setQuery('');
+    } catch (err) {
+      toast.error('Failed to load place geocoding details.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div ref={ref} className="relative w-full z-20">
+      <div className="relative">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          placeholder={placeholder}
+          className="w-full pl-3.5 pr-10 py-2.5 text-sm rounded-xl border border-gray-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-white shadow-sm transition"
+        />
+        <div className="absolute right-3.5 top-3.5">
+          {loading ? (
+            <RefreshCw className="w-4 h-4 text-violet-600 animate-spin" />
+          ) : (
+            <Search className="w-4 h-4 text-gray-400" />
+          )}
+        </div>
+      </div>
+      {open && (query.trim().length >= 2) && (
+        <div className="absolute left-0 mt-1 w-full bg-white rounded-xl shadow-xl border border-gray-100 max-h-48 overflow-y-auto z-50">
+          {suggestions.length === 0 && !loading && (
+            <div className="px-4 py-3 text-xs text-gray-400 italic">No matches found.</div>
+          )}
+          {suggestions.map(place => (
+            <button
+              key={place.placeId}
+              type="button"
+              onClick={() => handleSuggestionClick(place)}
+              className="w-full text-left px-4 py-2.5 text-sm hover:bg-violet-50 text-gray-700 transition"
+            >
+              <div className="font-semibold text-xs text-slate-800">{place.name}</div>
+              <div className="text-[10px] text-slate-400 truncate mt-0.5">{place.formattedAddress}</div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const CustomPlan = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [pricingLoading, setPricingLoading] = useState(false);
   const [customisePlanObj, setCustomisePlanObj] = useState(null);
   const [activePlan, setActivePlan] = useState(null);
   const [profile, setProfile] = useState(null);
+
+  // Options lists from API
+  const [allSkills, setAllSkills] = useState([]);
+  const [durationsConfig, setDurationsConfig] = useState({ locality: [], city: [], country: [] });
+  const [trialAvailable, setTrialAvailable] = useState(false);
 
   const params = new URLSearchParams(window.location.search);
   const isRedirected = params.get('redirected') === 'true';
 
   // Selection states
   const [selectedAchievements, setSelectedAchievements] = useState({
-    multipleSkills: true,
-    locality: true,
-    city: true,
-    country: true
+    multipleSkills: false,
+    locality: false,
+    city: false,
+    country: false
   });
 
-  // Table items states (Prepopulated from Mockup)
-  const [localitySkill, setLocalitySkill] = useState('Graphic Designer');
-  const [localityItems, setLocalityItems] = useState([
-    { id: 1, locality: 'Andheri West, Mumbai', durationMonths: 4, price: 800 },
-    { id: 2, locality: 'Borivali West, Mumbai', durationMonths: 3, price: 700 },
-    { id: 3, locality: 'Goregaon East, Mumbai', durationMonths: 2, price: 500 }
-  ]);
+  const [multipleSkillsList, setMultipleSkillsList] = useState([]);
 
-  const [citySkill, setCitySkill] = useState('Video Editing');
-  const [cityItems, setCityItems] = useState([
-    { id: 1, city: 'Pune', durationMonths: 1, price: 250, isTrial: true },
-    { id: 2, city: 'Thane', durationMonths: 1, price: 350 },
-    { id: 3, city: 'Nagpur', durationMonths: 3, price: 900 }
-  ]);
+  // Table items states
+  const [localitySkill, setLocalitySkill] = useState('');
+  const [localityItems, setLocalityItems] = useState([]);
 
-  const [countrySkill, setCountrySkill] = useState('UI/UX Designer');
-  const [countryItems, setCountryItems] = useState([
-    { id: 1, country: 'India', durationMonths: 12, price: 6000 },
-    { id: 2, country: 'United Arab Emirates', durationMonths: 6, price: 3500 }
-  ]);
+  const [citySkill, setCitySkill] = useState('');
+  const [cityItems, setCityItems] = useState([]);
+
+  const [countrySkill, setCountrySkill] = useState('');
+  const [countryItems, setCountryItems] = useState([]);
+
+  // Live Summary Panel Calculations states
+  const [pricingBreakdown, setPricingBreakdown] = useState({
+    subtotal: 0,
+    gstPercent: 18,
+    gstAmount: 0,
+    discountAmount: 0,
+    totalAmount: 0,
+    savingsAmount: 0
+  });
 
   // Expandable summary blocks
   const [expandedSummary, setExpandedSummary] = useState({
@@ -181,24 +254,105 @@ const CustomPlan = () => {
     country: true
   });
 
+  const hasLocality = selectedAchievements.locality && localitySkill && localityItems.length > 0;
+  const hasCity = selectedAchievements.city && citySkill && cityItems.length > 0;
+  const hasCountry = selectedAchievements.country && countrySkill && countryItems.length > 0;
+  const hasMultipleSkills = selectedAchievements.multipleSkills && multipleSkillsList.length > 0;
+  const hasSelectedItems = hasLocality || hasCity || hasCountry || hasMultipleSkills;
+
+  // Proceed to Payment disabled rules
+  const atLeastOneSkillSelected = 
+    (selectedAchievements.locality && !!localitySkill) || 
+    (selectedAchievements.city && !!citySkill) || 
+    (selectedAchievements.country && !!countrySkill) || 
+    (selectedAchievements.multipleSkills && multipleSkillsList.length > 0);
+
+  const atLeastOneVisibilityItemSelected = 
+    (selectedAchievements.locality && localityItems.length > 0) || 
+    (selectedAchievements.city && cityItems.length > 0) || 
+    (selectedAchievements.country && countryItems.length > 0);
+
+  const isDurationSelected = 
+    (!selectedAchievements.locality || localityItems.every(item => Number(item.durationMonths) > 0)) &&
+    (!selectedAchievements.city || cityItems.every(item => Number(item.durationMonths) > 0)) &&
+    (!selectedAchievements.country || countryItems.every(item => Number(item.durationMonths) > 0));
+
+  const proceedDisabled = 
+    checkoutLoading || 
+    pricingLoading || 
+    !atLeastOneSkillSelected || 
+    !atLeastOneVisibilityItemSelected || 
+    !isDurationSelected || 
+    pricingBreakdown.totalAmount <= 0;
+
+  const lastPayloadRef = useRef('');
+
   useEffect(() => {
     loadInitialData();
   }, []);
 
+  // Recalculate price with debouncer and prevent loop on price update
+  useEffect(() => {
+    if (loading) return;
+
+    const hasLocality = selectedAchievements.locality && localitySkill && localityItems.length > 0;
+    const hasCity = selectedAchievements.city && citySkill && cityItems.length > 0;
+    const hasCountry = selectedAchievements.country && countrySkill && countryItems.length > 0;
+    const hasMultipleSkills = selectedAchievements.multipleSkills && multipleSkillsList.length > 0;
+
+    if (!hasLocality && !hasCity && !hasCountry && !hasMultipleSkills) {
+      setPricingBreakdown({
+        subtotal: 0,
+        gstPercent: 18,
+        gstAmount: 0,
+        discountAmount: 0,
+        totalAmount: 0,
+        savingsAmount: 0
+      });
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      calculateLivePrice();
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [
+    localitySkill,
+    JSON.stringify(localityItems.map(i => ({ name: i.locality, duration: i.durationMonths }))),
+    citySkill,
+    JSON.stringify(cityItems.map(i => ({ name: i.city, duration: i.durationMonths, isTrial: i.isTrial }))),
+    countrySkill,
+    JSON.stringify(countryItems.map(i => ({ name: i.country, duration: i.durationMonths }))),
+    JSON.stringify(multipleSkillsList),
+    selectedAchievements
+  ]);
+
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      const [plansList, myPlan, profData] = await Promise.all([
-        getProviderPlans(),
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      
+      const [plansList, myPlan, profData, optionsRes] = await Promise.all([
+        providerAPI.getPlans(),
         getMyPlan(),
-        providerAPI.getProfile()
+        providerAPI.getProfile(),
+        axios.get(`${API_BASE_URL}/provider/custom-plan/options`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
       ]);
 
       setProfile(profData.data || null);
-
-      const customPlan = plansList.find(p => p.slug === 'customise-plan');
+      
+      const customPlan = plansList.data?.find(p => p.slug === 'customise-plan');
       if (customPlan) {
         setCustomisePlanObj(customPlan);
+      }
+
+      if (optionsRes.data) {
+        setAllSkills(optionsRes.data.skills || []);
+        setDurationsConfig(optionsRes.data.durations || { locality: [], city: [], country: [] });
+        setTrialAvailable(optionsRes.data.trialAvailable || false);
       }
 
       if (myPlan?.subscription?.planSnapshot?.slug === 'customise-plan' || profData.data?.currentPlan === 'customise-plan') {
@@ -207,45 +361,185 @@ const CustomPlan = () => {
           config: myPlan.subscription?.customConfig || profData.data?.customConfig
         });
       }
+
     } catch (err) {
-      toast.error('Failed to sync plan data.');
+      toast.error('Failed to sync customised plan specifications.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Add handlers
-  const handleAddLocality = () => {
+  const calculateLivePrice = async () => {
+    const items = [];
+    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+
+    if (selectedAchievements.locality && localitySkill && localityItems.length > 0) {
+      items.push({
+        skillName: localitySkill,
+        visibilityType: 'locality',
+        locations: localityItems.map(item => ({
+          placeId: item.placeId || 'placeholder_' + item.id,
+          name: item.locality,
+          formattedAddress: item.formattedAddress || item.locality,
+          locality: item.locality,
+          lat: item.lat || 19.0,
+          lng: item.lng || 73.0,
+          durationMonths: Number(item.durationMonths),
+          isTrial: false
+        }))
+      });
+    }
+
+    if (selectedAchievements.city && citySkill && cityItems.length > 0) {
+      items.push({
+        skillName: citySkill,
+        visibilityType: 'city',
+        locations: cityItems.map(item => ({
+          placeId: item.placeId || 'placeholder_' + item.id,
+          name: item.city,
+          formattedAddress: item.formattedAddress || item.city,
+          city: item.city,
+          lat: item.lat || 18.0,
+          lng: item.lng || 74.0,
+          durationMonths: Number(item.durationMonths),
+          isTrial: !!item.isTrial
+        }))
+      });
+    }
+
+    if (selectedAchievements.country && countrySkill && countryItems.length > 0) {
+      items.push({
+        skillName: countrySkill,
+        visibilityType: 'country',
+        locations: countryItems.map(item => ({
+          placeId: item.placeId || 'placeholder_' + item.id,
+          name: item.country,
+          formattedAddress: item.formattedAddress || item.country,
+          country: item.country,
+          lat: item.lat || 20.0,
+          lng: item.lng || 77.0,
+          durationMonths: Number(item.durationMonths),
+          isTrial: false
+        }))
+      });
+    }
+
+    if (selectedAchievements.multipleSkills && multipleSkillsList.length > 0) {
+      multipleSkillsList.forEach(skill => {
+        items.push({
+          skillName: skill,
+          visibilityType: 'multipleSkills',
+          locations: []
+        });
+      });
+    }
+
+    const payloadStr = JSON.stringify({ items, selectedAchievements });
+    if (payloadStr === lastPayloadRef.current) return;
+    lastPayloadRef.current = payloadStr;
+
+    setPricingLoading(true);
+    try {
+      const res = await axios.post(`${API_BASE_URL}/provider/custom-plan/price`, { items }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.data && res.data.success) {
+        setPricingBreakdown(res.data);
+        
+        // Sync calculated priced items back into grid rows safely without loop
+        const localityGroup = res.data.lineItems?.find(i => i.visibilityType === 'locality');
+        if (localityGroup) {
+          setLocalityItems(prev => prev.map((item, idx) => ({
+            ...item,
+            price: localityGroup.locations[idx]?.price || item.price
+          })));
+        }
+
+        const cityGroup = res.data.lineItems?.find(i => i.visibilityType === 'city');
+        if (cityGroup) {
+          setCityItems(prev => prev.map((item, idx) => ({
+            ...item,
+            price: cityGroup.locations[idx]?.price || item.price
+          })));
+        }
+
+        const countryGroup = res.data.lineItems?.find(i => i.visibilityType === 'country');
+        if (countryGroup) {
+          setCountryItems(prev => prev.map((item, idx) => ({
+            ...item,
+            price: countryGroup.locations[idx]?.price || item.price
+          })));
+        }
+      }
+    } catch (err) {
+      toast.error('Pricing calculations failed. Check items connection.');
+    } finally {
+      setPricingLoading(false);
+    }
+  };
+
+  const handleAddLocality = (placeData) => {
+    const isDuplicate = localityItems.some(i => i.locality === placeData.locality);
+    if (isDuplicate) {
+      toast.error('This locality is already added.');
+      return;
+    }
     const newItem = {
       id: Date.now(),
-      locality: LOCALITIES_LIST[0],
+      placeId: placeData.placeId,
+      locality: placeData.locality || placeData.name,
+      formattedAddress: placeData.formattedAddress,
       durationMonths: 1,
-      price: 300
+      price: 300,
+      lat: placeData.lat,
+      lng: placeData.lng
     };
     setLocalityItems([...localityItems, newItem]);
+    toast.success('Locality added.');
   };
 
-  const handleAddCity = () => {
+  const handleAddCity = (placeData) => {
+    const isDuplicate = cityItems.some(i => i.city === placeData.city);
+    if (isDuplicate) {
+      toast.error('This city is already added.');
+      return;
+    }
     const newItem = {
       id: Date.now(),
-      city: CITIES_LIST[0],
+      placeId: placeData.placeId,
+      city: placeData.city || placeData.name,
+      formattedAddress: placeData.formattedAddress,
       durationMonths: 1,
-      price: 350
+      price: 350,
+      lat: placeData.lat,
+      lng: placeData.lng,
+      isTrial: false
     };
     setCityItems([...cityItems, newItem]);
+    toast.success('City added.');
   };
 
-  const handleAddCountry = () => {
+  const handleAddCountry = (placeData) => {
+    const isDuplicate = countryItems.some(i => i.country === placeData.country);
+    if (isDuplicate) {
+      toast.error('This country is already added.');
+      return;
+    }
     const newItem = {
       id: Date.now(),
-      country: COUNTRIES_LIST[0],
+      placeId: placeData.placeId,
+      country: placeData.country || placeData.name,
+      formattedAddress: placeData.formattedAddress,
       durationMonths: 6,
-      price: 3500
+      price: 3500,
+      lat: placeData.lat,
+      lng: placeData.lng
     };
     setCountryItems([...countryItems, newItem]);
+    toast.success('Country added.');
   };
 
-  // Delete handlers
   const handleDeleteLocality = (id) => {
     setLocalityItems(localityItems.filter(item => item.id !== id));
   };
@@ -258,16 +552,10 @@ const CustomPlan = () => {
     setCountryItems(countryItems.filter(item => item.id !== id));
   };
 
-  // Change handlers
   const handleLocalityItemChange = (id, field, value) => {
     setLocalityItems(localityItems.map(item => {
       if (item.id === id) {
-        const updated = { ...item, [field]: value };
-        if (field === 'durationMonths') {
-          const durationObj = LOCALITY_DURATIONS.find(d => d.months === Number(value));
-          updated.price = durationObj ? durationObj.price : 300;
-        }
-        return updated;
+        return { ...item, [field]: value };
       }
       return item;
     }));
@@ -276,22 +564,13 @@ const CustomPlan = () => {
   const handleCityItemChange = (id, field, value) => {
     setCityItems(cityItems.map(item => {
       if (item.id === id) {
-        const updated = { ...item, [field]: value };
-        if (field === 'durationMonths') {
-          // If trial or regular 1 month
-          const durationObj = CITY_DURATIONS.find((d, idx) => {
-            if (value === '1_trial') return d.isTrial;
-            return d.months === Number(value) && !d.isTrial;
-          });
-          if (value === '1_trial') {
-            updated.durationMonths = 1;
-            updated.isTrial = true;
-            updated.price = 250;
-          } else {
-            updated.durationMonths = Number(value);
-            updated.isTrial = false;
-            updated.price = durationObj ? durationObj.price : 350;
-          }
+        const updated = { ...item };
+        if (value === '1_trial') {
+          updated.durationMonths = 1;
+          updated.isTrial = true;
+        } else {
+          updated.durationMonths = Number(value);
+          updated.isTrial = false;
         }
         return updated;
       }
@@ -302,104 +581,152 @@ const CustomPlan = () => {
   const handleCountryItemChange = (id, field, value) => {
     setCountryItems(countryItems.map(item => {
       if (item.id === id) {
-        const updated = { ...item, [field]: value };
-        if (field === 'durationMonths') {
-          const durationObj = COUNTRY_DURATIONS.find(d => d.months === Number(value));
-          updated.price = durationObj ? durationObj.price : 3500;
-        }
-        return updated;
+        return { ...item, [field]: value };
       }
       return item;
     }));
   };
 
-  // Clear all
   const handleClearAll = () => {
+    setSelectedAchievements({
+      multipleSkills: false,
+      locality: false,
+      city: false,
+      country: false
+    });
+    setLocalitySkill('');
     setLocalityItems([]);
+    setCitySkill('');
     setCityItems([]);
+    setCountrySkill('');
     setCountryItems([]);
+    setMultipleSkillsList([]);
+    setPricingBreakdown({
+      subtotal: 0,
+      gstPercent: 18,
+      gstAmount: 0,
+      discountAmount: 0,
+      totalAmount: 0,
+      savingsAmount: 0
+    });
     toast.success('Configuration cleared.');
   };
 
-  // Calculations
-  const localityTotal = selectedAchievements.locality && localitySkill ? localityItems.reduce((acc, item) => acc + item.price, 0) : 0;
-  const cityTotal = selectedAchievements.city && citySkill ? cityItems.reduce((acc, item) => acc + item.price, 0) : 0;
-  const countryTotal = selectedAchievements.country && countrySkill ? countryItems.reduce((acc, item) => acc + item.price, 0) : 0;
-
-  const subtotal = localityTotal + cityTotal + countryTotal;
-  const gstAmount = Math.round(subtotal * 0.18);
-  const totalAmount = subtotal + gstAmount;
-  const savings = Math.round(subtotal * 0.15); // Dynamic 15% savings based on AI smart plan recommendation
-
-  // Proceed to checkout
   const handleProceedToPayment = async () => {
+    const { subtotal } = pricingBreakdown;
     if (subtotal <= 0) {
-      toast.error('Please configure at least one boost plan to proceed.');
+      toast.error('Please configure at least one active visibility boost plan to proceed.');
       return;
     }
     if (!customisePlanObj) {
-      toast.error('Custom plan object not found in seeded plans.');
+      toast.error('Custom plan object templates not loaded.');
       return;
     }
 
     setCheckoutLoading(true);
     try {
-      const customConfig = {
-        localities: selectedAchievements.locality && localitySkill ? localityItems.map(item => ({
-          skill: localitySkill,
-          locality: item.locality,
-          durationMonths: item.durationMonths,
-          price: item.price
-        })) : [],
-        cities: selectedAchievements.city && citySkill ? cityItems.map(item => ({
-          skill: citySkill,
-          city: item.city,
-          durationMonths: item.durationMonths,
-          price: item.price,
-          isTrial: item.isTrial
-        })) : [],
-        countries: selectedAchievements.country && countrySkill ? countryItems.map(item => ({
-          skill: countrySkill,
-          country: item.country,
-          durationMonths: item.durationMonths,
-          price: item.price
-        })) : [],
-        subtotal,
-        gstAmount,
-        totalAmount
-      };
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const items = [];
 
-      const response = await checkoutPlan({
-        planId: customisePlanObj._id,
-        durationMonths: 1, // Custom plans override duration pricing
-        customAmount: subtotal,
-        customConfig
+      if (selectedAchievements.locality && localitySkill && localityItems.length > 0) {
+        items.push({
+          skillName: localitySkill,
+          visibilityType: 'locality',
+          locations: localityItems.map(item => ({
+            placeId: item.placeId || 'placeholder_' + item.id,
+            name: item.locality,
+            formattedAddress: item.formattedAddress || item.locality,
+            locality: item.locality,
+            lat: item.lat || 19.0,
+            lng: item.lng || 73.0,
+            durationMonths: Number(item.durationMonths)
+          }))
+        });
+      }
+
+      if (selectedAchievements.city && citySkill && cityItems.length > 0) {
+        items.push({
+          skillName: citySkill,
+          visibilityType: 'city',
+          locations: cityItems.map(item => ({
+            placeId: item.placeId || 'placeholder_' + item.id,
+            name: item.city,
+            formattedAddress: item.formattedAddress || item.city,
+            city: item.city,
+            lat: item.lat || 18.0,
+            lng: item.lng || 74.0,
+            durationMonths: Number(item.durationMonths),
+            isTrial: !!item.isTrial
+          }))
+        });
+      }
+
+      if (selectedAchievements.country && countrySkill && countryItems.length > 0) {
+        items.push({
+          skillName: countrySkill,
+          visibilityType: 'country',
+          locations: countryItems.map(item => ({
+            placeId: item.placeId || 'placeholder_' + item.id,
+            name: item.country,
+            formattedAddress: item.formattedAddress || item.country,
+            country: item.country,
+            lat: item.lat || 20.0,
+            lng: item.lng || 77.0,
+            durationMonths: Number(item.durationMonths)
+          }))
+        });
+      }
+
+      if (selectedAchievements.multipleSkills && multipleSkillsList.length > 0) {
+        multipleSkillsList.forEach(skill => {
+          items.push({
+            skillName: skill,
+            visibilityType: 'multipleSkills',
+            locations: []
+          });
+        });
+      }
+
+      const selectedGoals = Object.keys(selectedAchievements).filter(k => selectedAchievements[k]);
+
+      const res = await axios.post(`${API_BASE_URL}/provider/custom-plan/create`, {
+        items,
+        selectedGoals
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      const { checkout, subscription } = response || {};
+      const { checkout, subscription } = res.data || {};
 
       if (checkout?.simulationMode) {
-        const confirm = window.confirm('Simulation Mode: Click OK to simulate successful customized payment.');
+        const confirm = window.confirm('Simulation Mode: Click OK to simulate successful payment and instantly activate customized plan.');
         if (confirm) {
           await confirmPayment({
             subscriptionId: subscription?._id,
             paymentId: 'sim_' + Date.now(),
             orderId: 'sim_order_' + Date.now()
           });
-          toast.success('Subscription activated successfully!');
-          loadInitialData(); // Reload profile and plan states
+          toast.success('Dynamic custom visibility plan activated successfully!');
+          
+          const updatedPlan = await getMyPlan();
+          if (updatedPlan?.subscription) {
+            setActivePlan({
+              subscription: updatedPlan.subscription,
+              config: updatedPlan.subscription.customConfig
+            });
+          }
           return;
         }
       }
 
       if (checkout?.paymentRequired && checkout?.url) {
-        toast.success('Redirecting to payment gateway...');
+        toast.success('Redirecting to secure stripe checkout...');
         window.location.href = checkout.url;
       } else {
-        toast.success(checkout?.message || 'Checkout created.');
+        toast.success(checkout?.message || 'Custom plan request created successfully.');
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Checkout initialization failed.');
+      toast.error(err.response?.data?.message || 'Checkout creation failed.');
     } finally {
       setCheckoutLoading(false);
     }
@@ -422,13 +749,13 @@ const CustomPlan = () => {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <button
-              onClick={() => navigate('/provider/profile')}
+              onClick={() => navigate('/provider/plans')}
               className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-violet-600 transition"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to Profile
+              <ArrowLeft className="w-4 h-4" /> Back to My Plan
             </button>
             <div className="bg-emerald-50 text-emerald-600 font-semibold px-4 py-1.5 rounded-full border border-emerald-200 text-sm flex items-center gap-2 shadow-sm">
-              <CheckCircle className="w-4 h-4" /> Active customised Plan
+              <CheckCircle className="w-4 h-4" /> Active Customised Plan
             </div>
           </div>
 
@@ -438,12 +765,29 @@ const CustomPlan = () => {
                 <Sparkles className="w-8 h-8" />
               </div>
               <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Your Smart Visibility Boosts Are Active!</h1>
-              <p className="mt-3 text-slate-500">You have configured and purchased a personalised plan. Enjoy top visibility rankings across your configured regions.</p>
+              <p className="mt-3 text-slate-500">Enjoy top-tier priority rankings across all of your configured custom visibility levels.</p>
             </div>
 
             <hr className="border-slate-100 mb-8" />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Multiple Skills Showcase Info Card */}
+              {config.multipleSkills?.length > 0 && (
+                <div className="bg-violet-50/50 border border-violet-100 rounded-2xl p-6">
+                  <div className="flex items-center gap-2 mb-4 text-violet-700">
+                    <Layers className="w-5 h-5" />
+                    <h3 className="font-bold text-lg">Showcase Skills</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {config.multipleSkills.map((skill, idx) => (
+                      <span key={idx} className="bg-white px-3 py-1.5 rounded-xl border border-violet-100 shadow-sm text-xs font-bold text-slate-700">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Localities Boost Info Card */}
               {config.localities?.length > 0 && (
                 <div className="bg-purple-50/50 border border-purple-100 rounded-2xl p-6">
@@ -520,10 +864,10 @@ const CustomPlan = () => {
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setActivePlan(null)} // Click to design another plan
+                  onClick={() => setActivePlan(null)} 
                   className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl text-sm transition shadow-md"
                 >
-                  Create New custom Plan
+                  Create New Custom Plan
                 </button>
                 <button
                   onClick={() => navigate('/provider/profile')}
@@ -542,7 +886,7 @@ const CustomPlan = () => {
   // Builder Plan View
   return (
     <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -572,32 +916,21 @@ const CustomPlan = () => {
           <div className="mb-8 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm backdrop-blur-sm">
             <div className="flex items-center gap-4 text-left">
               <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0 shadow-inner">
-                <CheckCircle className="w-6 h-6 animate-pulse" />
+                <CheckCircle className="w-6 h-6" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-slate-800">Plan Activated Successfully!</h2>
                 <p className="text-slate-500 text-sm mt-1">
-                  Your new provider plan is now active. You can now go to your profile, or customize your visibility further below.
+                  Enjoy top visibility rankings across your configured custom specifications.
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
-              <button
-                onClick={() => navigate('/provider/profile')}
-                className="flex-1 md:flex-none px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition shadow-md shadow-emerald-600/10"
-              >
-                Back to Profile
-              </button>
-              <button
-                onClick={() => {
-                  // Clean up URL query parameters
-                  navigate('/provider/custom-plan', { replace: true });
-                }}
-                className="flex-1 md:flex-none px-5 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold rounded-xl text-sm transition"
-              >
-                Customise Plan
-              </button>
-            </div>
+            <button
+              onClick={() => navigate('/provider/profile')}
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition shadow-md"
+            >
+              Go to Profile
+            </button>
           </div>
         )}
 
@@ -722,6 +1055,72 @@ const CustomPlan = () => {
                 </span>
               </div>
 
+              {/* Section: Multiple Skills Showcase */}
+              {selectedAchievements.multipleSkills && (
+                <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
+                  
+                  {/* Skill Search Selection Header */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 bg-violet-600 text-white font-bold text-xs rounded-full flex items-center justify-center shadow-md">★</div>
+                      <div>
+                        <h3 className="font-extrabold text-slate-800 text-sm">Multiple Skills</h3>
+                        <p className="text-xs text-slate-400">Showcase multiple skills on your profile.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+                      <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0">
+                        Add Secondary Skill
+                      </span>
+                      <div className="w-full sm:w-64">
+                        <SkillSearchSelect
+                          options={allSkills}
+                          selected=""
+                          onChange={(s) => {
+                            if (!s) return;
+                            if (multipleSkillsList.includes(s)) {
+                              toast.error('Skill already added.');
+                              return;
+                            }
+                            setMultipleSkillsList([...multipleSkillsList, s]);
+                            toast.success('Skill added.');
+                          }}
+                          placeholder="Search skill (e.g. Electrician)"
+                          icon={Search}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {multipleSkillsList.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 animate-fade-in">
+                      {multipleSkillsList.map(skill => (
+                        <div key={skill} className="inline-flex items-center gap-2 bg-violet-50 border border-violet-100 text-violet-700 text-xs font-bold px-3 py-1 rounded-full animate-fade-in">
+                          <span>{getInitials(skill)}</span>
+                          <span>{skill}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMultipleSkillsList(multipleSkillsList.filter(s => s !== skill));
+                              toast.success('Skill removed.');
+                            }}
+                            className="hover:text-red-500 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                      No secondary skills added yet. Search and select skills above.
+                    </div>
+                  )}
+
+                </div>
+              )}
+
               {/* Section 01: Locality Boost */}
               {selectedAchievements.locality && (
                 <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
@@ -741,8 +1140,8 @@ const CustomPlan = () => {
                         Search Skill with AI
                       </span>
                       <div className="w-full sm:w-64">
-                        <SearchSelect
-                          options={ALL_SKILLS}
+                        <SkillSearchSelect
+                          options={allSkills}
                           selected={localitySkill}
                           onChange={(s) => setLocalitySkill(s)}
                           placeholder="Search skill (e.g. Graphic Design)"
@@ -755,7 +1154,7 @@ const CustomPlan = () => {
                   {localitySkill ? (
                     <div>
                       {/* Selected Skill Pill */}
-                      <div className="mb-4 inline-flex items-center gap-2 bg-violet-50 border border-violet-100 text-violet-700 text-xs font-bold px-3 py-1 rounded-full">
+                      <div className="mb-4 inline-flex items-center gap-2 bg-violet-50 border border-violet-100 text-violet-700 text-xs font-bold px-3 py-1 rounded-full animate-fade-in">
                         <span>{getInitials(localitySkill)}</span>
                         <span>{localitySkill}</span>
                         <button type="button" onClick={() => setLocalitySkill('')} className="hover:text-red-500">
@@ -763,71 +1162,76 @@ const CustomPlan = () => {
                         </button>
                       </div>
 
-                      {/* Locality Table */}
-                      <div className="overflow-x-auto rounded-xl border border-slate-100">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                              <th className="py-3 px-4">Locality</th>
-                              <th className="py-3 px-4">Duration</th>
-                              <th className="py-3 px-4">Price</th>
-                              <th className="py-3 px-4 w-12"></th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50">
-                            {localityItems.map(item => (
-                              <tr key={item.id} className="text-sm">
-                                <td className="py-3 px-4">
-                                  <select
-                                    value={item.locality}
-                                    onChange={(e) => handleLocalityItemChange(item.id, 'locality', e.target.value)}
-                                    className="w-full bg-transparent font-medium text-slate-700 outline-none"
-                                  >
-                                    {LOCALITIES_LIST.map(loc => (
-                                      <option key={loc} value={loc}>{loc}</option>
-                                    ))}
-                                  </select>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <select
-                                    value={item.durationMonths}
-                                    onChange={(e) => handleLocalityItemChange(item.id, 'durationMonths', e.target.value)}
-                                    className="bg-transparent font-medium text-slate-700 outline-none"
-                                  >
-                                    {LOCALITY_DURATIONS.map(d => (
-                                      <option key={d.months} value={d.months}>{d.label}</option>
-                                    ))}
-                                  </select>
-                                </td>
-                                <td className="py-3 px-4 font-bold text-slate-800">
-                                  ₹{item.price}
-                                </td>
-                                <td className="py-3 px-4 text-center">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteLocality(item.id)}
-                                    className="text-slate-300 hover:text-red-500 transition"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      {/* Search Bar for Google Places Autocomplete */}
+                      <div className="mb-4 w-full md:w-2/3">
+                        <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">
+                          Search & Add New Locality
+                        </label>
+                        <GooglePlaceSearchInput
+                          type="locality"
+                          placeholder="Search locality, pincode, sublocality (e.g. Andheri West)..."
+                          onSelect={(place) => handleAddLocality(place)}
+                        />
                       </div>
 
+                      {/* Locality Table */}
+                      {localityItems.length > 0 ? (
+                        <div className="overflow-x-auto rounded-xl border border-slate-100">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                                <th className="py-3 px-4">Locality</th>
+                                <th className="py-3 px-4">Duration</th>
+                                <th className="py-3 px-4">Price</th>
+                                <th className="py-3 px-4 w-12"></th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                              {localityItems.map(item => (
+                                <tr key={item.id} className="text-sm">
+                                  <td className="py-3 px-4 font-semibold text-slate-700">
+                                    {item.locality}
+                                    <span className="block text-[10px] text-slate-400 font-normal truncate max-w-xs">{item.formattedAddress}</span>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <select
+                                      value={item.durationMonths}
+                                      onChange={(e) => handleLocalityItemChange(item.id, 'durationMonths', e.target.value)}
+                                      className="bg-transparent font-medium text-slate-700 outline-none border border-slate-200 rounded px-2 py-1 text-xs"
+                                    >
+                                      {durationsConfig.locality?.map(d => (
+                                        <option key={d.months} value={d.months}>{d.label}</option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td className="py-3 px-4 font-bold text-slate-800">
+                                    ₹{item.price}
+                                  </td>
+                                  <td className="py-3 px-4 text-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteLocality(item.id)}
+                                      className="text-slate-300 hover:text-red-500 transition"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">
+                          No localities added. Search and add locations above to boost.
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-between mt-4">
-                        <button
-                          type="button"
-                          onClick={handleAddLocality}
-                          className="flex items-center gap-1 bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-sm"
-                        >
-                          <Plus className="w-3.5 h-3.5" /> Add Another Locality
-                        </button>
+                        <div />
                         <div className="text-right">
-                          <span className="text-xs font-bold text-slate-400">Skill Total </span>
-                          <span className="font-extrabold text-violet-700 text-lg">₹{localityTotal}</span>
+                          <span className="text-xs font-bold text-slate-400">Locality Total </span>
+                          <span className="font-extrabold text-violet-700 text-lg">₹{localityItems.reduce((a, b) => a + b.price, 0)}</span>
                         </div>
                       </div>
                     </div>
@@ -859,8 +1263,8 @@ const CustomPlan = () => {
                         Search Skill with AI
                       </span>
                       <div className="w-full sm:w-64">
-                        <SearchSelect
-                          options={ALL_SKILLS}
+                        <SkillSearchSelect
+                          options={allSkills}
                           selected={citySkill}
                           onChange={(s) => setCitySkill(s)}
                           placeholder="Search skill (e.g. Video Editing)"
@@ -873,7 +1277,7 @@ const CustomPlan = () => {
                   {citySkill ? (
                     <div>
                       {/* Selected Skill Pill */}
-                      <div className="mb-4 inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">
+                      <div className="mb-4 inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full animate-fade-in">
                         <span>{getInitials(citySkill)}</span>
                         <span>{citySkill}</span>
                         <button type="button" onClick={() => setCitySkill('')} className="hover:text-red-500">
@@ -881,71 +1285,76 @@ const CustomPlan = () => {
                         </button>
                       </div>
 
-                      {/* City Table */}
-                      <div className="overflow-x-auto rounded-xl border border-slate-100">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                              <th className="py-3 px-4">City</th>
-                              <th className="py-3 px-4">Duration</th>
-                              <th className="py-3 px-4">Price</th>
-                              <th className="py-3 px-4 w-12"></th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50">
-                            {cityItems.map(item => (
-                              <tr key={item.id} className="text-sm">
-                                <td className="py-3 px-4">
-                                  <select
-                                    value={item.city}
-                                    onChange={(e) => handleCityItemChange(item.id, 'city', e.target.value)}
-                                    className="w-full bg-transparent font-medium text-slate-700 outline-none"
-                                  >
-                                    {CITIES_LIST.map(city => (
-                                      <option key={city} value={city}>{city}</option>
-                                    ))}
-                                  </select>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <select
-                                    value={item.isTrial ? '1_trial' : item.durationMonths}
-                                    onChange={(e) => handleCityItemChange(item.id, 'durationMonths', e.target.value)}
-                                    className="bg-transparent font-medium text-slate-700 outline-none"
-                                  >
-                                    <option value="1_trial">1 Month (Trial) - ₹250</option>
-                                    <option value="1">1 Month - ₹350</option>
-                                    <option value="3">3 Months - ₹900</option>
-                                  </select>
-                                </td>
-                                <td className="py-3 px-4 font-bold text-slate-800">
-                                  ₹{item.price}
-                                </td>
-                                <td className="py-3 px-4 text-center">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteCity(item.id)}
-                                    className="text-slate-300 hover:text-red-500 transition"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      {/* Search Bar for Google Places Autocomplete */}
+                      <div className="mb-4 w-full md:w-2/3">
+                        <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">
+                          Search & Add New City
+                        </label>
+                        <GooglePlaceSearchInput
+                          type="city"
+                          placeholder="Search city, district (e.g. Pune, Mumbai)..."
+                          onSelect={(place) => handleAddCity(place)}
+                        />
                       </div>
 
+                      {/* City Table */}
+                      {cityItems.length > 0 ? (
+                        <div className="overflow-x-auto rounded-xl border border-slate-100">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                                <th className="py-3 px-4">City</th>
+                                <th className="py-3 px-4">Duration</th>
+                                <th className="py-3 px-4">Price</th>
+                                <th className="py-3 px-4 w-12"></th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                              {cityItems.map(item => (
+                                <tr key={item.id} className="text-sm">
+                                  <td className="py-3 px-4 font-semibold text-slate-700">
+                                    {item.city}
+                                    <span className="block text-[10px] text-slate-400 font-normal truncate max-w-xs">{item.formattedAddress}</span>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <select
+                                      value={item.isTrial ? '1_trial' : item.durationMonths}
+                                      onChange={(e) => handleCityItemChange(item.id, 'durationMonths', e.target.value)}
+                                      className="bg-transparent font-medium text-slate-700 outline-none border border-slate-200 rounded px-2 py-1 text-xs"
+                                    >
+                                      {durationsConfig.city?.map(d => (
+                                        <option key={d.isTrial ? '1_trial' : d.months} value={d.isTrial ? '1_trial' : d.months}>{d.label}</option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td className="py-3 px-4 font-bold text-slate-800">
+                                    ₹{item.price}
+                                  </td>
+                                  <td className="py-3 px-4 text-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteCity(item.id)}
+                                      className="text-slate-300 hover:text-red-500 transition"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">
+                          No cities added. Search and add city results above to boost.
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-between mt-4">
-                        <button
-                          type="button"
-                          onClick={handleAddCity}
-                          className="flex items-center gap-1 bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-sm"
-                        >
-                          <Plus className="w-3.5 h-3.5" /> Add Another City
-                        </button>
+                        <div />
                         <div className="text-right">
-                          <span className="text-xs font-bold text-slate-400">Skill Total </span>
-                          <span className="font-extrabold text-violet-700 text-lg">₹{cityTotal}</span>
+                          <span className="text-xs font-bold text-slate-400">City Total </span>
+                          <span className="font-extrabold text-violet-700 text-lg">₹{cityItems.reduce((a, b) => a + b.price, 0)}</span>
                         </div>
                       </div>
                     </div>
@@ -977,8 +1386,8 @@ const CustomPlan = () => {
                         Search Skill with AI
                       </span>
                       <div className="w-full sm:w-64">
-                        <SearchSelect
-                          options={ALL_SKILLS}
+                        <SkillSearchSelect
+                          options={allSkills}
                           selected={countrySkill}
                           onChange={(s) => setCountrySkill(s)}
                           placeholder="Search skill (e.g. UI/UX Design)"
@@ -991,7 +1400,7 @@ const CustomPlan = () => {
                   {countrySkill ? (
                     <div>
                       {/* Selected Skill Pill */}
-                      <div className="mb-4 inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full">
+                      <div className="mb-4 inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full animate-fade-in">
                         <span>{getInitials(countrySkill)}</span>
                         <span>{countrySkill}</span>
                         <button type="button" onClick={() => setCountrySkill('')} className="hover:text-red-500">
@@ -999,71 +1408,76 @@ const CustomPlan = () => {
                         </button>
                       </div>
 
-                      {/* Country Table */}
-                      <div className="overflow-x-auto rounded-xl border border-slate-100">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                              <th className="py-3 px-4">Country</th>
-                              <th className="py-3 px-4">Duration</th>
-                              <th className="py-3 px-4">Price</th>
-                              <th className="py-3 px-4 w-12"></th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50">
-                            {countryItems.map(item => (
-                              <tr key={item.id} className="text-sm">
-                                <td className="py-3 px-4">
-                                  <select
-                                    value={item.country}
-                                    onChange={(e) => handleCountryItemChange(item.id, 'country', e.target.value)}
-                                    className="w-full bg-transparent font-medium text-slate-700 outline-none"
-                                  >
-                                    {COUNTRIES_LIST.map(country => (
-                                      <option key={country} value={country}>{country}</option>
-                                    ))}
-                                  </select>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <select
-                                    value={item.durationMonths}
-                                    onChange={(e) => handleCountryItemChange(item.id, 'durationMonths', e.target.value)}
-                                    className="bg-transparent font-medium text-slate-700 outline-none"
-                                  >
-                                    {COUNTRY_DURATIONS.map(d => (
-                                      <option key={d.months} value={d.months}>{d.label}</option>
-                                    ))}
-                                  </select>
-                                </td>
-                                <td className="py-3 px-4 font-bold text-slate-800">
-                                  ₹{item.price}
-                                </td>
-                                <td className="py-3 px-4 text-center">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteCountry(item.id)}
-                                    className="text-slate-300 hover:text-red-500 transition"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      {/* Search Bar for Google Places Autocomplete */}
+                      <div className="mb-4 w-full md:w-2/3">
+                        <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">
+                          Search & Add New Country
+                        </label>
+                        <GooglePlaceSearchInput
+                          type="country"
+                          placeholder="Search country (e.g. India, United Arab Emirates)..."
+                          onSelect={(place) => handleAddCountry(place)}
+                        />
                       </div>
 
+                      {/* Country Table */}
+                      {countryItems.length > 0 ? (
+                        <div className="overflow-x-auto rounded-xl border border-slate-100">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                                <th className="py-3 px-4">Country</th>
+                                <th className="py-3 px-4">Duration</th>
+                                <th className="py-3 px-4">Price</th>
+                                <th className="py-3 px-4 w-12"></th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                              {countryItems.map(item => (
+                                <tr key={item.id} className="text-sm">
+                                  <td className="py-3 px-4 font-semibold text-slate-700">
+                                    {item.country}
+                                    <span className="block text-[10px] text-slate-400 font-normal truncate max-w-xs">{item.formattedAddress}</span>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <select
+                                      value={item.durationMonths}
+                                      onChange={(e) => handleCountryItemChange(item.id, 'durationMonths', e.target.value)}
+                                      className="bg-transparent font-medium text-slate-700 outline-none border border-slate-200 rounded px-2 py-1 text-xs"
+                                    >
+                                      {durationsConfig.country?.map(d => (
+                                        <option key={d.months} value={d.months}>{d.label}</option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td className="py-3 px-4 font-bold text-slate-800">
+                                    ₹{item.price}
+                                  </td>
+                                  <td className="py-3 px-4 text-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteCountry(item.id)}
+                                      className="text-slate-300 hover:text-red-500 transition"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">
+                          No countries added. Search and add country results above to boost.
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-between mt-4">
-                        <button
-                          type="button"
-                          onClick={handleAddCountry}
-                          className="flex items-center gap-1 bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-sm"
-                        >
-                          <Plus className="w-3.5 h-3.5" /> Add Another Country
-                        </button>
+                        <div />
                         <div className="text-right">
-                          <span className="text-xs font-bold text-slate-400">Skill Total </span>
-                          <span className="font-extrabold text-violet-700 text-lg">₹{countryTotal}</span>
+                          <span className="text-xs font-bold text-slate-400">Country Total </span>
+                          <span className="font-extrabold text-violet-700 text-lg">₹{countryItems.reduce((a, b) => a + b.price, 0)}</span>
                         </div>
                       </div>
                     </div>
@@ -1082,7 +1496,7 @@ const CustomPlan = () => {
             <button
               type="button"
               onClick={() => toast.success('You can configure combinations dynamically above. Add skills or items inside Locality, City, or Country sections.')}
-              className="w-full py-4 border-2 border-dashed border-slate-200 text-slate-500 hover:text-violet-600 hover:border-violet-300 rounded-3xl font-extrabold text-sm transition-all flex items-center justify-center gap-2 bg-white"
+              className="w-full py-4 border-2 border-dashed border-slate-200 text-slate-500 hover:text-violet-600 hover:border-violet-300 rounded-3xl font-extrabold text-sm transition-all flex items-center justify-center gap-2 bg-white shadow-sm"
             >
               <Plus className="w-4 h-4" /> Add Another Skill / Combination
             </button>
@@ -1109,7 +1523,7 @@ const CustomPlan = () => {
           </div>
 
           {/* Right Summary Column */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:sticky lg:top-6">
             
             {/* Summary Card */}
             <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden p-6">
@@ -1119,6 +1533,9 @@ const CustomPlan = () => {
                   <Layers className="w-5 h-5 text-violet-600" />
                   Your Plan Summary
                 </h2>
+                {pricingLoading && (
+                  <RefreshCw className="w-4 h-4 text-violet-600 animate-spin" />
+                )}
                 <button
                   onClick={handleClearAll}
                   className="text-xs font-extrabold text-red-500 hover:text-red-700 flex items-center gap-1"
@@ -1130,6 +1547,41 @@ const CustomPlan = () => {
               {/* Items Breakdown list */}
               <div className="space-y-4 max-h-72 overflow-y-auto pr-1 mb-6">
                 
+                {/* Multiple Skills list in summary */}
+                {selectedAchievements.multipleSkills && multipleSkillsList.length > 0 && (
+                  <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm animate-fade-in">
+                    <div className="w-full flex items-center justify-between p-4 bg-slate-50/50 border-b border-slate-100 text-left font-bold text-slate-700 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-violet-100 text-violet-700 w-6 h-6 rounded-lg flex items-center justify-center font-bold">
+                          MS
+                        </span>
+                        <span>Multiple Skills</span>
+                      </div>
+                      <span className="bg-violet-100 text-violet-700 text-[10px] font-bold px-2 py-0.5 rounded animate-fade-in">
+                        {multipleSkillsList.length} Skill{multipleSkillsList.length > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    
+                    <div className="p-3 bg-white space-y-1.5 text-xs animate-fade-in flex flex-wrap gap-1.5">
+                      {multipleSkillsList.map(skill => (
+                        <span key={skill} className="bg-slate-50 text-slate-600 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1 animate-fade-in">
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMultipleSkillsList(multipleSkillsList.filter(s => s !== skill));
+                              toast.success('Skill removed.');
+                            }}
+                            className="text-slate-400 hover:text-red-500 transition-colors"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Locality items list in summary */}
                 {selectedAchievements.locality && localitySkill && localityItems.length > 0 && (
                   <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
@@ -1139,22 +1591,24 @@ const CustomPlan = () => {
                       className="w-full flex items-center justify-between p-4 bg-slate-50/50 border-b border-slate-100 text-left font-bold text-slate-700 text-xs"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="bg-purple-100 text-purple-700 w-6 h-6 rounded-lg flex items-center justify-center font-bold">GD</span>
-                        <span>{localitySkill}</span>
+                        <span className="bg-purple-100 text-purple-700 w-6 h-6 rounded-lg flex items-center justify-center font-bold">
+                          {getInitials(localitySkill)}
+                        </span>
+                        <span className="truncate max-w-[120px]">{localitySkill}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-slate-800">₹{localityTotal}</span>
+                        <span className="font-extrabold text-slate-800">₹{localityItems.reduce((a,b)=>a+b.price,0)}</span>
                         {expandedSummary.locality ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </div>
                     </button>
                     
                     {expandedSummary.locality && (
-                      <div className="p-3 bg-white space-y-2 text-xs divide-y divide-slate-50">
+                      <div className="p-3 bg-white space-y-2 text-xs divide-y divide-slate-50 animate-fade-in">
                         {localityItems.map(item => (
                           <div key={item.id} className="pt-2 flex justify-between items-start gap-4">
                             <div>
                               <div className="font-semibold text-slate-700 flex items-center gap-1.5">
-                                <MapPin className="w-3 h-3 text-pink-500" /> {item.locality}
+                                <MapPin className="w-3 h-3 text-pink-500 shrink-0" /> <span className="truncate max-w-[140px]">{item.locality}</span>
                               </div>
                               <span className="text-[10px] text-slate-400 ml-4.5">{item.durationMonths} Months</span>
                             </div>
@@ -1175,22 +1629,24 @@ const CustomPlan = () => {
                       className="w-full flex items-center justify-between p-4 bg-slate-50/50 border-b border-slate-100 text-left font-bold text-slate-700 text-xs"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="bg-blue-100 text-blue-700 w-6 h-6 rounded-lg flex items-center justify-center font-bold">VE</span>
-                        <span>{citySkill}</span>
+                        <span className="bg-blue-100 text-blue-700 w-6 h-6 rounded-lg flex items-center justify-center font-bold">
+                          {getInitials(citySkill)}
+                        </span>
+                        <span className="truncate max-w-[120px]">{citySkill}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-slate-800">₹{cityTotal}</span>
+                        <span className="font-extrabold text-slate-800">₹{cityItems.reduce((a,b)=>a+b.price,0)}</span>
                         {expandedSummary.city ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </div>
                     </button>
                     
                     {expandedSummary.city && (
-                      <div className="p-3 bg-white space-y-2 text-xs divide-y divide-slate-50">
+                      <div className="p-3 bg-white space-y-2 text-xs divide-y divide-slate-50 animate-fade-in">
                         {cityItems.map(item => (
                           <div key={item.id} className="pt-2 flex justify-between items-start gap-4">
                             <div>
                               <div className="font-semibold text-slate-700 flex items-center gap-1.5">
-                                <Building2 className="w-3 h-3 text-blue-500" /> {item.city}
+                                <Building2 className="w-3 h-3 text-blue-500 shrink-0" /> <span className="truncate max-w-[140px]">{item.city}</span>
                               </div>
                               <span className="text-[10px] text-slate-400 ml-4.5">
                                 {item.isTrial ? '1 Month (Trial)' : `${item.durationMonths} Month${item.durationMonths > 1 ? 's' : ''}`}
@@ -1213,22 +1669,24 @@ const CustomPlan = () => {
                       className="w-full flex items-center justify-between p-4 bg-slate-50/50 border-b border-slate-100 text-left font-bold text-slate-700 text-xs"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="bg-emerald-100 text-emerald-700 w-6 h-6 rounded-lg flex items-center justify-center font-bold">UI</span>
-                        <span>{countrySkill}</span>
+                        <span className="bg-emerald-100 text-emerald-700 w-6 h-6 rounded-lg flex items-center justify-center font-bold">
+                          {getInitials(countrySkill)}
+                        </span>
+                        <span className="truncate max-w-[120px]">{countrySkill}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-slate-800">₹{countryTotal}</span>
+                        <span className="font-extrabold text-slate-800">₹{countryItems.reduce((a,b)=>a+b.price,0)}</span>
                         {expandedSummary.country ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </div>
                     </button>
                     
                     {expandedSummary.country && (
-                      <div className="p-3 bg-white space-y-2 text-xs divide-y divide-slate-50">
+                      <div className="p-3 bg-white space-y-2 text-xs divide-y divide-slate-50 animate-fade-in">
                         {countryItems.map(item => (
                           <div key={item.id} className="pt-2 flex justify-between items-start gap-4">
                             <div>
                               <div className="font-semibold text-slate-700 flex items-center gap-1.5">
-                                <Globe className="w-3 h-3 text-emerald-500" /> {item.country}
+                                <Globe className="w-3 h-3 text-emerald-500 shrink-0" /> <span className="truncate max-w-[140px]">{item.country}</span>
                               </div>
                               <span className="text-[10px] text-slate-400 ml-4.5">{item.durationMonths} Months</span>
                             </div>
@@ -1240,9 +1698,9 @@ const CustomPlan = () => {
                   </div>
                 )}
 
-                {subtotal === 0 && (
+                {(!hasSelectedItems) && (
                   <div className="text-center py-8 text-slate-400 text-xs italic bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                    Your summary is currently empty. Start by configuring visibility boosts.
+                    No custom plan items selected yet.
                   </div>
                 )}
 
@@ -1253,7 +1711,7 @@ const CustomPlan = () => {
                 
                 <div className="flex justify-between text-slate-500">
                   <span>Subtotal</span>
-                  <span className="font-bold text-slate-700">₹{subtotal.toLocaleString('en-IN')}</span>
+                  <span className="font-bold text-slate-700">₹{pricingBreakdown.subtotal.toLocaleString('en-IN')}</span>
                 </div>
                 
                 <div className="flex justify-between text-slate-500">
@@ -1263,24 +1721,30 @@ const CustomPlan = () => {
                       ⓘ
                     </button>
                   </span>
-                  <span className="font-bold text-slate-700">₹{gstAmount.toLocaleString('en-IN')}</span>
+                  <span className="font-bold text-slate-700">₹{pricingBreakdown.gstAmount.toLocaleString('en-IN')}</span>
                 </div>
                 
                 <div className="flex justify-between items-end pt-3 border-t border-slate-50">
                   <span className="font-black text-slate-800">Total Amount</span>
-                  <span className="font-black text-violet-700 text-2xl">₹{totalAmount.toLocaleString('en-IN')}</span>
+                  <span className="font-black text-violet-700 text-2xl">
+                    {pricingLoading ? (
+                      <span className="text-xs text-violet-400 animate-pulse font-normal">Recalculating...</span>
+                    ) : (
+                      `₹${pricingBreakdown.totalAmount.toLocaleString('en-IN')}`
+                    )}
+                  </span>
                 </div>
 
               </div>
 
               {/* Smart Plan Promo Ticket Banner */}
-              {subtotal > 0 && (
+              {pricingBreakdown.subtotal > 0 && (
                 <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-3 mt-6">
                   <div className="bg-emerald-600 text-white rounded-full p-1.5 shadow-sm">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-50 bg-emerald-600 rounded-full" />
                   </div>
                   <span className="text-xs font-bold text-emerald-800">
-                    You Save <span className="underline">₹{savings.toLocaleString('en-IN')}</span> with this smart plan
+                    You Save <span className="underline">₹{pricingBreakdown.savingsAmount?.toLocaleString('en-IN')}</span> with this smart plan
                   </span>
                 </div>
               )}
@@ -1289,8 +1753,8 @@ const CustomPlan = () => {
               <button
                 type="button"
                 onClick={handleProceedToPayment}
-                disabled={checkoutLoading}
-                className="w-full bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 text-white font-extrabold py-4 px-6 rounded-2xl transition-all shadow-lg hover:shadow-violet-200 mt-6 flex items-center justify-center gap-2 text-base"
+                disabled={proceedDisabled}
+                className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:from-violet-400 disabled:to-indigo-400 text-white font-extrabold py-4 px-6 rounded-2xl transition-all shadow-lg hover:shadow-violet-200 mt-6 flex items-center justify-center gap-2 text-base"
               >
                 {checkoutLoading ? (
                   <>
@@ -1323,7 +1787,7 @@ const CustomPlan = () => {
               </div>
 
               <div className="flex items-start gap-3">
-                <Sparkles className="w-4 h-4 text-violet-600 mt-0.5 animate-bounce" />
+                <Sparkles className="w-4 h-4 text-violet-600 mt-0.5" />
                 <div>
                   <h4 className="text-slate-700 text-xs font-extrabold">Instant Activation</h4>
                   <p className="text-[10px] font-normal text-slate-400">Boosts apply automatically</p>

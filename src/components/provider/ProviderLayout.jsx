@@ -115,17 +115,17 @@ const ProviderLayout = ({ children }) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <div className="flex items-center justify-between bg-white border-b border-gray-100 px-4 py-3">
+        {/* <div className="flex items-center justify-between bg-white border-b border-gray-100 px-4 py-3">
           <button onClick={() => setMobileOpen(true)} className="p-1.5 rounded-lg hover:bg-gray-100 md:hidden">
             <HiMenu className="w-5 h-5 text-gray-600" />
           </button>
           <span className="font-semibold text-gray-800 text-sm md:hidden">{t('provider.panel', 'Provider Panel')}</span>
           <span className="hidden md:block" />
           <div className="flex items-center gap-2">
-            {/* <LanguageDropdown /> */}
+            <LanguageDropdown />
             <NotificationBell />
           </div>
-        </div>
+        </div> */}
 
         <main className="flex-1 overflow-auto p-0 ">
           {children}

@@ -19,6 +19,21 @@ const STATUS_COLORS = {
   hired:       { bg: 'bg-emerald-50/70',    border: 'border-emerald-200',    text: 'text-emerald-700',    icon: HiCheckCircle, label: 'Hired' },
 };
 
+const formatLocation = (location) => {
+  if (!location) return 'Location Specified';
+  if (typeof location === 'string') return location;
+  if (typeof location === 'object') {
+    return (
+      location.formattedAddress ||
+      location.name ||
+      [location.city, location.state, location.country].filter(Boolean).join(', ') ||
+      location.postalCode ||
+      'Location Specified'
+    );
+  }
+  return 'Location Specified';
+};
+
 /* ── Upgrade Modal ───────────────────────────────────────────────────── */
 const UpgradeModal = ({ onClose, navigate }) => {
   return (
@@ -127,7 +142,7 @@ const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock })
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-gray-50/50 p-3.5 rounded-xl border border-gray-100/50 text-xs">
         <div className="flex items-center gap-1.5 text-gray-600">
           <HiLocationMarker className="w-4 h-4 text-gray-400 shrink-0" />
-          <span className="truncate">{provider?.city || provider?.location || 'Location Specified'}</span>
+          <span className="truncate">{formatLocation(provider?.location || provider?.city)}</span>
         </div>
         <div className="flex items-center gap-1.5 text-gray-600">
           <HiBriefcase className="w-4 h-4 text-gray-400 shrink-0" />

@@ -102,7 +102,7 @@ function MainLayout({ children }) {
     "/provider/dashboard",
     "/provider/profile",
     "/provider/plans",
-    "/provider/custom-plan",
+    "/provider/customise-plan",
     "/provider/leads",
     "/provider/history",
     "/provider/job-for-me",
@@ -190,7 +190,7 @@ function App() {
             <ProviderLayout><ProviderPlans /></ProviderLayout>
           </ProtectedRoute>
         )} />
-        <Route path="/provider/custom-plan" element={wrap(
+        <Route path="/provider/customise-plan" element={wrap(
           <ProtectedRoute allowedRoles={["provider"]}>
             <ProviderLayout><CustomPlan /></ProviderLayout>
           </ProtectedRoute>

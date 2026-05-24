@@ -18,9 +18,13 @@ export const loadGooglePlacesScript = () => {
   }
 
   scriptLoadingPromise = new Promise((resolve, reject) => {
-    const apiKey = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '';
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '';
     if (!apiKey) {
-      console.warn('VITE_GOOGLE_PLACES_API_KEY is not defined in environment variables. Google Places Autocomplete might rely on backend fallbacks.');
+      console.warn('Google Maps API key is not defined in environment variables. Google Places Autocomplete will rely on backend fallbacks.');
+    }
+
+    if (import.meta.env.DEV) {
+      console.log('[GooglePlacesService] Loading Google Maps JS API script tags...');
     }
 
     const script = document.createElement('script');
@@ -28,11 +32,21 @@ export const loadGooglePlacesScript = () => {
     script.async = true;
     script.defer = true;
     script.onload = () => {
-      if (window.google && window.google.maps && window.google.maps.places) {
-        resolve(window.google.maps.places);
-      } else {
-        reject(new Error('Google Places library not available after script load'));
-      }
+      let attempts = 0;
+      const checkPlacesLoaded = () => {
+        if (window.google && window.google.maps && window.google.maps.places) {
+          if (import.meta.env.DEV) {
+            console.log('[GooglePlacesService] Places library successfully available after script load.');
+          }
+          resolve(window.google.maps.places);
+        } else if (attempts < 20) {
+          attempts++;
+          setTimeout(checkPlacesLoaded, 50);
+        } else {
+          reject(new Error('Google Places library not available after script load (timed out)'));
+        }
+      };
+      checkPlacesLoaded();
     };
     script.onerror = (err) => {
       reject(new Error('Failed to load Google Maps/Places API script: ' + err.message));

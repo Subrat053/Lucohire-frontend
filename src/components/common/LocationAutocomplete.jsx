@@ -21,6 +21,7 @@ const STATIC_FALLBACK_CITIES = [
 const LocationAutocomplete = ({
   value,
   onChange,
+  onSelect,
   mode = 'city', // 'city', 'address', 'serviceArea', 'jobLocation'
   placeholder = 'Search location...',
   label = '',
@@ -147,19 +148,10 @@ const LocationAutocomplete = ({
     const text = e.target.value;
     setInputValue(text);
 
-    // Call onChange with manual fallback typing directly so form updates in real time
+    // Call onChange with plain typed text to update parent search input state,
+    // but do NOT trigger detailed place selection/chips on plain keystrokes.
     if (onChange) {
-      onChange({
-        label: text,
-        value: text,
-        placeId: '',
-        city: text,
-        state: '',
-        country: '',
-        latitude: null,
-        longitude: null,
-        isManualInput: true
-      });
+      onChange(text);
     }
 
     fetchPredictions(text);
@@ -178,7 +170,9 @@ const LocationAutocomplete = ({
           isFallbackSelection: true
         };
         setInputValue(normalized.label);
-        if (onChange) {
+        if (onSelect) {
+          onSelect(normalized);
+        } else if (onChange) {
           onChange(normalized);
         }
       } else {
@@ -188,7 +182,9 @@ const LocationAutocomplete = ({
         
         if (normalized) {
           setInputValue(normalized.label);
-          if (onChange) {
+          if (onSelect) {
+            onSelect(normalized);
+          } else if (onChange) {
             onChange(normalized);
           }
         } else {
@@ -210,7 +206,9 @@ const LocationAutocomplete = ({
         isFallbackSelection: true
       };
       setInputValue(fallbackVal.label);
-      if (onChange) {
+      if (onSelect) {
+        onSelect(fallbackVal);
+      } else if (onChange) {
         onChange(fallbackVal);
       }
     } finally {
@@ -233,6 +231,14 @@ const LocationAutocomplete = ({
           type="text"
           value={inputValue}
           onChange={handleInputChange}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault(); // Stop form submission
+              if (isOpen && predictions.length > 0) {
+                handleSelectPrediction(predictions[0]);
+              }
+            }
+          }}
           placeholder={placeholder}
           disabled={disabled}
           required={required}
