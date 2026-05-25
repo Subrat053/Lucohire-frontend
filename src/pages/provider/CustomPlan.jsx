@@ -23,6 +23,43 @@ const getInitials = (skillName) => {
     .toUpperCase();
 };
 
+const createLocalityRow = (placeData = {}) => ({
+  id: Date.now() + Math.random(),
+  placeId: placeData.placeId || '',
+  locality: placeData.locality || placeData.name || '',
+  formattedAddress: placeData.formattedAddress || '',
+  durationMonths: Number(placeData.durationMonths || 1),
+  price: Number(placeData.price || 300),
+  lat: placeData.lat ?? null,
+  lng: placeData.lng ?? null,
+  isDraft: !placeData.placeId,
+});
+
+const createCityRow = (placeData = {}) => ({
+  id: Date.now() + Math.random(),
+  placeId: placeData.placeId || '',
+  city: placeData.city || placeData.name || '',
+  formattedAddress: placeData.formattedAddress || '',
+  durationMonths: Number(placeData.durationMonths || 1),
+  price: Number(placeData.price || 350),
+  lat: placeData.lat ?? null,
+  lng: placeData.lng ?? null,
+  isTrial: Boolean(placeData.isTrial),
+  isDraft: !placeData.placeId,
+});
+
+const createCountryRow = (placeData = {}) => ({
+  id: Date.now() + Math.random(),
+  placeId: placeData.placeId || '',
+  country: placeData.country || placeData.name || '',
+  formattedAddress: placeData.formattedAddress || '',
+  durationMonths: Number(placeData.durationMonths || 6),
+  price: Number(placeData.price || 3500),
+  lat: placeData.lat ?? null,
+  lng: placeData.lng ?? null,
+  isDraft: !placeData.placeId,
+});
+
 /**
  * Reusable Autocomplete for Skills Search
  */
@@ -97,7 +134,7 @@ const SkillSearchSelect = ({ options = [], selected, onChange, placeholder, icon
 /**
  * Reusable Autocomplete for Google Places
  */
-const GooglePlaceSearchInput = ({ type, placeholder, onSelect }) => {
+const GooglePlaceSearchInput = ({ type, placeholder, onSelect, value = '' }) => {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [open, setOpen] = useState(false);
@@ -111,6 +148,10 @@ const GooglePlaceSearchInput = ({ type, placeholder, onSelect }) => {
     document.addEventListener('mousedown', clickAway);
     return () => document.removeEventListener('mousedown', clickAway);
   }, []);
+
+  useEffect(() => {
+    setQuery(value || '');
+  }, [value]);
 
   useEffect(() => {
     if (!query || query.trim().length < 2 || !open) {
@@ -148,7 +189,7 @@ const GooglePlaceSearchInput = ({ type, placeholder, onSelect }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       onSelect(res.data);
-      setQuery('');
+      setQuery(res.data.formattedAddress || res.data.name || '');
     } catch (err) {
       toast.error('Failed to load place geocoding details.');
     } finally {
@@ -219,10 +260,10 @@ const CustomPlan = () => {
 
   // Selection states
   const [selectedAchievements, setSelectedAchievements] = useState({
-    multipleSkills: false,
-    locality: false,
-    city: false,
-    country: false
+    multipleSkills: true,
+    locality: true,
+    city: true,
+    country: true
   });
 
   const [multipleSkillsList, setMultipleSkillsList] = useState([]);
@@ -254,9 +295,9 @@ const CustomPlan = () => {
     country: true
   });
 
-  const hasLocality = selectedAchievements.locality && localitySkill && localityItems.length > 0;
-  const hasCity = selectedAchievements.city && citySkill && cityItems.length > 0;
-  const hasCountry = selectedAchievements.country && countrySkill && countryItems.length > 0;
+  const hasLocality = selectedAchievements.locality && localitySkill && localityItems.some(item => item.placeId);
+  const hasCity = selectedAchievements.city && citySkill && cityItems.some(item => item.placeId);
+  const hasCountry = selectedAchievements.country && countrySkill && countryItems.some(item => item.placeId);
   const hasMultipleSkills = selectedAchievements.multipleSkills && multipleSkillsList.length > 0;
   const hasSelectedItems = hasLocality || hasCity || hasCountry || hasMultipleSkills;
 
@@ -268,9 +309,9 @@ const CustomPlan = () => {
     (selectedAchievements.multipleSkills && multipleSkillsList.length > 0);
 
   const atLeastOneVisibilityItemSelected = 
-    (selectedAchievements.locality && localityItems.length > 0) || 
-    (selectedAchievements.city && cityItems.length > 0) || 
-    (selectedAchievements.country && countryItems.length > 0);
+    (selectedAchievements.locality && localityItems.some(item => item.placeId)) || 
+    (selectedAchievements.city && cityItems.some(item => item.placeId)) || 
+    (selectedAchievements.country && countryItems.some(item => item.placeId));
 
   const isDurationSelected = 
     (!selectedAchievements.locality || localityItems.every(item => Number(item.durationMonths) > 0)) &&
@@ -295,9 +336,9 @@ const CustomPlan = () => {
   useEffect(() => {
     if (loading) return;
 
-    const hasLocality = selectedAchievements.locality && localitySkill && localityItems.length > 0;
-    const hasCity = selectedAchievements.city && citySkill && cityItems.length > 0;
-    const hasCountry = selectedAchievements.country && countrySkill && countryItems.length > 0;
+    const hasLocality = selectedAchievements.locality && localitySkill && localityItems.some(item => item.placeId);
+    const hasCity = selectedAchievements.city && citySkill && cityItems.some(item => item.placeId);
+    const hasCountry = selectedAchievements.country && countrySkill && countryItems.some(item => item.placeId);
     const hasMultipleSkills = selectedAchievements.multipleSkills && multipleSkillsList.length > 0;
 
     if (!hasLocality && !hasCity && !hasCountry && !hasMultipleSkills) {
@@ -327,6 +368,24 @@ const CustomPlan = () => {
     JSON.stringify(multipleSkillsList),
     selectedAchievements
   ]);
+
+  useEffect(() => {
+    if (selectedAchievements.locality && localitySkill && localityItems.length === 0) {
+      setLocalityItems([createLocalityRow()]);
+    }
+  }, [selectedAchievements.locality, localitySkill, localityItems.length]);
+
+  useEffect(() => {
+    if (selectedAchievements.city && citySkill && cityItems.length === 0) {
+      setCityItems([createCityRow()]);
+    }
+  }, [selectedAchievements.city, citySkill, cityItems.length]);
+
+  useEffect(() => {
+    if (selectedAchievements.country && countrySkill && countryItems.length === 0) {
+      setCountryItems([createCountryRow()]);
+    }
+  }, [selectedAchievements.country, countrySkill, countryItems.length]);
 
   const loadInitialData = async () => {
     setLoading(true);
@@ -373,11 +432,15 @@ const CustomPlan = () => {
     const items = [];
     const token = localStorage.getItem('authToken') || localStorage.getItem('token');
 
-    if (selectedAchievements.locality && localitySkill && localityItems.length > 0) {
+    const committedLocalities = localityItems.filter(item => item.placeId);
+    const committedCities = cityItems.filter(item => item.placeId);
+    const committedCountries = countryItems.filter(item => item.placeId);
+
+    if (selectedAchievements.locality && localitySkill && committedLocalities.length > 0) {
       items.push({
         skillName: localitySkill,
         visibilityType: 'locality',
-        locations: localityItems.map(item => ({
+        locations: committedLocalities.map(item => ({
           placeId: item.placeId || 'placeholder_' + item.id,
           name: item.locality,
           formattedAddress: item.formattedAddress || item.locality,
@@ -390,11 +453,11 @@ const CustomPlan = () => {
       });
     }
 
-    if (selectedAchievements.city && citySkill && cityItems.length > 0) {
+    if (selectedAchievements.city && citySkill && committedCities.length > 0) {
       items.push({
         skillName: citySkill,
         visibilityType: 'city',
-        locations: cityItems.map(item => ({
+        locations: committedCities.map(item => ({
           placeId: item.placeId || 'placeholder_' + item.id,
           name: item.city,
           formattedAddress: item.formattedAddress || item.city,
@@ -407,11 +470,11 @@ const CustomPlan = () => {
       });
     }
 
-    if (selectedAchievements.country && countrySkill && countryItems.length > 0) {
+    if (selectedAchievements.country && countrySkill && committedCountries.length > 0) {
       items.push({
         skillName: countrySkill,
         visibilityType: 'country',
-        locations: countryItems.map(item => ({
+        locations: committedCountries.map(item => ({
           placeId: item.placeId || 'placeholder_' + item.id,
           name: item.country,
           formattedAddress: item.formattedAddress || item.country,
@@ -452,7 +515,7 @@ const CustomPlan = () => {
         if (localityGroup) {
           setLocalityItems(prev => prev.map((item, idx) => ({
             ...item,
-            price: localityGroup.locations[idx]?.price || item.price
+            price: item.placeId ? (localityGroup.locations.find(loc => loc.placeId === item.placeId)?.price || item.price) : item.price
           })));
         }
 
@@ -460,7 +523,7 @@ const CustomPlan = () => {
         if (cityGroup) {
           setCityItems(prev => prev.map((item, idx) => ({
             ...item,
-            price: cityGroup.locations[idx]?.price || item.price
+            price: item.placeId ? (cityGroup.locations.find(loc => loc.placeId === item.placeId)?.price || item.price) : item.price
           })));
         }
 
@@ -468,7 +531,7 @@ const CustomPlan = () => {
         if (countryGroup) {
           setCountryItems(prev => prev.map((item, idx) => ({
             ...item,
-            price: countryGroup.locations[idx]?.price || item.price
+            price: item.placeId ? (countryGroup.locations.find(loc => loc.placeId === item.placeId)?.price || item.price) : item.price
           })));
         }
       }
@@ -479,64 +542,64 @@ const CustomPlan = () => {
     }
   };
 
-  const handleAddLocality = (placeData) => {
-    const isDuplicate = localityItems.some(i => i.locality === placeData.locality);
+  const handleAddLocality = (rowId, placeData) => {
+    const isDuplicate = localityItems.some(i => i.id !== rowId && i.placeId && i.locality === placeData.locality);
     if (isDuplicate) {
       toast.error('This locality is already added.');
       return;
     }
-    const newItem = {
-      id: Date.now(),
+    setLocalityItems((prev) => prev.map((item) => (item.id === rowId ? {
+      ...item,
       placeId: placeData.placeId,
       locality: placeData.locality || placeData.name,
       formattedAddress: placeData.formattedAddress,
-      durationMonths: 1,
-      price: 300,
+      durationMonths: Number(item.durationMonths || 1),
+      price: Number(item.price || 300),
       lat: placeData.lat,
-      lng: placeData.lng
-    };
-    setLocalityItems([...localityItems, newItem]);
+      lng: placeData.lng,
+      isDraft: false,
+    } : item)));
     toast.success('Locality added.');
   };
 
-  const handleAddCity = (placeData) => {
-    const isDuplicate = cityItems.some(i => i.city === placeData.city);
+  const handleAddCity = (rowId, placeData) => {
+    const isDuplicate = cityItems.some(i => i.id !== rowId && i.placeId && i.city === placeData.city);
     if (isDuplicate) {
       toast.error('This city is already added.');
       return;
     }
-    const newItem = {
-      id: Date.now(),
+    setCityItems((prev) => prev.map((item) => (item.id === rowId ? {
+      ...item,
       placeId: placeData.placeId,
       city: placeData.city || placeData.name,
       formattedAddress: placeData.formattedAddress,
-      durationMonths: 1,
-      price: 350,
+      durationMonths: Number(item.durationMonths || 1),
+      price: Number(item.price || 350),
       lat: placeData.lat,
       lng: placeData.lng,
-      isTrial: false
-    };
-    setCityItems([...cityItems, newItem]);
+      isTrial: false,
+      isDraft: false,
+    } : item)));
     toast.success('City added.');
   };
 
-  const handleAddCountry = (placeData) => {
-    const isDuplicate = countryItems.some(i => i.country === placeData.country);
+  const handleAddCountry = (rowId, placeData) => {
+    const isDuplicate = countryItems.some(i => i.id !== rowId && i.placeId && i.country === placeData.country);
     if (isDuplicate) {
       toast.error('This country is already added.');
       return;
     }
-    const newItem = {
-      id: Date.now(),
+    setCountryItems((prev) => prev.map((item) => (item.id === rowId ? {
+      ...item,
       placeId: placeData.placeId,
       country: placeData.country || placeData.name,
       formattedAddress: placeData.formattedAddress,
-      durationMonths: 6,
-      price: 3500,
+      durationMonths: Number(item.durationMonths || 6),
+      price: Number(item.price || 3500),
       lat: placeData.lat,
-      lng: placeData.lng
-    };
-    setCountryItems([...countryItems, newItem]);
+      lng: placeData.lng,
+      isDraft: false,
+    } : item)));
     toast.success('Country added.');
   };
 
@@ -550,6 +613,20 @@ const CustomPlan = () => {
 
   const handleDeleteCountry = (id) => {
     setCountryItems(countryItems.filter(item => item.id !== id));
+  };
+
+  const addDraftRow = (type) => {
+    if (type === 'locality') {
+      setLocalityItems((prev) => [...prev, createLocalityRow()]);
+      return;
+    }
+    if (type === 'city') {
+      setCityItems((prev) => [...prev, createCityRow()]);
+      return;
+    }
+    if (type === 'country') {
+      setCountryItems((prev) => [...prev, createCountryRow()]);
+    }
   };
 
   const handleLocalityItemChange = (id, field, value) => {
@@ -628,7 +705,7 @@ const CustomPlan = () => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const items = [];
 
-      if (selectedAchievements.locality && localitySkill && localityItems.length > 0) {
+      if (selectedAchievements.locality && localitySkill && localityItems.some(item => item.placeId)) {
         items.push({
           skillName: localitySkill,
           visibilityType: 'locality',
@@ -644,7 +721,7 @@ const CustomPlan = () => {
         });
       }
 
-      if (selectedAchievements.city && citySkill && cityItems.length > 0) {
+      if (selectedAchievements.city && citySkill && cityItems.some(item => item.placeId)) {
         items.push({
           skillName: citySkill,
           visibilityType: 'city',
@@ -661,7 +738,7 @@ const CustomPlan = () => {
         });
       }
 
-      if (selectedAchievements.country && countrySkill && countryItems.length > 0) {
+      if (selectedAchievements.country && countrySkill && countryItems.some(item => item.placeId)) {
         items.push({
           skillName: countrySkill,
           visibilityType: 'country',
@@ -885,35 +962,33 @@ const CustomPlan = () => {
 
   // Builder Plan View
   return (
-    <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#F7F8FC] py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
+          <div className="space-y-2">
             <button
               onClick={() => navigate('/provider/plans')}
-              className="flex items-center gap-1.5 text-sm font-bold text-violet-600 hover:text-violet-800 transition"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-violet-600 hover:text-violet-800 transition"
             >
               <ArrowLeft className="w-4 h-4" /> Back to My Plan
             </button>
-            <span className="text-slate-300">/</span>
-            <button
-              onClick={() => navigate('/provider/profile')}
-              className="text-sm font-bold text-slate-500 hover:text-slate-700 transition"
-            >
-              Back to Profile
-            </button>
+            <div>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Customise Your Plan</h1>
+              <p className="text-slate-500 text-sm mt-1.5 max-w-2xl">
+                Create a personalised visibility plan by choosing skills, locations and duration as per your goals.
+              </p>
+            </div>
           </div>
-          
-          <div className="bg-violet-50 text-violet-700 font-semibold px-4 py-2 rounded-full border border-violet-100 text-xs flex items-center gap-2 shadow-sm w-fit">
+
+          <div className="bg-white text-violet-700 font-semibold px-4 py-3 rounded-2xl border border-violet-100 text-xs flex items-center gap-2 shadow-sm w-fit lg:mt-1">
             <Gift className="w-4 h-4 text-violet-600" />
-            <span>Your one skill for one pin code is <span className="underline">FREE!</span></span>
+            <span>Your one skill for one pin code is <span className="font-black">FREE!</span></span>
           </div>
         </div>
 
         {isRedirected && (
-          <div className="mb-8 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm backdrop-blur-sm">
+          <div className="mb-8 bg-linear-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm backdrop-blur-sm">
             <div className="flex items-center gap-4 text-left">
               <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0 shadow-inner">
                 <CheckCircle className="w-6 h-6" />
@@ -933,14 +1008,6 @@ const CustomPlan = () => {
             </button>
           </div>
         )}
-
-        {/* Title Block */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Customise Your Plan</h1>
-          <p className="text-slate-500 text-sm mt-1.5">
-            Create a personalised visibility plan by choosing skills, locations and duration as per your goals.
-          </p>
-        </div>
 
         {/* 2-Column Responsive Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -1162,18 +1229,6 @@ const CustomPlan = () => {
                         </button>
                       </div>
 
-                      {/* Search Bar for Google Places Autocomplete */}
-                      <div className="mb-4 w-full md:w-2/3">
-                        <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">
-                          Search & Add New Locality
-                        </label>
-                        <GooglePlaceSearchInput
-                          type="locality"
-                          placeholder="Search locality, pincode, sublocality (e.g. Andheri West)..."
-                          onSelect={(place) => handleAddLocality(place)}
-                        />
-                      </div>
-
                       {/* Locality Table */}
                       {localityItems.length > 0 ? (
                         <div className="overflow-x-auto rounded-xl border border-slate-100">
@@ -1190,8 +1245,15 @@ const CustomPlan = () => {
                               {localityItems.map(item => (
                                 <tr key={item.id} className="text-sm">
                                   <td className="py-3 px-4 font-semibold text-slate-700">
-                                    {item.locality}
-                                    <span className="block text-[10px] text-slate-400 font-normal truncate max-w-xs">{item.formattedAddress}</span>
+                                    <GooglePlaceSearchInput
+                                      type="locality"
+                                      value={item.locality || ''}
+                                      placeholder={item.isDraft ? 'Add your first locality' : 'Search locality to replace'}
+                                      onSelect={(place) => handleAddLocality(item.id, place)}
+                                    />
+                                    {item.formattedAddress && (
+                                      <span className="block text-[10px] text-slate-400 font-normal truncate max-w-xs mt-1">{item.formattedAddress}</span>
+                                    )}
                                   </td>
                                   <td className="py-3 px-4">
                                     <select
@@ -1223,8 +1285,18 @@ const CustomPlan = () => {
                         </div>
                       ) : (
                         <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">
-                          No localities added. Search and add locations above to boost.
+                          Select a skill first.
                         </div>
+                      )}
+
+                      {localityItems.some(item => item.placeId) && (
+                        <button
+                          type="button"
+                          onClick={() => addDraftRow('locality')}
+                          className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold text-violet-700 hover:text-violet-900"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Add Another Locality
+                        </button>
                       )}
 
                       <div className="flex items-center justify-between mt-4">
@@ -1236,8 +1308,26 @@ const CustomPlan = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                      Please select a skill to configure Locality Boosts.
+                    <div className="rounded-xl border border-slate-100 overflow-hidden">
+                      <div className="bg-slate-50/50 border-b border-slate-100 grid grid-cols-[1.6fr_0.9fr_0.5fr_40px] gap-3 px-4 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        <span>Locality</span>
+                        <span>Duration</span>
+                        <span>Price</span>
+                        <span />
+                      </div>
+                      <div className="grid grid-cols-[1.6fr_0.9fr_0.5fr_40px] gap-3 px-4 py-4 items-center bg-white">
+                        <div>
+                          <div className="font-semibold text-slate-700">Add your first locality</div>
+                          <div className="text-[10px] text-slate-400">Search a locality above to populate this row</div>
+                        </div>
+                        <select disabled className="bg-slate-50 text-slate-400 outline-none border border-slate-200 rounded-lg px-2 py-2 text-xs">
+                          <option>{durationsConfig.locality?.[0]?.label || '1 Month'}</option>
+                        </select>
+                        <span className="font-bold text-slate-800">₹0</span>
+                        <button type="button" disabled className="text-slate-300">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -1285,18 +1375,6 @@ const CustomPlan = () => {
                         </button>
                       </div>
 
-                      {/* Search Bar for Google Places Autocomplete */}
-                      <div className="mb-4 w-full md:w-2/3">
-                        <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">
-                          Search & Add New City
-                        </label>
-                        <GooglePlaceSearchInput
-                          type="city"
-                          placeholder="Search city, district (e.g. Pune, Mumbai)..."
-                          onSelect={(place) => handleAddCity(place)}
-                        />
-                      </div>
-
                       {/* City Table */}
                       {cityItems.length > 0 ? (
                         <div className="overflow-x-auto rounded-xl border border-slate-100">
@@ -1313,8 +1391,15 @@ const CustomPlan = () => {
                               {cityItems.map(item => (
                                 <tr key={item.id} className="text-sm">
                                   <td className="py-3 px-4 font-semibold text-slate-700">
-                                    {item.city}
-                                    <span className="block text-[10px] text-slate-400 font-normal truncate max-w-xs">{item.formattedAddress}</span>
+                                    <GooglePlaceSearchInput
+                                      type="city"
+                                      value={item.city || ''}
+                                      placeholder={item.isDraft ? 'Add your first city' : 'Search city to replace'}
+                                      onSelect={(place) => handleAddCity(item.id, place)}
+                                    />
+                                    {item.formattedAddress && (
+                                      <span className="block text-[10px] text-slate-400 font-normal truncate max-w-xs mt-1">{item.formattedAddress}</span>
+                                    )}
                                   </td>
                                   <td className="py-3 px-4">
                                     <select
@@ -1346,8 +1431,18 @@ const CustomPlan = () => {
                         </div>
                       ) : (
                         <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">
-                          No cities added. Search and add city results above to boost.
+                          Select a skill first.
                         </div>
+                      )}
+
+                      {cityItems.some(item => item.placeId) && (
+                        <button
+                          type="button"
+                          onClick={() => addDraftRow('city')}
+                          className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold text-violet-700 hover:text-violet-900"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Add Another City
+                        </button>
                       )}
 
                       <div className="flex items-center justify-between mt-4">
@@ -1359,8 +1454,26 @@ const CustomPlan = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                      Please select a skill to configure City Boosts.
+                    <div className="rounded-xl border border-slate-100 overflow-hidden">
+                      <div className="bg-slate-50/50 border-b border-slate-100 grid grid-cols-[1.6fr_0.9fr_0.5fr_40px] gap-3 px-4 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        <span>City</span>
+                        <span>Duration</span>
+                        <span>Price</span>
+                        <span />
+                      </div>
+                      <div className="grid grid-cols-[1.6fr_0.9fr_0.5fr_40px] gap-3 px-4 py-4 items-center bg-white">
+                        <div>
+                          <div className="font-semibold text-slate-700">Add your first city</div>
+                          <div className="text-[10px] text-slate-400">Search a city above to populate this row</div>
+                        </div>
+                        <select disabled className="bg-slate-50 text-slate-400 outline-none border border-slate-200 rounded-lg px-2 py-2 text-xs">
+                          <option>{durationsConfig.city?.[0]?.label || '1 Month'}</option>
+                        </select>
+                        <span className="font-bold text-slate-800">₹0</span>
+                        <button type="button" disabled className="text-slate-300">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -1408,18 +1521,6 @@ const CustomPlan = () => {
                         </button>
                       </div>
 
-                      {/* Search Bar for Google Places Autocomplete */}
-                      <div className="mb-4 w-full md:w-2/3">
-                        <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">
-                          Search & Add New Country
-                        </label>
-                        <GooglePlaceSearchInput
-                          type="country"
-                          placeholder="Search country (e.g. India, United Arab Emirates)..."
-                          onSelect={(place) => handleAddCountry(place)}
-                        />
-                      </div>
-
                       {/* Country Table */}
                       {countryItems.length > 0 ? (
                         <div className="overflow-x-auto rounded-xl border border-slate-100">
@@ -1436,8 +1537,15 @@ const CustomPlan = () => {
                               {countryItems.map(item => (
                                 <tr key={item.id} className="text-sm">
                                   <td className="py-3 px-4 font-semibold text-slate-700">
-                                    {item.country}
-                                    <span className="block text-[10px] text-slate-400 font-normal truncate max-w-xs">{item.formattedAddress}</span>
+                                    <GooglePlaceSearchInput
+                                      type="country"
+                                      value={item.country || ''}
+                                      placeholder={item.isDraft ? 'Add your first country' : 'Search country to replace'}
+                                      onSelect={(place) => handleAddCountry(item.id, place)}
+                                    />
+                                    {item.formattedAddress && (
+                                      <span className="block text-[10px] text-slate-400 font-normal truncate max-w-xs mt-1">{item.formattedAddress}</span>
+                                    )}
                                   </td>
                                   <td className="py-3 px-4">
                                     <select
@@ -1469,8 +1577,18 @@ const CustomPlan = () => {
                         </div>
                       ) : (
                         <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">
-                          No countries added. Search and add country results above to boost.
+                          Select a skill first.
                         </div>
+                      )}
+
+                      {countryItems.some(item => item.placeId) && (
+                        <button
+                          type="button"
+                          onClick={() => addDraftRow('country')}
+                          className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold text-violet-700 hover:text-violet-900"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Add Another Country
+                        </button>
                       )}
 
                       <div className="flex items-center justify-between mt-4">
@@ -1482,8 +1600,26 @@ const CustomPlan = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                      Please select a skill to configure Country Boosts.
+                    <div className="rounded-xl border border-slate-100 overflow-hidden">
+                      <div className="bg-slate-50/50 border-b border-slate-100 grid grid-cols-[1.6fr_0.9fr_0.5fr_40px] gap-3 px-4 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        <span>Country</span>
+                        <span>Duration</span>
+                        <span>Price</span>
+                        <span />
+                      </div>
+                      <div className="grid grid-cols-[1.6fr_0.9fr_0.5fr_40px] gap-3 px-4 py-4 items-center bg-white">
+                        <div>
+                          <div className="font-semibold text-slate-700">Add your first country</div>
+                          <div className="text-[10px] text-slate-400">Search a country above to populate this row</div>
+                        </div>
+                        <select disabled className="bg-slate-50 text-slate-400 outline-none border border-slate-200 rounded-lg px-2 py-2 text-xs">
+                          <option>{durationsConfig.country?.[0]?.label || '1 Month'}</option>
+                        </select>
+                        <span className="font-bold text-slate-800">₹0</span>
+                        <button type="button" disabled className="text-slate-300">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -1504,17 +1640,17 @@ const CustomPlan = () => {
             {/* AI Smart Tip Bar */}
             <div className="bg-violet-50 border border-violet-100 rounded-3xl p-5 flex items-center justify-between gap-4 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="bg-violet-600 text-white rounded-full p-2.5 shadow-md flex-shrink-0 animate-pulse">
+                <div className="bg-violet-600 text-white rounded-full p-2.5 shadow-md shrink-0 animate-pulse">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
                   <span className="font-black text-xs text-violet-800 block">AI Smart Tip</span>
-                  <span className="text-xs text-slate-500">Adding 4+ months for primary locations with 1 month for others gives you 15% better visibility.</span>
+                  <span className="text-xs text-slate-500">Mixing longer durations with shorter trial periods helps improve visibility and budget efficiency.</span>
                 </div>
               </div>
               <button 
                 onClick={() => toast.success('Smart plans bundle multiple locales and categories to provide maximum rotation exposure.')}
-                className="text-xs font-extrabold text-violet-700 hover:text-violet-900 transition flex-shrink-0"
+                className="text-xs font-extrabold text-violet-700 hover:text-violet-900 transition shrink-0"
               >
                 View Details →
               </button>
@@ -1583,7 +1719,7 @@ const CustomPlan = () => {
                 )}
 
                 {/* Locality items list in summary */}
-                {selectedAchievements.locality && localitySkill && localityItems.length > 0 && (
+                {selectedAchievements.locality && localitySkill && localityItems.some(item => item.placeId) && (
                   <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
                     <button
                       type="button"
@@ -1594,10 +1730,10 @@ const CustomPlan = () => {
                         <span className="bg-purple-100 text-purple-700 w-6 h-6 rounded-lg flex items-center justify-center font-bold">
                           {getInitials(localitySkill)}
                         </span>
-                        <span className="truncate max-w-[120px]">{localitySkill}</span>
+                        <span className="truncate max-w-30">{localitySkill}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-slate-800">₹{localityItems.reduce((a,b)=>a+b.price,0)}</span>
+                        <span className="font-extrabold text-slate-800">₹{localityItems.filter(item => item.placeId).reduce((a,b)=>a+b.price,0)}</span>
                         {expandedSummary.locality ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </div>
                     </button>
@@ -1608,7 +1744,7 @@ const CustomPlan = () => {
                           <div key={item.id} className="pt-2 flex justify-between items-start gap-4">
                             <div>
                               <div className="font-semibold text-slate-700 flex items-center gap-1.5">
-                                <MapPin className="w-3 h-3 text-pink-500 shrink-0" /> <span className="truncate max-w-[140px]">{item.locality}</span>
+                                <MapPin className="w-3 h-3 text-pink-500 shrink-0" /> <span className="truncate max-w-35">{item.locality}</span>
                               </div>
                               <span className="text-[10px] text-slate-400 ml-4.5">{item.durationMonths} Months</span>
                             </div>
@@ -1621,7 +1757,7 @@ const CustomPlan = () => {
                 )}
 
                 {/* City items list in summary */}
-                {selectedAchievements.city && citySkill && cityItems.length > 0 && (
+                {selectedAchievements.city && citySkill && cityItems.some(item => item.placeId) && (
                   <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
                     <button
                       type="button"
@@ -1632,10 +1768,10 @@ const CustomPlan = () => {
                         <span className="bg-blue-100 text-blue-700 w-6 h-6 rounded-lg flex items-center justify-center font-bold">
                           {getInitials(citySkill)}
                         </span>
-                        <span className="truncate max-w-[120px]">{citySkill}</span>
+                        <span className="truncate max-w-30">{citySkill}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-slate-800">₹{cityItems.reduce((a,b)=>a+b.price,0)}</span>
+                        <span className="font-extrabold text-slate-800">₹{cityItems.filter(item => item.placeId).reduce((a,b)=>a+b.price,0)}</span>
                         {expandedSummary.city ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </div>
                     </button>
@@ -1646,7 +1782,7 @@ const CustomPlan = () => {
                           <div key={item.id} className="pt-2 flex justify-between items-start gap-4">
                             <div>
                               <div className="font-semibold text-slate-700 flex items-center gap-1.5">
-                                <Building2 className="w-3 h-3 text-blue-500 shrink-0" /> <span className="truncate max-w-[140px]">{item.city}</span>
+                                <Building2 className="w-3 h-3 text-blue-500 shrink-0" /> <span className="truncate max-w-35">{item.city}</span>
                               </div>
                               <span className="text-[10px] text-slate-400 ml-4.5">
                                 {item.isTrial ? '1 Month (Trial)' : `${item.durationMonths} Month${item.durationMonths > 1 ? 's' : ''}`}
@@ -1661,7 +1797,7 @@ const CustomPlan = () => {
                 )}
 
                 {/* Country items list in summary */}
-                {selectedAchievements.country && countrySkill && countryItems.length > 0 && (
+                {selectedAchievements.country && countrySkill && countryItems.some(item => item.placeId) && (
                   <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
                     <button
                       type="button"
@@ -1672,10 +1808,10 @@ const CustomPlan = () => {
                         <span className="bg-emerald-100 text-emerald-700 w-6 h-6 rounded-lg flex items-center justify-center font-bold">
                           {getInitials(countrySkill)}
                         </span>
-                        <span className="truncate max-w-[120px]">{countrySkill}</span>
+                        <span className="truncate max-w-30">{countrySkill}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-slate-800">₹{countryItems.reduce((a,b)=>a+b.price,0)}</span>
+                        <span className="font-extrabold text-slate-800">₹{countryItems.filter(item => item.placeId).reduce((a,b)=>a+b.price,0)}</span>
                         {expandedSummary.country ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </div>
                     </button>
@@ -1686,7 +1822,7 @@ const CustomPlan = () => {
                           <div key={item.id} className="pt-2 flex justify-between items-start gap-4">
                             <div>
                               <div className="font-semibold text-slate-700 flex items-center gap-1.5">
-                                <Globe className="w-3 h-3 text-emerald-500 shrink-0" /> <span className="truncate max-w-[140px]">{item.country}</span>
+                                <Globe className="w-3 h-3 text-emerald-500 shrink-0" /> <span className="truncate max-w-35">{item.country}</span>
                               </div>
                               <span className="text-[10px] text-slate-400 ml-4.5">{item.durationMonths} Months</span>
                             </div>
@@ -1754,7 +1890,7 @@ const CustomPlan = () => {
                 type="button"
                 onClick={handleProceedToPayment}
                 disabled={proceedDisabled}
-                className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:from-violet-400 disabled:to-indigo-400 text-white font-extrabold py-4 px-6 rounded-2xl transition-all shadow-lg hover:shadow-violet-200 mt-6 flex items-center justify-center gap-2 text-base"
+                className="w-full bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:from-violet-400 disabled:to-indigo-400 text-white font-extrabold py-4 px-6 rounded-2xl transition-all shadow-lg hover:shadow-violet-200 mt-6 flex items-center justify-center gap-2 text-base"
               >
                 {checkoutLoading ? (
                   <>

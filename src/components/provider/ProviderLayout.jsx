@@ -17,7 +17,7 @@ const navItems = [
   { label: 'Leads', fallback: 'Leads', path: '/provider/leads',          icon: HiUsers },
   { label: 'History', fallback: 'History', path: '/provider/history',        icon: HiClock },
   { label: 'Refer & Earn', fallback: 'Refer & Earn', path: '/provider/referrals', icon: HiPlusCircle },
-  { label: 'My Plan', fallback: 'My Plan', path: '/provider/plans',          icon: HiPhone },
+  { label: 'My Plan', fallback: 'My Plan', path: '/provider/my-plan',          icon: HiPhone },
   { label: 'Profile', fallback: 'Profile', path: '/provider/profile',        icon: HiCog },
   { label: 'Change Password', fallback: 'Change Password', path: '/provider/change-password', icon: HiLockClosed },
 ];

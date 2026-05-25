@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { providerWalletAPI } from '../../services/api';
 import toast from 'react-hot-toast';
-import { HiCreditCard, HiPlus, HiTrash, HiCheckCircle, HiArrowRight, HiShieldCheck, HiOutlineSparkles, HiLockClosed } from 'react-icons/hi';
+import { HiCreditCard, HiPlus, HiTrash, HiCheckCircle, HiArrowRight, HiShieldCheck, HiOutlineSparkles, HiLockClosed, HiExclamationCircle } from 'react-icons/hi';
 import { FaQrcode as HiQrCode } from 'react-icons/fa';
 import useTranslation from '../../hooks/useTranslation';
 
 const PayoutSettings = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   
   const [payoutMethods, setPayoutMethods] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,9 +35,101 @@ const PayoutSettings = () => {
   const [sendingOtp, setSendingOtp] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Phone verification settings states
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [newPhone, setNewPhone] = useState('');
+  const [phoneStep, setPhoneStep] = useState(''); // 'verify_old' or 'verify_new'
+  const [phoneOtp, setPhoneOtp] = useState('');
+  const [verifyingPhone, setVerifyingPhone] = useState(false);
+  const [showConcernForm, setShowConcernForm] = useState(false);
+  const [concernMessage, setConcernMessage] = useState('');
+  const [raisingConcern, setRaisingConcern] = useState(false);
+  const [initiatingPhoneChange, setInitiatingPhoneChange] = useState(false);
+
   useEffect(() => {
     fetchPayoutData();
   }, []);
+
+  // Phone verification settings handlers
+  const handleInitiatePhoneChange = async (e) => {
+    if (e) e.preventDefault();
+    if (!newPhone) {
+      toast.error(t('payout.newPhoneRequired', 'New mobile number is required'));
+      return;
+    }
+    const cleanNum = newPhone.replace(/\D/g, '');
+    if (cleanNum.length < 10) {
+      toast.error(t('payout.phoneInvalid', 'Please enter a valid 10-digit mobile number'));
+      return;
+    }
+
+    try {
+      setInitiatingPhoneChange(true);
+      const { data } = await providerWalletAPI.initiatePhoneChange({ newPhone: cleanNum });
+      setPhoneStep(data.step); // 'verify_old' or 'verify_new'
+      setPhoneOtp('');
+      setShowConcernForm(false);
+      setShowPhoneModal(true);
+      toast.success(data.message || t('payout.otpInitiated', 'Verification OTP sent.'));
+    } catch (err) {
+      toast.error(err?.response?.data?.message || t('payout.initiatePhoneFail', 'Failed to initiate phone change'));
+    } finally {
+      setInitiatingPhoneChange(false);
+    }
+  };
+
+  const handleVerifyPhoneOtp = async () => {
+    if (!phoneOtp || phoneOtp.length !== 6) {
+      toast.error(t('payout.enterOtp', 'Please enter the 6-digit OTP code'));
+      return;
+    }
+
+    setVerifyingPhone(true);
+    const cleanNum = newPhone.replace(/\D/g, '');
+    try {
+      if (phoneStep === 'verify_old') {
+        const { data } = await providerWalletAPI.verifyOldPhoneOTP({ otp: phoneOtp, newPhone: cleanNum });
+        setPhoneStep('verify_new');
+        setPhoneOtp('');
+        toast.success(data.message || t('payout.oldPhoneVerified', 'Old phone verified. OTP sent to new number.'));
+      } else if (phoneStep === 'verify_new') {
+        const { data } = await providerWalletAPI.verifyNewPhoneOTP({ otp: phoneOtp, newPhone: cleanNum });
+        toast.success(data.message || t('payout.phoneUpdated', 'Mobile number updated successfully!'));
+        setPhone(data.phone || cleanNum);
+        setShowPhoneModal(false);
+        setNewPhone('');
+        setPhoneOtp('');
+        if (refreshUser) {
+          await refreshUser();
+        }
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || t('payout.verifyOtpFail', 'OTP verification failed'));
+    } finally {
+      setVerifyingPhone(false);
+    }
+  };
+
+  const handleRaiseConcern = async (e) => {
+    if (e) e.preventDefault();
+    if (!concernMessage.trim()) {
+      toast.error(t('payout.concernRequired', 'Please describe your concern'));
+      return;
+    }
+
+    try {
+      setRaisingConcern(true);
+      const { data } = await providerWalletAPI.raiseConcernLostPhone({ message: concernMessage });
+      toast.success(data.message || t('payout.concernSubmitted', 'Concern logged successfully. Admin will review soon.'));
+      setShowConcernForm(false);
+      setShowPhoneModal(false);
+      setConcernMessage('');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || t('payout.concernFail', 'Failed to log concern ticket'));
+    } finally {
+      setRaisingConcern(false);
+    }
+  };
 
   const fetchPayoutData = async () => {
     try {
@@ -425,6 +517,61 @@ const PayoutSettings = () => {
 
         {/* Right Side: Saved Methods */}
         <div className="space-y-6">
+          {/* Mobile Verification Settings Card */}
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+            <h3 className="text-lg font-bold text-slate-900 mb-1.5 flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+                <HiShieldCheck className="w-5 h-5" />
+              </span>
+              {t('payout.phoneSettingsTitle', 'Security Settings')}
+            </h3>
+            <p className="text-xs text-slate-500 mb-4">
+              {t('payout.phoneSettingsDesc', 'Your mobile number is required for verifying all withdrawal and billing destination changes.')}
+            </p>
+
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-4">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs text-slate-400 font-semibold uppercase">{t('payout.statusLabel', 'Status')}</span>
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  {user?.phone ? t('payout.statusVerified', 'Linked & Active') : t('payout.statusNotLinked', 'Not Linked')}
+                </span>
+              </div>
+              <div className="text-sm font-bold text-slate-800 font-mono mt-2">
+                {user?.phone 
+                  ? `+91 ******${user.phone.slice(-4)}`
+                  : t('payout.noPhone', 'No phone number registered')
+                }
+              </div>
+            </div>
+
+            <form onSubmit={handleInitiatePhoneChange} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase mb-1.5">
+                  {t('payout.newPhoneLabel', 'New Mobile Number')}
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 font-mono">+91</span>
+                  <input
+                    type="tel"
+                    required
+                    value={newPhone}
+                    onChange={e => setNewPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="Enter 10 digits"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 transition font-semibold"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                disabled={initiatingPhoneChange}
+                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold tracking-wide uppercase transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {initiatingPhoneChange ? t('payout.updatingStatus', 'Initiating...') : t('payout.changePhoneBtn', 'Update Mobile Number')}
+              </button>
+            </form>
+          </div>
+
           <div className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-lg">
             <h3 className="text-lg font-bold mb-1.5 flex items-center gap-2">
               <HiShieldCheck className="w-5 h-5 text-indigo-400" />
@@ -576,6 +723,141 @@ const PayoutSettings = () => {
                 {t('payout.resend', 'Resend Code')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Two-step Phone Verification and Concern modal */}
+      {showPhoneModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 text-center animate-scaleUp">
+            
+            {showConcernForm ? (
+              <div className="space-y-4 text-left">
+                <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <HiExclamationCircle className="w-7 h-7" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 text-center mb-1">
+                  {t('payout.concernTitle', 'Report Phone Access Issue')}
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed text-center mb-4">
+                  {t('payout.concernDesc', 'If you have lost access to your registered mobile number, please write a brief description below. An administrator will verify your identity manually and update your mobile settings.')}
+                </p>
+
+                <form onSubmit={handleRaiseConcern} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1.5">
+                      {t('payout.concernMsgLabel', 'Situation Description')}
+                    </label>
+                    <textarea
+                      required
+                      rows={4}
+                      value={concernMessage}
+                      onChange={e => setConcernMessage(e.target.value)}
+                      placeholder="Explain your case here, e.g. 'I lost my old phone SIM card and want to update to my new number: 9876543210'"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 focus:bg-white transition"
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowConcernForm(false)}
+                      className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                    >
+                      {t('common.back', 'Back')}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={raisingConcern}
+                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    >
+                      {raisingConcern ? t('payout.submittingStatus', 'Submitting...') : t('payout.submitConcernBtn', 'Submit Concern')}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <HiShieldCheck className="w-7 h-7" />
+                </div>
+                
+                <h3 className="text-lg font-bold text-slate-900 mb-1">
+                  {phoneStep === 'verify_old' 
+                    ? t('payout.phoneStepOldTitle', 'Verify Identity (Step 1 of 2)') 
+                    : t('payout.phoneStepNewTitle', 'Link New Phone (Step 2 of 2)')
+                  }
+                </h3>
+                <p className="text-xs text-slate-500 px-4">
+                  {phoneStep === 'verify_old' ? (
+                    <>
+                      {t('payout.phoneStepOldDesc', 'We sent a 6-digit OTP code to your registered mobile number ending in')} {' '}
+                      <span className="font-bold text-slate-700 font-mono">
+                        {user?.phone ? `******${user.phone.slice(-4)}` : ''}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      {t('payout.phoneStepNewDesc', 'We sent a 6-digit verification code to your new number')} {' '}
+                      <span className="font-bold text-slate-700 font-mono">
+                        +91 {newPhone}
+                      </span>
+                    </>
+                  )}
+                </p>
+
+                <div className="space-y-4 pt-2">
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={phoneOtp}
+                    onChange={e => setPhoneOtp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="0 0 0 0 0 0"
+                    className="w-full text-center px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xl font-extrabold font-mono tracking-[0.6em] focus:outline-hidden focus:border-indigo-500 focus:bg-white transition"
+                  />
+
+                  {phoneStep === 'verify_old' && (
+                    <div className="text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setShowConcernForm(true)}
+                        className="text-amber-600 hover:text-amber-700 font-semibold hover:underline flex items-center gap-1.5 mx-auto"
+                      >
+                        <HiExclamationCircle className="w-4 h-4" />
+                        {t('payout.lostAccessLink', 'Lost access to your old number? Raise concern')}
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowPhoneModal(false)}
+                      className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                    >
+                      {t('common.cancel', 'Cancel')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleVerifyPhoneOtp}
+                      disabled={verifyingPhone || phoneOtp.length !== 6}
+                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50"
+                    >
+                      {verifyingPhone ? t('payout.verifyingStatus', 'Verifying...') : t('payout.confirmBtn', 'Confirm Code')}
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleInitiatePhoneChange}
+                    className="inline-block text-xs font-bold text-indigo-600 hover:underline mt-2"
+                  >
+                    {t('payout.resend', 'Resend Code')}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

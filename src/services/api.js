@@ -170,6 +170,7 @@ export const providerAPI = {
   updateProfile: (data) => API.put("/provider/profile", data),
   aiSuggestProfile: (data) => API.post("/provider/profile/ai-suggest", data),
   buildAIProfile: (data) => API.post("/provider/ai/build-profile", data),
+  providerBuilderSuggestion: (data) => API.post("/ai/provider-builder-suggestion", data),
   getPricingSuggestion: (params) =>
     API.get("/provider/ai/pricing-suggestion", { params }),
   getDashboard: () => API.get("/provider/dashboard"),
@@ -538,6 +539,10 @@ export const providerWalletAPI = {
   setDefaultPayoutMethod: (id) => API.put(`/provider/wallet/payout-methods/${id}/default`),
   deletePayoutMethod: (id) => API.delete(`/provider/wallet/payout-methods/${id}`),
   requestWithdrawal: (data) => API.post("/provider/wallet/withdraw", data),
+  initiatePhoneChange: (data) => API.post("/provider/wallet/phone-change/initiate", data),
+  verifyOldPhoneOTP: (data) => API.post("/provider/wallet/phone-change/verify-old", data),
+  verifyNewPhoneOTP: (data) => API.post("/provider/wallet/phone-change/verify-new", data),
+  raiseConcernLostPhone: (data) => API.post("/provider/wallet/phone-change/raise-concern", data),
 };
 
 export const adminWithdrawalAPI = {

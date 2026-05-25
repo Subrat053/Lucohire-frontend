@@ -26,13 +26,17 @@ import useTranslation from '../../hooks/useTranslation';
 import GuaranteeModal from '../../components/common/GuaranteeModal';
 import { API } from '../../services/api';
 import LocationSearch from '../../components/LocationSearch';
+import SkillSearchSelect from '../../components/common/SkillSearchSelect';
 
-const DURATION_OPTIONS = [
-  { months: 1, label: '1 Month' },
-  { months: 3, label: '3 Months', badge: 'Save 10%' },
-  { months: 6, label: '6 Months', badge: 'Save 15%' },
-  { months: 12, label: '12 Months', badge: 'Save 25%' },
-];
+const DURATION_OPTIONS = Array.from({ length: 12 }, (_, index) => {
+  const months = index + 1;
+  const discount = { 3: 10, 6: 15, 12: 25 }[months] || 0;
+  return {
+    months,
+    label: `${months} Month${months > 1 ? 's' : ''}`,
+    badge: discount ? `Save ${discount}%` : '',
+  };
+});
 const DISCOUNT_BY_MONTHS = { 1: 0, 3: 10, 6: 15, 12: 25 };
 
 const planIconMap = {
@@ -190,8 +194,7 @@ const ProviderPlans = () => {
             orderId: 'stripe_session',
           });
             toast.success('Payment confirmed! Your plan is now active.');
-            // Remove query params and redirect to custom plan success page
-            navigate('/provider/customise-plan?redirected=true', { replace: true });
+            navigate('/provider/my-plan', { replace: true });
            await getMyPlan();
         } catch (err) {
           toast.error('Failed to confirm payment status.');
@@ -310,7 +313,7 @@ const ProviderPlans = () => {
           });
           await getMyPlan();
           toast.success('Simulation: Payment successful! Plan activated.');
-          navigate('/provider/customise-plan?redirected=true');
+          navigate('/provider/my-plan', { replace: true });
           return;
         }
       }
@@ -340,7 +343,7 @@ const ProviderPlans = () => {
             });
             await getMyPlan();
             toast.success('Payment successful! Plan activated.');
-            navigate('/provider/customise-plan?redirected=true');
+            navigate('/provider/my-plan', { replace: true });
           },
         };
         const razorpay = new window.Razorpay(options);
@@ -626,81 +629,31 @@ const ProviderPlans = () => {
                       )}
 
                       {/* Boost Skills Selector Section */}
-                      {/* Case 1: Single Skill Selector (for Locality Plan) */}
-                      {selectedPlan.maxSkills === 1 ? (
-                        <div>
-                          <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
-                            Select Speciality
-                          </label>
-                          <select
-                            value={selectedSkills[0] || ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setSelectedSkills(val ? [val] : []);
-                            }}
-                            className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] focus:ring-2 focus:ring-[#005BFF] focus:border-transparent outline-none text-sm font-semibold text-[#06133D] bg-white"
-                          >
-                            <option value="">-- Choose a Speciality --</option>
-                            {availableSkills.map(skill => (
-                              <option key={skill} value={skill}>{skill}</option>
-                            ))}
-                          </select>
-                          {selectedSkills.length === 0 && (
-                            <p className="text-xs text-amber-600 mt-1 font-semibold flex items-center gap-1 animate-pulse">
-                              ⚠️ Please select a speciality to continue
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        /* Case 2: Multi-Skill Selector (for Multiple Skills, City, Country Plans) */
-                        <div>
-                          <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
-                            Boost Skills (Max {selectedPlan.maxSkills})
-                          </label>
-                          <select
-                            value=""
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val && !selectedSkills.includes(val)) {
-                                if (selectedSkills.length >= selectedPlan.maxSkills) {
-                                  toast.error(`Your plan allows max ${selectedPlan.maxSkills} skills.`);
-                                  return;
-                                }
-                                setSelectedSkills([...selectedSkills, val]);
-                              }
-                            }}
-                            className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] focus:ring-2 focus:ring-[#005BFF] focus:border-transparent outline-none text-sm font-semibold text-[#06133D] bg-white"
-                          >
-                            <option value="">-- Add Skills to Boost --</option>
-                            {availableSkills
-                              .filter(s => !selectedSkills.includes(s))
-                              .map(skill => (
-                                <option key={skill} value={skill}>{skill}</option>
-                              ))}
-                          </select>
-                          
-                          {selectedSkills.length > 0 ? (
-                            <div className="flex flex-wrap gap-2 mt-3 animate-fade-in">
-                              {selectedSkills.map(skill => (
-                                <span key={skill} className="inline-flex items-center gap-1.5 bg-[#EEF4FF] border border-[#D6E3FF] text-[#005BFF] text-xs font-bold px-3 py-1.5 rounded-full shadow-xs">
-                                  <span>{skill}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedSkills(selectedSkills.filter(s => s !== skill))}
-                                    className="text-[#005BFF] hover:text-red-500 font-extrabold text-sm ml-1"
-                                  >
-                                    ×
-                                  </button>
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-xs text-amber-600 mt-1 font-semibold flex items-center gap-1 animate-pulse">
-                              ⚠️ Select skills to continue
-                            </p>
-                          )}
-                        </div>
-                      )}
+                      <div>
+                        <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
+                          {selectedPlan.maxSkills === 1 ? 'Select Speciality' : `Boost Skills (Max ${selectedPlan.maxSkills})`}
+                        </label>
+                        <SkillSearchSelect
+                          selected={selectedSkills}
+                          onAdd={(skill) => {
+                            if (selectedSkills.length >= selectedPlan.maxSkills) {
+                              toast.error(`Your plan allows max ${selectedPlan.maxSkills} skills.`);
+                              return;
+                            }
+                            setSelectedSkills([...selectedSkills, skill]);
+                          }}
+                          onRemove={(skill) => {
+                            setSelectedSkills(selectedSkills.filter(s => s !== skill));
+                          }}
+                          maxAllowed={selectedPlan.maxSkills || 1}
+                          plan={selectedPlan.slug}
+                        />
+                        {selectedSkills.length === 0 && (
+                          <p className="text-xs text-amber-600 mt-1.5 font-semibold flex items-center gap-1 animate-pulse">
+                            ⚠️ Please select at least one speciality to continue
+                          </p>
+                        )}
+                      </div>
 
                     </div>
                   </div>

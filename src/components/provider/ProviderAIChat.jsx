@@ -14,9 +14,9 @@ function makeId(prefix = 'm') {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-export default function ProviderAIChat({ profileContext = {}, missingFields = [], onUpdateField }) {
+export default function ProviderAIChat({ profileContext = {}, missingFields = [], onUpdateField, inline = false }) {
   const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(inline);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState('');
@@ -33,6 +33,39 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
   const listRef = useRef(null);
   const isDev = import.meta.env.DEV;
 
+  // Skill -> Speciality mapping rules
+  const SKILL_TO_SPECIALITY = {
+    'web development': 'Web Developer',
+    'full stack development': 'Full Stack Developer',
+    'plumbing': 'Plumber',
+    'ac repair': 'AC Mechanic',
+    'ac technician': 'AC Mechanic',
+    'digital marketing': 'Digital Marketer',
+  };
+
+  const mapSkillToSpeciality = (skill) => {
+    if (!skill) return skill;
+    const lower = String(skill).toLowerCase().trim();
+    return SKILL_TO_SPECIALITY[lower] || skill;
+  };
+
+  const generateAutoBio = (ctx) => {
+    const name = ctx.name || (user && user.name) || 'The provider';
+    const skills = Array.isArray(ctx.skills) && ctx.skills.length > 0 ? ctx.skills : (ctx.category ? [ctx.category] : []);
+    const skillLabel = skills.join(', ');
+    const tier = ctx.skillTier || '';
+    const exp = ctx.experience || (ctx.experienceMonths ? `${Math.round(ctx.experienceMonths/12)} years` : 'some experience');
+    const city = ctx.city || '';
+    const pricing = ctx.pricing ? `₹${ctx.pricing}/${ctx.pricingType || 'hr'}` : '';
+    const parts = [];
+    parts.push(`${name} is${tier ? ' a ' + tier + ' ' : ' '}professional`);
+    if (skillLabel) parts.push(`specialising in ${skillLabel}`);
+    if (exp) parts.push(`with ${exp} of experience`);
+    if (city) parts.push(`based in ${city}`);
+    if (pricing) parts.push(`and typically charges around ${pricing}`);
+    return parts.join(' ') + '.';
+  };
+
   const recentMessages = useMemo(
     () => messages.slice(-8).map((item) => ({ author: item.author, text: item.text })),
     [messages]
@@ -44,6 +77,39 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
     if (!container) return;
     container.scrollTop = container.scrollHeight;
   }, [messages, isOpen]);
+
+  // Initial passive inference: map skills -> speciality and auto-generate bio when appropriate
+  useEffect(() => {
+    // Map existing skills to speciality labels without asking the user
+    try {
+      if (profileContext && Array.isArray(profileContext.skills) && profileContext.skills.length > 0 && onUpdateField) {
+        const mapped = profileContext.skills.map(s => mapSkillToSpeciality(s));
+        // Only update if mapping changed something
+        const changed = mapped.some((m, idx) => m !== profileContext.skills[idx]);
+        if (changed) {
+          onUpdateField('skills', mapped);
+        }
+      }
+
+      // Auto-generate a bio if missing or too short
+      const hasDescription = profileContext.description && String(profileContext.description).trim().length >= 20;
+      if (!hasDescription && onUpdateField) {
+        const bio = generateAutoBio(profileContext);
+        if (bio) {
+          onUpdateField('description', bio);
+          // Prepend an assistant message to preview generated bio
+          setMessages((prev) => [
+            ...prev,
+            { id: makeId('assistant-bio'), author: 'assistant', text: `Suggested Bio:\n${bio}` },
+          ]);
+        }
+      }
+    } catch (e) {
+      if (isDev) console.error('[ProviderAIChat] passive inference error', e);
+    }
+    // We only want to run this on mount/profileContext change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileContext]);
 
   const welcomeText = useMemo(() => {
     if (Array.isArray(missingFields) && missingFields.length > 0) {
@@ -216,6 +282,36 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
           updates.push(`Payout Rate: ₹${cleanBudget}`);
         }
       }
+      // AI extracts complete fields
+      if (extracted.name && onUpdateField) {
+        onUpdateField('name', extracted.name);
+        onUpdateField('profileName', extracted.name);
+        updates.push(`Full Name: ${extracted.name}`);
+      }
+      if (extracted.tier && onUpdateField) {
+        onUpdateField('tier', extracted.tier);
+        updates.push(`Skill Tier: ${extracted.tier}`);
+      }
+      if (extracted.experience && onUpdateField) {
+        onUpdateField('experience', extracted.experience);
+        updates.push(`Experience: ${extracted.experience}`);
+      }
+      if (extracted.phone && onUpdateField) {
+        onUpdateField('phone', extracted.phone);
+        updates.push(`WhatsApp Phone: ${extracted.phone}`);
+      }
+      if (extracted.pricingType && onUpdateField) {
+        onUpdateField('pricingType', extracted.pricingType);
+        updates.push(`Pricing Unit: per ${extracted.pricingType}`);
+      }
+      if (extracted.description && onUpdateField) {
+        onUpdateField('description', extracted.description);
+        updates.push(`Description: ${extracted.description.slice(0, 40)}...`);
+      }
+      if (Array.isArray(extracted.languages) && extracted.languages.length > 0 && onUpdateField) {
+        onUpdateField('languages', extracted.languages);
+        updates.push(`Languages: ${extracted.languages.join(', ')}`);
+      }
 
       let assistantReply = responseData.reply || 'Assistant reply unavailable.';
       if (updates.length > 0) {
@@ -228,12 +324,15 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
       const updatedFieldsList = [];
       if (extracted.city) updatedFieldsList.push('Location / City');
       if (extracted.skill) updatedFieldsList.push('Speciality / Skill');
-      if (localExtracted.phone) updatedFieldsList.push('WhatsApp / Contact Number');
-      if (localExtracted.pricing || (extracted.budget && extracted.budget.replace(/[^\d]/g, ''))) {
+      if (localExtracted.phone || extracted.phone) updatedFieldsList.push('WhatsApp / Contact Number');
+      if (localExtracted.pricing || extracted.pricing || (extracted.budget && extracted.budget.replace(/[^\d]/g, ''))) {
         updatedFieldsList.push('Payout / Pricing Rate');
       }
-      if (localExtracted.pricingType) {
+      if (localExtracted.pricingType || extracted.pricingType) {
         updatedFieldsList.push('Pricing Unit');
+      }
+      if (extracted.tier) {
+        updatedFieldsList.push('Skill Tier');
       }
 
       const remainingMissing = missingFields.filter((field) => {
@@ -242,6 +341,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
         if (field.includes('WhatsApp') && updatedFieldsList.includes('WhatsApp / Contact Number')) return false;
         if (field.includes('Payout') && updatedFieldsList.includes('Payout / Pricing Rate')) return false;
         if (field.includes('Pricing Unit') && updatedFieldsList.includes('Pricing Unit')) return false;
+        if (field.includes('Skill Tier') && updatedFieldsList.includes('Skill Tier')) return false;
         return true;
       });
 
@@ -286,6 +386,83 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
       setIsLoading(false);
     }
   };
+
+  if (inline) {
+    return (
+      <div className="w-full bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-8 animate-fadeIn font-sans">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <div>
+            <p className="text-base font-extrabold text-slate-800 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse" />
+              Interactive AI Profile Assistant
+            </p>
+            <p className="text-xs text-slate-400 font-semibold mt-0.5">Talk to complete your profile fields dynamically or ask questions.</p>
+          </div>
+          {missingFields.length > 0 && (
+            <span className="text-[10px] bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full font-black uppercase tracking-wider border border-amber-100">
+              {missingFields.length} field{missingFields.length > 1 ? 's' : ''} left
+            </span>
+          )}
+        </div>
+
+        <div ref={listRef} className="p-4 h-64 overflow-y-auto space-y-3 bg-slate-50/50 rounded-2xl mb-4 border border-slate-100/50">
+          {messages.map((item) => (
+            <div key={item.id} className={`flex ${item.author === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div
+                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap shadow-xs ${
+                  item.author === 'user'
+                    ? 'bg-indigo-600 text-white font-medium rounded-tr-none'
+                    : item.status === 'error'
+                      ? 'bg-red-50 text-red-700 border border-red-100 rounded-tl-none'
+                      : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
+                }`}
+              >
+                {item.text}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {QUICK_CHIPS.map((text) => (
+              <button
+                key={text}
+                type="button"
+                onClick={() => askAssistant(text)}
+                disabled={isLoading}
+                className="text-xs px-3 py-1.5 rounded-full border border-slate-100 text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 transition-all font-semibold disabled:opacity-60 shadow-xs"
+              >
+                {text}
+              </button>
+            ))}
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              askAssistant(input);
+            }}
+            className="flex gap-2"
+          >
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="E.g., main AC mechanic hu Delhi me, 3 saal ka experience hai..."
+              className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 transition-all"
+            />
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white hover:bg-indigo-700 transition disabled:opacity-60 shrink-0"
+            >
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed bottom-5 right-5 z-50">

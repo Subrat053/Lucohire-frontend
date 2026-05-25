@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import AdminProtectedRoute from "./components/common/AdminProtectedRoute";
 import WhatsAppNumberModal from "./components/common/WhatsAppNumberModal";
 import AIChatWidget from "./components/common/AIChatWidget";
+import CookieConsent from "./components/common/CookieConsent";
 import NotFound from "./components/common/NotFound";
 import { useAuth } from "./context/AuthContext";
 import AuthPage from "./pages/AuthPage";
@@ -102,6 +103,7 @@ function MainLayout({ children }) {
     "/provider/dashboard",
     "/provider/profile",
     "/provider/plans",
+    "/provider/my-plan",
     "/provider/customise-plan",
     "/provider/leads",
     "/provider/history",
@@ -143,6 +145,7 @@ function App() {
       />
       <ScrollToTop />
       <WhatsAppNumberModal isOpen={showWhatsAppPrompt} onClose={() => setShowWhatsAppPrompt(false)} />
+      <CookieConsent />
       {user?.activeRole && ['recruiter', 'admin'].includes(user.activeRole) && (
         <AIChatWidget role={user.activeRole} />
       )}
@@ -186,6 +189,11 @@ function App() {
           </ProtectedRoute>
         )} />
         <Route path="/provider/plans" element={wrap(
+          <ProtectedRoute allowedRoles={["provider"]}>
+            <ProviderLayout><ProviderPlans /></ProviderLayout>
+          </ProtectedRoute>
+        )} />
+        <Route path="/provider/my-plan" element={wrap(
           <ProtectedRoute allowedRoles={["provider"]}>
             <ProviderLayout><ProviderPlans /></ProviderLayout>
           </ProtectedRoute>
