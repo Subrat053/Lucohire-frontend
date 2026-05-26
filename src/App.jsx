@@ -16,6 +16,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import ChangePassword from "./pages/user/ChangePassword";
 import ReferralManagement from "./pages/user/ReferralManagement";
+import MagicLinkVerify from "./pages/auth/MagicLinkVerify";
 
 import LandingPage from "./pages/LandingPage";
 import SearchPage from "./pages/SearchPage";
@@ -55,6 +56,8 @@ import RecruiterSavedCandidates from "./pages/recruiter/SavedCandidates";
 import RecruiterSearchHistory from "./pages/recruiter/SearchHistory";
 import RecruiterTransactions from "./pages/recruiter/Transactions";
 import RecruiterSettings from "./pages/recruiter/Settings";
+import TopMatches from "./pages/recruiter/TopMatches";
+import ExternalMatch from "./pages/recruiter/ExternalMatch";
 
 import PartnerProtectedRoute from "./components/common/PartnerProtectedRoute";
 import PartnerLayout from "./pages/partner/PartnerLayout";
@@ -156,10 +159,13 @@ function App() {
         <Route path="/signup" element={<AuthPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/auth/magic" element={<MagicLinkVerify />} />
 
         {/* Public Routes */}
         <Route path="/" element={wrap(<LandingPage />)} />
         <Route path="/search" element={wrap(<SearchPage />)} />
+        <Route path="/auth/magic-verify" element={wrap(<MagicLinkVerify />)} />
+        <Route path="/external-match" element={wrap(<ExternalMatch />)} />
         <Route path="/provider/:id" element={wrap(<ProviderPublicProfile />)} />
         <Route path="/faq" element={wrap(<FaqPage />)} />
         <Route path="/terms" element={wrap(<TermsPage />)} />
@@ -295,6 +301,12 @@ function App() {
         <Route path="/recruiter/job-postings" element={wrap(
           <ProtectedRoute allowedRoles={["recruiter"]}>
             <RecruiterLayout><RecruiterJobPostings /></RecruiterLayout>
+          </ProtectedRoute>
+        )} />
+
+        <Route path="/recruiter/top-matches" element={wrap(
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <RecruiterLayout><TopMatches /></RecruiterLayout>
           </ProtectedRoute>
         )} />
 

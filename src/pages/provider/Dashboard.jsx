@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { HiEye, HiUsers, HiPhone, HiTrendingUp, HiStar, HiClock, HiCheckCircle, HiBell, HiBriefcase, HiDocumentText } from 'react-icons/hi';
+import { HiEye, HiUsers, HiPhone, HiTrendingUp, HiStar, HiClock, HiCheckCircle, HiBell, HiBriefcase, HiDocumentText, HiSparkles, HiLocationMarker } from 'react-icons/hi';
 import { providerAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -16,33 +16,44 @@ const ProviderDashboard = () => {
   const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
-  // const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
-  // const [popupReason, setPopupReason] = useState('');
-  // const [hasAutoPrompted, setHasAutoPrompted] = useState(false);
+  const [topJobs, setTopJobs] = useState([]);
 
   useEffect(() => { fetchDashboard(); }, []);
 
-  // useEffect(() => {
-  //   const params = new URLSearchParams(location.search);
-  //   const shouldOpenPopup = params.get('showSubscriptionPopup') === '1';
-  //   if (shouldOpenPopup) {
-  //     setShowSubscriptionPopup(true);
-  //     params.delete('showSubscriptionPopup');
-  //     const cleanedSearch = params.toString();
-  //     navigate(`${location.pathname}${cleanedSearch ? `?${cleanedSearch}` : ''}`, { replace: true });
-  //   }
-  // }, [location.pathname, location.search, navigate]);
-
   const fetchDashboard = async () => {
     try {
-      const { data } = await providerAPI.getDashboard();
+      setLoading(true);
+      const [{ data }, matchesRes] = await Promise.all([
+        providerAPI.getDashboard(),
+        providerAPI.getMatches().catch(() => ({ data: { data: [] } }))
+      ]);
       setDashboard(data);
+      if (matchesRes.data?.success) {
+        setTopJobs(matchesRes.data.data || []);
+      }
     } catch (err) {
       if (err.response?.status !== 404) {
         toast.error(t('provider.failedLoadDashboard', 'Failed to load dashboard'));
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const [scraping, setScraping] = useState(false);
+
+  const handleScrapeMatches = async () => {
+    try {
+      setScraping(true);
+      const res = await providerAPI.scrapeMatches();
+      if (res.data?.success) {
+        setTopJobs(res.data.data || []);
+        toast.success(t('provider.scrapedMatches', 'Successfully fetched new matches!'));
+      }
+    } catch (error) {
+      toast.error(t('provider.failedScrape', 'Failed to scrape new matches.'));
+    } finally {
+      setScraping(false);
     }
   };
   const stats = dashboard?.stats || {};
@@ -80,7 +91,58 @@ const ProviderDashboard = () => {
   //   }
   // }, [loading, hasAutoPrompted, dashboard, stats.currentPlan, stats.planStatus, stats.planEndDate, stats.remainingApplyLimit]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="lg" text={t('common.loadingDashboard', "Loading dashboard...")} /></div>;
+  if (loading) return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
+      {/* Header Skeleton */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+          <div className="h-8 bg-gray-200 rounded-lg w-48 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded-lg w-64"></div>
+        </div>
+        <div className="h-10 bg-gray-200 rounded-xl w-32"></div>
+      </div>
+
+      {/* Stats Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6 h-32 flex justify-between items-start">
+            <div className="space-y-3 w-full">
+              <div className="h-4 bg-gray-200 rounded w-24"></div>
+              <div className="h-8 bg-gray-200 rounded w-16 mt-2"></div>
+            </div>
+            <div className="w-12 h-12 bg-gray-200 rounded-full shrink-0"></div>
+          </div>
+        ))}
+      </div>
+
+      {/* Main Grid Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 h-48">
+            <div className="h-6 bg-gray-200 rounded w-1/3 mb-6"></div>
+            <div className="space-y-3">
+              <div className="h-4 bg-gray-200 rounded w-full"></div>
+              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 h-64">
+             <div className="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
+             <div className="space-y-4">
+               {[1, 2, 3].map(i => <div key={i} className="h-16 bg-gray-100 rounded-xl w-full"></div>)}
+             </div>
+          </div>
+        </div>
+        <div className="space-y-8">
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 h-64">
+             <div className="h-6 bg-gray-200 rounded w-1/2 mb-6"></div>
+             <div className="space-y-4">
+                {[1, 2, 3, 4].map(i => <div key={i} className="h-4 bg-gray-100 rounded w-full"></div>)}
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -157,35 +219,38 @@ const ProviderDashboard = () => {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Recent Leads */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">{t('provider.recentLeads', 'Recent Leads')}</h2>
-            <Link to="/provider/leads" className="text-sm text-indigo-600 hover:underline">{t('common.viewAll', 'View All →')}</Link>
-          </div>
-          {leads.length > 0 ? (
-            <div className="space-y-3">
-              {leads.slice(0, 5).map((lead, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <div>
-                    <p className="font-medium text-sm">{lead.recruiter?.name || 'Unknown'}</p>
-                    <p className="text-xs text-gray-500 capitalize">{lead.type?.replace('_', ' ')} • {new Date(lead.createdAt).toLocaleDateString()}</p>
+        <div className="lg:col-span-2 space-y-6">
+          {/* Recent Leads */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">{t('provider.recentLeads', 'Recent Leads')}</h2>
+              <Link to="/provider/leads" className="text-sm text-indigo-600 hover:underline">{t('common.viewAll', 'View All →')}</Link>
+            </div>
+            {leads.length > 0 ? (
+              <div className="space-y-3">
+                {leads.slice(0, 5).map((lead, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div>
+                      <p className="font-medium text-sm">{lead.recruiter?.name || 'Unknown'}</p>
+                      <p className="text-xs text-gray-500 capitalize">{lead.type?.replace('_', ' ')} • {new Date(lead.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      lead.status === 'new' ? 'bg-green-100 text-green-700' :
+                      lead.status === 'viewed' ? 'bg-blue-100 text-blue-700' :
+                      lead.status === 'contacted' ? 'bg-purple-100 text-purple-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>{lead.status}</span>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    lead.status === 'new' ? 'bg-green-100 text-green-700' :
-                    lead.status === 'viewed' ? 'bg-blue-100 text-blue-700' :
-                    lead.status === 'contacted' ? 'bg-purple-100 text-purple-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>{lead.status}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <HiBell className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-400">{t('provider.noLeads', 'No leads yet. Complete your profile to get started!')}</p>
-            </div>
-          )}
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <HiBell className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-gray-400">{t('provider.noLeads', 'No leads yet. Complete your profile to get started!')}</p>
+              </div>
+            )}
+          </div>
+
         </div>
 
         {/* Quick Info */}

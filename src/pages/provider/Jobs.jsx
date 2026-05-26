@@ -87,6 +87,20 @@ const ApplyModal = ({ job, onClose, onSuccess }) => {
 
 /* ── Job Details Modal ────────────────────────────────────────────────── */
 const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
+  useEffect(() => {
+    let metaTag = null;
+    if (job?.isExternal) {
+      metaTag = document.createElement('meta');
+      metaTag.name = 'robots';
+      metaTag.content = 'noindex, nofollow';
+      document.head.appendChild(metaTag);
+    }
+    return () => {
+      if (metaTag) {
+        document.head.removeChild(metaTag);
+      }
+    };
+  }, [job]);
   const budgetText = job.budgetType === 'negotiable'
     ? 'Negotiable'
     : `₹${job.budgetMin?.toLocaleString()} – ₹${job.budgetMax?.toLocaleString()} ${BUDGET_LABELS[job.budgetType] || ''}`.trim();
@@ -204,6 +218,15 @@ const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
             <div className="flex-1 py-3 bg-green-50 border border-green-200 text-green-700 font-bold rounded-xl text-xs sm:text-sm text-center flex items-center justify-center gap-1.5 shadow-2xs">
               <HiCheckCircle className="w-4 h-4 animate-bounce" /> Applied Successfully
             </div>
+          ) : job.isExternal && job.externalUrl ? (
+            <a
+              href={job.externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md hover:from-indigo-700 hover:to-purple-700 transition block text-center"
+            >
+              Apply Externally
+            </a>
           ) : (
             <button
               onClick={() => {
@@ -235,7 +258,7 @@ const JobCard = ({ job, onViewDetails }) => {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-all flex flex-col justify-between h-full">
       <div>
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h3 className="font-bold text-gray-900 text-base truncate">{job.title}</h3>
@@ -250,12 +273,23 @@ const JobCard = ({ job, onViewDetails }) => {
               <span className="flex items-center gap-1"><HiLocationMarker className="w-3.5 h-3.5" />{job.city}</span>
               <span className="flex items-center gap-1"><HiClock className="w-3.5 h-3.5" />{postedAgo}</span>
             </div>
-            <span className="inline-block text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full font-medium border border-indigo-100">
-              {job.skill}
-            </span>
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-block text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full font-medium border border-indigo-100">
+                {job.skill}
+              </span>
+              {job.isExternal ? (
+                <span className="inline-block text-xs px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full font-bold border border-amber-200">
+                  External Job
+                </span>
+              ) : (
+                <span className="inline-block text-xs px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full font-bold border border-emerald-200">
+                  Internal Job
+                </span>
+              )}
+            </div>
           </div>
-          <div className="shrink-0 text-right">
-            <p className="text-sm font-bold text-gray-900 flex items-center gap-0.5 justify-end">
+          <div className="shrink-0 text-left sm:text-right mt-2 sm:mt-0">
+            <p className="text-sm font-bold text-gray-900 flex items-center gap-0.5 sm:justify-end">
               <FaRupeeSign className="w-3 h-3 text-gray-500" />
               {job.budgetType === 'negotiable' ? 'Negotiable' : `${job.budgetMin?.toLocaleString()}+`}
             </p>
@@ -284,12 +318,23 @@ const JobCard = ({ job, onViewDetails }) => {
           <HiDocumentText className="w-3.5 h-3.5" />
           {job.applicants?.length || 0} applicant{job.applicants?.length !== 1 ? 's' : ''}
         </p>
-        <button
-          onClick={() => onViewDetails(job)}
-          className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition shadow-2xs"
-        >
-          View Details
-        </button>
+        {job.isExternal && job.externalUrl ? (
+          <a
+            href={job.externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition shadow-2xs"
+          >
+            View External Post
+          </a>
+        ) : (
+          <button
+            onClick={() => onViewDetails(job)}
+            className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition shadow-2xs"
+          >
+            View Details
+          </button>
+        )}
       </div>
     </div>
   );
@@ -346,6 +391,8 @@ const ApplicationsTab = () => {
 const ProviderJobs = () => {
   const [tab, setTab] = useState('browse'); // 'browse' | 'applications'
   const [jobs, setJobs] = useState([]);
+  const [topMatches, setTopMatches] = useState([]);
+  const [showMatchesDropdown, setShowMatchesDropdown] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState(null);
@@ -370,9 +417,47 @@ const ProviderJobs = () => {
     }
   }, [search]);
 
+  const [scraping, setScraping] = useState(false);
+
+  const handleScrapeMatches = async () => {
+    try {
+      setScraping(true);
+      const res = await providerAPI.scrapeMatches();
+      if (res.data?.success) {
+        toast.success('Successfully fetched new matches!');
+        // Refresh the jobs list
+        fetchJobs(1);
+        providerAPI.getMatches().then(res => {
+          if (res.data?.success) setTopMatches(res.data.data || []);
+        }).catch(() => {});
+      }
+    } catch (error) {
+      toast.error('Failed to scrape new matches.');
+    } finally {
+      setScraping(false);
+    }
+  };
+
   useEffect(() => {
     fetchJobs(1);
+    
+    // Fetch top matches for the search dropdown
+    providerAPI.getMatches().then(res => {
+      if (res.data?.success) {
+        setTopMatches(res.data.data || []);
+      }
+    }).catch(err => console.error('Failed to fetch top matches', err));
   }, [fetchJobs]);
+
+  // Run a fresh scrape automatically on page load in the background
+  useEffect(() => {
+    providerAPI.scrapeMatches().then(res => {
+      if (res.data?.success) {
+        // Silently refresh the list if the scrape found new external jobs
+        fetchJobs(1);
+      }
+    }).catch(err => console.error("Auto-scrape failed", err));
+  }, []);
 
   useEffect(() => {
     subscriptionAPI.getMySubscription()
@@ -389,6 +474,7 @@ const ProviderJobs = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     setSearch({ skill: filters.skill, city: filters.city });
+    setShowMatchesDropdown(false);
   };
 
   const clearFilters = () => {
@@ -401,21 +487,31 @@ const ProviderJobs = () => {
   const remainingApply = subscription?.remainingApplyLimit;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
+    <div className="min-h-screen bg-gray-50 pb-16 overflow-x-hidden" onClick={() => setShowMatchesDropdown(false)}>
       {/* Header */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-700 px-6 py-8">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-2xl font-extrabold text-white mb-1">Find Recruiters</h1>
-          <p className="text-indigo-100 text-sm">Browse job openings from recruiters looking for your skills</p>
-          {planName && (
-            <div className="mt-3 inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs text-white font-medium">
-              <HiSparkles className="w-3.5 h-3.5" />
-              {planName} Plan
-              {applyLimit !== -1 && remainingApply !== undefined && (
-                <span className="text-indigo-100">· {remainingApply} applications remaining</span>
-              )}
-            </div>
-          )}
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-white mb-1">Find Recruiters</h1>
+            <p className="text-indigo-100 text-sm">Browse job openings from recruiters looking for your skills</p>
+            {planName && (
+              <div className="mt-3 inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs text-white font-medium">
+                <HiSparkles className="w-3.5 h-3.5" />
+                {planName} Plan
+                {applyLimit !== -1 && remainingApply !== undefined && (
+                  <span className="text-indigo-100">· {remainingApply} applications remaining</span>
+                )}
+              </div>
+            )}
+          </div>
+          <button 
+            onClick={handleScrapeMatches}
+            disabled={scraping}
+            className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-indigo-700 bg-white rounded-xl hover:bg-indigo-50 hover:scale-105 disabled:opacity-75 transition-all shadow-md w-full md:w-fit mt-2 md:mt-0"
+          >
+            <HiSparkles className={`w-5 h-5 ${scraping ? "animate-spin text-indigo-500" : "text-indigo-600"}`} />
+            {scraping ? "Scraping..." : "Refresh with AI Scraper"}
+          </button>
         </div>
       </div>
 
@@ -436,41 +532,78 @@ const ProviderJobs = () => {
         {tab === 'browse' && (
           <>
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-100 p-4 mb-6 flex flex-wrap gap-3 items-end shadow-2xs">
-              <div className="flex-1 min-w-40">
-                <label className="block text-xs text-gray-500 font-medium mb-1">Skill / Job Title</label>
-                <div className="relative">
-                  <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="e.g. Plumber, Designer…"
-                    value={filters.skill}
-                    onChange={e => setFilters(f => ({ ...f, skill: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 outline-none"
+            <div className="relative">
+              <form onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-100 p-4 mb-6 flex flex-col md:flex-row md:flex-wrap gap-3 md:items-end shadow-2xs" onClick={e => e.stopPropagation()}>
+                <div className="flex-1 w-full relative">
+                  <label className="block text-xs text-gray-500 font-medium mb-1 flex items-center gap-1">
+                    Skill / Job Title
+                    <span className="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 rounded-full border border-indigo-100">AI Enabled</span>
+                  </label>
+                  <div className="relative">
+                    <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="e.g. Plumber, Designer…"
+                      value={filters.skill}
+                      onChange={e => setFilters(f => ({ ...f, skill: e.target.value }))}
+                      onFocus={() => setShowMatchesDropdown(true)}
+                      className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 outline-none"
+                    />
+                  </div>
+                  
+                  {/* AI Top Matches Dropdown */}
+                  {showMatchesDropdown && topMatches.length > 0 && (
+                    <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 z-50 max-h-[350px] overflow-y-auto animate-fadeInUp">
+                      <div className="p-3 border-b border-gray-50 bg-indigo-50/50 sticky top-0">
+                        <h4 className="text-xs font-bold text-indigo-800 flex items-center gap-1.5">
+                          <HiSparkles className="w-3.5 h-3.5" /> 
+                          Top Matches Based On Your Profile
+                        </h4>
+                      </div>
+                      <div className="divide-y divide-gray-50">
+                        {topMatches.map(match => (
+                          <div 
+                            key={match._id} 
+                            onClick={() => {
+                              setViewDetailTarget(match);
+                              setShowMatchesDropdown(false);
+                            }}
+                            className="p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                          >
+                            <h5 className="font-semibold text-sm text-gray-800">{match.title}</h5>
+                            <div className="flex gap-2 text-xs text-gray-500 mt-1">
+                              <span className="flex items-center gap-1"><HiOfficeBuilding className="w-3 h-3"/> {match.companyName || 'Company'}</span>
+                              <span className="flex items-center gap-1"><HiLocationMarker className="w-3 h-3"/> {match.city}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+                <div className="flex-1 w-full">
+                  <label className="block text-xs text-gray-500 font-medium mb-1">City / Location</label>
+                  <LocationSearch
+                    value={filters.city}
+                    onChange={(value) => setFilters(f => ({ ...f, city: value }))}
+                    onSelect={(item) => setFilters(f => ({ ...f, city: item?.name || f.city }))}
+                    placeholder="e.g. Mumbai, Delhi…"
+                    className="focus:ring-indigo-300"
                   />
                 </div>
-              </div>
-              <div className="flex-1 min-w-40">
-                <label className="block text-xs text-gray-500 font-medium mb-1">City / Location</label>
-                <LocationSearch
-                  value={filters.city}
-                  onChange={(value) => setFilters(f => ({ ...f, city: value }))}
-                  onSelect={(item) => setFilters(f => ({ ...f, city: item?.name || f.city }))}
-                  placeholder="e.g. Mumbai, Delhi…"
-                  className="focus:ring-indigo-300"
-                />
-              </div>
-              <div className="flex gap-2">
-                {(search.skill || search.city) && (
-                  <button type="button" onClick={clearFilters} className="px-4 py-2 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
-                    Clear
+                <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
+                  {(search.skill || search.city) && (
+                    <button type="button" onClick={clearFilters} className="flex-1 md:flex-none px-4 py-2 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition text-center">
+                      Clear
+                    </button>
+                  )}
+                  <button type="submit" className="flex-1 md:flex-none justify-center px-5 py-2 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition flex items-center gap-2">
+                    <HiFilter className="w-4 h-4" /> Search
                   </button>
-                )}
-                <button type="submit" className="px-5 py-2 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition flex items-center gap-2">
-                  <HiFilter className="w-4 h-4" /> Search
-                </button>
-              </div>
-            </form>
+                </div>
+              </form>
+            </div>
 
             {/* Results */}
             {loading ? (

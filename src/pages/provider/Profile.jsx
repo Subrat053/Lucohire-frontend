@@ -8,6 +8,7 @@ import { toAbsoluteMediaUrl } from '../../utils/media';
 import LocationSearch from '../../components/LocationSearch';
 import DocumentVerificationStatusCard from '../../components/provider/DocumentVerificationStatusCard';
 import AIProfileAssistant from '../../components/provider/AIProfileAssistant';
+import AIProfileAutoFillModal from '../../components/provider/AIProfileAutoFillModal';
 import ProviderAIChat from '../../components/provider/ProviderAIChat';
 import SkillSearchSelect from '../../components/common/SkillSearchSelect';
 import SmartMultiSelect from '../../components/common/SmartMultiSelect';
@@ -206,6 +207,15 @@ const ProviderProfile = () => {
     phone: '',
   });
 
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+
+  const handleAiAutoFillApply = (data) => {
+    setForm(prev => ({
+      ...prev,
+      ...data
+    }));
+    toast.success("Profile fields updated from AI! Please review and save your changes.");
+  };
 
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
@@ -845,8 +855,8 @@ const ProviderProfile = () => {
         </div>
 
         {/* Unsaved Changes Banner */}
-        {isDirty && (
-          <div className="mb-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-4 rounded-3xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-amber-400/50 animate-fade-in backdrop-blur-md">
+        {isDirty && hasInitialized.current && (
+          <div className="mb-6 bg-linear-to-r from-amber-500 to-orange-500 text-white px-5 py-4 rounded-3xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-amber-400/50 animate-fade-in backdrop-blur-md">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center text-lg">⚠️</div>
               <div>
@@ -1026,7 +1036,25 @@ const ProviderProfile = () => {
           </div>
         </div>
 
+        {/* ── AI Auto-Fill Modal ── */}
+        <AIProfileAutoFillModal 
+          isOpen={isAiModalOpen} 
+          onClose={() => setIsAiModalOpen(false)} 
+          onApply={handleAiAutoFillApply} 
+        />
+
         {/* ── Two-Column Main Layout ── */}
+        <div className="flex justify-end mb-4">
+           <button
+             type="button"
+             onClick={() => setIsAiModalOpen(true)}
+             className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-violet-500/25 transition-all animate-pulse hover:animate-none"
+           >
+             <Sparkles className="w-4 h-4" />
+             Fill with AI ✨
+           </button>
+        </div>
+
         <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
           {/* LEFT COLUMN: Basic Information, Location, Languages, Experience, Aadhaar, Portfolio */}
@@ -1578,10 +1606,11 @@ const ProviderProfile = () => {
                 <button
                   type="button"
                   onClick={handleAISuggestPricing}
-                  className="text-xs font-black text-violet-700 hover:text-violet-900 transition flex items-center gap-1 bg-violet-50 border border-violet-100 px-2.5 py-1.5 rounded-full"
+                  disabled={aiLoading}
+                  className="text-xs font-black text-violet-700 hover:text-violet-900 transition flex items-center gap-1 bg-violet-50 border border-violet-100 px-2.5 py-1.5 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Sparkles className="w-3.5 h-3.5 animate-pulse text-violet-600" />
-                  <span>AI Suggest</span>
+                  <Sparkles className={`w-3.5 h-3.5 text-violet-600 ${aiLoading ? 'animate-spin' : 'animate-pulse'}`} />
+                  <span>{aiLoading ? 'Analyzing...' : 'AI Suggest'}</span>
                 </button>
               </div>
 

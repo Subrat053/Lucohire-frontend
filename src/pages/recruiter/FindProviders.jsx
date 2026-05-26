@@ -163,12 +163,21 @@ const FindProviders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCoords, setSelectedCoords] = useState({ lat: null, lon: null });
   const [compareOpen, setCompareOpen] = useState(false);
+  const [topMatches, setTopMatches] = useState([]);
+  const [showMatchesDropdown, setShowMatchesDropdown] = useState(false);
   const searchRef = useRef(null);
 
   useEffect(() => {
     subscriptionAPI.getMySubscription()
       .then(r => setSubscription(r.data))
       .catch(() => {});
+      
+    // Fetch generic top providers for the search dropdown
+    searchAPI.providers({ limit: 10, sortBy: 'rating' }).then(res => {
+      if (res.data?.providers) {
+        setTopMatches(res.data.providers);
+      }
+    }).catch(err => console.error('Failed to fetch top providers', err));
   }, []);
 
   const doSearch = useCallback(async (page = 1) => {
@@ -283,7 +292,7 @@ const FindProviders = () => {
   const unlockCredits = subscription?.remainingUnlocks;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" onClick={() => setShowMatchesDropdown(false)}>
       {/* Header */}
       <div className="bg-linear-to-r from-blue-600 to-indigo-700 px-6 py-8">
         <div className="max-w-5xl mx-auto">
@@ -308,7 +317,7 @@ const FindProviders = () => {
 
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* Search Form */}
-        <form ref={searchRef} onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
+        <form ref={searchRef} onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-100 p-4 mb-4" onClick={e => e.stopPropagation()}>
           <div className="mb-3">
             <NaturalLanguageIntentBar
               query={query}
@@ -332,7 +341,7 @@ const FindProviders = () => {
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
             </div>
-            <div className="flex-1 min-w-40">
+            <div className="flex-1 min-w-40 relative">
               <label className="block text-xs text-gray-500 font-medium mb-1">Skill / Profession</label>
               <div className="relative">
                 <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -341,9 +350,40 @@ const FindProviders = () => {
                   placeholder="e.g. Plumber, Electrician…"
                   value={skill}
                   onChange={e => setSkill(e.target.value)}
+                  onFocus={() => setShowMatchesDropdown(true)}
                   className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
               </div>
+
+              {/* Top Matches Dropdown */}
+              {showMatchesDropdown && topMatches.length > 0 && (
+                <div className="absolute top-full left-0 mt-2 w-full min-w-[300px] bg-white rounded-2xl shadow-xl border border-gray-100 z-50 max-h-[350px] overflow-y-auto animate-fadeInUp">
+                  <div className="p-3 border-b border-gray-50 bg-blue-50/50 sticky top-0">
+                    <h4 className="text-xs font-bold text-blue-800 flex items-center gap-1.5">
+                      <HiSparkles className="w-3.5 h-3.5" /> 
+                      Top Rated Candidates
+                    </h4>
+                  </div>
+                  <div className="divide-y divide-gray-50">
+                    {topMatches.map(match => (
+                      <div 
+                        key={match._id} 
+                        onClick={() => {
+                          handleView(match);
+                          setShowMatchesDropdown(false);
+                        }}
+                        className="p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        <h5 className="font-semibold text-sm text-gray-800">{match.user?.name || match.name || 'Provider'}</h5>
+                        <div className="flex gap-2 text-xs text-gray-500 mt-1">
+                          <span className="flex items-center gap-1 font-medium text-blue-600">{match.skills?.[0] || 'General'}</span>
+                          <span className="flex items-center gap-1"><HiLocationMarker className="w-3 h-3"/> {match.city || 'Anywhere'}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex-1 min-w-40">
               <label className="block text-xs text-gray-500 font-medium mb-1">City / Location</label>

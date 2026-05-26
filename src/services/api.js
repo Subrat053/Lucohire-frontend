@@ -158,6 +158,8 @@ export const authAPI = {
   forgotPassword: (data) => API.post("/auth/forgot-password", data),
   resetPassword: (token, data) =>
     API.post(`/auth/reset-password/${token}`, data),
+  requestMagicLink: (data) => API.post("/auth/magic-link/request", data),
+  verifyMagicLink: (data) => API.post("/auth/magic-link/verify", data),
 };
 
 export const userAPI = {
@@ -167,13 +169,16 @@ export const userAPI = {
 // Provider APIs
 export const providerAPI = {
   getProfile: () => API.get("/provider/profile"),
+  scrapeMatches: () => API.get("/provider/scrape-matches"),
   updateProfile: (data) => API.put("/provider/profile", data),
   aiSuggestProfile: (data) => API.post("/provider/profile/ai-suggest", data),
   buildAIProfile: (data) => API.post("/provider/ai/build-profile", data),
+  extractProfileData: (data) => API.post("/provider/ai/extract-profile", data), // Module 1 UI
   providerBuilderSuggestion: (data) => API.post("/ai/provider-builder-suggestion", data),
   getPricingSuggestion: (params) =>
     API.get("/provider/ai/pricing-suggestion", { params }),
   getDashboard: () => API.get("/provider/dashboard"),
+  getMatches: () => API.get("/provider/matches"), // Module 2 UI
   getPlans: () => API.get("/provider/plans"),
   purchasePlan: (data) => API.post("/provider/plans/purchase", data),
   getLeads: () => API.get("/provider/leads"),
@@ -211,6 +216,7 @@ export const recruiterAPI = {
   postJob: (data) => API.post("/recruiter/jobs", data),
   getJobs: () => API.get("/recruiter/jobs"),
   getJobApplications: (jobId) => API.get(`/recruiter/jobs/${jobId}/applications`),
+  getMatches: (jobId) => API.get(`/recruiter/jobs/${jobId}/matches`), // Module 2 UI
   updateApplicationStatus: (applicationId, data) =>
     API.patch(`/recruiter/applications/${applicationId}/status`, data),
   getPlans: () => API.get("/recruiter/plans"),

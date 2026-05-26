@@ -480,6 +480,15 @@ export default function JobPostings() {
                                                 >
                                                     <HiUsers className="w-3.5 h-3.5" /> View Applicants ({job.interestedCount || 0})
                                                 </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigate(`/recruiter/top-matches?jobId=${job._id}`);
+                                                    }}
+                                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-4 py-2 rounded-xl shadow-xs transition"
+                                                >
+                                                    <HiSparkles className="w-3.5 h-3.5" /> View Top Matches
+                                                </button>
                                             </div>
                                         </div>
 
