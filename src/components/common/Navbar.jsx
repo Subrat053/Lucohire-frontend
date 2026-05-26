@@ -169,9 +169,9 @@ const Navbar = () => {
                         alt="Profile"
                         className="w-full h-full object-cover rounded-full"
                       />
-                    ) : user?.profilePhoto ? (
+                    ) : (user?.profilePhoto || user?.avatar) ? (
                       <img
-                        src={toAbsoluteMediaUrl(user.profilePhoto)}
+                        src={toAbsoluteMediaUrl(user.profilePhoto || user.avatar)}
                         alt="Profile"
                         className="w-full h-full object-cover rounded-full"
                       />

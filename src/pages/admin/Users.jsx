@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { HiSearch, HiBan, HiCheckCircle, HiChevronLeft, HiChevronRight, HiTrash, HiEye, HiX } from 'react-icons/hi';
+import { HiSearch, HiBan, HiCheckCircle, HiChevronLeft, HiChevronRight, HiTrash, HiEye, HiX, HiUpload, HiDownload } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { toAbsoluteMediaUrl } from '../../utils/media';
@@ -193,11 +193,48 @@ const AdminUsers = () => {
     }
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      setLoading(true);
+      const { data } = await adminAPI.uploadProviders(formData);
+      toast.success(data.message || 'Upload completed');
+      if (data.errors && data.errors.length > 0) {
+        console.warn('Upload errors:', data.errors);
+        toast.error(`Had ${data.errors.length} errors, check console for details.`);
+      }
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to upload CSV');
+      setLoading(false);
+    }
+    e.target.value = null; // reset
+  };
+
   const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">User Management</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+        
+        {/* Temporary Testing UI */}
+        <div className="flex items-center gap-3 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
+          <a href="/seed_providers.csv" download className="text-xs font-bold text-indigo-600 flex items-center hover:underline">
+            <HiDownload className="w-4 h-4 mr-1" /> Download Template
+          </a>
+          <label className="cursor-pointer bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center hover:bg-indigo-700 transition">
+            <HiUpload className="w-4 h-4 mr-1" />
+            Upload Providers CSV
+            <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
+          </label>
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-6 flex flex-col sm:flex-row gap-4">

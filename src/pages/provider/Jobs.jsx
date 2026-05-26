@@ -244,6 +244,40 @@ const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
   );
 };
 
+/* ── Job Card Skeleton ────────────────────────────────────────────────── */
+const JobCardSkeleton = () => (
+  <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-all flex flex-col justify-between h-full animate-pulse">
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div className="flex-1 min-w-0 space-y-3">
+          <div className="h-5 bg-gray-200 rounded-lg w-3/4"></div>
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
+            <div className="h-3 bg-gray-100 rounded-md w-24"></div>
+            <div className="h-3 bg-gray-100 rounded-md w-20"></div>
+            <div className="h-3 bg-gray-100 rounded-md w-16"></div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <div className="h-5 bg-indigo-50/50 rounded-full w-16"></div>
+            <div className="h-5 bg-gray-100 rounded-full w-24"></div>
+          </div>
+        </div>
+        <div className="shrink-0 space-y-1">
+          <div className="h-4 bg-gray-200 rounded-lg w-16"></div>
+          <div className="h-3 bg-gray-100 rounded-lg w-10"></div>
+        </div>
+      </div>
+      <div className="space-y-2 mt-4">
+        <div className="h-3 bg-gray-100 rounded-md w-full"></div>
+        <div className="h-3 bg-gray-100 rounded-md w-5/6"></div>
+      </div>
+    </div>
+    <div className="flex items-center justify-between mt-6 pt-3 border-t border-gray-50">
+      <div className="h-3 bg-gray-100 rounded-md w-20"></div>
+      <div className="h-8 bg-gray-200 rounded-xl w-28"></div>
+    </div>
+  </div>
+);
+
 /* ── Job Card ────────────────────────────────────────────────────────── */
 const JobCard = ({ job, onViewDetails }) => {
   const budgetText = job.budgetType === 'negotiable'
@@ -261,7 +295,18 @@ const JobCard = ({ job, onViewDetails }) => {
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <h3 className="font-bold text-gray-900 text-base truncate">{job.title}</h3>
+              {job.isExternal && job.externalUrl ? (
+                <a
+                  href={job.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-extrabold text-indigo-600 text-base truncate hover:text-indigo-800 hover:underline transition-colors flex items-center gap-1"
+                >
+                  {job.title}
+                </a>
+              ) : (
+                <h3 className="font-bold text-gray-900 text-base truncate">{job.title}</h3>
+              )}
               {job.hasApplied && (
                 <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
                   <HiCheckCircle className="w-3.5 h-3.5" /> Applied
@@ -422,39 +467,53 @@ const ProviderJobs = () => {
   const handleScrapeMatches = async () => {
     try {
       setScraping(true);
+      setLoading(true);
       const res = await providerAPI.scrapeMatches();
       if (res.data?.success) {
         toast.success('Successfully fetched new matches!');
-        // Refresh the jobs list
-        fetchJobs(1);
-        providerAPI.getMatches().then(res => {
-          if (res.data?.success) setTopMatches(res.data.data || []);
-        }).catch(() => {});
+        const matchedJobs = res.data.data || [];
+        setJobs(matchedJobs);
+        setTopMatches(matchedJobs);
+        setPagination({ page: 1, pages: 1, total: matchedJobs.length });
       }
     } catch (error) {
       toast.error('Failed to scrape new matches.');
     } finally {
       setScraping(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchJobs(1);
-    
-    // Fetch top matches for the search dropdown
-    providerAPI.getMatches().then(res => {
-      if (res.data?.success) {
-        setTopMatches(res.data.data || []);
-      }
-    }).catch(err => console.error('Failed to fetch top matches', err));
-  }, [fetchJobs]);
+    if (search.skill || search.city) {
+      fetchJobs(1);
+    } else {
+      setLoading(true);
+      // Fetch top matches to show directly in card format!
+      providerAPI.getMatches().then(res => {
+        if (res.data?.success) {
+          const matchedJobs = res.data.data || [];
+          setJobs(matchedJobs);
+          setTopMatches(matchedJobs);
+          setPagination({ page: 1, pages: 1, total: matchedJobs.length });
+        }
+      }).catch(err => {
+        console.error('Failed to fetch top matches', err);
+        fetchJobs(1); // fallback to general jobs if matches query fails
+      }).finally(() => {
+        setLoading(false);
+      });
+    }
+  }, [search, fetchJobs]);
 
   // Run a fresh scrape automatically on page load in the background
   useEffect(() => {
     providerAPI.scrapeMatches().then(res => {
-      if (res.data?.success) {
-        // Silently refresh the list if the scrape found new external jobs
-        fetchJobs(1);
+      if (res.data?.success && !search.skill && !search.city) {
+        const matchedJobs = res.data.data || [];
+        setJobs(matchedJobs);
+        setTopMatches(matchedJobs);
+        setPagination({ page: 1, pages: 1, total: matchedJobs.length });
       }
     }).catch(err => console.error("Auto-scrape failed", err));
   }, []);
@@ -607,7 +666,9 @@ const ProviderJobs = () => {
 
             {/* Results */}
             {loading ? (
-              <div className="flex justify-center py-16"><LoadingSpinner /></div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {[1, 2, 3, 4].map(n => <JobCardSkeleton key={n} />)}
+              </div>
             ) : jobs.length === 0 ? (
               <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-100 shadow-2xs">
                 <HiBriefcase className="w-12 h-12 mx-auto mb-3 opacity-40" />

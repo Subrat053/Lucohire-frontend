@@ -128,6 +128,7 @@ const RecruiterProfile = () => {
         setPhotoPreview(url);
       }
       await fetchUser();
+      await fetchProfile();
       toast.success('Profile photo updated successfully!');
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to upload photo';
@@ -221,7 +222,15 @@ const RecruiterProfile = () => {
                 <div>
                   <p className="text-sm font-semibold text-gray-800">Profile Photo</p>
                   <p className="text-xs text-gray-500 mt-0.5">JPG or PNG, max 5 MB</p>
-                  {savedPhoto && (
+                  {profile?.profilePhotoApproval?.status === 'pending' && (
+                    <div className="mt-1">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-semibold border border-amber-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                        Pending Approval
+                      </span>
+                    </div>
+                  )}
+                  {savedPhoto && profile?.profilePhotoApproval?.status !== 'pending' && (
                     <span className="inline-flex items-center gap-1 mt-1.5 text-xs text-green-600 font-medium">
                       <HiCheckCircle className="w-3.5 h-3.5" /> Photo saved
                     </span>

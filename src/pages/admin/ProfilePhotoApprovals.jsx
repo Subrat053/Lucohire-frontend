@@ -159,7 +159,9 @@ const ProfilePhotoApprovals = () => {
     if (!confirmModal.user) return;
     setActionLoading(true);
     try {
-      await adminAPI.approveProfilePhoto(confirmModal.user._id);
+      const targetUserId = confirmModal.user.user?._id || confirmModal.user.user || confirmModal.user._id;
+      const targetRole = confirmModal.user.role || getPrimaryRole(confirmModal.user.roles);
+      await adminAPI.approveProfilePhoto(targetUserId, targetRole);
       toast.success('Profile photo approved');
       setConfirmModal({ open: false, user: null });
       fetchUsers(page);
@@ -175,7 +177,9 @@ const ProfilePhotoApprovals = () => {
     if (!rejectModal.user) return;
     setActionLoading(true);
     try {
-      await adminAPI.rejectProfilePhoto(rejectModal.user._id, reason);
+      const targetUserId = rejectModal.user.user?._id || rejectModal.user.user || rejectModal.user._id;
+      const targetRole = rejectModal.user.role || getPrimaryRole(rejectModal.user.roles);
+      await adminAPI.rejectProfilePhoto(targetUserId, targetRole, reason);
       toast.success('Profile photo rejected');
       setRejectModal({ open: false, user: null });
       fetchUsers(page);
@@ -333,8 +337,8 @@ const ProfilePhotoApprovals = () => {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-sm font-semibold text-gray-900 truncate">{u.name || 'Unknown'}</p>
-                              <p className="text-xs text-gray-400 truncate">{u.phone || u.email || '-'}</p>
+                              <p className="text-sm font-semibold text-gray-900 truncate">{u.displayName || u.user?.name || u.name || 'Unknown'}</p>
+                              <p className="text-xs text-gray-400 truncate">{u.user?.phone || u.phone || u.user?.email || u.email || '-'}</p>
                             </div>
                           </div>
                         </td>

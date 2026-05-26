@@ -235,7 +235,9 @@ const ProviderProfile = () => {
     };
 
     let initialLocs = [];
-    if (Array.isArray(profileData.locations) && profileData.locations.length > 0) {
+    if (Array.isArray(profileData.serviceLocations) && profileData.serviceLocations.length > 0) {
+      initialLocs = profileData.serviceLocations.map(l => l.formattedAddress || l.name || String(l)).filter(Boolean);
+    } else if (Array.isArray(profileData.locations) && profileData.locations.length > 0) {
       initialLocs = profileData.locations;
     } else {
       if (profileData.city) initialLocs.push(profileData.city);
@@ -441,11 +443,11 @@ const ProviderProfile = () => {
   };
 
   const addSkill = (skill) => {
-    if (plan === 'free' && form.skills.length >= 1) {
+    if (String(plan).toLowerCase() === 'free' && form.skills.length >= 1) {
       if (redirectCountdown !== null) return;
       setShowUpgradePrompt(true);
       setRedirectCountdown(3);
-      toast.error('Free tier is limited to 1 speciality. Redirecting to plans...');
+      toast.error('Free tier account cannot choose more than 1 role. Redirecting to plan page...');
       return;
     }
     setForm({ ...form, skills: [...form.skills, skill] });
@@ -453,7 +455,7 @@ const ProviderProfile = () => {
   const removeSkill = (skill) => {
     const updated = form.skills.filter(s => s !== skill);
     setForm({ ...form, skills: updated });
-    if (plan === 'free' && updated.length < 1) {
+    if (String(plan).toLowerCase() === 'free' && updated.length < 1) {
       setShowUpgradePrompt(false);
       setRedirectCountdown(null);
     }
@@ -599,8 +601,8 @@ const ProviderProfile = () => {
 
     setForm((prev) => ({
       ...prev,
-      skills: nextSkills.slice(0, plan === 'free' ? 1 : nextSkills.length),
-      locations: nextLocations.slice(0, plan === 'free' ? 1 : maxLocations),
+      skills: nextSkills.slice(0, String(plan).toLowerCase() === 'free' ? 1 : nextSkills.length),
+      locations: nextLocations.slice(0, String(plan).toLowerCase() === 'free' ? 1 : maxLocations),
       city: firstLocation?.city || prev.city,
       state: firstLocation?.state || prev.state,
       nearestLocation: firstLocation?.formattedAddress || firstLocation?.city || prev.nearestLocation,
@@ -671,6 +673,7 @@ const ProviderProfile = () => {
         setForm(prev => ({ ...prev, photo: absoluteUrl }));
       }
       await fetchUser();
+      await fetchProfile();
       toast.success('Profile photo updated successfully!');
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Photo upload failed';
@@ -699,7 +702,7 @@ const ProviderProfile = () => {
       return toast.error('Please add at least one service location / city (Location is mandatory)');
     }
     if (form.skills.length === 0) {
-      return toast.error('Please select at least one speciality / skill (Speciality is mandatory)');
+      return toast.error('Please select at least one role (Role is mandatory)');
     }
     const cleanPhone = String(form.phone || '').replace(/\D/g, '');
     if (!cleanPhone || cleanPhone.length < 10) {
@@ -929,7 +932,7 @@ const ProviderProfile = () => {
                       } else if (typeof value === 'string' && value) {
                         combined = [...new Set([...next.skills, value])];
                       }
-                      const maxSkills = plan === 'free' ? 1 : combined.length;
+                      const maxSkills = String(plan).toLowerCase() === 'free' ? 1 : combined.length;
                       next.skills = combined.slice(0, maxSkills);
                     } else if (field === 'phone') {
                       next.phone = value;
@@ -1004,7 +1007,7 @@ const ProviderProfile = () => {
                   ) : (
                     <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
                   )}
-                  <span>Add more specialities</span>
+                  <span>Add more roles</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {(documentVerification?.status === 'approved' || profileData?.user?.approvalStatus === 'approved' || profileData?.isApproved) ? (
@@ -1474,7 +1477,13 @@ const ProviderProfile = () => {
 
               <div className="text-center">
                 <p className="font-extrabold text-slate-800 text-sm">Upload Profile Portrait</p>
-                <p className="text-[10px] font-bold text-slate-400 mt-0.5">JPG or PNG formats, maximum size 5MB</p>
+                <p className="text-[10px] font-bold text-slate-400 mt-0.5 mb-2">JPG or PNG formats, maximum size 5MB</p>
+                {profileData?.user?.profilePhotoApproval?.status === 'pending' && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black tracking-wide uppercase border border-amber-200 shadow-sm mt-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    Pending Approval
+                  </span>
+                )}
               </div>
 
               <input
@@ -1507,14 +1516,14 @@ const ProviderProfile = () => {
               </div>
             </div>
 
-            {/* 2. Speciality (1 Free) */}
+            {/* 2. Role (1 Free) */}
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
               <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
                 <Award className="w-5 h-5 text-violet-600" />
                 <div className="flex-1">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Speciality</h3>
+                  <h3 className="font-extrabold text-slate-800 text-sm">Role</h3>
                   <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
-                    {plan === 'free' ? 'First Specialty is Free' : 'Unlimited Specialities Unlocked'}
+                    {String(plan).toLowerCase() === 'free' ? 'First Role is Free' : 'Unlimited Roles Unlocked'}
                   </p>
                 </div>
               </div>
@@ -1525,24 +1534,24 @@ const ProviderProfile = () => {
                 onRemove={removeSkill}
                 tier={form.tier}
                 maxAllowed={(() => {
-                  if (!profileData || plan === 'free') return 1;
-                  return Number(profileData.allowedSkillsCount || 4);
+                  if (!profileData || String(plan).toLowerCase() === 'free') return 1;
+                  return 999; // Unlimited for upgraded plans
                 })()}
                 plan={plan}
                 onTriggerUpgrade={() => {
                   if (redirectCountdown !== null) return;
                   setShowUpgradePrompt(true);
                   setRedirectCountdown(3);
-                  toast.error('Free tier is limited to 1 speciality. Redirecting to plans...');
+                  toast.error('Free tier account cannot choose more than 1 role. Redirecting to plan page...');
                 }}
               />
 
-              {plan === 'free' && showUpgradePrompt && (
+              {String(plan).toLowerCase() === 'free' && showUpgradePrompt && (
                 <div className="mt-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl animate-pulse">
                   <p className="text-xs text-amber-800 font-bold leading-normal">
                     {redirectCountdown !== null
-                      ? `Your free tier allows 1 specialty boost. Redirecting to visibility plans page in ${redirectCountdown}s...`
-                      : 'Your free tier allows 1 specialty boost. Upgrade to select multiple skills.'}
+                      ? `Free tier account cannot choose more than 1 role. Redirecting to plan page in ${redirectCountdown}s...`
+                      : 'Your free tier allows 1 role boost. Upgrade to select multiple roles.'}
                   </p>
 
                   {redirectCountdown === null && (

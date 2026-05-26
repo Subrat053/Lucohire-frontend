@@ -273,6 +273,9 @@ export const adminAPI = {
   getDashboard: () => ADMIN_API.get("/admin/dashboard"),
   getDashboardStats: () => ADMIN_API.get("/admin/partners/dashboard/stats"),
   getUsers: (params) => ADMIN_API.get("/admin/users", { params }),
+  uploadProviders: (formData) => ADMIN_API.post("/admin/providers/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  }),
   getUserDetail: (id) => ADMIN_API.get(`/admin/users/${id}`),
   getManagers: () => ADMIN_API.get("/admin/managers"),
   createManager: (data) => ADMIN_API.post("/admin/managers", data),
@@ -286,6 +289,8 @@ export const adminAPI = {
   getPartnerRewardSettings: () => ADMIN_API.get("/admin/partners/settings/rewards"),
   updatePartnerRewardSettings: (data) => ADMIN_API.put("/admin/partners/settings/rewards", data),
   getPartnerReferrals: (id, params) => ADMIN_API.get(`/admin/partners/${id}/referrals`, { params }),
+  getReferralWithdrawals: (params) => ADMIN_API.get("/admin/referral-withdrawals", { params }),
+  updateReferralWithdrawalStatus: (id, data) => ADMIN_API.put(`/admin/referral-withdrawals/${id}/status`, data),
   deletePartner: (id) => ADMIN_API.delete(`/admin/partners/${id}`),
   getApprovalLogs: (params) => ADMIN_API.get("/admin/approval-logs", { params }),
   approveUser: (userId) => ADMIN_API.patch(`/admin/users/${userId}/approve`),
@@ -533,6 +538,8 @@ export const enquiryAPI = {
 
 export const referralAPI = {
   getMyStats: () => API.get("/referrals/my-stats"),
+  updatePaymentMethods: (data) => API.post("/referrals/payment-methods", data),
+  requestWithdrawal: (data) => API.post("/referrals/withdraw", data)
 };
 
 export const providerWalletAPI = {

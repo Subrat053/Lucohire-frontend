@@ -73,7 +73,8 @@ import Partners from './pages/admin/Partners';
 import PartnerReferrals from './pages/admin/PartnerReferrals';
 import AdminManagerBankAccounts from "./pages/admin/ManagerBankAccounts";
 import AdminPartnerPayouts from "./pages/admin/AdminPartnerPayouts";
-import AdminReferrals from './pages/admin/AdminReferrals';
+import AdminReferrals from "./pages/admin/AdminReferrals";
+import AdminCommissions from "./pages/admin/AdminCommissions";
 import AdminRewardPool from "./pages/admin/AdminRewardPool";
 import AdminUsers from "./pages/admin/Users";
 import AdminProviders from "./pages/admin/Providers";
@@ -413,6 +414,11 @@ function App() {
         <Route path="/admin/referrals" element={wrap(
           <AdminProtectedRoute>
             <AdminLayout><AdminReferrals /></AdminLayout>
+          </AdminProtectedRoute>
+        )} />
+        <Route path="/admin/commissions" element={wrap(
+          <AdminProtectedRoute>
+            <AdminLayout><AdminCommissions /></AdminLayout>
           </AdminProtectedRoute>
         )} />
         <Route path="/admin/reward-pool" element={wrap(

@@ -70,10 +70,10 @@ export default function SkillSearchSelect({
     if (selected.includes(skillName)) return;
 
     if (selected.length >= maxAllowed) {
-      if (plan === 'free' && onTriggerUpgrade) {
+      if (String(plan).toLowerCase() === 'free' && onTriggerUpgrade) {
         onTriggerUpgrade();
       } else {
-        toast.error(`Your plan allows a maximum of ${maxAllowed} specialit${maxAllowed > 1 ? 'ies' : 'y'}. Upgrade to add more.`);
+        toast.error(`Your plan allows a maximum of ${maxAllowed} role${maxAllowed > 1 ? 's' : ''}. Upgrade to add more.`);
       }
       return;
     }
@@ -141,7 +141,7 @@ export default function SkillSearchSelect({
               <div className="px-4 py-3 text-xs text-slate-400 italic">Loading specialities...</div>
             ) : filteredSkills.length === 0 ? (
               <div className="px-4 py-3 text-xs text-slate-400 italic">
-                {query.trim() ? `No matches for "${query}"` : 'All specialities selected'}
+                {query.trim() ? `No matches for "${query}"` : 'All roles selected'}
               </div>
             ) : (
               // Grouped by Category
