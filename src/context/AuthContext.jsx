@@ -182,6 +182,14 @@ export const AuthProvider = ({ children }) => {
   }, [clearAuthStorage, loadCachedUser, migrateLegacyToken, normalizeUser]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tokenParams = params.get('token');
+    if (tokenParams) {
+      localStorage.setItem("authToken", tokenParams);
+      // Optionally clean the URL
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.search.replace(/[\?&]token=[^&]+/, '').replace(/^[?&]+$/, '');
+      window.history.replaceState({}, document.title, newUrl);
+    }
     refreshUser();
   }, [refreshUser]);
 

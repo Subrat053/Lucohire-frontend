@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { providerWalletAPI } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -7,6 +7,9 @@ import {
   HiInformationCircle, HiPlusCircle, HiArrowRight, HiDocumentReport, HiOutlineSparkles, HiCog 
 } from 'react-icons/hi';
 import useTranslation from '../../hooks/useTranslation';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { auth } from '../../config/firebase';
+
 
 const Wallet = () => {
   const { t } = useTranslation();
@@ -23,6 +26,76 @@ const Wallet = () => {
   const [selectedPayoutMethodId, setSelectedPayoutMethodId] = useState('');
   const [submittingWithdraw, setSubmittingWithdraw] = useState(false);
 
+  // OTP Withdrawal verification states
+  const [withdrawalStep, setWithdrawalStep] = useState('details'); // 'details' or 'verify'
+  const [otp, setOtp] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState(null);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [providerPhone, setProviderPhone] = useState('');
+
+  const otpRefs = useRef([]);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (resendTimer > 0) {
+      timerRef.current = setInterval(() => {
+        setResendTimer(t => {
+          if (t <= 1) {
+            clearInterval(timerRef.current);
+            return 0;
+          }
+          return t - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [resendTimer]);
+
+  const handleOtpBox = (idx, e) => {
+    const digit = e.target.value.replace(/\D/g, '').slice(-1);
+    const arr = otp.padEnd(6, ' ').split('');
+    arr[idx] = digit || ' ';
+    const newOtp = arr.join('').trimEnd();
+    setOtp(newOtp);
+
+    if (digit && idx < 5) {
+      setTimeout(() => otpRefs.current[idx + 1]?.focus(), 0);
+    }
+  };
+
+  const handleOtpKey = (idx, e) => {
+    if (e.key === 'Backspace') {
+      const arr = otp.padEnd(6, ' ').split('');
+      if (arr[idx] && arr[idx] !== ' ') {
+        arr[idx] = ' ';
+        setOtp(arr.join('').trimEnd());
+      } else if (idx > 0) {
+        arr[idx - 1] = ' ';
+        setOtp(arr.join('').trimEnd());
+        setTimeout(() => otpRefs.current[idx - 1]?.focus(), 0);
+      }
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pastedOtp = e.clipboardData
+      .getData('text')
+      .replace(/\D/g, '')
+      .slice(0, 6);
+    setOtp(pastedOtp);
+    setTimeout(() => otpRefs.current[Math.min(pastedOtp.length, 5)]?.focus(), 0);
+  };
+
   useEffect(() => {
     fetchWalletData();
   }, []);
@@ -35,6 +108,7 @@ const Wallet = () => {
       setPayoutMethods(data.payoutMethods || []);
       setTransactions(data.transactions || []);
       setConfig(data.config || { minWithdrawalAmount: 500, fixedWithdrawalFee: 0 });
+      setProviderPhone(data.user?.phone || '');
       
       // Auto-select default payout method
       const defaultMethod = data.payoutMethods?.find(m => m.isDefault);
@@ -50,8 +124,81 @@ const Wallet = () => {
     }
   };
 
+  const getFormattedPhone = () => {
+    if (!providerPhone) return '';
+    const cleanPhone = providerPhone.replace(/\D/g, "");
+    if (providerPhone.startsWith("+")) {
+      return providerPhone;
+    }
+    if (cleanPhone.length === 10) {
+      return `+91${cleanPhone}`;
+    }
+    if (cleanPhone.startsWith("91") && cleanPhone.length === 12) {
+      return `+${cleanPhone}`;
+    }
+    return `+91${cleanPhone}`;
+  };
+
+  const handleSendOtp = async () => {
+    const formattedPhone = getFormattedPhone();
+    if (!formattedPhone) {
+      toast.error(t('wallet.noPhoneError', 'No mobile number found. Please add one in your Profile first.'));
+      return;
+    }
+
+    setSendingOtp(true);
+    try {
+      if (window.recaptchaVerifierWithdraw) {
+        try { window.recaptchaVerifierWithdraw.clear(); } catch(e) {}
+        window.recaptchaVerifierWithdraw = null;
+      }
+
+      window.recaptchaVerifierWithdraw = new RecaptchaVerifier(
+        auth,
+        'recaptcha-container-withdraw',
+        {
+          size: 'invisible',
+          callback: () => {},
+          'expired-callback': () => {
+            window.recaptchaVerifierWithdraw = null;
+          }
+        }
+      );
+
+      const appVerifier = window.recaptchaVerifierWithdraw;
+      const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+      setConfirmationResult(result);
+      setOtp('');
+      setWithdrawalStep('verify');
+      setResendTimer(60);
+      toast.success(t('wallet.otpSentSuccess', 'Verification code sent to your registered phone number.'));
+    } catch (err) {
+      console.error('Firebase OTP Send Error:', err);
+      // Clear firebase verifier
+      if (window.recaptchaVerifierWithdraw) {
+        try { window.recaptchaVerifierWithdraw.clear(); } catch(e) {}
+        window.recaptchaVerifierWithdraw = null;
+      }
+      // Fallback: request server-side OTP
+      try {
+        const clean = formattedPhone.replace(/\D/g, '');
+        await providerWalletAPI.sendOtpForPayout({ phone: clean });
+        setConfirmationResult(null);
+        setOtp('');
+        setWithdrawalStep('verify');
+        setResendTimer(60);
+        toast.success(t('wallet.otpSentSuccess', 'Verification code sent to your registered phone number.'));
+      } catch (sendErr) {
+        console.error('Server OTP send failed', sendErr);
+        toast.error(err.message || t('wallet.otpSendFail', 'Failed to send verification code. Please try again.'));
+      }
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
   const handleWithdrawSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const numericAmount = Number(amount);
     
     if (!numericAmount || numericAmount <= 0) {
@@ -74,19 +221,56 @@ const Wallet = () => {
       return;
     }
 
+    if (withdrawalStep === 'details') {
+      await handleSendOtp();
+      return;
+    }
+
+    const cleanOtp = otp.replace(/\s/g, "");
+    if (cleanOtp.length !== 6) {
+      toast.error(t('wallet.enter6DigitOtp', 'Please enter the 6-digit verification code.'));
+      return;
+    }
+
+    if (!confirmationResult) {
+      toast.error(t('wallet.sendOtpFirst', 'Please request verification code first.'));
+      return;
+    }
+
     try {
       setSubmittingWithdraw(true);
-      const { data } = await providerWalletAPI.requestWithdrawal({
-        amount: numericAmount,
-        payoutMethodId: selectedPayoutMethodId
-      });
-      toast.success(t('wallet.withdrawSuccess', 'Withdrawal request submitted successfully!'));
+      // If we have a Firebase confirmation flow, use it to obtain token
+      if (confirmationResult) {
+        const result = await confirmationResult.confirm(cleanOtp);
+        const firebaseToken = await result.user.getIdToken(true);
+
+        const { data } = await providerWalletAPI.requestWithdrawal({
+          amount: numericAmount,
+          payoutMethodId: selectedPayoutMethodId,
+          firebaseToken
+        });
+
+        toast.success(t('wallet.withdrawSuccess', 'Withdrawal request submitted successfully!'));
+      } else {
+        // Server-side OTP fallback
+        const cleanPhone = providerPhone.replace(/\D/g, '');
+        const { data } = await providerWalletAPI.requestWithdrawal({
+          amount: numericAmount,
+          payoutMethodId: selectedPayoutMethodId,
+          otp: cleanOtp,
+          otpPhone: cleanPhone
+        });
+        toast.success(t('wallet.withdrawSuccess', 'Withdrawal request submitted successfully!'));
+      }
+
       setShowWithdrawModal(false);
       setAmount('');
-      // Refresh wallet dashboard
+      setOtp('');
+      setConfirmationResult(null);
+      setWithdrawalStep('details');
       await fetchWalletData();
     } catch (err) {
-      toast.error(err?.response?.data?.message || t('wallet.withdrawFail', 'Failed to submit withdrawal request'));
+      toast.error(err?.response?.data?.message || err.message || t('wallet.withdrawFail', 'Failed to submit withdrawal request'));
     } finally {
       setSubmittingWithdraw(false);
     }
@@ -105,8 +289,8 @@ const Wallet = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Top Banner and Quick Actions */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 mb-8 text-white shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent"></div>
+      <div className="relative overflow-hidden bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 mb-8 text-white shadow-xl">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent"></div>
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-3">
@@ -144,22 +328,25 @@ const Wallet = () => {
       </div>
 
       {/* Wallet Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
         {[
           { label: t('wallet.totalEarnings', 'Total Earnings'), value: wallet?.totalEarnings || 0, color: 'from-blue-600 to-indigo-600', icon: HiArrowUp, desc: t('wallet.totalEarnedDesc', 'Provider earnings credited') },
           { label: t('wallet.availableBalance', 'Available Balance'), value: wallet?.availableBalance || 0, color: 'from-emerald-600 to-teal-600', icon: HiCheckCircle, desc: t('wallet.availDesc', 'Ready to withdraw instantly') },
           { label: t('wallet.pendingBalance', 'Pending Balance'), value: wallet?.pendingBalance || 0, color: 'from-amber-600 to-orange-600', icon: HiClock, desc: t('wallet.pendingDesc', 'Locked in withdrawal process') },
           { label: t('wallet.withdrawnAmount', 'Withdrawn Amount'), value: wallet?.withdrawnAmount || 0, color: 'from-slate-600 to-slate-800', icon: HiArrowDown, desc: t('wallet.withdrawnDesc', 'Successfully paid out') },
-          { label: t('wallet.feesDeducted', 'Commission Paid'), value: wallet?.commissionDeducted || 0, color: 'from-rose-600 to-red-700', icon: HiExclamationCircle, desc: t('wallet.feeDesc', 'Platform commission share') }
+          { label: t('wallet.feesDeducted', 'Commission Paid'), value: wallet?.commissionDeducted || 0, color: 'from-rose-600 to-red-700', icon: HiExclamationCircle, desc: t('wallet.feeDesc', 'Platform commission share') },
+          { label: t('wallet.referralBalance', 'Referral Balance'), value: wallet?.referralBalance || 0, color: 'from-purple-600 to-violet-600', icon: HiPlusCircle, desc: t('wallet.referralDesc', 'Earnings from referral commission') }
         ].map((card, idx) => (
-          <div key={idx} className="relative overflow-hidden bg-white border border-slate-100 rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all group">
-            <div className="flex justify-between items-start mb-3">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{card.label}</span>
-              <div className={`w-8 h-8 rounded-lg bg-linear-to-br ${card.color} text-white flex items-center justify-center`}>
-                <card.icon className="w-4 h-4" />
+          <div key={idx} className="relative overflow-hidden bg-white border border-slate-100 rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all group flex flex-col justify-between h-full">
+            <div>
+              <div className="flex justify-between items-start mb-3">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{card.label}</span>
+                <div className={`w-8 h-8 rounded-lg bg-linear-to-br ${card.color} text-white flex items-center justify-center shrink-0`}>
+                  <card.icon className="w-4 h-4" />
+                </div>
               </div>
+              <p className="text-xl font-black text-slate-900">₹{card.value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
             </div>
-            <p className="text-2xl font-black text-slate-900">₹{card.value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
             <p className="text-[10px] text-slate-400 mt-2 font-medium">{card.desc}</p>
           </div>
         ))}
@@ -284,93 +471,169 @@ const Wallet = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 animate-scaleUp">
             <h3 className="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
-              <span className="p-1 rounded bg-indigo-50 text-indigo-600"><HiCurrencyRupee className="w-5 h-5" /></span>
-              {t('wallet.withdrawalRequest', 'Submit Withdrawal')}
+              <span className="p-1 rounded bg-indigo-50 text-indigo-600">
+                <HiCurrencyRupee className="w-5 h-5" />
+              </span>
+              {withdrawalStep === 'details' ? t('wallet.withdrawalRequest', 'Submit Withdrawal') : t('wallet.otpVerification', 'Enter Security Code')}
             </h3>
             <p className="text-xs text-slate-500 mb-6">
-              {t('wallet.withdrawPrompt', 'Enter the amount you would like to transfer. This amount will be locked until the request is paid.')}
+              {withdrawalStep === 'details' 
+                ? t('wallet.withdrawPrompt', 'Enter the amount you would like to transfer. This amount will be locked until the request is paid.')
+                : t('wallet.withdrawOtpPrompt', 'A secure 6-digit one-time passcode has been sent to protect your withdrawal request.')}
             </p>
 
             <form onSubmit={handleWithdrawSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase mb-1.5">{t('wallet.withdrawAmountLabel', 'Withdrawal Amount')}</label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 font-bold">₹</span>
-                  <input
-                    type="number"
-                    min={config.minWithdrawalAmount}
-                    max={wallet?.availableBalance}
-                    required
-                    value={amount}
-                    onChange={e => setAmount(e.target.value)}
-                    placeholder={`e.g. ${config.minWithdrawalAmount}`}
-                    className="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-base font-bold focus:outline-hidden focus:border-indigo-500 transition"
-                  />
-                </div>
-                <div className="flex justify-between items-center mt-1 text-[10px]">
-                  <span className="text-slate-400">{t('wallet.availLimit', 'Available:')} <strong className="text-slate-600">₹{wallet?.availableBalance}</strong></span>
-                  <button 
-                    type="button" 
-                    onClick={() => setAmount(String(wallet?.availableBalance))}
-                    className="text-indigo-600 hover:underline font-bold"
-                  >
-                    {t('wallet.maxBtn', 'Withdraw Maximum')}
-                  </button>
-                </div>
-              </div>
+              {withdrawalStep === 'details' ? (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1.5">{t('wallet.withdrawAmountLabel', 'Withdrawal Amount')}</label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 font-bold">₹</span>
+                      <input
+                        type="number"
+                        min={config.minWithdrawalAmount}
+                        max={wallet?.availableBalance}
+                        required
+                        value={amount}
+                        onChange={e => setAmount(e.target.value)}
+                        placeholder={`e.g. ${config.minWithdrawalAmount}`}
+                        className="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-base font-bold focus:outline-hidden focus:border-indigo-500 transition"
+                      />
+                    </div>
+                    <div className="flex justify-between items-center mt-1 text-[10px]">
+                      <span className="text-slate-400">{t('wallet.availLimit', 'Available:')} <strong className="text-slate-600">₹{wallet?.availableBalance}</strong></span>
+                      <button 
+                        type="button" 
+                        onClick={() => setAmount(String(wallet?.availableBalance))}
+                        className="text-indigo-600 hover:underline font-bold"
+                      >
+                        {t('wallet.maxBtn', 'Withdraw Maximum')}
+                      </button>
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase mb-1.5">{t('wallet.selectPayoutLabel', 'Select Payout Destination')}</label>
-                <select
-                  required
-                  value={selectedPayoutMethodId}
-                  onChange={e => setSelectedPayoutMethodId(e.target.value)}
-                  className="w-full px-3 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:outline-hidden focus:border-indigo-500 transition"
-                >
-                  <option value="" disabled>{t('wallet.selectOne', 'Choose saved payout method')}</option>
-                  {payoutMethods.map(m => (
-                    <option key={m._id} value={m._id}>
-                      {m.type === 'bank' ? `${m.bankDetails?.bankName} (••• ${m.bankDetails?.accountNumber?.slice(-4)})` : m.type === 'upi' ? `UPI - ${m.upiId}` : `QR Code - ${m.providerName || 'Online'}`} {m.isDefault ? ' (Default)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1.5">{t('wallet.selectPayoutLabel', 'Select Payout Destination')}</label>
+                    <select
+                      required
+                      value={selectedPayoutMethodId}
+                      onChange={e => setSelectedPayoutMethodId(e.target.value)}
+                      className="w-full px-3 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:outline-hidden focus:border-indigo-500 transition"
+                    >
+                      <option value="" disabled>{t('wallet.selectOne', 'Choose saved payout method')}</option>
+                      {payoutMethods.map(m => (
+                        <option key={m._id} value={m._id}>
+                          {m.type === 'bank' ? `${m.bankDetails?.bankName} (••• ${m.bankDetails?.accountNumber?.slice(-4)})` : m.type === 'upi' ? `UPI - ${m.upiId}` : `QR Code - ${m.providerName || 'Online'}`} {m.isDefault ? ' (Default)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {defaultMethod && (
-                <div className="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100 text-xs space-y-1">
-                  <p className="font-bold text-indigo-900 uppercase tracking-wide text-[9px] mb-1">{t('wallet.methodPreview', 'Payout Destination Summary')}</p>
-                  {defaultMethod.type === 'bank' && (
-                    <>
-                      <p className="font-bold text-slate-800">{defaultMethod.bankDetails?.accountHolderName}</p>
-                      <p className="text-slate-600">{defaultMethod.bankDetails?.bankName} • Account ending in {defaultMethod.bankDetails?.accountNumber?.slice(-4)}</p>
-                    </>
+                  {defaultMethod && (
+                    <div className="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100 text-xs space-y-1">
+                      <p className="font-bold text-indigo-900 uppercase tracking-wide text-[9px] mb-1">{t('wallet.methodPreview', 'Payout Destination Summary')}</p>
+                      {defaultMethod.type === 'bank' && (
+                        <>
+                          <p className="font-bold text-slate-800">{defaultMethod.bankDetails?.accountHolderName}</p>
+                          <p className="text-slate-600">{defaultMethod.bankDetails?.bankName} • Account ending in {defaultMethod.bankDetails?.accountNumber?.slice(-4)}</p>
+                        </>
+                      )}
+                      {defaultMethod.type === 'upi' && <p className="text-slate-800 font-semibold">{defaultMethod.upiId}</p>}
+                      {defaultMethod.type === 'qr' && <p className="text-slate-800 font-semibold">QR Code {defaultMethod.providerName ? `(${defaultMethod.providerName})` : ''}</p>}
+                    </div>
                   )}
-                  {defaultMethod.type === 'upi' && <p className="text-slate-800 font-semibold">{defaultMethod.upiId}</p>}
-                  {defaultMethod.type === 'qr' && <p className="text-slate-800 font-semibold">QR Code {defaultMethod.providerName ? `(${defaultMethod.providerName})` : ''}</p>}
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowWithdrawModal(false)}
+                      className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                    >
+                      {t('common.cancel', 'Cancel')}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={sendingOtp || !amount || Number(amount) < config.minWithdrawalAmount}
+                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    >
+                      {sendingOtp ? t('wallet.sendingOtp', 'Sending OTP...') : t('wallet.confirmWithdraw', 'Confirm Payout')}
+                      <HiArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-center bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <p className="text-xs text-slate-500">
+                      {t('wallet.enterOtpSentTo', 'Please enter the 6-digit verification code sent to your registered phone number:')}
+                    </p>
+                    <p className="text-sm font-extrabold text-slate-800 mt-1">
+                      {providerPhone ? `+91 ******${providerPhone.replace(/\D/g, "").slice(-4)}` : ''}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2.5 justify-center py-2" onPaste={handleOtpPaste}>
+                    {[0, 1, 2, 3, 4, 5].map((idx) => (
+                      <input
+                        key={idx}
+                        ref={(el) => (otpRefs.current[idx] = el)}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={otp[idx] && otp[idx] !== " " ? otp[idx] : ""}
+                        onChange={(e) => handleOtpBox(idx, e)}
+                        onKeyDown={(e) => handleOtpKey(idx, e)}
+                        disabled={submittingWithdraw}
+                        className="w-10 h-12 text-center text-xl font-bold border border-slate-200 rounded-xl outline-hidden transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 bg-slate-50 focus:bg-white disabled:opacity-50"
+                      />
+                    ))}
+                  </div>
+
+                  <div className="text-center text-xs">
+                    {resendTimer > 0 ? (
+                      <span className="text-slate-400">
+                        {t('wallet.resendIn', 'Resend code in')} <strong className="text-slate-600">{resendTimer}s</strong>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleSendOtp}
+                        disabled={sendingOtp}
+                        className="text-indigo-600 hover:underline font-bold"
+                      >
+                        {t('wallet.resendCode', 'Resend Verification Code')}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWithdrawalStep('details');
+                        setOtp('');
+                      }}
+                      disabled={submittingWithdraw}
+                      className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                    >
+                      {t('common.back', 'Back')}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submittingWithdraw || otp.replace(/\s/g, "").length !== 6}
+                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    >
+                      {submittingWithdraw ? t('wallet.submitting', 'Submitting...') : t('wallet.verifyAndWithdraw', 'Verify & Withdraw')}
+                      <HiCheckCircle className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               )}
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowWithdrawModal(false)}
-                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
-                >
-                  {t('common.cancel', 'Cancel')}
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingWithdraw || !amount || Number(amount) < config.minWithdrawalAmount}
-                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5"
-                >
-                  {submittingWithdraw ? t('wallet.submitting', 'Submitting...') : t('wallet.confirmWithdraw', 'Confirm Payout')}
-                  <HiArrowRight className="w-4 h-4" />
-                </button>
-              </div>
             </form>
           </div>
         </div>
       )}
+      <div id="recaptcha-container-withdraw"></div>
     </div>
   );
 };

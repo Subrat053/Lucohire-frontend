@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { auth } from '../../config/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { providerWalletAPI } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -48,6 +50,18 @@ const PayoutSettings = () => {
 
   useEffect(() => {
     fetchPayoutData();
+    
+    // Cleanup recaptcha on unmount
+    return () => {
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+        } catch (e) {
+          // ignore cleanup errors
+        }
+        window.recaptchaVerifier = null;
+      }
+    };
   }, []);
 
   // Phone verification settings handlers
@@ -143,26 +157,71 @@ const PayoutSettings = () => {
     }
   };
 
-  const handleSendOtp = async (e) => {
+  const [firebaseToken, setFirebaseToken] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState(null);
+
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        'recaptcha-container',
+        {
+          size: 'invisible',
+          callback: () => {},
+          'expired-callback': () => {
+            if (window.recaptchaVerifier) {
+              window.recaptchaVerifier.clear();
+              window.recaptchaVerifier = null;
+            }
+          },
+        }
+      );
+    }
+    return window.recaptchaVerifier;
+  };
+
+  // Start Firebase phone verification (sends SMS)
+  const startFirebaseVerification = async (e) => {
     if (e) e.preventDefault();
     if (!phone) {
       toast.error(t('payout.phoneRequired', 'Mobile number is required for verification'));
       return;
     }
-    
-    // Quick format validation for phone
-    if (phone.length < 10) {
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
       toast.error(t('payout.phoneInvalid', 'Please enter a valid mobile number'));
       return;
+    }
+    
+    let formattedPhone = cleanPhone;
+    if (cleanPhone.length === 10) {
+      formattedPhone = `+91${cleanPhone}`;
+    } else if (cleanPhone.startsWith('91') && cleanPhone.length === 12) {
+      formattedPhone = `+${cleanPhone}`;
+    } else {
+      formattedPhone = `+${cleanPhone}`;
     }
 
     try {
       setSendingOtp(true);
-      await providerWalletAPI.sendOtpForPayout({ phone });
-      toast.success(t('payout.otpSent', '6-digit verification code sent to your mobile'));
+      const verifier = setupRecaptcha();
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, verifier);
+      setConfirmationResult(confirmation);
       setShowOtpModal(true);
+      toast.success(t('payout.otpSent', 'Verification code sent to your mobile'));
     } catch (err) {
-      toast.error(err?.response?.data?.message || t('payout.otpFail', 'Failed to send verification code'));
+      console.error(err);
+      console.error('Firebase verify failed, falling back to server OTP', err);
+      // fallback: request server-side OTP
+      try {
+        const clean = cleanPhone;
+        await providerWalletAPI.sendOtpForPayout({ phone: clean });
+        setShowOtpModal(true);
+        toast.success(t('payout.otpSent', 'Verification code sent to your mobile'));
+      } catch (sendErr) {
+        console.error('Server OTP send failed', sendErr);
+        toast.error(t('payout.otpFail', 'Failed to send verification code'));
+      }
     } finally {
       setSendingOtp(false);
     }
@@ -183,6 +242,34 @@ const PayoutSettings = () => {
     }
   };
 
+  // Confirm OTP entered in modal and obtain Firebase ID token
+  const confirmFirebaseOtp = async (e) => {
+    if (e) e.preventDefault();
+    if (!otp || otp.length !== 6) {
+      toast.error(t('payout.enterOtp', 'Enter the 6-digit code'));
+      return;
+    }
+    if (!confirmationResult) {
+      toast.error(t('payout.otpMissing', 'Verification not started'));
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const result = await confirmationResult.confirm(otp);
+      const token = await result.user.getIdToken(true);
+      setFirebaseToken(token);
+      toast.success(t('payout.tokenAcquired', 'Phone verified'));
+      await handleSavePayoutMethod(token);
+      setShowOtpModal(false);
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.message || t('payout.verifyFail', 'OTP verification failed'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const resetForm = () => {
     setBankDetails({
       accountHolderName: '',
@@ -198,6 +285,26 @@ const PayoutSettings = () => {
     setEditingId(null);
     setOtp('');
     setShowOtpModal(false);
+  };
+
+  // Send server-side OTP (used for Resend and fallback)
+  const handleSendOtp = async () => {
+    if (!phone) {
+      toast.error(t('payout.phoneRequired', 'Mobile number is required for verification'));
+      return;
+    }
+    const clean = String(phone).replace(/\D/g, '');
+    try {
+      setSendingOtp(true);
+      await providerWalletAPI.sendOtpForPayout({ phone: clean });
+      setOtp('');
+      setShowOtpModal(true);
+      toast.success(t('payout.otpSent', 'Verification code sent to your mobile'));
+    } catch (err) {
+      toast.error(err?.response?.data?.message || t('payout.otpFail', 'Failed to send verification code'));
+    } finally {
+      setSendingOtp(false);
+    }
   };
 
   const handleEditClick = (method) => {
@@ -224,9 +331,11 @@ const PayoutSettings = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSavePayoutMethod = async () => {
-    if (!otp || otp.length !== 6) {
-      toast.error(t('payout.enterOtp', 'Please enter the 6-digit OTP code'));
+  const handleSavePayoutMethod = async (overrideToken = null) => {
+    const activeToken = typeof overrideToken === 'string' ? overrideToken : firebaseToken;
+    // Allow either Firebase token or server-side OTP
+    if (!activeToken && otp.length !== 6) {
+      toast.error(t('payout.tokenMissing', 'Verification token is missing'));
       return;
     }
 
@@ -235,9 +344,21 @@ const PayoutSettings = () => {
       id: editingId,
       type: activeTab,
       isDefault,
-      otp,
       phone
     };
+
+    if (activeToken) payload.firebaseToken = activeToken;
+    else payload.otp = otp; // server-side OTP fallback
+    // If verifying a phone number different from profile, pass otpPhone
+    try {
+      const userPhoneClean = String(user?.phone || '').replace(/\D/g, '');
+      const currentPhoneClean = String(phone || '').replace(/\D/g, '');
+      if (currentPhoneClean && userPhoneClean && currentPhoneClean !== userPhoneClean) {
+        payload.otpPhone = currentPhoneClean;
+      }
+    } catch (e) {
+      // ignore
+    }
 
     if (activeTab === 'bank') {
       payload.bankDetails = bankDetails;
@@ -250,9 +371,9 @@ const PayoutSettings = () => {
 
     try {
       const { data } = await providerWalletAPI.savePayoutMethod(payload);
-      setPayoutMethods(data.payoutMethods || []);
-      toast.success(editingId ? t('payout.updated', 'Payout method updated!') : t('payout.saved', 'Payout method saved!'));
-      resetForm();
+    setPayoutMethods(data.payoutMethods || []);
+    toast.success(editingId ? t('payout.updated', 'Payout method updated!') : t('payout.saved', 'Payout method saved!'));
+    resetForm();
     } catch (err) {
       toast.error(err?.response?.data?.message || t('payout.saveFail', 'Failed to save payout method'));
     } finally {
@@ -292,8 +413,8 @@ const PayoutSettings = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Premium Header Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 mb-8 text-white shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent"></div>
+      <div className="relative overflow-hidden bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 mb-8 text-white shadow-xl">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent"></div>
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-3">
@@ -347,7 +468,7 @@ const PayoutSettings = () => {
             ))}
           </div>
 
-          <form onSubmit={handleSendOtp} className="space-y-4">
+          <form onSubmit={startFirebaseVerification} className="space-y-4">
             {activeTab === 'bank' && (
               <div className="space-y-4 animate-fadeIn">
                 <div className="grid grid-cols-2 gap-4">
@@ -707,7 +828,7 @@ const PayoutSettings = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={handleSavePayoutMethod}
+                  onClick={confirmFirebaseOtp}
                   disabled={saving || otp.length !== 6}
                   className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50"
                 >
@@ -861,6 +982,8 @@ const PayoutSettings = () => {
           </div>
         </div>
       )}
+      
+      <div id="recaptcha-container"></div>
     </div>
   );
 };

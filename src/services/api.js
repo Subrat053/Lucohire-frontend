@@ -169,7 +169,7 @@ export const userAPI = {
 // Provider APIs
 export const providerAPI = {
   getProfile: () => API.get("/provider/profile"),
-  scrapeMatches: () => API.get("/provider/scrape-matches"),
+  scrapeMatches: () => API.get("/provider/scrape-matches", { timeout: 60000 }),
   updateProfile: (data) => API.put("/provider/profile", data),
   aiSuggestProfile: (data) => API.post("/provider/profile/ai-suggest", data),
   buildAIProfile: (data) => API.post("/provider/ai/build-profile", data),
@@ -539,7 +539,8 @@ export const enquiryAPI = {
 export const referralAPI = {
   getMyStats: () => API.get("/referrals/my-stats"),
   updatePaymentMethods: (data) => API.post("/referrals/payment-methods", data),
-  requestWithdrawal: (data) => API.post("/referrals/withdraw", data)
+  requestWithdrawal: (data) => API.post("/referrals/withdraw", data),
+  createUserReferral: (data) => API.post("/referrals/invite", data)
 };
 
 export const providerWalletAPI = {

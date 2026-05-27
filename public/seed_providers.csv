@@ -1,5 +1,7 @@
-name,email,phone,city,skills
-John Doe,john.doe@test.com,+1234567890,New York,JavaScript;React;Node.js
-Jane Smith,jane.smith@test.com,+1987654321,London,Python;Data Science;Machine Learning
-Bob Johnson,bob.johnson@test.com,+1122334455,Sydney,Java;Spring Boot;Microservices
-Alice Williams,alice.williams@test.com,+1555666777,Toronto,UI/UX;Figma;Design
+name,email,phone,city,country,skills,tier,experience
+Rahul Kumar,rahul.kumar@test.com,+919999999999,Noida,India,Plumber;Pipe Fitting;General Plumbing,semi-skilled,5 years
+Amit Singh,amit.singh@test.com,+918888888888,Delhi,India,Helper;Cleaning;Housekeeping,unskilled,1 year
+John Doe,john.doe@test.com,+1234567890,New York,United States,JavaScript;React;Node.js;Web Development,skilled,8 years
+Jane Smith,jane.smith@test.com,+1987654321,London,United Kingdom,Python;Data Science;Machine Learning,skilled,3 years
+Bob Johnson,bob.johnson@test.com,+1122334455,Sydney,Australia,Java;Spring Boot;Microservices;Backend,skilled,4 years
+Alice Williams,alice.williams@test.com,+1555666777,Toronto,Canada,UI/UX;Figma;Design;Product Design,skilled,2 years
