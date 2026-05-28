@@ -18,6 +18,7 @@ import { getFeaturedProviders } from "../services/providerService";
 import { useAuth } from "../context/AuthContext";
 import SharedProviderCard from "../components/providers/ProviderCard";
 import useTranslation from "../hooks/useTranslation";
+import Seo from "../components/common/Seo";
 
 /* ─────────── Mock data (keeps providers.map dynamic) ─────────── */
 // type Provider = {
@@ -288,6 +289,23 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { t } = useTranslation();
+  const siteUrl = import.meta.env.VITE_SITE_URL || (typeof window !== "undefined" ? window.location.origin : "");
+  const schema = siteUrl
+    ? [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Lucohire",
+          url: siteUrl,
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Lucohire",
+          url: siteUrl,
+        },
+      ]
+    : null;
 
   const [skill, setSkill] = useState("");
   const [location, setLocation] = useState("Noida, IN");
@@ -412,7 +430,14 @@ const LandingPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white text-[#081B3A] font-sans antialiased">
+    <>
+      <Seo
+        title={t("landing.homeTitle", "AI Hiring for Providers & Recruiters")}
+        description={t("landing.homeDescription", "Find verified service providers fast with AI matching, fair lead distribution, and WhatsApp-first hiring.")}
+        canonicalPath="/"
+        schema={schema}
+      />
+      <div className="min-h-screen bg-white text-[#081B3A] font-sans antialiased">
       {/* ━━━━━━━━ NAVBAR ━━━━━━━━ */}
       {/* <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#E7ECF4]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -467,8 +492,8 @@ const LandingPage = () => {
             <p className="text-[#1677FF] font-semibold mt-2 text-lg">{t('landing.heroSubtitle', 'Get 5 best matches instantly.')}</p>
 
             <form onSubmit={handleSearch} className="mt-6 lg:my-10">
-              <div className="bg-[#F7F9FC] border border-[#E7ECF4] rounded-xl p-1 lg:p-2 flex items-center gap-2">
-                <div className="flex-1 flex items-center gap-2 px-3">
+              <div className="bg-[#F7F9FC] border border-[#E7ECF4] rounded-xl p-1 lg:p-2 flex flex-col sm:flex-row sm:items-center gap-2">
+                <div className="w-full flex-1 flex items-center gap-2 px-3">
                   {/* <Search className="lg:w-4 lg:h-4 text-[#6B7280]" /> */}
                   <input
                     value={skill}
@@ -482,7 +507,7 @@ const LandingPage = () => {
                 </div>
                 <button
                   type="submit"
-                  className="bg-[#1677FF] hover:bg-[#0E5FCC] text-white lg:text-sm text-[9px] font-bold px-2 py-1 lg:px-5 lg:py-3 rounded-xl flex items-center gap-1.5 transition shadow-[0_4px_12px_rgba(22,119,255,0.3)]"
+                  className="w-full sm:w-auto bg-[#1677FF] hover:bg-[#0E5FCC] text-white lg:text-sm text-[9px] font-bold px-2 py-1 lg:px-5 lg:py-3 rounded-xl flex items-center justify-center gap-1.5 transition shadow-[0_4px_12px_rgba(22,119,255,0.3)]"
                 >
                   {t('landing.findMatch', 'Find Match')} <ArrowRight className="w-4 h-4" />
                 </button>
@@ -564,7 +589,7 @@ const LandingPage = () => {
             <a onClick={() => navigate('/search')} className="text-sm font-semibold text-[#1677FF] hover:underline cursor-pointer">{t('common.viewAll', 'View all →')}</a>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {CATEGORIES.map(({ name, Icon, count }) => (
               <button
                 key={name}
@@ -1178,7 +1203,8 @@ const LandingPage = () => {
           </div>
         </div>
       </footer> */}
-    </div>
+      </div>
+    </>
   );
 };
 

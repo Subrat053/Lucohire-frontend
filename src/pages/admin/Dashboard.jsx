@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { HiUsers, HiUserAdd, HiBriefcase, HiCheckCircle, HiArrowRight, HiSearch, HiFilter, HiChevronRight, HiPhotograph } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
@@ -16,26 +16,62 @@ import PlatformSummary from '../../components/admin/PlatformSummary';
 import PlanSummary from '../../components/admin/PlanSummary';
 import RewardPoolCard from '../../components/admin/RewardPoolCard';
 
+const DASHBOARD_CACHE_TTL = 60 * 1000;
+const dashboardCache = {
+  data: null,
+  ts: 0,
+  inflight: null,
+};
+
 const Dashboard = () => {
   const { user: admin } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDashboardStats();
-  }, []);
+  const loadDashboardStats = useCallback(async (forceRefresh = false) => {
+    setLoading(true);
+    const now = Date.now();
+    const isFresh =
+      !forceRefresh &&
+      dashboardCache.data &&
+      now - dashboardCache.ts < DASHBOARD_CACHE_TTL;
 
-  const fetchDashboardStats = async () => {
+    if (forceRefresh) {
+      dashboardCache.data = null;
+      dashboardCache.ts = 0;
+      dashboardCache.inflight = null;
+    }
+
+    if (isFresh) {
+      setStats(dashboardCache.data);
+      setLoading(false);
+      return;
+    }
+
     try {
-      setLoading(true);
-      const { data } = await adminAPI.getDashboardStats();
+      if (!dashboardCache.inflight) {
+        dashboardCache.inflight = adminAPI.getDashboardStats();
+      }
+
+      const { data } = await dashboardCache.inflight;
+      dashboardCache.data = data;
+      dashboardCache.ts = Date.now();
       setStats(data);
     } catch (err) {
       toast.error('Failed to load dashboard stats');
     } finally {
+      dashboardCache.inflight = null;
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const loadIfActive = async () => {
+      await loadDashboardStats();
+    };
+
+    loadIfActive();
+  }, [loadDashboardStats]);
 
   if (loading) {
     return (
@@ -83,6 +119,14 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => loadDashboardStats(true)}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-gray-500 font-medium hover:bg-gray-100 rounded-lg disabled:opacity-50"
+          >
+            Refresh
+          </button>
           <button className="flex items-center gap-1.5 px-3 py-1.5 text-gray-500 font-medium hover:bg-gray-100 rounded-lg">
             Reset
           </button>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { adminAPI } from '../services/api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import useTranslation from '../hooks/useTranslation';
+import Seo from '../components/common/Seo';
 
 const FaqPage = () => {
   const { t } = useTranslation();
@@ -19,6 +20,11 @@ const FaqPage = () => {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <Seo
+        title={t('static.faqTitle', 'FAQ')}
+        description={t('static.faqDescription', 'Answers to common questions about Lucohire, hiring, and provider profiles.')}
+        canonicalPath="/faq"
+      />
       <h1 className="text-3xl font-bold mb-6">{t('static.faqTitle')}</h1>
       <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
     </div>

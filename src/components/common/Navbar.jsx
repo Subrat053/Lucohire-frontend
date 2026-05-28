@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { HiMenu, HiX, HiUser, HiLogout, HiCog, HiHome } from 'react-icons/hi';
-import { toAbsoluteMediaUrl } from '../../utils/media';
+import { toOptimizedMediaUrl } from '../../utils/media';
 import NotificationBell from './NotificationBell';
 import LanguageDropdown from '../LanguageDropdown';
 import useTranslation from '../../hooks/useTranslation';
@@ -165,14 +165,22 @@ const Navbar = () => {
                   <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
                     {user?.profilePhotoApproval?.status === 'pending' && user?.profilePhotoApproval?.pendingUrl ? (
                       <img
-                        src={toAbsoluteMediaUrl(user.profilePhotoApproval.pendingUrl)}
+                        src={toOptimizedMediaUrl(user.profilePhotoApproval.pendingUrl, { width: 64, height: 64, crop: 'fill', dpr: 'auto' })}
                         alt="Profile"
+                        width={32}
+                        height={32}
+                        decoding="async"
+                        fetchpriority="high"
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (user?.profilePhoto || user?.avatar) ? (
                       <img
-                        src={toAbsoluteMediaUrl(user.profilePhoto || user.avatar)}
+                        src={toOptimizedMediaUrl(user.profilePhoto || user.avatar, { width: 64, height: 64, crop: 'fill', dpr: 'auto' })}
                         alt="Profile"
+                        width={32}
+                        height={32}
+                        decoding="async"
+                        fetchpriority="high"
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (

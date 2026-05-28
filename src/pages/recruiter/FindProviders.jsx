@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   HiSearch, HiLocationMarker, HiStar, HiBadgeCheck, HiFilter, HiX,
@@ -8,7 +8,7 @@ import {
 import { FaWhatsapp } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { recruiterAPI, searchAPI, subscriptionAPI } from '../../services/api';
-import { toAbsoluteMediaUrl } from '../../utils/media';
+import { toOptimizedMediaUrl } from '../../utils/media';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import LocationSearch from '../../components/LocationSearch';
 import NaturalLanguageIntentBar from '../../components/recruiter/NaturalLanguageIntentBar';
@@ -28,7 +28,7 @@ const POPULAR_SKILLS = [
 ];
 
 /* ── Provider Card ───────────────────────────────────────────────────── */
-const ProviderCard = ({ provider, onView, onUnlock, unlocking }) => {
+const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
   const navigate = useNavigate();
   const name = provider.user?.name || provider.name || 'Provider';
 
@@ -39,7 +39,15 @@ const ProviderCard = ({ provider, onView, onUnlock, unlocking }) => {
         {/* Avatar */}
         <div className="w-14 h-14 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
           {(provider.photo || provider.profilePhoto) ? (
-            <img src={toAbsoluteMediaUrl(provider.photo || provider.profilePhoto)} alt={name} className="w-full h-full object-cover" />
+            <img
+              src={toOptimizedMediaUrl(provider.photo || provider.profilePhoto, { width: 112, height: 112, crop: 'fill', dpr: 'auto' })}
+              alt={name}
+              width={56}
+              height={56}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover"
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-600 font-bold text-xl">
               {name[0].toUpperCase()}
@@ -145,6 +153,8 @@ const ProviderCard = ({ provider, onView, onUnlock, unlocking }) => {
   );
 };
 
+const ProviderCard = memo(ProviderCardBase);
+
 /* ── Main Page ───────────────────────────────────────────────────────── */
 const FindProviders = () => {
   const navigate = useNavigate();
@@ -236,31 +246,31 @@ const FindProviders = () => {
     }
   }, [query, skill, city, tierFilter, ratingFilter, selectedCoords]);
 
-  const handleSearch = (e) => {
+  const handleSearch = useCallback((e) => {
     e.preventDefault();
     doSearch(1);
-  };
+  }, [doSearch]);
 
-  const handleSkillPill = (s) => {
+  const handleSkillPill = useCallback((s) => {
     setSkill(s);
     setTimeout(() => searchRef.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })), 50);
-  };
+  }, []);
 
-  const handleLocationSelect = (item) => {
+  const handleLocationSelect = useCallback((item) => {
     if (!item) return;
     setCity(item.name || '');
     setSelectedCoords({
       lat: Number.isFinite(Number(item.lat)) ? Number(item.lat) : null,
       lon: Number.isFinite(Number(item.lon)) ? Number(item.lon) : null,
     });
-  };
+  }, []);
 
-  const handleView = (provider) => {
+  const handleView = useCallback((provider) => {
     const id = provider._id || provider.user?._id;
     navigate(`/recruiter/provider/${id}`);
-  };
+  }, [navigate]);
 
-  const handleUnlock = async (provider) => {
+  const handleUnlock = useCallback(async (provider) => {
     const providerId = provider._id || provider.user?._id;
     setUnlocking(providerId);
     try {
@@ -286,7 +296,7 @@ const FindProviders = () => {
     } finally {
       setUnlocking(null);
     }
-  };
+  }, [subscription]);
 
   const planName = subscription?.plan?.name;
   const unlockCredits = subscription?.remainingUnlocks;

@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { useParams } from 'react-router-dom';
 import { HiLocationMarker, HiOfficeBuilding, HiPencilAlt } from 'react-icons/hi';
 import { profileAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import ReviewSection from '../components/common/ReviewSection';
 import toast from 'react-hot-toast';
 import useTranslation from '../hooks/useTranslation';
+
+const ReviewSection = lazy(() => import('../components/common/ReviewSection'));
+const profileCache = new Map();
+const PROFILE_CACHE_TTL_MS = 60000;
 
 const ProfilePage = () => {
   const { t } = useTranslation();
@@ -16,13 +19,34 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editPayload, setEditPayload] = useState({});
+  const [showReviews, setShowReviews] = useState(false);
+  const reviewsRef = useRef(null);
 
   useEffect(() => {
     const run = async () => {
       setLoading(true);
+      const cacheKey = id ? `profile:${id}` : '';
+      const cached = cacheKey ? profileCache.get(cacheKey) : null;
+
+      if (cached && Date.now() - cached.timestamp < PROFILE_CACHE_TTL_MS) {
+        setData(cached.data);
+        setEditPayload({
+          name: cached.data.user?.name || '',
+          city: cached.data.profile?.city || '',
+          description: cached.data.profile?.description || '',
+          companyName: cached.data.profile?.companyName || '',
+          skills: cached.data.profile?.skills || [],
+          skillsNeeded: cached.data.profile?.skillsNeeded || [],
+          languages: cached.data.profile?.languages || [],
+        });
+        setLoading(false);
+        return;
+      }
+
       try {
         const { data } = await profileAPI.getByUserId(id);
         setData(data);
+        profileCache.set(cacheKey, { timestamp: Date.now(), data });
         setEditPayload({
           name: data.user?.name || '',
           city: data.profile?.city || '',
@@ -40,7 +64,23 @@ const ProfilePage = () => {
     };
 
     run();
-  }, [id]);
+  }, [id, t]);
+
+  useEffect(() => {
+    if (!reviewsRef.current || showReviews) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setShowReviews(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' },
+    );
+
+    observer.observe(reviewsRef.current);
+    return () => observer.disconnect();
+  }, [showReviews]);
 
   const saveProfile = async () => {
     if (!data?.isOwner) return;
@@ -158,11 +198,19 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      <ReviewSection
-        revieweeId={data.user?._id}
-        initialReviews={data.reviews || []}
-        initialSummary={data.ratingSummary || { avgRating: 0, totalReviews: 0 }}
-      />
+      <div ref={reviewsRef}>
+        {showReviews ? (
+          <Suspense fallback={<div className="bg-white rounded-2xl border border-gray-100 p-6 text-sm text-gray-500">Loading reviews...</div>}>
+            <ReviewSection
+              revieweeId={data.user?._id}
+              initialReviews={data.reviews || []}
+              initialSummary={data.ratingSummary || { avgRating: 0, totalReviews: 0 }}
+            />
+          </Suspense>
+        ) : (
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 text-sm text-gray-500">Reviews load when you reach this section.</div>
+        )}
+      </div>
 
       {!isOwner ? (
         <p className="text-xs text-gray-400 mt-3">{t('common.readOnlyProfile', 'Read-only profile view. Only the profile owner can edit.')}</p>

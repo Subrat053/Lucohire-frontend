@@ -4,6 +4,7 @@ import { enquiryAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { useLocation } from 'react-router-dom';
 import useTranslation from '../hooks/useTranslation';
+import Seo from '../components/common/Seo';
 
 const ContactUs = () => {
   const location = useLocation();
@@ -97,6 +98,11 @@ const ContactUs = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-slate-50 px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+      <Seo
+        title={t('contact.pageTitle', 'Contact Us')}
+        description={t('contact.pageDescription', 'Get in touch with Lucohire for support, partnerships, and hiring queries.')}
+        canonicalPath="/contact"
+      />
       {/* Background decoration */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-indigo-200/40 blur-3xl" />

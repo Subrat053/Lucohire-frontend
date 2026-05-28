@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { HiEye, HiUsers, HiPhone, HiTrendingUp, HiStar, HiClock, HiCheckCircle, HiBell, HiBriefcase, HiDocumentText, HiSparkles, HiLocationMarker } from 'react-icons/hi';
 import { providerAPI } from '../../services/api';
@@ -9,6 +9,18 @@ import BoostSuggestionCard from '../../components/provider/BoostSuggestionCard';
 import toast from 'react-hot-toast';
 import useTranslation from '../../hooks/useTranslation';
 
+const DASHBOARD_CACHE_TTL = 60 * 1000;
+const dashboardCache = {
+  data: null,
+  ts: 0,
+  inflight: null,
+};
+const matchesCache = {
+  data: null,
+  ts: 0,
+  inflight: null,
+};
+
 const ProviderDashboard = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -18,27 +30,67 @@ const ProviderDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [topJobs, setTopJobs] = useState([]);
 
-  useEffect(() => { fetchDashboard(); }, []);
+  const loadDashboard = useCallback(async (forceRefresh = false) => {
+    setLoading(true);
+    const now = Date.now();
+    const dashboardFresh =
+      !forceRefresh &&
+      dashboardCache.data &&
+      now - dashboardCache.ts < DASHBOARD_CACHE_TTL;
+    const matchesFresh =
+      !forceRefresh &&
+      matchesCache.data &&
+      now - matchesCache.ts < DASHBOARD_CACHE_TTL;
 
-  const fetchDashboard = async () => {
+    if (forceRefresh) {
+      dashboardCache.data = null;
+      dashboardCache.ts = 0;
+      dashboardCache.inflight = null;
+      matchesCache.data = null;
+      matchesCache.ts = 0;
+      matchesCache.inflight = null;
+    }
+
+    const dashboardPromise = dashboardFresh
+      ? Promise.resolve({ data: dashboardCache.data })
+      : (dashboardCache.inflight ||= providerAPI.getDashboard());
+
+    const matchesPromise = matchesFresh
+      ? Promise.resolve({ data: { success: true, data: matchesCache.data } })
+      : (matchesCache.inflight ||= providerAPI.getMatches().catch(() => ({ data: { data: [] } })));
+
     try {
-      setLoading(true);
-      const [{ data }, matchesRes] = await Promise.all([
-        providerAPI.getDashboard(),
-        providerAPI.getMatches().catch(() => ({ data: { data: [] } }))
+      const [dashboardRes, matchesRes] = await Promise.all([
+        dashboardPromise,
+        matchesPromise,
       ]);
-      setDashboard(data);
+
+      const dashboardData = dashboardRes.data;
+      const matchesData = matchesRes.data?.data || [];
+
+      dashboardCache.data = dashboardData;
+      dashboardCache.ts = Date.now();
+      matchesCache.data = matchesData;
+      matchesCache.ts = Date.now();
+
+      setDashboard(dashboardData);
       if (matchesRes.data?.success) {
-        setTopJobs(matchesRes.data.data || []);
+        setTopJobs(matchesData);
       }
     } catch (err) {
       if (err.response?.status !== 404) {
         toast.error(t('provider.failedLoadDashboard', 'Failed to load dashboard'));
       }
     } finally {
+      if (!dashboardFresh) dashboardCache.inflight = null;
+      if (!matchesFresh) matchesCache.inflight = null;
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
 
   const [scraping, setScraping] = useState(false);
 
@@ -47,7 +99,10 @@ const ProviderDashboard = () => {
       setScraping(true);
       const res = await providerAPI.scrapeMatches();
       if (res.data?.success) {
-        setTopJobs(res.data.data || []);
+        const scrapedMatches = res.data.data || [];
+        matchesCache.data = scrapedMatches;
+        matchesCache.ts = Date.now();
+        setTopJobs(scrapedMatches);
         toast.success(t('provider.scrapedMatches', 'Successfully fetched new matches!'));
       }
     } catch (error) {
@@ -159,6 +214,14 @@ const ProviderDashboard = () => {
           <Link to="/provider/job-for-me" className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition flex items-center gap-1.5">
             <HiBriefcase className="w-4 h-4" /> {t('provider.findRecruiters', 'Jobs for Me')}
           </Link>
+          <button
+            type="button"
+            onClick={() => loadDashboard(true)}
+            disabled={loading}
+            className="border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50"
+          >
+            Refresh
+          </button>
           <Link to="/provider/profile" className="border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
             {t('provider.editProfile', 'Edit Profile')}
           </Link>

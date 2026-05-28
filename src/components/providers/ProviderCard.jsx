@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { MapPin, Phone, MessageCircle, Star, CheckCircle2 } from 'lucide-react';
 import { HiBadgeCheck } from 'react-icons/hi';
-import { toAbsoluteMediaUrl } from '../../utils/media';
+import { toOptimizedMediaUrl } from '../../utils/media';
 import useTranslation from '../../hooks/useTranslation';
 
 const landingAvatarColors = [
@@ -51,7 +51,15 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
       >
         <div className="flex items-center gap-3">
           {image ? (
-            <img src={toAbsoluteMediaUrl(image)} alt={name} className="w-11 h-11 rounded-full object-cover border border-[#E7ECF4]" />
+            <img
+              src={toOptimizedMediaUrl(image, { width: 88, height: 88, crop: 'fill', dpr: 'auto' })}
+              alt={name}
+              width={44}
+              height={44}
+              loading="lazy"
+              decoding="async"
+              className="w-11 h-11 rounded-full object-cover border border-[#E7ECF4]"
+            />
           ) : (
             <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold ${provider.avatarBg || landingAvatarColors[index % landingAvatarColors.length]}`}>
               {initials}
@@ -142,7 +150,15 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
         <div className="flex items-center gap-3">
           <div className="w-14 h-14 rounded-xl bg-stone-100 overflow-hidden shrink-0 border border-stone-200">
             {image ? (
-              <img src={toAbsoluteMediaUrl(image)} alt={name} className="w-full h-full object-cover" />
+              <img
+                src={toOptimizedMediaUrl(image, { width: 112, height: 112, crop: 'fill', dpr: 'auto' })}
+                alt={name}
+                width={56}
+                height={56}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-amber-50 text-amber-600 font-bold text-xl">
                 {initials}

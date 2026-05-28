@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 import { HiStar, HiLocationMarker, HiBadgeCheck, HiPhone, HiMail, HiExternalLink } from 'react-icons/hi';
@@ -6,13 +6,14 @@ import { FaWhatsapp } from 'react-icons/fa';
 import { recruiterAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import ReviewSection from '../components/common/ReviewSection';
+const ReviewSection = lazy(() => import('../components/common/ReviewSection'));
 import toast from 'react-hot-toast';
-import { toAbsoluteMediaUrl } from '../utils/media';
+import { toOptimizedMediaUrl } from '../utils/media';
 import { DUMMY_PROVIDERS } from '../data/skillsData';
 import { findProviderById, normalizeProviderData } from '../utils/providerData';
 import { getProviderById as fetchProviderById } from '../services/providerService';
 import useTranslation from '../hooks/useTranslation';
+import Seo from '../components/common/Seo';
 
 const ProviderPublicProfile = () => {
   const { t } = useTranslation();
@@ -26,6 +27,8 @@ const ProviderPublicProfile = () => {
   const [contactUnlocked, setContactUnlocked] = useState(false);
   const [contactInfo, setContactInfo] = useState(null);
   const [unlocking, setUnlocking] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
+  const reviewsRef = useRef(null);
 
   const getFallbackProviderPayload = (providerId) => {
     const dummyProvider = findProviderById(DUMMY_PROVIDERS, providerId);
@@ -70,6 +73,22 @@ const ProviderPublicProfile = () => {
   useEffect(() => {
     fetchProfile();
   }, [id]);
+
+  useEffect(() => {
+    if (!reviewsRef.current || showReviews) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setShowReviews(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' },
+    );
+
+    observer.observe(reviewsRef.current);
+    return () => observer.disconnect();
+  }, [showReviews]);
 
   // Check unlock status when authenticated recruiter visits
   useEffect(() => {
@@ -144,8 +163,18 @@ const ProviderPublicProfile = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="lg" /></div>;
   if (!profile) return <div className="text-center py-20"><h2 className="text-xl font-bold">{t('common.providerNotFound', 'Provider not found')}</h2></div>;
 
+  const seoTitle = profile.user?.name ? `${profile.user.name} - ${t('common.profile', 'Profile')}` : t('common.profile', 'Profile');
+  const seoDescription = profile.description || t('provider.profileDescription', 'View verified provider profile, skills, and reviews on Lucohire.');
+  const seoImage = profile.photo || profile.profilePhoto || '';
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Seo
+        title={seoTitle}
+        description={seoDescription}
+        canonicalPath={`/provider/${id}`}
+        image={seoImage}
+      />
       {/* Profile Header */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="bg-linear-to-r from-indigo-500 to-purple-600 h-22"></div>
@@ -153,7 +182,15 @@ const ProviderPublicProfile = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-end space-y-4 sm:space-y-0 sm:space-x-6">
             <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center border-4 border-white">
               {profile.photo ? (
-                <img src={toAbsoluteMediaUrl(profile.photo)} alt="" className="w-full h-full object-cover rounded-xl" />
+                <img
+                  src={toOptimizedMediaUrl(profile.photo, { width: 192, height: 192, crop: 'fill', dpr: 'auto' })}
+                  alt=""
+                  width={96}
+                  height={96}
+                  decoding="async"
+                  fetchpriority="high"
+                  className="w-full h-full object-cover rounded-xl"
+                />
               ) : (
                 <span className="text-3xl font-bold text-indigo-600">{profile.user?.name?.[0]}</span>
               )}
@@ -231,17 +268,25 @@ const ProviderPublicProfile = () => {
           )}
 
           {/* Reviews */}
-          <ReviewSection
-            revieweeId={profile.user?._id}
-            initialReviews={(reviews || []).map((review) => ({
-              ...review,
-              reviewerId: review.reviewerId || review.recruiter,
-            }))}
-            initialSummary={{
-              avgRating: profile.rating || 0,
-              totalReviews: profile.totalReviews || reviews.length || 0,
-            }}
-          />
+          <div ref={reviewsRef}>
+            {showReviews ? (
+              <Suspense fallback={<div className="bg-white rounded-2xl border border-gray-100 p-6 text-sm text-gray-500">Loading reviews...</div>}>
+                <ReviewSection
+                  revieweeId={profile.user?._id}
+                  initialReviews={(reviews || []).map((review) => ({
+                    ...review,
+                    reviewerId: review.reviewerId || review.recruiter,
+                  }))}
+                  initialSummary={{
+                    avgRating: profile.rating || 0,
+                    totalReviews: profile.totalReviews || reviews.length || 0,
+                  }}
+                />
+              </Suspense>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 text-sm text-gray-500">Reviews load when you reach this section.</div>
+            )}
+          </div>
         </div>
 
         {/* Sidebar - Contact Card */}

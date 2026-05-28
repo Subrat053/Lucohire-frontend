@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { adminAPI } from '../services/api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import useTranslation from '../hooks/useTranslation';
+import Seo from '../components/common/Seo';
 
 const PrivacyPage = () => {
   const { t } = useTranslation();
@@ -19,6 +20,11 @@ const PrivacyPage = () => {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <Seo
+        title={t('static.privacyTitle', 'Privacy Policy')}
+        description={t('static.privacyDescription', 'Learn how Lucohire handles data and privacy.')}
+        canonicalPath="/privacy"
+      />
       <h1 className="text-3xl font-bold mb-6">{t('static.privacyTitle')}</h1>
       <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
     </div>

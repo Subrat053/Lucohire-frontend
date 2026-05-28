@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
@@ -7,98 +8,96 @@ import Footer from "./components/common/Footer";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import AdminProtectedRoute from "./components/common/AdminProtectedRoute";
 import WhatsAppNumberModal from "./components/common/WhatsAppNumberModal";
-import AIChatWidget from "./components/common/AIChatWidget";
 import CookieConsent from "./components/common/CookieConsent";
+import RouteLoader from "./components/common/RouteLoader";
 import NotFound from "./components/common/NotFound";
 import { useAuth } from "./context/AuthContext";
-import AuthPage from "./pages/AuthPage";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import ResetPassword from "./pages/auth/ResetPassword";
-import ChangePassword from "./pages/user/ChangePassword";
-import ReferralManagement from "./pages/user/ReferralManagement";
-import MagicLinkVerify from "./pages/auth/MagicLinkVerify";
-
-import LandingPage from "./pages/LandingPage";
-import SearchPage from "./pages/SearchPage";
-import ProviderPublicProfile from "./pages/ProviderPublicProfile";
-import FaqPage from "./pages/Faq";
-import TermsPage from "./pages/Terms";
-import PrivacyPage from "./pages/Privacy";
-import ProfilePage from "./pages/ProfilePage";
-import ContactUs from "./pages/ContactUs";
-
-
-import ProviderDashboard from "./pages/provider/Dashboard";
-import ProviderProfile from "./pages/provider/Profile";
-import ProviderPlans from "./pages/provider/Plans";
-import CustomPlan from "./pages/provider/CustomPlan";
-import ProviderLeads from "./pages/provider/Leads";
-import ProviderHistory from "./pages/provider/History";
-import ProviderJobs from "./pages/provider/Jobs";
-import ProviderContacted from "./pages/provider/Contacted";
-import ProviderWallet from "./pages/provider/Wallet";
-import ProviderPayoutSettings from "./pages/provider/PayoutSettings";
-
-import RecruiterDashboard from "./pages/recruiter/Dashboard";
-import RecruiterPostJob from "./pages/recruiter/PostJob";
-import RecruiterPlans from "./pages/recruiter/Plans";
-import RecruiterProfile from "./pages/recruiter/Profile";
-import RecruiterHistory from "./pages/recruiter/History";
-import RecruiterFindProviders from "./pages/recruiter/FindProviders";
-import RecruiterApplications from "./pages/recruiter/Applications";
-import PendingApproval from "./pages/PendingApproval";
-
-// =======================================================================
-
-import RecruiterJobPostings from "./pages/recruiter/JobPostings";
-import RecruiterShortlistedCandidates from "./pages/recruiter/ShortlistedCandidates";
-import RecruiterSavedCandidates from "./pages/recruiter/SavedCandidates";
-import RecruiterSearchHistory from "./pages/recruiter/SearchHistory";
-import RecruiterTransactions from "./pages/recruiter/Transactions";
-import RecruiterSettings from "./pages/recruiter/Settings";
-import TopMatches from "./pages/recruiter/TopMatches";
-import ExternalMatch from "./pages/recruiter/ExternalMatch";
-
 import PartnerProtectedRoute from "./components/common/PartnerProtectedRoute";
-import PartnerLayout from "./pages/partner/PartnerLayout";
-import PartnerDashboard from "./pages/partner/PartnerDashboard";
-import PartnerPayouts from "./pages/partner/PartnerPayouts";
-import CreatePartnerProvider from "./pages/partner/CreatePartnerProvider";
-import CreatePartnerRecruiter from "./pages/partner/CreatePartnerRecruiter";
-import PartnerBankDetails from "./pages/partner/PartnerBankDetails";
-// =======================================================================
-
-import AdminDashboard from "./pages/admin/Dashboard";
-import Partners from './pages/admin/Partners';
-import PartnerReferrals from './pages/admin/PartnerReferrals';
-import AdminManagerBankAccounts from "./pages/admin/ManagerBankAccounts";
-import AdminPartnerPayouts from "./pages/admin/AdminPartnerPayouts";
-import AdminReferrals from "./pages/admin/AdminReferrals";
-import AdminCommissions from "./pages/admin/AdminCommissions";
-import AdminRewardPool from "./pages/admin/AdminRewardPool";
-import AdminUsers from "./pages/admin/Users";
-import AdminProviders from "./pages/admin/Providers";
-import AdminRecruiters from "./pages/admin/Recruiters";
-import ProfilePhotoApprovals from "./pages/admin/ProfilePhotoApprovals";
-import AdminPlans from "./pages/admin/Plans";
-import AdminSettings from "./pages/admin/Settings";
-import AdminTerms from "./pages/admin/Terms";
-import AdminPrivacy from "./pages/admin/Privacy";
-import AdminPayments from "./pages/admin/Payments";
-import AdminProviderSubscriptions from "./pages/admin/ProviderSubscriptions";
-import AdminSkills from "./pages/admin/Skills";
-import AdminWhatsApp from "./pages/admin/WhatsApp";
-import AdminCurrency from "./pages/admin/Currency";
-import AdminManagers from "./pages/admin/Managers";
-import AdminAIOps from "./pages/admin/AIControlCenter";
-import AdminEnquiries from "./pages/admin/Enquiries";
-import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
-import AdminCommissionSettings from "./pages/admin/AdminCommissionSettings";
 
 import AdminLayout from "./components/admin/AdminLayout";
 import ProviderLayout from "./components/provider/ProviderLayout";
 import RecruiterLayout from "./components/recruiter/RecruiterLayout";
 import useTranslation from "./hooks/useTranslation";
+
+const AIChatWidget = lazy(() => import("./components/common/AIChatWidget"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const ChangePassword = lazy(() => import("./pages/user/ChangePassword"));
+const ReferralManagement = lazy(() => import("./pages/user/ReferralManagement"));
+const MagicLinkVerify = lazy(() => import("./pages/auth/MagicLinkVerify"));
+
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const SearchPage = lazy(() => import("./pages/SearchPage"));
+const ProviderPublicProfile = lazy(() => import("./pages/ProviderPublicProfile"));
+const FaqPage = lazy(() => import("./pages/Faq"));
+const TermsPage = lazy(() => import("./pages/Terms"));
+const PrivacyPage = lazy(() => import("./pages/Privacy"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const ContactUs = lazy(() => import("./pages/ContactUs"));
+
+const ProviderDashboard = lazy(() => import("./pages/provider/Dashboard"));
+const ProviderProfile = lazy(() => import("./pages/provider/Profile"));
+const ProviderPlans = lazy(() => import("./pages/provider/Plans"));
+const CustomPlan = lazy(() => import("./pages/provider/CustomPlan"));
+const ProviderLeads = lazy(() => import("./pages/provider/Leads"));
+const ProviderHistory = lazy(() => import("./pages/provider/History"));
+const ProviderJobs = lazy(() => import("./pages/provider/Jobs"));
+const ProviderContacted = lazy(() => import("./pages/provider/Contacted"));
+const ProviderWallet = lazy(() => import("./pages/provider/Wallet"));
+const ProviderPayoutSettings = lazy(() => import("./pages/provider/PayoutSettings"));
+
+const RecruiterDashboard = lazy(() => import("./pages/recruiter/Dashboard"));
+const RecruiterPostJob = lazy(() => import("./pages/recruiter/PostJob"));
+const RecruiterPlans = lazy(() => import("./pages/recruiter/Plans"));
+const RecruiterProfile = lazy(() => import("./pages/recruiter/Profile"));
+const RecruiterHistory = lazy(() => import("./pages/recruiter/History"));
+const RecruiterFindProviders = lazy(() => import("./pages/recruiter/FindProviders"));
+const RecruiterApplications = lazy(() => import("./pages/recruiter/Applications"));
+const PendingApproval = lazy(() => import("./pages/PendingApproval"));
+
+const RecruiterJobPostings = lazy(() => import("./pages/recruiter/JobPostings"));
+const RecruiterShortlistedCandidates = lazy(() => import("./pages/recruiter/ShortlistedCandidates"));
+const RecruiterSavedCandidates = lazy(() => import("./pages/recruiter/SavedCandidates"));
+const RecruiterSearchHistory = lazy(() => import("./pages/recruiter/SearchHistory"));
+const RecruiterTransactions = lazy(() => import("./pages/recruiter/Transactions"));
+const RecruiterSettings = lazy(() => import("./pages/recruiter/Settings"));
+const TopMatches = lazy(() => import("./pages/recruiter/TopMatches"));
+const ExternalMatch = lazy(() => import("./pages/recruiter/ExternalMatch"));
+
+const PartnerLayout = lazy(() => import("./pages/partner/PartnerLayout"));
+const PartnerDashboard = lazy(() => import("./pages/partner/PartnerDashboard"));
+const PartnerPayouts = lazy(() => import("./pages/partner/PartnerPayouts"));
+const CreatePartnerProvider = lazy(() => import("./pages/partner/CreatePartnerProvider"));
+const CreatePartnerRecruiter = lazy(() => import("./pages/partner/CreatePartnerRecruiter"));
+const PartnerBankDetails = lazy(() => import("./pages/partner/PartnerBankDetails"));
+
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const Partners = lazy(() => import("./pages/admin/Partners"));
+const PartnerReferrals = lazy(() => import("./pages/admin/PartnerReferrals"));
+const AdminManagerBankAccounts = lazy(() => import("./pages/admin/ManagerBankAccounts"));
+const AdminPartnerPayouts = lazy(() => import("./pages/admin/AdminPartnerPayouts"));
+const AdminReferrals = lazy(() => import("./pages/admin/AdminReferrals"));
+const AdminCommissions = lazy(() => import("./pages/admin/AdminCommissions"));
+const AdminRewardPool = lazy(() => import("./pages/admin/AdminRewardPool"));
+const AdminUsers = lazy(() => import("./pages/admin/Users"));
+const AdminProviders = lazy(() => import("./pages/admin/Providers"));
+const AdminRecruiters = lazy(() => import("./pages/admin/Recruiters"));
+const ProfilePhotoApprovals = lazy(() => import("./pages/admin/ProfilePhotoApprovals"));
+const AdminPlans = lazy(() => import("./pages/admin/Plans"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
+const AdminTerms = lazy(() => import("./pages/admin/Terms"));
+const AdminPrivacy = lazy(() => import("./pages/admin/Privacy"));
+const AdminPayments = lazy(() => import("./pages/admin/Payments"));
+const AdminProviderSubscriptions = lazy(() => import("./pages/admin/ProviderSubscriptions"));
+const AdminSkills = lazy(() => import("./pages/admin/Skills"));
+const AdminWhatsApp = lazy(() => import("./pages/admin/WhatsApp"));
+const AdminCurrency = lazy(() => import("./pages/admin/Currency"));
+const AdminManagers = lazy(() => import("./pages/admin/Managers"));
+const AdminAIOps = lazy(() => import("./pages/admin/AIControlCenter"));
+const AdminEnquiries = lazy(() => import("./pages/admin/Enquiries"));
+const AdminWithdrawals = lazy(() => import("./pages/admin/AdminWithdrawals"));
+const AdminCommissionSettings = lazy(() => import("./pages/admin/AdminCommissionSettings"));
 
 function MainLayout({ children }) {
   const location = useLocation();
@@ -151,9 +150,12 @@ function App() {
       <WhatsAppNumberModal isOpen={showWhatsAppPrompt} onClose={() => setShowWhatsAppPrompt(false)} />
       <CookieConsent />
       {user?.activeRole && ['recruiter', 'admin'].includes(user.activeRole) && (
-        <AIChatWidget role={user.activeRole} />
+        <Suspense fallback={null}>
+          <AIChatWidget role={user.activeRole} />
+        </Suspense>
       )}
-      <Routes>
+      <Suspense fallback={<RouteLoader />}>
+        <Routes>
         {/* Auth pages - full screen, no Navbar/Footer */}
         <Route path="/auth" element={<Navigate to="/signup" replace />} />
         <Route path="/login" element={<AuthPage />} />
@@ -560,7 +562,8 @@ function App() {
 
         {/* 404 — role-aware: authenticated users go to dashboard, guests see a proper 404 */}
         <Route path="*" element={<NotFound />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /auth/
+Disallow: /admin/
+Disallow: /partner/
+Disallow: /recruiter/
+Disallow: /provider/dashboard
+Disallow: /provider/profile
+Disallow: /provider/plans
+Disallow: /provider/my-plan
+Disallow: /provider/customise-plan
+Disallow: /provider/leads
+Disallow: /provider/history
+Disallow: /provider/job-for-me
+Disallow: /provider/contacted
+Disallow: /provider/change-password
+Disallow: /provider/referrals
+Disallow: /provider/wallet
+Disallow: /provider/payout-settings
+
+Sitemap: /sitemap.xml

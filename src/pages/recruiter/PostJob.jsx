@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   HiSave, HiArrowLeft, HiBriefcase,
@@ -49,12 +49,15 @@ const Label = ({ text, required }) => (
 const PostJob = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiMeta, setAiMeta] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [matchCount, setMatchCount] = useState(0);
+  const [stepError, setStepError] = useState('');
+  const draftTimerRef = useRef(null);
   const [form, setForm] = useState({
     title: '', skill: '', city: '', budgetMin: '', budgetMax: '',
     budgetType: 'negotiable', description: '', requirements: '',
@@ -62,6 +65,36 @@ const PostJob = () => {
   });
 
   const set = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('recruiter:postJobDraft');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        setForm((prev) => ({ ...prev, ...parsed }));
+        if (parsed.aiPrompt) setAiPrompt(parsed.aiPrompt);
+      }
+    } catch (_) {
+      // ignore draft load errors
+    }
+  }, []);
+
+  useEffect(() => {
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      try {
+        const payload = { ...form, aiPrompt };
+        localStorage.setItem('recruiter:postJobDraft', JSON.stringify(payload));
+      } catch (_) {
+        // ignore draft save errors
+      }
+    }, 400);
+
+    return () => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+  }, [form, aiPrompt]);
 
   const handleGenerateAI = async () => {
     const prompt = aiPrompt.trim() || form.title.trim() || form.skill.trim() || form.description.trim();
@@ -122,11 +155,45 @@ const PostJob = () => {
     }
   };
 
+  const validateStep = async (currentStep) => {
+    setStepError('');
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (currentStep === 1) {
+          if (!form.title.trim() || !form.skill || !form.city.trim()) {
+            setStepError(t('recruiter.step1Required', 'Add title, skill, and city to continue.'));
+            resolve(false);
+            return;
+          }
+        }
+
+        if (currentStep === 2) {
+          if (!form.description.trim()) {
+            setStepError(t('recruiter.step2Required', 'Add a job description to continue.'));
+            resolve(false);
+            return;
+          }
+        }
+
+        resolve(true);
+      }, 0);
+    });
+  };
+
+  const handleNext = async () => {
+    const ok = await validateStep(1);
+    if (ok) setStep(2);
+  };
+
+  const handleBack = () => {
+    setStepError('');
+    setStep(1);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.skill || !form.city.trim() || !form.description.trim()) {
-      return toast.error(t('common.fillRequired', 'Please fill all required fields'));
-    }
+    const ok = await validateStep(2);
+    if (!ok) return;
     setLoading(true);
     try {
       const payload = {
@@ -141,6 +208,11 @@ const PostJob = () => {
       const { data } = await recruiterAPI.postJob(payload);
       setMatchCount(data.matchedCount || 0);
       setSubmitted(true);
+      try {
+        localStorage.removeItem('recruiter:postJobDraft');
+      } catch (_) {
+        // ignore
+      }
       toast.success(t('recruiter.jobPostedSuccess', 'Job posted! {{count}} providers notified.', { count: data.matchedCount || 0 }));
     } catch (err) {
       toast.error(err.response?.data?.message || t('recruiter.failedPostJob', 'Failed to post job'));
@@ -229,114 +301,129 @@ const PostJob = () => {
             )}
           </div>
 
-          <div className="grid sm:grid-cols-2 grid-cols-2 gap-4">
-            {/* ── Job Details ─────────────────────────────────────────── */}
-            <SectionCard icon={HiBriefcase} iconColor="text-blue-500" title={t('recruiter.jobDetails', 'Job Details')}>
+          <div className="flex items-center justify-between text-xs font-semibold text-gray-500">
+            <span className={`px-2 py-1 rounded-full ${step === 1 ? 'bg-blue-50 text-blue-700' : 'bg-gray-100'}`}>{t('recruiter.stepOne', 'Step 1: Job Details')}</span>
+            <span className={`px-2 py-1 rounded-full ${step === 2 ? 'bg-blue-50 text-blue-700' : 'bg-gray-100'}`}>{t('recruiter.stepTwo', 'Step 2: Budget & Description')}</span>
+          </div>
+
+          {stepError && (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {stepError}
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="grid sm:grid-cols-2 grid-cols-2 gap-4">
+              {/* ── Job Details ─────────────────────────────────────────── */}
+              <SectionCard icon={HiBriefcase} iconColor="text-blue-500" title={t('recruiter.jobDetails', 'Job Details')}>
+                <div className="space-y-4">
+                  <div>
+                    <Label text={t('recruiter.jobTitle', 'Job Title')} required />
+                    <input
+                      name="title"
+                      value={form.title}
+                      onChange={set('title')}
+                      placeholder={t('recruiter.jobTitlePlaceholder', 'e.g. Need a driver for daily commute')}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label text={t('recruiter.skillRequired', 'Skill Required')} required />
+                      <SkillPicker
+                        selectedSkills={form.skill ? [form.skill] : []}
+                        onChange={(skills) => setForm({ ...form, skill: skills[skills.length - 1] || '' })}
+                        maxSkills={1}
+                        placeholder={t('recruiter.pickSkill', 'Pick one skill…')}
+                      />
+                    </div>
+                    <div>
+                      <Label text={t('common.city', 'City')} required />
+                      <LocationSearch
+                        value={form.city}
+                        onChange={(value) => setForm({ ...form, city: value })}
+                        onSelect={(item) => setForm({ ...form, city: item?.name || form.city, location: item })}
+                        placeholder={t('common.cityPlaceholder', 'e.g. Delhi')}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </SectionCard>
+
+              {/* ── Budget ──────────────────────────────────────────────── */}
+              <SectionCard icon={HiCurrencyRupee} iconColor="text-green-500" title={t('common.budget', 'Budget')}>
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div>
+                    <Label text={t('common.minBudget', 'Min Budget (₹)')} />
+                    <input
+                      type="number"
+                      name="budgetMin"
+                      value={form.budgetMin}
+                      onChange={set('budgetMin')}
+                      placeholder="0"
+                      min="0"
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <Label text={t('common.maxBudget', 'Max Budget (₹)')} />
+                    <input
+                      type="number"
+                      name="budgetMax"
+                      value={form.budgetMax}
+                      onChange={set('budgetMax')}
+                      placeholder="0"
+                      min="0"
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <Label text={t('common.budgetType', 'Budget Type')} />
+                    <select
+                      name="budgetType"
+                      value={form.budgetType}
+                      onChange={set('budgetType')}
+                      className={inputCls}
+                    >
+                      <option value="negotiable">{t('common.negotiable', 'Negotiable')}</option>
+                      <option value="fixed">{t('common.fixed', 'Fixed')}</option>
+                      <option value="hourly">{t('common.hourly', 'Hourly')}</option>
+                      <option value="monthly">{t('common.monthly', 'Monthly')}</option>
+                    </select>
+                  </div>
+                </div>
+              </SectionCard>
+            </div>
+          )}
+
+          {step === 2 && (
+            <SectionCard icon={HiDocumentText} iconColor="text-purple-500" title={t('common.descAndReq', 'Description & Requirements')}>
               <div className="space-y-4">
                 <div>
-                  <Label text={t('recruiter.jobTitle', 'Job Title')} required />
-                  <input
-                    name="title"
-                    value={form.title}
-                    onChange={set('title')}
-                    placeholder={t('recruiter.jobTitlePlaceholder', 'e.g. Need a driver for daily commute')}
-                    className={inputCls}
+                  <Label text={t('common.jobDescription', 'Job Description')} required />
+                  <textarea
+                    name="description"
+                    value={form.description}
+                    onChange={set('description')}
+                    placeholder={t('common.descPlaceholder', 'Describe your requirement in detail…')}
+                    rows={4}
+                    className={`${inputCls} resize-none`}
                   />
                 </div>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label text={t('recruiter.skillRequired', 'Skill Required')} required />
-                    <SkillPicker
-                      selectedSkills={form.skill ? [form.skill] : []}
-                      onChange={(skills) => setForm({ ...form, skill: skills[skills.length - 1] || '' })}
-                      maxSkills={1}
-                      placeholder={t('recruiter.pickSkill', 'Pick one skill…')}
-                    />
-                  </div>
-                  <div>
-                    <Label text={t('common.city', 'City')} required />
-                    <LocationSearch
-                      value={form.city}
-                      onChange={(value) => setForm({ ...form, city: value })}
-                      onSelect={(item) => setForm({ ...form, city: item?.name || form.city, location: item })}
-                      placeholder={t('common.cityPlaceholder', 'e.g. Delhi')}
-                    />
-                  </div>
+                <div>
+                  <Label text={t('recruiter.reqComma', 'Requirements (comma separated)')} />
+                  <input
+                    name="requirements"
+                    value={form.requirements}
+                    onChange={set('requirements')}
+                    placeholder={t('recruiter.reqPlaceholder', 'e.g. Valid license, 3+ years experience, Must have own tools')}
+                    className={inputCls}
+                  />
+                  <p className="text-xs text-gray-400 mt-1">{t('recruiter.reqHint', 'Separate multiple requirements with commas')}</p>
                 </div>
               </div>
             </SectionCard>
-
-            {/* ── Budget ──────────────────────────────────────────────── */}
-            <SectionCard icon={HiCurrencyRupee} iconColor="text-green-500" title={t('common.budget', 'Budget')}>
-              <div className="grid sm:grid-cols-3 gap-4">
-                <div>
-                  <Label text={t('common.minBudget', 'Min Budget (₹)')} />
-                  <input
-                    type="number"
-                    name="budgetMin"
-                    value={form.budgetMin}
-                    onChange={set('budgetMin')}
-                    placeholder="0"
-                    min="0"
-                    className={inputCls}
-                  />
-                </div>
-                <div>
-                  <Label text={t('common.maxBudget', 'Max Budget (₹)')} />
-                  <input
-                    type="number"
-                    name="budgetMax"
-                    value={form.budgetMax}
-                    onChange={set('budgetMax')}
-                    placeholder="0"
-                    min="0"
-                    className={inputCls}
-                  />
-                </div>
-                <div>
-                  <Label text={t('common.budgetType', 'Budget Type')} />
-                  <select
-                    name="budgetType"
-                    value={form.budgetType}
-                    onChange={set('budgetType')}
-                    className={inputCls}
-                  >
-                    <option value="negotiable">{t('common.negotiable', 'Negotiable')}</option>
-                    <option value="fixed">{t('common.fixed', 'Fixed')}</option>
-                    <option value="hourly">{t('common.hourly', 'Hourly')}</option>
-                    <option value="monthly">{t('common.monthly', 'Monthly')}</option>
-                  </select>
-                </div>
-              </div>
-            </SectionCard>
-          </div>
-          {/* ── Description ─────────────────────────────────────────── */}
-          <SectionCard icon={HiDocumentText} iconColor="text-purple-500" title={t('common.descAndReq', 'Description & Requirements')}>
-            <div className="space-y-4">
-              <div>
-                <Label text={t('common.jobDescription', 'Job Description')} required />
-                <textarea
-                  name="description"
-                  value={form.description}
-                  onChange={set('description')}
-                  placeholder={t('common.descPlaceholder', 'Describe your requirement in detail…')}
-                  rows={4}
-                  className={`${inputCls} resize-none`}
-                />
-              </div>
-              <div>
-                <Label text={t('recruiter.reqComma', 'Requirements (comma separated)')} />
-                <input
-                  name="requirements"
-                  value={form.requirements}
-                  onChange={set('requirements')}
-                  placeholder={t('recruiter.reqPlaceholder', 'e.g. Valid license, 3+ years experience, Must have own tools')}
-                  className={inputCls}
-                />
-                <p className="text-xs text-gray-400 mt-1">{t('recruiter.reqHint', 'Separate multiple requirements with commas')}</p>
-              </div>
-            </div>
-          </SectionCard>
+          )}
 
           {/* ── Submit ──────────────────────────────────────────────── */}
           <div className="flex gap-3">
@@ -347,14 +434,33 @@ const PostJob = () => {
             >
               {t('common.cancel', 'Cancel')}
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition disabled:opacity-50 flex items-center justify-center gap-2 text-sm shadow-md"
-            >
-              <FaBullhorn className="w-4 h-4" />
-              {loading ? t('common.posting', 'Posting…') : t('recruiter.postAndNotify', 'Post Job & Notify Providers')}
-            </button>
+            {step === 1 ? (
+              <button
+                type="button"
+                onClick={handleNext}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm shadow-md"
+              >
+                {t('common.next', 'Next')}
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="flex-1 border-2 border-blue-200 text-blue-700 py-3 rounded-xl font-semibold hover:bg-blue-50 transition text-sm"
+                >
+                  {t('common.back', 'Back')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition disabled:opacity-50 flex items-center justify-center gap-2 text-sm shadow-md"
+                >
+                  <FaBullhorn className="w-4 h-4" />
+                  {loading ? t('common.posting', 'Posting…') : t('recruiter.postAndNotify', 'Post Job & Notify Providers')}
+                </button>
+              </>
+            )}
           </div>
         </form>
       </div>

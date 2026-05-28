@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   HiBriefcase, HiEye, HiLockOpen, HiUsers,
@@ -12,6 +12,18 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 // import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
 import toast from 'react-hot-toast';
 import useTranslation from '../../hooks/useTranslation';
+
+const DASHBOARD_CACHE_TTL = 60 * 1000;
+const dashboardCache = {
+  data: null,
+  ts: 0,
+  inflight: null,
+};
+const recommendationsCache = {
+  data: null,
+  ts: 0,
+  inflight: null,
+};
 
 /* ── Illustrations ──────────────────────────────────────────────────── */
 const HiringIllustration = () => (
@@ -57,7 +69,63 @@ const RecruiterDashboard = () => {
   // const [hasAutoPrompted, setHasAutoPrompted] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
 
-  useEffect(() => { fetchDashboard(); }, []);
+  const loadDashboard = useCallback(async (forceRefresh = false) => {
+    setLoading(true);
+    const now = Date.now();
+    const dashboardFresh =
+      !forceRefresh &&
+      dashboardCache.data &&
+      now - dashboardCache.ts < DASHBOARD_CACHE_TTL;
+    const recommendationsFresh =
+      !forceRefresh &&
+      recommendationsCache.data &&
+      now - recommendationsCache.ts < DASHBOARD_CACHE_TTL;
+
+    if (forceRefresh) {
+      dashboardCache.data = null;
+      dashboardCache.ts = 0;
+      dashboardCache.inflight = null;
+      recommendationsCache.data = null;
+      recommendationsCache.ts = 0;
+      recommendationsCache.inflight = null;
+    }
+
+    const dashboardPromise = dashboardFresh
+      ? Promise.resolve({ data: dashboardCache.data })
+      : (dashboardCache.inflight ||= recruiterAPI.getDashboard());
+
+    const recommendationsPromise = recommendationsFresh
+      ? Promise.resolve({ data: { recommendations: recommendationsCache.data } })
+      : (recommendationsCache.inflight ||= searchAPI.repeatRecommendations({ limit: 5 }));
+
+    try {
+      const [dashboardRes, recommendationsRes] = await Promise.all([
+        dashboardPromise,
+        recommendationsPromise,
+      ]);
+
+      const dashboardData = dashboardRes.data;
+      const recs = recommendationsRes.data?.recommendations || [];
+
+      dashboardCache.data = dashboardData;
+      dashboardCache.ts = Date.now();
+      recommendationsCache.data = recs;
+      recommendationsCache.ts = Date.now();
+
+      setDashboard(dashboardData);
+      setRecommendations(recs);
+    } catch {
+      toast.error(t('recruiter.failedLoadDashboard', 'Failed to load dashboard'));
+    } finally {
+      if (!dashboardFresh) dashboardCache.inflight = null;
+      if (!recommendationsFresh) recommendationsCache.inflight = null;
+      setLoading(false);
+    }
+  }, [t]);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
 
   // useEffect(() => {
   //   const params = new URLSearchParams(location.search);
@@ -70,33 +138,25 @@ const RecruiterDashboard = () => {
   //   }
   // }, [location.pathname, location.search, navigate]);
 
-  const fetchDashboard = async () => {
-    try {
-      const { data } = await recruiterAPI.getDashboard();
-      setDashboard(data);
-      const rec = await searchAPI.repeatRecommendations({ limit: 5 });
-      setRecommendations(rec.data?.recommendations || []);
-    } catch {
-      toast.error(t('recruiter.failedLoadDashboard', 'Failed to load dashboard'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDeleteJob = async (id) => {
     if (!window.confirm(t('recruiter.confirmDeleteJob', "Are you sure you want to delete this job posting?"))) return;
 
     try {
       await recruiterAPI.deleteJob(id);
       toast.success(t('recruiter.jobDeleted', "Job posting deleted"));
-      setDashboard(prev => ({
-        ...prev,
-        jobs: prev.jobs.filter(j => j._id !== id),
-        stats: {
-          ...prev.stats,
-          totalJobsPosted: Math.max(0, (prev.stats.totalJobsPosted || 1) - 1)
-        }
-      }));
+      setDashboard(prev => {
+        const next = {
+          ...prev,
+          jobs: prev.jobs.filter(j => j._id !== id),
+          stats: {
+            ...prev.stats,
+            totalJobsPosted: Math.max(0, (prev.stats.totalJobsPosted || 1) - 1)
+          }
+        };
+        dashboardCache.data = next;
+        dashboardCache.ts = Date.now();
+        return next;
+      });
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete job");
     }
@@ -208,6 +268,14 @@ const RecruiterDashboard = () => {
               >
                 <HiSearch className="w-4 h-4" /> {t('recruiter.findProviders', 'Find Providers')}
               </Link>
+              <button
+                type="button"
+                onClick={() => loadDashboard(true)}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition border border-white/30 disabled:opacity-60"
+              >
+                Refresh
+              </button>
               <Link
                 to="/recruiter/post-job"
                 className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition border border-white/30"
