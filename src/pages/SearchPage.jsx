@@ -1,15 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { HiSearch, HiLocationMarker, HiStar, HiBadgeCheck, HiFilter, HiX, HiChevronRight } from 'react-icons/hi';
+import { FixedSizeList as List } from 'react-window';
 import { POPULAR_SKILLS, filterDummyProviders, DUMMY_PROVIDERS } from '../data/skillsData';
-import { toAbsoluteMediaUrl } from '../utils/media';
 import { normalizeProviderData } from '../utils/providerData';
 import { getProviders as fetchProviderResults } from '../services/providerService';
 import SharedProviderCard from '../components/providers/ProviderCard';
 import useTranslation from '../hooks/useTranslation';
+import Seo from '../components/common/Seo';
 
 const SearchPage = () => {
   const { t } = useTranslation();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const initialQuery = searchParams.get('query') || searchParams.get('skill') || searchParams.get('category') || '';
@@ -25,8 +27,11 @@ const SearchPage = () => {
   const [filters, setFilters] = useState({ rating: '', experience: '', verified: '' });
   const [showFilters, setShowFilters] = useState(false);
   const [activeSkillPill, setActiveSkillPill] = useState();
+  const [showAllResults, setShowAllResults] = useState(false);
   const debounceRef = useRef(null);
   const rotationTimerRef = useRef(null);
+  const latestRequestRef = useRef(0);
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
   const updateSearchQuery = useCallback((nextState) => {
     const nextParams = new URLSearchParams();
@@ -40,8 +45,10 @@ const SearchPage = () => {
     setSearchParams(nextParams, { replace: true });
   }, [setSearchParams]);
 
-  const fetchProviders = useCallback(async (queryVal, cityVal, filtersVal, tierVal, categoryVal = '') => {
-    setLoading(true);
+  const fetchProviders = useCallback(async (queryVal, cityVal, filtersVal, tierVal, categoryVal = '', options = {}) => {
+    const requestId = latestRequestRef.current + 1;
+    latestRequestRef.current = requestId;
+    if (!options.silent) setLoading(true);
     const effectiveSearch = queryVal || categoryVal;
 
     const normalizeList = (list = [], isDummy = false) =>
@@ -53,6 +60,7 @@ const SearchPage = () => {
         ? dummy
         : (dummy.length > 0 ? dummy : DUMMY_PROVIDERS.slice(0, 9));
 
+      if (latestRequestRef.current !== requestId) return;
       setResults({ rotation: [], featured: [], providers: normalizeList(providersList, true), pagination: {} });
       setSearchMeta({
         locationMessage: cityVal ? t('search.nearbyResults', `Showing nearby results for ${cityVal}.`) : '',
@@ -76,6 +84,7 @@ const SearchPage = () => {
       const featured = Array.isArray(data?.featured) ? data.featured : [];
       const hasAny = providers.length > 0 || rotation.length > 0 || featured.length > 0;
 
+      if (latestRequestRef.current !== requestId) return;
       if (!hasAny) {
         buildFallback();
       } else {
@@ -99,10 +108,11 @@ const SearchPage = () => {
         setSearchMeta(data?.searchMeta || {});
       }
     } catch {
+      if (latestRequestRef.current !== requestId) return;
       setInterpretedIntent({ skill: '', city: '', confidence: 0 });
       buildFallback();
     } finally {
-      setLoading(false);
+      if (latestRequestRef.current === requestId && !options.silent) setLoading(false);
     }
   }, [t]);
 
@@ -123,13 +133,27 @@ const SearchPage = () => {
     fetchProviders(resolvedSearch, queryCity, filters, queryTier, queryCategory);
   }, [searchParams, fetchProviders]);
 
+  useEffect(() => {
+    const updateSize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
   // Auto-refresh rotation providers every 60 seconds
   useEffect(() => {
+    if (!results.rotation || results.rotation.length === 0) return undefined;
+
     rotationTimerRef.current = setInterval(() => {
-      fetchProviders(queryText || skill, city, filters, tierFilter, selectedCategory);
+      if (document.visibilityState === 'hidden') return;
+      fetchProviders(queryText || skill, city, filters, tierFilter, selectedCategory, { silent: true });
     }, 60000);
+
     return () => clearInterval(rotationTimerRef.current);
-  }, [queryText, skill, city, filters, tierFilter, selectedCategory, fetchProviders]);
+  }, [queryText, skill, city, filters, tierFilter, selectedCategory, fetchProviders, results.rotation]);
 
   const triggerDebounce = (s, c, f, t, categoryVal = '') => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -200,20 +224,58 @@ const SearchPage = () => {
     {k:'skilled',l:t('search.tierSkilled')},
   ];
 
+  const columns = windowSize.width >= 1024 ? 3 : windowSize.width >= 640 ? 2 : 1;
+  const rowHeight = columns === 1
+    ? Math.max(220, Math.min(300, Math.round(windowSize.height * 0.35)))
+    : columns === 2
+      ? Math.max(240, Math.min(320, Math.round(windowSize.height * 0.32)))
+      : Math.max(260, Math.min(320, Math.round(windowSize.height * 0.28)));
+  const listHeight = Math.min(900, Math.max(200, Math.round(windowSize.height * 0.6)));
+  const useVirtualizedList = results.providers.length > 18 && windowSize.width > 0 && !showAllResults;
+  const rowCount = Math.ceil(results.providers.length / columns);
+
+  const renderRow = ({ index, style }) => {
+    const start = index * columns;
+    const rowItems = results.providers.slice(start, start + columns);
+
+    return (
+      <div
+        style={{ ...style, width: '100%' }}
+        className={`grid gap-4 ${columns === 1 ? 'grid-cols-1' : columns === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}
+      >
+        {rowItems.map((p, i) => (
+          <SharedProviderCard
+            key={p._id || `${index}-${i}`}
+            provider={p}
+            t={t}
+            onClick={() => navigate(`/provider/${p._id || p.user?._id}`)}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#faf9f7]">
+      <Seo
+        title={t('search.pageTitle', 'Search Providers')}
+        description={t('search.pageDescription', 'Search verified service providers by skill, city, and availability with AI-powered matching.')}
+        canonicalPath={location.pathname}
+      />
       {/* Search bar */}
       <div className="bg-white border-b border-stone-100 sticky top-0 z-10 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
               <input value={queryText} onChange={(e)=>handleSkillChange(e.target.value)} placeholder={t('search.searchSkillPlaceholder')}
+                aria-label={t('search.searchSkillPlaceholder')}
                 className="w-full pl-10 pr-4 py-2.5 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent outline-none text-sm bg-[#faf9f7]" />
             </div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <HiLocationMarker className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
               <input value={city} onChange={(e)=>handleCityChange(e.target.value)} placeholder={t('search.cityPlaceholder')}
+                aria-label={t('search.cityPlaceholder')}
                 className="w-full pl-10 pr-4 py-2.5 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent outline-none text-sm bg-[#faf9f7]" />
             </div>
             <button onClick={()=>setShowFilters(!showFilters)}
@@ -335,13 +397,38 @@ const SearchPage = () => {
             )}
             {results.providers?.length>0 ? (
               <>
-                <h2 className="text-sm font-bold text-stone-700 mb-3 uppercase tracking-wide">
-                  {t('search.allProvidersTitle')}
-                  {results.pagination?.total>0&&<span className="ml-2 text-xs font-normal text-stone-400">({results.pagination.total} {t('search.total')})</span>}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {results.providers.map((p,i)=><SharedProviderCard key={i} provider={p} t={t} onClick={()=>navigate(`/provider/${p._id||p.user?._id}`)} />)}
+                <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+                  <h2 className="text-sm font-bold text-stone-700 uppercase tracking-wide">
+                    {t('search.allProvidersTitle')}
+                    {results.pagination?.total>0&&<span className="ml-2 text-xs font-normal text-stone-400">({results.pagination.total} {t('search.total')})</span>}
+                  </h2>
+                  {results.providers.length > 18 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllResults((prev) => !prev)}
+                      className="text-xs font-semibold text-stone-700 border border-stone-200 px-3 py-1.5 rounded-full hover:bg-stone-50"
+                    >
+                      {showAllResults ? t('search.collapseList', 'Collapse list') : t('search.expandList', 'View full list')}
+                    </button>
+                  )}
                 </div>
+                {useVirtualizedList ? (
+                  <div className="rounded-2xl border border-stone-100 bg-white/70 p-3 min-h-0">
+                    <List
+                      height={listHeight}
+                      itemCount={rowCount}
+                      itemSize={rowHeight}
+                      width="100%"
+                      overscanCount={2}
+                    >
+                      {renderRow}
+                    </List>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {results.providers.map((p,i)=><SharedProviderCard key={i} provider={p} t={t} onClick={()=>navigate(`/provider/${p._id||p.user?._id}`)} />)}
+                  </div>
+                )}
               </>
             ) : (
               <div className="text-center py-20">

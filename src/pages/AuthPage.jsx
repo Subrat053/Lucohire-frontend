@@ -23,13 +23,11 @@ import {
 } from "react-icons/fa";
 import { MdVerified } from "react-icons/md";
 import { useGoogleLogin } from "@react-oauth/google";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-
-import { auth } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { authAPI } from "../services/api";
 import toast from "react-hot-toast";
 import useTranslation from "../hooks/useTranslation";
+import Seo from "../components/common/Seo";
 
 /* keep all your existing illustration / small components same */
 /* ═══════════════════════════ ILLUSTRATIONS ═══════════════════════════ */
@@ -206,7 +204,10 @@ const LeftPanel = ({ mode }) => {
         <div className="relative">
           {/* <PersonAtLaptop /> */}
           {/* Shield badge overlay */}
-          <img src="/laptop.png" alt="" className='h-60' />
+          <picture>
+            <source srcSet="/laptop.webp" type="image/webp" />
+            <img src="/laptop.png" alt="Illustration: person using laptop" width={240} height={240} decoding="async" fetchpriority="high" className='h-60' />
+          </picture>
           <div className="absolute -top-4 -right-2">
             <ShieldIcon />
           </div>
@@ -243,21 +244,21 @@ const ProgressBar = ({ filled = 1, total = 2 }) => (
 const TrustRow = () => {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center justify-between border-t border-b border-gray-100 py-3 mb-6">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-b border-gray-100 py-3 mb-6">
       <div className="flex items-center gap-1.5 text-xs text-gray-600">
         <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
           <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4h14v2H3V4zm0 5h10v2H3V9zm0 5h12v2H3v-2z" /></svg>
         </div>
         {t('auth.signup2Step', '2-Step Signup')}
       </div>
-      <div className="w-px h-7 bg-gray-200" />
+      <div className="hidden sm:block w-px h-7 bg-gray-200" />
       <div className="flex items-center gap-1.5 text-xs text-gray-600">
         <div className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center">
           <HiCheckCircle className="w-4 h-4 text-red-500" />
         </div>
         {t('auth.noPasswordReq', 'No Password Required')}
       </div>
-      <div className="w-px h-7 bg-gray-200" />
+      <div className="hidden sm:block w-px h-7 bg-gray-200" />
       <div className="flex items-center gap-1.5 text-xs text-gray-600">
         <div className="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center">
           <HiShieldCheck className="w-4 h-4 text-green-600" />
@@ -302,7 +303,7 @@ const PhoneField = ({ value, onChange, accent = 'blue' }) => {
       </div>
       <div className="relative flex-1">
         <HiPhone className="absolute left-3.5 top-3.5 w-5 h-5 text-gray-400" />
-        <input name="phone" value={value} onChange={onChange} placeholder={t('common.phoneNumber', 'Phone Number')} inputMode="tel"
+        <input name="phone" aria-label={t('common.phoneNumber', 'Phone Number')} value={value} onChange={onChange} placeholder={t('common.phoneNumber', 'Phone Number')} inputMode="tel"
           className={`w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl outline-none transition text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-${accent}-400 focus:border-transparent`} />
       </div>
     </div>
@@ -312,7 +313,7 @@ const PhoneField = ({ value, onChange, accent = 'blue' }) => {
 const TextInput = ({ icon: Icon, name, type = 'text', value, onChange, placeholder, accent = 'blue', required, rightSlot }) => (
   <div className="relative">
     <Icon className="absolute left-3.5 top-3.5 w-5 h-5 text-gray-400 pointer-events-none" />
-    <input name={name} type={type} value={value} onChange={onChange} placeholder={placeholder} required={required} autoComplete="off"
+    <input name={name} aria-label={placeholder} type={type} value={value} onChange={onChange} placeholder={placeholder} required={required} autoComplete="off"
       className={`w-full pl-10 ${rightSlot ? 'pr-11' : 'pr-4'} py-3 border-2 border-gray-200 rounded-xl outline-none transition text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-${accent}-400 focus:border-transparent`} />
     {rightSlot && <div className="absolute right-3.5 top-3.5">{rightSlot}</div>}
   </div>
@@ -370,6 +371,7 @@ const AuthPage = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const isLoginRoute = location.pathname === "/login";
+  const pageTitle = isLoginRoute ? t('auth.login', 'Login') : t('auth.signup', 'Sign Up');
   const searchParams = new URLSearchParams(location.search);
   const referralCode = searchParams.get("ref") || "";
   const preSelectedRole = searchParams.get("role") || "";
@@ -401,6 +403,7 @@ const AuthPage = () => {
 
   const otpRefs = useRef([]);
   const timerRef = useRef(null);
+  const firebaseRef = useRef(null);
 
   const {
     saveUserSession,
@@ -494,6 +497,23 @@ const AuthPage = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const loadFirebaseAuth = async () => {
+    if (firebaseRef.current) return firebaseRef.current;
+
+    const [{ auth }, firebaseAuth] = await Promise.all([
+      import("../config/firebase"),
+      import("firebase/auth"),
+    ]);
+
+    firebaseRef.current = {
+      auth,
+      RecaptchaVerifier: firebaseAuth.RecaptchaVerifier,
+      signInWithPhoneNumber: firebaseAuth.signInWithPhoneNumber,
+    };
+
+    return firebaseRef.current;
+  };
+
   const getFormattedPhone = () => {
     const cleanPhone = form.phone.replace(/\D/g, "");
 
@@ -519,8 +539,12 @@ const AuthPage = () => {
       return window.recaptchaVerifier;
     }
 
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      auth,
+    if (!firebaseRef.current?.RecaptchaVerifier || !firebaseRef.current?.auth) {
+      return null;
+    }
+
+    window.recaptchaVerifier = new firebaseRef.current.RecaptchaVerifier(
+      firebaseRef.current.auth,
       "recaptcha-container",
       {
         size: "invisible",
@@ -631,12 +655,17 @@ const AuthPage = () => {
     setLoading(true);
 
     try {
+      await loadFirebaseAuth();
       resetRecaptcha();
 
       const appVerifier = setupRecaptcha();
+      if (!appVerifier) {
+        toast.error("Unable to initialize phone verification. Please try again.");
+        return;
+      }
 
-      const result = await signInWithPhoneNumber(
-        auth,
+      const result = await firebaseRef.current.signInWithPhoneNumber(
+        firebaseRef.current.auth,
         formattedPhone,
         appVerifier,
       );
@@ -918,7 +947,7 @@ const AuthPage = () => {
           onChange={(e) => handleOtpBox(idx, e)}
           onKeyDown={(e) => handleOtpKey(idx, e)}
           disabled={loading}
-          className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold border-2 rounded-2xl outline-none transition border-gray-200 focus:border-${accent}-500 focus:ring-2 focus:ring-${accent}-200 bg-gray-50 focus:bg-white disabled:opacity-50`}
+          className={`w-10 h-12 sm:w-14 sm:h-16 text-center text-2xl font-bold border-2 rounded-2xl outline-none transition border-gray-200 focus:border-${accent}-500 focus:ring-2 focus:ring-${accent}-200 bg-gray-50 focus:bg-white disabled:opacity-50`}
         />
       ))}
     </div>
@@ -946,7 +975,7 @@ const AuthPage = () => {
             </GreenBtn>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
             <button
               onClick={handleGoogleAuth}
               disabled={loading}
@@ -1486,6 +1515,12 @@ const AuthPage = () => {
           "linear-gradient(135deg,#dbeafe 0%,#ede9fe 45%,#fce7f3 100%)",
       }}
     >
+      <Seo
+        title={pageTitle}
+        description={t('auth.pageDescription', 'Login or create a Lucohire account to hire or find work faster.')}
+        canonicalPath={isLoginRoute ? '/login' : '/signup'}
+        robots="noindex, nofollow"
+      />
       <div
         className="fixed rounded-full blur-3xl opacity-40 pointer-events-none bg-blue-200 w-96 h-96"
         style={{ top: "-8%", left: "-8%" }}
@@ -1498,16 +1533,15 @@ const AuthPage = () => {
 
       <Link
         to="/"
-        className="fixed top-5 left-5 flex items-center gap-2 text-gray-600 hover:text-blue-600 transition text-sm font-medium z-20 bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-md"
+        className="fixed top-3 left-3 sm:top-5 sm:left-5 flex items-center gap-2 text-gray-600 hover:text-blue-600 transition text-xs sm:text-sm font-medium z-20 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1.5 sm:px-4 sm:py-2 shadow-md"
       >
         <HiArrowLeft className="w-4 h-4" /> {t("navbar.home")}
       </Link>
 
       <div
-        className="relative w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden auth-page-card"
-        style={{ minHeight: "620px" }}
+        className="relative w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden auth-page-card min-h-[560px] sm:min-h-[620px]"
       >
-        <div className="flex flex-col lg:grid lg:grid-cols-[480px_1fr] min-h-130">
+        <div className="flex flex-col lg:grid lg:grid-cols-[480px_1fr] min-h-[560px] sm:min-h-[620px]">
           <LeftPanel mode={mode} />
 
           <div className="flex flex-col justify-center px-8 sm:px-12 py-10 relative overflow-hidden">
