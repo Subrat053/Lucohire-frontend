@@ -1,10 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { HiLocationMarker, HiExclamationCircle, HiCheckCircle } from 'react-icons/hi';
-import { 
-  getPlacePredictions, 
-  getPlaceDetails, 
-  normalizeGooglePlace 
-} from '../../services/googlePlacesService';
 import { useLocationContext } from '../../context/LocationContext';
 
 // Standard fallback cities list if Google Places fails, is restricted, or returns zero results.
@@ -35,6 +30,17 @@ const LocationAutocomplete = ({
     const context = useLocationContext();
     locationContext = context?.locationContext;
   } catch (_) {}
+
+  const googlePlacesServiceRef = useRef(null);
+
+  const getPlacesService = async () => {
+    if (googlePlacesServiceRef.current) {
+      return googlePlacesServiceRef.current;
+    }
+    const module = await import('../../services/googlePlacesService');
+    googlePlacesServiceRef.current = module;
+    return module;
+  };
 
   // Extract display string for current input value
   const getDisplayValue = (val) => {
@@ -101,7 +107,8 @@ const LocationAutocomplete = ({
           options.types = ['(regions)'];
         }
 
-        const results = await getPlacePredictions(trimmed, options);
+        const service = await getPlacesService();
+        const results = await service.getPlacePredictions(trimmed, options);
         
         if (results && results.length > 0) {
           setPredictions(results);
@@ -177,8 +184,9 @@ const LocationAutocomplete = ({
         }
       } else {
         // Handle actual Google place selection
-        const placeDetails = await getPlaceDetails(prediction.place_id);
-        const normalized = normalizeGooglePlace(placeDetails, locationContext);
+        const service = await getPlacesService();
+        const placeDetails = await service.getPlaceDetails(prediction.place_id);
+        const normalized = service.normalizeGooglePlace(placeDetails, locationContext);
         
         if (normalized) {
           setInputValue(normalized.label);
@@ -243,6 +251,7 @@ const LocationAutocomplete = ({
           disabled={disabled}
           required={required}
           onFocus={() => {
+            getPlacesService();
             if (predictions.length > 0) setIsOpen(true);
           }}
           className={`w-full border rounded-xl pl-9 pr-8 py-2 text-sm transition-all duration-200 outline-none

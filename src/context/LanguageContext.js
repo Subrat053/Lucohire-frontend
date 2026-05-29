@@ -2,29 +2,70 @@ import { createContext, createElement, useCallback, useContext, useEffect, useMe
 import { authAPI, translationAPI, userAPI } from '../services/api';
 import { useAuth } from './AuthContext';
 import { useLocale } from './LocaleContext';
-import en from '../translations/en.json';
-
 const DEFAULT_LANGUAGE = 'en';
-const RTL_LANGUAGES = new Set(['ar']);
+const RTL_LANGUAGES = new Set(['ar', 'ur', 'fa', 'he']);
 
 export const SUPPORTED_LANGUAGES = [
+  // Indian Regional Languages
   { code: 'en', label: 'English' },
   { code: 'hi', label: 'Hindi (हिंदी)' },
-  { code: 'or', label: 'Odia (ଓଡ଼ିଆ)' },
   { code: 'bn', label: 'Bengali (বাংলা)' },
-  { code: 'ta', label: 'Tamil (தமிழ்)' },
   { code: 'te', label: 'Telugu (తెలుగు)' },
   { code: 'mr', label: 'Marathi (मराठी)' },
+  { code: 'ta', label: 'Tamil (தமிழ்)' },
   { code: 'gu', label: 'Gujarati (ગુજરાતી)' },
+  { code: 'ur', label: 'Urdu (اردو)' },
   { code: 'kn', label: 'Kannada (ಕನ್ನಡ)' },
+  { code: 'or', label: 'Odia (ଓଡ଼ିଆ)' },
   { code: 'ml', label: 'Malayalam (മലയാളം)' },
+  { code: 'pa', label: 'Punjabi (ਪੰਜਾਬੀ)' },
+  { code: 'as', label: 'Assamese (অসমীয়া)' },
+  { code: 'ne', label: 'Nepali (नेपाली)' },
+  
+  // Worldwide Languages
   { code: 'es', label: 'Spanish (Español)' },
   { code: 'fr', label: 'French (Français)' },
   { code: 'ar', label: 'Arabic (العربية)' },
+  { code: 'zh', label: 'Chinese (中文)' },
+  { code: 'ja', label: 'Japanese (日本語)' },
+  { code: 'de', label: 'German (Deutsch)' },
+  { code: 'ru', label: 'Russian (Русский)' },
+  { code: 'pt', label: 'Portuguese (Português)' },
+  { code: 'id', label: 'Indonesian (Bahasa Indonesia)' },
+  { code: 'it', label: 'Italiano (Italian)' },
+  { code: 'ko', label: 'Korean (한국어)' },
+  { code: 'tr', label: 'Turkish (Türkçe)' },
+  { code: 'vi', label: 'Vietnamese (Tiếng Việt)' },
+  { code: 'pl', label: 'Polish (Polski)' },
+  { code: 'nl', label: 'Dutch (Nederlands)' },
+  { code: 'th', label: 'Thai (ไทย)' },
+  { code: 'fa', label: 'Persian (فارسی)' },
+  { code: 'sw', label: 'Swahili (Kiswahili)' },
+  { code: 'uk', label: 'Ukrainian (Українська)' },
+  { code: 'ro', label: 'Romanian (Română)' },
+  { code: 'el', label: 'Greek (Ελληνικά)' },
+  { code: 'hu', label: 'Hungarian (Magyar)' },
+  { code: 'sv', label: 'Swedish (Svenska)' },
+  { code: 'cs', label: 'Czech (Čeština)' },
+  { code: 'he', label: 'Hebrew (עברית)' },
+  { code: 'ms', label: 'Malay (Bahasa Melayu)' },
+  { code: 'tl', label: 'Filipino (Wikang Filipino)' },
+  { code: 'my', label: 'Burmese (မြန်မာဘာသာ)' },
 ];
 
 const SUPPORTED_LANGUAGE_CODES = new Set(SUPPORTED_LANGUAGES.map((item) => item.code));
-const ENGLISH_DICTIONARY = en;
+
+const ENGLISH_DICTIONARY = {};
+
+const loadEnglishDictionary = async () => {
+  try {
+    const en = await import('../translations/en.json');
+    Object.assign(ENGLISH_DICTIONARY, en.default || en);
+  } catch (error) {
+    console.error('Failed to load English dictionary:', error);
+  }
+};
+loadEnglishDictionary();
 
 const LanguageContext = createContext(null);
 
@@ -77,6 +118,7 @@ export const LanguageProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const pendingTranslationsRef = useRef(new Map());
   const failedTranslationsRef = useRef(new Map());
+  const batchTimerRef = useRef(null);
 
   const persistLanguage = useCallback((nextLanguage) => {
     localStorage.setItem('selectedLanguage', nextLanguage);
@@ -118,22 +160,6 @@ export const LanguageProvider = ({ children }) => {
     switchLocale(normalized);
     syncBackendPreference(normalized);
   }, [persistLanguage, switchLocale, syncBackendPreference]);
-
-  const scheduleTranslation = useCallback((text) => {
-    if (selectedLanguage === DEFAULT_LANGUAGE) return;
-    if (isAdminPath()) return;
-    if (shouldSkipTranslation(text)) return;
-    if ((translationCache[selectedLanguage] || {})[text]) return;
-    if ((failedTranslationsRef.current.get(selectedLanguage) || new Set()).has(text)) return;
-
-    let languageQueue = pendingTranslationsRef.current.get(selectedLanguage);
-    if (!languageQueue) {
-      languageQueue = new Set();
-      pendingTranslationsRef.current.set(selectedLanguage, languageQueue);
-    }
-
-    languageQueue.add(text);
-  }, [selectedLanguage, translationCache]);
 
   const updateTranslationCache = useCallback((language, sourceTexts, translatedTexts) => {
     setTranslationCache((previous) => {
@@ -233,6 +259,47 @@ export const LanguageProvider = ({ children }) => {
     return translatedText;
   }, [selectedLanguage, translateBatch]);
 
+  const flushQueue = useCallback(async (lang) => {
+    const queue = pendingTranslationsRef.current.get(lang);
+    if (!queue || queue.size === 0) return;
+
+    const texts = [...queue];
+    queue.clear();
+
+    setLoading(true);
+    try {
+      await translateBatch(texts, lang);
+    } catch (e) {
+      console.error('Translation batch error:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [translateBatch]);
+
+  const scheduleTranslation = useCallback((text) => {
+    if (selectedLanguage === DEFAULT_LANGUAGE) return;
+    if (isAdminPath()) return;
+    if (shouldSkipTranslation(text)) return;
+    if ((translationCache[selectedLanguage] || {})[text]) return;
+    if ((failedTranslationsRef.current.get(selectedLanguage) || new Set()).has(text)) return;
+
+    let languageQueue = pendingTranslationsRef.current.get(selectedLanguage);
+    if (!languageQueue) {
+      languageQueue = new Set();
+      pendingTranslationsRef.current.set(selectedLanguage, languageQueue);
+    }
+
+    languageQueue.add(text);
+
+    // Debounce the queue flush so it aggregates all requests from the render loop
+    if (batchTimerRef.current) {
+      clearTimeout(batchTimerRef.current);
+    }
+    batchTimerRef.current = setTimeout(() => {
+      flushQueue(selectedLanguage);
+    }, 150); // 150ms debounce
+  }, [selectedLanguage, translationCache, flushQueue]);
+
   useEffect(() => {
     if (!locale) return;
     const normalized = normalizeLanguage(locale);
@@ -242,41 +309,17 @@ export const LanguageProvider = ({ children }) => {
   }, [locale, persistLanguage, selectedLanguage]);
 
   useEffect(() => {
-    if (selectedLanguage === DEFAULT_LANGUAGE) {
-      document.documentElement.lang = DEFAULT_LANGUAGE;
-      document.documentElement.dir = 'ltr';
-      return undefined;
-    }
-
-    const queue = pendingTranslationsRef.current.get(selectedLanguage);
-    if (!queue || queue.size === 0) {
-      document.documentElement.lang = selectedLanguage;
-      document.documentElement.dir = RTL_LANGUAGES.has(selectedLanguage) ? 'rtl' : 'ltr';
-      return undefined;
-    }
-
-    let cancelled = false;
-    const texts = [...queue];
-    queue.clear();
-
-    const run = async () => {
-      setLoading(true);
-      try {
-        await translateBatch(texts, selectedLanguage);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
     document.documentElement.lang = selectedLanguage;
     document.documentElement.dir = RTL_LANGUAGES.has(selectedLanguage) ? 'rtl' : 'ltr';
+  }, [selectedLanguage]);
 
-    run();
-
+  useEffect(() => {
     return () => {
-      cancelled = true;
+      if (batchTimerRef.current) {
+        clearTimeout(batchTimerRef.current);
+      }
     };
-  });
+  }, []);
 
   const t = useCallback((key, fallbackOrParams, maybeParams) => {
     let fallbackText = '';

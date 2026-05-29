@@ -206,7 +206,7 @@ const LeftPanel = ({ mode }) => {
           {/* Shield badge overlay */}
           <picture>
             <source srcSet="/laptop.webp" type="image/webp" />
-            <img src="/laptop.png" alt="Illustration: person using laptop" width={240} height={240} decoding="async" fetchpriority="high" className='h-60' />
+            <img src="/laptop.webp" alt="Illustration: person using laptop" width={240} height={240} decoding="async" fetchpriority="high" className='h-60' />
           </picture>
           <div className="absolute -top-4 -right-2">
             <ShieldIcon />

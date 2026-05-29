@@ -1,0 +1,95 @@
+import { lazy } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import ProtectedRoute from "../components/common/ProtectedRoute";
+import Navbar from "../components/common/Navbar";
+import Footer from "../components/common/Footer";
+
+// Lazy-loaded pages
+const AuthPage = lazy(() => import("../pages/AuthPage"));
+const ForgotPassword = lazy(() => import("../pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("../pages/auth/ResetPassword"));
+const MagicLinkVerify = lazy(() => import("../pages/auth/MagicLinkVerify"));
+const LandingPage = lazy(() => import("../pages/LandingPage"));
+const SearchPage = lazy(() => import("../pages/SearchPage"));
+const ProviderPublicProfile = lazy(() => import("../pages/ProviderPublicProfile"));
+const FaqPage = lazy(() => import("../pages/Faq"));
+const TermsPage = lazy(() => import("../pages/Terms"));
+const PrivacyPage = lazy(() => import("../pages/Privacy"));
+const ContactUs = lazy(() => import("../pages/ContactUs"));
+const ProfilePage = lazy(() => import("../pages/ProfilePage"));
+const PendingApproval = lazy(() => import("../pages/PendingApproval"));
+const ExternalMatch = lazy(() => import("../pages/recruiter/ExternalMatch"));
+
+function MainLayout({ children }) {
+  const location = useLocation();
+  const publicPaths = ["/", "/search", "/faq", "/terms", "/privacy", "/contact"];
+  const privateProviderPaths = [
+    "/provider/dashboard",
+    "/provider/profile",
+    "/provider/plans",
+    "/provider/my-plan",
+    "/provider/customise-plan",
+    "/provider/leads",
+    "/provider/history",
+    "/provider/job-for-me",
+    "/provider/contacted",
+    "/provider/change-password",
+    "/provider/referrals",
+    "/provider/wallet",
+    "/provider/payout-settings",
+  ];
+  
+  const isPublicProviderProfile =
+    location.pathname.startsWith("/provider/") &&
+    !privateProviderPaths.includes(location.pathname) &&
+    location.pathname.split("/").filter(Boolean).length === 2;
+    
+  const showFooter = publicPaths.includes(location.pathname) || isPublicProviderProfile;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar />
+      <main className="flex-1">{children}</main>
+      {showFooter && <Footer />}
+    </div>
+  );
+}
+
+export default function PublicRoutes() {
+  const wrap = (children) => <MainLayout>{children}</MainLayout>;
+  
+  return (
+    <Routes>
+      {/* Auth pages - full screen, no Navbar/Footer */}
+      <Route path="auth" element={<Navigate to="/signup" replace />} />
+      <Route path="login" element={<AuthPage />} />
+      <Route path="signup" element={<AuthPage />} />
+      <Route path="forgot-password" element={<ForgotPassword />} />
+      <Route path="reset-password/:token" element={<ResetPassword />} />
+      <Route path="auth/magic" element={<MagicLinkVerify />} />
+      
+      {/* Public Pages with Navbar/Footer */}
+      <Route path="" element={wrap(<LandingPage />)} />
+      <Route path="search" element={wrap(<SearchPage />)} />
+      <Route path="auth/magic-verify" element={wrap(<MagicLinkVerify />)} />
+      <Route path="external-match" element={wrap(<ExternalMatch />)} />
+      <Route path="provider/:id" element={wrap(<ProviderPublicProfile />)} />
+      <Route path="faq" element={wrap(<FaqPage />)} />
+      <Route path="terms" element={wrap(<TermsPage />)} />
+      <Route path="privacy" element={wrap(<PrivacyPage />)} />
+      <Route path="contact" element={wrap(<ContactUs />)} />
+
+      {/* Protected Shared Pages */}
+      <Route path="profile/:id" element={wrap(
+        <ProtectedRoute allowedRoles={["provider", "recruiter"]}>
+          <ProfilePage />
+        </ProtectedRoute>
+      )} />
+      <Route path="pending-approval" element={wrap(
+        <ProtectedRoute allowedRoles={["provider", "recruiter"]}>
+          <PendingApproval />
+        </ProtectedRoute>
+      )} />
+    </Routes>
+  );
+}

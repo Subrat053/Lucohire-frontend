@@ -1,0 +1,85 @@
+import { lazy } from "react";
+import { Routes, Route } from "react-router-dom";
+import AdminProtectedRoute from "../components/common/AdminProtectedRoute";
+import AdminLayout from "../components/admin/AdminLayout";
+import Navbar from "../components/common/Navbar";
+
+// Lazy-loaded pages
+const AdminDashboard = lazy(() => import("../pages/admin/Dashboard"));
+const AdminWithdrawals = lazy(() => import("../pages/admin/AdminWithdrawals"));
+const AdminCommissionSettings = lazy(() => import("../pages/admin/AdminCommissionSettings"));
+const Partners = lazy(() => import("../pages/admin/Partners"));
+const PartnerReferrals = lazy(() => import("../pages/admin/PartnerReferrals"));
+const AdminManagerBankAccounts = lazy(() => import("../pages/admin/ManagerBankAccounts"));
+const AdminPartnerPayouts = lazy(() => import("../pages/admin/AdminPartnerPayouts"));
+const AdminReferrals = lazy(() => import("../pages/admin/AdminReferrals"));
+const AdminCommissions = lazy(() => import("../pages/admin/AdminCommissions"));
+const AdminRewardPool = lazy(() => import("../pages/admin/AdminRewardPool"));
+const AdminUsers = lazy(() => import("../pages/admin/Users"));
+const AdminProviders = lazy(() => import("../pages/admin/Providers"));
+const AdminRecruiters = lazy(() => import("../pages/admin/Recruiters"));
+const AdminPlans = lazy(() => import("../pages/admin/Plans"));
+const AdminSettings = lazy(() => import("../pages/admin/Settings"));
+const AdminManagers = lazy(() => import("../pages/admin/Managers"));
+const AdminPayments = lazy(() => import("../pages/admin/Payments"));
+const AdminProviderSubscriptions = lazy(() => import("../pages/admin/ProviderSubscriptions"));
+const AdminTerms = lazy(() => import("../pages/admin/Terms"));
+const AdminPrivacy = lazy(() => import("../pages/admin/Privacy"));
+const AdminSkills = lazy(() => import("../pages/admin/Skills"));
+const AdminWhatsApp = lazy(() => import("../pages/admin/WhatsApp"));
+const AdminCurrency = lazy(() => import("../pages/admin/Currency"));
+const AdminAIOps = lazy(() => import("../pages/admin/AIControlCenter"));
+const ProfilePhotoApprovals = lazy(() => import("../pages/admin/ProfilePhotoApprovals"));
+const AdminEnquiries = lazy(() => import("../pages/admin/Enquiries"));
+const ChangePassword = lazy(() => import("../pages/user/ChangePassword"));
+
+function AdminLayoutWrapper({ children }) {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar />
+      <main className="flex-1">
+        <AdminProtectedRoute>
+          <AdminLayout>{children}</AdminLayout>
+        </AdminProtectedRoute>
+      </main>
+    </div>
+  );
+}
+
+export default function AdminRoutes() {
+  const wrap = (children) => <AdminLayoutWrapper>{children}</AdminLayoutWrapper>;
+  
+  return (
+    <Routes>
+      <Route path="dashboard" element={wrap(<AdminDashboard />)} />
+      <Route path="withdrawals" element={wrap(<AdminWithdrawals />)} />
+      <Route path="commission-settings" element={wrap(<AdminCommissionSettings />)} />
+      <Route path="partners" element={wrap(<Partners />)} />
+      <Route path="partners/:partnerId/referrals" element={wrap(<PartnerReferrals />)} />
+      <Route path="manager-bank-accounts" element={wrap(<AdminManagerBankAccounts />)} />
+      <Route path="partner-payouts" element={wrap(<AdminPartnerPayouts />)} />
+      <Route path="referrals" element={wrap(<AdminReferrals />)} />
+      <Route path="commissions" element={wrap(<AdminCommissions />)} />
+      <Route path="reward-pool" element={wrap(<AdminRewardPool />)} />
+      <Route path="users" element={wrap(<AdminUsers />)} />
+      <Route path="providers" element={wrap(<AdminProviders />)} />
+      <Route path="recruiters" element={wrap(<AdminRecruiters />)} />
+      <Route path="recruiter" element={wrap(<AdminRecruiters />)} />
+      <Route path="recriters" element={wrap(<AdminRecruiters />)} />
+      <Route path="plans" element={wrap(<AdminPlans />)} />
+      <Route path="settings" element={wrap(<AdminSettings />)} />
+      <Route path="managers" element={wrap(<AdminManagers />)} />
+      <Route path="payments" element={wrap(<AdminPayments />)} />
+      <Route path="provider-subscriptions" element={wrap(<AdminProviderSubscriptions />)} />
+      <Route path="terms" element={wrap(<AdminTerms />)} />
+      <Route path="privacy" element={wrap(<AdminPrivacy />)} />
+      <Route path="skills" element={wrap(<AdminSkills />)} />
+      <Route path="whatsapp" element={wrap(<AdminWhatsApp />)} />
+      <Route path="currency" element={wrap(<AdminCurrency />)} />
+      <Route path="ai" element={wrap(<AdminAIOps />)} />
+      <Route path="profile-photo-approvals" element={wrap(<ProfilePhotoApprovals />)} />
+      <Route path="enquiries" element={wrap(<AdminEnquiries />)} />
+      <Route path="change-password" element={wrap(<ChangePassword />)} />
+    </Routes>
+  );
+}

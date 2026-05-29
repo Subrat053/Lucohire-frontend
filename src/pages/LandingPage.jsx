@@ -114,27 +114,14 @@ const CITIES = [
 ];
 
 /* ─────────── Reusable atoms ─────────── */
-// const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-//   <p className="text-[11px] font-bold tracking-[0.2em] text-[#1677FF] uppercase mb-3">{children}</p>
-// );
+
 const SectionLabel = ({ children }) => (
   <p className="text-[11px] font-bold tracking-[0.2em] text-[#1677FF] uppercase mb-3">
     {children}
   </p>
 );
 
-// const Pill = ({ active, children, onClick }: { active?: boolean; children: React.ReactNode; onClick?: () => void }) => (
-//   <button
-//     onClick={onClick}
-//     className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition whitespace-nowrap ${
-//       active
-//         ? "bg-[#081B3A] text-white border-[#081B3A]"
-//         : "bg-white text-[#374151] border-[#E7ECF4] hover:border-[#1677FF] hover:text-[#1677FF]"
-//     }`}
-//   >
-//     {children}
-//   </button>
-// );
+
 const Pill = ({ active, children, onClick }) => (
   <button
     onClick={onClick}
@@ -149,66 +136,7 @@ const Pill = ({ active, children, onClick }) => (
 );
 
 /* ─────────── Provider Card ─────────── */
-// const ProviderCard = ({ p, onClick }: { p: Provider; onClick: () => void }) => (
-//   <div
-//     onClick={onClick}
-//     className="bg-white rounded-2xl border border-[#E7ECF4] p-5 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition cursor-pointer flex flex-col gap-3"
-//   >
-//     <div className="flex items-center gap-3">
-//       <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold ${p.avatarBg}`}>
-//         {p.initials}
-//       </div>
-//       <div className="flex-1 min-w-0">
-//         <div className="flex items-center gap-1.5">
-//           <h3 className="font-bold text-[#081B3A] text-sm truncate">{p.name}</h3>
-//           <CheckCircle2 className="w-4 h-4 text-[#12B76A] shrink-0" />
-//         </div>
-//         <p className="text-xs text-[#6B7280] truncate">{p.role}</p>
-//       </div>
-//     </div>
 
-//     <div className="flex items-center gap-1.5 text-xs">
-//       <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" />
-//       <span className="font-bold text-[#081B3A]">{p.rating}</span>
-//       <span className="text-[#6B7280]">({p.reviews} reviews)</span>
-//     </div>
-
-//     <div className="flex items-center gap-1 text-xs text-[#6B7280]">
-//       <MapPin className="w-3 h-3" /> {p.city}
-//     </div>
-
-//     <div className="flex flex-wrap gap-1.5">
-//       {p.tags.map((t) => (
-//         <span key={t} className="text-[11px] font-medium text-[#374151] bg-[#F3F6FB] border border-[#E7ECF4] px-2 py-0.5 rounded-md">
-//           {t}
-//         </span>
-//       ))}
-//     </div>
-
-//     <div className="flex items-baseline justify-between pt-1">
-//       <div>
-//         <span className="text-lg font-extrabold text-[#081B3A]">₹{p.rate}</span>
-//         <span className="text-xs text-[#6B7280]"> /hr</span>
-//       </div>
-//       <span className="text-xs text-[#6B7280]">~{p.distanceKm}m</span>
-//     </div>
-
-//     <div className="flex gap-2 pt-1">
-//       <button
-//         onClick={(e) => { e.stopPropagation(); }}
-//         className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#374151] text-xs font-semibold py-2 rounded-xl hover:bg-[#F7F9FC] transition"
-//       >
-//         <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
-//       </button>
-//       <button
-//         onClick={(e) => { e.stopPropagation(); onClick(); }}
-//         className="flex-1 flex items-center justify-center gap-1.5 bg-[#1677FF] hover:bg-[#0E5FCC] text-white text-xs font-bold py-2 rounded-xl transition"
-//       >
-//         <Phone className="w-3.5 h-3.5" /> Call Now
-//       </button>
-//     </div>
-//   </div>
-// );
 
 const ProviderCard = ({ p, onClick }) => (
   <div
@@ -439,34 +367,7 @@ const LandingPage = () => {
       />
       <div className="min-h-screen bg-white text-[#081B3A] font-sans antialiased">
       {/* ━━━━━━━━ NAVBAR ━━━━━━━━ */}
-      {/* <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#E7ECF4]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#081B3A] flex items-center justify-center">
-              <Plus className="w-5 h-5 text-white" />
-            </div>
-            <div className="leading-none">
-              <p className="font-extrabold text-[#081B3A] tracking-tight">Lucohire</p>
-              <p className="text-[9px] font-semibold tracking-[0.2em] text-[#6B7280] mt-0.5">AI HIRING</p>
-            </div>
-          </div>
-
-          <div className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-[#6B7280]">
-            <MapPin className="w-3.5 h-3.5 text-[#1677FF]" />
-            {location}
-          </div>
-
-          <nav className="hidden lg:flex items-center gap-6 text-xs font-semibold text-[#374151]">
-            <a className="flex items-center gap-1 text-[#F59E0B]"><Wallet className="w-4 h-4" /> Earn 40%</a>
-            <a className="flex items-center gap-1 text-[#1677FF]"><Trophy className="w-4 h-4" /> Win ₹1 Lakh</a>
-            <a className="hover:text-[#081B3A]">Plans</a>
-            <a className="hover:text-[#081B3A]">Login</a>
-            <button className="bg-[#1677FF] hover:bg-[#0E5FCC] text-white px-4 py-2 rounded-full transition shadow-[0_4px_12px_rgba(22,119,255,0.35)]">
-              Start Earning
-            </button>
-          </nav>
-        </div>
-      </header> */}
+      
 
       {/* ━━━━━━━━ HERO ━━━━━━━━ */}
       <section className="bg-[#F7F9FC] py-16 lg:py-24">
@@ -1151,58 +1052,6 @@ const LandingPage = () => {
       </section>
 
       {/* ━━━━━━━━ FOOTER ━━━━━━━━ */}
-      {/* <footer className="border-t border-[#E7ECF4] bg-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-14 grid grid-cols-2 md:grid-cols-5 gap-8">
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-[#081B3A] flex items-center justify-center">
-                <Plus className="w-5 h-5 text-white" />
-              </div>
-              <p className="font-extrabold text-[#081B3A] tracking-tight">Lucohire</p>
-            </div>
-            <p className="text-xs text-[#6B7280] leading-relaxed">
-              India's AI-powered hiring platform. Verified providers, fair distribution, WhatsApp-first.
-            </p>
-          </div>
-
-          {[
-            { title: "Recruiters", links: ["Post a Job", "Find Providers", "Bulk Hire", "Pricing", "Help Center"] },
-            { title: "Providers", links: ["Create Profile", "Get Leads", "Pro Boost", "Success Stories", "Renewal"] },
-            { title: "Company", links: ["About", "Careers", "Press", "Privacy", "Terms"] },
-          ].map((c) => (
-            <div key={c.title}>
-              <p className="text-[11px] font-bold tracking-widest uppercase text-[#1677FF] mb-4">{c.title}</p>
-              <ul className="space-y-2.5">
-                {c.links.map((l) => (
-                  <li key={l}><a className="text-sm text-[#374151] hover:text-[#1677FF] cursor-pointer">{l}</a></li>
-                ))}
-              </ul>
-            </div>
-          ))}
-
-          <div>
-            <p className="text-[11px] font-bold tracking-widest uppercase text-[#1677FF] mb-4">Stay Updated</p>
-            <p className="text-xs text-[#6B7280] mb-3 leading-relaxed">Product news & city launches — once a month.</p>
-            <form onSubmit={(e) => { e.preventDefault(); setEmail(""); }} className="flex gap-2">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@email.com"
-                className="flex-1 min-w-0 border border-[#E7ECF4] rounded-lg px-3 py-2 text-xs outline-none focus:border-[#1677FF]"
-              />
-              <button className="bg-[#081B3A] text-white text-xs font-bold px-4 rounded-lg">Go</button>
-            </form>
-          </div>
-        </div>
-
-        <div className="border-t border-[#E7ECF4]">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5 flex flex-wrap items-center justify-between gap-3 text-xs text-[#6B7280]">
-            <span>© 2026 Lucohire. All rights reserved.</span>
-            <span>Made with care in India 🇮🇳</span>
-          </div>
-        </div>
-      </footer> */}
       </div>
     </>
   );
