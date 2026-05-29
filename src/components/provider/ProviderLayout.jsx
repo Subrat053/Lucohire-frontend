@@ -87,49 +87,45 @@ const ProviderLayout = ({ children }) => {
   );
 
   return (
-    <div className="flex">
-      {/* Desktop Sidebar */}
-      <aside className={`hidden md:flex flex-col bg-white border-r border-gray-100 transition-all duration-300 shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)]
-        ${collapsed ? 'w-16' : 'w-56'}
-      `}>
-        <SidebarContent />
-        {/* Collapse toggle */}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-20 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition z-10"
-        >
-          {collapsed ? <HiChevronRight className="w-3 h-3 text-gray-500" /> : <HiChevronLeft className="w-3 h-3 text-gray-500" />}
-        </button>
-      </aside>
-
-      {/* Mobile Sidebar Overlay */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <aside className="relative w-56 h-full bg-white shadow-xl flex flex-col">
-            <SidebarContent onNavClick={() => setMobileOpen(false)} />
-          </aside>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Bar */}
-        {/* <div className="flex items-center justify-between bg-white border-b border-gray-100 px-4 py-3">
-          <button onClick={() => setMobileOpen(true)} className="p-1.5 rounded-lg hover:bg-gray-100 md:hidden">
-            <HiMenu className="w-5 h-5 text-gray-600" />
+    <div className="flex flex-col md:flex-row min-h-screen">
+      <div className="flex flex-1">
+        {/* Desktop Sidebar */}
+        <aside className={`hidden md:flex flex-col bg-white border-r border-gray-100 transition-all duration-300 shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)]
+          ${collapsed ? 'w-16' : 'w-56'}
+        `}>
+          <SidebarContent />
+          {/* Collapse toggle */}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="absolute -right-3 top-20 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition z-10"
+          >
+            {collapsed ? <HiChevronRight className="w-3 h-3 text-gray-500" /> : <HiChevronLeft className="w-3 h-3 text-gray-500" />}
           </button>
-          <span className="font-semibold text-gray-800 text-sm md:hidden">{t('provider.panel', 'Provider Panel')}</span>
-          <span className="hidden md:block" />
-          <div className="flex items-center gap-2">
-            <LanguageDropdown />
-            <NotificationBell />
-          </div>
-        </div> */}
+        </aside>
 
-        <main className="flex-1 overflow-auto p-0 ">
-          {children}
-        </main>
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Active Panel Identifier Header */}
+          <div className="bg-[#081B3A] text-white px-6 py-4 flex items-center justify-between shadow-xs select-none">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Provider Panel</span>
+              <span className="text-slate-500 text-xs">/</span>
+              <span className="text-sm font-extrabold text-blue-400 tracking-wide">
+                {(() => {
+                  const currentNav = navItems.find(item => location.pathname === item.path) || 
+                                     navItems.find(item => location.pathname.startsWith(item.path));
+                  return currentNav ? t(currentNav.label, currentNav.fallback) : 'Panel';
+                })()}
+              </span>
+            </div>
+            <div className="hidden sm:block text-xs font-bold text-slate-400">
+              Active Session
+            </div>
+          </div>
+          <main className="flex-1 overflow-auto p-0">
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   );

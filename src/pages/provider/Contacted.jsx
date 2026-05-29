@@ -9,12 +9,12 @@ import toast from 'react-hot-toast';
 import { useLocale } from '../../context/LocaleContext';
 
 const STATUS_BADGES = {
-  pending:     { bg: 'bg-yellow-50',    text: 'text-yellow-700',    label: 'Pending Review' },
-  reviewed:    { bg: 'bg-blue-50',     text: 'text-blue-700',     label: 'Reviewed' },
-  contacted:   { bg: 'bg-purple-50',   text: 'text-purple-700',   label: '✓ Contacted You!' },
-  shortlisted:{ bg: 'bg-indigo-50',    text: 'text-indigo-700',   label: 'Shortlisted' },
-  rejected:    { bg: 'bg-red-50',      text: 'text-red-700',      label: 'Not Selected' },
-  hired:       { bg: 'bg-green-50',    text: 'text-green-700',    label: '✓✓ Hired!' },
+  pending:     { bg: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400', label: 'Pending Review' },
+  reviewed:    { bg: 'bg-blue-500/10 border-blue-500/30 text-blue-400',       label: 'Reviewed' },
+  contacted:   { bg: 'bg-amber-500/10 border-amber-500/30 text-amber-400',   label: '✓ Contacted You!' },
+  shortlisted:{ bg: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400', label: 'Shortlisted' },
+  rejected:    { bg: 'bg-red-500/10 border-red-500/30 text-red-400',          label: 'Not Selected' },
+  hired:       { bg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400', label: '✓✓ Hired!' },
 };
 
 const ContactedCard = ({ application }) => {
@@ -25,14 +25,14 @@ const ContactedCard = ({ application }) => {
   const isContacted = application.status === 'contacted' || application.status === 'hired' || application.status === 'shortlisted';
 
   return (
-    <div className={`relative rounded-2xl border-2 overflow-hidden transition ${
+    <div className={`relative rounded-2xl border transition-all duration-300 overflow-hidden ${
       isContacted
-        ? 'bg-purple-50/50 border-purple-300 shadow-lg shadow-purple-100'
-        : 'bg-white border-gray-100 hover:shadow-md'
+        ? 'bg-slate-900/80 border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.12)]'
+        : 'bg-slate-900/40 border-slate-800 hover:border-slate-700'
     }`}>
       {isContacted && (
-        <div className="absolute top-0 right-0 bg-linear-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-bl-xl text-xs font-bold">
-          💬 CONTACTED
+        <div className="absolute top-0 right-0 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-4 py-1 rounded-bl-xl text-[10px] font-black uppercase tracking-wider">
+          💬 Contacted
         </div>
       )}
 
@@ -40,59 +40,59 @@ const ContactedCard = ({ application }) => {
         {/* Recruiter Info */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="font-bold text-lg text-gray-900">{recruiter?.name || 'Recruiter'}</h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <h3 className="font-extrabold text-lg text-slate-100">{recruiter?.name || 'Recruiter'}</h3>
+            <p className="text-sm text-slate-400 mt-1 font-semibold">
               {job?.title}{job?.city && ` • ${job.city}`}
             </p>
           </div>
-          <span className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border ${badge.bg} ${badge.text}`}>
+          <span className={`shrink-0 px-3 py-1 rounded-full text-xs font-bold border ${badge.bg}`}>
             {badge.label}
           </span>
         </div>
 
         {/* Job Details */}
-        <div className="bg-white/50 rounded-xl p-4 space-y-2 border border-gray-100">
-          <div className="flex items-center gap-2 text-sm">
-            <HiDocumentText className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-700"><span className="font-medium">Skill:</span> {job?.skill}</span>
+        <div className="bg-slate-950/40 rounded-xl p-4 space-y-2.5 border border-slate-800/80">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+            <HiDocumentText className="w-4 h-4 text-slate-500" />
+            <span><span className="text-slate-500 uppercase tracking-wider text-[10px]">Skill Required:</span> {job?.skill}</span>
           </div>
           {job?.budgetMin && (
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-green-600 font-bold">{formatPrice(job.budgetMin)}</span>
-              {job?.budgetMax && <span className="text-gray-500">– {formatPrice(job.budgetMax)}</span>}
+              <span className="text-emerald-400 font-extrabold">{formatPrice(job.budgetMin)}</span>
+              {job?.budgetMax && <span className="text-slate-500">– {formatPrice(job.budgetMax)}</span>}
             </div>
           )}
           {job?.description && (
-            <p className="text-sm text-gray-600 mt-2">{job.description}</p>
+            <p className="text-xs text-slate-400 leading-relaxed font-medium">{job.description}</p>
           )}
         </div>
 
-        {/* Contact & Timeline */}
+        {/* Contact & Actions */}
         <div className="grid sm:grid-cols-2 gap-3">
           {recruiter?.email && (
             <a href={`mailto:${recruiter.email}`}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition text-sm font-medium border border-blue-200"
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-blue-600/10 text-blue-400 hover:bg-blue-600/20 transition-all text-xs font-bold border border-blue-500/30"
             >
-              <HiMail className="w-4 h-4" /> Email
+              <HiMail className="w-4 h-4" /> Send Email
             </a>
           )}
           {recruiter?.phone && (
             <a href={`tel:${recruiter.phone}`}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition text-sm font-medium border border-green-200"
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-600/10 text-emerald-400 hover:bg-emerald-600/20 transition-all text-xs font-bold border border-emerald-500/30"
             >
-              <HiPhone className="w-4 h-4" /> Call
+              <HiPhone className="w-4 h-4" /> Place Call
             </a>
           )}
         </div>
 
         {/* Timeline */}
-        <div className="text-xs text-gray-500 flex items-center gap-2">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-300" />
+        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-2">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-700" />
           Applied {new Date(application.appliedAt || application.createdAt).toLocaleDateString()}
           {isContacted && (
             <>
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-purple-300" />
-              <span className="text-purple-600 font-medium">Contacted recently</span>
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500/50" />
+              <span className="text-amber-400">Contacted recently</span>
             </>
           )}
         </div>
@@ -104,7 +104,7 @@ const ContactedCard = ({ application }) => {
 const ProviderContacted = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState('all'); // 'all', 'contacted', 'accepted'
+  const [filterType, setFilterType] = useState('all');
 
   useEffect(() => { fetchApplications(); }, []);
 
@@ -129,36 +129,36 @@ const ProviderContacted = () => {
     : acceptedApps;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-sky-100 via-blue-200 to-blue-500 py-8 px-4">
+    <div className="min-h-screen bg-linear-to-b from-[#030d22] via-[#051636] to-[#0A224D] py-8 px-4 font-sans">
       <div className="max-w-4xl mx-auto">
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Recruiter <span className="drop-shadow-lg">Messages</span>
+          <h1 className="text-3xl font-extrabold text-white mb-2">
+            Recruiter <span className="text-blue-400 drop-shadow-md">Messages</span>
           </h1>
-          <p className="text-blue-100 text-sm">See who has reached out to you about your applications</p>
+          <p className="text-slate-400 text-sm">See who has reached out to you about your applications</p>
         </div>
 
         {/* Quick Stats */}
         <div className="grid sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 text-center shadow-sm border border-white/60">
-            <p className="text-3xl font-bold text-blue-600">{applications.length}</p>
-            <p className="text-xs text-gray-600 mt-1">Total Applications</p>
+          <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl p-5 text-center shadow-md border border-slate-800">
+            <p className="text-3xl font-black text-blue-400">{applications.length}</p>
+            <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">Total Applications</p>
           </div>
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 text-center shadow-sm border border-white/60">
-            <p className="text-3xl font-bold text-purple-600">{contactedApps.length}</p>
-            <p className="text-xs text-gray-600 mt-1">Recruiters Contacted</p>
+          <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl p-5 text-center shadow-md border border-slate-800">
+            <p className="text-3xl font-black text-amber-400">{contactedApps.length}</p>
+            <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">Recruiters Contacted</p>
           </div>
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 text-center shadow-sm border border-white/60">
-            <p className="text-3xl font-bold text-green-600">{acceptedApps.length}</p>
-            <p className="text-xs text-gray-600 mt-1">Jobs Accepted</p>
+          <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl p-5 text-center shadow-md border border-slate-800">
+            <p className="text-3xl font-black text-emerald-400">{acceptedApps.length}</p>
+            <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">Jobs Accepted</p>
           </div>
         </div>
 
         {/* Filter Tabs */}
         {applications.length > 0 && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-3 mb-6 flex gap-2 border border-white/60">
+          <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl p-2 mb-6 flex gap-2 border border-slate-800">
             {[
               { id: 'all', label: 'All' },
               { id: 'contacted', label: '💬 Contacted' },
@@ -167,10 +167,10 @@ const ProviderContacted = () => {
               <button
                 key={tab.id}
                 onClick={() => setFilterType(tab.id)}
-                className={`px-4 py-2 rounded-xl transition text-sm font-medium ${
+                className={`px-4 py-2.5 rounded-xl transition text-xs font-extrabold uppercase tracking-wider ${
                   filterType === tab.id
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-blue-600'
+                    ? 'bg-blue-600 text-white shadow-md border-0'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
                 }`}
               >
                 {tab.label}
@@ -183,14 +183,14 @@ const ProviderContacted = () => {
         {loading ? (
           <div className="flex justify-center py-16"><LoadingSpinner size="lg" /></div>
         ) : filteredApps.length === 0 ? (
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-16 text-center border border-white/60 shadow-sm">
-            <HiDocumentText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600 font-medium mb-1">
+          <div className="bg-slate-900/40 backdrop-blur-xs rounded-2xl p-16 text-center border border-slate-800 shadow-md">
+            <HiDocumentText className="w-16 h-16 text-slate-700 mx-auto mb-4" />
+            <p className="text-slate-300 font-bold mb-1 text-sm uppercase tracking-wider">
               {applications.length === 0
                 ? 'No applications yet. Start browsing jobs!'
                 : `No applications in "${filterType === 'contacted' ? 'Contacted' : 'Accepted'}" category`}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
               {filterType === 'contacted' && 'Recruiters will contact you here once they review your applications.'}
             </p>
           </div>

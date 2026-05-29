@@ -1,7 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { HiMenu, HiX, HiUser, HiLogout, HiCog, HiHome } from 'react-icons/hi';
+import { 
+  HiMenu, HiX, HiUser, HiLogout, HiCog, HiHome,
+  HiTrendingUp, HiCreditCard, HiBriefcase, HiMail, HiUsers, HiClock, HiPlusCircle, HiPhone, HiLockClosed
+} from 'react-icons/hi';
 import { toOptimizedMediaUrl } from '../../utils/media';
 import NotificationBell from './NotificationBell';
 import LanguageDropdown from '../LanguageDropdown';
@@ -17,6 +20,28 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [switchingRole, setSwitchingRole] = useState(false);
   const [completionModal, setCompletionModal] = useState({ open: false, role: null });
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    if (isLeftSwipe) {
+      setMobileOpen(false);
+    }
+  };
   const navigate = useNavigate();
   const activeRole = user?.activeRole || user?.role;
   const roleList = Array.isArray(user?.roles) ? user.roles : [];
@@ -295,62 +320,150 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile menu */}
-        {mobileOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100 animate-fade-in">
-            <Link to="/" className="block py-2 text-gray-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>{t('navbar.home')}</Link>
-            <Link to="/search" className="block py-2 text-gray-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>{t('navbar.findProviders')}</Link>
-            <Link to="/signup?role=recruiter" className="block py-2 text-gray-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>{t('navbar.hireMe', 'Hire Me')}</Link>
-            <Link to="/contact" className="block py-2 text-gray-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>{t('navbar.contactUs', 'Contact Us')}</Link>
-
-            <LanguageDropdown mobile onChangeComplete={() => setMobileOpen(false)} />
-            {canSwitchRoles && <PanelSwitchButtons mobile />}
-            {isAuthenticated ? (
-              <>
-                <Link to={getDashboardLink()} className="block py-2 text-gray-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>{t('navbar.dashboard')}</Link>
-                <button onClick={handleLogout} className="block py-2 text-red-600">{t('navbar.logout')}</button>
-              </>
-            ) : (
-              <div className="space-y-3 mt-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => {
-                      setMobileOpen(false);
-                      if (window.location.pathname === '/') {
-                        document.getElementById('referral-section')?.scrollIntoView({ behavior: 'smooth' });
-                      } else {
-                        navigate('/#referral-section');
-                      }
-                    }}
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100"
-                  >
-                    <span className="text-xl mb-1">💰</span>
-                    {t('navbar.earnFortyPercent', 'Earn 40%')}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setMobileOpen(false);
-                      if (window.location.pathname === '/') {
-                        document.getElementById('contest-section')?.scrollIntoView({ behavior: 'smooth' });
-                      } else {
-                        navigate('/#contest-section');
-                      }
-                    }}
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-indigo-50 text-indigo-600 font-bold text-xs border border-indigo-100"
-                  >
-                    <span className="text-xl mb-1">🏆</span>
-                    {t('navbar.winOneLakh', 'Win ₹1 Lakh')}
-                  </button>
+        {/* Mobile menu - Left Slide Drawer */}
+        <div 
+          className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        >
+          {/* Backdrop overlay */}
+          <div className="absolute inset-0 bg-black/55 backdrop-blur-xs" onClick={() => setMobileOpen(false)} />
+          
+          {/* Drawer Panel */}
+          <aside
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            className={`relative w-[70%] max-w-sm h-full bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-out transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded bg-[#081B3A] flex items-center justify-center">
+                  <span className="text-white font-extrabold text-sm">L</span>
                 </div>
-
-                <div className="flex space-x-3 mt-3">
-                  <button onClick={() => { navigate('/login'); setMobileOpen(false); }} className="flex-1 border border-gray-300 py-2.5 rounded-xl text-sm font-bold text-gray-700">{t('navbar.login')}</button>
-                  <button onClick={() => { navigate('/signup'); setMobileOpen(false); }} className="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-100">{t('navbar.signup')}</button>
+                <div className="leading-none">
+                  <p className="font-bold text-[#081B3A] text-sm tracking-tight">Lucohire</p>
+                  <p className="text-[7px] font-semibold tracking-[0.2em] text-[#6B7280] mt-0.5">AI HIRING</p>
                 </div>
               </div>
-            )}
-          </div>
-        )}
+              <button onClick={() => setMobileOpen(false)} className="p-1 rounded-lg hover:bg-gray-100 transition">
+                <HiX className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+              </button>
+            </div>
+
+            {/* Menu Options Scroll Container */}
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 font-sans">
+              {/* Main Navigation */}
+              <div className="space-y-1">
+                <p className="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{t('navbar.navigation', 'Navigation')}</p>
+                <Link to="/" className="flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition" onClick={() => setMobileOpen(false)}>
+                  <HiHome className="w-5 h-5 text-gray-400" />
+                  <span>{t('navbar.home')}</span>
+                </Link>
+                <Link to="/search" className="flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition" onClick={() => setMobileOpen(false)}>
+                  <HiUsers className="w-5 h-5 text-gray-400" />
+                  <span>{t('navbar.findProviders')}</span>
+                </Link>
+                <Link to="/signup?role=recruiter" className="flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition" onClick={() => setMobileOpen(false)}>
+                  <HiBriefcase className="w-5 h-5 text-gray-400" />
+                  <span>{t('navbar.hireMe', 'Hire Me')}</span>
+                </Link>
+                <Link to="/contact" className="flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition" onClick={() => setMobileOpen(false)}>
+                  <HiMail className="w-5 h-5 text-gray-400" />
+                  <span>{t('navbar.contactUs', 'Contact Us')}</span>
+                </Link>
+              </div>
+
+              {/* Provider Options (Visible only when logged in as provider) */}
+              {isAuthenticated && activeRole === 'provider' && (
+                <div className="space-y-1 pt-2 border-t border-gray-100">
+                  <p className="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{t('provider.panel', 'Provider Panel')}</p>
+                  {[
+                    { label: 'Dashboard', path: '/provider/dashboard', icon: HiTrendingUp },
+                    { label: 'Wallet', path: '/provider/wallet', icon: HiCreditCard },
+                    { label: 'Payment Settings', path: '/provider/payout-settings', icon: HiCog },
+                    { label: 'Jobs for Me', path: '/provider/job-for-me', icon: HiBriefcase },
+                    { label: 'Messages', path: '/provider/contacted', icon: HiMail },
+                    { label: 'Leads', path: '/provider/leads', icon: HiUsers },
+                    { label: 'History', path: '/provider/history', icon: HiClock },
+                    { label: 'Refer & Earn', path: '/provider/referrals', icon: HiPlusCircle },
+                    { label: 'My Plan', path: '/provider/my-plan', icon: HiPhone },
+                    { label: 'Profile', path: '/provider/profile', icon: HiCog },
+                    { label: 'Change Password', path: '/provider/change-password', icon: HiLockClosed }
+                  ].map(({ label, path, icon: Icon }) => {
+                    const active = window.location.pathname === path;
+                    return (
+                      <Link 
+                        key={path} 
+                        to={path} 
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? 'bg-emerald-50 text-emerald-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                      >
+                        <Icon className={`w-4 h-4 ${active ? 'text-emerald-600' : 'text-gray-400'}`} />
+                        <span>{label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Language and Switch Actions */}
+              <div className="space-y-2 pt-2 border-t border-gray-100">
+                <LanguageDropdown mobile onChangeComplete={() => setMobileOpen(false)} />
+                {canSwitchRoles && <PanelSwitchButtons mobile />}
+              </div>
+
+              {/* Auth and CTA section */}
+              <div className="pt-4 border-t border-gray-100">
+                {isAuthenticated ? (
+                  <div className="space-y-2">
+                    <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="w-full flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition">
+                      <HiLogout className="w-5 h-5 text-red-400" />
+                      <span>{t('navbar.logout')}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => {
+                          setMobileOpen(false);
+                          if (window.location.pathname === '/') {
+                            document.getElementById('referral-section')?.scrollIntoView({ behavior: 'smooth' });
+                          } else {
+                            navigate('/#referral-section');
+                          }
+                        }}
+                        className="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100"
+                      >
+                        <span className="text-lg mb-1">💰</span>
+                        {t('navbar.earnFortyPercent', 'Earn 40%')}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMobileOpen(false);
+                          if (window.location.pathname === '/') {
+                            document.getElementById('contest-section')?.scrollIntoView({ behavior: 'smooth' });
+                          } else {
+                            navigate('/#contest-section');
+                          }
+                        }}
+                        className="flex flex-col items-center justify-center p-3 rounded-xl bg-indigo-50 text-indigo-600 font-bold text-xs border border-indigo-100"
+                      >
+                        <span className="text-lg mb-1">🏆</span>
+                        {t('navbar.winOneLakh', 'Win ₹1 Lakh')}
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col gap-2 pt-2">
+                      <button onClick={() => { navigate('/login'); setMobileOpen(false); }} className="w-full border border-gray-300 py-2.5 rounded-xl text-sm font-bold text-gray-700">{t('navbar.login')}</button>
+                      <button onClick={() => { navigate('/signup'); setMobileOpen(false); }} className="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-100">{t('navbar.signup')}</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </aside>
+        </div>
       </div>
       <RoleCompletionModal
         isOpen={completionModal.open}

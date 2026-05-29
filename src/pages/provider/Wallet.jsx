@@ -305,7 +305,7 @@ const Wallet = () => {
           <div className="flex flex-wrap gap-3">
             <Link 
               to="/provider/payout-settings" 
-              className="px-5 py-3 border border-white/10 hover:border-white/20 bg-white/5 rounded-2xl text-xs font-extrabold tracking-wide uppercase transition-all flex items-center gap-2"
+              className="px-5 py-3 bg-[#081B3A] text-white hover:bg-[#0E2854] rounded-2xl text-xs font-extrabold tracking-wide uppercase transition-all flex items-center gap-2"
             >
               <HiCog className="w-4 h-4 text-slate-400" />
               {t('wallet.managePayouts', 'Payout Methods')}
@@ -318,7 +318,7 @@ const Wallet = () => {
                   setShowWithdrawModal(true);
                 }
               }}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-extrabold tracking-wide uppercase shadow-lg shadow-indigo-600/15 hover:shadow-indigo-600/25 transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-extrabold tracking-wide uppercase shadow-lg shadow-emerald-600/15 hover:shadow-emerald-600/25 transition-all flex items-center gap-2"
             >
               <HiCurrencyRupee className="w-5 h-5 text-indigo-200" />
               {t('wallet.withdrawBtn', 'Withdraw Money')}
@@ -547,14 +547,14 @@ const Wallet = () => {
                     <button
                       type="button"
                       onClick={() => setShowWithdrawModal(false)}
-                      className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                      className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition shadow-xs"
                     >
                       {t('common.cancel', 'Cancel')}
                     </button>
                     <button
                       type="submit"
                       disabled={sendingOtp || !amount || Number(amount) < config.minWithdrawalAmount}
-                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5"
+                      className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5"
                     >
                       {sendingOtp ? t('wallet.sendingOtp', 'Sending OTP...') : t('wallet.confirmWithdraw', 'Confirm Payout')}
                       <HiArrowRight className="w-4 h-4" />
@@ -621,7 +621,7 @@ const Wallet = () => {
                     <button
                       type="submit"
                       disabled={submittingWithdraw || otp.replace(/\s/g, "").length !== 6}
-                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5"
+                      className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5"
                     >
                       {submittingWithdraw ? t('wallet.submitting', 'Submitting...') : t('wallet.verifyAndWithdraw', 'Verify & Withdraw')}
                       <HiCheckCircle className="w-4 h-4" />

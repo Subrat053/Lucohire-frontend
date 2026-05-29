@@ -1,28 +1,44 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import {
-  HiBriefcase, HiLocationMarker, HiCurrencyRupee, HiSearch, HiFilter,
-  HiCheckCircle, HiClock, HiOfficeBuilding, HiChevronLeft, HiChevronRight,
-  HiX, HiDocumentText, HiExclamationCircle, HiSparkles,
-} from 'react-icons/hi';
-import { FaRupeeSign } from 'react-icons/fa';
-import toast from 'react-hot-toast';
-import { providerAPI, subscriptionAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-import LocationSearch from '../../components/LocationSearch';
+  HiBriefcase,
+  HiLocationMarker,
+  HiCurrencyRupee,
+  HiSearch,
+  HiFilter,
+  HiCheckCircle,
+  HiClock,
+  HiOfficeBuilding,
+  HiChevronLeft,
+  HiChevronRight,
+  HiX,
+  HiDocumentText,
+  HiExclamationCircle,
+  HiSparkles,
+} from "react-icons/hi";
+import { FaRupeeSign } from "react-icons/fa";
+import toast from "react-hot-toast";
+import { providerAPI, subscriptionAPI } from "../../services/api";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import LocationSearch from "../../components/LocationSearch";
 
-const BUDGET_LABELS = { fixed: 'Fixed', hourly: '/hr', monthly: '/mo', negotiable: 'Negotiable' };
+const BUDGET_LABELS = {
+  fixed: "Fixed",
+  hourly: "/hr",
+  monthly: "/mo",
+  negotiable: "Negotiable",
+};
 const STATUS_COLORS = {
-  pending:     'bg-yellow-50 text-yellow-700 border-yellow-200',
-  reviewed:    'bg-blue-50 text-blue-700 border-blue-200',
-  shortlisted: 'bg-purple-50 text-purple-700 border-purple-200',
-  rejected:    'bg-red-50 text-red-700 border-red-200',
-  hired:       'bg-green-50 text-green-700 border-green-200',
+  pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  reviewed: "bg-blue-50 text-blue-700 border-blue-200",
+  shortlisted: "bg-purple-50 text-purple-700 border-purple-200",
+  rejected: "bg-red-50 text-red-700 border-red-200",
+  hired: "bg-green-50 text-green-700 border-green-200",
 };
 
 /* ── Apply Modal ─────────────────────────────────────────────────────── */
 const ApplyModal = ({ job, onClose, onSuccess }) => {
-  const [coverLetter, setCoverLetter] = useState('');
+  const [coverLetter, setCoverLetter] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -30,10 +46,10 @@ const ApplyModal = ({ job, onClose, onSuccess }) => {
     setLoading(true);
     try {
       await providerAPI.applyToJob(job._id, { coverLetter });
-      toast.success('Application submitted successfully!');
+      toast.success("Application submitted successfully!");
       onSuccess(job._id);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to apply to this job');
+      toast.error(err.response?.data?.message || "Failed to apply to this job");
     } finally {
       setLoading(false);
     }
@@ -43,23 +59,31 @@ const ApplyModal = ({ job, onClose, onSuccess }) => {
     <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg border border-gray-100 overflow-hidden transform transition-all">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">Apply for: {job.title}</h3>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-xl transition text-gray-500">
+          <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">
+            Apply for: {job.title}
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-gray-200 rounded-xl transition text-gray-500"
+          >
             <HiX className="w-5.5 h-5.5" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-1">
             <p className="text-xs sm:text-sm text-gray-600">
-              <span className="font-bold text-gray-800">Recruiter:</span> {job.companyName || job.recruiter?.name || 'Recruiter Company'}
+              <span className="font-bold text-gray-800">Recruiter:</span>{" "}
+              {job.companyName || job.recruiter?.name || "Recruiter Company"}
             </p>
             <p className="text-xs sm:text-sm text-gray-600">
-              <span className="font-bold text-gray-800">Skill needed:</span> {job.skill} · {job.city}
+              <span className="font-bold text-gray-800">Skill needed:</span>{" "}
+              {job.skill} · {job.city}
             </p>
           </div>
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1.5">
-              Introduce Yourself / Cover Letter <span className="text-gray-400 font-normal">(optional)</span>
+              Introduce Yourself / Cover Letter{" "}
+              <span className="text-gray-400 font-normal">(optional)</span>
             </label>
             <textarea
               rows={5}
@@ -69,14 +93,24 @@ const ApplyModal = ({ job, onClose, onSuccess }) => {
               placeholder="Describe your qualifications, experience, and why you are the best fit for this role..."
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-xs sm:text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none outline-none"
             />
-            <p className="text-right text-[10px] text-gray-400 mt-0.5">{coverLetter.length}/1000</p>
+            <p className="text-right text-[10px] text-gray-400 mt-0.5">
+              {coverLetter.length}/1000
+            </p>
           </div>
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition"
+            >
               Cancel
             </button>
-            <button type="submit" disabled={loading} className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition">
-              {loading ? 'Submitting…' : 'Submit Application'}
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 transition"
+            >
+              {loading ? "Submitting…" : "Submit Application"}
             </button>
           </div>
         </form>
@@ -90,9 +124,9 @@ const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
   useEffect(() => {
     let metaTag = null;
     if (job?.isExternal) {
-      metaTag = document.createElement('meta');
-      metaTag.name = 'robots';
-      metaTag.content = 'noindex, nofollow';
+      metaTag = document.createElement("meta");
+      metaTag.name = "robots";
+      metaTag.content = "noindex, nofollow";
       document.head.appendChild(metaTag);
     }
     return () => {
@@ -101,19 +135,19 @@ const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
       }
     };
   }, [job]);
-  const budgetText = job.budgetType === 'negotiable'
-    ? 'Negotiable'
-    : `₹${job.budgetMin?.toLocaleString()} – ₹${job.budgetMax?.toLocaleString()} ${BUDGET_LABELS[job.budgetType] || ''}`.trim();
+  const budgetText =
+    job.budgetType === "negotiable"
+      ? "Negotiable"
+      : `₹${job.budgetMin?.toLocaleString()} – ₹${job.budgetMax?.toLocaleString()} ${BUDGET_LABELS[job.budgetType] || ""}`.trim();
 
   const postedAgo = (() => {
     const d = Math.floor((Date.now() - new Date(job.createdAt)) / 86400000);
-    return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : `${d}d ago`;
+    return d === 0 ? "Today" : d === 1 ? "Yesterday" : `${d}d ago`;
   })();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all border border-gray-100 flex flex-col max-h-[85vh]">
-        
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/50">
           <div>
@@ -121,34 +155,47 @@ const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
               <HiBriefcase className="w-5 h-5 text-indigo-600 shrink-0 animate-pulse" />
               {job.title}
             </h3>
-            <p className="text-xs text-gray-500 mt-1">Posted {postedAgo} by <span className="font-semibold text-gray-700">{job.recruiter?.name || 'Company'}</span></p>
+            <p className="text-xs text-gray-500 mt-1">
+              Posted {postedAgo} by{" "}
+              <span className="font-semibold text-gray-700">
+                {job.recruiter?.name || "Company"}
+              </span>
+            </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-200/80 rounded-xl transition text-gray-500 hover:text-gray-800">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-200/80 rounded-xl transition text-gray-500 hover:text-gray-800"
+          >
             <HiX className="w-5.5 h-5.5" />
           </button>
         </div>
 
         {/* Scrollable Content */}
         <div className="p-6 space-y-6 overflow-y-auto flex-1 text-sm text-gray-700">
-          
           {/* Main Info Badges */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100/50">
             <div className="space-y-1">
-              <span className="text-[10px] uppercase tracking-wider text-indigo-600 font-bold">Budget / Salary</span>
+              <span className="text-[10px] uppercase tracking-wider text-indigo-600 font-bold">
+                Budget / Salary
+              </span>
               <p className="font-extrabold text-gray-900 flex items-center gap-0.5 text-sm sm:text-base">
                 <FaRupeeSign className="w-3.5 h-3.5 text-indigo-600" />
                 {budgetText}
               </p>
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] uppercase tracking-wider text-indigo-600 font-bold">Location</span>
+              <span className="text-[10px] uppercase tracking-wider text-indigo-600 font-bold">
+                Location
+              </span>
               <p className="font-bold text-gray-800 flex items-center gap-1">
                 <HiLocationMarker className="w-4 h-4 text-indigo-600" />
-                {job.city || 'Not specified'}
+                {job.city || "Not specified"}
               </p>
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] uppercase tracking-wider text-indigo-600 font-bold">Job Status</span>
+              <span className="text-[10px] uppercase tracking-wider text-indigo-600 font-bold">
+                Job Status
+              </span>
               <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 mt-0.5 w-fit">
                 Active Job
               </span>
@@ -157,22 +204,29 @@ const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
 
           {/* Job Description */}
           <div className="space-y-2">
-            <h4 className="font-bold text-gray-900 text-sm sm:text-base border-l-4 border-indigo-600 pl-2">Job Description</h4>
+            <h4 className="font-bold text-gray-900 text-sm sm:text-base border-l-4 border-indigo-600 pl-2">
+              Job Description
+            </h4>
             <p className="text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 whitespace-pre-line text-xs sm:text-sm">
-              {job.description || 'No detailed description available.'}
+              {job.description || "No detailed description available."}
             </p>
           </div>
 
           {/* Requirements & Skills */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <h4 className="font-bold text-gray-900 text-sm border-l-4 border-indigo-600 pl-2">Experience Needed</h4>
+              <h4 className="font-bold text-gray-900 text-sm border-l-4 border-indigo-600 pl-2">
+                Experience Needed
+              </h4>
               <p className="text-xs sm:text-sm text-gray-600 bg-gray-50/50 px-4 py-3 rounded-xl border border-gray-100/80 font-medium">
-                {job.experienceRequired || 'Experience requirement not specified'}
+                {job.experienceRequired ||
+                  "Experience requirement not specified"}
               </p>
             </div>
             <div className="space-y-2">
-              <h4 className="font-bold text-gray-900 text-sm border-l-4 border-indigo-600 pl-2">Primary Skill Category</h4>
+              <h4 className="font-bold text-gray-900 text-sm border-l-4 border-indigo-600 pl-2">
+                Primary Skill Category
+              </h4>
               <p className="text-xs sm:text-sm text-indigo-700 bg-indigo-50/30 px-4 py-3 rounded-xl border border-indigo-100/50 font-bold">
                 {job.skill}
               </p>
@@ -182,10 +236,15 @@ const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
           {/* Other Skills Needed */}
           {job.requirements?.length > 0 && (
             <div className="space-y-2">
-              <h4 className="font-bold text-gray-900 text-sm border-l-4 border-indigo-600 pl-2">Required Skills / Credentials</h4>
+              <h4 className="font-bold text-gray-900 text-sm border-l-4 border-indigo-600 pl-2">
+                Required Skills / Credentials
+              </h4>
               <div className="flex flex-wrap gap-2 pt-1">
                 {job.requirements.map((r, i) => (
-                  <span key={i} className="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded-xl border border-gray-200 font-semibold shadow-2xs">
+                  <span
+                    key={i}
+                    className="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded-xl border border-gray-200 font-semibold shadow-2xs"
+                  >
                     {r}
                   </span>
                 ))}
@@ -200,30 +259,38 @@ const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
               About The Company
             </h4>
             <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 space-y-2">
-              <p className="text-xs sm:text-sm font-bold text-gray-800">{job.companyName || job.recruiter?.name || 'Recruiter Company'}</p>
+              <p className="text-xs sm:text-sm font-bold text-gray-800">
+                {job.companyName || job.recruiter?.name || "Recruiter Company"}
+              </p>
               <p className="text-xs text-gray-600 leading-relaxed italic">
-                "{job.companyInfo || 'This company is registered under the ServiceHub network, providing jobs across multiple sectors.'}"
+                "
+                {job.companyInfo ||
+                  "This company is registered under the ServiceHub network, providing jobs across multiple sectors."}
+                "
               </p>
             </div>
           </div>
-
         </div>
 
         {/* Footer Actions */}
         <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-3 text-xs sm:text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-100 bg-white transition">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 text-xs sm:text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition"
+          >
             Close details
           </button>
           {job.hasApplied ? (
             <div className="flex-1 py-3 bg-green-50 border border-green-200 text-green-700 font-bold rounded-xl text-xs sm:text-sm text-center flex items-center justify-center gap-1.5 shadow-2xs">
-              <HiCheckCircle className="w-4 h-4 animate-bounce" /> Applied Successfully
+              <HiCheckCircle className="w-4 h-4 animate-bounce" /> Applied
+              Successfully
             </div>
           ) : job.isExternal && job.externalUrl ? (
             <a
               href={job.externalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md hover:from-indigo-700 hover:to-purple-700 transition block text-center"
+              className="flex-1 py-3 bg-emerald-600 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-emerald-700 transition block text-center"
             >
               Apply Externally
             </a>
@@ -232,13 +299,12 @@ const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
               onClick={() => {
                 onApplyNow(job);
               }}
-              className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md hover:from-indigo-700 hover:to-purple-700 transition"
+              className="flex-1 py-3 bg-emerald-600 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-emerald-700 transition"
             >
               Apply Now
             </button>
           )}
         </div>
-
       </div>
     </div>
   );
@@ -280,13 +346,14 @@ const JobCardSkeleton = () => (
 
 /* ── Job Card ────────────────────────────────────────────────────────── */
 const JobCard = ({ job, onViewDetails }) => {
-  const budgetText = job.budgetType === 'negotiable'
-    ? 'Negotiable'
-    : `₹${job.budgetMin?.toLocaleString()} – ₹${job.budgetMax?.toLocaleString()} ${BUDGET_LABELS[job.budgetType] || ''}`.trim();
+  const budgetText =
+    job.budgetType === "negotiable"
+      ? "Negotiable"
+      : `₹${job.budgetMin?.toLocaleString()} – ₹${job.budgetMax?.toLocaleString()} ${BUDGET_LABELS[job.budgetType] || ""}`.trim();
 
   const postedAgo = (() => {
     const d = Math.floor((Date.now() - new Date(job.createdAt)) / 86400000);
-    return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : `${d}d ago`;
+    return d === 0 ? "Today" : d === 1 ? "Yesterday" : `${d}d ago`;
   })();
 
   return (
@@ -305,7 +372,9 @@ const JobCard = ({ job, onViewDetails }) => {
                   {job.title}
                 </a>
               ) : (
-                <h3 className="font-bold text-gray-900 text-base truncate">{job.title}</h3>
+                <h3 className="font-bold text-gray-900 text-base truncate">
+                  {job.title}
+                </h3>
               )}
               {job.hasApplied && (
                 <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
@@ -314,9 +383,18 @@ const JobCard = ({ job, onViewDetails }) => {
               )}
             </div>
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 mb-2">
-              <span className="flex items-center gap-1"><HiOfficeBuilding className="w-3.5 h-3.5" />{job.companyName || job.recruiter?.name || 'Company'}</span>
-              <span className="flex items-center gap-1"><HiLocationMarker className="w-3.5 h-3.5" />{job.city}</span>
-              <span className="flex items-center gap-1"><HiClock className="w-3.5 h-3.5" />{postedAgo}</span>
+              <span className="flex items-center gap-1">
+                <HiOfficeBuilding className="w-3.5 h-3.5" />
+                {job.companyName || job.recruiter?.name || "Company"}
+              </span>
+              <span className="flex items-center gap-1">
+                <HiLocationMarker className="w-3.5 h-3.5" />
+                {job.city}
+              </span>
+              <span className="flex items-center gap-1">
+                <HiClock className="w-3.5 h-3.5" />
+                {postedAgo}
+              </span>
             </div>
             <div className="flex flex-wrap gap-2">
               <span className="inline-block text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full font-medium border border-indigo-100">
@@ -336,23 +414,36 @@ const JobCard = ({ job, onViewDetails }) => {
           <div className="shrink-0 text-left sm:text-right mt-2 sm:mt-0">
             <p className="text-sm font-bold text-gray-900 flex items-center gap-0.5 sm:justify-end">
               <FaRupeeSign className="w-3 h-3 text-gray-500" />
-              {job.budgetType === 'negotiable' ? 'Negotiable' : `${job.budgetMin?.toLocaleString()}+`}
+              {job.budgetType === "negotiable"
+                ? "Negotiable"
+                : `${job.budgetMin?.toLocaleString()}+`}
             </p>
-            <p className="text-xs text-gray-400">{BUDGET_LABELS[job.budgetType]}</p>
+            <p className="text-xs text-gray-400">
+              {BUDGET_LABELS[job.budgetType]}
+            </p>
           </div>
         </div>
 
         {job.description && (
-          <p className="text-xs sm:text-sm text-gray-500 mt-3 line-clamp-2 leading-relaxed">{job.description}</p>
+          <p className="text-xs sm:text-sm text-gray-500 mt-3 line-clamp-2 leading-relaxed">
+            {job.description}
+          </p>
         )}
 
         {job.requirements?.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3">
             {job.requirements.slice(0, 3).map((r, i) => (
-              <span key={i} className="text-[10px] px-2 py-0.5 bg-gray-50 text-gray-600 rounded-md border border-gray-100">{r}</span>
+              <span
+                key={i}
+                className="text-[10px] px-2 py-0.5 bg-gray-50 text-gray-600 rounded-md border border-gray-100"
+              >
+                {r}
+              </span>
             ))}
             {job.requirements.length > 3 && (
-              <span className="text-[10px] text-gray-400">+{job.requirements.length - 3} more</span>
+              <span className="text-[10px] text-gray-400">
+                +{job.requirements.length - 3} more
+              </span>
             )}
           </div>
         )}
@@ -361,21 +452,22 @@ const JobCard = ({ job, onViewDetails }) => {
       <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
         <p className="text-xs text-gray-400 flex items-center gap-1">
           <HiDocumentText className="w-3.5 h-3.5" />
-          {job.applicants?.length || 0} applicant{job.applicants?.length !== 1 ? 's' : ''}
+          {job.applicants?.length || 0} applicant
+          {job.applicants?.length !== 1 ? "s" : ""}
         </p>
         {job.isExternal && job.externalUrl ? (
           <a
             href={job.externalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition shadow-2xs"
+            className="px-4 py-2 text-xs font-bold text-white bg-[#081B3A] rounded-xl hover:bg-[#0E2854] transition shadow-2xs"
           >
             View External Post
           </a>
         ) : (
           <button
             onClick={() => onViewDetails(job)}
-            className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition shadow-2xs"
+            className="px-4 py-2 text-xs font-bold text-white bg-[#081B3A] rounded-xl hover:bg-[#0E2854] transition shadow-2xs"
           >
             View Details
           </button>
@@ -391,40 +483,70 @@ const ApplicationsTab = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    providerAPI.getApplications()
-      .then(r => setApps(r.data.applications || []))
-      .catch(() => toast.error('Failed to load applications'))
+    providerAPI
+      .getApplications()
+      .then((r) => setApps(r.data.applications || []))
+      .catch(() => toast.error("Failed to load applications"))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
-  if (!apps.length) return (
-    <div className="text-center py-16 text-gray-400">
-      <HiDocumentText className="w-12 h-12 mx-auto mb-3 opacity-40" />
-      <p className="font-medium">No applications yet</p>
-      <p className="text-sm mt-1">Browse jobs and apply to get started</p>
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="flex justify-center py-16">
+        <LoadingSpinner />
+      </div>
+    );
+  if (!apps.length)
+    return (
+      <div className="text-center py-16 text-gray-400">
+        <HiDocumentText className="w-12 h-12 mx-auto mb-3 opacity-40" />
+        <p className="font-medium">No applications yet</p>
+        <p className="text-sm mt-1">Browse jobs and apply to get started</p>
+      </div>
+    );
 
   return (
     <div className="space-y-3">
-      {apps.map(app => (
-        <div key={app._id} className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition">
+      {apps.map((app) => (
+        <div
+          key={app._id}
+          className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition"
+        >
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h4 className="font-bold text-gray-900">{app.jobPost?.title || 'Job'}</h4>
+              <h4 className="font-bold text-gray-900">
+                {app.jobPost?.title || "Job"}
+              </h4>
               <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 mt-1">
-                <span className="flex items-center gap-1"><HiOfficeBuilding className="w-3.5 h-3.5" />{app.jobPost?.companyName || app.jobPost?.recruiter?.name || 'Recruiter'}</span>
-                <span className="flex items-center gap-1"><HiLocationMarker className="w-3.5 h-3.5" />{app.jobPost?.city}</span>
-                <span className="flex items-center gap-1"><HiClock className="w-3.5 h-3.5" />Applied {new Date(app.appliedAt || app.createdAt).toLocaleDateString()}</span>
+                <span className="flex items-center gap-1">
+                  <HiOfficeBuilding className="w-3.5 h-3.5" />
+                  {app.jobPost?.companyName ||
+                    app.jobPost?.recruiter?.name ||
+                    "Recruiter"}
+                </span>
+                <span className="flex items-center gap-1">
+                  <HiLocationMarker className="w-3.5 h-3.5" />
+                  {app.jobPost?.city}
+                </span>
+                <span className="flex items-center gap-1">
+                  <HiClock className="w-3.5 h-3.5" />
+                  Applied{" "}
+                  {new Date(
+                    app.appliedAt || app.createdAt,
+                  ).toLocaleDateString()}
+                </span>
               </div>
             </div>
-            <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border capitalize ${STATUS_COLORS[app.status] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+            <span
+              className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border capitalize ${STATUS_COLORS[app.status] || "bg-gray-50 text-gray-600 border-gray-200"}`}
+            >
               {app.status}
             </span>
           </div>
           {app.coverLetter && (
-            <p className="mt-3 text-sm text-gray-600 line-clamp-2 bg-gray-50 rounded-xl px-3 py-2">{app.coverLetter}</p>
+            <p className="mt-3 text-sm text-gray-600 line-clamp-2 bg-gray-50 rounded-xl px-3 py-2">
+              {app.coverLetter}
+            </p>
           )}
         </div>
       ))}
@@ -434,33 +556,36 @@ const ApplicationsTab = () => {
 
 /* ── Main Page ───────────────────────────────────────────────────────── */
 const ProviderJobs = () => {
-  const [tab, setTab] = useState('browse'); // 'browse' | 'applications'
+  const [tab, setTab] = useState("browse"); // 'browse' | 'applications'
   const [jobs, setJobs] = useState([]);
   const [topMatches, setTopMatches] = useState([]);
   const [showMatchesDropdown, setShowMatchesDropdown] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState(null);
-  const [filters, setFilters] = useState({ skill: '', city: '' });
-  const [search, setSearch] = useState({ skill: '', city: '' });
+  const [filters, setFilters] = useState({ skill: "", city: "" });
+  const [search, setSearch] = useState({ skill: "", city: "" });
   const [applyTarget, setApplyTarget] = useState(null);
   const [viewDetailTarget, setViewDetailTarget] = useState(null);
 
-  const fetchJobs = useCallback(async (page = 1) => {
-    setLoading(true);
-    try {
-      const params = { page, limit: 15 };
-      if (search.skill) params.skill = search.skill;
-      if (search.city) params.city = search.city;
-      const { data } = await providerAPI.getJobs(params);
-      setJobs(data.jobs || []);
-      setPagination(data.pagination || { page: 1, pages: 1, total: 0 });
-    } catch {
-      toast.error('Failed to load jobs');
-    } finally {
-      setLoading(false);
-    }
-  }, [search]);
+  const fetchJobs = useCallback(
+    async (page = 1) => {
+      setLoading(true);
+      try {
+        const params = { page, limit: 15 };
+        if (search.skill) params.skill = search.skill;
+        if (search.city) params.city = search.city;
+        const { data } = await providerAPI.getJobs(params);
+        setJobs(data.jobs || []);
+        setPagination(data.pagination || { page: 1, pages: 1, total: 0 });
+      } catch {
+        toast.error("Failed to load jobs");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [search],
+  );
 
   const [scraping, setScraping] = useState(false);
 
@@ -470,14 +595,14 @@ const ProviderJobs = () => {
       setLoading(true);
       const res = await providerAPI.scrapeMatches();
       if (res.data?.success) {
-        toast.success('Successfully fetched new matches!');
+        toast.success("Successfully fetched new matches!");
         const matchedJobs = res.data.data || [];
         setJobs(matchedJobs);
         setTopMatches(matchedJobs);
         setPagination({ page: 1, pages: 1, total: matchedJobs.length });
       }
     } catch (error) {
-      toast.error('Failed to scrape new matches.');
+      toast.error("Failed to scrape new matches.");
     } finally {
       setScraping(false);
       setLoading(false);
@@ -490,44 +615,54 @@ const ProviderJobs = () => {
     } else {
       setLoading(true);
       // Fetch top matches to show directly in card format!
-      providerAPI.getMatches().then(res => {
-        if (res.data?.success) {
-          const matchedJobs = res.data.data || [];
-          setJobs(matchedJobs);
-          setTopMatches(matchedJobs);
-          setPagination({ page: 1, pages: 1, total: matchedJobs.length });
-        }
-      }).catch(err => {
-        console.error('Failed to fetch top matches', err);
-        fetchJobs(1); // fallback to general jobs if matches query fails
-      }).finally(() => {
-        setLoading(false);
-      });
+      providerAPI
+        .getMatches()
+        .then((res) => {
+          if (res.data?.success) {
+            const matchedJobs = res.data.data || [];
+            setJobs(matchedJobs);
+            setTopMatches(matchedJobs);
+            setPagination({ page: 1, pages: 1, total: matchedJobs.length });
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch top matches", err);
+          fetchJobs(1); // fallback to general jobs if matches query fails
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
   }, [search, fetchJobs]);
 
   // Run a fresh scrape automatically on page load in the background
   useEffect(() => {
-    providerAPI.scrapeMatches().then(res => {
-      if (res.data?.success && !search.skill && !search.city) {
-        const matchedJobs = res.data.data || [];
-        setJobs(matchedJobs);
-        setTopMatches(matchedJobs);
-        setPagination({ page: 1, pages: 1, total: matchedJobs.length });
-      }
-    }).catch(err => console.error("Auto-scrape failed", err));
+    providerAPI
+      .scrapeMatches()
+      .then((res) => {
+        if (res.data?.success && !search.skill && !search.city) {
+          const matchedJobs = res.data.data || [];
+          setJobs(matchedJobs);
+          setTopMatches(matchedJobs);
+          setPagination({ page: 1, pages: 1, total: matchedJobs.length });
+        }
+      })
+      .catch((err) => console.error("Auto-scrape failed", err));
   }, []);
 
   useEffect(() => {
-    subscriptionAPI.getMySubscription()
-      .then(r => setSubscription(r.data))
+    subscriptionAPI
+      .getMySubscription()
+      .then((r) => setSubscription(r.data))
       .catch(() => {});
   }, []);
 
   const handleApplySuccess = (jobId) => {
     setApplyTarget(null);
     setViewDetailTarget(null);
-    setJobs(prev => prev.map(j => j._id === jobId ? { ...j, hasApplied: true } : j));
+    setJobs((prev) =>
+      prev.map((j) => (j._id === jobId ? { ...j, hasApplied: true } : j)),
+    );
   };
 
   const handleSearch = (e) => {
@@ -537,8 +672,8 @@ const ProviderJobs = () => {
   };
 
   const clearFilters = () => {
-    setFilters({ skill: '', city: '' });
-    setSearch({ skill: '', city: '' });
+    setFilters({ skill: "", city: "" });
+    setSearch({ skill: "", city: "" });
   };
 
   const planName = subscription?.plan?.name;
@@ -546,29 +681,40 @@ const ProviderJobs = () => {
   const remainingApply = subscription?.remainingApplyLimit;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 overflow-x-hidden" onClick={() => setShowMatchesDropdown(false)}>
+    <div
+      className="min-h-screen bg-gray-50 pb-16 overflow-x-hidden"
+      onClick={() => setShowMatchesDropdown(false)}
+    >
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-700 px-6 py-8">
+      <div className="bg-blue-900 px-6 py-8">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-white mb-1">Find Recruiters</h1>
-            <p className="text-indigo-100 text-sm">Browse job openings from recruiters looking for your skills</p>
+            <h1 className="text-2xl font-extrabold text-white mb-1">
+              Find Recruiters
+            </h1>
+            <p className="text-indigo-100 text-sm">
+              Browse job openings from recruiters looking for your skills
+            </p>
             {planName && (
               <div className="mt-3 inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs text-white font-medium">
                 <HiSparkles className="w-3.5 h-3.5" />
                 {planName} Plan
                 {applyLimit !== -1 && remainingApply !== undefined && (
-                  <span className="text-indigo-100">· {remainingApply} applications remaining</span>
+                  <span className="text-indigo-100">
+                    · {remainingApply} applications remaining
+                  </span>
                 )}
               </div>
             )}
           </div>
-          <button 
+          <button
             onClick={handleScrapeMatches}
             disabled={scraping}
-            className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-indigo-700 bg-white rounded-xl hover:bg-indigo-50 hover:scale-105 disabled:opacity-75 transition-all shadow-md w-full md:w-fit mt-2 md:mt-0"
+            className="rounded-full bg-[linear-gradient(180deg,#67e8f9_0%,#3b82f6_45%,#a855f7_100%)] bg-size-[100%_200%] animate-[gradient_5s_ease_infinite] px-6 py-3 text-white font-semibold border border-cyan-300/30 shadow-[0_0_20px_rgba(34,211,238,0.45),0_0_40px_rgba(168,85,247,0.35)] hover:shadow-[0_0_30px_rgba(34,211,238,0.7),0_0_60px_rgba(168,85,247,0.55)] hover:scale-[1.03] hover:brightness-110 transition-all duration-300 flex items-center justify-center gap-2"
           >
-            <HiSparkles className={`w-5 h-5 ${scraping ? "animate-spin text-indigo-500" : "text-indigo-600"}`} />
+            <HiSparkles
+              className={`w-5 h-5 ${scraping ? "animate-spin text-indigo-500" : "text-indigo-600"}`}
+            />
             {scraping ? "Scraping..." : "Refresh with AI Scraper"}
           </button>
         </div>
@@ -577,26 +723,35 @@ const ProviderJobs = () => {
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* Tabs */}
         <div className="flex gap-2 bg-white rounded-xl border border-gray-100 p-1 mb-6 w-fit shadow-xs">
-          {[['browse', 'Browse Jobs'], ['applications', 'My Applications']].map(([key, label]) => (
+          {[
+            ["browse", "Browse Jobs"],
+            ["applications", "My Applications"],
+          ].map(([key, label]) => (
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === key ? 'bg-indigo-600 text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === key ? "bg-sky-500 text-white shadow-xs" : "text-gray-600 hover:text-gray-900"}`}
             >
               {label}
             </button>
           ))}
         </div>
 
-        {tab === 'browse' && (
+        {tab === "browse" && (
           <>
             {/* Search Bar */}
             <div className="relative">
-              <form onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-100 p-4 mb-6 flex flex-col md:flex-row md:flex-wrap gap-3 md:items-end shadow-2xs" onClick={e => e.stopPropagation()}>
+              <form
+                onSubmit={handleSearch}
+                className="bg-white rounded-2xl border border-gray-100 p-4 mb-6 flex flex-col md:flex-row md:flex-wrap gap-3 md:items-end shadow-2xs"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="flex-1 w-full relative">
                   <label className="block text-xs text-gray-500 font-medium mb-1 flex items-center gap-1">
                     Skill / Job Title
-                    <span className="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 rounded-full border border-indigo-100">AI Enabled</span>
+                    <span className="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 rounded-full border border-indigo-100">
+                      AI Enabled
+                    </span>
                   </label>
                   <div className="relative">
                     <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -604,60 +759,82 @@ const ProviderJobs = () => {
                       type="text"
                       placeholder="e.g. Plumber, Designer…"
                       value={filters.skill}
-                      onChange={e => setFilters(f => ({ ...f, skill: e.target.value }))}
+                      onChange={(e) =>
+                        setFilters((f) => ({ ...f, skill: e.target.value }))
+                      }
                       onFocus={() => setShowMatchesDropdown(true)}
                       className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 outline-none"
                     />
                   </div>
-                  
+
                   {/* AI Top Matches Dropdown */}
                   {showMatchesDropdown && topMatches.length > 0 && (
                     <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 z-50 max-h-[350px] overflow-y-auto animate-fadeInUp">
                       <div className="p-3 border-b border-gray-50 bg-indigo-50/50 sticky top-0">
                         <h4 className="text-xs font-bold text-indigo-800 flex items-center gap-1.5">
-                          <HiSparkles className="w-3.5 h-3.5" /> 
+                          <HiSparkles className="w-3.5 h-3.5" />
                           Top Matches Based On Your Profile
                         </h4>
                       </div>
                       <div className="divide-y divide-gray-50">
-                        {topMatches.map(match => (
-                          <div 
-                            key={match._id} 
+                        {topMatches.map((match) => (
+                          <div
+                            key={match._id}
                             onClick={() => {
                               setViewDetailTarget(match);
                               setShowMatchesDropdown(false);
                             }}
                             className="p-3 hover:bg-gray-50 cursor-pointer transition-colors"
                           >
-                            <h5 className="font-semibold text-sm text-gray-800">{match.title}</h5>
+                            <h5 className="font-semibold text-sm text-gray-800">
+                              {match.title}
+                            </h5>
                             <div className="flex gap-2 text-xs text-gray-500 mt-1">
-                              <span className="flex items-center gap-1"><HiOfficeBuilding className="w-3 h-3"/> {match.companyName || 'Company'}</span>
-                              <span className="flex items-center gap-1"><HiLocationMarker className="w-3 h-3"/> {match.city}</span>
+                              <span className="flex items-center gap-1">
+                                <HiOfficeBuilding className="w-3 h-3" />{" "}
+                                {match.companyName || "Company"}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <HiLocationMarker className="w-3 h-3" />{" "}
+                                {match.city}
+                              </span>
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
-
                 </div>
                 <div className="flex-1 w-full">
-                  <label className="block text-xs text-gray-500 font-medium mb-1">City / Location</label>
+                  <label className="block text-xs text-gray-500 font-medium mb-1">
+                    City / Location
+                  </label>
                   <LocationSearch
                     value={filters.city}
-                    onChange={(value) => setFilters(f => ({ ...f, city: value }))}
-                    onSelect={(item) => setFilters(f => ({ ...f, city: item?.name || f.city }))}
+                    onChange={(value) =>
+                      setFilters((f) => ({ ...f, city: value }))
+                    }
+                    onSelect={(item) =>
+                      setFilters((f) => ({ ...f, city: item?.name || f.city }))
+                    }
                     placeholder="e.g. Mumbai, Delhi…"
                     className="focus:ring-indigo-300"
                   />
                 </div>
                 <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
                   {(search.skill || search.city) && (
-                    <button type="button" onClick={clearFilters} className="flex-1 md:flex-none px-4 py-2 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition text-center">
+                    <button
+                      type="button"
+                      onClick={clearFilters}
+                      className="flex-1 md:flex-none px-4 py-2 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition text-center"
+                    >
                       Clear
                     </button>
                   )}
-                  <button type="submit" className="flex-1 md:flex-none justify-center px-5 py-2 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition flex items-center gap-2">
+                  <button
+                    type="submit"
+                    className="flex-1 md:flex-none justify-center px-5 py-2 text-sm font-bold text-white bg-[#081B3A] rounded-xl hover:bg-[#0E2854] transition flex items-center gap-2"
+                  >
                     <HiFilter className="w-4 h-4" /> Search
                   </button>
                 </div>
@@ -666,23 +843,40 @@ const ProviderJobs = () => {
 
             {/* Results */}
             {loading ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                {[1, 2, 3, 4].map(n => <JobCardSkeleton key={n} />)}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {[1, 2, 3, 4].map((n) => (
+                  <JobCardSkeleton key={n} />
+                ))}
               </div>
             ) : jobs.length === 0 ? (
               <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-100 shadow-2xs">
                 <HiBriefcase className="w-12 h-12 mx-auto mb-3 opacity-40" />
                 <p className="font-medium text-gray-600">No jobs found</p>
                 {(search.skill || search.city) && (
-                  <p className="text-sm mt-1">Try different keywords or <button onClick={clearFilters} className="text-indigo-600 font-medium">clear filters</button></p>
+                  <p className="text-sm mt-1">
+                    Try different keywords or{" "}
+                    <button
+                      onClick={clearFilters}
+                      className="text-indigo-600 font-medium"
+                    >
+                      clear filters
+                    </button>
+                  </p>
                 )}
               </div>
             ) : (
               <>
-                <p className="text-sm text-gray-500 mb-3">{pagination.total} job{pagination.total !== 1 ? 's' : ''} found</p>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {jobs.map(job => (
-                    <JobCard key={job._id} job={job} onViewDetails={setViewDetailTarget} />
+                <p className="text-sm text-gray-500 mb-3">
+                  {pagination.total} job{pagination.total !== 1 ? "s" : ""}{" "}
+                  found
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {jobs.map((job) => (
+                    <JobCard
+                      key={job._id}
+                      job={job}
+                      onViewDetails={setViewDetailTarget}
+                    />
                   ))}
                 </div>
                 {/* Pagination */}
@@ -695,7 +889,9 @@ const ProviderJobs = () => {
                     >
                       <HiChevronLeft className="w-4 h-4 text-gray-600" />
                     </button>
-                    <span className="text-sm text-gray-600 font-semibold">Page {pagination.page} of {pagination.pages}</span>
+                    <span className="text-sm text-gray-600 font-semibold">
+                      Page {pagination.page} of {pagination.pages}
+                    </span>
                     <button
                       disabled={pagination.page >= pagination.pages}
                       onClick={() => fetchJobs(pagination.page + 1)}
@@ -710,7 +906,7 @@ const ProviderJobs = () => {
           </>
         )}
 
-        {tab === 'applications' && <ApplicationsTab />}
+        {tab === "applications" && <ApplicationsTab />}
       </div>
 
       {/* View Details Modal */}

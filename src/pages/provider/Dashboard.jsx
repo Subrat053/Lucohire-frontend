@@ -31,7 +31,6 @@ const ProviderDashboard = () => {
   const [topJobs, setTopJobs] = useState([]);
 
   const loadDashboard = useCallback(async (forceRefresh = false) => {
-    setLoading(true);
     const now = Date.now();
     const dashboardFresh =
       !forceRefresh &&
@@ -49,6 +48,25 @@ const ProviderDashboard = () => {
       matchesCache.data = null;
       matchesCache.ts = 0;
       matchesCache.inflight = null;
+    }
+
+    // Instantly populate state from cache to eliminate loading screens
+    if (dashboardCache.data) {
+      setDashboard(dashboardCache.data);
+    }
+    if (matchesCache.data) {
+      setTopJobs(matchesCache.data);
+    }
+
+    // If cache is fresh, skip api call and exit loading state
+    if (dashboardFresh && matchesFresh) {
+      setLoading(false);
+      return;
+    }
+
+    // Only display full-screen skeleton if we have no cached data at all
+    if (!dashboardCache.data) {
+      setLoading(true);
     }
 
     const dashboardPromise = dashboardFresh
@@ -210,25 +228,6 @@ const ProviderDashboard = () => {
             <span className="inline-block mt-1.5 text-xs px-2.5 py-0.5 bg-yellow-50 text-yellow-700 rounded-full border border-yellow-200 font-semibold">{stats.subscriptionBadge}</span>
           )}
         </div>
-        <div className="flex flex-wrap gap-2 mt-4 sm:mt-0 items-center">
-          <Link to="/provider/job-for-me" className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition flex items-center gap-1.5">
-            <HiBriefcase className="w-4 h-4" /> {t('provider.findRecruiters', 'Jobs for Me')}
-          </Link>
-          <button
-            type="button"
-            onClick={() => loadDashboard(true)}
-            disabled={loading}
-            className="border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50"
-          >
-            Refresh
-          </button>
-          <Link to="/provider/profile" className="border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
-            {t('provider.editProfile', 'Edit Profile')}
-          </Link>
-          <Link to={`/provider/plans?redirect=${encodeURIComponent('/provider/dashboard')}`} className="border border-indigo-200 text-indigo-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-50 transition">
-            {t('provider.upgradePlan', 'Upgrade Plan')}
-          </Link>
-        </div>
       </div>
 
       {/* New user onboarding banner */}
@@ -365,7 +364,7 @@ const ProviderDashboard = () => {
                 <span className="font-medium">{profile.skills?.length || 0} / {stats.currentPlan === 'free' ? 4 : '∞'}</span>
               </div>
             </div>
-            <Link to={`/provider/plans?redirect=${encodeURIComponent('/provider/dashboard')}`} className="block mt-4 text-center bg-indigo-50 text-indigo-600 py-2 rounded-xl text-sm font-medium hover:bg-indigo-100 transition">
+            <Link to={`/provider/plans?redirect=${encodeURIComponent('/provider/dashboard')}`} className="block mt-4 text-center bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-bold shadow-xs transition">
               {t('provider.upgradePlanBtn', 'Upgrade Plan →')}
             </Link>
           </div>

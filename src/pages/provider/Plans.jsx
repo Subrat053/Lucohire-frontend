@@ -482,10 +482,10 @@ const ProviderPlans = () => {
                                 setSelectedPlan(plan);
                               }
                             }}
-                            className={`mt-4 w-full text-xs font-bold px-4 py-2.5 rounded-xl transition ${isSelected
-                              ? 'bg-[#005BFF] text-white shadow-lg shadow-blue-200'
-                              : 'border-2 border-[#D6E3FF] text-[#005BFF] hover:bg-[#EEF4FF] hover:border-[#005BFF]'
-                              }`}
+                             className={`mt-4 w-full text-xs font-bold px-4 py-2.5 rounded-xl transition ${isSelected
+                               ? 'bg-emerald-600 text-white hover:bg-emerald-700 border-0'
+                               : 'border-2 border-[#081B3A] text-[#081B3A] hover:bg-[#081B3A]/5'
+                               }`}
                           >
                             {plan.slug === 'customise-plan'
                               ? t('plans.customiseNow', 'Customise Plan')
@@ -731,29 +731,29 @@ const ProviderPlans = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div 
                     onClick={() => setShowGuaranteeModal(true)}
-                    className="bg-white border border-[#E8EEF9] rounded-2xl p-5 shadow-sm flex items-center gap-4 cursor-pointer hover:border-emerald-500/50 hover:shadow-md transition-all group"
+                    className="bg-white border border-[#E8EEF9] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-4 cursor-pointer hover:border-emerald-500/50 hover:shadow-md transition-all group"
                   >
                     <div className="w-12 h-12 rounded-full bg-[#EEF4FF] flex items-center justify-center shrink-0 group-hover:bg-emerald-50 transition-colors">
                       <BadgeCheck className="w-6 h-6 text-[#005BFF] group-hover:text-emerald-600" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-[#06133D] group-hover:text-emerald-700 transition-colors">{t('plans.guaranteeTitle', '7-day money-back guarantee')}</p>
-                      <p className="text-xs text-[#64748B] mt-0.5">{t('plans.guaranteeDesc', 'Not satisfied with the leads? Get a full refund within 7 days, no questions asked.')}</p>
+                      <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">{t('plans.guaranteeDesc', 'Not satisfied with the leads? Get a full refund within 7 days, no questions asked.')}</p>
                     </div>
                   </div>
-                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                  <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-[#F4F7FF] flex items-center justify-center shrink-0">
                       <SlidersHorizontal className="w-6 h-6 text-[#005BFF]" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-[#06133D]">{t('plans.customTitle', 'Need a custom solution?')}</p>
-                      <p className="text-xs text-[#64748B] mt-0.5 truncate">{t('plans.customDesc', 'Configure dynamic visibility for localities, cities, or countries.')}</p>
+                      <p className="text-xs text-[#64748B] mt-0.5 whitespace-normal leading-relaxed">{t('plans.customDesc', 'Configure dynamic visibility for localities, cities, or countries.')}</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => navigate('/provider/customise-plan')}
-                      className="shrink-0 px-4 py-2 bg-[#F4F7FF] text-[#005BFF] text-xs font-bold rounded-lg hover:bg-[#E0E7FF] transition"
-                    >
+                     <button
+                       type="button"
+                       onClick={() => navigate('/provider/customise-plan')}
+                       className="w-full sm:w-auto shrink-0 px-4 py-2 bg-sky-500 text-white text-xs font-bold rounded-lg hover:bg-sky-600 transition text-center"
+                     >
                       {t('plans.customiseNow', 'Customise Plan')}
                     </button>
                   </div>
@@ -859,7 +859,7 @@ const ProviderPlans = () => {
               type="button"
               onClick={handleCheckout}
               disabled={!isConfigurationValid || checkoutLoading}
-              className="mt-5 w-full bg-[#005BFF] text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-[#0A4EE0] transition disabled:opacity-60 shadow-md hover:shadow-blue-200"
+              className="mt-5 w-full bg-emerald-600 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-emerald-700 transition disabled:opacity-60 shadow-md"
             >
               {checkoutLoading ? t('common.processing', 'Processing...') : t('plans.proceedPayment', 'Proceed to Payment')}
             </button>

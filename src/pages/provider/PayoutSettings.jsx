@@ -372,10 +372,10 @@ const PayoutSettings = () => {
     try {
       const { data } = await providerWalletAPI.savePayoutMethod(payload);
     setPayoutMethods(data.payoutMethods || []);
-    toast.success(editingId ? t('payout.updated', 'Payout method updated!') : t('payout.saved', 'Payout method saved!'));
+    toast.success(editingId ? t('payout.updated', 'Payment method updated!') : t('payout.saved', 'Payment method saved!'));
     resetForm();
     } catch (err) {
-      toast.error(err?.response?.data?.message || t('payout.saveFail', 'Failed to save payout method'));
+      toast.error(err?.response?.data?.message || t('payout.saveFail', 'Failed to save payment method'));
     } finally {
       setSaving(false);
     }
@@ -392,13 +392,13 @@ const PayoutSettings = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t('payout.deleteConfirm', 'Are you sure you want to delete this payout method?'))) return;
+    if (!window.confirm(t('payout.deleteConfirm', 'Are you sure you want to delete this payment method?'))) return;
     try {
       const { data } = await providerWalletAPI.deletePayoutMethod(id);
       setPayoutMethods(data.payoutMethods || []);
-      toast.success(t('payout.deleted', 'Payout method removed'));
+      toast.success(t('payout.deleted', 'Payment method removed'));
     } catch (err) {
-      toast.error(err?.response?.data?.message || t('payout.deleteFail', 'Failed to delete payout method'));
+      toast.error(err?.response?.data?.message || t('payout.deleteFail', 'Failed to delete payment method'));
     }
   };
 
@@ -421,9 +421,9 @@ const PayoutSettings = () => {
               <HiOutlineSparkles className="w-3.5 h-3.5" />
               {t('payout.badge', 'Withdrawal Center')}
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">{t('payout.title', 'Payout Settings')}</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight">{t('payout.title', 'Payment Settings')}</h1>
             <p className="text-slate-400 mt-2 max-w-lg text-sm md:text-base">
-              {t('payout.subtitle', 'Configure and verify your billing payout destinations securely. Verification code is required for modifications.')}
+              {t('payout.subtitle', 'Configure and verify your billing payment destinations securely. Verification code is required for modifications.')}
             </p>
           </div>
           <div className="flex items-center gap-2 p-3 bg-white/5 rounded-2xl border border-white/10 shrink-0">
@@ -441,7 +441,7 @@ const PayoutSettings = () => {
         <div className="md:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
           <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
             <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600"><HiCreditCard className="w-5 h-5" /></span>
-            {editingId ? t('payout.editHeader', 'Edit Payout Method') : t('payout.addHeader', 'Add Payout Method')}
+            {editingId ? t('payout.editHeader', 'Edit Payment Method') : t('payout.addHeader', 'Add Payment Method')}
           </h2>
 
           {/* Form Tabs */}
@@ -596,7 +596,7 @@ const PayoutSettings = () => {
             <div className="pt-4 border-t border-slate-100 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-600 uppercase mb-1.5">{t('payout.phoneConfirm', 'Send Verification SMS Code to:')}</label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="tel"
                     required
@@ -604,12 +604,12 @@ const PayoutSettings = () => {
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
                     placeholder="e.g. 9876543210"
-                    className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 transition disabled:bg-slate-100 disabled:text-slate-500 font-semibold"
+                    className="w-full sm:flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 transition disabled:bg-slate-100 disabled:text-slate-500 font-semibold"
                   />
                   <button
                     type="submit"
                     disabled={sendingOtp || (activeTab === 'qr' && !qrPreview)}
-                    className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-extrabold tracking-wide uppercase shadow-sm transition-all disabled:opacity-50 flex items-center gap-2.5 shrink-0"
+                    className="w-full sm:w-auto px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold tracking-wide uppercase shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2.5 shrink-0"
                   >
                     {sendingOtp ? t('payout.sending', 'Sending...') : t('payout.verifyAndSave', 'Verify & Save')}
                     <HiArrowRight className="w-4 h-4" />
@@ -627,7 +627,7 @@ const PayoutSettings = () => {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="w-full py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition"
+                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition border-0"
                 >
                   {t('common.cancel', 'Cancel Edit')}
                 </button>
@@ -686,7 +686,7 @@ const PayoutSettings = () => {
               <button
                 type="submit"
                 disabled={initiatingPhoneChange}
-                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold tracking-wide uppercase transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[#081B3A] hover:bg-[#0E2854] text-white rounded-xl text-xs font-extrabold tracking-wide uppercase transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {initiatingPhoneChange ? t('payout.updatingStatus', 'Initiating...') : t('payout.changePhoneBtn', 'Update Mobile Number')}
               </button>
@@ -822,7 +822,7 @@ const PayoutSettings = () => {
                 <button
                   type="button"
                   onClick={() => setShowOtpModal(false)}
-                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition border-0"
                 >
                   {t('common.cancel', 'Cancel')}
                 </button>
@@ -830,7 +830,7 @@ const PayoutSettings = () => {
                   type="button"
                   onClick={confirmFirebaseOtp}
                   disabled={saving || otp.length !== 6}
-                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50"
+                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50"
                 >
                   {saving ? t('payout.savingStatus', 'Saving...') : t('payout.confirmBtn', 'Confirm Code')}
                 </button>
@@ -884,14 +884,14 @@ const PayoutSettings = () => {
                     <button
                       type="button"
                       onClick={() => setShowConcernForm(false)}
-                      className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                      className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition border-0"
                     >
                       {t('common.back', 'Back')}
                     </button>
                     <button
                       type="submit"
                       disabled={raisingConcern}
-                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5"
+                      className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5"
                     >
                       {raisingConcern ? t('payout.submittingStatus', 'Submitting...') : t('payout.submitConcernBtn', 'Submit Concern')}
                     </button>
@@ -955,7 +955,7 @@ const PayoutSettings = () => {
                     <button
                       type="button"
                       onClick={() => setShowPhoneModal(false)}
-                      className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                      className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition border-0"
                     >
                       {t('common.cancel', 'Cancel')}
                     </button>
@@ -963,7 +963,7 @@ const PayoutSettings = () => {
                       type="button"
                       onClick={handleVerifyPhoneOtp}
                       disabled={verifyingPhone || phoneOtp.length !== 6}
-                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50"
+                      className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50"
                     >
                       {verifyingPhone ? t('payout.verifyingStatus', 'Verifying...') : t('payout.confirmBtn', 'Confirm Code')}
                     </button>

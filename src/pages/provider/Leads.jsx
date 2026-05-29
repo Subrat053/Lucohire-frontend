@@ -77,10 +77,10 @@ const ProviderLeads = () => {
                   )}
                   {lead.status === 'new' && (
                     <>
-                      <button onClick={() => updateStatus(lead._id, 'contacted')} className="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100" title="Mark Contacted">
+                      <button onClick={() => updateStatus(lead._id, 'contacted')} className="p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700" title="Mark Contacted">
                         <HiCheck className="w-5 h-5" />
                       </button>
-                      <button onClick={() => updateStatus(lead._id, 'rejected')} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100" title="Reject">
+                      <button onClick={() => updateStatus(lead._id, 'rejected')} className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700" title="Reject">
                         <HiXIcon className="w-5 h-5" />
                       </button>
                     </>
