@@ -69,9 +69,36 @@ export const LocaleProvider = ({ children }) => {
 
   const getBrowserDefaults = () => {
     const browserLocale = (navigator.language || 'en-IN').toUpperCase();
-    if (browserLocale.endsWith('-AE')) return { country: 'AE', currency: 'AED', locale: 'en' };
-    if (browserLocale.endsWith('-IN')) return { country: 'IN', currency: 'INR', locale: 'en' };
-    return { country: 'US', currency: 'USD', locale: 'en' };
+    let country = 'US';
+    let currency = 'USD';
+    let locale = 'en';
+
+    if (browserLocale.endsWith('-AE')) {
+      country = 'AE';
+      currency = 'AED';
+    } else if (browserLocale.endsWith('-IN')) {
+      country = 'IN';
+      currency = 'INR';
+    } else {
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (tz) {
+          if (tz.startsWith('Asia/Kolkata') || tz === 'Asia/Calcutta') {
+            country = 'IN';
+            currency = 'INR';
+          } else if (
+            tz.startsWith('Asia/Dubai') ||
+            tz.startsWith('Asia/Muscat') ||
+            tz.startsWith('Asia/Abu_Dhabi')
+          ) {
+            country = 'AE';
+            currency = 'AED';
+          }
+        }
+      } catch (_) {}
+    }
+
+    return { country, currency, locale };
   };
 
   useEffect(() => {
@@ -125,7 +152,7 @@ export const LocaleProvider = ({ children }) => {
     if (!hasManualCurrencyOverride() || !hasManualLanguageOverride()) {
       applyLocale(
         user.country || country,
-        hasManualCurrencyOverride() ? null : user.currency,
+        hasManualCurrencyOverride() ? null : (user.currency || currency),
         hasManualLanguageOverride() ? null : (user.preferredLanguage || user.locale || locale)
       );
     }
