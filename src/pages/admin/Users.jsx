@@ -64,12 +64,48 @@ const UserDetailModal = ({ userId, onClose }) => {
             {/* Profile Info */}
             {detail.profile && (
               <div className="bg-gray-50 rounded-xl p-4">
-                <h4 className="font-semibold text-gray-800 mb-2">Profile</h4>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div><span className="text-gray-500">City:</span> <span className="font-medium">{detail.profile.city || 'N/A'}</span></div>
-                  <div><span className="text-gray-500">Plan:</span> <span className="font-medium capitalize">{detail.profile.currentPlan || 'Free'}</span></div>
-                  {detail.profile.skills && <div className="col-span-2"><span className="text-gray-500">Skills:</span> <span className="font-medium">{detail.profile.skills.join(', ')}</span></div>}
-                  {detail.profile.companyName && <div><span className="text-gray-500">Company:</span> <span className="font-medium">{detail.profile.companyName}</span></div>}
+                <h4 className="font-semibold text-gray-800 mb-3 border-b border-gray-150 pb-1.5">Profile Info</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-sm">
+                  <div><span className="text-gray-500 block text-xs">City / Country</span> <span className="font-medium text-gray-800">{detail.profile.city || 'N/A'}{detail.profile.location?.country ? `, ${detail.profile.location.country}` : ''}</span></div>
+                  <div><span className="text-gray-500 block text-xs">Plan Tier</span> <span className="font-medium text-gray-800 capitalize">{detail.profile.currentPlan || 'Free'}</span></div>
+                  <div><span className="text-gray-500 block text-xs">Experience</span> <span className="font-medium text-gray-800">{detail.profile.experience || 'N/A'}</span></div>
+                  <div>
+                    <span className="text-gray-500 block text-xs">Pricing & Rates</span>
+                    <span className="font-medium text-emerald-600">
+                      {detail.profile.pricing ? (
+                        <>
+                          ₹{detail.profile.pricing} / {detail.profile.pricingType || 'hr'}
+                          {detail.profile.pricingType === 'hourly' && (
+                            <span className="block text-[11px] text-gray-500 font-normal mt-0.5">
+                              (₹{Number(detail.profile.pricing) * 8}/day • ₹{Number(detail.profile.pricing) * 8 * 22}/month)
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        'N/A'
+                      )}
+                    </span>
+                  </div>
+                  {detail.profile.skills && (
+                    <div className="sm:col-span-2">
+                      <span className="text-gray-500 block text-xs mb-1">Skills</span>
+                      <div className="flex flex-wrap gap-1">
+                        {detail.profile.skills.map((skill, index) => (
+                          <span key={index} className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-medium rounded-md">{skill}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {detail.profile.companyName && <div><span className="text-gray-500 block text-xs">Company</span> <span className="font-medium text-gray-800">{detail.profile.companyName}</span></div>}
+                  {detail.profile.latitude && detail.profile.longitude && (
+                    <div className="sm:col-span-2"><span className="text-gray-500 block text-xs">Google Coordinates</span> <span className="font-mono text-xs text-gray-600">{detail.profile.latitude.toFixed(6)}, {detail.profile.longitude.toFixed(6)}</span></div>
+                  )}
+                  {detail.profile.description && (
+                    <div className="sm:col-span-2">
+                      <span className="text-gray-500 block text-xs">Bio / Description</span>
+                      <p className="font-normal text-gray-700 mt-1 leading-relaxed bg-white border border-gray-100 rounded-lg p-2.5 text-xs whitespace-pre-wrap">{detail.profile.description}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

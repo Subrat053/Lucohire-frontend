@@ -96,3 +96,52 @@
     background-position: 50% 0%;
   }
 }
+
+/* Touch Target Size Enhancements for Mobile Viewports */
+@media (max-width: 768px) {
+  /* Enforce min touch targets for buttons, inputs, selects, links, checkboxes, submenus */
+  button, 
+  a, 
+  select, 
+  input[type="text"], 
+  input[type="tel"], 
+  input[type="email"], 
+  input[type="password"], 
+  input[type="number"], 
+  input[type="search"] {
+    min-height: 44px !important;
+  }
+  
+  /* Target checkboxes and radio buttons specifically */
+  input[type="checkbox"], 
+  input[type="radio"] {
+    min-width: 22px !important;
+    min-height: 22px !important;
+    margin: 6px !important;
+    cursor: pointer;
+  }
+  
+  /* Make sure checkbox/radio label container expands tap target area */
+  label {
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    cursor: pointer;
+  }
+  
+  /* Sub-menu items & dropdown listings (e.g. Location autocomplete options) */
+  .dropdown-item, 
+  [role="option"], 
+  [role="menuitem"],
+  .location-search-item,
+  ul li a,
+  ul li button {
+    min-height: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+}

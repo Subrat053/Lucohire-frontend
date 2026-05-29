@@ -7,6 +7,7 @@ import {
   HiInformationCircle, HiPlusCircle, HiArrowRight, HiDocumentReport, HiOutlineSparkles, HiCog 
 } from 'react-icons/hi';
 import useTranslation from '../../hooks/useTranslation';
+import RouteLoader from '../../components/common/RouteLoader';
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 
@@ -277,11 +278,7 @@ const Wallet = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-      </div>
-    );
+    return <RouteLoader />;
   }
 
   const defaultMethod = payoutMethods.find(m => m._id === selectedPayoutMethodId);

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { providerAPI, aiAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import RouteLoader from '../../components/common/RouteLoader';
 import toast from 'react-hot-toast';
 import { toAbsoluteMediaUrl } from '../../utils/media';
 import LocationSearch from '../../components/LocationSearch';
@@ -830,11 +830,7 @@ const ProviderProfile = () => {
     }
   };
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-sky-100 via-blue-200 to-blue-500">
-      <LoadingSpinner size="lg" />
-    </div>
-  );
+  if (loading) return <RouteLoader />;
 
   const avatarSrc = photoPreview || form.photo;
 

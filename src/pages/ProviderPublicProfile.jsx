@@ -247,7 +247,16 @@ const ProviderPublicProfile = () => {
               <div><span className="text-sm text-gray-500">{t('common.experience', 'Experience')}</span><p className="font-medium">{profile.experience || 'N/A'}</p></div>
               <div><span className="text-sm text-gray-500">{t('common.languages', 'Languages')}</span><p className="font-medium">{(profile.languages || []).join(', ') || 'N/A'}</p></div>
               <div><span className="text-sm text-gray-500">{t('common.city', 'City')}</span><p className="font-medium">{profile.city}</p></div>
-              <div><span className="text-sm text-gray-500">{t('common.pricing', 'Pricing')}</span><p className="font-medium text-emerald-600">{profile.pricing ? `₹${profile.pricing}${profile.pricingType ? ` / ${profile.pricingType}` : ''}` : t('common.contactForPricing', 'Contact for Pricing')}</p></div>
+              <div><span className="text-sm text-gray-500">{t('common.pricing', 'Pricing')}</span><div className="font-medium text-emerald-600">{profile.pricing ? (
+                <>
+                  <div>₹{profile.pricing}{profile.pricingType ? ` / ${profile.pricingType}` : ''}</div>
+                  {profile.pricingType === 'hourly' && (
+                    <div className="text-[11px] text-gray-500 font-normal">
+                      (₹{Number(profile.pricing) * 8} / day • ₹{Number(profile.pricing) * 8 * 22} / month)
+                    </div>
+                  )}
+                </>
+              ) : t('common.contactForPricing', 'Contact for Pricing')}</div></div>
               <div><span className="text-sm text-gray-500">{t('provider.profileViews', 'Profile Views')}</span><p className="font-medium">{profile.profileViews || 0}</p></div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { HiPhone, HiMail, HiBriefcase, HiCheck, HiX as HiXIcon } from 'react-icons/hi';
 import { providerAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import RouteLoader from '../../components/common/RouteLoader';
 import toast from 'react-hot-toast';
 
 const ProviderLeads = () => {
@@ -31,7 +31,7 @@ const ProviderLeads = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="lg" /></div>;
+  if (loading) return <RouteLoader />;
 
   const statusColors = {
     new: 'bg-green-100 text-green-700',

@@ -13,7 +13,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import RouteLoader from '../../components/common/RouteLoader';
 import {
   checkoutPlan,
   confirmPayment,
@@ -366,11 +366,7 @@ const ProviderPlans = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <RouteLoader />;
   }
 
   return (

@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { HiCreditCard, HiPlus, HiTrash, HiCheckCircle, HiArrowRight, HiShieldCheck, HiOutlineSparkles, HiLockClosed, HiExclamationCircle } from 'react-icons/hi';
 import { FaQrcode as HiQrCode } from 'react-icons/fa';
 import useTranslation from '../../hooks/useTranslation';
+import RouteLoader from '../../components/common/RouteLoader';
 
 const PayoutSettings = () => {
   const { t } = useTranslation();
@@ -403,11 +404,7 @@ const PayoutSettings = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-      </div>
-    );
+    return <RouteLoader />;
   }
 
   return (
