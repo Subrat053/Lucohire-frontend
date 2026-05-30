@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { referralAPI } from "../../services/api";
+import { referralAPI, walletAPI } from "../../services/api";
 import { toast } from "react-hot-toast";
 import {
   Users,
@@ -62,13 +62,32 @@ const ReferralManagement = () => {
 
   const fetchStats = async () => {
     try {
-      const { data } = await referralAPI.getMyStats();
-      setStats(data);
-      if (data?.user?.bankDetails) {
+      const [statsRes, summaryRes, txnsRes] = await Promise.all([
+        referralAPI.getMyStats(),
+        walletAPI.getSummary(),
+        walletAPI.getTransactions()
+      ]);
+
+      const statsData = statsRes.data;
+      const summaryData = summaryRes.data.data;
+      const txnsData = txnsRes.data.data;
+
+      const mergedStats = {
+        ...statsData,
+        user: {
+          ...statsData.user,
+          referralWalletBalance: summaryData.referralWalletBalance || 0,
+          totalReferralCommission: summaryData.totalCommissionEarned || 0,
+        },
+        transactions: txnsData || []
+      };
+
+      setStats(mergedStats);
+      if (statsData?.user?.bankDetails) {
         setBankDetails({
-          accountHolderName: data.user.bankDetails.accountHolderName || "",
-          accountNumber: data.user.bankDetails.accountNumber || "",
-          upiId: data.user.bankDetails.upiId || "",
+          accountHolderName: statsData.user.bankDetails.accountHolderName || "",
+          accountNumber: statsData.user.bankDetails.accountNumber || "",
+          upiId: statsData.user.bankDetails.upiId || "",
         });
       }
       setLoading(false);
@@ -150,8 +169,9 @@ const ReferralManagement = () => {
 
   const submitWithdrawal = async () => {
     if (!isPhoneVerified) return toast.error("Please verify your phone first");
-    if (!withdrawAmount || Number(withdrawAmount) < 500) {
-      return toast.error("Minimum withdrawal is ₹500");
+    const numericAmount = Number(withdrawAmount);
+    if (!numericAmount || numericAmount < 500 || !Number.isInteger(numericAmount)) {
+      return toast.error("Minimum withdrawal is ₹500 (positive integer)");
     }
 
     setProcessing(true);
@@ -494,7 +514,17 @@ const ReferralManagement = () => {
                   type="number"
                   placeholder="Amount (Min. ₹500)"
                   value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  step="1"
+                  onKeyDown={(e) => {
+                    if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const sanitized = val.replace(/\D/g, '');
+                    setWithdrawAmount(sanitized);
+                  }}
                   className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50 focus:bg-white transition"
                 />
               </div>
@@ -652,22 +682,20 @@ const ReferralManagement = () => {
                   <div className="flex items-center space-x-4">
                     <div
                       className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                        tx.type === "user_referral_commission"
+                        tx.direction === "credit"
                           ? "bg-green-50 text-green-600"
                           : "bg-red-50 text-red-600"
                       }`}
                     >
-                      {tx.type === "user_referral_commission" ? (
+                      {tx.direction === "credit" ? (
                         <ArrowUpRight size={20} />
                       ) : (
                         <ArrowUpRight size={20} className="rotate-180" />
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900">
-                        {tx.type === "user_referral_commission"
-                          ? "Referral Commission"
-                          : "Withdrawal"}
+                      <p className="text-sm font-bold text-gray-900 capitalize">
+                        {tx.type ? tx.type.replace(/_/g, ' ') : 'Transaction'}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
                         {tx.description}
@@ -676,10 +704,9 @@ const ReferralManagement = () => {
                   </div>
                   <div className="text-right">
                     <p
-                      className={`text-sm font-bold ${tx.type === "user_referral_commission" ? "text-green-600" : "text-red-600"}`}
+                      className={`text-sm font-bold ${tx.direction === "credit" ? "text-green-600" : "text-red-600"}`}
                     >
-                      {tx.type === "user_referral_commission" ? "+" : "-"}₹
-                      {tx.amount}
+                      {tx.direction === "credit" ? "+" : "-"}₹{tx.amount.toFixed(2)}
                     </p>
                     <p className="text-[10px] text-gray-400 mt-0.5">
                       {new Date(tx.createdAt).toLocaleDateString()}

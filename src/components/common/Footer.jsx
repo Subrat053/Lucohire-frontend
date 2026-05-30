@@ -132,28 +132,40 @@ const Footer = () => {
           {/* Social Icons */}
           <div className="flex items-center gap-3">
             <a
-              href="#"
+              href="https://facebook.com/lucohire"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Follow Lucohire on Facebook"
               className="w-9 h-9 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#081B3A] hover:bg-[#1677FF] hover:text-white hover:border-[#1677FF] transition-all duration-300"
             >
               <FaFacebookF size={14} />
             </a>
 
             <a
-              href="#"
+              href="https://instagram.com/lucohire"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Follow Lucohire on Instagram"
               className="w-9 h-9 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#081B3A] hover:bg-[#1677FF] hover:text-white hover:border-[#1677FF] transition-all duration-300"
             >
               <FaInstagram size={14} />
             </a>
 
             <a
-              href="#"
+              href="https://linkedin.com/company/lucohire"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Follow Lucohire on LinkedIn"
               className="w-9 h-9 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#081B3A] hover:bg-[#1677FF] hover:text-white hover:border-[#1677FF] transition-all duration-300"
             >
               <FaLinkedinIn size={14} />
             </a>
 
             <a
-              href="#"
+              href="https://twitter.com/lucohire"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Follow Lucohire on Twitter"
               className="w-9 h-9 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#081B3A] hover:bg-[#1677FF] hover:text-white hover:border-[#1677FF] transition-all duration-300"
             >
               <FaTwitter size={14} />

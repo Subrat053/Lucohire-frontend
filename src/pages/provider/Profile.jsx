@@ -1,15 +1,22 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { providerAPI, aiAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import RouteLoader from '../../components/common/RouteLoader';
 import toast from 'react-hot-toast';
 import { toAbsoluteMediaUrl } from '../../utils/media';
+import { safeReturnPath } from '../../utils/navigation';
+import { cacheBustedUrl } from '../../utils/cacheBuster';
+import { sanitizePayload } from '../../utils/sanitizePayload';
+import useSubmitLock from '../../hooks/useSubmitLock';
 import LocationSearch from '../../components/LocationSearch';
 import DocumentVerificationStatusCard from '../../components/provider/DocumentVerificationStatusCard';
 import AIProfileAssistant from '../../components/provider/AIProfileAssistant';
 import AIProfileAutoFillModal from '../../components/provider/AIProfileAutoFillModal';
 import ProviderAIChat from '../../components/provider/ProviderAIChat';
+import PortfolioLinksManager from '../../components/common/PortfolioLinksManager';
+import { compressImage } from '../../utils/fileCompressionService';
+import { validateUploadFile } from '../../utils/fileValidationService';
 import SkillSearchSelect from '../../components/common/SkillSearchSelect';
 import SmartMultiSelect from '../../components/common/SmartMultiSelect';
 import {
@@ -18,6 +25,7 @@ import {
   Info, ShieldAlert, Plus, X, UploadCloud, Trash2, Camera, Compass, RefreshCw,
   Search, Shield, CheckCircle, ChevronDown, Check, Briefcase, Zap, Star
 } from 'lucide-react';
+
 
 // ─── constants ───────────────────────────────────────────────────────────────
 const INDIAN_CITIES = [
@@ -171,13 +179,18 @@ const TagPicker = ({ available, selected, onAdd, onRemove, placeholder }) => {
 const ProviderProfile = () => {
   const { user, fetchUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef(null);
   const hasInitialized = useRef(false);
+
+  // Submit lock to prevent duplicate save/upload submissions
+  const { isSubmitting: isSaving, withLock: withSaveLock } = useSubmitLock();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [plan, setPlan] = useState('free');
+
   const [profileData, setProfileData] = useState(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState(null);
@@ -196,6 +209,9 @@ const ProviderProfile = () => {
   const [ocrTesting, setOcrTesting] = useState(false);
   const [ocrResult, setOcrResult] = useState(null);
   const [ocrError, setOcrError] = useState('');
+  const [subscriptionSummary, setSubscriptionSummary] = useState(null);
+  const [coverageRefreshLoading, setCoverageRefreshLoading] = useState(false);
+  const [coverageUpgradeLoading, setCoverageUpgradeLoading] = useState(false);
 
   const [form, setForm] = useState({
     name: '', skills: [], locations: [], city: '', state: '',
@@ -234,6 +250,22 @@ const ProviderProfile = () => {
       return sortedA.every((val, index) => val === sortedB[index]);
     };
 
+    const arePortfolioLinksEqual = (a, b) => {
+      const arrA = Array.isArray(a) ? a : [];
+      const arrB = Array.isArray(b) ? b : [];
+      if (arrA.length !== arrB.length) return false;
+
+      const serializeLink = (l) => {
+        if (!l) return '';
+        if (typeof l === 'string') return l.toLowerCase();
+        return `${l.platform || ''}|${l.url || ''}`.toLowerCase();
+      };
+
+      const sortedA = arrA.map(serializeLink).sort();
+      const sortedB = arrB.map(serializeLink).sort();
+      return sortedA.every((val, index) => val === sortedB[index]);
+    };
+
     let initialLocs = [];
     if (Array.isArray(profileData.serviceLocations) && profileData.serviceLocations.length > 0) {
       initialLocs = profileData.serviceLocations.map(l => l.formattedAddress || l.name || String(l)).filter(Boolean);
@@ -266,7 +298,7 @@ const ProviderProfile = () => {
       !areArraysEqual(form.skills, profileData.skills || []) ||
       !areArraysEqual(form.locations.map(l => l.formattedAddress || l.name || String(l)).filter(Boolean), initialLocs) ||
       !areArraysEqual(form.languages, profileData.languages || []) ||
-      !areArraysEqual(form.portfolioLinks, profileData.portfolioLinks || [])
+      !arePortfolioLinksEqual(form.portfolioLinks, profileData.portfolioLinks || [])
     );
   }, [form, profileData]);
 
@@ -295,6 +327,36 @@ const ProviderProfile = () => {
   }, [redirectCountdown, navigate]);
 
   useEffect(() => {
+    const shouldRefreshCoverage = location.state?.paymentSuccess || location.state?.refreshSubscription;
+    if (!shouldRefreshCoverage) return;
+
+    let isActive = true;
+
+    const refreshCoverage = async () => {
+      setCoverageRefreshLoading(true);
+      try {
+        await fetchProfile();
+        if (typeof fetchUser === 'function') {
+          await fetchUser();
+        }
+        toast.success('Plan upgraded successfully. Your service coverage has been expanded.');
+      } catch (error) {
+        toast.error('Subscription refreshed, but the latest limits could not be loaded yet.');
+      } finally {
+        if (!isActive) return;
+        setCoverageRefreshLoading(false);
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    };
+
+    refreshCoverage();
+
+    return () => {
+      isActive = false;
+    };
+  }, [fetchUser, location.pathname, location.state, navigate]);
+
+  useEffect(() => {
     if (hasInitialized.current && isDirty) {
       localStorage.setItem('lucohire_profile_draft', JSON.stringify(form));
     }
@@ -306,11 +368,44 @@ const ProviderProfile = () => {
     return Math.max(1, Number(profileData.allowedPincodesCount || 1), Number(profileData.allowedCitiesCount || 1));
   })();
 
+  const usedCoverageCount = Math.max(0, form.locations.length || 0);
+  const allowedCoverageCount = Math.max(
+    1,
+    Number(subscriptionSummary?.allowedPincodes || profileData?.allowedPincodesCount || 1),
+    Number(subscriptionSummary?.allowedCities || profileData?.allowedCitiesCount || 1),
+  );
+  const remainingCoverageCount = Math.max(0, allowedCoverageCount - usedCoverageCount);
+  const isCoverageLocked = usedCoverageCount >= allowedCoverageCount;
+  const coveragePlanName = subscriptionSummary?.planName || profileData?.currentPlan || 'Free';
+
+  const handleCoverageUpgradeClick = () => {
+    if (coverageUpgradeLoading || coverageRefreshLoading) return;
+
+    const returnTo = safeReturnPath('/provider/profile');
+    sessionStorage.setItem('paymentReturnTo', returnTo);
+    sessionStorage.setItem('paymentReturnSource', 'location-coverage-upgrade');
+    setCoverageUpgradeLoading(true);
+
+    navigate('/provider/plans', {
+      state: {
+        returnTo,
+        source: 'location-coverage-upgrade',
+        reason: 'coverage-limit-reached',
+      },
+    });
+  };
+
   const fetchProfile = async () => {
     try {
       const { data } = await providerAPI.getProfile();
       setPlan(data.currentPlan || 'free');
       setProfileData(data);
+      try {
+        const subscriptionResponse = await providerAPI.getCurrentSubscription();
+        setSubscriptionSummary(subscriptionResponse?.data || null);
+      } catch (subscriptionError) {
+        setSubscriptionSummary(null);
+      }
       setCompletion(data.profileCompletion || 0);
 
       // Only set initial form state once to prevent browser back button or re-renders from overwriting dirty edits
@@ -661,16 +756,45 @@ const ProviderProfile = () => {
 
   const handlePhotoUpload = async () => {
     if (!photoFile) { fileInputRef.current?.click(); return; }
+    if (uploading) return; // Early guard — already uploading
+
+    // Validate size & MIME type
+    const validation = validateUploadFile(photoFile, { maxSizeMB: 5 });
+    if (!validation.isValid) {
+      toast.error(validation.error);
+      return;
+    }
+
     setUploading(true);
+    let finalFile = photoFile;
+    const toastId = toast.loading('Optimizing image...');
+
+    try {
+      const compressionResult = await compressImage(photoFile, { maxSizeKB: 300 });
+      if (compressionResult.optimized) {
+        finalFile = compressionResult.compressedFile;
+        const originalKB = (compressionResult.originalSize / 1024).toFixed(0);
+        const compressedKB = (compressionResult.compressedSize / 1024).toFixed(0);
+        toast.success(`Image optimized! Size reduced from ${originalKB}KB to ${compressedKB}KB`, { id: toastId });
+      } else {
+        toast.success('Uploading optimized image...', { id: toastId });
+      }
+    } catch (compressErr) {
+      console.warn('Compression failed, uploading original:', compressErr);
+      toast.error('Optimization skipped, uploading original...', { id: toastId });
+    }
+
     const fd = new FormData();
-    fd.append('profilePhoto', photoFile);
+    fd.append('profilePhoto', finalFile);
     try {
       const { data } = await providerAPI.uploadProfilePhoto(fd);
       setPhotoFile(null);
       if (data?.url) {
+        // Use cache-busted URL so browser doesn't serve stale cached photo
         const absoluteUrl = toAbsoluteMediaUrl(data.url);
-        setPhotoPreview(absoluteUrl);
-        setForm(prev => ({ ...prev, photo: absoluteUrl }));
+        const freshUrl = cacheBustedUrl(absoluteUrl);
+        setPhotoPreview(freshUrl);
+        setForm(prev => ({ ...prev, photo: absoluteUrl })); // store clean URL in form
       }
       await fetchUser();
       await fetchProfile();
@@ -682,6 +806,7 @@ const ProviderProfile = () => {
       setUploading(false);
     }
   };
+
 
   const handleRemovePhoto = async () => {
     setPhotoPreview('');
@@ -696,7 +821,7 @@ const ProviderProfile = () => {
     }
   };
 
-  const handleSave = async (e) => {
+  const handleSave = withSaveLock(async (e) => {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
     if (!form.city && form.locations.length === 0) {
       return toast.error('Please add at least one service location / city (Location is mandatory)');
@@ -738,11 +863,8 @@ const ProviderProfile = () => {
         source: l.source || 'google'
       }));
 
-      if (import.meta.env.DEV) {
-        console.log('[Profile.jsx] Saving profile payload with serviceLocations:', cleanServiceLocations);
-      }
-
-      const payload = {
+      // Build payload and sanitize string fields only
+      const rawPayload = {
         name: form.name, skills: form.skills, tier: form.tier, experience: form.experience,
         city: form.city, state: form.state,
         locations: cleanLocations,
@@ -758,6 +880,14 @@ const ProviderProfile = () => {
         profileName: form.profileName,
         phone: cleanPhone,
       };
+      // sanitizePayload only touches string fields, leaves arrays/numbers intact
+      const payload = sanitizePayload(rawPayload);
+      // Restore non-string array/object fields after sanitize
+      payload.skills = rawPayload.skills;
+      payload.languages = rawPayload.languages;
+      payload.portfolioLinks = rawPayload.portfolioLinks;
+      payload.locations = rawPayload.locations;
+      payload.serviceLocations = rawPayload.serviceLocations;
 
       const { data } = await providerAPI.updateProfile(payload);
       setCompletion(data.profileCompletion || completion);
@@ -773,7 +903,8 @@ const ProviderProfile = () => {
     } finally {
       setSaving(false);
     }
-  };
+  });
+
 
   const handleDocumentUpload = async () => {
     if (!documentFile) {
@@ -781,17 +912,44 @@ const ProviderProfile = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('document', documentFile);
+    // Validate document file size and type constraints
+    const validation = validateUploadFile(documentFile, { maxSizeMB: 5 });
+    if (!validation.isValid) {
+      toast.error(validation.error);
+      return;
+    }
+
     setUploadingDocument(true);
+    let finalFile = documentFile;
+    const toastId = toast.loading('Uploading document...');
+
+    // If the document is an image format, optimize it safely to target under 1MB
+    if (documentFile.type?.startsWith('image/')) {
+      try {
+        toast.loading('Optimizing document image...', { id: toastId });
+        const compressResult = await compressImage(documentFile, { maxSizeKB: 1000 });
+        if (compressResult.optimized) {
+          finalFile = compressResult.compressedFile;
+        }
+      } catch (err) {
+        console.warn('Document image optimization skipped:', err);
+      }
+    }
+
+    toast.loading('Uploading...', { id: toastId });
+
+    const formData = new FormData();
+    formData.append('document', finalFile);
 
     try {
       const { data } = await providerAPI.uploadDocument(formData);
       setDocumentVerification(data.verification || null);
       setDocumentFile(null);
-      toast.success('Document uploaded. OCR verification started.');
+      toast.success('Document uploaded successfully. OCR verification started.', { id: toastId });
+      await fetchProfile();
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Document upload failed');
+      const msg = err?.response?.data?.message || 'Document upload failed';
+      toast.error(msg, { id: toastId });
     } finally {
       setUploadingDocument(false);
     }
@@ -1056,7 +1214,7 @@ const ProviderProfile = () => {
 
         <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
-          {/* LEFT COLUMN: Basic Information, Location, Languages, Experience, Aadhaar, Portfolio */}
+          {/* LEFT COLUMN: Basic Information, Location, Languages, Experience, Aadhaar */}
           <div className="space-y-8">
 
             {/* 1. Basic Information */}
@@ -1124,8 +1282,36 @@ const ProviderProfile = () => {
                 <div className="flex-1">
                   <h3 className="font-extrabold text-slate-800 text-sm">Location (Service Area)</h3>
                   <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
-                    {maxLocations > 1 ? `Max ${maxLocations} service locations allowed` : '1 service location allowed'}
+                    {allowedCoverageCount > 1 ? `Max ${allowedCoverageCount} service locations allowed` : '1 service location allowed'}
                   </p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-violet-100 bg-violet-50/70 p-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">{coveragePlanName} plan</p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      You have used {usedCoverageCount} of {allowedCoverageCount} service locations in your current plan.
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-violet-700">
+                      {coverageRefreshLoading
+                        ? 'Refreshing latest subscription limits...'
+                        : `${remainingCoverageCount} location${remainingCoverageCount === 1 ? '' : 's'} remaining.`}
+                    </p>
+                  </div>
+
+                  {isCoverageLocked && (
+                    <button
+                      type="button"
+                      onClick={handleCoverageUpgradeClick}
+                      disabled={coverageUpgradeLoading || coverageRefreshLoading}
+                      aria-label="Expand service reach by upgrading your plan"
+                      className="inline-flex w-full items-center justify-center rounded-2xl bg-violet-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-violet-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                    >
+                      {coverageUpgradeLoading ? 'Opening Plans...' : 'Expand Service Reach'}
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1226,7 +1412,7 @@ const ProviderProfile = () => {
                   </div>
                 )}
 
-                {form.locations.length >= maxLocations && maxLocations === 1 && (
+                {isCoverageLocked && !coverageUpgradeLoading && (
                   <p className="text-[10px] text-amber-600 bg-amber-50 p-2.5 rounded-xl border border-amber-100/50 font-semibold flex items-center gap-1">
                     <span>⚡</span> Upgrade your plan to expand your service reach to multiple pincodes or cities.
                   </p>
@@ -1365,90 +1551,9 @@ const ProviderProfile = () => {
               </div>
             </div>
 
-            {/* 6. Portfolio / Links */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-50">
-                <div className="flex items-center gap-2">
-                  <Link2 className="w-5 h-5 text-violet-600" />
-                  <h3 className="font-extrabold text-slate-800 text-sm">Portfolio / Links</h3>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowLinkInput(v => !v)}
-                  className="text-xs font-black text-violet-700 hover:text-violet-900 transition flex items-center gap-1"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Add Link
-                </button>
-              </div>
-
-              {form.portfolioLinks.length > 0 ? (
-                <div className="space-y-2">
-                  {form.portfolioLinks.map((link, i) => (
-                    <div key={i} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-2 border border-slate-100 shadow-xs animate-fade-in">
-                      <a
-                        href={link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-violet-600 hover:text-violet-800 text-xs font-semibold truncate flex-1"
-                      >
-                        {link}
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => setForm({ ...form, portfolioLinks: form.portfolioLinks.filter((_, j) => j !== i) })}
-                        className="text-slate-400 hover:text-red-500 ml-3 text-lg leading-none transition-colors"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                  No portfolio links configured. Add websites or socials above.
-                </div>
-              )}
-
-              {/* Add Link Input Field */}
-              {showLinkInput && (
-                <div className="flex gap-2 animate-fade-in">
-                  <input
-                    value={newLink}
-                    onChange={e => setNewLink(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (newLink.trim()) {
-                          setForm({ ...form, portfolioLinks: [...form.portfolioLinks, newLink.trim()] });
-                          setNewLink('');
-                          setShowLinkInput(false);
-                        }
-                      }
-                    }}
-                    placeholder="https://your-portfolio.com"
-                    className="flex-1 px-4 py-2.5 text-xs border border-slate-200 rounded-xl bg-slate-50/50 outline-none focus:ring-4 focus:ring-violet-100 focus:border-violet-500 shadow-inner"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (newLink.trim()) {
-                        setForm({ ...form, portfolioLinks: [...form.portfolioLinks, newLink.trim()] });
-                        setNewLink('');
-                        setShowLinkInput(false);
-                      }
-                    }}
-                    className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-violet-200 transition"
-                  >
-                    Add
-                  </button>
-                </div>
-              )}
-            </div>
-
           </div>
 
-          {/* RIGHT COLUMN: Profile Photo, Speciality, Rate, WhatsApp Alerts */}
+          {/* RIGHT COLUMN: Profile Photo, Speciality, Rate, WhatsApp Alerts, Portfolio */}
           <div className="space-y-8">
 
             {/* 1. Profile Photo */}
@@ -1717,7 +1822,22 @@ const ProviderProfile = () => {
               </div>
             )}
 
-            {/* 4. WhatsApp Alerts */}
+            {/* 4. Portfolio / Links */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-50">
+                <div className="flex items-center gap-2">
+                  <Link2 className="w-5 h-5 text-violet-600" />
+                  <h3 className="font-extrabold text-slate-800 text-sm">Portfolio / Links</h3>
+                </div>
+              </div>
+
+              <PortfolioLinksManager
+                value={form.portfolioLinks}
+                onChange={(nextLinks) => setForm(prev => ({ ...prev, portfolioLinks: nextLinks }))}
+              />
+            </div>
+
+            {/* 5. WhatsApp Alerts */}
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
               <div className="flex items-center justify-between">
                 <div className="flex gap-3">

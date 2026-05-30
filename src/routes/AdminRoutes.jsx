@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import AdminProtectedRoute from "../components/common/AdminProtectedRoute";
 import AdminLayout from "../components/admin/AdminLayout";
 import Navbar from "../components/common/Navbar";
+import Seo from "../components/common/Seo";
 
 // Lazy-loaded pages
 const AdminDashboard = lazy(() => import("../pages/admin/Dashboard"));
@@ -30,12 +31,14 @@ const AdminWhatsApp = lazy(() => import("../pages/admin/WhatsApp"));
 const AdminCurrency = lazy(() => import("../pages/admin/Currency"));
 const AdminAIOps = lazy(() => import("../pages/admin/AIControlCenter"));
 const ProfilePhotoApprovals = lazy(() => import("../pages/admin/ProfilePhotoApprovals"));
+const AdminPortfolioApprovals = lazy(() => import("../pages/admin/PortfolioApprovals"));
 const AdminEnquiries = lazy(() => import("../pages/admin/Enquiries"));
 const ChangePassword = lazy(() => import("../pages/user/ChangePassword"));
 
 function AdminLayoutWrapper({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Seo title="Admin Dashboard" robots="noindex, nofollow" />
       <Navbar />
       <main className="flex-1">
         <AdminProtectedRoute>
@@ -78,6 +81,7 @@ export default function AdminRoutes() {
       <Route path="currency" element={wrap(<AdminCurrency />)} />
       <Route path="ai" element={wrap(<AdminAIOps />)} />
       <Route path="profile-photo-approvals" element={wrap(<ProfilePhotoApprovals />)} />
+      <Route path="portfolio-approvals" element={wrap(<AdminPortfolioApprovals />)} />
       <Route path="enquiries" element={wrap(<AdminEnquiries />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />
     </Routes>

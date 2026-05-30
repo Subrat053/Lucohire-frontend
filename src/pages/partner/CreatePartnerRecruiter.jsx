@@ -14,6 +14,9 @@ import {
   HiShieldCheck,
 } from "react-icons/hi";
 import partnerApi from "../../services/partnerApi";
+import useSubmitLock from "../../hooks/useSubmitLock";
+import { sanitizePayload } from "../../utils/sanitizePayload";
+
 
 const CreatePartnerRecruiter = () => {
   const [form, setForm] = useState({
@@ -23,22 +26,22 @@ const CreatePartnerRecruiter = () => {
     selectedPlanId: "",
   });
 
-  const [loading, setLoading] = useState(false);
   const [credentials, setCredentials] = useState(null);
+  const { isSubmitting, withLock } = useSubmitLock();
 
   const update = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const submit = async (e) => {
-    e.preventDefault();
+
+  const submit = withLock(async (e) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
 
     try {
-      setLoading(true);
-
-      const res = await partnerApi.createRecruiter(form);
+      const cleanForm = sanitizePayload(form);
+      const res = await partnerApi.createRecruiter(cleanForm);
 
       setCredentials({
-        email: form.email,
+        email: cleanForm.email,
         password: res.data.password,
       });
 
@@ -55,10 +58,9 @@ const CreatePartnerRecruiter = () => {
         error?.response?.data?.message ||
           "Failed to create recruiter"
       );
-    } finally {
-      setLoading(false);
     }
-  };
+  });
+
 
   const copyCredentials = () => {
     if (credentials) {
@@ -345,10 +347,10 @@ Password: ${credentials.password}`;
 
                 {/* Button */}
                 <button
-                  disabled={loading}
+                  disabled={isSubmitting}
                   className="mt-8 w-full h-16 rounded-2xl bg-gradient-to-r from-[#081028] via-[#111c44] to-[#1b2b68] text-white font-black text-lg shadow-2xl shadow-slate-300 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                 >
-                  {loading ? (
+                  {isSubmitting ? (
                     <div className="w-6 h-6 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>

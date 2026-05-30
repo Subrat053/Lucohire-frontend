@@ -49,6 +49,14 @@ export default defineConfig({
         changeOrigin: true,
         ws: true,
       },
+      '/sitemap.xml': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+      '/robots.txt': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
     },
   },
 });

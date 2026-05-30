@@ -8,6 +8,22 @@ const AUTH_BASE_URL =
   import.meta.env.VITE_AUTH_BASE_URL ||
   import.meta.env.VITE_AUTH_URL ||
   "/api/v1";
+
+// ── Session expiry guard ──────────────────────────────────────────────────────
+// Prevents multiple concurrent 401 responses from each firing a separate redirect.
+// Reset after 2 s so the flag doesn't get stuck if the user dismisses the page
+// manually and comes back.
+let _sessionExpiredFired = false;
+const dispatchSessionExpired = () => {
+  if (_sessionExpiredFired) return;
+  _sessionExpiredFired = true;
+  window.dispatchEvent(
+    new CustomEvent("auth:invalid-token", {
+      detail: { message: "Your session has expired. Please login again." },
+    }),
+  );
+  setTimeout(() => { _sessionExpiredFired = false; }, 2000);
+};
 const ADMIN_BASE_URL =
   import.meta.env.VITE_ADMIN_API_BASE_URL ||
   import.meta.env.VITE_ADMIN_API_URL ||
@@ -107,7 +123,7 @@ API.interceptors.response.use(
     const status = error?.response?.status;
     const url = error?.config?.url || "";
     if (status === 401 && !shouldSkipAuthInvalidation(url)) {
-      window.dispatchEvent(new Event("auth:invalid-token"));
+      dispatchSessionExpired();
     }
     return Promise.reject(error);
   },
@@ -119,7 +135,7 @@ AUTH_API.interceptors.response.use(
     const status = error?.response?.status;
     const url = error?.config?.url || "";
     if (status === 401 && !shouldSkipAuthInvalidation(url)) {
-      window.dispatchEvent(new Event("auth:invalid-token"));
+      dispatchSessionExpired();
     }
     return Promise.reject(error);
   },
@@ -131,7 +147,7 @@ ADMIN_API.interceptors.response.use(
     const status = error?.response?.status;
     const url = error?.config?.url || "";
     if (status === 401 && !shouldSkipAuthInvalidation(url)) {
-      window.dispatchEvent(new Event("auth:invalid-token"));
+      dispatchSessionExpired();
     }
     return Promise.reject(error);
   },
@@ -180,6 +196,7 @@ export const providerAPI = {
   getDashboard: () => API.get("/provider/dashboard"),
   getMatches: () => API.get("/provider/matches"), // Module 2 UI
   getPlans: () => API.get("/provider/plans"),
+  getCurrentSubscription: () => API.get("/provider/subscription/current"),
   purchasePlan: (data) => API.post("/provider/plans/purchase", data),
   getLeads: () => API.get("/provider/leads"),
   updateLead: (id, data) => API.put(`/provider/leads/${id}`, data),
@@ -325,6 +342,9 @@ export const adminAPI = {
     }),
   getProfilePhoto: () => ADMIN_API.get("/admin/profile/photo"),
   getProfilePhotoApprovals: (params) => ADMIN_API.get("/admin/profile-approvals", { params }),
+  getPortfolioApprovals: (params) => ADMIN_API.get("/admin/portfolio-approvals", { params }),
+  approvePortfolioLink: (profileId, linkId) => ADMIN_API.patch(`/admin/portfolio-approvals/${profileId}/${linkId}/approve`),
+  rejectPortfolioLink: (profileId, linkId, reason) => ADMIN_API.patch(`/admin/portfolio-approvals/${profileId}/${linkId}/reject`, { reason }),
 
   getProfileApprovalStats: () => ADMIN_API.get("/admin/profile-approvals/stats"),
 
@@ -402,6 +422,9 @@ export const adminAPI = {
 
   approveRecruiter: (userId) => API.patch(`/admin/users/${userId}/approve`),
   getAllReferrals: () => ADMIN_API.get("/admin/referrals"),
+  getRewards: (params) => ADMIN_API.get("/admin/partners/rewards", { params }),
+  updateRewardStatus: (id, data) => ADMIN_API.patch(`/admin/partners/rewards/${id}/status`, data),
+  markRewardsPaid: (data) => ADMIN_API.post("/admin/partners/rewards/mark-paid", data),
   // =================================================================
 };
 
@@ -508,6 +531,12 @@ export const paymentAPI = {
   paymentFailed: (data) => API.post("/payments/failed", data), // body: { sessionId, errorMessage }
   getMyPayments: () => API.get("/payments/my-payments"),
   getPaymentById: (id) => API.get(`/payments/${id}`),
+  calculateBreakdown: (data) => API.post("/payments/calculate-breakdown", data),
+};
+
+export const walletAPI = {
+  getSummary: () => API.get("/wallet/summary"),
+  getTransactions: () => API.get("/wallet/transactions"),
 };
 
 // Locale APIs

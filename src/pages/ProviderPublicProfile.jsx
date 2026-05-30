@@ -14,6 +14,7 @@ import { findProviderById, normalizeProviderData } from '../utils/providerData';
 import { getProviderById as fetchProviderById } from '../services/providerService';
 import useTranslation from '../hooks/useTranslation';
 import Seo from '../components/common/Seo';
+import SafeExternalLink from '../components/common/SafeExternalLink';
 
 const ProviderPublicProfile = () => {
   const { t } = useTranslation();
@@ -262,19 +263,34 @@ const ProviderPublicProfile = () => {
           </div>
 
           {/* Portfolio */}
-          {profile.portfolioLinks?.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-3">{t('common.portfolio', 'Portfolio')}</h2>
-              <div className="space-y-2">
-                {profile.portfolioLinks.map((link, i) => (
-                  <a key={i} href={link} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center space-x-2 text-indigo-600 hover:underline">
-                    <HiExternalLink className="w-4 h-4" /><span>{link}</span>
-                  </a>
-                ))}
+          {(() => {
+            const approvedLinks = (profile.portfolioLinks || []).filter(
+              link => {
+                if (typeof link === 'string') return true;
+                return link.status === 'approved';
+              }
+            );
+            
+            if (approvedLinks.length === 0) return null;
+
+            return (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-3">{t('common.portfolio', 'Portfolio')}</h2>
+                <div className="space-y-2">
+                  {approvedLinks.map((link, i) => {
+                    const platformName = typeof link === 'string' ? 'Link' : link.platform;
+                    const linkUrl = typeof link === 'string' ? link : link.url;
+                    return (
+                      <SafeExternalLink key={i} href={linkUrl} className="flex items-center space-x-2 text-indigo-600 hover:underline">
+                        <HiExternalLink className="w-4 h-4" />
+                        <span className="capitalize">{platformName}: {linkUrl}</span>
+                      </SafeExternalLink>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Reviews */}
           <div ref={reviewsRef}>

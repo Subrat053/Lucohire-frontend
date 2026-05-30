@@ -10,6 +10,11 @@ export const getMyPlan = async () => {
   return data || {};
 };
 
+export const getCurrentSubscription = async () => {
+  const { data } = await API.get('/provider/subscription/current');
+  return data || {};
+};
+
 export const previewPlan = async (payload) => {
   const { data } = await API.post('/provider/plan/preview', payload);
   return data || {};

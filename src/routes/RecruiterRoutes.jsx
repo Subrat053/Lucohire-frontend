@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import RecruiterLayout from "../components/recruiter/RecruiterLayout";
 import Navbar from "../components/common/Navbar";
+import Seo from "../components/common/Seo";
 
 // Lazy-loaded pages
 const RecruiterDashboard = lazy(() => import("../pages/recruiter/Dashboard"));
@@ -27,6 +28,7 @@ const ReferralManagement = lazy(() => import("../pages/user/ReferralManagement")
 function RecruiterLayoutWrapper({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Seo title="Recruiter Dashboard" robots="noindex, nofollow" />
       <Navbar />
       <main className="flex-1">
         <ProtectedRoute allowedRoles={["recruiter"]}>

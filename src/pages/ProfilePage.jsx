@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 import useTranslation from '../hooks/useTranslation';
+import Seo from '../components/common/Seo';
 
 const ReviewSection = lazy(() => import('../components/common/ReviewSection'));
 const profileCache = new Map();
@@ -113,6 +114,7 @@ const ProfilePage = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Seo title={data.user?.name || "Profile"} robots="noindex, nofollow" />
       <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
         <div className="flex items-start justify-between gap-3">
           <div>

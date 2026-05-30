@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   BadgeCheck,
   BadgePercent,
@@ -17,6 +17,7 @@ import RouteLoader from '../../components/common/RouteLoader';
 import {
   checkoutPlan,
   confirmPayment,
+  getCurrentSubscription,
   getMyPlan,
   getProviderPlans,
   previewPlan,
@@ -27,6 +28,7 @@ import GuaranteeModal from '../../components/common/GuaranteeModal';
 import { API } from '../../services/api';
 import LocationSearch from '../../components/LocationSearch';
 import SkillSearchSelect from '../../components/common/SkillSearchSelect';
+import { safeReturnPath } from '../../utils/navigation';
 
 const DURATION_OPTIONS = Array.from({ length: 12 }, (_, index) => {
   const months = index + 1;
@@ -75,6 +77,8 @@ const buildLocalPreview = (plan, months) => {
 
 const ProviderPlans = () => {
   const { t } = useTranslation();
+  const location = useLocation();
+  const paymentHandledRef = useRef(false);
   const [tab, setTab] = useState('provider');
   const [plans, setPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -90,6 +94,18 @@ const ProviderPlans = () => {
 
   const [availableSkills, setAvailableSkills] = useState([]);
   const [skillsLoading, setSkillsLoading] = useState(false);
+  const [finalizingPayment, setFinalizingPayment] = useState(false);
+
+  const returnTo = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return safeReturnPath(
+      location.state?.returnTo ||
+        params.get('returnTo') ||
+        params.get('redirect') ||
+        sessionStorage.getItem('paymentReturnTo') ||
+        '/provider/dashboard',
+    );
+  }, [location.search, location.state?.returnTo]);
 
   useEffect(() => {
     const fetchSkills = async () => {
@@ -117,6 +133,13 @@ const ProviderPlans = () => {
     };
     fetchSkills();
   }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem('paymentReturnTo', returnTo);
+    if (location.state?.source) {
+      sessionStorage.setItem('paymentReturnSource', String(location.state.source));
+    }
+  }, [location.state?.source, returnTo]);
 
   useEffect(() => {
     setSelectedSkills([]);
@@ -181,31 +204,50 @@ const ProviderPlans = () => {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search);
+    if (paymentHandledRef.current) {
+      return;
+    }
+
     if (params.get('success') === 'true' && params.get('sub_id')) {
       const subId = params.get('sub_id');
       const sessionId = params.get('session_id');
 
       const finalizePayment = async () => {
+        paymentHandledRef.current = true;
+        setFinalizingPayment(true);
         try {
           await confirmPayment({
             subscriptionId: subId,
             paymentId: sessionId,
             orderId: 'stripe_session',
           });
-            toast.success('Payment confirmed! Your plan is now active.');
-            navigate('/provider/my-plan', { replace: true });
-           await getMyPlan();
+          await getCurrentSubscription().catch(() => null);
+          toast.success('Payment confirmed! Your plan is now active.');
+          sessionStorage.removeItem('paymentReturnTo');
+          sessionStorage.removeItem('paymentReturnSource');
+          navigate(returnTo, {
+            replace: true,
+            state: {
+              paymentSuccess: true,
+              refreshSubscription: true,
+              source: 'provider-plans',
+            },
+          });
         } catch (err) {
           toast.error('Failed to confirm payment status.');
+        } finally {
+          setFinalizingPayment(false);
         }
       };
       finalizePayment();
     } else if (params.get('cancelled') === 'true') {
+      paymentHandledRef.current = true;
       toast.error('Payment was cancelled.');
+      sessionStorage.removeItem('paymentReturnSource');
       navigate('/provider/plans', { replace: true });
     }
-  }, [navigate]);
+  }, [location.search, navigate, returnTo]);
 
 
   useEffect(() => {
@@ -313,7 +355,16 @@ const ProviderPlans = () => {
           });
           await getMyPlan();
           toast.success('Simulation: Payment successful! Plan activated.');
-          navigate('/provider/my-plan', { replace: true });
+          sessionStorage.removeItem('paymentReturnTo');
+          sessionStorage.removeItem('paymentReturnSource');
+          navigate(returnTo, {
+            replace: true,
+            state: {
+              paymentSuccess: true,
+              refreshSubscription: true,
+              source: 'provider-plans-simulation',
+            },
+          });
           return;
         }
       }
@@ -343,7 +394,16 @@ const ProviderPlans = () => {
             });
             await getMyPlan();
             toast.success('Payment successful! Plan activated.');
-            navigate('/provider/my-plan', { replace: true });
+            sessionStorage.removeItem('paymentReturnTo');
+            sessionStorage.removeItem('paymentReturnSource');
+            navigate(returnTo, {
+              replace: true,
+              state: {
+                paymentSuccess: true,
+                refreshSubscription: true,
+                source: 'provider-plans-razorpay',
+              },
+            });
           },
         };
         const razorpay = new window.Razorpay(options);
@@ -380,6 +440,12 @@ const ProviderPlans = () => {
               <h1 className="text-2xl font-bold text-[#06133D]">{t('plans.chooseVisibility', 'Choose Your Visibility Plan')}</h1>
               <p className="text-sm text-[#64748B] mt-1">{t('plans.chooseVisibilityDesc', 'Select the perfect plan to boost your visibility and get more leads.')}</p>
             </div>
+
+            {finalizingPayment && (
+              <div className="rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-semibold text-violet-700">
+                Finalizing your payment and updating coverage limits...
+              </div>
+            )}
 
             {/* <div className="flex items-center gap-3">
             <div className="flex bg-white border border-[#E8EEF9] rounded-full p-1 shadow-sm">

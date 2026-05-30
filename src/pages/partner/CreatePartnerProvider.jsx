@@ -12,6 +12,9 @@ import {
   HiSparkles,
 } from "react-icons/hi";
 import partnerApi from "../../services/partnerApi";
+import useSubmitLock from "../../hooks/useSubmitLock";
+import { sanitizePayload } from "../../utils/sanitizePayload";
+
 
 const CreatePartnerProvider = () => {
   const [form, setForm] = useState({
@@ -20,25 +23,26 @@ const CreatePartnerProvider = () => {
     phone: "",
     selectedPlanId: "",
   });
-  const [loading, setLoading] = useState(false);
   const [credentials, setCredentials] = useState(null);
+
+  const { isSubmitting, withLock } = useSubmitLock();
 
   const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const submit = async (e) => {
-    e.preventDefault();
+
+  const submit = withLock(async (e) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
     try {
-      setLoading(true);
-      const res = await partnerApi.createProvider(form);
-      setCredentials({ email: form.email, password: res.data.password });
+      const cleanForm = sanitizePayload(form);
+      const res = await partnerApi.createProvider(cleanForm);
+      setCredentials({ email: cleanForm.email, password: res.data.password });
       toast.success("Provider created and payment link sent");
       setForm({ name: "", email: "", phone: "", selectedPlanId: "" });
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to create provider");
-    } finally {
-      setLoading(false);
     }
-  };
+  });
+
 
   const copyCredentials = () => {
     if (credentials) {
@@ -176,10 +180,10 @@ const CreatePartnerProvider = () => {
                   })}
 
                   <button
-                    disabled={loading}
+                    disabled={isSubmitting}
                     className="group flex w-full items-center justify-center gap-3 rounded-3xl bg-gradient-to-r from-purple-600 to-indigo-600 py-5 text-lg font-black text-white shadow-xl shadow-purple-200 transition hover:-translate-y-0.5 disabled:opacity-60"
                   >
-                    {loading ? (
+                    {isSubmitting ? (
                       <div className="h-6 w-6 animate-spin rounded-full border-4 border-white/30 border-t-white" />
                     ) : (
                       <>

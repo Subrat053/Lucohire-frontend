@@ -21,6 +21,7 @@ const navItems = [
   { labelKey: 'admin.navRecruiters', fallback: 'Recruiters', path: '/admin/recruiters',  icon: HiUsers },
   { labelKey: 'admin.navEnquiries', fallback: 'Enquiries', path: '/admin/enquiries', icon: HiMail },
   { labelKey: 'admin.profileApprovals', fallback: 'Profile Approvals', path: '/admin/profile-photo-approvals', icon: HiPhotograph, adminOnly: true },
+  { labelKey: 'admin.portfolioApprovals', fallback: 'Portfolio Approvals', path: '/admin/portfolio-approvals', icon: HiLink, adminOnly: true },
   { labelKey: 'admin.navSkills', fallback: 'Skills', path: '/admin/skills',      icon: HiCollection },
   { labelKey: 'admin.navPlans', fallback: 'Plans', path: '/admin/plans',       icon: HiCurrencyRupee },
   { labelKey: 'admin.navPayments', fallback: 'Payments', path: '/admin/payments',    icon: HiCreditCard },

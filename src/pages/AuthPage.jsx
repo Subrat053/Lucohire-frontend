@@ -28,6 +28,13 @@ import { authAPI } from "../services/api";
 import toast from "react-hot-toast";
 import useTranslation from "../hooks/useTranslation";
 import Seo from "../components/common/Seo";
+import PasswordInput from "../components/common/PasswordInput";
+import SkillSearchSelect from "../components/common/SkillSearchSelect";
+import useSubmitLock from "../hooks/useSubmitLock";
+import { sanitizePayload } from "../utils/sanitizePayload";
+import CascadeLocationSelect from "../components/common/CascadeLocationSelect";
+
+
 
 /* keep all your existing illustration / small components same */
 /* ═══════════════════════════ ILLUSTRATIONS ═══════════════════════════ */
@@ -378,13 +385,12 @@ const AuthPage = () => {
 
   const [mode, setMode] = useState(isLoginRoute ? "login" : "register");
   const [step, setStep] = useState(1);
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [selectedRoles, setSelectedRoles] = useState(
-    preSelectedRole ? [preSelectedRole] : []
+    preSelectedRole ? [preSelectedRole] : ["provider"]
   );
-  const [activeRole, setActiveRole] = useState(preSelectedRole || null);
+  const [activeRole, setActiveRole] = useState(preSelectedRole || "provider");
 
   const [confirmationResult, setConfirmationResult] = useState(null);
 
@@ -393,9 +399,32 @@ const AuthPage = () => {
     email: "",
     phone: "",
     password: "",
+    confirmPassword: "",
     otp: "",
     city: "",
     whatsappNumber: "",
+    selectedRole: preSelectedRole || "provider",
+    providerProfile: {
+      skills: [],
+      location: "",
+      experience: "",
+    },
+    recruiterProfile: {
+      companyName: "",
+      gstNumber: "",
+      companyLocation: "",
+    }
+  });
+
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+    skills: "",
+    companyName: "",
+    gstNumber: "",
+    general: "",
   });
 
   const [emailOtpSource, setEmailOtpSource] = useState("register");
@@ -413,6 +442,19 @@ const AuthPage = () => {
   } = useAuth();
   const navigate = useNavigate();
 
+  // ── Submit lock (prevents duplicate submissions) ──────────────────────────
+  const { isSubmitting, withLock, blockEnterIfSubmitting } = useSubmitLock();
+
+  // ── Show session-expired message if redirected from a protected page ───────
+  useEffect(() => {
+    const msg = sessionStorage.getItem("auth:session_expired_message");
+    if (msg) {
+      toast.error(msg, { id: "session-expired-page", duration: 5000 });
+      sessionStorage.removeItem("auth:session_expired_message");
+    }
+  }, []);
+
+
   useEffect(() => {
     const isLogin = location.pathname === "/login";
     const params = new URLSearchParams(location.search);
@@ -425,20 +467,40 @@ const AuthPage = () => {
       email: "",
       phone: "",
       password: "",
+      confirmPassword: "",
       otp: "",
       city: "",
       whatsappNumber: "",
+      selectedRole: roleParam || "provider",
+      providerProfile: {
+        skills: [],
+        location: "",
+        experience: "",
+      },
+      recruiterProfile: {
+        companyName: "",
+        gstNumber: "",
+        companyLocation: "",
+      }
+    });
+
+    setErrors({
+      email: "",
+      password: "",
+      confirmPassword: "",
+      phone: "",
+      skills: "",
+      companyName: "",
+      gstNumber: "",
+      general: "",
     });
 
     if (roleParam) {
       setSelectedRoles([roleParam]);
       setActiveRole(roleParam);
-    } else if (isLogin) {
-      setSelectedRoles([]);
-      setActiveRole(null);
     } else {
-      setSelectedRoles([]);
-      setActiveRole(null);
+      setSelectedRoles(["provider"]);
+      setActiveRole("provider");
     }
 
     setEmailOtpSource("register");
@@ -494,7 +556,56 @@ const AuthPage = () => {
   }, [authLoading, isAuthenticated, user, navigate]);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    // Check if it's a nested providerProfile or recruiterProfile field
+    if (name.startsWith("providerProfile.")) {
+      const fieldName = name.split(".")[1];
+      setForm((prev) => ({
+        ...prev,
+        providerProfile: {
+          ...prev.providerProfile,
+          [fieldName]: value
+        }
+      }));
+    } else if (name.startsWith("recruiterProfile.")) {
+      const fieldName = name.split(".")[1];
+      setForm((prev) => ({
+        ...prev,
+        recruiterProfile: {
+          ...prev.recruiterProfile,
+          [fieldName]: value
+        }
+      }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
+
+    // Dynamic error clearing / real-time validation
+    if (name === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+      let errorMsg = "";
+      if (value.trim() && !emailRegex.test(value)) {
+        errorMsg = "Please enter a valid email address.";
+      }
+      setErrors((prev) => ({ ...prev, email: errorMsg }));
+    }
+
+    if (name === "password") {
+      let errorMsg = "";
+      if (value.trim() && value.length < 6) {
+        errorMsg = "Password must be at least 6 characters.";
+      }
+      setErrors((prev) => ({ ...prev, password: errorMsg }));
+    }
+
+    if (name === "confirmPassword") {
+      let errorMsg = "";
+      if (value.trim() && value !== form.password) {
+        errorMsg = "Passwords do not match.";
+      }
+      setErrors((prev) => ({ ...prev, confirmPassword: errorMsg }));
+    }
   };
 
   const loadFirebaseAuth = async () => {
@@ -757,24 +868,25 @@ const AuthPage = () => {
     }, 1000);
   };
 
-  const handleEmailLogin = async (e) => {
-    e.preventDefault();
+  const handleEmailLogin = withLock(async (e) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
 
-    if (!form.email || !form.password) {
+    const trimmedEmail = form.email.trim().toLowerCase();
+    const trimmedPassword = form.password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
       return toast.error(t("auth.fillAllFields"));
     }
 
-    setLoading(true);
-
     try {
-      const { data } = await authAPI.loginEmail({
-        email: form.email,
-        password: form.password,
+      const payload = sanitizePayload({
+        email: trimmedEmail,
+        password: trimmedPassword,
         activeRole: activeRole || preSelectedRole || undefined,
         role: activeRole || preSelectedRole || undefined,
       });
+      const { data } = await authAPI.loginEmail(payload);
 
-      console.log("[EMAIL LOGIN RESPONSE]", data);
       redirectAfterAuth(data?.data);
     } catch (err) {
       if (err.response?.data?.requiresEmailVerification) {
@@ -792,73 +904,107 @@ const AuthPage = () => {
       } else {
         toast.error(err.response?.data?.message || t("auth.loginFailed"));
       }
-    } finally {
-      setLoading(false);
     }
-  };
+  });
 
-  const handleEmailRegister = async (e) => {
-    e.preventDefault();
 
-    if (!form.name || !form.email || !form.password) {
-      return toast.error(t("auth.fillAllFields"));
+  const handleEmailRegister = withLock(async (e) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+
+    // Trim for validation
+    const trimmedName = form.name.trim();
+    const trimmedEmail = form.email.trim().toLowerCase();
+    const trimmedPassword = form.password.trim();
+    const trimmedConfirm = form.confirmPassword.trim();
+
+    // Standard validations
+    if (!trimmedName || !trimmedEmail || !trimmedPassword || !trimmedConfirm) {
+      return toast.error(t("auth.fillAllFields") || "Please fill in all required fields.");
     }
 
-    if (selectedRoles.length === 0) {
-      return toast.error("Please select at least one role");
+    if (trimmedPassword.length < 6) {
+      return toast.error("Password must be at least 6 characters.");
     }
 
-    setLoading(true);
+    if (trimmedPassword !== trimmedConfirm) {
+      return toast.error("Passwords do not match.");
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      return toast.error("Please enter a valid email address.");
+    }
+
+    // Role-specific validation
+    if (form.selectedRole === 'provider') {
+      if (!form.providerProfile.skills || form.providerProfile.skills.length === 0) {
+        return toast.error("Please select at least one speciality / skill.");
+      }
+    } else if (form.selectedRole === 'recruiter') {
+      const trimmedCompanyName = (form.recruiterProfile.companyName || '').trim();
+      if (!trimmedCompanyName) {
+        return toast.error("Company Name is required.");
+      }
+      const gstRaw = (form.recruiterProfile.gstNumber || '').trim();
+      if (gstRaw) {
+        const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+        if (!gstRegex.test(gstRaw.toUpperCase())) {
+          return toast.error("Invalid GST Number format. Must be a valid 15-character GSTIN.");
+        }
+      }
+    }
 
     try {
-      const { data } = await authAPI.registerEmail({
-        name: form.name,
-        email: form.email,
+      const rawPayload = {
+        name: trimmedName,
+        email: trimmedEmail,
         phone: form.phone,
-        city: form.city,
-        password: form.password,
-        roles: selectedRoles,
-        activeRole: activeRole || selectedRoles[0],
+        city: form.selectedRole === 'provider' ? form.providerProfile.location : form.recruiterProfile.companyLocation,
+        password: trimmedPassword,
+        roles: [form.selectedRole],
+        activeRole: form.selectedRole,
         referralCode,
-      });
+        // Dynamic profile fields
+        skills: form.selectedRole === 'provider' ? form.providerProfile.skills : undefined,
+        experience: form.selectedRole === 'provider' ? form.providerProfile.experience : undefined,
+        companyName: form.selectedRole === 'recruiter' ? (form.recruiterProfile.companyName || '').trim() : undefined,
+        gstNumber: form.selectedRole === 'recruiter' ? (form.recruiterProfile.gstNumber || '').trim() : undefined,
+      };
+      const payload = sanitizePayload(rawPayload);
 
-      console.log("[EMAIL REGISTER RESPONSE]", data);
+      const { data } = await authAPI.registerEmail(payload);
+
       setEmailOtpSource("register");
-      setForm((f) => ({ ...f, email: form.email, otp: "" }));
+      setForm((f) => ({ ...f, email: trimmedEmail, otp: "" }));
       setMode("email-verify");
       toast.success(data.message || "OTP sent to your email");
       setTimeout(() => otpRefs.current[0]?.focus(), 200);
     } catch (err) {
-      toast.error(err.response?.data?.message || t("auth.registrationFailed"));
-    } finally {
-      setLoading(false);
+      toast.error(err.response?.data?.message || t("auth.registrationFailed") || "Registration failed");
     }
-  };
+  });
 
-  const handleEmailOtpVerify = async () => {
+
+  const handleEmailOtpVerify = withLock(async () => {
     const otp = form.otp.replace(/\s/g, "");
 
     if (!form.email || otp.length !== 6) {
       return toast.error("Enter email and 6-digit OTP");
     }
 
-    setLoading(true);
-
     try {
       const { data } = await authAPI.verifyEmailOtp({
-        email: form.email,
+        email: form.email.trim().toLowerCase(),
         otp,
         whatsappNumber: form.whatsappNumber || undefined,
       });
 
-      console.log("[EMAIL OTP VERIFY RESPONSE]", data);
       redirectAfterAuth(data?.data);
     } catch (err) {
       toast.error(err.response?.data?.message || t("auth.otpFailed"));
-    } finally {
-      setLoading(false);
     }
-  };
+  });
+
 
   const handleGoogleAuthSuccess = async (accessToken) => {
     setLoading(true);
@@ -946,7 +1092,8 @@ const AuthPage = () => {
           value={form.otp[idx] && form.otp[idx] !== " " ? form.otp[idx] : ""}
           onChange={(e) => handleOtpBox(idx, e)}
           onKeyDown={(e) => handleOtpKey(idx, e)}
-          disabled={loading}
+          disabled={isSubmitting}
+
           className={`w-10 h-12 sm:w-14 sm:h-16 text-center text-2xl font-bold border-2 rounded-2xl outline-none transition border-gray-200 focus:border-${accent}-500 focus:ring-2 focus:ring-${accent}-200 bg-gray-50 focus:bg-white disabled:opacity-50`}
         />
       ))}
@@ -978,7 +1125,8 @@ const AuthPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
             <button
               onClick={handleGoogleAuth}
-              disabled={loading}
+              disabled={isSubmitting}
+
               className="flex items-center justify-center gap-2 border-2 border-gray-200 bg-white py-3.5 rounded-2xl text-sm font-semibold hover:bg-gray-50 transition shadow-sm"
             >
               <FcGoogle className="w-5 h-5" /> {t("auth.continueGoogle")}
@@ -998,17 +1146,34 @@ const AuthPage = () => {
           </div>
 
           <div className="mb-5">
-            <p className="text-xs text-center text-gray-400 mb-3">
-              You can select one or both roles. You can also switch roles later
-              from the navbar.
-            </p>
-
-            <RolePicker
-              roles={selectedRoles}
-              setRoles={setSelectedRoles}
-              activeRole={activeRole}
-              setActiveRole={setActiveRole}
-            />
+            <p className="text-xs font-semibold text-gray-500 mb-2">{t('auth.registerAs', 'I want to register as')}</p>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { v: 'provider', e: '🛠️', l: t('common.provider', 'Service Provider') },
+                { v: 'recruiter', e: '💼', l: t('common.recruiter', 'Recruiter') }
+              ].map(({ v, e, l }) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => {
+                    setForm(prev => ({
+                      ...prev,
+                      selectedRole: v
+                    }));
+                    setSelectedRoles([v]);
+                    setActiveRole(v);
+                  }}
+                  className={`p-4 rounded-2xl border-2 text-center transition flex flex-col items-center justify-center gap-1.5 ${
+                    form.selectedRole === v
+                      ? 'border-indigo-500 bg-indigo-50/50 ring-2 ring-indigo-200 text-indigo-700'
+                      : 'border-gray-200 hover:border-gray-300 bg-gray-50 text-gray-600'
+                  }`}
+                >
+                  <span className="text-3xl">{e}</span>
+                  <span className="text-xs font-bold">{l}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <p className="text-center text-sm text-gray-500">
@@ -1025,6 +1190,7 @@ const AuthPage = () => {
     }
 
     if (mode === "register" && step === 2) {
+      const emailIsInvalid = errors.email || (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email));
       return (
         <form onSubmit={handleEmailRegister} className="space-y-4">
           <div>
@@ -1051,55 +1217,147 @@ const AuthPage = () => {
 
           <PhoneField value={form.phone} onChange={handleChange} />
 
-          <TextInput
-            icon={HiLocationMarker}
-            name="city"
-            value={form.city}
-            onChange={handleChange}
-            placeholder="City"
-          />
+          <div className="space-y-1">
+            <TextInput
+              icon={HiMail}
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Email Address"
+              required
+            />
+            {errors.email && <p className="text-red-500 text-xs mt-0.5 pl-1 font-medium">{errors.email}</p>}
+          </div>
 
-          <TextInput
-            icon={HiMail}
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="Email Address"
-            required
-          />
-
-          <TextInput
-            icon={HiLockClosed}
+          <PasswordInput
             name="password"
-            type={showPassword ? "text" : "password"}
             value={form.password}
             onChange={handleChange}
             placeholder="Password"
             required
-            rightSlot={
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <HiEyeOff className="w-5 h-5 text-gray-400" />
-                ) : (
-                  <HiEye className="w-5 h-5 text-gray-400" />
-                )}
-              </button>
-            }
+            error={errors.password}
           />
 
-          <RolePicker
-            roles={selectedRoles}
-            setRoles={setSelectedRoles}
-            activeRole={activeRole}
-            setActiveRole={setActiveRole}
+          <PasswordInput
+            name="confirmPassword"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            placeholder="Confirm Password"
+            required
+            error={errors.confirmPassword}
           />
 
-          <BlueBtn type="submit" disabled={loading}>
-            {loading ? (
+          {/* DYNAMIC FIELDS based on selectedRole */}
+          {form.selectedRole === 'provider' && (
+            <div className="space-y-4 pt-2 border-t border-gray-100">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Provider Settings</p>
+              
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-2">Select Your Specialities / Skills</label>
+                <SkillSearchSelect
+                  selected={form.providerProfile.skills}
+                  onAdd={(skill) => {
+                    setForm(prev => ({
+                      ...prev,
+                      providerProfile: {
+                        ...prev.providerProfile,
+                        skills: [...prev.providerProfile.skills, skill]
+                      }
+                    }));
+                  }}
+                  onRemove={(skill) => {
+                    setForm(prev => ({
+                      ...prev,
+                      providerProfile: {
+                        ...prev.providerProfile,
+                        skills: prev.providerProfile.skills.filter(s => s !== skill)
+                      }
+                    }));
+                  }}
+                  maxAllowed={5}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-semibold text-gray-500 mb-1">
+                  Location (Country &rarr; State &rarr; City) <span className="text-red-500">*</span>
+                </label>
+                <CascadeLocationSelect
+                  required
+                  onCityChange={(city) => {
+                    setForm((prev) => ({
+                      ...prev,
+                      providerProfile: {
+                        ...prev.providerProfile,
+                        location: city,
+                      },
+                    }));
+                  }}
+                  selectClassName="!bg-gray-50 focus:!bg-white !py-3 !border-gray-200"
+                  showLabels={false}
+                />
+              </div>
+
+
+              <TextInput
+                icon={HiUser}
+                name="providerProfile.experience"
+                value={form.providerProfile.experience}
+                onChange={handleChange}
+                placeholder="Experience (e.g. 3 years)"
+              />
+            </div>
+          )}
+
+          {form.selectedRole === 'recruiter' && (
+            <div className="space-y-4 pt-2 border-t border-gray-100">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Recruiter Settings</p>
+
+              <TextInput
+                icon={HiUser}
+                name="recruiterProfile.companyName"
+                value={form.recruiterProfile.companyName}
+                onChange={handleChange}
+                placeholder="Company / Business Name"
+                required
+              />
+
+              <div className="space-y-1">
+                <TextInput
+                  icon={HiShieldCheck}
+                  name="recruiterProfile.gstNumber"
+                  value={form.recruiterProfile.gstNumber}
+                  onChange={handleChange}
+                  placeholder="GST Number (Optional, e.g. 22AAAAA1111A1Z1)"
+                />
+                {errors.gstNumber && <p className="text-red-500 text-xs mt-1 pl-1 font-medium">{errors.gstNumber}</p>}
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-semibold text-gray-500 mb-1">
+                  Company Location (Country &rarr; State &rarr; City)
+                </label>
+                <CascadeLocationSelect
+                  onCityChange={(city) => {
+                    setForm((prev) => ({
+                      ...prev,
+                      recruiterProfile: {
+                        ...prev.recruiterProfile,
+                        companyLocation: city,
+                      },
+                    }));
+                  }}
+                  selectClassName="!bg-gray-50 focus:!bg-white !py-3 !border-gray-200"
+                  showLabels={false}
+                />
+              </div>
+
+            </div>
+          )}
+
+          <BlueBtn type="submit" disabled={isSubmitting || !!emailIsInvalid}>
+            {isSubmitting ? (
               <>
                 <Spinner />
                 {t("auth.creatingAccount")}
@@ -1295,9 +1553,9 @@ const AuthPage = () => {
 
           <BlueBtn
             onClick={handleEmailOtpVerify}
-            disabled={loading || form.otp.replace(/\s/g, "").length !== 6}
+            disabled={isSubmitting || form.otp.replace(/\s/g, "").length !== 6}
           >
-            {loading ? (
+            {isSubmitting ? (
               <>
                 <Spinner />
                 {t("auth.verifying")}
@@ -1448,26 +1706,14 @@ const AuthPage = () => {
                 required
               />
 
-              <TextInput
-                icon={HiLockClosed}
+              <PasswordInput
                 name="password"
-                type={showPassword ? "text" : "password"}
                 value={form.password}
                 onChange={handleChange}
                 placeholder={t('common.password', 'Password')}
                 required
-                rightSlot={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <HiEyeOff className="w-5 h-5 text-gray-400" />
-                    ) : (
-                      <HiEye className="w-5 h-5 text-gray-400" />
-                    )}
-                  </button>
-                }
+                autoComplete="current-password"
+                error={errors.password}
               />
               <div className="flex justify-end px-1">
                 <Link

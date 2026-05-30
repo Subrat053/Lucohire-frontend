@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import PartnerProtectedRoute from "../components/common/PartnerProtectedRoute";
 import PartnerLayout from "../pages/partner/PartnerLayout";
 import Navbar from "../components/common/Navbar";
+import Seo from "../components/common/Seo";
 
 // Lazy-loaded pages
 const PartnerDashboard = lazy(() => import("../pages/partner/PartnerDashboard"));
@@ -15,6 +16,7 @@ const ChangePassword = lazy(() => import("../pages/user/ChangePassword"));
 function PartnerLayoutWrapper({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Seo title="Partner Dashboard" robots="noindex, nofollow" />
       <Navbar />
       <main className="flex-1">
         <PartnerProtectedRoute>

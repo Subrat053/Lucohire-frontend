@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import ProviderLayout from "../components/provider/ProviderLayout";
 import Navbar from "../components/common/Navbar";
+import Seo from "../components/common/Seo";
 
 // Lazy-loaded pages
 const ProviderDashboard = lazy(() => import("../pages/provider/Dashboard"));
@@ -21,6 +22,7 @@ const ProviderPayoutSettings = lazy(() => import("../pages/provider/PayoutSettin
 function ProviderLayoutWrapper({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Seo title="Provider Dashboard" robots="noindex, nofollow" />
       <Navbar />
       <main className="flex-1">
         <ProtectedRoute allowedRoles={["provider"]}>

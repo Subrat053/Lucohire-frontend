@@ -5,7 +5,7 @@ const LocationSearch = ({
   onChange,
   onSelect,
   placeholder = 'Type location...',
-  className = '',
+  className = 'mt-2',
   minChars = 3,
 }) => {
   return (

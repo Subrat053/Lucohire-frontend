@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { providerWalletAPI } from '../../services/api';
+import { providerWalletAPI, walletAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { 
   HiCurrencyRupee, HiArrowUp, HiArrowDown, HiClock, HiCheckCircle, HiExclamationCircle, 
@@ -99,29 +99,55 @@ const Wallet = () => {
 
   useEffect(() => {
     fetchWalletData();
+    
+    // 30 seconds polling interval
+    const pollingInterval = setInterval(() => {
+      fetchWalletData(true);
+    }, 30000);
+    return () => clearInterval(pollingInterval);
   }, []);
 
-  const fetchWalletData = async () => {
+  const fetchWalletData = async (quiet = false) => {
     try {
-      setLoading(true);
-      const { data } = await providerWalletAPI.getWallet();
-      setWallet(data.wallet || null);
-      setPayoutMethods(data.payoutMethods || []);
-      setTransactions(data.transactions || []);
-      setConfig(data.config || { minWithdrawalAmount: 500, fixedWithdrawalFee: 0 });
-      setProviderPhone(data.user?.phone || '');
+      if (!quiet) setLoading(true);
+      const [walletRes, summaryRes, txnsRes] = await Promise.all([
+        providerWalletAPI.getWallet(),
+        walletAPI.getSummary(),
+        walletAPI.getTransactions()
+      ]);
+
+      const walletData = walletRes.data;
+      const summaryData = summaryRes.data.data;
+      const txnsData = txnsRes.data.data;
+
+      setWallet({
+        totalEarnings: walletData.wallet?.totalEarnings || 0,
+        availableBalance: summaryData.walletBalance || 0,
+        pendingBalance: summaryData.pendingWithdrawal || 0,
+        withdrawnAmount: summaryData.totalWithdrawn || 0,
+        commissionDeducted: walletData.wallet?.commissionDeducted || 0,
+        referralBalance: summaryData.referralWalletBalance || 0,
+        cashbackBalance: summaryData.cashbackBalance || 0
+      });
+
+      setPayoutMethods(walletData.payoutMethods || []);
+      setTransactions(txnsData || []);
+      setConfig(walletData.config || { minWithdrawalAmount: 500, fixedWithdrawalFee: 0 });
+      setProviderPhone(walletData.user?.phone || '');
       
       // Auto-select default payout method
-      const defaultMethod = data.payoutMethods?.find(m => m.isDefault);
+      const defaultMethod = walletData.payoutMethods?.find(m => m.isDefault);
       if (defaultMethod) {
         setSelectedPayoutMethodId(defaultMethod._id);
-      } else if (data.payoutMethods?.length > 0) {
-        setSelectedPayoutMethodId(data.payoutMethods[0]._id);
+      } else if (walletData.payoutMethods?.length > 0) {
+        setSelectedPayoutMethodId(walletData.payoutMethods[0]._id);
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || t('wallet.loadFail', 'Failed to load wallet dashboard'));
+      if (!quiet) {
+        toast.error(err?.response?.data?.message || t('wallet.loadFail', 'Failed to load wallet dashboard'));
+      }
     } finally {
-      setLoading(false);
+      if (!quiet) setLoading(false);
     }
   };
 
@@ -202,8 +228,8 @@ const Wallet = () => {
     if (e) e.preventDefault();
     const numericAmount = Number(amount);
     
-    if (!numericAmount || numericAmount <= 0) {
-      toast.error(t('wallet.invalidAmount', 'Please enter a valid withdrawal amount'));
+    if (!numericAmount || numericAmount <= 0 || !Number.isInteger(numericAmount)) {
+      toast.error(t('wallet.invalidAmount', 'Please enter a valid positive integer withdrawal amount'));
       return;
     }
 
@@ -325,14 +351,15 @@ const Wallet = () => {
       </div>
 
       {/* Wallet Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-6 mb-8">
         {[
           { label: t('wallet.totalEarnings', 'Total Earnings'), value: wallet?.totalEarnings || 0, color: 'from-blue-600 to-indigo-600', icon: HiArrowUp, desc: t('wallet.totalEarnedDesc', 'Provider earnings credited') },
           { label: t('wallet.availableBalance', 'Available Balance'), value: wallet?.availableBalance || 0, color: 'from-emerald-600 to-teal-600', icon: HiCheckCircle, desc: t('wallet.availDesc', 'Ready to withdraw instantly') },
           { label: t('wallet.pendingBalance', 'Pending Balance'), value: wallet?.pendingBalance || 0, color: 'from-amber-600 to-orange-600', icon: HiClock, desc: t('wallet.pendingDesc', 'Locked in withdrawal process') },
           { label: t('wallet.withdrawnAmount', 'Withdrawn Amount'), value: wallet?.withdrawnAmount || 0, color: 'from-slate-600 to-slate-800', icon: HiArrowDown, desc: t('wallet.withdrawnDesc', 'Successfully paid out') },
           { label: t('wallet.feesDeducted', 'Commission Paid'), value: wallet?.commissionDeducted || 0, color: 'from-rose-600 to-red-700', icon: HiExclamationCircle, desc: t('wallet.feeDesc', 'Platform commission share') },
-          { label: t('wallet.referralBalance', 'Referral Balance'), value: wallet?.referralBalance || 0, color: 'from-purple-600 to-violet-600', icon: HiPlusCircle, desc: t('wallet.referralDesc', 'Earnings from referral commission') }
+          { label: t('wallet.referralBalance', 'Referral Balance'), value: wallet?.referralBalance || 0, color: 'from-purple-600 to-violet-600', icon: HiPlusCircle, desc: t('wallet.referralDesc', 'Earnings from referral commission') },
+          { label: t('wallet.cashbackBalance', 'Promo Cashback'), value: wallet?.cashbackBalance || 0, color: 'from-teal-500 to-emerald-500', icon: HiOutlineSparkles, desc: t('wallet.cashbackDesc', 'Verified signup cashback reward') }
         ].map((card, idx) => (
           <div key={idx} className="relative overflow-hidden bg-white border border-slate-100 rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all group flex flex-col justify-between h-full">
             <div>
@@ -385,26 +412,27 @@ const Wallet = () => {
                       </td>
                       <td className="py-4 px-2">
                         <span className={`px-2 py-0.5 rounded-md font-bold uppercase tracking-wider text-[9px] ${
-                          txn.type === 'earning' ? 'bg-indigo-50 text-indigo-700' :
-                          txn.type === 'withdrawal' ? 'bg-orange-50 text-orange-700' :
-                          txn.type === 'commission' ? 'bg-red-50 text-red-700' :
+                          txn.type === 'earning' || txn.type === 'provider_task_earning' ? 'bg-indigo-50 text-indigo-700' :
+                          txn.type === 'withdrawal' || txn.type === 'withdrawal_request' ? 'bg-orange-50 text-orange-700' :
+                          txn.type === 'commission' || txn.type === 'platform_commission' || txn.type === 'user_referral_commission' || txn.type === 'partner_referral_commission' ? 'bg-red-50 text-red-700' :
+                          txn.type === 'signup_cashback' ? 'bg-emerald-50 text-emerald-700' :
                           'bg-slate-100 text-slate-700'
                         }`}>
-                          {txn.type}
+                          {txn.type ? txn.type.replace(/_/g, ' ') : ''}
                         </span>
                       </td>
                       <td className="py-4 px-2 font-mono font-bold text-slate-900">
-                        {txn.status === 'credited' ? '+' : '-'}₹{txn.amount.toFixed(2)}
+                        {txn.direction === 'credit' ? '+' : '-'}₹{txn.amount.toFixed(2)}
                       </td>
                       <td className="py-4 px-2">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-bold uppercase text-[9px] ${
-                          txn.status === 'credited' ? 'bg-emerald-50 text-emerald-700' :
+                          txn.status === 'credited' || txn.status === 'approved' || txn.status === 'completed' || txn.status === 'success' || txn.status === 'processed' ? 'bg-emerald-50 text-emerald-700' :
                           txn.status === 'debited' ? 'bg-slate-100 text-slate-700' :
                           txn.status === 'pending' ? 'bg-amber-50 text-amber-700' :
                           'bg-red-50 text-red-700'
                         }`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${
-                            txn.status === 'credited' ? 'bg-emerald-500' :
+                            txn.status === 'credited' || txn.status === 'approved' || txn.status === 'completed' || txn.status === 'success' || txn.status === 'processed' ? 'bg-emerald-500' :
                             txn.status === 'debited' ? 'bg-slate-500' :
                             txn.status === 'pending' ? 'bg-amber-500' :
                             'bg-red-500'
@@ -490,9 +518,19 @@ const Wallet = () => {
                         type="number"
                         min={config.minWithdrawalAmount}
                         max={wallet?.availableBalance}
+                        step="1"
                         required
                         value={amount}
-                        onChange={e => setAmount(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
+                        onChange={e => {
+                          const val = e.target.value;
+                          const sanitized = val.replace(/\D/g, '');
+                          setAmount(sanitized);
+                        }}
                         placeholder={`e.g. ${config.minWithdrawalAmount}`}
                         className="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-base font-bold focus:outline-hidden focus:border-indigo-500 transition"
                       />

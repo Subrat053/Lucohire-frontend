@@ -12,7 +12,13 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import SkillPicker from '../../components/common/SkillPicker';
 import toast from 'react-hot-toast';
 import { toAbsoluteMediaUrl } from '../../utils/media';
+import { cacheBustedUrl } from '../../utils/cacheBuster';
+import { sanitizePayload } from '../../utils/sanitizePayload';
+import useSubmitLock from '../../hooks/useSubmitLock';
 import LocationSearch from '../../components/LocationSearch';
+import { compressImage } from '../../utils/fileCompressionService';
+import { validateUploadFile } from '../../utils/fileValidationService';
+
 
 const InputField = ({ label, required, children }) => (
   <div>
@@ -32,6 +38,11 @@ const RecruiterProfile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  // Submit lock — prevents double save on rapid clicks
+  const { isSubmitting, withLock } = useSubmitLock();
+
+
   const [form, setForm] = useState({
     name: '',
     companyName: '',
@@ -117,15 +128,45 @@ const RecruiterProfile = () => {
   };
 
   const handlePhotoUpload = async (file) => {
+    if (uploading) return; // Early guard
+
+    // Validate size and format
+    const validation = validateUploadFile(file, { maxSizeMB: 5 });
+    if (!validation.isValid) {
+      toast.error(validation.error);
+      setPhotoPreview(savedPhoto);
+      return;
+    }
+
     setUploading(true);
+    let finalFile = file;
+    const toastId = toast.loading('Optimizing image...');
+
+    try {
+      const compressionResult = await compressImage(file, { maxSizeKB: 300 });
+      if (compressionResult.optimized) {
+        finalFile = compressionResult.compressedFile;
+        const originalKB = (compressionResult.originalSize / 1024).toFixed(0);
+        const compressedKB = (compressionResult.compressedSize / 1024).toFixed(0);
+        toast.success(`Image optimized! Size reduced from ${originalKB}KB to ${compressedKB}KB`, { id: toastId });
+      } else {
+        toast.success('Uploading optimized image...', { id: toastId });
+      }
+    } catch (compressErr) {
+      console.warn('Compression failed, uploading original:', compressErr);
+      toast.error('Optimization skipped, uploading original...', { id: toastId });
+    }
+
     const formData = new FormData();
-    formData.append('profilePhoto', file);
+    formData.append('profilePhoto', finalFile);
     try {
       const { data } = await recruiterAPI.uploadProfilePhoto(formData);
       if (data?.url) {
-        const url = toAbsoluteMediaUrl(data.url);
-        setSavedPhoto(url);
-        setPhotoPreview(url);
+        const absoluteUrl = toAbsoluteMediaUrl(data.url);
+        // Cache-bust so browser fetches fresh image immediately after upload
+        const freshUrl = cacheBustedUrl(absoluteUrl);
+        setSavedPhoto(absoluteUrl); // store clean URL
+        setPhotoPreview(freshUrl);
       }
       await fetchUser();
       await fetchProfile();
@@ -139,6 +180,7 @@ const RecruiterProfile = () => {
     }
   };
 
+
   const handleRemovePhoto = async () => {
     setPhotoPreview('');
     setSavedPhoto('');
@@ -151,19 +193,24 @@ const RecruiterProfile = () => {
     }
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const handleSave = withLock(async (e) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
     if (!form.name.trim()) return toast.error('Name is required');
     setSaving(true);
     try {
-      await recruiterAPI.updateProfile(form);
+      const cleanPayload = sanitizePayload(form);
+      // Restore array fields that sanitizePayload leaves intact
+      cleanPayload.skillsNeeded = form.skillsNeeded;
+      cleanPayload.location = form.location; // object, not string
+      await recruiterAPI.updateProfile(cleanPayload);
       toast.success('Profile saved!');
     } catch {
       toast.error('Failed to save profile');
     } finally {
       setSaving(false);
     }
-  };
+  });
+
 
   if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><LoadingSpinner size="lg" /></div>;
 
@@ -421,11 +468,11 @@ const RecruiterProfile = () => {
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={isSubmitting || saving}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition disabled:opacity-50 flex items-center justify-center gap-2 text-sm shadow-sm"
             >
               <HiSave className="w-4 h-4" />
-              {saving ? 'Saving…' : 'Save Profile'}
+              {isSubmitting || saving ? 'Saving…' : 'Save Profile'}
             </button>
           </div>
         </form>

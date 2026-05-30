@@ -85,8 +85,9 @@ export default function PublicRoutes() {
           <ProfilePage />
         </ProtectedRoute>
       )} />
+      {/* Approval holding page — auth required but NO role/approval gate (avoids circular redirect) */}
       <Route path="pending-approval" element={wrap(
-        <ProtectedRoute allowedRoles={["provider", "recruiter"]}>
+        <ProtectedRoute>
           <PendingApproval />
         </ProtectedRoute>
       )} />

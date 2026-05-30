@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { adminAPI, authAPI } from "../services/api";
+import toast from "react-hot-toast";
 
 const AuthContext = createContext(null);
 
@@ -144,6 +145,28 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       const status = error?.response?.status;
+      const code = error?.response?.data?.code;
+
+      // ── Handle hard account-level blocks/deactivations ─────────────────────
+      if (status === 403 && code) {
+        const messages = {
+          ACCOUNT_BLOCKED: 'Your account has been blocked. Please contact support.',
+          ACCOUNT_DEACTIVATED: 'Your account has been deactivated. Please contact support.',
+          ACCOUNT_INACTIVE: 'Your account is inactive. Please contact support to reactivate.',
+        };
+        const statusMessage = messages[code];
+        if (statusMessage) {
+          clearAuthStorage();
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          // Surface the message to the login page via sessionStorage
+          sessionStorage.setItem('auth:status_message', statusMessage);
+          window.location.href = '/login';
+          return null;
+        }
+      }
+
       if (status === 401 || status === 403) {
         try {
           const { data } = await adminAPI.getMe();
@@ -181,6 +204,7 @@ export const AuthProvider = ({ children }) => {
     return resolvedUser;
   }, [clearAuthStorage, loadCachedUser, migrateLegacyToken, normalizeUser]);
 
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tokenParams = params.get('token');
@@ -194,10 +218,17 @@ export const AuthProvider = ({ children }) => {
   }, [refreshUser]);
 
   useEffect(() => {
-    const handler = () => {
-      if (localStorage.getItem("authToken")) {
-        logout();
-      }
+    const handler = (event) => {
+      if (!localStorage.getItem("authToken")) return;
+      // Retrieve user-facing message from event detail or use default
+      const message =
+        event?.detail?.message ||
+        "Your session has expired. Please login again.";
+      // Store for AuthPage to display after redirect
+      sessionStorage.setItem("auth:session_expired_message", message);
+      // Show toast before redirect
+      toast.error(message, { id: "session-expired", duration: 4000 });
+      logout();
     };
     window.addEventListener("auth:invalid-token", handler);
     return () => window.removeEventListener("auth:invalid-token", handler);

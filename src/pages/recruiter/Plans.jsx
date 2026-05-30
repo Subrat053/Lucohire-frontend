@@ -86,6 +86,48 @@ const RecruiterPlans = () => {
   const [customCredits, setCustomCredits] = useState(10);
   const [customDuration, setCustomDuration] = useState(30);
   const [customPrice, setCustomPrice] = useState(0);
+
+  // Payment Breakdown States
+  const [showBreakdownModal, setShowBreakdownModal] = useState(false);
+  const [breakdownData, setBreakdownData] = useState(null);
+  const [pendingPurchasePlanId, setPendingPurchasePlanId] = useState(null);
+  const [isPendingCustom, setIsPendingCustom] = useState(false);
+
+  const handlePurchaseClick = async (planId, isCustom = false) => {
+    let targetPrice = 0;
+    if (isCustom) {
+      targetPrice = customPrice;
+    } else {
+      const plan = plans.find(p => p._id === planId);
+      targetPrice = plan ? plan.price : 0;
+    }
+
+    try {
+      setLoading(true);
+      const { data } = await paymentAPI.calculateBreakdown({
+        amount: targetPrice,
+        context: 'subscription'
+      });
+
+      if (data?.success) {
+        setBreakdownData(data.data);
+        setPendingPurchasePlanId(planId);
+        setIsPendingCustom(isCustom);
+        setShowBreakdownModal(true);
+      } else {
+        toast.error('Failed to compute secure payment breakdown.');
+      }
+    } catch (err) {
+      toast.error('Unable to fetch transaction cost breakdown. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmPurchase = () => {
+    setShowBreakdownModal(false);
+    handlePurchase(pendingPurchasePlanId, isPendingCustom);
+  };
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
@@ -294,7 +336,7 @@ const RecruiterPlans = () => {
 
                   {/* CTA */}
                   <button
-                    onClick={() => !isUpgradeDisabled && handlePurchase(plan._id)}
+                    onClick={() => !isUpgradeDisabled && handlePurchaseClick(plan._id, false)}
                     disabled={isPaying || isUpgradeDisabled}
                     className={`w-full py-3 rounded-xl font-bold text-sm transition shadow-sm disabled:opacity-50 ${isActive
                       ? 'bg-green-100 text-green-700'
@@ -405,7 +447,7 @@ const RecruiterPlans = () => {
                     Cancel
                   </button>
                   <button
-                    onClick={() => handlePurchase('custom', true)}
+                    onClick={() => handlePurchaseClick('custom', true)}
                     disabled={paymentLoading}
                     className="flex-1 py-3 rounded-xl font-bold text-sm bg-blue-600 text-white hover:bg-blue-700 transition shadow-lg shadow-blue-200 disabled:opacity-50"
                   >
@@ -421,6 +463,64 @@ const RecruiterPlans = () => {
         <p className="text-center text-xs text-gray-400 mt-8">
           Free plan includes 2 contact unlocks per month. Secure payment powered by Stripe.
         </p>
+        {/* Payment Breakdown Modal */}
+        {showBreakdownModal && breakdownData && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 border border-slate-100">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <HiLightningBolt className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Secure Order Invoice</h3>
+                    <p className="text-xs text-gray-500">Recalculated securely on backend ledger servers</p>
+                  </div>
+                </div>
+
+                <div className="divide-y divide-slate-100 bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 font-medium">Base Plan Amount</span>
+                    <span className="font-bold text-slate-800">₹{breakdownData.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs pt-3">
+                    <span className="text-slate-500 font-medium">GST/Taxes ({breakdownData.taxPercent}%)</span>
+                    <span className="font-bold text-slate-800">₹{breakdownData.taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs pt-3 text-[10px] text-slate-400 font-medium">
+                    <span>Includes {breakdownData.platformCommissionPercent}% platform commission internally.</span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-200">
+                    <span className="text-gray-900 font-extrabold">Final Payable Total</span>
+                    <span className="text-lg font-black text-indigo-600">₹{breakdownData.finalPayableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowBreakdownModal(false);
+                      setBreakdownData(null);
+                    }}
+                    className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmPurchase}
+                    disabled={paymentLoading}
+                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-600/15"
+                  >
+                    {paymentLoading ? 'Processing...' : 'Proceed to Checkout'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
