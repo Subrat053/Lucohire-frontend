@@ -40,8 +40,7 @@ function MainLayout({ children }) {
   ];
   
   const isPublicProviderProfile =
-    location.pathname.startsWith("/provider/") &&
-    !privateProviderPaths.includes(location.pathname) &&
+    location.pathname.startsWith("/p/") &&
     location.pathname.split("/").filter(Boolean).length === 2;
     
   const showFooter = publicPaths.includes(location.pathname) || isPublicProviderProfile;
@@ -73,7 +72,7 @@ export default function PublicRoutes() {
       <Route path="search" element={wrap(<SearchPage />)} />
       <Route path="auth/magic-verify" element={wrap(<MagicLinkVerify />)} />
       <Route path="external-match" element={wrap(<ExternalMatch />)} />
-      <Route path="provider/:id" element={wrap(<ProviderPublicProfile />)} />
+      <Route path="p/:id" element={wrap(<ProviderPublicProfile />)} />
       <Route path="faq" element={wrap(<FaqPage />)} />
       <Route path="terms" element={wrap(<TermsPage />)} />
       <Route path="privacy" element={wrap(<PrivacyPage />)} />

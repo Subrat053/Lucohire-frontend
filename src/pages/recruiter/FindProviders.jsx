@@ -292,7 +292,11 @@ const FindProviders = () => {
         }));
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to unlock');
+      const msg = err.response?.data?.message || 'Failed to unlock';
+      toast.error(msg);
+      if (msg.toLowerCase().includes('unlock') || msg.toLowerCase().includes('plan') || msg.toLowerCase().includes('credits') || msg.toLowerCase().includes('upgrade')) {
+        navigate('/recruiter/plans');
+      }
     } finally {
       setUnlocking(null);
     }

@@ -313,7 +313,7 @@ const PostJob = () => {
           )}
 
           {step === 1 && (
-            <div className="grid sm:grid-cols-2 grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* ── Job Details ─────────────────────────────────────────── */}
               <SectionCard icon={HiBriefcase} iconColor="text-blue-500" title={t('recruiter.jobDetails', 'Job Details')}>
                 <div className="space-y-4">

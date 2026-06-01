@@ -113,7 +113,11 @@ export default function SavedCandidates() {
                 toast.success("Contact unlocked successfully!");
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "Failed to unlock contact");
+            const msg = error.response?.data?.message || "Failed to unlock contact";
+            toast.error(msg);
+            if (msg.toLowerCase().includes('unlock') || msg.toLowerCase().includes('plan') || msg.toLowerCase().includes('credits') || msg.toLowerCase().includes('upgrade')) {
+                navigate('/recruiter/plans');
+            }
         } finally {
             setIsUnlocking(false);
         }

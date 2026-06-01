@@ -364,7 +364,11 @@ export default function JobPostings() {
                 toast.success("Contact unlocked successfully!");
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "Failed to unlock contact");
+            const msg = error.response?.data?.message || "Failed to unlock contact";
+            toast.error(msg);
+            if (msg.toLowerCase().includes('unlock') || msg.toLowerCase().includes('plan') || msg.toLowerCase().includes('credits') || msg.toLowerCase().includes('upgrade')) {
+                navigate('/recruiter/plans');
+            }
         } finally {
             setIsUnlocking(false);
         }
@@ -375,8 +379,8 @@ export default function JobPostings() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#F8FAFF] p-5">
-            <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.25fr_0.95fr] gap-5">
+        <div className="min-h-screen bg-[#F8FAFF] p-3 sm:p-5">
+            <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_1.15fr_0.95fr] gap-4 2xl:gap-5">
 
                 {/* Left: Job Postings */}
                 <section className="space-y-4">
@@ -414,7 +418,7 @@ export default function JobPostings() {
                                         setSelectedJobId(job._id);
                                         handleEditJob(job);
                                     }}
-                                    className={`relative w-full rounded-2xl border bg-white p-4 text-left transition cursor-pointer group ${selectedJobId === job._id
+                                    className={`relative w-full max-w-[370px] rounded-2xl border bg-white p-3 xl:p-3.5 2xl:p-4 text-left transition cursor-pointer group ${selectedJobId === job._id
                                         ? "border-[#0066FF] shadow-sm"
                                         : "border-[#E5EAF3] hover:border-blue-200"
                                         }`}
@@ -446,13 +450,13 @@ export default function JobPostings() {
                                     </div>
 
 
-                                    <div className="flex items-center gap-4">
-                                        <div className={`h-14 w-14 rounded-xl flex items-center justify-center ${index % 4 === 0 ? "bg-orange-50 text-orange-500" :
+                                    <div className="flex items-start gap-3 xl:gap-3.5 2xl:gap-4">
+                                        <div className={`h-10 w-10 xl:h-12 xl:w-12 2xl:h-14 2xl:w-14 rounded-xl flex items-center justify-center shrink-0 ${index % 4 === 0 ? "bg-orange-50 text-orange-500" :
                                             index % 4 === 1 ? "bg-green-50 text-green-500" :
                                                 index % 4 === 2 ? "bg-purple-50 text-purple-500" :
                                                     "bg-blue-50 text-blue-500"
                                             }`}>
-                                            <HiBriefcase className="h-7 w-7" />
+                                            <HiBriefcase className="h-5 w-5 xl:h-6 xl:w-6 2xl:h-7 2xl:w-7" />
                                         </div>
 
                                         <div className="min-w-0 flex-1 space-y-1.5">
@@ -470,29 +474,29 @@ export default function JobPostings() {
                                                 Posted on {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Recently'}
                                             </p>
                                             
-                                            <div className="pt-1.5 flex items-center gap-2">
+                                            <div className="pt-2 flex flex-wrap gap-1.5 xl:gap-2">
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         navigate(`/recruiter/interested-candidates?jobId=${job._id}`);
                                                     }}
-                                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#0066FF] hover:bg-blue-600 px-4 py-2 rounded-xl shadow-xs transition"
+                                                    className="inline-flex items-center gap-1 text-[10px] xl:text-[11px] 2xl:text-xs font-bold text-white bg-[#0066FF] hover:bg-blue-600 px-2 py-1.5 xl:px-2.5 xl:py-1.5 2xl:px-3 2xl:py-2 rounded-lg xl:rounded-xl shadow-xs transition shrink-0"
                                                 >
-                                                    <HiUsers className="w-3.5 h-3.5" /> View Applicants ({job.interestedCount || 0})
+                                                    <HiUsers className="w-3 h-3 xl:w-3.5 xl:h-3.5" /> View Applicants ({job.interestedCount || 0})
                                                 </button>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         navigate(`/recruiter/top-matches?jobId=${job._id}`);
                                                     }}
-                                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-4 py-2 rounded-xl shadow-xs transition"
+                                                    className="inline-flex items-center gap-1 text-[10px] xl:text-[11px] 2xl:text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2 py-1.5 xl:px-2.5 xl:py-1.5 2xl:px-3 2xl:py-2 rounded-lg xl:rounded-xl shadow-xs transition shrink-0"
                                                 >
-                                                    <HiSparkles className="w-3.5 h-3.5" /> View Top Matches
+                                                    <HiSparkles className="w-3 h-3 xl:w-3.5 xl:h-3.5" /> View Top Matches
                                                 </button>
                                             </div>
                                         </div>
 
-                                        <HiChevronRight className="h-5 w-5 text-gray-400" />
+                                        <HiChevronRight className="h-5 w-5 text-gray-400 shrink-0 self-center" />
                                     </div>
                                 </div>
                             ))

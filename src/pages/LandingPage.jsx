@@ -471,7 +471,7 @@ const LandingPage = () => {
                   </div>
                 ))
                 : displayedProviders.map((p, index) => (
-                  <SharedProviderCard key={p._id} provider={p} variant="landing" index={index} onClick={() => navigate(`/provider/${p._id}`)} />
+                  <SharedProviderCard key={p._id} provider={p} variant="landing" index={index} onClick={() => navigate(`/p/${p._id}`)} />
                 ))}
           </div>
         </div>

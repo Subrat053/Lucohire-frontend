@@ -406,7 +406,7 @@ const Index = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {displayedProviders.map((p) => (
-              <ProviderCard key={p._id} p={p} onClick={() => navigate(`/provider/${p._id}`)} />
+              <ProviderCard key={p._id} p={p} onClick={() => navigate(`/p/${p._id}`)} />
             ))}
           </div>
         </div>

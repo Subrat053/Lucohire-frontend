@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-import { HiStar, HiLocationMarker, HiBadgeCheck, HiPhone, HiMail, HiExternalLink } from 'react-icons/hi';
+import { HiStar, HiLocationMarker, HiBadgeCheck, HiPhone, HiMail, HiExternalLink, HiBriefcase, HiTranslate, HiCurrencyRupee, HiEye, HiCheckCircle, HiCalendar } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { recruiterAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -151,8 +151,9 @@ const ProviderPublicProfile = () => {
       toast.success(t('recruiter.contactUnlocked', 'Contact unlocked!'));
     } catch (err) {
       const msg = err.response?.data?.message || t('recruiter.failedUnlock', 'Failed to unlock');
-      if (msg.includes('unlock') || msg.includes('plan') || msg.includes('credits')) {
+      if (msg.toLowerCase().includes('unlock') || msg.toLowerCase().includes('plan') || msg.toLowerCase().includes('credits') || msg.toLowerCase().includes('upgrade')) {
         toast.error(msg);
+        navigate('/recruiter/plans');
       } else {
         toast.error(msg);
       }
@@ -161,208 +162,306 @@ const ProviderPublicProfile = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="lg" /></div>;
-  if (!profile) return <div className="text-center py-20"><h2 className="text-xl font-bold">{t('common.providerNotFound', 'Provider not found')}</h2></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><LoadingSpinner size="lg" /></div>;
+  
+  if (!profile) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+      <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full text-center border border-gray-100">
+        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-4xl">🕵️</span>
+        </div>
+        <h2 className="text-2xl font-extrabold text-gray-900 mb-2">{t('common.providerNotFound', 'Provider not found')}</h2>
+        <p className="text-gray-500 mb-6">The profile you are looking for does not exist or has been removed.</p>
+        <button onClick={() => navigate('/search')} className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition w-full">
+          Go back to Search
+        </button>
+      </div>
+    </div>
+  );
 
   const seoTitle = profile.user?.name ? `${profile.user.name} - ${t('common.profile', 'Profile')}` : t('common.profile', 'Profile');
   const seoDescription = profile.description || t('provider.profileDescription', 'View verified provider profile, skills, and reviews on Lucohire.');
   const seoImage = profile.photo || profile.profilePhoto || '';
 
+  const userName = profile.user?.name || 'Service Provider';
+  const firstName = (userName || '').split(' ')[0] || 'Provider';
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-[#F8FAFC] pb-20">
       <Seo
         title={seoTitle}
         description={seoDescription}
-        canonicalPath={`/provider/${id}`}
+        canonicalPath={`/p/${id}`}
         image={seoImage}
       />
-      {/* Profile Header */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="bg-linear-to-r from-indigo-500 to-purple-600 h-22"></div>
-        <div className="px-6 pb-6 -mt-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end space-y-4 sm:space-y-0 sm:space-x-6">
-            <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center border-4 border-white">
-              {profile.photo ? (
-                <img
-                  src={toOptimizedMediaUrl(profile.photo, { width: 192, height: 192, crop: 'fill', dpr: 'auto' })}
-                  alt=""
-                  width={96}
-                  height={96}
-                  decoding="async"
-                  fetchpriority="high"
-                  className="w-full h-full object-cover rounded-xl"
-                />
-              ) : (
-                <span className="text-3xl font-bold text-indigo-600">{profile.user?.name?.[0]}</span>
-              )}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center space-x-2">
-                <h1 className="text-2xl font-bold text-gray-900">{profile.user?.name}</h1>
-                {profile.isVerified && <HiBadgeCheck className="w-6 h-6 text-blue-500" />}
-              </div>
-              <div className="flex flex-wrap items-center gap-3 mt-2">
-                <span className="flex items-center text-gray-500"><HiLocationMarker className="w-4 h-4 mr-1" />{profile.city}</span>
-                <span className="flex items-center text-gray-500"><HiStar className="w-4 h-4 text-yellow-400 mr-1" />{profile.rating} ({profile.totalReviews} {t('common.reviews', 'reviews')})</span>
-                <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-xs font-medium rounded-full capitalize">{profile.currentPlan} {t('plans.plan', 'plan')}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      
+      {/* Hero Banner Section */}
+      <div className="relative w-full h-[280px] lg:h-[320px] bg-indigo-900 overflow-hidden">
+        {/* Abstract Background Patterns */}
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-900"></div>
+        <div className="absolute top-0 left-0 w-full h-full opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6 mt-6">
-        {/* Main Info */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* About */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">{t('common.about', 'About')}</h2>
-            <p className="text-gray-600">{profile.description || t('common.noDescription', 'No description provided.')}</p>
-          </div>
-
-          {/* Skills */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">{t('common.skills', 'Skills')}</h2>
-            <div className="flex flex-wrap gap-2">
-              {(profile.skills || []).map((skill, i) => (
-                <span key={i} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium">{skill}</span>
-              ))}
-            </div>
-          </div>
-
-          {(profile.services || []).length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-3">{t('common.services', 'Services')}</h2>
-              <div className="flex flex-wrap gap-2">
-                {(profile.services || []).map((service, i) => (
-                  <span key={i} className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium">{service}</span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Experience & Details */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">{t('common.details', 'Details')}</h2>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div><span className="text-sm text-gray-500">{t('common.experience', 'Experience')}</span><p className="font-medium">{profile.experience || 'N/A'}</p></div>
-              <div><span className="text-sm text-gray-500">{t('common.languages', 'Languages')}</span><p className="font-medium">{(profile.languages || []).join(', ') || 'N/A'}</p></div>
-              <div><span className="text-sm text-gray-500">{t('common.city', 'City')}</span><p className="font-medium">{profile.city}</p></div>
-              <div><span className="text-sm text-gray-500">{t('common.pricing', 'Pricing')}</span><div className="font-medium text-emerald-600">{profile.pricing ? (
-                <>
-                  <div>₹{profile.pricing}{profile.pricingType ? ` / ${profile.pricingType}` : ''}</div>
-                  {profile.pricingType === 'hourly' && (
-                    <div className="text-[11px] text-gray-500 font-normal">
-                      (₹{Number(profile.pricing) * 8} / day • ₹{Number(profile.pricing) * 8 * 22} / month)
-                    </div>
-                  )}
-                </>
-              ) : t('common.contactForPricing', 'Contact for Pricing')}</div></div>
-              <div><span className="text-sm text-gray-500">{t('provider.profileViews', 'Profile Views')}</span><p className="font-medium">{profile.profileViews || 0}</p></div>
-            </div>
-          </div>
-
-          {/* Portfolio */}
-          {(() => {
-            const approvedLinks = (profile.portfolioLinks || []).filter(
-              link => {
-                if (typeof link === 'string') return true;
-                return link.status === 'approved';
-              }
-            );
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-10">
+        
+        {/* Header Card */}
+        <div className="bg-white rounded-[2rem] shadow-xl p-6 sm:p-8 border border-white/40 backdrop-blur-xl mb-8 relative">
+          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
             
-            if (approvedLinks.length === 0) return null;
-
-            return (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-3">{t('common.portfolio', 'Portfolio')}</h2>
-                <div className="space-y-2">
-                  {approvedLinks.map((link, i) => {
-                    const platformName = typeof link === 'string' ? 'Link' : link.platform;
-                    const linkUrl = typeof link === 'string' ? link : link.url;
-                    return (
-                      <SafeExternalLink key={i} href={linkUrl} className="flex items-center space-x-2 text-indigo-600 hover:underline">
-                        <HiExternalLink className="w-4 h-4" />
-                        <span className="capitalize">{platformName}: {linkUrl}</span>
-                      </SafeExternalLink>
-                    );
-                  })}
-                </div>
+            {/* Avatar */}
+            <div className="relative">
+              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full p-2 bg-white shadow-2xl -mt-16 sm:-mt-20 border-4 border-white/50 backdrop-blur-md relative z-20">
+                {profile.photo || profile.profilePhoto ? (
+                  <img
+                    src={toOptimizedMediaUrl(profile.photo || profile.profilePhoto, { width: 300, height: 300, crop: 'fill', dpr: 'auto' })}
+                    alt={userName}
+                    className="w-full h-full object-cover rounded-full bg-gray-50"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                    <span className="text-5xl font-black text-white">{userName[0]}</span>
+                  </div>
+                )}
               </div>
-            );
-          })()}
+              {profile.isVerified && (
+                <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-white rounded-full p-1 shadow-lg z-30" title="Verified">
+                  <HiBadgeCheck className="w-8 h-8 text-blue-500" />
+                </div>
+              )}
+            </div>
 
-          {/* Reviews */}
-          <div ref={reviewsRef}>
-            {showReviews ? (
-              <Suspense fallback={<div className="bg-white rounded-2xl border border-gray-100 p-6 text-sm text-gray-500">Loading reviews...</div>}>
-                <ReviewSection
-                  revieweeId={profile.user?._id}
-                  initialReviews={(reviews || []).map((review) => ({
-                    ...review,
-                    reviewerId: review.reviewerId || review.recruiter,
-                  }))}
-                  initialSummary={{
-                    avgRating: profile.rating || 0,
-                    totalReviews: profile.totalReviews || reviews.length || 0,
-                  }}
-                />
-              </Suspense>
-            ) : (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 text-sm text-gray-500">Reviews load when you reach this section.</div>
-            )}
+            {/* Title Info */}
+            <div className="flex-1 text-center md:text-left mt-2 md:mt-0">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-2">{userName}</h1>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm font-medium text-gray-600 mb-4">
+                <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full"><HiLocationMarker className="w-4 h-4 text-rose-500" /> {profile.city || 'Location N/A'}</span>
+                <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full"><HiStar className="w-4 h-4 text-amber-400" /> <strong className="text-gray-900">{profile.rating || '0.0'}</strong> ({profile.totalReviews || 0} reviews)</span>
+                {profile.tier && <span className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full capitalize"><HiCheckCircle className="w-4 h-4"/> {profile.tier.replace('-', ' ')}</span>}
+              </div>
+              
+              {/* Top Skills Summary */}
+              {profile.skills?.length > 0 && (
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                  {profile.skills.slice(0, 4).map((skill, i) => (
+                    <span key={i} className="px-4 py-1.5 bg-slate-900 text-white rounded-full text-xs font-semibold tracking-wide">{skill}</span>
+                  ))}
+                  {profile.skills.length > 4 && (
+                    <span className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">+{profile.skills.length - 4}</span>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            {/* Call to Action Quick */}
+            <div className="hidden lg:flex flex-col gap-3 w-64">
+              <button onClick={() => {
+                document.getElementById('contact-card')?.scrollIntoView({ behavior: 'smooth' });
+              }} className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-2">
+                <HiPhone className="w-5 h-5" />
+                Contact {firstName}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Sidebar - Contact Card */}
-        <div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 sticky top-24">
-            <h3 className="font-bold text-gray-900 mb-4">{t('common.contactPerson', 'Contact {{name}}', { name: profile.user?.name?.split(' ')[0] })}</h3>
-            {profile.isDummy && (
-              <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-4 py-3 mb-4 text-sm">
-                {t('provider.dummyContactUnavailable', 'Contact is unavailable for demo providers.')}
+        <div className="grid lg:grid-cols-12 gap-8">
+          
+          {/* Main Content Area */}
+          <div className="lg:col-span-8 space-y-8">
+            
+            {/* About Section */}
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-4">
+                <span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><HiCheckCircle /></span>
+                About {firstName}
+              </h2>
+              <div className="prose prose-indigo max-w-none text-gray-600 leading-relaxed">
+                <p>{profile.description || `${firstName} is a professional ${profile.category || 'service provider'} based in ${profile.city || 'their city'}. They have a track record of providing excellent service and ensuring customer satisfaction.`}</p>
               </div>
-            )}
-            {contactUnlocked && contactInfo ? (
-              <div className="space-y-3">
-                {(contactInfo.phone || contactInfo.whatsappNumber) && (
-                  <a href={`tel:${contactInfo.phone || contactInfo.whatsappNumber}`}
-                    className="w-full flex items-center justify-center space-x-2 bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 transition">
-                    <HiPhone className="w-5 h-5" /><span>{t('common.callLabel', 'Call')}: {contactInfo.phone || contactInfo.whatsappNumber}</span>
-                  </a>
-                )}
-                <button 
-                  onClick={() => navigate('/contact', { state: { subject: `Enquiry for ${profile.user?.name}`, providerId: profile.user?._id } })}
-                  className="w-full flex items-center justify-center space-x-2 bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition"
-                >
-                  <FaWhatsapp className="w-5 h-5" /><span>{t('common.sendEnquiry', 'Send Enquiry')}</span>
-                </button>
+            </div>
 
-                {contactInfo.email && (
-                  <a href={`mailto:${contactInfo.email}`}
-                    className="w-full flex items-center justify-center space-x-2 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition">
-                    <HiMail className="w-5 h-5" /><span>{contactInfo.email}</span>
-                  </a>
-                )}
-              </div>
-            ) : (
-              <div>
-                <div className="bg-gray-50 rounded-xl p-4 mb-4 text-center">
-                  <div className="text-3xl mb-2">🔒</div>
-                  <p className="text-sm text-gray-600">
-                    {profile.isDummy
-                      ? t('provider.dummyContactHidden', 'Demo provider contact is intentionally hidden.')
-                      : t('provider.contactHidden', 'Contact info is hidden. Unlock to view phone & WhatsApp.')}
-                  </p>
+            {/* Services & Expertise */}
+            {profile.services?.length > 0 && (
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
+                  <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center"><HiBriefcase /></span>
+                  Services Offered
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {profile.services.map((service, i) => (
+                    <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/50 transition-colors">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
+                      <span className="font-medium text-gray-800">{service}</span>
+                    </div>
+                  ))}
                 </div>
-                <button onClick={handleUnlock} disabled={unlocking || profile.isDummy}
-                  className="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition disabled:opacity-50 flex items-center justify-center gap-2">
-                  {unlocking ? (
-                    <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('common.unlocking', 'Unlocking...')}</>
-                  ) : profile.isDummy ? t('common.contactUnavailable', 'Contact Unavailable') : t('recruiter.unlockContact', 'Unlock Contact')}
-                </button>
               </div>
             )}
+
+            {/* Portfolio Links */}
+            {(() => {
+              const approvedLinks = (profile.portfolioLinks || []).filter(link => {
+                if (typeof link === 'string') return true;
+                return link.status === 'approved';
+              });
+              
+              if (approvedLinks.length === 0) return null;
+
+              return (
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
+                    <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><HiExternalLink /></span>
+                    Portfolio & Work
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {approvedLinks.map((link, i) => {
+                      const platformName = typeof link === 'string' ? 'Link' : link.platform;
+                      const linkUrl = typeof link === 'string' ? link : link.url;
+                      return (
+                        <SafeExternalLink key={i} href={linkUrl} className="group flex flex-col p-5 rounded-2xl border border-gray-100 hover:border-blue-300 hover:shadow-md transition-all bg-white">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-bold text-gray-900 capitalize">{platformName}</span>
+                            <HiExternalLink className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                          </div>
+                          <span className="text-sm text-gray-500 truncate">{linkUrl}</span>
+                        </SafeExternalLink>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Reviews Section */}
+            <div ref={reviewsRef} className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
+                <span className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center"><HiStar /></span>
+                Client Reviews
+              </h2>
+              {showReviews ? (
+                <Suspense fallback={<div className="py-10"><LoadingSpinner /></div>}>
+                  <ReviewSection
+                    revieweeId={profile.user?._id}
+                    initialReviews={(reviews || []).map((review) => ({
+                      ...review,
+                      reviewerId: review.reviewerId || review.recruiter,
+                    }))}
+                    initialSummary={{
+                      avgRating: profile.rating || 0,
+                      totalReviews: profile.totalReviews || reviews.length || 0,
+                    }}
+                  />
+                </Suspense>
+              ) : (
+                <div className="h-32 flex items-center justify-center text-gray-400">Loading reviews...</div>
+              )}
+            </div>
+
+          </div>
+
+          {/* Sidebar Area */}
+          <div className="lg:col-span-4 space-y-6">
+            
+            {/* Quick Details Card */}
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+              <h3 className="font-bold text-gray-900 mb-5">Profile Summary</h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between py-3 border-b border-gray-50">
+                  <div className="flex items-center gap-3 text-gray-500"><HiCalendar className="w-5 h-5 text-indigo-400"/> Experience</div>
+                  <div className="font-semibold text-gray-900">{profile.experience || 'N/A'}</div>
+                </div>
+                
+                <div className="flex items-center justify-between py-3 border-b border-gray-50">
+                  <div className="flex items-center gap-3 text-gray-500"><HiTranslate className="w-5 h-5 text-indigo-400"/> Languages</div>
+                  <div className="font-semibold text-gray-900">{(profile.languages || []).join(', ') || 'English, Hindi'}</div>
+                </div>
+
+                <div className="flex items-center justify-between py-3 border-b border-gray-50">
+                  <div className="flex items-center gap-3 text-gray-500"><HiCurrencyRupee className="w-5 h-5 text-indigo-400"/> Pricing</div>
+                  <div className="text-right">
+                    {profile.pricing ? (
+                      <span className="font-bold text-emerald-600">
+                        ₹{profile.pricing}
+                        <span className="text-sm text-gray-500 font-medium">{profile.pricingType ? `/${profile.pricingType}` : ''}</span>
+                      </span>
+                    ) : (
+                      <span className="text-sm font-semibold text-gray-400">Upon Request</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3 text-gray-500"><HiEye className="w-5 h-5 text-indigo-400"/> Profile Views</div>
+                  <div className="font-semibold text-gray-900 bg-gray-100 px-3 py-1 rounded-lg">{profile.profileViews || 0}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Card (Sticky) */}
+            <div id="contact-card" className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-3xl shadow-xl border border-indigo-800 p-6 sticky top-24 overflow-hidden relative">
+              <div className="absolute -right-10 -top-10 w-32 h-32 bg-white opacity-5 rounded-full blur-2xl"></div>
+              
+              <h3 className="font-extrabold text-white text-xl mb-1">Contact {firstName}</h3>
+              <p className="text-indigo-200 text-sm mb-6">Get in touch to discuss your requirements</p>
+
+              {profile.isDummy && (
+                <div className="bg-amber-500/20 border border-amber-500/50 text-amber-200 rounded-xl px-4 py-3 mb-4 text-sm font-medium backdrop-blur-sm">
+                  Contact is unavailable for demo providers.
+                </div>
+              )}
+
+              {contactUnlocked && contactInfo ? (
+                <div className="space-y-3">
+                  {(contactInfo.phone || contactInfo.whatsappNumber) && (
+                    <a href={`tel:${contactInfo.phone || contactInfo.whatsappNumber}`}
+                      className="w-full flex items-center justify-center space-x-2 bg-white text-indigo-900 py-3.5 rounded-2xl font-bold shadow-lg hover:bg-gray-50 transition active:scale-95">
+                      <HiPhone className="w-5 h-5 text-indigo-600" />
+                      <span>{contactInfo.phone || contactInfo.whatsappNumber}</span>
+                    </a>
+                  )}
+                  
+                  <button 
+                    onClick={() => navigate('/contact', { state: { subject: `Enquiry for ${userName}`, providerId: profile.user?._id } })}
+                    className="w-full flex items-center justify-center space-x-2 bg-[#25D366] text-white py-3.5 rounded-2xl font-bold shadow-lg hover:bg-[#20bd5a] transition active:scale-95"
+                  >
+                    <FaWhatsapp className="w-5 h-5" />
+                    <span>WhatsApp Message</span>
+                  </button>
+
+                  {contactInfo.email && (
+                    <a href={`mailto:${contactInfo.email}`}
+                      className="w-full flex items-center justify-center space-x-2 bg-indigo-800 text-white border border-indigo-700 py-3.5 rounded-2xl font-bold hover:bg-indigo-700 transition active:scale-95">
+                      <HiMail className="w-5 h-5 text-indigo-300" />
+                      <span>{contactInfo.email}</span>
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <div className="bg-black/20 rounded-2xl p-5 mb-5 text-center border border-white/10 backdrop-blur-sm">
+                    <div className="text-4xl mb-3 drop-shadow-md">🔒</div>
+                    <p className="text-sm text-indigo-100 leading-relaxed font-medium">
+                      {profile.isDummy
+                        ? 'Demo provider contact is intentionally hidden.'
+                        : 'Contact information is protected. Unlock to view phone number and WhatsApp details.'}
+                    </p>
+                  </div>
+                  <button onClick={handleUnlock} disabled={unlocking || profile.isDummy}
+                    className="w-full bg-white text-indigo-900 py-4 rounded-2xl font-extrabold shadow-xl hover:bg-indigo-50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group">
+                    {unlocking ? (
+                      <><span className="w-5 h-5 border-3 border-indigo-900 border-t-transparent rounded-full animate-spin" /> Unlocking...</>
+                    ) : profile.isDummy ? 'Unavailable' : (
+                      <>Unlock Full Contact <HiExternalLink className="w-5 h-5 text-indigo-500 group-hover:translate-x-1 transition-transform"/></>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+            
           </div>
         </div>
       </div>
