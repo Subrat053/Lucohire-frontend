@@ -20,12 +20,20 @@ import { getProviders as fetchProviderResults } from "../services/providerServic
 import SharedProviderCard from "../components/providers/ProviderCard";
 import useTranslation from "../hooks/useTranslation";
 import Seo from "../components/common/Seo";
+import { useAuth } from "../context/AuthContext";
 
 const SearchPage = () => {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate(`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`);
+    }
+  }, [isAuthenticated, navigate, location]);
   const initialQuery =
     searchParams.get("query") ||
     searchParams.get("skill") ||
@@ -35,9 +43,18 @@ const SearchPage = () => {
   const [skill, setSkill] = useState(
     searchParams.get("skill") || searchParams.get("category") || initialQuery,
   );
-  const [city, setCity] = useState(
-    searchParams.get("location") || searchParams.get("city") || "",
-  );
+  const [city, setCity] = useState(() => {
+    const urlCity = searchParams.get("location") || searchParams.get("city");
+    if (urlCity) return urlCity;
+    const cachedContext = localStorage.getItem("servicehub_user_location_context");
+    if (cachedContext) {
+      try {
+        const parsed = JSON.parse(cachedContext);
+        if (parsed && parsed.city) return parsed.city;
+      } catch (_) {}
+    }
+    return localStorage.getItem("servicehub:lastSearchLocation") || "Noida";
+  });
   const [tierFilter, setTierFilter] = useState(searchParams.get("tier") || "");
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || "",
@@ -174,7 +191,22 @@ const SearchPage = () => {
           });
 
           setSkill(categoryVal || interpretedSkill || queryVal || "");
-          setCity(cityVal || interpretedCity || "");
+          
+          let finalCity = cityVal || interpretedCity || "";
+          if (!finalCity) {
+            const cachedContext = localStorage.getItem("servicehub_user_location_context");
+            if (cachedContext) {
+              try {
+                const parsed = JSON.parse(cachedContext);
+                if (parsed && parsed.city) finalCity = parsed.city;
+              } catch (_) {}
+            }
+            if (!finalCity) {
+              finalCity = localStorage.getItem("servicehub:lastSearchLocation") || "Noida";
+            }
+          }
+          setCity(finalCity);
+
           setResults({
             rotation: normalizeList(rotation),
             featured: normalizeList(featured),
@@ -199,8 +231,23 @@ const SearchPage = () => {
     const query = searchParams.get("query") || "";
     const queryCategory = searchParams.get("category") || "";
     const querySkill = searchParams.get("skill") || "";
-    const queryCity =
+    const hasQuery = !!(query || querySkill || queryCategory);
+    let queryCity =
       searchParams.get("location") || searchParams.get("city") || "";
+
+    if (!queryCity && !hasQuery) {
+      const cachedContext = localStorage.getItem("servicehub_user_location_context");
+      if (cachedContext) {
+        try {
+          const parsed = JSON.parse(cachedContext);
+          if (parsed && parsed.city) queryCity = parsed.city;
+        } catch (_) {}
+      }
+      if (!queryCity) {
+        queryCity = localStorage.getItem("servicehub:lastSearchLocation") || "Noida";
+      }
+    }
+
     const queryTier = searchParams.get("tier") || "";
     const resolvedSearch = query || querySkill || queryCategory;
 

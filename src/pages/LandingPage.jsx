@@ -9,16 +9,18 @@ import {
   Globe2, ShieldAlert, Repeat, Languages, MessageCircle,
   BarChart3, Lock, CheckCircle2, Flame,
 } from "lucide-react";
-import { recruiterAPI, localeAPI, planAPI } from "../services/api";
+import { recruiterAPI, localeAPI, planAPI, searchAPI } from "../services/api";
 import { filterDummyProviders, DUMMY_PROVIDERS } from "../data/skillsData";
 import { toAbsoluteMediaUrl } from "../utils/media";
 import { extractProvidersList, normalizeProviderData } from "../utils/providerData";
 import { detectNearestLocation } from "../utils/location";
 import { getFeaturedProviders } from "../services/providerService";
 import { useAuth } from "../context/AuthContext";
+import { useLocationContext } from "../context/LocationContext";
 import SharedProviderCard from "../components/providers/ProviderCard";
 import useTranslation from "../hooks/useTranslation";
 import Seo from "../components/common/Seo";
+import toast from "react-hot-toast";
 
 /* ─────────── Mock data (keeps providers.map dynamic) ─────────── */
 // type Provider = {
@@ -215,7 +217,8 @@ const ProviderCard = ({ p, onClick }) => (
 /* ═══════════════════════ MAIN PAGE ════════════════════════════════════ */
 const LandingPage = () => {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, isAuthenticated } = useAuth();
+  const { refreshLocationContext, locationPermissionStatus } = useLocationContext();
   const { t } = useTranslation();
   const siteUrl = import.meta.env.VITE_SITE_URL || (typeof window !== "undefined" ? window.location.origin : "");
   const schema = siteUrl
@@ -253,17 +256,19 @@ const LandingPage = () => {
     const fallbackCityByCountry = { IN: "Noida", AE: "Dubai", US: "New York", GB: "London", CA: "Toronto", AU: "Sydney", DE: "Berlin", FR: "Paris", JP: "Tokyo", SG: "Singapore" };
 
     const detectCitySafely = async () => {
-      try {
-        const detected = await detectNearestLocation();
-        if (isMounted && detected?.city) {
-          const label = [detected.city, detected.state].filter(Boolean).join(', ');
-          if (label) {
-            setLocation(label);
-            localStorage.setItem('servicehub:lastSearchLocation', label);
-            return;
+      if (isAuthenticated) {
+        try {
+          const detected = await detectNearestLocation();
+          if (isMounted && detected?.city) {
+            const label = [detected.city, detected.state].filter(Boolean).join(', ');
+            if (label) {
+              setLocation(label);
+              localStorage.setItem('servicehub:lastSearchLocation', label);
+              return;
+            }
           }
-        }
-      } catch (_) {}
+        } catch (_) {}
+      }
 
       const profileLocation = [profile?.city, profile?.state].filter(Boolean).join(', ');
       if (isMounted && profileLocation) {
@@ -286,7 +291,7 @@ const LandingPage = () => {
 
     detectCitySafely();
     return () => { isMounted = false; };
-  }, [profile]);
+  }, [profile, isAuthenticated]);
 
   const fetchProviders = useCallback(async (s = "", c = "") => {
     const city = c || location.replace(", IN", "");
@@ -337,14 +342,71 @@ const LandingPage = () => {
     };
   }, [skill, fetchProviders, activeCategory, location]);
 
-  const handleSearch = (e) => {
+  useEffect(() => {
+    if (isAuthenticated && locationPermissionStatus === "prompt") {
+      refreshLocationContext(true);
+    }
+  }, [isAuthenticated, locationPermissionStatus, refreshLocationContext]);
+
+  const handleSearch = async (e) => {
     e.preventDefault();
-    const nextLocation = location.replace(", IN", "");
-    localStorage.setItem('servicehub:lastSearchLocation', nextLocation);
-    navigate(`/search?query=${encodeURIComponent(skill)}&location=${encodeURIComponent(nextLocation)}`);
+    if (!isAuthenticated) {
+      navigate(`/login?redirect=${encodeURIComponent('/search?query=' + encodeURIComponent(skill))}`);
+      return;
+    }
+
+    if (!skill.trim()) {
+      toast.error(t('landing.enterRequirement', 'Please enter your requirement'));
+      return;
+    }
+
+    const toastId = toast.loading(t('landing.parsingSearch', 'Analyzing search query...'));
+    try {
+      const { data } = await searchAPI.parseIntentAI({ query: skill });
+      const parsedIntent = data?.parsed || data?.data?.parsed || {};
+      const querySkill = parsedIntent.extractedSkill || skill;
+      
+      let queryLocation = parsedIntent.extractedCity || "";
+      if (!queryLocation) {
+        const cachedContext = localStorage.getItem("servicehub_user_location_context");
+        if (cachedContext) {
+          try {
+            const parsed = JSON.parse(cachedContext);
+            if (parsed && parsed.city) queryLocation = parsed.city;
+          } catch (_) {}
+        }
+        if (!queryLocation) {
+          queryLocation = location.replace(", IN", "");
+        }
+      }
+      
+      toast.success(t('landing.parsingSuccess', 'Match criteria determined!'), { id: toastId });
+      
+      localStorage.setItem('servicehub:lastSearchLocation', queryLocation);
+      navigate(`/search?query=${encodeURIComponent(querySkill)}&location=${encodeURIComponent(queryLocation)}`);
+    } catch (err) {
+      toast.dismiss(toastId);
+      let queryLocation = "";
+      const cachedContext = localStorage.getItem("servicehub_user_location_context");
+      if (cachedContext) {
+        try {
+          const parsed = JSON.parse(cachedContext);
+          if (parsed && parsed.city) queryLocation = parsed.city;
+        } catch (_) {}
+      }
+      if (!queryLocation) {
+        queryLocation = location.replace(", IN", "");
+      }
+      localStorage.setItem('servicehub:lastSearchLocation', queryLocation);
+      navigate(`/search?query=${encodeURIComponent(skill)}&location=${encodeURIComponent(queryLocation)}`);
+    }
   };
 
   const handleCategoryClick = (categoryName) => {
+    if (!isAuthenticated) {
+      navigate(`/login?redirect=${encodeURIComponent('/search?category=' + encodeURIComponent(categoryName))}`);
+      return;
+    }
     const city = location.replace(", IN", "");
 
     setActiveCategory(categoryName);
@@ -414,6 +476,22 @@ const LandingPage = () => {
                 </button>
               </div>
             </form>
+
+            {isAuthenticated && locationPermissionStatus !== "granted" && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-amber-800">
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
+                  {t('landing.locationBannerText', 'Allow location permission to get verified service providers near you automatically.')}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => refreshLocationContext(true)}
+                  className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg transition shrink-0 ml-2"
+                >
+                  {t('landing.enableLocation', 'Enable Location')}
+                </button>
+              </div>
+            )}
 
             <div className="mt-5 flex flex-wrap items-center gap-2">
               <span className="text-[11px] font-bold text-[#6B7280] tracking-wider">{t('landing.try', 'TRY:')}</span>

@@ -185,23 +185,25 @@ export const getEffectiveUserLocation = async (user, profile) => {
     return saved;
   }
 
-  // Priority 3: Geolocation (Ask browser approximate location context if permission status is favorable)
-  try {
-    const coords = await getBrowserCurrentLocation();
-    if (coords && coords.latitude) {
-      const googleLoc = await getApproxLocationFromGoogle(coords.latitude, coords.longitude);
-      if (googleLoc) {
-        const fullLoc = {
-          source: "browser",
-          radiusMeters: 30000,
-          ...googleLoc,
-        };
-        saveUserLocationContext(fullLoc);
-        return fullLoc;
+  // Priority 3: Geolocation (Ask browser approximate location context if permission status is favorable and user is logged in)
+  if (user) {
+    try {
+      const coords = await getBrowserCurrentLocation();
+      if (coords && coords.latitude) {
+        const googleLoc = await getApproxLocationFromGoogle(coords.latitude, coords.longitude);
+        if (googleLoc) {
+          const fullLoc = {
+            source: "browser",
+            radiusMeters: 30000,
+            ...googleLoc,
+          };
+          saveUserLocationContext(fullLoc);
+          return fullLoc;
+        }
       }
+    } catch (err) {
+      // Geolocation rejected or failed
     }
-  } catch (err) {
-    // Geolocation rejected or failed
   }
 
   // Priority 4: Standard default fallback (e.g. Bhubaneswar, India)
