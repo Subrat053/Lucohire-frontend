@@ -24,16 +24,24 @@ import { useAuth } from "../context/AuthContext";
 
 const SearchPage = () => {
   const { t } = useTranslation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       navigate(`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`);
     }
-  }, [isAuthenticated, navigate, location]);
+  }, [isAuthenticated, authLoading, navigate, location]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#faf9f7] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+      </div>
+    );
+  }
   const initialQuery =
     searchParams.get("query") ||
     searchParams.get("skill") ||
