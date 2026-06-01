@@ -10,15 +10,15 @@ import useTranslation from '../../hooks/useTranslation';
 
 const navItems = [
   { label: 'Dashboard', fallback: 'Dashboard', path: '/provider/dashboard',      icon: HiTrendingUp },
-  { label: 'Wallet', fallback: 'Wallet', path: '/provider/wallet',              icon: HiCreditCard },
-  { label: 'Payment Settings', fallback: 'Payment Settings', path: '/provider/payout-settings', icon: HiCog },
   { label: 'Jobs for Me', fallback: 'Jobs for Me', path: '/provider/job-for-me',icon: HiBriefcase },
+  { label: 'My Plan', fallback: 'My Plan', path: '/provider/my-plan',          icon: HiPhone },
   { label: 'Messages', fallback: 'Messages', path: '/provider/contacted',      icon: HiMail },
   { label: 'Leads', fallback: 'Leads', path: '/provider/leads',          icon: HiUsers },
+  { label: 'Profile', fallback: 'Profile', path: '/provider/profile',        icon: HiCog },
   { label: 'History', fallback: 'History', path: '/provider/history',        icon: HiClock },
   { label: 'Refer & Earn', fallback: 'Refer & Earn', path: '/provider/referrals', icon: HiPlusCircle },
-  { label: 'My Plan', fallback: 'My Plan', path: '/provider/my-plan',          icon: HiPhone },
-  { label: 'Profile', fallback: 'Profile', path: '/provider/profile',        icon: HiCog },
+  { label: 'Wallet', fallback: 'Wallet', path: '/provider/wallet',              icon: HiCreditCard },
+  { label: 'Payment Settings', fallback: 'Payment Settings', path: '/provider/payout-settings', icon: HiCog },
   { label: 'Change Password', fallback: 'Change Password', path: '/provider/change-password', icon: HiLockClosed },
 ];
 

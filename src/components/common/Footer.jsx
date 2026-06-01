@@ -32,14 +32,14 @@ const Footer = () => {
       links: [
         { label: t('footer.registerProvider', 'Create Profile'), href: '/signup' },
         { label: t('footer.pricing', 'Pro Boost'), href: '/provider/plans' },
-        { label: t('footer.faq', 'Success Stories'), href: '/faq' },
+        { label: t('footer.faq', 'Faq'), href: '/faq' },
         { label: t('footer.terms', 'Renewal'), href: '/terms' },
       ],
     },
     {
       title: t('footer.company', 'Company'),
       links: [
-        { label: t('footer.about', 'About'), href: '/' },
+        { label: t('footer.about', 'About'), href: '/about' },
         { label: t('footer.privacy', 'Privacy'), href: '/privacy' },
         { label: t('footer.terms', 'Terms'), href: '/terms' },
         { label: t('footer.contact', 'Contact Us'), href: '/contact' },

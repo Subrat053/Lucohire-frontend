@@ -43,6 +43,7 @@ const AdminSettings = () => {
   const [faqContent, setFaqContent] = useState('');
   const [termsContent, setTermsContent] = useState('');
   const [privacyContent, setPrivacyContent] = useState('');
+  const [aboutContent, setAboutContent] = useState('');
   const [savingContent, setSavingContent] = useState('');
 
   useEffect(() => { fetchSettings(); fetchCloudinary(); fetchRotation(); fetchContent(); }, []);
@@ -86,10 +87,12 @@ const AdminSettings = () => {
         adminAPI.getContent('faq'),
         adminAPI.getContent('terms'),
         adminAPI.getContent('privacy'),
+        adminAPI.getContent('about'),
       ]);
       setFaqContent(faq.data || '');
       setTermsContent(terms.data || '');
       setPrivacyContent(privacy.data || '');
+      setAboutContent(about.data || '');
     } catch { /* silent */ }
   };
 
@@ -388,6 +391,7 @@ const AdminSettings = () => {
             { key: 'faq', label: 'FAQ Content', value: faqContent, set: setFaqContent, hint: 'Markdown supported. Shown on the public /faq page.' },
             { key: 'terms', label: 'Terms & Conditions', value: termsContent, set: setTermsContent, hint: 'Shown on the public /terms page.' },
             { key: 'privacy', label: 'Privacy Policy', value: privacyContent, set: setPrivacyContent, hint: 'Shown on the public /privacy page.' },
+            { key: 'about', label: 'About Us', value: aboutContent, set: setAboutContent, hint: 'Markdown supported. Shown on the public /about page.' },
           ].map(({ key, label, value, set, hint }) => (
             <div key={key} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
