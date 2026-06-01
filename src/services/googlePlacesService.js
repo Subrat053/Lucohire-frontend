@@ -10,6 +10,9 @@ let scriptLoadingPromise = null;
  */
 export const loadGooglePlacesScript = () => {
   if (typeof window !== 'undefined' && window.google && window.google.maps && window.google.maps.places) {
+    if (window.google.maps.importLibrary) {
+      return window.google.maps.importLibrary('places');
+    }
     return Promise.resolve(window.google.maps.places);
   }
 
@@ -33,12 +36,16 @@ export const loadGooglePlacesScript = () => {
     script.defer = true;
     script.onload = () => {
       let attempts = 0;
-      const checkPlacesLoaded = () => {
-        if (window.google && window.google.maps && window.google.maps.places) {
+      const checkPlacesLoaded = async () => {
+        if (window.google && window.google.maps && (window.google.maps.importLibrary || window.google.maps.places)) {
+          const places = window.google.maps.importLibrary
+            ? await window.google.maps.importLibrary('places')
+            : window.google.maps.places;
+
           if (import.meta.env.DEV) {
             console.log('[GooglePlacesService] Places library successfully available after script load.');
           }
-          resolve(window.google.maps.places);
+          resolve(places);
         } else if (attempts < 20) {
           attempts++;
           setTimeout(checkPlacesLoaded, 50);
@@ -249,7 +256,7 @@ export const getPlacePredictions = async (query, options = {}) => {
       console.warn('Frontend Google predictions failed, falling back to backend:', error.message);
     }
     try {
-      const { data } = await locationAPI.searchPlaces(query);
+      const { data } = await locationAPI.searchPlaces(query, options);
       const list = Array.isArray(data?.data) ? data.data : [];
       return list.map(p => ({
         label: p.formattedAddress || p.name,

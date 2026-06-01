@@ -555,7 +555,7 @@ export const translationAPI = {
 export const locationAPI = {
   autocomplete: (query) => API.post("/location/autocomplete", { query }),
   nearby: (lat, lon) => API.post("/location/nearby", { lat, lon }),
-  searchPlaces: (query) => API.get("/location/search", { params: { query } }),
+  searchPlaces: (query, options = {}) => API.get("/location/search", { params: { query, ...options } }),
   getPlaceDetails: (placeId) => API.get(`/location/details/${placeId}`),
 };
 

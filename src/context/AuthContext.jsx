@@ -327,6 +327,11 @@ export const AuthProvider = ({ children }) => {
 
   const switchPanel = useCallback(async (nextPanel) => {
     const { data } = await authAPI.switchPanel({ panel: nextPanel });
+
+    if (data?.needsProfileCompletion) {
+      return { needsProfileCompletion: true, role: nextPanel };
+    }
+
     const nextToken =
       data?.data?.token ||
       data?.token ||
