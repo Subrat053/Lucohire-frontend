@@ -863,8 +863,28 @@ const AuthPage = () => {
     const redirectParam = params.get("redirect");
     if (redirectParam) {
       navigate(redirectParam, { replace: true });
-    } else {
-      navigate("/", { replace: true });
+      return;
+    }
+
+    switch (userRole) {
+      case "provider":
+        navigate("/provider/dashboard", { replace: true });
+        break;
+      case "recruiter":
+        navigate("/recruiter/dashboard", { replace: true });
+        break;
+
+      case "manager":
+      case "partner":
+        navigate("/partner/dashboard", { replace: true });
+        break;
+
+      case "admin":
+        navigate("/admin/dashboard", { replace: true });
+        break;
+
+      default:
+        navigate("/", { replace: true });
     }
   };
 

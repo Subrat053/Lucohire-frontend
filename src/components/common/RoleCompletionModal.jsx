@@ -29,6 +29,11 @@ const RoleCompletionModal = ({ isOpen, onClose, role, onComplete }) => {
         }
       });
       
+      const nextToken = data?.token || data?.data?.token;
+      if (nextToken) {
+        localStorage.setItem('authToken', nextToken);
+      }
+
       toast.success(data.message);
       onComplete(data.user);
       onClose();

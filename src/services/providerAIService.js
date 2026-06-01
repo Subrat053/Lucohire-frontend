@@ -15,3 +15,11 @@ export function getAIHealth() {
 export function testAIParser(payload) {
   return API.post('/provider/ai/test', payload);
 }
+
+export function uploadResume(formData) {
+  return API.post('/provider/ai/build-from-resume', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+}

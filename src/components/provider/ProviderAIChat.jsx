@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { sendChatMessage } from '../../services/providerAIService';
+import { sendChatMessage, uploadResume } from '../../services/providerAIService';
 import { ALL_SKILLS } from '../../pages/provider/Profile';
 import ProviderAIDebugPanel from './ProviderAIDebugPanel';
+import toast from 'react-hot-toast';
 
 const QUICK_CHIPS = [
   'Client ka message polite aur effective kaise reply karu?',
@@ -29,6 +30,165 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
     usedLLM: false,
     fallbackReason: '',
   });
+
+  const [resumeLoading, setResumeLoading] = useState(false);
+  const [resumeLoadingState, setResumeLoadingState] = useState(''); // 'uploading', 'extracting text', 'analyzing'
+  const [resumeError, setResumeError] = useState('');
+  const [parsedPreview, setParsedPreview] = useState(null);
+
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate size (5MB cap)
+    if (file.size > 5 * 1024 * 1024) {
+      setResumeError('File size must be under 5 MB.');
+      toast.error('File size must be under 5 MB.');
+      return;
+    }
+
+    // Validate extension
+    const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.webp'];
+    const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    if (!allowedExtensions.includes(fileExt)) {
+      setResumeError('16. Invalid file. Allowed formats: PDF, JPG, JPEG, PNG, WEBP.');
+      toast.error('Only PDF and standard images are allowed.');
+      return;
+    }
+
+    // Block exe/js/html/svg
+    const blockedExtensions = ['.exe', '.js', '.html', '.htm', '.svg'];
+    if (blockedExtensions.includes(fileExt)) {
+      setResumeError('Unsupported file type.');
+      toast.error('Malicious or executable files are blocked.');
+      return;
+    }
+
+    setResumeError('');
+    setResumeLoading(true);
+    setResumeLoadingState('uploading');
+
+    const formData = new FormData();
+    formData.append('resume', file);
+
+    const toastId = toast.loading('Uploading resume...');
+
+    try {
+      // Step-by-step loading state animations
+      setTimeout(() => setResumeLoadingState('extracting text'), 1500);
+      setTimeout(() => setResumeLoadingState('analyzing'), 3500);
+
+      const { data } = await uploadResume(formData);
+      
+      toast.success('Resume parsed successfully!', { id: toastId });
+      
+      // Open editable preview before applying, smart merge suggestions with non-empty existing profileContext values
+      const rawAi = data.data || {};
+      const merged = {
+        fullName: rawAi.fullName || profileContext.name || '',
+        contactNumber: rawAi.contactNumber || profileContext.phone || '',
+        bio: rawAi.bio || profileContext.description || '',
+        skills: (rawAi.skills && rawAi.skills.length > 0) ? rawAi.skills : (profileContext.skills || []),
+        specialities: (rawAi.specialities && rawAi.specialities.length > 0) ? rawAi.specialities : (profileContext.skills || []),
+        skillLevel: rawAi.skillLevel || profileContext.skillTier || 'unskilled',
+        experienceYears: rawAi.experienceYears || profileContext.experience || '',
+        serviceCategory: rawAi.serviceCategory || profileContext.category || '',
+        city: rawAi.city || profileContext.city || '',
+        serviceLocations: (rawAi.serviceLocations && rawAi.serviceLocations.length > 0)
+          ? rawAi.serviceLocations
+          : (profileContext.serviceLocations?.map(l => l.formattedAddress || l.name) || profileContext.locations || []),
+        languages: (rawAi.languages && rawAi.languages.length > 0) ? rawAi.languages : (profileContext.languages || []),
+        pricing: rawAi.pricing || profileContext.pricing || '',
+        pricingType: rawAi.pricingType || profileContext.pricingType || 'hourly',
+        pricingReason: rawAi.pricingReason || '',
+        portfolioLinks: (rawAi.portfolioLinks && rawAi.portfolioLinks.length > 0)
+          ? rawAi.portfolioLinks
+          : (profileContext.portfolioLinks || []),
+        availability: rawAi.availability || profileContext.availability || 'full-time',
+        whatsappAlerts: rawAi.whatsappAlerts !== null ? rawAi.whatsappAlerts : (profileContext.whatsappAlerts ?? true)
+      };
+      setParsedPreview(merged);
+    } catch (err) {
+      console.error(err);
+      const msg = err?.response?.data?.message || '16. AI parsing failed. Failed to parse resume details.';
+      setResumeError(msg);
+      toast.error(msg, { id: toastId });
+    } finally {
+      setResumeLoading(false);
+      setResumeLoadingState('');
+    }
+  };
+
+  const applyResumeChanges = () => {
+    if (!parsedPreview) return;
+
+    const suggestions = parsedPreview;
+
+    // Apply all reviewed fields directly from the modal's suggestions
+    const bulkData = {
+      // 1. fullName -> name, profileName
+      name: suggestions.fullName || '',
+      profileName: suggestions.fullName || '',
+      
+      // 2. contactNumber -> phone
+      phone: suggestions.contactNumber || '',
+      
+      // 3. bio -> description
+      description: suggestions.bio || '',
+      
+      // 4. skills & specialities -> skills
+      skills: (suggestions.specialities && suggestions.specialities.length > 0)
+        ? suggestions.specialities
+        : (suggestions.skills || []),
+      
+      // 5. skillLevel -> tier
+      tier: suggestions.skillLevel || 'unskilled',
+      
+      // 6. experienceYears -> experience
+      experience: suggestions.experienceYears || '',
+      
+      // 7. city & serviceLocations -> city, nearestLocation, locations
+      city: suggestions.city || '',
+      nearestLocation: suggestions.city || '',
+      locations: (suggestions.serviceLocations || []).map(loc => {
+        if (typeof loc === 'string') {
+          return {
+            placeId: '',
+            name: loc,
+            formattedAddress: loc,
+            isLegacy: true,
+          };
+        }
+        return loc;
+      }),
+      
+      // 8. languages -> languages
+      languages: suggestions.languages || [],
+      
+      // 9. pricing & pricingType -> pricing, pricingType
+      pricing: suggestions.pricing ? String(suggestions.pricing) : '',
+      pricingType: suggestions.pricingType || 'hourly',
+      
+      // 10. portfolioLinks -> portfolioLinks (with pending approval status)
+      portfolioLinks: (suggestions.portfolioLinks || []).map(link => ({
+        platform: String(link.platform || 'Personal Website').trim(),
+        url: String(link.url || '').trim(),
+        status: link.status || 'pending',
+        isPublic: link.isPublic || false,
+        approvedAt: link.approvedAt || null
+      })).filter(l => l.url),
+
+      // 11. whatsappAlerts
+      whatsappAlerts: suggestions.whatsappAlerts !== null ? suggestions.whatsappAlerts : true
+    };
+
+    if (onUpdateField) {
+      onUpdateField('bulk', bulkData);
+    }
+
+    toast.success('Resume details successfully applied to your draft! Please save draft below.');
+    setParsedPreview(null);
+  };
 
   const listRef = useRef(null);
   const isDev = import.meta.env.DEV;
@@ -405,7 +565,376 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
           )}
         </div>
 
-        <div ref={listRef} className="p-4 h-64 overflow-y-auto space-y-3 bg-slate-50/50 rounded-2xl mb-4 border border-slate-100/50">
+        {/* 1. Resume Upload Dropzone */}
+        <div className="mb-6 p-6 rounded-3xl bg-indigo-50/30 border-2 border-dashed border-indigo-200/80 flex flex-col items-center justify-center text-center transition hover:bg-indigo-50/60 relative overflow-hidden">
+          {resumeLoading ? (
+            <div className="flex flex-col items-center justify-center py-2">
+              <div className="w-9 h-9 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3" />
+              <p className="text-sm font-extrabold text-indigo-700 capitalize animate-pulse">
+                {resumeLoadingState === 'uploading' && '📤 Uploading resume...'}
+                {resumeLoadingState === 'extracting text' && '🔍 OCR extracting text...'}
+                {resumeLoadingState === 'analyzing' && '🤖 AI parsing & analyzing...'}
+                {!resumeLoadingState && 'Processing...'}
+              </p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Please keep this page open</p>
+            </div>
+          ) : (
+            <>
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xl mb-3 shadow-xs">
+                📄
+              </div>
+              <p className="text-sm font-extrabold text-slate-800">Fill Profile in 1-Click via Resume ✨</p>
+              <p className="text-xs text-slate-400 font-semibold mt-1">Upload PDF, JPG, JPEG, PNG, or WEBP (Max 5MB)</p>
+              
+              {resumeError && (
+                <p className="mt-2 text-xs font-bold text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-1.5 animate-fadeIn">
+                  ⚠️ {resumeError}
+                </p>
+              )}
+
+              <input
+                type="file"
+                id="resume-file-input"
+                className="hidden"
+                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                onChange={handleResumeUpload}
+              />
+              <button
+                type="button"
+                onClick={() => document.getElementById('resume-file-input').click()}
+                className="mt-4 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md shadow-indigo-100"
+              >
+                Select Resume File
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* 9. Editable Resume Preview Modal */}
+        {parsedPreview && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
+            <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col animate-zoomIn">
+              {/* Header */}
+              <div className="p-6 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg">
+                    ✨
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-800 tracking-tight">Review AI Extracted Details</h3>
+                    <p className="text-xs text-slate-400 font-semibold mt-0.5">Please review and edit details extracted from your resume before applying.</p>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setParsedPreview(null)}
+                  className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-600"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+
+              {/* Scrollable Content */}
+              <div className="p-6 overflow-y-auto space-y-6 flex-1 text-left font-sans">
+                {/* Name & Phone Number */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Name */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
+                    <input
+                      type="text"
+                      value={parsedPreview.fullName || ''}
+                      onChange={(e) => setParsedPreview({ ...parsedPreview, fullName: e.target.value })}
+                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition shadow-inner"
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">WhatsApp / Contact Number</label>
+                    <input
+                      type="text"
+                      value={parsedPreview.contactNumber || ''}
+                      onChange={(e) => setParsedPreview({ ...parsedPreview, contactNumber: e.target.value })}
+                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition shadow-inner"
+                    />
+                  </div>
+                </div>
+
+                {/* Bio */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Professional Bio</label>
+                  <textarea
+                    value={parsedPreview.bio || ''}
+                    onChange={(e) => setParsedPreview({ ...parsedPreview, bio: e.target.value })}
+                    rows={3}
+                    className="w-full px-4 py-3 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition resize-none shadow-inner"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Skills */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Skills (Comma-separated)</label>
+                    <input
+                      type="text"
+                      value={Array.isArray(parsedPreview.skills) ? parsedPreview.skills.join(', ') : parsedPreview.skills || ''}
+                      onChange={(e) => setParsedPreview({ ...parsedPreview, skills: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition shadow-inner"
+                    />
+                  </div>
+
+                  {/* Specialities */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Specialities (Comma-separated)</label>
+                    <input
+                      type="text"
+                      value={Array.isArray(parsedPreview.specialities) ? parsedPreview.specialities.join(', ') : parsedPreview.specialities || ''}
+                      onChange={(e) => setParsedPreview({ ...parsedPreview, specialities: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition shadow-inner"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* City */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">City</label>
+                    <input
+                      type="text"
+                      value={parsedPreview.city || ''}
+                      onChange={(e) => setParsedPreview({ ...parsedPreview, city: e.target.value })}
+                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition shadow-inner"
+                    />
+                  </div>
+
+                  {/* Service Locations */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Service Locations (Comma-separated)</label>
+                    <input
+                      type="text"
+                      value={Array.isArray(parsedPreview.serviceLocations) ? parsedPreview.serviceLocations.join(', ') : parsedPreview.serviceLocations || ''}
+                      onChange={(e) => setParsedPreview({ ...parsedPreview, serviceLocations: e.target.value.split(',').map(l => l.trim()).filter(Boolean) })}
+                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition shadow-inner"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Smart Skill Level */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Smart Skill Level (AI Recommended)</label>
+                    <div className="relative">
+                      <select
+                        value={parsedPreview.skillLevel || 'unskilled'}
+                        onChange={(e) => setParsedPreview({ ...parsedPreview, skillLevel: e.target.value })}
+                        className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition appearance-none shadow-inner"
+                      >
+                        <option value="unskilled">Unskilled</option>
+                        <option value="semi_skilled">Semi Skilled</option>
+                        <option value="skilled">Skilled</option>
+                      </select>
+                      <div className="absolute right-3 top-3 pointer-events-none">
+                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Experience Years */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Experience Years</label>
+                    <input
+                      type="text"
+                      value={parsedPreview.experienceYears || ''}
+                      onChange={(e) => setParsedPreview({ ...parsedPreview, experienceYears: e.target.value })}
+                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition shadow-inner"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Category */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Service Category</label>
+                    <input
+                      type="text"
+                      value={parsedPreview.serviceCategory || ''}
+                      onChange={(e) => setParsedPreview({ ...parsedPreview, serviceCategory: e.target.value })}
+                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition shadow-inner"
+                    />
+                  </div>
+
+                  {/* Availability */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Availability</label>
+                    <input
+                      type="text"
+                      value={parsedPreview.availability || ''}
+                      onChange={(e) => setParsedPreview({ ...parsedPreview, availability: e.target.value })}
+                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition shadow-inner"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Pricing */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Payout Amount (₹)</label>
+                    <input
+                      type="text"
+                      value={parsedPreview.pricing || ''}
+                      onChange={(e) => setParsedPreview({ ...parsedPreview, pricing: e.target.value })}
+                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition shadow-inner"
+                    />
+                  </div>
+
+                  {/* Pricing Type */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Pricing Unit</label>
+                    <div className="relative">
+                      <select
+                        value={parsedPreview.pricingType || 'hourly'}
+                        onChange={(e) => setParsedPreview({ ...parsedPreview, pricingType: e.target.value })}
+                        className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition appearance-none shadow-inner"
+                      >
+                        <option value="hourly">Hourly</option>
+                        <option value="daily">Daily</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="fixed">Fixed</option>
+                      </select>
+                      <div className="absolute right-3 top-3 pointer-events-none">
+                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Languages */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Languages (Comma-separated)</label>
+                    <input
+                      type="text"
+                      value={Array.isArray(parsedPreview.languages) ? parsedPreview.languages.join(', ') : parsedPreview.languages || ''}
+                      onChange={(e) => setParsedPreview({ ...parsedPreview, languages: e.target.value.split(',').map(l => l.trim()).filter(Boolean) })}
+                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition shadow-inner"
+                    />
+                  </div>
+
+                  {/* WhatsApp Alerts */}
+                  <div className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50/50 shadow-inner">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">WhatsApp Alerts</label>
+                      <p className="text-[10px] text-slate-400 font-medium mt-0.5">Receive job matches on WhatsApp</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setParsedPreview({ ...parsedPreview, whatsappAlerts: !parsedPreview.whatsappAlerts })}
+                      className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-300 outline-none ${parsedPreview.whatsappAlerts ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                    >
+                      <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${parsedPreview.whatsappAlerts ? 'translate-x-6' : 'translate-x-0'}`} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Portfolio Links Section */}
+                <div className="border-t border-slate-100 pt-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>🌐</span> Portfolio & Social Links
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextLinks = [...(parsedPreview.portfolioLinks || [])];
+                        nextLinks.push({ platform: 'Personal Website', url: '', status: 'pending', isPublic: false });
+                        setParsedPreview({ ...parsedPreview, portfolioLinks: nextLinks });
+                      }}
+                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 transition-colors"
+                    >
+                      <span>➕</span> Add Link
+                    </button>
+                  </div>
+                  {(!parsedPreview.portfolioLinks || parsedPreview.portfolioLinks.length === 0) ? (
+                    <p className="text-xs text-slate-400 font-medium italic py-3 bg-slate-50/50 rounded-xl text-center border border-dashed border-slate-200">
+                      No portfolio links extracted. Click "Add Link" to add your websites or social profiles.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {parsedPreview.portfolioLinks.map((link, idx) => (
+                        <div key={idx} className="flex gap-2 items-center bg-slate-50/50 p-2.5 rounded-xl border border-slate-200 shadow-inner">
+                          <div className="w-1/3 relative">
+                            <select
+                              value={link.platform}
+                              onChange={(e) => {
+                                const nextLinks = [...parsedPreview.portfolioLinks];
+                                nextLinks[idx].platform = e.target.value;
+                                setParsedPreview({ ...parsedPreview, portfolioLinks: nextLinks });
+                              }}
+                              className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:border-indigo-500 bg-white outline-none"
+                            >
+                              <option value="LinkedIn">LinkedIn</option>
+                              <option value="GitHub">GitHub</option>
+                              <option value="Behance">Behance</option>
+                              <option value="Dribbble">Dribbble</option>
+                              <option value="Instagram">Instagram</option>
+                              <option value="Facebook">Facebook</option>
+                              <option value="Personal Website">Personal Website</option>
+                            </select>
+                          </div>
+                          <input
+                            type="text"
+                            value={link.url}
+                            onChange={(e) => {
+                              const nextLinks = [...parsedPreview.portfolioLinks];
+                              nextLinks[idx].url = e.target.value;
+                              setParsedPreview({ ...parsedPreview, portfolioLinks: nextLinks });
+                            }}
+                            placeholder="URL (e.g. https://github.com/username)"
+                            className="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-200 focus:border-indigo-500 bg-white outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const nextLinks = parsedPreview.portfolioLinks.filter((_, i) => i !== idx);
+                              setParsedPreview({ ...parsedPreview, portfolioLinks: nextLinks });
+                            }}
+                            className="p-2 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                            title="Remove Link"
+                          >
+                            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setParsedPreview(null)}
+                  className="px-5 py-2.5 text-slate-500 hover:text-slate-700 text-xs font-bold transition-all active:scale-95"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={applyResumeChanges}
+                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md shadow-indigo-200"
+                >
+                  Apply Changes to Draft
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* <div ref={listRef} className="p-4 h-64 overflow-y-auto space-y-3 bg-slate-50/50 rounded-2xl mb-4 border border-slate-100/50">
           {messages.map((item) => (
             <div key={item.id} className={`flex ${item.author === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
@@ -459,7 +988,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
               Send
             </button>
           </form>
-        </div>
+        </div> */}
       </div>
     );
   }

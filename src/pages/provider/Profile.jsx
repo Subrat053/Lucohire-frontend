@@ -1175,6 +1175,7 @@ const ProviderProfile = () => {
         setForm((prev) => ({ ...prev, photo: absoluteUrl })); // store clean URL in form
       }
       await fetchUser();
+      hasInitialized.current = false;
       await fetchProfile();
       toast.success("Profile photo updated successfully!");
     } catch (err) {
@@ -1193,6 +1194,8 @@ const ProviderProfile = () => {
     try {
       await providerAPI.deleteProfilePhoto();
       await fetchUser();
+      hasInitialized.current = false;
+      await fetchProfile();
       toast.success("Photo removed");
     } catch {
       toast.error("Failed to remove photo from server");
@@ -1291,6 +1294,7 @@ const ProviderProfile = () => {
       setCompletion(data.profileCompletion || completion);
       localStorage.removeItem("lucohire_profile_draft");
       toast.success("Profile updated successfully!");
+      hasInitialized.current = false;
       await fetchProfile();
     } catch (err) {
       if (err.response?.data?.upgradeRequired) {
@@ -1469,6 +1473,9 @@ const ProviderProfile = () => {
                   pricing: form.pricing,
                   pricingType: form.pricingType,
                   description: form.description,
+                  locations: form.locations,
+                  portfolioLinks: form.portfolioLinks,
+                  whatsappAlerts: form.whatsappAlerts,
                 }}
                 missingFields={(() => {
                   const missing = [];
@@ -1528,6 +1535,16 @@ const ProviderProfile = () => {
                       next.profileName = value;
                     } else if (field === "experience") {
                       next.experience = value;
+                    } else if (field === "description") {
+                      next.description = value;
+                    } else if (field === "languages") {
+                      next.languages = value;
+                    } else if (field === "portfolioLinks") {
+                      next.portfolioLinks = value;
+                    } else if (field === "bulk" && value && typeof value === "object") {
+                      Object.keys(value).forEach((k) => {
+                        next[k] = value[k];
+                      });
                     }
                     return next;
                   });
@@ -1536,7 +1553,7 @@ const ProviderProfile = () => {
             </div>
 
             {/* Profile Strength Right */}
-            <div className="border-t lg:border-t-0 lg:border-l border-slate-100 pt-6 lg:pt-0 lg:pl-8 flex flex-col justify-between">
+            <div className="border-t lg:border-t-0 lg:border-l border-slate-100 pt-5 lg:pt-0 lg:pl-6 flex flex-col justify-evenly">
               <div>
                 <h3 className="font-extrabold text-slate-800 text-sm">
                   Profile Strength
@@ -1546,7 +1563,7 @@ const ProviderProfile = () => {
                 </p>
               </div>
 
-              <div className="flex items-center justify-center gap-6 my-4">
+              <div className="flex items-center justify-center gap-6 my-2">
                 <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
                   <svg className="w-full h-full transform -rotate-90">
                     <circle
