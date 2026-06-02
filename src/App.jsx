@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
@@ -21,6 +21,56 @@ const PartnerRoutes = lazy(() => import("./routes/PartnerRoutes"));
 
 function App() {
   const { user, showWhatsAppPrompt, setShowWhatsAppPrompt } = useAuth();
+
+  useEffect(() => {
+    const handleChunkError = () => {
+      const now = Date.now();
+      const lastReload = sessionStorage.getItem("servicehub:last_chunk_reload");
+      
+      // Prevent infinite reloading loops (minimum 10 second gap)
+      if (lastReload && now - Number(lastReload) < 10000) {
+        console.error("Chunk reload triggered too recently. Skipping reload to avoid loop.");
+        return;
+      }
+      
+      sessionStorage.setItem("servicehub:last_chunk_reload", String(now));
+      console.warn("Dynamic import failure detected. Reloading application to fetch latest build...");
+      window.location.reload();
+    };
+
+    const handleError = (e) => {
+      const message = e.message || "";
+      if (
+        message.includes("Failed to fetch dynamically imported module") || 
+        message.includes("loading chunk") ||
+        message.includes("Failed to fetch dynamic")
+      ) {
+        e.preventDefault(); // Prevent crash logger trigger
+        handleChunkError();
+      }
+    };
+
+    const handleRejection = (e) => {
+      const reason = e.reason || "";
+      const message = reason.message || String(reason);
+      if (
+        message.includes("Failed to fetch dynamically imported module") || 
+        message.includes("loading chunk") ||
+        message.includes("Failed to fetch dynamic")
+      ) {
+        e.preventDefault(); // Prevent crash logger trigger
+        handleChunkError();
+      }
+    };
+
+    window.addEventListener("error", handleError);
+    window.addEventListener("unhandledrejection", handleRejection);
+
+    return () => {
+      window.removeEventListener("error", handleError);
+      window.removeEventListener("unhandledrejection", handleRejection);
+    };
+  }, []);
 
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
