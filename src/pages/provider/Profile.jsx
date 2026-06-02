@@ -1780,41 +1780,7 @@ const ProviderProfile = () => {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-violet-100 bg-violet-50/70 p-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">
-                      {coveragePlanName} plan
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      You have used {usedCoverageCount} of{" "}
-                      {allowedCoverageCount} service locations in your current
-                      plan.
-                    </p>
-                    <p className="mt-1 text-xs font-semibold text-violet-700">
-                      {coverageRefreshLoading
-                        ? "Refreshing latest subscription limits..."
-                        : `${remainingCoverageCount} location${remainingCoverageCount === 1 ? "" : "s"} remaining.`}
-                    </p>
-                  </div>
 
-                  {isCoverageLocked && (
-                    <button
-                      type="button"
-                      onClick={handleCoverageUpgradeClick}
-                      disabled={
-                        coverageUpgradeLoading || coverageRefreshLoading
-                      }
-                      aria-label="Expand service reach by upgrading your plan"
-                      className="inline-flex w-full items-center justify-center rounded-2xl bg-violet-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-violet-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
-                    >
-                      {coverageUpgradeLoading
-                        ? "Opening Plans..."
-                        : "Expand Service Reach"}
-                    </button>
-                  )}
-                </div>
-              </div>
 
               <div className="space-y-4">
                 <div className="relative z-30">
@@ -1928,10 +1894,18 @@ const ProviderProfile = () => {
                 )}
 
                 {isCoverageLocked && !coverageUpgradeLoading && (
-                  <p className="text-[10px] text-amber-600 bg-amber-50 p-2.5 rounded-xl border border-amber-100/50 font-semibold flex items-center gap-1">
-                    <span>⚡</span> Upgrade your plan to expand your service
-                    reach to multiple pincodes or cities.
-                  </p>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[11px] text-amber-800 bg-amber-50 p-3.5 rounded-xl border border-amber-200/50 font-bold">
+                    <div className="flex items-center gap-1.5">
+                      <span>⚡</span> Upgrade your plan to expand your service reach to multiple pincodes or cities.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCoverageUpgradeClick}
+                      className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition shrink-0 shadow-xs"
+                    >
+                      Upgrade Plan
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
