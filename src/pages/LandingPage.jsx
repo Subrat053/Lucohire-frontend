@@ -344,10 +344,6 @@ const LandingPage = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-      navigate(`/login?redirect=${encodeURIComponent('/search?query=' + encodeURIComponent(skill))}`);
-      return;
-    }
 
     if (!skill.trim()) {
       toast.error(t('landing.enterRequirement', 'Please enter your requirement'));
@@ -376,11 +372,6 @@ const LandingPage = () => {
   };
 
   const handleCategoryClick = (categoryName) => {
-    if (!isAuthenticated) {
-      navigate(`/login?redirect=${encodeURIComponent('/search?category=' + encodeURIComponent(categoryName))}`);
-      return;
-    }
-
     setActiveCategory(categoryName);
     setSkill(categoryName === "More" ? "" : categoryName);
     navigate(`/search?category=${encodeURIComponent(categoryName)}`);

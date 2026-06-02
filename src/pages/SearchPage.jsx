@@ -30,11 +30,7 @@ const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      navigate(`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`);
-    }
-  }, [isAuthenticated, authLoading, navigate, location]);
+
 
   if (authLoading) {
     return (
