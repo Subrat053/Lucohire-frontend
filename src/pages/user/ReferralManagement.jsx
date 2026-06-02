@@ -46,16 +46,6 @@ const ReferralManagement = () => {
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [processing, setProcessing] = useState(false);
 
-  // Quick Invite State
-  const [inviteModalOpen, setInviteModalOpen] = useState(false);
-  const [inviteData, setInviteData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    role: "provider",
-  });
-  const [inviting, setInviting] = useState(false);
-
   useEffect(() => {
     fetchStats();
   }, []);
@@ -212,22 +202,6 @@ const ReferralManagement = () => {
     }
   };
 
-  const handleInvite = async (e) => {
-    e.preventDefault();
-    setInviting(true);
-    try {
-      await referralAPI.createUserReferral(inviteData);
-      toast.success("User invited successfully! Email sent.");
-      setInviteModalOpen(false);
-      setInviteData({ name: "", email: "", phone: "", role: "provider" });
-      fetchStats(); // refresh list
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to invite user");
-    } finally {
-      setInviting(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -336,88 +310,6 @@ const ReferralManagement = () => {
         <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-[-10%] left-[-5%] w-48 h-48 bg-indigo-400/20 rounded-full blur-3xl"></div>
       </div>
-
-      <div className="mt-8 mb-6 flex justify-center">
-        <button
-          onClick={() => setInviteModalOpen(true)}
-          className="relative w-full sm:w-auto flex items-center justify-center text-white bg-linear-to-r from-indigo-600 via-purple-600 to-blue-600 hover:from-indigo-700 hover:via-purple-700 hover:to-blue-600 px-8 py-4 rounded-2xl shadow-[0_8px_30px_rgba(124,58,237,0.35)] hover:shadow-[0_8px_30px_rgba(124,58,237,0.6)] transition-all duration-300 font-extrabold text-lg transform hover:-translate-y-1 overflow-hidden group border border-white/10"
-        >
-          <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
-          <UserPlus size={24} className="mr-3 group-hover:scale-110 transition-transform duration-300" /> 
-          Quick Invite Manually
-        </button>
-      </div>
-
-      <br />
-
-      {/* Quick Invite Form */}
-      {inviteModalOpen && (
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-12">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-            <UserPlus className="mr-2 text-indigo-600" /> Quick Invite User
-          </h2>
-          <form
-            onSubmit={handleInvite}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            <input
-              type="text"
-              placeholder="Full Name"
-              required
-              value={inviteData.name}
-              onChange={(e) =>
-                setInviteData({ ...inviteData, name: e.target.value })
-              }
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50 focus:bg-white transition"
-            />
-            <input
-              type="email"
-              placeholder="Email Address"
-              required
-              value={inviteData.email}
-              onChange={(e) =>
-                setInviteData({ ...inviteData, email: e.target.value })
-              }
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50 focus:bg-white transition"
-            />
-            <input
-              type="tel"
-              placeholder="Phone (Optional)"
-              value={inviteData.phone}
-              onChange={(e) =>
-                setInviteData({ ...inviteData, phone: e.target.value })
-              }
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50 focus:bg-white transition"
-            />
-            <select
-              value={inviteData.role}
-              onChange={(e) =>
-                setInviteData({ ...inviteData, role: e.target.value })
-              }
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50 focus:bg-white transition"
-            >
-              <option value="provider">Service Provider</option>
-              <option value="recruiter">Recruiter / Client</option>
-            </select>
-            <div className="md:col-span-2 flex gap-3 mt-4">
-              <button
-                type="submit"
-                disabled={inviting}
-                className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition disabled:opacity-70"
-              >
-                {inviting ? "Sending Invite..." : "Send Email Invite"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setInviteModalOpen(false)}
-                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       <div id="recaptcha-container"></div>
 
