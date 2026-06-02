@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import SafeExternalLink from '../common/SafeExternalLink';
+import { toAbsoluteMediaUrl } from '../../utils/media';
+import { X } from 'lucide-react';
 
 const PortfolioApprovalPanel = ({ adminAPI }) => {
   const [pendingLinks, setPendingLinks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeResumeUrl, setActiveResumeUrl] = useState(null);
   const [error, setError] = useState('');
   const [actioningLinkId, setActioningLinkId] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -155,6 +158,15 @@ const PortfolioApprovalPanel = ({ adminAPI }) => {
                     {new Date(link.submittedAt).toLocaleDateString()}
                   </td>
                   <td className="p-4 text-right space-x-1 whitespace-nowrap">
+                    {link.resumeUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveResumeUrl(toAbsoluteMediaUrl(link.resumeUrl))}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors inline-block text-center hover:scale-102"
+                      >
+                        View Resume
+                      </button>
+                    )}
                     <button
                       onClick={() => handleApprove(link.profileId, link.linkId)}
                       disabled={actioningLinkId === link.linkId}
@@ -238,6 +250,41 @@ const PortfolioApprovalPanel = ({ adminAPI }) => {
               >
                 Reject Link
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {activeResumeUrl && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-3xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between animate-fadeIn">
+              <h3 className="font-bold text-slate-800 text-sm">Resume Document Viewer</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveResumeUrl(null)}
+                  className="p-1.5 hover:bg-slate-100 rounded-full transition text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Document Viewer Frame */}
+            <div className="flex-1 bg-slate-100 p-4">
+              {activeResumeUrl.endsWith('.pdf') || activeResumeUrl.includes('/raw/') || activeResumeUrl.includes('.pdf') || activeResumeUrl.includes('cloudinary.com') ? (
+                <iframe
+                  src={`${activeResumeUrl.includes('cloudinary.com') && !activeResumeUrl.toLowerCase().endsWith('.pdf') ? activeResumeUrl + '.pdf' : activeResumeUrl}#toolbar=0`}
+                  title="Resume Viewer"
+                  className="w-full h-full rounded-2xl border-0"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-white rounded-2xl p-6 text-center space-y-4">
+                  <span className="text-4xl">📄</span>
+                  <p className="text-sm font-semibold text-slate-600 font-sans">Document format view is not supported directly in the browser.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

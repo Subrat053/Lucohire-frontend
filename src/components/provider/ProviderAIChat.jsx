@@ -105,7 +105,8 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
           ? rawAi.portfolioLinks
           : (profileContext.portfolioLinks || []),
         availability: rawAi.availability || profileContext.availability || 'full-time',
-        whatsappAlerts: rawAi.whatsappAlerts !== null ? rawAi.whatsappAlerts : (profileContext.whatsappAlerts ?? true)
+        whatsappAlerts: rawAi.whatsappAlerts !== null ? rawAi.whatsappAlerts : (profileContext.whatsappAlerts ?? true),
+        resumeUrl: rawAi.resumeUrl || ''
       };
       setParsedPreview(merged);
     } catch (err) {
@@ -179,7 +180,10 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
       })).filter(l => l.url),
 
       // 11. whatsappAlerts
-      whatsappAlerts: suggestions.whatsappAlerts !== null ? suggestions.whatsappAlerts : true
+      whatsappAlerts: suggestions.whatsappAlerts !== null ? suggestions.whatsappAlerts : true,
+
+      // 12. resumeUrl
+      resumeUrl: suggestions.resumeUrl || ''
     };
 
     if (onUpdateField) {
@@ -703,6 +707,12 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                     />
                   </div>
                 </div>
+
+                {(!user?.currentPlan || String(user.currentPlan).toLowerCase() === 'free') && (
+                  <div className="text-[10px] text-amber-800 bg-red-50/90 px-3 py-2 rounded-xl border border-red-200/40 font-bold max-w-full text-center">
+                    <span>⚡ select only one skill and for all skills upgrade plan</span>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* City */}

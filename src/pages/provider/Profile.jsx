@@ -449,6 +449,7 @@ const ProviderProfile = () => {
     location: null,
     profileName: "",
     phone: "",
+    resumeUrl: "",
   });
 
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
@@ -737,6 +738,7 @@ const ProviderProfile = () => {
           location: data.location || null,
           profileName: data.profileName || "",
           phone: data.user?.phone || "",
+          resumeUrl: data.resumeUrl || "",
         };
 
         const savedDraft = localStorage.getItem("lucohire_profile_draft");
@@ -850,12 +852,8 @@ const ProviderProfile = () => {
 
   const addSkill = (skill) => {
     if (String(plan).toLowerCase() === "free" && form.skills.length >= 1) {
-      if (redirectCountdown !== null) return;
       setShowUpgradePrompt(true);
-      setRedirectCountdown(3);
-      toast.error(
-        "Free tier account cannot choose more than 1 role. Redirecting to plan page...",
-      );
+      toast.error("for free plan you can only use one skill");
       return;
     }
     setForm({ ...form, skills: [...form.skills, skill] });
@@ -863,9 +861,8 @@ const ProviderProfile = () => {
   const removeSkill = (skill) => {
     const updated = form.skills.filter((s) => s !== skill);
     setForm({ ...form, skills: updated });
-    if (String(plan).toLowerCase() === "free" && updated.length < 1) {
+    if (String(plan).toLowerCase() === "free" && updated.length <= 1) {
       setShowUpgradePrompt(false);
-      setRedirectCountdown(null);
     }
   };
 
@@ -1237,6 +1234,16 @@ const ProviderProfile = () => {
       );
     }
 
+    if (String(plan).toLowerCase() === "free" && form.skills.length > 1) {
+      const card = document.getElementById("role-skills-card");
+      if (card) {
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return toast.error(
+        "For free plan you can only use one skill. Please upgrade your plan or remove extra roles.",
+      );
+    }
+
     setSaving(true);
     try {
       const cleanLocations = form.locations
@@ -1280,6 +1287,7 @@ const ProviderProfile = () => {
         pricingType: form.pricingType,
         profileName: form.profileName,
         phone: cleanPhone,
+        resumeUrl: form.resumeUrl,
       };
       // sanitizePayload only touches string fields, leaves arrays/numbers intact
       const payload = sanitizePayload(rawPayload);
@@ -1965,17 +1973,32 @@ const ProviderProfile = () => {
           </div>
 
           {/* Row 2 Card 2: Role & Skill Level */}
-          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-            <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0">
-              <Award className="w-5 h-5 text-violet-600 shrink-0" />
-              <div>
-                <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">Role</h3>
-                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
-                  {String(plan).toLowerCase() === "free"
-                    ? "First Role is Free"
-                    : "Unlimited Roles Unlocked"}
-                </p>
+          <div id="role-skills-card" className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0">
+              <div className="flex items-center gap-3">
+                <Award className="w-5 h-5 text-violet-600 shrink-0" />
+                <div>
+                  <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">Role</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
+                    {String(plan).toLowerCase() === "free"
+                      ? "First Role is Free"
+                      : "Unlimited Roles Unlocked"}
+                  </p>
+                </div>
               </div>
+
+              {String(plan).toLowerCase() === "free" && (form.skills.length > 1 || showUpgradePrompt) && (
+                <div className="flex items-center gap-2 text-[10px] text-amber-800 bg-red-50/90 px-2.5 py-1.5 rounded-lg border border-red-200/40 font-bold max-w-full">
+                  <span>for free plan you can only use one skill</span>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/provider/plans")}
+                    className="px-2 py-1 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-[9px] font-black uppercase tracking-wider transition shrink-0 shadow-xs"
+                  >
+                    Upgrade
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="flex-1 flex flex-col justify-between space-y-4">
@@ -1985,20 +2008,9 @@ const ProviderProfile = () => {
                   onAdd={addSkill}
                   onRemove={removeSkill}
                   tier={form.tier}
-                  maxAllowed={(() => {
-                    if (!profileData || String(plan).toLowerCase() === "free")
-                      return 1;
-                    return 999;
-                  })()}
+                  maxAllowed={999}
                   plan={plan}
-                  onTriggerUpgrade={() => {
-                    if (redirectCountdown !== null) return;
-                    setShowUpgradePrompt(true);
-                    setRedirectCountdown(3);
-                    toast.error(
-                      "Free tier account cannot choose more than 1 role. Redirecting to plan page...",
-                    );
-                  }}
+                  onTriggerUpgrade={null}
                 />
 
                 {String(plan).toLowerCase() === "free" && showUpgradePrompt && (
@@ -2011,6 +2023,8 @@ const ProviderProfile = () => {
                   </div>
                 )}
               </div>
+
+
 
               {/* Smart Skill Level (AI Recommended) */}
               <div className="pt-2 border-t border-slate-100 space-y-2">

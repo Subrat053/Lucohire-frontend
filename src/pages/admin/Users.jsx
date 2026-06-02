@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 const UserDetailModal = ({ userId, onClose }) => {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeResumeUrl, setActiveResumeUrl] = useState(null);
 
   useEffect(() => {
     if (userId) {
@@ -96,6 +97,18 @@ const UserDetailModal = ({ userId, onClose }) => {
                       </div>
                     </div>
                   )}
+                  {detail.profile.resumeUrl && (
+                    <div className="sm:col-span-2">
+                      <span className="text-gray-500 block text-xs mb-1">Uploaded Resume</span>
+                      <button
+                        type="button"
+                        onClick={() => setActiveResumeUrl(toAbsoluteMediaUrl(detail.profile.resumeUrl))}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-150 text-indigo-700 rounded-lg text-xs font-bold transition shadow-xs"
+                      >
+                        📄 View Resume Document
+                      </button>
+                    </div>
+                  )}
                   {detail.profile.companyName && <div><span className="text-gray-500 block text-xs">Company</span> <span className="font-medium text-gray-800">{detail.profile.companyName}</span></div>}
                   {detail.profile.latitude && detail.profile.longitude && (
                     <div className="sm:col-span-2"><span className="text-gray-500 block text-xs">Google Coordinates</span> <span className="font-mono text-xs text-gray-600">{detail.profile.latitude.toFixed(6)}, {detail.profile.longitude.toFixed(6)}</span></div>
@@ -144,6 +157,41 @@ const UserDetailModal = ({ userId, onClose }) => {
             )}
           </div>
         )}
+      {activeResumeUrl && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-3xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-bold text-slate-800 text-sm">Resume Document Viewer</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveResumeUrl(null)}
+                  className="p-1.5 hover:bg-slate-100 rounded-full transition text-slate-400 hover:text-slate-600"
+                >
+                  <HiX className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Document Viewer Frame */}
+            <div className="flex-1 bg-slate-100 p-4">
+              {activeResumeUrl.endsWith('.pdf') || activeResumeUrl.includes('/raw/') || activeResumeUrl.includes('.pdf') || activeResumeUrl.includes('cloudinary.com') ? (
+                <iframe
+                  src={`${activeResumeUrl.includes('cloudinary.com') && !activeResumeUrl.toLowerCase().endsWith('.pdf') ? activeResumeUrl + '.pdf' : activeResumeUrl}#toolbar=0`}
+                  title="Resume Viewer"
+                  className="w-full h-full rounded-2xl border-0"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-white rounded-2xl p-6 text-center space-y-4">
+                  <span className="text-4xl">📄</span>
+                  <p className="text-sm font-semibold text-slate-600 font-sans">Document format view is not supported directly in the browser.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
