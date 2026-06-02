@@ -18,6 +18,7 @@ const ChangePassword = lazy(() => import("../pages/user/ChangePassword"));
 const ReferralManagement = lazy(() => import("../pages/user/ReferralManagement"));
 const ProviderWallet = lazy(() => import("../pages/provider/Wallet"));
 const ProviderPayoutSettings = lazy(() => import("../pages/provider/PayoutSettings"));
+const AddMember = lazy(() => import("../pages/provider/AddMember"));
 
 function ProviderLayoutWrapper({ children }) {
   return (
@@ -49,6 +50,7 @@ export default function ProviderRoutes() {
       <Route path="contacted" element={wrap(<ProviderContacted />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />
       <Route path="referrals" element={wrap(<ReferralManagement />)} />
+      <Route path="add-member" element={wrap(<AddMember />)} />
       <Route path="wallet" element={wrap(<ProviderWallet />)} />
       <Route path="payout-settings" element={wrap(<ProviderPayoutSettings />)} />
     </Routes>
