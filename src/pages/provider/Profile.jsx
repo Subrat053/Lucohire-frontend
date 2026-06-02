@@ -1208,25 +1208,35 @@ const ProviderProfile = () => {
   const handleSave = withSaveLock(async (e) => {
     if (e && typeof e.preventDefault === "function") e.preventDefault();
     if (!form.city && form.locations.length === 0) {
+      const card = document.getElementById("locations-card");
+      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
       return toast.error(
         "Please add at least one service location / city (Location is mandatory)",
       );
     }
     if (form.skills.length === 0) {
+      const card = document.getElementById("role-skills-card");
+      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
       return toast.error("Please select at least one role (Role is mandatory)");
     }
     const cleanPhone = String(form.phone || "").replace(/\D/g, "");
     if (!cleanPhone || cleanPhone.length < 10) {
+      const card = document.getElementById("basic-info-card");
+      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
       return toast.error(
         "Please enter a valid 10-digit WhatsApp/Contact number (Contact number is mandatory)",
       );
     }
     if (!form.pricing || Number(form.pricing) <= 0) {
+      const card = document.getElementById("rate-payout-card");
+      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
       return toast.error(
         "Please enter a valid payout / pricing rate (Payout is mandatory)",
       );
     }
     if (!form.pricingType) {
+      const card = document.getElementById("rate-payout-card");
+      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
       return toast.error(
         "Please select a pricing unit (Pricing Unit is mandatory)",
       );
@@ -1235,6 +1245,8 @@ const ProviderProfile = () => {
       !form.tier ||
       !["unskilled", "semi-skilled", "skilled"].includes(form.tier)
     ) {
+      const card = document.getElementById("role-skills-card");
+      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
       return toast.error(
         "Please select a skill tier (Skill tier is mandatory)",
       );
@@ -1674,7 +1686,7 @@ const ProviderProfile = () => {
           className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch"
         >
           {/* Row 1 Card 1: Basic Information */}
-          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+          <div id="basic-info-card" className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0">
               <UserIcon className="w-5 h-5 text-violet-600 shrink-0" />
               <div>
@@ -1834,7 +1846,7 @@ const ProviderProfile = () => {
           </div>
 
           {/* Row 2 Card 1: Location (Service Area) */}
-          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full relative transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+          <div id="locations-card" className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full relative transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0">
               <MapPin className="w-5 h-5 text-violet-600 shrink-0" />
               <div className="min-w-0 flex-1">
@@ -2122,7 +2134,7 @@ const ProviderProfile = () => {
           </div>
 
           {/* Row 3 Card 2: Rate & Payout */}
-          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+          <div id="rate-payout-card" className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0 justify-between">
               <div className="flex items-center gap-3">
                 <span className="text-violet-600 font-black text-base">₹</span>
