@@ -1780,7 +1780,7 @@ const ProviderProfile = () => {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-violet-100 bg-violet-50/70 p-4">
+              {/* <div className="rounded-2xl border border-violet-100 bg-violet-50/70 p-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-bold text-slate-800">
@@ -1814,7 +1814,7 @@ const ProviderProfile = () => {
                     </button>
                   )}
                 </div>
-              </div>
+              </div> */}
 
               <div className="space-y-4">
                 <div className="relative z-30">
@@ -1928,7 +1928,9 @@ const ProviderProfile = () => {
                 )}
 
                 {isCoverageLocked && !coverageUpgradeLoading && (
-                  <p className="text-[10px] text-amber-600 bg-amber-50 p-2.5 rounded-xl border border-amber-100/50 font-semibold flex items-center gap-1">
+                  <p
+                  onClick={()=>navigate('/')} 
+                  className="text-[10px] text-amber-600 bg-amber-50 p-2.5 rounded-xl border border-amber-100/50 font-semibold flex items-center gap-1">
                     <span>⚡</span> Upgrade your plan to expand your service
                     reach to multiple pincodes or cities.
                   </p>
@@ -2183,8 +2185,8 @@ const ProviderProfile = () => {
             </div>
 
             {/* 2. Role (1 Free) */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-7 space-y-6">
-              <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-7 space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
                 <Award className="w-5 h-5 text-violet-600" />
                 <div className="flex-1">
                   <h3 className="font-extrabold text-slate-800 text-sm">
@@ -2220,7 +2222,7 @@ const ProviderProfile = () => {
               />
 
               {String(plan).toLowerCase() === "free" && showUpgradePrompt && (
-                <div className="mt-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl animate-pulse">
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-2xl animate-pulse">
                   <p className="text-xs text-amber-800 font-bold leading-normal">
                     {redirectCountdown !== null
                       ? `Free tier account cannot choose more than 1 role. Redirecting to plan page in ${redirectCountdown}s...`
@@ -2240,7 +2242,7 @@ const ProviderProfile = () => {
               )}
 
               {/* Smart Skill Level (AI Recommended) */}
-              <div className="pt-4 border-t border-slate-100 space-y-4">
+              <div className="pt-2 border-t border-slate-100 space-y-3">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-violet-600" />
                   <span className="font-extrabold text-slate-800 text-xs">
@@ -2272,7 +2274,7 @@ const ProviderProfile = () => {
                         key={card.value}
                         type="button"
                         onClick={() => handleTierChange(card.value)}
-                        className={`p-4 rounded-2xl border text-left flex flex-col justify-between h-28 relative transition-all ${
+                        className={`p-4 rounded-2xl border text-left flex flex-col justify-between h-16 relative transition-all ${
                           isActive
                             ? "border-violet-600 bg-violet-50/15 ring-2 ring-violet-600/10"
                             : "border-slate-100 hover:border-slate-200 bg-white"

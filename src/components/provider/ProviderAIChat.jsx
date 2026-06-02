@@ -48,19 +48,19 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
     }
 
     // Validate extension
-    const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.webp'];
+    const allowedExtensions = ['.pdf', '.docx', '.doc', '.jpg', '.jpeg', '.png', '.webp'];
     const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     if (!allowedExtensions.includes(fileExt)) {
-      setResumeError('16. Invalid file. Allowed formats: PDF, JPG, JPEG, PNG, WEBP.');
-      toast.error('Only PDF and standard images are allowed.');
+      setResumeError('16. Invalid file. Allowed formats: PDF, DOCX, DOC, JPG, JPEG, PNG, WEBP.');
+      toast.error('Only PDF, DOCX, DOC, and standard images are allowed.');
       return;
     }
 
-    // Block exe/js/html/svg
-    const blockedExtensions = ['.exe', '.js', '.html', '.htm', '.svg'];
+    // Block exe/js/html/svg/csv/xls/xlsx
+    const blockedExtensions = ['.exe', '.js', '.html', '.htm', '.svg', '.csv', '.xls', '.xlsx'];
     if (blockedExtensions.includes(fileExt)) {
-      setResumeError('Unsupported file type.');
-      toast.error('Malicious or executable files are blocked.');
+      setResumeError('16. Unsupported file type. Executable files, scripts, and spreadsheets (CSV, XLS, XLSX) are not allowed.');
+      toast.error('Executable files, scripts, and spreadsheets (CSV, XLS, XLSX) are blocked.');
       return;
     }
 
@@ -584,7 +584,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                 📄
               </div>
               <p className="text-sm font-extrabold text-slate-800">Fill Profile in 1-Click via Resume ✨</p>
-              <p className="text-xs text-slate-400 font-semibold mt-1">Upload PDF, JPG, JPEG, PNG, or WEBP (Max 5MB)</p>
+              <p className="text-xs text-slate-400 font-semibold mt-1">Upload PDF, DOCX, DOC, JPG, JPEG, PNG, or WEBP (Max 5MB)</p>
               
               {resumeError && (
                 <p className="mt-2 text-xs font-bold text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-1.5 animate-fadeIn">
@@ -596,7 +596,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                 type="file"
                 id="resume-file-input"
                 className="hidden"
-                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                accept=".pdf,.docx,.doc,.jpg,.jpeg,.png,.webp"
                 onChange={handleResumeUpload}
               />
               <button
