@@ -36,47 +36,15 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
   const [resumeError, setResumeError] = useState('');
   const [parsedPreview, setParsedPreview] = useState(null);
 
-  const synonymMap = {
-    'teaching': 'Tutor',
-    'teacher': 'Tutor',
-    'tutoring': 'Tutor',
-    'tele calling': 'Receptionist',
-    'telecalling': 'Receptionist',
-    'telecaller': 'Receptionist',
-    'customer service': 'Receptionist',
-    'customer care': 'Receptionist',
-    'call center': 'Receptionist',
-    'coding': 'Web Developer',
-    'development': 'Web Developer',
-    'programming': 'Web Developer',
-    'designing': 'UI/UX Designer',
-    'design': 'UI/UX Designer',
-    'beautician': 'Beautician',
-    'hair stylist': 'Beautician',
-    'makeup artist': 'Beautician',
-    'housekeeping': 'Housekeeping',
-    'cleaning': 'Housekeeping',
-    'maid': 'Housekeeping',
-    'care taker': 'Caretaker',
-    'caretaker': 'Caretaker',
-    'driving': 'Driver',
-    'chauffeur': 'Driver',
-  };
-
   const findBestSkillMatch = (parsedSkill) => {
     if (!parsedSkill) return null;
     const normalized = parsedSkill.trim().toLowerCase();
     
-    // 1. Synonym Check
-    if (synonymMap[normalized]) {
-      return synonymMap[normalized];
-    }
-    
-    // 2. Case-insensitive exact match in ALL_SKILLS
+    // 1. Case-insensitive exact match in ALL_SKILLS
     const exactMatch = ALL_SKILLS.find(s => s.toLowerCase() === normalized);
     if (exactMatch) return exactMatch;
     
-    // 3. Substring check
+    // 2. Substring check
     const substringMatch = ALL_SKILLS.find(s => 
       normalized.includes(s.toLowerCase()) || s.toLowerCase().includes(normalized)
     );

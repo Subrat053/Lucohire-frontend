@@ -616,9 +616,11 @@ const ProviderProfile = () => {
 
   useEffect(() => {
     if (hasInitialized.current && isDirty) {
-      localStorage.setItem("lucohire_profile_draft", JSON.stringify(form));
+      const userId = profileData?.user?._id || user?._id || "";
+      const draftKey = userId ? `lucohire_profile_draft_${userId}` : "lucohire_profile_draft";
+      localStorage.setItem(draftKey, JSON.stringify(form));
     }
-  }, [form, isDirty]);
+  }, [form, isDirty, profileData, user]);
 
   // Calculate max locations allowed by plan
   const maxLocations = (() => {
@@ -743,7 +745,9 @@ const ProviderProfile = () => {
           pricingReason: data.pricingReason || "",
         };
 
-        const savedDraft = localStorage.getItem("lucohire_profile_draft");
+        const userId = data.user?._id || user?._id || "";
+        const draftKey = userId ? `lucohire_profile_draft_${userId}` : "lucohire_profile_draft";
+        const savedDraft = localStorage.getItem(draftKey);
         if (savedDraft) {
           try {
             const parsedDraft = JSON.parse(savedDraft);
@@ -1302,7 +1306,9 @@ const ProviderProfile = () => {
 
       const { data } = await providerAPI.updateProfile(payload);
       setCompletion(data.profileCompletion || completion);
-      localStorage.removeItem("lucohire_profile_draft");
+      const userId = profileData?.user?._id || user?._id || "";
+      const draftKey = userId ? `lucohire_profile_draft_${userId}` : "lucohire_profile_draft";
+      localStorage.removeItem(draftKey);
       toast.success("Profile updated successfully!");
       hasInitialized.current = false;
       await fetchProfile();
