@@ -36,6 +36,96 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
   const [resumeError, setResumeError] = useState('');
   const [parsedPreview, setParsedPreview] = useState(null);
 
+  const synonymMap = {
+    'teaching': 'Tutor',
+    'teacher': 'Tutor',
+    'tutoring': 'Tutor',
+    'tele calling': 'Receptionist',
+    'telecalling': 'Receptionist',
+    'telecaller': 'Receptionist',
+    'customer service': 'Receptionist',
+    'customer care': 'Receptionist',
+    'call center': 'Receptionist',
+    'coding': 'Web Developer',
+    'development': 'Web Developer',
+    'programming': 'Web Developer',
+    'designing': 'UI/UX Designer',
+    'design': 'UI/UX Designer',
+    'beautician': 'Beautician',
+    'hair stylist': 'Beautician',
+    'makeup artist': 'Beautician',
+    'housekeeping': 'Housekeeping',
+    'cleaning': 'Housekeeping',
+    'maid': 'Housekeeping',
+    'care taker': 'Caretaker',
+    'caretaker': 'Caretaker',
+    'driving': 'Driver',
+    'chauffeur': 'Driver',
+  };
+
+  const findBestSkillMatch = (parsedSkill) => {
+    if (!parsedSkill) return null;
+    const normalized = parsedSkill.trim().toLowerCase();
+    
+    // 1. Synonym Check
+    if (synonymMap[normalized]) {
+      return synonymMap[normalized];
+    }
+    
+    // 2. Case-insensitive exact match in ALL_SKILLS
+    const exactMatch = ALL_SKILLS.find(s => s.toLowerCase() === normalized);
+    if (exactMatch) return exactMatch;
+    
+    // 3. Substring check
+    const substringMatch = ALL_SKILLS.find(s => 
+      normalized.includes(s.toLowerCase()) || s.toLowerCase().includes(normalized)
+    );
+    if (substringMatch) return substringMatch;
+    
+    return null;
+  };
+
+  const normalizeSkillLevel = (level) => {
+    if (!level) return 'unskilled';
+    const norm = String(level).toLowerCase().replace('_', '-');
+    if (norm === 'semi-skilled' || norm === 'semiskilled' || norm === 'semi-skilled' || norm === 'semi_skilled') return 'semi-skilled';
+    if (norm === 'skilled' || norm === 'expert') return 'skilled';
+    return 'unskilled';
+  };
+
+  const calculatePricing = (skillTier, experienceText, cityText) => {
+    const tier1Cities = new Set([
+      "delhi", "mumbai", "bengaluru", "hyderabad", "chennai", "kolkata", "pune", "ahmedabad", "noida", "gurgaon", "delhi ncr"
+    ]);
+    const tier2Cities = new Set([
+      "jaipur", "lucknow", "surat", "bhopal", "indore", "nagpur", "patna", "chandigarh", "coimbatore", "ghaziabad"
+    ]);
+
+    let baseRate = 150; // unskilled
+    if (skillTier === 'semi-skilled') baseRate = 250;
+    else if (skillTier === 'skilled') baseRate = 400;
+
+    let expMultiplier = 1.0;
+    const exp = String(experienceText || '').toLowerCase();
+    if (exp.includes('5+') || exp.includes('5 years') || exp.includes('senior')) {
+      expMultiplier = 1.5;
+    } else if (exp.includes('3-5') || exp.includes('3 years') || exp.includes('4 years')) {
+      expMultiplier = 1.3;
+    } else if (exp.includes('1-3') || exp.includes('1 years') || exp.includes('2 years')) {
+      expMultiplier = 1.15;
+    }
+
+    let cityMultiplier = 1.0;
+    const city = String(cityText || '').toLowerCase().trim();
+    if (tier1Cities.has(city)) {
+      cityMultiplier = 1.3;
+    } else if (tier2Cities.has(city)) {
+      cityMultiplier = 1.1;
+    }
+
+    return Math.round(baseRate * expMultiplier * cityMultiplier);
+  };
+
   const handleResumeUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -84,23 +174,51 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
       
       // Open editable preview before applying, smart merge suggestions with non-empty existing profileContext values
       const rawAi = data.data || {};
+
+      // 1. Normalize skillLevel
+      const rawLevel = rawAi.skillLevel || profileContext.skillTier || 'unskilled';
+      const finalSkillLevel = normalizeSkillLevel(rawLevel);
+
+      // 2. Match skills and specialities with ALL_SKILLS
+      const rawSkills = Array.isArray(rawAi.skills) ? rawAi.skills : [];
+      const matchedSkills = rawSkills.map(s => findBestSkillMatch(s)).filter(Boolean);
+      
+      const rawSpecs = Array.isArray(rawAi.specialities) ? rawAi.specialities : [];
+      const matchedSpecs = rawSpecs.map(s => findBestSkillMatch(s)).filter(Boolean);
+
+      const finalSkills = matchedSkills.length > 0 ? [...new Set(matchedSkills)] : (profileContext.skills || []);
+      const finalSpecialities = matchedSpecs.length > 0 ? [...new Set(matchedSpecs)] : (profileContext.skills || []);
+
+      // 3. Platform Pricing Engine
+      const expVal = rawAi.experienceYears || profileContext.experience || '';
+      const cityVal = rawAi.city || profileContext.city || '';
+      const calculatedPricing = calculatePricing(finalSkillLevel, expVal, cityVal);
+      const aiSuggestedPrice = Number(rawAi.pricing) || 420;
+
+      // 4. Clean Contact Number
+      let cleanPhone = String(rawAi.contactNumber || profileContext.phone || '').trim();
+      cleanPhone = cleanPhone.replace(/^\+?91\s*/, ''); // Remove +91 prefix
+      if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
+        cleanPhone = cleanPhone.substring(2); // Remove leading 91
+      }
+
       const merged = {
         fullName: rawAi.fullName || profileContext.name || '',
-        contactNumber: rawAi.contactNumber || profileContext.phone || '',
+        contactNumber: cleanPhone,
         bio: rawAi.bio || profileContext.description || '',
-        skills: (rawAi.skills && rawAi.skills.length > 0) ? rawAi.skills : (profileContext.skills || []),
-        specialities: (rawAi.specialities && rawAi.specialities.length > 0) ? rawAi.specialities : (profileContext.skills || []),
-        skillLevel: rawAi.skillLevel || profileContext.skillTier || 'unskilled',
-        experienceYears: rawAi.experienceYears || profileContext.experience || '',
+        skills: finalSkills,
+        specialities: finalSpecialities,
+        skillLevel: finalSkillLevel,
+        experienceYears: expVal,
         serviceCategory: rawAi.serviceCategory || profileContext.category || '',
-        city: rawAi.city || profileContext.city || '',
+        city: cityVal,
         serviceLocations: (rawAi.serviceLocations && rawAi.serviceLocations.length > 0)
           ? rawAi.serviceLocations
           : (profileContext.serviceLocations?.map(l => l.formattedAddress || l.name) || profileContext.locations || []),
         languages: (rawAi.languages && rawAi.languages.length > 0) ? rawAi.languages : (profileContext.languages || []),
-        pricing: rawAi.pricing || profileContext.pricing || '',
+        pricing: calculatedPricing,
         pricingType: rawAi.pricingType || profileContext.pricingType || 'hourly',
-        pricingReason: rawAi.pricingReason || '',
+        pricingReason: `AI suggested ₹${aiSuggestedPrice}/${rawAi.pricingType || 'hr'} based on skills, experience, and location.`,
         portfolioLinks: (rawAi.portfolioLinks && rawAi.portfolioLinks.length > 0)
           ? rawAi.portfolioLinks
           : (profileContext.portfolioLinks || []),
@@ -169,6 +287,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
       // 9. pricing & pricingType -> pricing, pricingType
       pricing: suggestions.pricing ? String(suggestions.pricing) : '',
       pricingType: suggestions.pricingType || 'hourly',
+      pricingReason: suggestions.pricingReason || '',
       
       // 10. portfolioLinks -> portfolioLinks (with pending approval status)
       portfolioLinks: (suggestions.portfolioLinks || []).map(link => ({

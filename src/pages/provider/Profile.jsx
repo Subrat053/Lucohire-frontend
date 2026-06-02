@@ -450,6 +450,7 @@ const ProviderProfile = () => {
     profileName: "",
     phone: "",
     resumeUrl: "",
+    pricingReason: "",
   });
 
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
@@ -739,6 +740,7 @@ const ProviderProfile = () => {
           profileName: data.profileName || "",
           phone: data.user?.phone || "",
           resumeUrl: data.resumeUrl || "",
+          pricingReason: data.pricingReason || "",
         };
 
         const savedDraft = localStorage.getItem("lucohire_profile_draft");
@@ -2176,6 +2178,15 @@ const ProviderProfile = () => {
                   className="w-full pl-8 pr-4 py-2 text-xs rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition font-bold"
                 />
               </div>
+
+              {form.pricingReason && (
+                <div className="mb-3 bg-violet-50/75 p-2 rounded-xl border border-violet-100/40 text-left animate-fadeIn shrink-0">
+                  <p className="text-[10px] font-bold text-violet-750 flex items-center gap-1.5 leading-normal">
+                    <Sparkles className="w-3 h-3 text-violet-600 shrink-0 animate-pulse" />
+                    <span>{form.pricingReason}</span>
+                  </p>
+                </div>
+              )}
 
               {pricingSuggestion?.pricing && (
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 space-y-2 shrink-0">
