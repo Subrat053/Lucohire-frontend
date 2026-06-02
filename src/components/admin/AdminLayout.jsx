@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   HiShieldCheck, HiUsers, HiMail, HiBriefcase, HiCurrencyRupee, HiCog, HiPhotograph,HiLibrary ,
-  HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe, HiUserGroup, HiLink, HiGift, HiLockClosed
+  HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe, HiUserGroup, HiLink, HiGift, HiLockClosed, HiOutlineDocumentText
 } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';

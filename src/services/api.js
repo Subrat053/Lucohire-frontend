@@ -353,6 +353,16 @@ export const adminAPI = {
 
   rejectProfilePhoto: (userId, role, reason = "") =>
     ADMIN_API.patch(`/admin/profile-approvals/${role}/${userId}/reject`, { reason }),
+    
+  getResumeApprovalStats: () => ADMIN_API.get("/admin/resume-approvals/stats"),
+
+  getResumeApprovals: (params) => ADMIN_API.get("/admin/resume-approvals", { params }),
+
+  approveResume: (userId) =>
+    ADMIN_API.patch(`/admin/resume-approvals/${userId}/approve`),
+
+  rejectResume: (userId, reason = "") =>
+    ADMIN_API.patch(`/admin/resume-approvals/${userId}/reject`, { reason }),
 
   getContent: (type) => ADMIN_API.get(`/admin/content/${type}`),
   updateContent: (type, value) =>

@@ -31,6 +31,7 @@ const AdminWhatsApp = lazy(() => import("../pages/admin/WhatsApp"));
 const AdminCurrency = lazy(() => import("../pages/admin/Currency"));
 const AdminAIOps = lazy(() => import("../pages/admin/AIControlCenter"));
 const ProfilePhotoApprovals = lazy(() => import("../pages/admin/ProfilePhotoApprovals"));
+const ResumeApprovals = lazy(() => import("../pages/admin/ResumeApprovals"));
 const AdminPortfolioApprovals = lazy(() => import("../pages/admin/PortfolioApprovals"));
 const AdminEnquiries = lazy(() => import("../pages/admin/Enquiries"));
 const ChangePassword = lazy(() => import("../pages/user/ChangePassword"));
@@ -81,6 +82,7 @@ export default function AdminRoutes() {
       <Route path="currency" element={wrap(<AdminCurrency />)} />
       <Route path="ai" element={wrap(<AdminAIOps />)} />
       <Route path="profile-photo-approvals" element={wrap(<ProfilePhotoApprovals />)} />
+      <Route path="resume-approvals" element={wrap(<ResumeApprovals />)} />
       <Route path="portfolio-approvals" element={wrap(<AdminPortfolioApprovals />)} />
       <Route path="enquiries" element={wrap(<AdminEnquiries />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />
