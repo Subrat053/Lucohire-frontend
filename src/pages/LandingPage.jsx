@@ -342,12 +342,6 @@ const LandingPage = () => {
     };
   }, [skill, fetchProviders, activeCategory, location]);
 
-  useEffect(() => {
-    if (isAuthenticated && locationPermissionStatus === "prompt") {
-      refreshLocationContext(true);
-    }
-  }, [isAuthenticated, locationPermissionStatus, refreshLocationContext]);
-
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!isAuthenticated) {
@@ -365,40 +359,19 @@ const LandingPage = () => {
       const { data } = await searchAPI.parseIntentAI({ query: skill });
       const parsedIntent = data?.parsed || data?.data?.parsed || {};
       const querySkill = parsedIntent.extractedSkill || skill;
-      
-      let queryLocation = parsedIntent.extractedCity || "";
-      if (!queryLocation) {
-        const cachedContext = localStorage.getItem("servicehub_user_location_context");
-        if (cachedContext) {
-          try {
-            const parsed = JSON.parse(cachedContext);
-            if (parsed && parsed.city) queryLocation = parsed.city;
-          } catch (_) {}
-        }
-        if (!queryLocation) {
-          queryLocation = location.replace(", IN", "");
-        }
-      }
+      const queryLocation = parsedIntent.extractedCity || "";
       
       toast.success(t('landing.parsingSuccess', 'Match criteria determined!'), { id: toastId });
       
-      localStorage.setItem('servicehub:lastSearchLocation', queryLocation);
-      navigate(`/search?query=${encodeURIComponent(querySkill)}&location=${encodeURIComponent(queryLocation)}`);
+      if (queryLocation) {
+        localStorage.setItem('servicehub:lastSearchLocation', queryLocation);
+        navigate(`/search?query=${encodeURIComponent(querySkill)}&location=${encodeURIComponent(queryLocation)}`);
+      } else {
+        navigate(`/search?query=${encodeURIComponent(querySkill)}`);
+      }
     } catch (err) {
       toast.dismiss(toastId);
-      let queryLocation = "";
-      const cachedContext = localStorage.getItem("servicehub_user_location_context");
-      if (cachedContext) {
-        try {
-          const parsed = JSON.parse(cachedContext);
-          if (parsed && parsed.city) queryLocation = parsed.city;
-        } catch (_) {}
-      }
-      if (!queryLocation) {
-        queryLocation = location.replace(", IN", "");
-      }
-      localStorage.setItem('servicehub:lastSearchLocation', queryLocation);
-      navigate(`/search?query=${encodeURIComponent(skill)}&location=${encodeURIComponent(queryLocation)}`);
+      navigate(`/search?query=${encodeURIComponent(skill)}`);
     }
   };
 
@@ -407,12 +380,10 @@ const LandingPage = () => {
       navigate(`/login?redirect=${encodeURIComponent('/search?category=' + encodeURIComponent(categoryName))}`);
       return;
     }
-    const city = location.replace(", IN", "");
 
     setActiveCategory(categoryName);
     setSkill(categoryName === "More" ? "" : categoryName);
-    localStorage.setItem('servicehub:lastSearchLocation', city);
-    navigate(`/search?category=${encodeURIComponent(categoryName)}&location=${encodeURIComponent(city)}`);
+    navigate(`/search?category=${encodeURIComponent(categoryName)}`);
   };
 
   const displayedProviders = providers.filter(
