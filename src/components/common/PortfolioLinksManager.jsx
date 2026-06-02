@@ -120,49 +120,51 @@ const PortfolioLinksManager = ({ value = [], onChange }) => {
   return (
     <div className="space-y-4">
       {/* Input section */}
-      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Platform</label>
+      <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100/60">
+        <div className="flex flex-col md:flex-row gap-3 items-end">
+          <div className="w-full md:w-[30%]">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Platform</label>
             <select
               value={selectedPlatform}
               onChange={(e) => {
                 setSelectedPlatform(e.target.value);
                 setError('');
               }}
-              className="w-full text-xs font-semibold bg-white border border-slate-200 rounded-xl px-3 py-2.5 focus:border-violet-500 focus:outline-hidden transition-colors"
+              className="w-full text-xs font-semibold bg-white border border-slate-200 rounded-xl px-3 py-2.5 focus:border-violet-500 focus:outline-none transition-colors"
             >
               {SUPPORTED_PLATFORMS.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
           </div>
-          <div className="md:col-span-2">
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Portfolio Link URL</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                  setError('');
-                }}
-                placeholder={SUPPORTED_PLATFORMS.find(p => p.id === selectedPlatform)?.placeholder}
-                className="flex-1 text-xs font-semibold bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:border-violet-500 focus:outline-hidden transition-colors"
-              />
-              <button
-                type="button"
-                onClick={handleAddLink}
-                className="bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-xs shrink-0 hover:scale-102 active:scale-98"
-              >
-                Add Link
-              </button>
-            </div>
+          
+          <div className="w-full md:w-[55%]">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Portfolio Link URL</label>
+            <input
+              type="text"
+              value={url}
+              onChange={(e) => {
+                setUrl(e.target.value);
+                setError('');
+              }}
+              placeholder={SUPPORTED_PLATFORMS.find(p => p.id === selectedPlatform)?.placeholder}
+              className="w-full text-xs font-semibold bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:border-violet-500 focus:outline-none transition-colors"
+            />
+          </div>
+
+          <div className="w-full md:w-[15%]">
+            <button
+              type="button"
+              onClick={handleAddLink}
+              className="w-full bg-violet-600 hover:bg-violet-700 text-white text-xs font-black py-2.5 rounded-xl transition-all shadow-sm shrink-0 active:scale-95 text-center"
+            >
+              Add Link
+            </button>
           </div>
         </div>
 
         {error && (
-          <p className="text-[11px] text-red-500 font-semibold animate-shake">{error}</p>
+          <p className="text-[11px] text-red-500 font-semibold mt-2 animate-shake">{error}</p>
         )}
       </div>
 
@@ -178,13 +180,13 @@ const PortfolioLinksManager = ({ value = [], onChange }) => {
 
       {/* Links List */}
       {links.length > 0 ? (
-        <div className="grid grid-cols-1 gap-2">
+        <div className="max-h-[120px] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
           {links.map((link, i) => {
             const platformObj = SUPPORTED_PLATFORMS.find(p => p.id === link.platform) || { name: link.platform };
             return (
               <div
                 key={i}
-                className="flex items-center justify-between bg-white border border-slate-100 rounded-2xl p-3 shadow-xs hover:border-slate-200 transition-colors duration-200"
+                className="flex items-center justify-between bg-white border border-slate-100 rounded-xl p-2.5 shadow-xs hover:border-slate-200 transition-colors duration-200"
               >
                 <div className="flex-1 min-w-0 pr-3">
                   <div className="flex items-center space-x-2 mb-1">

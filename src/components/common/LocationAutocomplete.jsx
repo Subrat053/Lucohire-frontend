@@ -24,6 +24,8 @@ const LocationAutocomplete = ({
   required = false,
   disabled = false,
   className = '',
+  inputClassName = '',
+  iconClassName = '',
 }) => {
   let locationContext = null;
   try {
@@ -233,7 +235,7 @@ const LocationAutocomplete = ({
       )}
 
       <div className="relative">
-        <HiLocationMarker className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+        <HiLocationMarker className={`absolute left-3 top-1/2 -translate-y-1/2 z-10 ${iconClassName || 'w-4 h-4 text-gray-400'}`} />
         
         <input
           type="text"
@@ -260,6 +262,7 @@ const LocationAutocomplete = ({
               : 'border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-blue-50/10'
             }
             ${disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200' : 'bg-white text-gray-700'}
+            ${inputClassName}
           `}
           autoComplete="off"
         />

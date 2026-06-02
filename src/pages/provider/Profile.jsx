@@ -1409,8 +1409,7 @@ const ProviderProfile = () => {
               Manage Profile
             </h1>
             <p className="text-xs text-slate-400 font-semibold mt-0.5">
-              Customise your public listing, service areas, and AI
-              optimizations.
+              Customise your public listing, service areas, and AI optimizations.
             </p>
           </div>
           <div className="flex items-center gap-2 bg-white border border-slate-100 px-4 py-2 rounded-2xl shadow-xs shrink-0">
@@ -1426,18 +1425,17 @@ const ProviderProfile = () => {
 
         {/* Unsaved Changes Banner */}
         {isDirty && hasInitialized.current && (
-          <div className="mb-6 bg-linear-to-r from-amber-500 to-orange-500 text-white px-5 py-4 rounded-3xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-amber-400/50 animate-fade-in backdrop-blur-md">
+          <div className="mb-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-4 rounded-[20px] shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-amber-400/50 animate-fade-in backdrop-blur-md">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center text-lg">
+              <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center text-lg shrink-0">
                 ⚠️
               </div>
               <div>
                 <p className="font-extrabold text-sm tracking-wide">
                   Unsaved Profile Changes
                 </p>
-                <p className="text-xs text-amber-50 leading-normal mt-0.5">
-                  You have unsaved edits in your profile draft. Click save below
-                  to update your public details.
+                <p className="text-xs text-amber-55 mt-0.5">
+                  You have unsaved edits in your profile draft. Click save in the footer below to update your public details.
                 </p>
               </div>
             </div>
@@ -1452,207 +1450,195 @@ const ProviderProfile = () => {
           </div>
         )}
 
-        {/* ── Top Section: AI Profile Assistant & Profile Strength ── */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden p-6 md:p-8 mb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-            {/* AI Assistant Card Left */}
-            <div className="lg:col-span-2">
-              <ProviderAIChat
-                inline={true}
-                profileContext={{
-                  userId: user?._id,
-                  name: form.name,
-                  phone: form.phone,
-                  city: form.city,
-                  category: form.skills?.[0] || "",
-                  experience: form.experience,
-                  experienceMonths: inferExperienceMonths(form.experience),
-                  skillTier: form.tier,
-                  languages: form.languages,
-                  skills: form.skills,
-                  pricing: form.pricing,
-                  pricingType: form.pricingType,
-                  description: form.description,
-                  locations: form.locations,
-                  portfolioLinks: form.portfolioLinks,
-                  whatsappAlerts: form.whatsappAlerts,
-                }}
-                missingFields={(() => {
-                  const missing = [];
-                  if (!form.city && form.locations.length === 0)
-                    missing.push("Location / City");
-                  if (form.skills.length === 0)
-                    missing.push("Speciality / Skill");
-                  const cleanPhone = String(form.phone || "").replace(
-                    /\D/g,
-                    "",
-                  );
-                  if (!cleanPhone || cleanPhone.length < 10)
-                    missing.push("WhatsApp / Contact Number");
-                  if (!form.pricing || Number(form.pricing) <= 0)
-                    missing.push("Payout / Pricing Rate");
-                  if (!form.pricingType) missing.push("Pricing Unit");
-                  if (
-                    !form.description ||
-                    String(form.description).trim().length < 20
-                  )
-                    missing.push("Profile Bio / Description");
-                  return missing;
-                })()}
-                onUpdateField={(field, value) => {
-                  setForm((prev) => {
-                    const next = { ...prev };
-                    if (field === "city" || field === "location") {
-                      next.city = value;
-                      next.nearestLocation = value;
-                      if (value) {
-                        const maxLocs = plan === "free" ? 1 : maxLocations;
-                        if (!next.locations.includes(value)) {
-                          const combined = [...next.locations, value];
-                          next.locations = combined.slice(-maxLocs);
-                        }
+        {/* ── Section 1: Compact Hero Profile Row ── */}
+        <div className="bg-white rounded-[15px] border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.06)] overflow-hidden min-h-[130px] md:h-[130px] mb-8 flex flex-col md:flex-row items-stretch">
+          {/* Left Area: AI Resume Upload (70% Width) */}
+          <div className="w-full md:w-[70%] p-6 flex flex-col justify-center">
+            <ProviderAIChat
+              inline={true}
+              profileContext={{
+                userId: user?._id,
+                name: form.name,
+                phone: form.phone,
+                city: form.city,
+                category: form.skills?.[0] || "",
+                experience: form.experience,
+                experienceMonths: inferExperienceMonths(form.experience),
+                skillTier: form.tier,
+                languages: form.languages,
+                skills: form.skills,
+                pricing: form.pricing,
+                pricingType: form.pricingType,
+                description: form.description,
+                locations: form.locations,
+                portfolioLinks: form.portfolioLinks,
+                whatsappAlerts: form.whatsappAlerts,
+              }}
+              missingFields={(() => {
+                const missing = [];
+                if (!form.city && form.locations.length === 0)
+                  missing.push("Location / City");
+                if (form.skills.length === 0)
+                  missing.push("Speciality / Skill");
+                const cleanPhone = String(form.phone || "").replace(
+                  /\D/g,
+                  "",
+                );
+                if (!cleanPhone || cleanPhone.length < 10)
+                  missing.push("WhatsApp / Contact Number");
+                if (!form.pricing || Number(form.pricing) <= 0)
+                  missing.push("Payout / Pricing Rate");
+                if (!form.pricingType) missing.push("Pricing Unit");
+                if (
+                  !form.description ||
+                  String(form.description).trim().length < 20
+                )
+                  missing.push("Profile Bio / Description");
+                return missing;
+              })()}
+              onUpdateField={(field, value) => {
+                setForm((prev) => {
+                  const next = { ...prev };
+                  if (field === "city" || field === "location") {
+                    next.city = value;
+                    next.nearestLocation = value;
+                    if (value) {
+                      const maxLocs = plan === "free" ? 1 : maxLocations;
+                      if (!next.locations.includes(value)) {
+                        const combined = [...next.locations, value];
+                        next.locations = combined.slice(-maxLocs);
                       }
-                    } else if (field === "skills") {
-                      let combined = [];
-                      if (Array.isArray(value)) {
-                        combined = [...new Set([...next.skills, ...value])];
-                      } else if (typeof value === "string" && value) {
-                        combined = [...new Set([...next.skills, value])];
-                      }
-                      const maxSkills =
-                        String(plan).toLowerCase() === "free"
-                          ? 1
-                          : combined.length;
-                      next.skills = combined.slice(0, maxSkills);
-                    } else if (field === "phone") {
-                      next.phone = value;
-                    } else if (field === "pricing") {
-                      next.pricing = String(value);
-                    } else if (field === "pricingType") {
-                      next.pricingType = value;
-                    } else if (field === "name" || field === "profileName") {
-                      next.name = value;
-                      next.profileName = value;
-                    } else if (field === "experience") {
-                      next.experience = value;
-                    } else if (field === "description") {
-                      next.description = value;
-                    } else if (field === "languages") {
-                      next.languages = value;
-                    } else if (field === "portfolioLinks") {
-                      next.portfolioLinks = value;
-                    } else if (field === "bulk" && value && typeof value === "object") {
-                      Object.keys(value).forEach((k) => {
-                        next[k] = value[k];
-                      });
                     }
-                    return next;
-                  });
-                }}
-              />
+                  } else if (field === "skills") {
+                    let combined = [];
+                    if (Array.isArray(value)) {
+                      combined = [...new Set([...next.skills, ...value])];
+                    } else if (typeof value === "string" && value) {
+                      combined = [...new Set([...next.skills, value])];
+                    }
+                    const maxSkills =
+                      String(plan).toLowerCase() === "free"
+                        ? 1
+                        : combined.length;
+                    next.skills = combined.slice(0, maxSkills);
+                  } else if (field === "phone") {
+                    next.phone = value;
+                  } else if (field === "pricing") {
+                    next.pricing = String(value);
+                  } else if (field === "pricingType") {
+                    next.pricingType = value;
+                  } else if (field === "name" || field === "profileName") {
+                    next.name = value;
+                    next.profileName = value;
+                  } else if (field === "experience") {
+                    next.experience = value;
+                  } else if (field === "description") {
+                    next.description = value;
+                  } else if (field === "languages") {
+                    next.languages = value;
+                  } else if (field === "portfolioLinks") {
+                    next.portfolioLinks = value;
+                  } else if (field === "bulk" && value && typeof value === "object") {
+                    Object.keys(value).forEach((k) => {
+                      next[k] = value[k];
+                    });
+                  }
+                  return next;
+                });
+              }}
+            />
+          </div>
+
+          {/* Right Area: Profile Strength (30% Width) */}
+          <div className="w-full md:w-[30%] p-6 flex flex-col justify-center items-center border-t md:border-t-0 md:border-l border-slate-100 ">
+            <div className="flex items-center gap-4 my-1">
+              <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="30"
+                    className="text-slate-100"
+                    strokeWidth="6"
+                    stroke="currentColor"
+                    fill="transparent"
+                  />
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="30"
+                    className="text-violet-600 transition-all duration-500"
+                    strokeWidth="6"
+                    strokeDasharray={2 * Math.PI * 30}
+                    strokeDashoffset={
+                      2 * Math.PI * 30 -
+                      (completion / 100) * (2 * Math.PI * 30)
+                    }
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="transparent"
+                  />
+                </svg>
+                <div className="absolute font-black text-slate-800 text-sm">
+                  {completion}%
+                </div>
+              </div>
+              <div className="text-left flex flex-col gap-1 shrink-0">
+                <span className="font-extrabold text-slate-800 text-xs">Profile Strength</span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide text-center w-fit ${
+                    completion >= 80
+                      ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                      : completion >= 50
+                        ? "bg-blue-50 text-blue-600 border border-blue-100"
+                        : "bg-amber-50 text-amber-600 border border-amber-100"
+                  }`}
+                >
+                  {completion >= 80
+                    ? "Excellent"
+                    : completion >= 50
+                      ? "Good"
+                      : "Weak"}
+                </span>
+               
+              </div>
             </div>
 
-            {/* Profile Strength Right */}
-            <div className="border-t lg:border-t-0 lg:border-l border-slate-100 pt-5 lg:pt-0 lg:pl-6 flex flex-col justify-evenly">
-              <div>
-                <h3 className="font-extrabold text-slate-800 text-sm">
-                  Profile Strength
-                </h3>
-                <p className="text-slate-400 text-xs">
-                  Complete your profile to maximize placement rankings.
-                </p>
+            {/* Strength Checklist */}
+            <div className="space-y-1 text-[10px] font-bold text-slate-500 border-t border-slate-50 pt-2 w-full flex flex-row flex-wrap justify-between gap-x-2 gap-y-0.5">
+              <div className="flex items-center gap-1.5 shrink-0">
+                {form.skills.length > 0 ? (
+                  <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
+                )}
+                <span>Roles</span>
               </div>
-
-              <div className="flex items-center justify-center gap-6 my-2">
-                <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
-                  <svg className="w-full h-full transform -rotate-90">
-                    <circle
-                      cx="56"
-                      cy="56"
-                      r="40"
-                      className="text-slate-100"
-                      strokeWidth="8"
-                      stroke="currentColor"
-                      fill="transparent"
-                    />
-                    <circle
-                      cx="56"
-                      cy="56"
-                      r="40"
-                      className="text-violet-600 transition-all duration-500"
-                      strokeWidth="8"
-                      strokeDasharray={2 * Math.PI * 40}
-                      strokeDashoffset={
-                        2 * Math.PI * 40 -
-                        (completion / 100) * (2 * Math.PI * 40)
-                      }
-                      strokeLinecap="round"
-                      stroke="currentColor"
-                      fill="transparent"
-                    />
-                  </svg>
-                  <div className="absolute font-black text-slate-800 text-lg">
-                    {completion}%
-                  </div>
-                </div>
-                <div className="text-left flex flex-col gap-2">
-                  <span
-                    className={`px-3 py-1.5 rounded-full text-xs font-black tracking-wide text-center ${
-                      completion >= 80
-                        ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                        : completion >= 50
-                          ? "bg-blue-50 text-blue-600 border border-blue-100"
-                          : "bg-amber-50 text-amber-600 border border-amber-100"
-                    }`}
-                  >
-                    {completion >= 80
-                      ? "Excellent"
-                      : completion >= 50
-                        ? "Good"
-                        : "Weak"}
-                  </span>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-violet-50 text-violet-700 border border-violet-100/50 text-center">
-                    Plan: {plan ? plan.toUpperCase() : "FREE"}
-                  </span>
-                </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {documentVerification?.status === "approved" ||
+                profileData?.user?.approvalStatus === "approved" ||
+                profileData?.isApproved ? (
+                  <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
+                )}
+                <span>Docs</span>
               </div>
-
-              {/* Strength Checklist */}
-              <div className="space-y-2 text-xs font-bold text-slate-500">
-                <div className="flex items-center gap-2">
-                  {form.skills.length > 0 ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                  )}
-                  <span>Add more roles</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {documentVerification?.status === "approved" ||
-                  profileData?.user?.approvalStatus === "approved" ||
-                  profileData?.isApproved ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                  )}
-                  <span>Verify your documents</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {form.portfolioLinks.length > 0 ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                  )}
-                  <span>Add portfolio links</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {form.pricing && form.pricingType ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                  )}
-                  <span>Set pricing & services</span>
-                </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {form.portfolioLinks.length > 0 ? (
+                  <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
+                )}
+                <span>Links</span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {form.pricing && form.pricingType ? (
+                  <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
+                )}
+                <span>Rates</span>
               </div>
             </div>
           </div>
@@ -1665,158 +1651,187 @@ const ProviderProfile = () => {
           onApply={handleAiAutoFillApply}
         />
 
-        {/* ── Two-Column Main Layout ── */}
-        {/* <div className="flex justify-end mb-4">
-           <button
-             type="button"
-             onClick={() => setIsAiModalOpen(true)}
-             className="inline-flex items-center gap-2 bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-violet-500/25 transition-all animate-pulse hover:animate-none"
-           >
-             <Sparkles className="w-4 h-4" />
-             Fill with AI ✨
-           </button>
-        </div> */}
-
+        {/* ── SECTION 2: 2-Column Desktop Grid with Equal Heights ── */}
         <form
           onSubmit={handleSave}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch"
         >
-          {/* LEFT COLUMN: Basic Information, Location, Languages, Experience, Aadhaar */}
-          <div className="space-y-8">
-            {/* 1. Basic Information */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
-              <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
-                <UserIcon className="w-5 h-5 text-violet-600" />
-                <h3 className="font-extrabold text-slate-800 text-sm">
-                  Basic Information
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        name: e.target.value,
-                        profileName: e.target.value,
-                      })
-                    }
-                    placeholder="e.g. Mritunjay kumar jha"
-                    className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                    WhatsApp / Contact Number
-                  </label>
-                  <div className="flex gap-2">
-                    <div className="w-24 shrink-0 relative">
-                      <select
-                        value={
-                          form.phone?.startsWith("+")
-                            ? form.phone.substring(0, 3)
-                            : "+91"
-                        }
-                        onChange={(e) => {
-                          const currentVal = form.phone || "";
-                          const cleanNum = currentVal.replace(/^\+\d+\s*/, "");
-                          setForm({
-                            ...form,
-                            phone: `${e.target.value} ${cleanNum}`,
-                          });
-                        }}
-                        className="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 outline-none bg-slate-50/50 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 appearance-none shadow-inner"
-                      >
-                        <option value="+91">+91 (IN)</option>
-                        <option value="+971">+971 (AE)</option>
-                        <option value="+1">+1 (US)</option>
-                        <option value="+44">+44 (UK)</option>
-                      </select>
-                      <div className="absolute right-3 top-3.5 pointer-events-none">
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
-                      </div>
-                    </div>
-
-                    <input
-                      type="text"
-                      value={form.phone?.replace(/^\+\d+\s*/, "")}
-                      onChange={(e) => {
-                        const cleanPhone = e.target.value
-                          .replace(/\D/g, "")
-                          .substring(0, 10);
-                        const prefix = form.phone?.startsWith("+")
-                          ? form.phone.split(" ")[0]
-                          : "+91";
-                        setForm({ ...form, phone: `${prefix} ${cleanPhone}` });
-                      }}
-                      placeholder="08376022337"
-                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
-                    />
-                  </div>
-                </div>
+          {/* Row 1 Card 1: Basic Information */}
+          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0">
+              <UserIcon className="w-5 h-5 text-violet-600 shrink-0" />
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">Basic Information</h3>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Personal contact details</p>
               </div>
             </div>
 
-            {/* 2. Location (Service Area) */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
-              <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
-                <MapPin className="w-5 h-5 text-violet-600" />
-                <div className="flex-1">
-                  <h3 className="font-extrabold text-slate-800 text-sm">
-                    Location (Service Area)
-                  </h3>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
-                    {allowedCoverageCount > 1
-                      ? `Max ${allowedCoverageCount} service locations allowed`
-                      : "1 service location allowed"}
-                  </p>
-                </div>
+            <div className="flex-1 flex flex-col justify-center space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      name: e.target.value,
+                      profileName: e.target.value,
+                    })
+                  }
+                  placeholder="e.g. Sujit"
+                  className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
+                />
               </div>
 
-              {/* <div className="rounded-2xl border border-violet-100 bg-violet-50/70 p-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">
-                      {coveragePlanName} plan
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      You have used {usedCoverageCount} of{" "}
-                      {allowedCoverageCount} service locations in your current
-                      plan.
-                    </p>
-                    <p className="mt-1 text-xs font-semibold text-violet-700">
-                      {coverageRefreshLoading
-                        ? "Refreshing latest subscription limits..."
-                        : `${remainingCoverageCount} location${remainingCoverageCount === 1 ? "" : "s"} remaining.`}
-                    </p>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                  WhatsApp / Contact Number
+                </label>
+                <div className="flex gap-2">
+                  <div className="w-24 shrink-0 relative">
+                    <select
+                      value={
+                        form.phone?.startsWith("+")
+                          ? form.phone.substring(0, 3)
+                          : "+91"
+                      }
+                      onChange={(e) => {
+                        const currentVal = form.phone || "";
+                        const cleanNum = currentVal.replace(/^\+\d+\s*/, "");
+                        setForm({
+                          ...form,
+                          phone: `${e.target.value} ${cleanNum}`,
+                        });
+                      }}
+                      className="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 outline-none bg-slate-50/50 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 appearance-none shadow-inner"
+                    >
+                      <option value="+91">+91 (IN)</option>
+                      <option value="+971">+971 (AE)</option>
+                      <option value="+1">+1 (US)</option>
+                      <option value="+44">+44 (UK)</option>
+                    </select>
+                    <div className="absolute right-3 top-3 pointer-events-none">
+                      <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                    </div>
                   </div>
 
-                  {isCoverageLocked && (
+                  <input
+                    type="text"
+                    value={form.phone?.replace(/^\+\d+\s*/, "")}
+                    onChange={(e) => {
+                      const cleanPhone = e.target.value
+                        .replace(/\D/g, "")
+                        .substring(0, 10);
+                      const prefix = form.phone?.startsWith("+")
+                        ? form.phone.split(" ")[0]
+                        : "+91";
+                      setForm({ ...form, phone: `${prefix} ${cleanPhone}` });
+                    }}
+                    placeholder="7410258963"
+                    className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 1 Card 2: Profile Photo */}
+          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0">
+              <Camera className="w-5 h-5 text-violet-600 shrink-0" />
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">Profile Photo</h3>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Upload your profile portrait</p>
+              </div>
+            </div>
+
+            <div className="flex-1 flex items-center justify-between gap-4">
+              <div className="w-20 h-20 rounded-full border-4 border-violet-100 shadow-md overflow-hidden bg-slate-50 flex items-center justify-center relative shrink-0">
+                {avatarSrc ? (
+                  <img
+                    src={avatarSrc}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <UserIcon className="w-10 h-10 text-slate-300" />
+                )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-white/60 flex items-center justify-center backdrop-blur-xs">
+                    <RefreshCw className="w-4 h-4 text-violet-600 animate-spin" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 min-w-0 text-left">
+                <p className="font-bold text-slate-800 text-xs truncate">
+                  Upload Profile Portrait
+                </p>
+                <p className="text-[10px] font-semibold text-slate-400 mt-0.5">
+                  JPG/PNG, max size 5MB
+                </p>
+                {profileData?.user?.profilePhotoApproval?.status === "pending" && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-50 text-amber-600 rounded-full text-[9px] font-black uppercase border border-amber-200 mt-1.5 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    Pending
+                  </span>
+                )}
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
+
+                <div className="flex gap-2 mt-3">
+                  <button
+                    type="button"
+                    onClick={
+                      photoFile
+                        ? handlePhotoUpload
+                        : () => fileInputRef.current?.click()
+                    }
+                    disabled={uploading}
+                    className="px-4 py-2 rounded-xl bg-violet-600 text-white text-[10px] font-black uppercase tracking-wider hover:bg-violet-700 hover:shadow-md transition duration-200 disabled:opacity-50"
+                  >
+                    {photoFile ? "Save" : "Change"}
+                  </button>
+
+                  {(avatarSrc || photoFile) && (
                     <button
                       type="button"
-                      onClick={handleCoverageUpgradeClick}
-                      disabled={
-                        coverageUpgradeLoading || coverageRefreshLoading
-                      }
-                      aria-label="Expand service reach by upgrading your plan"
-                      className="inline-flex w-full items-center justify-center rounded-2xl bg-violet-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-violet-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                      onClick={handleRemovePhoto}
+                      className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-wider hover:bg-slate-50 transition duration-200"
                     >
-                      {coverageUpgradeLoading
-                        ? "Opening Plans..."
-                        : "Expand Service Reach"}
+                      Remove
                     </button>
                   )}
                 </div>
-              </div> */}
+              </div>
+            </div>
+          </div>
 
-              <div className="space-y-4">
+          {/* Row 2 Card 1: Location (Service Area) */}
+          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full relative transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0">
+              <MapPin className="w-5 h-5 text-violet-600 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">Location (Service Area)</h3>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
+                  {allowedCoverageCount > 1
+                    ? `Max ${allowedCoverageCount} service locations allowed`
+                    : "1 service location allowed"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-col justify-between">
+              <div className="space-y-3">
                 <div className="relative z-30">
                   <LocationSearch
                     value={form.nearestLocation || form.city}
@@ -1889,24 +1904,24 @@ const ProviderProfile = () => {
                         };
                       });
                     }}
-                    placeholder="Search and add a service location"
+                    placeholder="Search service location..."
                   />
                 </div>
 
-                {/* Location chips */}
+                {/* Compact auto-wrapped location chips */}
                 {form.locations.length > 0 ? (
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {form.locations.map((loc) => {
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {form.locations.slice(0, 2).map((loc) => {
                       const displayLabel =
                         loc.formattedAddress || loc.name || String(loc);
                       const key = loc.placeId || displayLabel;
                       return (
                         <span
                           key={key}
-                          className="inline-flex items-center gap-1.5 bg-violet-50 border border-violet-100 text-violet-700 text-xs font-bold px-3 py-1.5 rounded-full shadow-xs"
+                          className="inline-flex items-center gap-1 bg-violet-50 border border-violet-100 text-violet-700 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs shrink-0"
                         >
-                          <MapPin className="w-3.5 h-3.5 text-violet-400 shrink-0" />
-                          <span className="truncate max-w-[200px]">
+                          <MapPin className="w-3 h-3 text-violet-400 shrink-0" />
+                          <span className="truncate max-w-[120px]">
                             {displayLabel}
                           </span>
                           <button
@@ -1919,37 +1934,155 @@ const ProviderProfile = () => {
                         </span>
                       );
                     })}
+                    {form.locations.length > 2 && (
+                      <span className="inline-flex items-center bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-bold px-2 py-1 rounded-full shadow-xs">
+                        + {form.locations.length - 2} More
+                      </span>
+                    )}
                   </div>
                 ) : (
-                  <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                    No service areas added. Search above to boost visibility
-                    coverage.
+                  <div className="text-center py-4 text-slate-400 text-[10px] italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    No service areas added.
                   </div>
                 )}
+              </div>
 
-                {isCoverageLocked && !coverageUpgradeLoading && (
-                  <p
-                  onClick={()=>navigate('/')} 
-                  className="text-[10px] text-amber-600 bg-amber-50 p-2.5 rounded-xl border border-amber-100/50 font-semibold flex items-center gap-1">
-                    <span>⚡</span> Upgrade your plan to expand your service
-                    reach to multiple pincodes or cities.
-                  </p>
-                )}
+              {isCoverageLocked && !coverageUpgradeLoading && (
+                <div className="flex items-center justify-end mt-4">
+                  <div className="flex items-center gap-2 text-[10px] text-amber-800 bg-red-50/90 px-2.5 py-1.5 rounded-lg border border-red-200/40 font-bold max-w-full">
+                    <span>⚡ Max location selected:</span>
+                    <button
+                      type="button"
+                      onClick={handleCoverageUpgradeClick}
+                      className="px-2 py-1 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-[9px] font-black uppercase tracking-wider transition shrink-0 shadow-xs"
+                    >
+                      Upgrade your plan to expand your reach
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Row 2 Card 2: Role & Skill Level */}
+          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0">
+              <Award className="w-5 h-5 text-violet-600 shrink-0" />
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">Role</h3>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
+                  {String(plan).toLowerCase() === "free"
+                    ? "First Role is Free"
+                    : "Unlimited Roles Unlocked"}
+                </p>
               </div>
             </div>
 
-            {/* 3. Languages Spoken */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 min-h-[220px] flex flex-col">
-              <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
-                <Globe className="w-5 h-5 text-violet-600" />
-                <h3 className="font-extrabold text-slate-800 text-sm">
-                  Languages Spoken
-                </h3>
+            <div className="flex-1 flex flex-col justify-between space-y-4">
+              <div className="relative">
+                <SkillSearchSelect
+                  selected={form.skills}
+                  onAdd={addSkill}
+                  onRemove={removeSkill}
+                  tier={form.tier}
+                  maxAllowed={(() => {
+                    if (!profileData || String(plan).toLowerCase() === "free")
+                      return 1;
+                    return 999;
+                  })()}
+                  plan={plan}
+                  onTriggerUpgrade={() => {
+                    if (redirectCountdown !== null) return;
+                    setShowUpgradePrompt(true);
+                    setRedirectCountdown(3);
+                    toast.error(
+                      "Free tier account cannot choose more than 1 role. Redirecting to plan page...",
+                    );
+                  }}
+                />
+
+                {String(plan).toLowerCase() === "free" && showUpgradePrompt && (
+                  <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-xl animate-pulse">
+                    <p className="text-[10px] text-amber-800 font-bold leading-normal">
+                      {redirectCountdown !== null
+                        ? `Redirecting in ${redirectCountdown}s...`
+                        : "Upgrade to select multiple roles."}
+                    </p>
+                  </div>
+                )}
               </div>
 
-              <p className="text-[15px] font-extrabold text-slate-900 mt-4 mb-5">
-                Select your native or preferred languages to help Recruiter
-                connect with you better.
+              {/* Smart Skill Level (AI Recommended) */}
+              <div className="pt-2 border-t border-slate-100 space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-violet-600 shrink-0" />
+                  <span className="font-extrabold text-slate-800 text-xs">
+                    Smart Skill Level (AI Recommended)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    {
+                      value: "unskilled",
+                      label: "Unskilled",
+                      desc: "Basic help",
+                    },
+                    {
+                      value: "semi-skilled",
+                      label: "Semi Skilled",
+                      desc: "Some experience",
+                    },
+                    {
+                      value: "skilled",
+                      label: "Skilled",
+                      desc: "Experienced",
+                    },
+                  ].map((card) => {
+                    const isActive = form.tier === card.value;
+                    return (
+                      <button
+                        key={card.value}
+                        type="button"
+                        onClick={() => handleTierChange(card.value)}
+                        className={`p-2.5 rounded-xl border text-left flex flex-col justify-between h-[75px] relative transition-all duration-300 w-full hover:scale-[1.02] active:scale-98 ${
+                          isActive
+                            ? "border-violet-600 bg-violet-50/30 shadow-xs"
+                            : "border-slate-200/60 hover:border-slate-300 bg-white"
+                        }`}
+                      >
+                        {isActive && (
+                          <div className="absolute top-2 right-2 bg-violet-600 text-white rounded-full p-0.5 animate-scale-up shrink-0">
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          </div>
+                        )}
+                        <h4 className="font-extrabold text-slate-800 text-[10px] leading-tight">
+                          {card.label}
+                        </h4>
+                        <p className="text-[8px] text-slate-400 font-semibold leading-tight mt-1">
+                          {card.desc}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 3 Card 1: Languages Spoken (Max height 250px) */}
+          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col h-[250px] max-h-[250px] overflow-y-auto transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center gap-3 pb-2 border-b border-slate-100 mb-3 shrink-0">
+              <Globe className="w-5 h-5 text-violet-600 shrink-0" />
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">Languages Spoken</h3>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Recruiter preferred languages</p>
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-col justify-between text-left">
+              <p className="text-[11px] font-extrabold text-slate-650 mt-1 mb-3 leading-normal shrink-0">
+                Select native / preferred languages to connect with Recruiters better.
               </p>
 
               <div className="flex-1">
@@ -1959,370 +2092,37 @@ const ProviderProfile = () => {
                     setForm((prev) => ({ ...prev, languages: nextLangs }));
                   }}
                   allowCustom
-                  placeholder="Search or type language"
+                  placeholder="Search language..."
                 />
-              </div>
-            </div>
-
-            {/* 4. Aadhaar Verification */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-3 space-y-3.5">
-              <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
-                <ShieldCheck className="w-5 h-5 text-violet-600" />
-                <h3 className="font-extrabold text-slate-800 text-sm">
-                  Aadhaar Verification
-                </h3>
-              </div>
-
-              <div className="space-y-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                <p className="text-xs text-slate-500 font-semibold">
-                  Verify your identity to build recruiter trust and unlock
-                  premium job opportunities.
-                </p>
-
-                <div className="flex flex-col gap-3 justify-center">
-                  <div className="border border-dashed border-slate-200 bg-white rounded-2xl p-4 flex flex-col items-center justify-center relative cursor-pointer hover:bg-slate-50 transition">
-                    <UploadCloud className="w-8 h-8 text-slate-400 mb-2 animate-bounce" />
-                    <span className="text-xs font-bold text-slate-500">
-                      {documentFile
-                        ? documentFile.name
-                        : "Select Aadhaar Document Image (PDF/JPG/PNG)"}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={(e) => {
-                        setDocumentFile(e.target.files?.[0] || null);
-                        setOcrResult(null);
-                        setOcrError("");
-                      }}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleDocumentUpload}
-                    disabled={uploadingDocument || !documentFile}
-                    className="w-full py-2.5 rounded-xl text-xs font-black text-white bg-violet-600 hover:bg-violet-700 disabled:opacity-50 transition shadow-md hover:shadow-violet-200"
-                  >
-                    {uploadingDocument
-                      ? "Uploading Document…"
-                      : "Upload & Verify Aadhaar"}
-                  </button>
-                </div>
-
-                <div className="mt-3">
-                  <DocumentVerificationStatusCard
-                    verification={documentVerification}
-                  />
-                </div>
-
-                {/* Collapsible/Hidden Sandbox OCR Test Section (Visible to Admins / Developers in dev mode)
-                {import.meta.env.DEV && (
-                  <div className="mt-4 pt-4 border-t border-slate-200/60">
-                    <button
-                      type="button"
-                      onClick={() => setShowLinkInput((v) => !v)}
-                      className="text-[10px] font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"
-                    >
-                      🛠️ Open Developer OCR Sandbox
-                    </button>
-
-                    {showLinkInput && (
-                      <div className="mt-2 space-y-3 bg-white p-3 rounded-xl border border-slate-200">
-                        <div className="flex items-center justify-between gap-2">
-                          <select
-                            value={ocrTestType}
-                            onChange={(e) => setOcrTestType(e.target.value)}
-                            className="px-2 py-1 text-[11px] rounded border border-slate-200 bg-slate-50"
-                          >
-                            {OCR_TEST_OPTIONS.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            type="button"
-                            onClick={handleOcrTest}
-                            disabled={ocrTesting}
-                            className="px-3 py-1 rounded bg-slate-800 text-white text-[10px] font-bold hover:bg-slate-700"
-                          >
-                            {ocrTesting ? "Running..." : "Execute Test"}
-                          </button>
-                        </div>
-                        {ocrError && (
-                          <p className="text-[10px] text-red-500">{ocrError}</p>
-                        )}
-                        {ocrResult && (
-                          <pre className="text-[9px] text-slate-600 bg-slate-50 p-2 rounded max-h-24 overflow-y-auto whitespace-pre-wrap">
-                            {JSON.stringify(ocrResult, null, 2)}
-                          </pre>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )} */}
-              </div>
-            </div>
-
-            {/* 5. Years of Experience */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 space-y-3">
-              <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
-                <Calendar className="w-5 h-5 text-violet-600" />
-                <h3 className="font-extrabold text-slate-800 text-sm">
-                  Years of Experience
-                </h3>
-              </div>
-
-              <div className="relative">
-                <select
-                  value={
-                    [
-                      "Fresher",
-                      "0-1 years",
-                      "1-3 years",
-                      "3-5 years",
-                      "5+ years",
-                    ].includes(form.experience)
-                      ? form.experience
-                      : "3-5 years" // Default or fallback
-                  }
-                  onChange={(e) =>
-                    setForm({ ...form, experience: e.target.value })
-                  }
-                  className="w-full px-4 py-3 text-sm rounded-xl border border-slate-200 outline-none bg-slate-50/50 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 appearance-none shadow-inner text-slate-700 font-semibold"
-                >
-                  <option value="Fresher">Fresher (Entry-level)</option>
-                  <option value="0-1 years">0-1 years (Junior)</option>
-                  <option value="1-3 years">1-3 years (Intermediate)</option>
-                  <option value="3-5 years">3-5 years (Experienced)</option>
-                  <option value="5+ years">5+ years (Senior Expert)</option>
-                </select>
-                <div className="absolute right-4 top-3.5 pointer-events-none">
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
-                </div>
               </div>
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Profile Photo, Speciality, Rate, WhatsApp Alerts, Portfolio */}
-          <div className="space-y-8">
-            {/* 1. Profile Photo */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col items-center relative">
-              <div className="flex items-center gap-2 pb-3 border-b border-slate-50 w-full">
-                <Camera className="w-5 h-5 text-violet-600" />
-                <h3 className="font-extrabold text-slate-800 text-sm">
-                  Profile Photo
-                </h3>
+          {/* Row 3 Card 2: Rate & Payout */}
+          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0 justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-violet-600 font-black text-base">₹</span>
+                <div>
+                  <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">Rate & Payout</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Configure your charges</p>
+                </div>
               </div>
 
-              <div className="w-23 h-23 rounded-full border-4 border-violet-100 shadow-lg overflow-hidden bg-slate-50 flex flex-col items-center justify-center gap-4 relative shadow-inner">
-                {avatarSrc ? (
-                  <img
-                    src={avatarSrc}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <UserIcon className="w-12 h-12 text-slate-300" />
-                )}
-                {uploading && (
-                  <div className="absolute inset-0 bg-white/60 flex items-center justify-center backdrop-blur-xs">
-                    <RefreshCw className="w-5 h-5 text-violet-600 animate-spin" />
-                  </div>
-                )}
-              </div>
-
-              <div className="text-center">
-                <p className="font-bold text-slate-800 text-sm">
-                  Upload Profile Portrait
-                </p>
-                <p className="text-[10px] font-bold text-slate-400 mt-0.5 mb-2">
-                  JPG or PNG formats, maximum size 5MB
-                </p>
-                {profileData?.user?.profilePhotoApproval?.status ===
-                  "pending" && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black tracking-wide uppercase border border-amber-200 shadow-sm mt-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                    Pending Approval
-                  </span>
-                )}
-              </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-                className="hidden"
-              />
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={
-                    photoFile
-                      ? handlePhotoUpload
-                      : () => fileInputRef.current?.click()
-                  }
-                  disabled={uploading}
-                  className="px-5 py-2.5 rounded-full bg-violet-600 text-white text-xs font-black hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-200 transition disabled:opacity-50 shadow-md"
-                >
-                  {photoFile ? "Save New Photo" : "Change Photo"}
-                </button>
-
-                {(avatarSrc || photoFile) && (
-                  <button
-                    type="button"
-                    onClick={handleRemovePhoto}
-                    className="px-5 py-2.5 rounded-full border border-slate-200 text-slate-600 text-xs font-black hover:bg-slate-50 transition"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={handleAISuggestPricing}
+                disabled={aiLoading}
+                className="text-[10px] font-black text-violet-700 hover:text-violet-900 transition flex items-center gap-1 bg-violet-50 border border-violet-100 px-2 py-1 rounded-full disabled:opacity-50 shrink-0"
+              >
+                <Sparkles className={`w-3 h-3 text-violet-600 ${aiLoading ? "animate-spin" : "animate-pulse"}`} />
+                <span>{aiLoading ? "Wait..." : "AI Pricing"}</span>
+              </button>
             </div>
 
-            {/* 2. Role (1 Free) */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-7 space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
-                <Award className="w-5 h-5 text-violet-600" />
-                <div className="flex-1">
-                  <h3 className="font-extrabold text-slate-800 text-sm">
-                    Role
-                  </h3>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
-                    {String(plan).toLowerCase() === "free"
-                      ? "First Role is Free"
-                      : "Unlimited Roles Unlocked"}
-                  </p>
-                </div>
-              </div>
-
-              <SkillSearchSelect
-                selected={form.skills}
-                onAdd={addSkill}
-                onRemove={removeSkill}
-                tier={form.tier}
-                maxAllowed={(() => {
-                  if (!profileData || String(plan).toLowerCase() === "free")
-                    return 1;
-                  return 999; // Unlimited for upgraded plans
-                })()}
-                plan={plan}
-                onTriggerUpgrade={() => {
-                  if (redirectCountdown !== null) return;
-                  setShowUpgradePrompt(true);
-                  setRedirectCountdown(3);
-                  toast.error(
-                    "Free tier account cannot choose more than 1 role. Redirecting to plan page...",
-                  );
-                }}
-              />
-
-              {String(plan).toLowerCase() === "free" && showUpgradePrompt && (
-                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-2xl animate-pulse">
-                  <p className="text-xs text-amber-800 font-bold leading-normal">
-                    {redirectCountdown !== null
-                      ? `Free tier account cannot choose more than 1 role. Redirecting to plan page in ${redirectCountdown}s...`
-                      : "Your free tier allows 1 role boost. Upgrade to select multiple roles."}
-                  </p>
-
-                  {redirectCountdown === null && (
-                    <button
-                      type="button"
-                      onClick={() => navigate("/provider/plans")}
-                      className="mt-2.5 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-black rounded-full shadow-md hover:shadow-violet-200 transition"
-                    >
-                      Choose Plan
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Smart Skill Level (AI Recommended) */}
-              <div className="pt-2 border-t border-slate-100 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-violet-600" />
-                  <span className="font-extrabold text-slate-800 text-xs">
-                    Smart Skill Level (AI Recommended)
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[
-                    {
-                      value: "unskilled",
-                      label: "Unskilled",
-                      desc: "Basic assistance no experience",
-                    },
-                    {
-                      value: "semi-skilled",
-                      label: "Semi Skilled",
-                      desc: "Some experience in the field",
-                    },
-                    {
-                      value: "skilled",
-                      label: "Skilled",
-                      desc: "Experienced & capable",
-                    },
-                  ].map((card) => {
-                    const isActive = form.tier === card.value;
-                    return (
-                      <button
-                        key={card.value}
-                        type="button"
-                        onClick={() => handleTierChange(card.value)}
-                        className={`p-4 rounded-2xl border text-left flex flex-col justify-between h-16 relative transition-all ${
-                          isActive
-                            ? "border-violet-600 bg-violet-50/15 ring-2 ring-violet-600/10"
-                            : "border-slate-100 hover:border-slate-200 bg-white"
-                        }`}
-                      >
-                        {isActive && (
-                          <div className="absolute top-3 right-3 bg-violet-600 text-white rounded-full p-0.5 animate-scale-up">
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
-                          </div>
-                        )}
-                        <h4 className="font-extrabold text-slate-800 text-xs">
-                          {card.label}
-                        </h4>
-                        <p className="text-[10px] text-slate-400 font-semibold leading-normal mt-2">
-                          {card.desc}
-                        </p>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Rate (Choose your pricing type) */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
-              <div className="flex items-center gap-2 pb-3 border-b border-slate-50 w-full justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-violet-600 font-black text-lg">₹</span>
-                  <h3 className="font-extrabold text-slate-800 text-sm">
-                    Rate & Payout
-                  </h3>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleAISuggestPricing}
-                  disabled={aiLoading}
-                  className="text-xs font-black text-violet-700 hover:text-violet-900 transition flex items-center gap-1 bg-violet-50 border border-violet-100 px-2.5 py-1.5 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Sparkles
-                    className={`w-3.5 h-3.5 text-violet-600 ${aiLoading ? "animate-spin" : "animate-pulse"}`}
-                  />
-                  <span>{aiLoading ? "Analyzing..." : "AI Suggest"}</span>
-                </button>
-              </div>
-
-              {/* Pricing Type Cards */}
-              <div className="grid grid-cols-3 gap-1">
+            <div className="flex-1 flex flex-col justify-between">
+              {/* Segmented Control */}
+              <div className="bg-slate-100/80 p-1 rounded-xl flex items-center justify-between gap-1 w-full border border-slate-200/30 mb-3 shrink-0">
                 {[
                   { value: "hourly", label: "Per Hour" },
                   { value: "daily", label: "Per Day" },
@@ -2336,10 +2136,10 @@ const ProviderProfile = () => {
                       onClick={() =>
                         setForm({ ...form, pricingType: type.value })
                       }
-                      className={`py-2 px-3 rounded-xl border text-center font-extrabold text-xs transition-all ${
+                      className={`flex-1 py-1.5 px-3 rounded-lg text-center font-extrabold text-xs transition-all duration-200 ${
                         isActive
-                          ? "border-violet-600 bg-violet-50/20 text-violet-700 ring-2 ring-violet-600/10"
-                          : "border-slate-100 hover:border-slate-200 text-slate-500 bg-white"
+                          ? "bg-white text-violet-700 shadow-sm border border-slate-200/10"
+                          : "text-slate-500 hover:text-slate-800"
                       }`}
                     >
                       {type.label}
@@ -2348,8 +2148,8 @@ const ProviderProfile = () => {
                 })}
               </div>
 
-              <div className="relative">
-                <div className="absolute left-4 top-3.5 font-bold text-slate-400 text-sm">
+              <div className="relative mb-3 shrink-0">
+                <div className="absolute left-4 top-2.5 font-extrabold text-slate-400 text-xs">
                   ₹
                 </div>
                 <input
@@ -2359,122 +2159,107 @@ const ProviderProfile = () => {
                     setForm({ ...form, pricing: e.target.value })
                   }
                   placeholder="Enter your rate amount"
-                  className="w-full pl-8 pr-4 py-3 text-sm rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
+                  className="w-full pl-8 pr-4 py-2 text-xs rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition font-bold"
                 />
               </div>
 
               {pricingSuggestion?.pricing && (
-                <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-emerald-900">
-                      AI Pricing Preview
-                    </p>
-                    <span className="text-[11px] font-bold text-emerald-700">
-                      {pricingSuggestion.reasoning ||
-                        pricingSuggestion.pricing.reason}
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 space-y-2 shrink-0">
+                  <div className="flex items-center justify-between gap-1 text-[10px]">
+                    <p className="font-black text-emerald-900">AI Pricing Preview</p>
+                    <span className="font-bold text-emerald-700 truncate max-w-[200px]" title={pricingSuggestion.reasoning}>
+                      {pricingSuggestion.reasoning}
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="rounded-xl bg-white border border-emerald-100 p-3">
-                      <p className="text-emerald-600 font-bold">Per Hour</p>
-                      <p className="text-lg font-black text-emerald-900">
-                        ₹{pricingSuggestion.pricing.perHour}
-                      </p>
+                  <div className="grid grid-cols-3 gap-1.5 text-center text-[10px]">
+                    <div className="rounded-lg bg-white border border-emerald-100 p-1.5">
+                      <p className="text-emerald-600 font-bold">Hour</p>
+                      <p className="font-extrabold text-emerald-900">₹{pricingSuggestion.pricing.perHour}</p>
                     </div>
-                    <div className="rounded-xl bg-white border border-emerald-100 p-3">
-                      <p className="text-emerald-600 font-bold">Per Day</p>
-                      <p className="text-lg font-black text-emerald-900">
-                        ₹{pricingSuggestion.pricing.perDay}
-                      </p>
+                    <div className="rounded-lg bg-white border border-emerald-100 p-1.5">
+                      <p className="text-emerald-600 font-bold">Day</p>
+                      <p className="font-extrabold text-emerald-900">₹{pricingSuggestion.pricing.perDay}</p>
                     </div>
-                    <div className="rounded-xl bg-white border border-emerald-100 p-3">
-                      <p className="text-emerald-600 font-bold">Per Month</p>
-                      <p className="text-lg font-black text-emerald-900">
-                        ₹{pricingSuggestion.pricing.perMonth}
-                      </p>
+                    <div className="rounded-lg bg-white border border-emerald-100 p-1.5">
+                      <p className="text-emerald-600 font-bold">Month</p>
+                      <p className="font-extrabold text-emerald-900">₹{pricingSuggestion.pricing.perMonth}</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={applyPricingSuggestion}
-                    className="w-full px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition"
+                    className="w-full py-1 rounded-lg bg-emerald-600 text-white text-[10px] font-black hover:bg-emerald-700 transition"
                   >
-                    Use AI Pricing
+                    Apply AI Pricing
                   </button>
                 </div>
               )}
             </div>
+          </div>
 
-            {aiSuggestion && (
-              <div className="bg-white rounded-3xl border border-violet-100 shadow-sm p-6 space-y-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <h3 className="font-extrabold text-slate-800 text-sm">
-                      AI Suggestion Preview
-                    </h3>
-                    <p className="text-[11px] text-slate-400 font-semibold">
-                      Review before applying to the draft.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setAiSuggestion(null)}
-                    className="text-xs font-bold text-slate-400 hover:text-slate-700"
-                  >
-                    Dismiss
-                  </button>
+          {/* Row 4 Card 1: Aadhaar Verification */}
+          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0">
+              <ShieldCheck className="w-5 h-5 text-violet-600 shrink-0" />
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">Aadhaar Verification</h3>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Identity Verification Status</p>
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-col justify-center space-y-3">
+              <p className="text-[10px] text-slate-400 font-semibold leading-normal">
+                Verify identity to unlock premium leads and recruiter trust badge opportunities.
+              </p>
+
+              <div className="flex flex-col gap-2">
+                {/* 35% height reduced compact horizontal dropzone */}
+                <div className="border border-dashed border-slate-200 bg-white rounded-xl p-3 flex items-center justify-center gap-3 relative cursor-pointer hover:bg-slate-50 transition h-14 shrink-0 shadow-sm">
+                  <UploadCloud className="w-5 h-5 text-slate-400 shrink-0 animate-bounce" />
+                  <span className="text-xs font-semibold text-slate-500 truncate max-w-[200px]">
+                    {documentFile
+                      ? documentFile.name
+                      : "Select Aadhaar File (PDF/JPG/PNG)"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={(e) => {
+                      setDocumentFile(e.target.files?.[0] || null);
+                      setOcrResult(null);
+                      setOcrError("");
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
                 </div>
-                <div className="space-y-2 text-xs text-slate-600">
-                  <p>
-                    <span className="font-bold text-slate-800">Title:</span>{" "}
-                    {aiSuggestion.title}
-                  </p>
-                  <p>
-                    <span className="font-bold text-slate-800">
-                      Description:
-                    </span>{" "}
-                    {aiSuggestion.description}
-                  </p>
-                  <p>
-                    <span className="font-bold text-slate-800">
-                      Specialities:
-                    </span>{" "}
-                    {(aiSuggestion.suggestedSpecialities || [])
-                      .map((item) => item.name)
-                      .join(", ") || "None"}
-                  </p>
-                  <p>
-                    <span className="font-bold text-slate-800">Locations:</span>{" "}
-                    {(aiSuggestion.suggestedLocations || [])
-                      .map((item) => item.formattedAddress || item.city)
-                      .join(", ") || "None"}
-                  </p>
-                  <p>
-                    <span className="font-bold text-slate-800">Tags:</span>{" "}
-                    {(aiSuggestion.tags || []).join(", ") || "None"}
-                  </p>
-                </div>
+
                 <button
                   type="button"
-                  onClick={applyAiSuggestion}
-                  className="w-full px-4 py-2.5 rounded-xl bg-violet-600 text-white text-xs font-black hover:bg-violet-700 transition"
+                  onClick={handleDocumentUpload}
+                  disabled={uploadingDocument || !documentFile}
+                  className="w-full py-2 rounded-xl text-[10px] font-black text-white bg-violet-600 hover:bg-violet-700 disabled:opacity-50 transition shadow-sm"
                 >
-                  Apply AI Suggestion
+                  {uploadingDocument ? "Uploading..." : "Upload & Verify Aadhaar"}
                 </button>
               </div>
-            )}
 
-            {/* 4. Portfolio / Links */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-50">
-                <div className="flex items-center gap-2">
-                  <Link2 className="w-5 h-5 text-violet-600" />
-                  <h3 className="font-extrabold text-slate-800 text-sm">
-                    Portfolio / Links
-                  </h3>
-                </div>
+              <div className="shrink-0">
+                <DocumentVerificationStatusCard verification={documentVerification} />
               </div>
+            </div>
+          </div>
 
+          {/* Row 4 Card 2: Portfolio / Links */}
+          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0">
+              <Link2 className="w-5 h-5 text-violet-600 shrink-0" />
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">Portfolio & Links</h3>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Social and website profiles</p>
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-col justify-between">
               <PortfolioLinksManager
                 value={form.portfolioLinks}
                 onChange={(nextLinks) =>
@@ -2482,105 +2267,151 @@ const ProviderProfile = () => {
                 }
               />
             </div>
+          </div>
 
-            {/* 5. WhatsApp Alerts */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-start gap-4 p-3 rounded-2xl bg-linear-to-br from-emerald-50 to-white border border-emerald-100">
-                  <div className="w-12 h-12 bg-white rounded-2xl border border-emerald-100 shadow-sm flex items-center justify-center text-emerald-600 shrink-0">
-                    <svg
-                      className="w-5 h-5 fill-emerald-600"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.45L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.966a9.79 9.79 0 0 0-6.979-2.879C5.036 1.961.612 6.331.608 11.76c-.001 1.673.454 3.305 1.319 4.717L1.139 21.03l4.733-1.229c1.603.953 3.193 1.453 4.832 1.454z" />
-                    </svg>
-                  </div>
-
-                  <div className="flex-1">
-                    <p className="font-extrabold text-slate-800 text-sm">
-                      WhatsApp Alerts
-                    </p>
-
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      Get instant real-time notification alerts for job leads.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setForm((f) => ({
-                      ...f,
-                      whatsappAlerts: !f.whatsappAlerts,
-                    }))
-                  }
-                  className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${form.whatsappAlerts ? "bg-emerald-500" : "bg-slate-200"}`}
-                >
-                  <span
-                    className={`block w-5 h-5 bg-white rounded-full shadow absolute top-0.5 transition-transform duration-200 ${form.whatsappAlerts ? "translate-x-6" : "translate-x-0.5"}`}
-                  />
-                </button>
+          {/* Row 5 Card 1: Years of Experience (exactly 140px) */}
+          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between h-[140px] w-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center gap-3 pb-2 border-b border-slate-100 shrink-0">
+              <Calendar className="w-5 h-5 text-violet-600 shrink-0" />
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">Years of Experience</h3>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Total experience</p>
+              </div>
+            </div>
+            
+            <div className="relative flex-1 flex items-center">
+              <select
+                value={
+                  [
+                    "Fresher",
+                    "0-1 years",
+                    "1-3 years",
+                    "3-5 years",
+                    "5+ years",
+                  ].includes(form.experience)
+                    ? form.experience
+                    : "3-5 years"
+                }
+                onChange={(e) =>
+                  setForm({ ...form, experience: e.target.value })
+                }
+                className="w-full px-4 py-2 text-xs rounded-xl border border-slate-200 outline-none bg-slate-50/50 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 appearance-none shadow-inner text-slate-700 font-bold"
+              >
+                <option value="Fresher">Fresher (Entry-level)</option>
+                <option value="0-1 years">0-1 years (Junior)</option>
+                <option value="1-3 years">1-3 years (Intermediate)</option>
+                <option value="3-5 years">3-5 years (Experienced)</option>
+                <option value="5+ years">5+ years (Senior Expert)</option>
+              </select>
+              <div className="absolute right-4 top-[18px] pointer-events-none">
+                <ChevronDown className="w-4 h-4 text-slate-400" />
               </div>
             </div>
           </div>
 
-          {/* ── Bottom Section ── */}
-          <div className="lg:col-span-2 space-y-6 pt-4">
-            {/* Unlock More Visibility Banner */}
+          {/* Row 5 Card 2: WhatsApp Alerts (exactly 140px) */}
+          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between h-[140px] w-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center gap-3 pb-2 border-b border-slate-100 shrink-0">
+              <svg className="w-5 h-5 fill-emerald-600 shrink-0" viewBox="0 0 24 24">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.45L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.966a9.79 9.79 0 0 0-6.979-2.879C5.036 1.961.612 6.331.608 11.76c-.001 1.673.454 3.305 1.319 4.717L1.139 21.03l4.733-1.229c1.603.953 3.193 1.453 4.832 1.454z" />
+              </svg>
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">WhatsApp Alerts</h3>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Push Notifications</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between flex-1">
+              <span className="text-[11px] text-slate-500 font-semibold leading-relaxed max-w-[70%] text-left">
+                Get instant real-time notification alerts for job leads.
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setForm((f) => ({
+                    ...f,
+                    whatsappAlerts: !f.whatsappAlerts,
+                  }))
+                }
+                className={`relative w-11 h-5.5 rounded-full transition-colors duration-200 shrink-0 outline-none ${form.whatsappAlerts ? "bg-emerald-500" : "bg-slate-200"}`}
+              >
+                <span
+                  className={`block w-4.5 h-4.5 bg-white rounded-full shadow absolute top-0.5 transition-transform duration-200 ${form.whatsappAlerts ? "translate-x-5.5" : "translate-x-0.5"}`}
+                />
+              </button>
+            </div>
+          </div>
+
+          {/* ── Premium Subscription Row ── */}
+          <div className="md:col-span-2 space-y-6 pt-4">
+            {/* Unlock More Visibility Banner (exactly 70px) */}
             <div
               id="visibility-banner"
-              className="bg-linear-to-r from-violet-600 via-indigo-600 to-violet-700 rounded-3xl p-6 md:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl transition-all duration-300"
+              className="bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-700 rounded-[20px] px-6 py-3 text-white flex items-center justify-between gap-4 shadow-md h-[70px] shrink-0"
             >
-              <div className="flex items-center gap-4 text-left">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center shrink-0 shadow-inner">
-                  <Compass className="w-6 h-6 animate-spin-slow text-violet-100" />
+              <div className="flex items-center gap-3 text-left min-w-0">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0 shadow-inner">
+                  <Compass className="w-5 h-5 animate-spin-slow text-violet-100" />
                 </div>
-                <div>
-                  <h4 className="font-black text-lg tracking-wide">
+                <div className="min-w-0">
+                  <h4 className="font-black text-sm tracking-wide truncate">
                     Unlock Premium Search Placements
                   </h4>
-                  <p className="text-violet-100 text-xs mt-1 leading-relaxed">
+                  <p className="text-violet-100 text-[10px] mt-0.5 leading-none truncate">
                     {plan === "free"
-                      ? "Upgrade your plan to showcase multiple specialities, secure top ranks, and unlock unlimited service locations."
-                      : `Active: Premium ${plan.toUpperCase()} Plan. Enjoy high visibility priority weighting across your areas.`}
+                      ? "Showcase multiple specialities, secure top ranks, and unlock unlimited service locations."
+                      : `Active: Premium ${plan.toUpperCase()} Plan. High visibility priority active.`}
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate("/provider/plans")}
-                  className="bg-white text-violet-700 hover:bg-slate-50 font-black px-6 py-3 rounded-2xl transition shadow-md hover:shadow-white/20 text-xs shrink-0"
-                >
-                  {plan === "free" ? "Upgrade Plan →" : "Manage Subscription"}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate("/provider/plans")}
+                className="bg-white text-violet-700 hover:bg-slate-50 font-black px-4 py-2 rounded-xl transition shadow-sm text-xs shrink-0 active:scale-95"
+              >
+                {plan === "free" ? "Upgrade Plan →" : "Manage Subscription"}
+              </button>
             </div>
 
-            {/* Save Button */}
-            <div className="text-center flex lg:flex-col items-center justify-center space-y-3 pb-8">
-              <button
-                type="submit"
-                disabled={saving}
-                className="w-full block sm:w-80 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-black py-4 px-8 rounded-2xl transition-all shadow-lg hover:shadow-violet-200/50 flex items-center justify-center gap-2 text-base"
-              >
-                {saving ? (
-                  <>
-                    <RefreshCw className="w-5 h-5 animate-spin" />
-                    <span>Saving Profile...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Save Profile</span>
-                    <span>→</span>
-                  </>
-                )}
-              </button>
-              <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-                Your profile will be immediately refreshed for active search
-                results
-              </p>
+            {/* Sticky Footer Save Bar */}
+            <div className="sticky bottom-[20px] z-40 bg-white/80 backdrop-blur-md border border-slate-100 rounded-2xl p-4 shadow-[0_10px_40px_rgba(0,0,0,0.08)] flex items-center justify-between gap-4 max-w-7xl mx-auto w-full mt-8 animate-fadeIn">
+              <div className="hidden sm:block text-left">
+                <h5 className="font-black text-slate-800 text-xs tracking-tight">Profile Submissions</h5>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Immediate refresh for search results</p>
+              </div>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className={`flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+                    isDirty
+                      ? "bg-amber-500 hover:bg-amber-600 text-white shadow-sm"
+                      : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                  }`}
+                >
+                  {saving ? "Saving Draft..." : "Save Draft"}
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 sm:flex-initial bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-black py-2.5 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-xs"
+                >
+                  {saving ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Profile...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Save Profile</span>
+                      <span>→</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Premium feature benefit icons */}
@@ -2625,8 +2456,6 @@ const ProviderProfile = () => {
           </div>
         </form>
       </div>
-
-      {/* Embedded inline AI Chat is at the top of the page */}
     </div>
   );
 };

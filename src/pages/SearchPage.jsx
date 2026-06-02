@@ -21,6 +21,7 @@ import SharedProviderCard from "../components/providers/ProviderCard";
 import useTranslation from "../hooks/useTranslation";
 import Seo from "../components/common/Seo";
 import { useAuth } from "../context/AuthContext";
+import LocationAutocomplete from "../components/common/LocationAutocomplete";
 
 const SearchPage = () => {
   const { t } = useTranslation();
@@ -502,13 +503,22 @@ const SearchPage = () => {
               />
             </div>
             <div className="relative flex-1 min-w-0">
-              <HiLocationMarker className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
-              <input
+              <LocationAutocomplete
                 value={city}
-                onChange={(e) => handleCityChange(e.target.value)}
+                onChange={(val) => {
+                  if (typeof val === 'string') {
+                    handleCityChange(val);
+                  }
+                }}
+                onSelect={(locationObj) => {
+                  if (locationObj) {
+                    handleCityChange(locationObj.city || locationObj.label || '');
+                  }
+                }}
                 placeholder={t("search.cityPlaceholder")}
-                aria-label={t("search.cityPlaceholder")}
-                className="w-full pl-10 pr-4 py-2.5 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent outline-none text-sm bg-[#faf9f7]"
+                className="w-full"
+                inputClassName="pl-10 pr-4 py-2.5 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent outline-none text-sm bg-[#faf9f7]"
+                iconClassName="w-5 h-5 text-stone-400"
               />
             </div>
             <button

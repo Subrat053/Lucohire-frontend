@@ -549,45 +549,53 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
 
   if (inline) {
     return (
-      <div className="w-full bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-8 animate-fadeIn font-sans">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-          <div>
-            <p className="text-base font-extrabold text-slate-800 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse" />
-              Interactive AI Profile Assistant
+      <div className="w-full bg-transparent font-sans flex flex-col md:flex-row gap-6 items-center justify-between h-full">
+        {/* Left Side: Header and Tips */}
+        <div className="flex-1 text-left flex flex-col justify-center h-full">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse shrink-0" />
+            <p className="text-base font-black text-slate-800 tracking-tight">
+              AI Profile Enhancer
             </p>
-            <p className="text-xs text-slate-400 font-semibold mt-0.5">Talk to complete your profile fields dynamically or ask questions.</p>
+            {missingFields.length > 0 && (
+              <span className="text-[9px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-amber-100 shrink-0">
+                {missingFields.length} left
+              </span>
+            )}
           </div>
-          {missingFields.length > 0 && (
-            <span className="text-[10px] bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full font-black uppercase tracking-wider border border-amber-100">
-              {missingFields.length} field{missingFields.length > 1 ? 's' : ''} left
-            </span>
-          )}
+          <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+            Fill your profile in 1-Click via Resume ✨ Upload a resume and our OCR-powered AI assistant will auto-fill your profile details instantly!
+          </p>
+          <div className="mt-3 flex items-center gap-1.5 text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+            <span>Supported:</span>
+            <span className="bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-slate-500">PDF</span>
+            <span className="bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-slate-500">DOCX</span>
+            <span className="bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-slate-500">Images</span>
+          </div>
         </div>
 
-        {/* 1. Resume Upload Dropzone */}
-        <div className="mb-6 p-6 rounded-3xl bg-indigo-50/30 border-2 border-dashed border-indigo-200/80 flex flex-col items-center justify-center text-center transition hover:bg-indigo-50/60 relative overflow-hidden">
+        {/* Right Side: Compact Dropzone */}
+        <div className="w-full md:w-[45%] h-[100px] rounded-2xl bg-indigo-50/20 border-2 border-dashed border-indigo-200/60 flex flex-col items-center justify-center p-3 text-center transition hover:bg-indigo-50/40 relative overflow-hidden shrink-0">
           {resumeLoading ? (
-            <div className="flex flex-col items-center justify-center py-2">
-              <div className="w-9 h-9 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3" />
-              <p className="text-sm font-extrabold text-indigo-700 capitalize animate-pulse">
-                {resumeLoadingState === 'uploading' && '📤 Uploading resume...'}
-                {resumeLoadingState === 'extracting text' && '🔍 OCR extracting text...'}
-                {resumeLoadingState === 'analyzing' && '🤖 AI parsing & analyzing...'}
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-7 h-7 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-2" />
+              <p className="text-xs font-extrabold text-indigo-700 capitalize animate-pulse">
+                {resumeLoadingState === 'uploading' && 'Uploading resume...'}
+                {resumeLoadingState === 'extracting text' && 'OCR extracting text...'}
+                {resumeLoadingState === 'analyzing' && 'AI parsing & analyzing...'}
                 {!resumeLoadingState && 'Processing...'}
               </p>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Please keep this page open</p>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Please keep open</p>
             </div>
           ) : (
-            <>
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xl mb-3 shadow-xs">
+            <div className="flex flex-col items-center justify-center w-full">
+              {/* <div className="w-8 h-8 rounded-xl bg-white border border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm mb-1.5 shadow-sm">
                 📄
-              </div>
-              <p className="text-sm font-extrabold text-slate-800">Fill Profile in 1-Click via Resume ✨</p>
-              <p className="text-xs text-slate-400 font-semibold mt-1">Upload PDF, DOCX, DOC, JPG, JPEG, PNG, or WEBP (Max 5MB)</p>
+              </div> */}
+              <p className="text-xs font-black text-slate-800 leading-tight">Drop or Select Resume</p>
               
               {resumeError && (
-                <p className="mt-2 text-xs font-bold text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-1.5 animate-fadeIn">
+                <p className="mt-1 text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 rounded px-2 py-1 leading-normal max-w-full truncate animate-fadeIn" title={resumeError}>
                   ⚠️ {resumeError}
                 </p>
               )}
@@ -602,11 +610,11 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
               <button
                 type="button"
                 onClick={() => document.getElementById('resume-file-input').click()}
-                className="mt-4 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md shadow-indigo-100"
+                className="mt-2.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-all shadow-sm hover:shadow-indigo-200"
               >
-                Select Resume File
+                Select File
               </button>
-            </>
+            </div>
           )}
         </div>
 
