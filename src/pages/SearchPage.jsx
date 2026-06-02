@@ -52,18 +52,9 @@ const SearchPage = () => {
   const [skill, setSkill] = useState(
     searchParams.get("skill") || searchParams.get("category") || initialQuery,
   );
-  const [city, setCity] = useState(() => {
-    const urlCity = searchParams.get("location") || searchParams.get("city");
-    if (urlCity) return urlCity;
-    const cachedContext = localStorage.getItem("servicehub_user_location_context");
-    if (cachedContext) {
-      try {
-        const parsed = JSON.parse(cachedContext);
-        if (parsed && parsed.city) return parsed.city;
-      } catch (_) {}
-    }
-    return localStorage.getItem("servicehub:lastSearchLocation") || "Noida";
-  });
+  const [city, setCity] = useState(
+    searchParams.get("location") || searchParams.get("city") || ""
+  );
   const [tierFilter, setTierFilter] = useState(searchParams.get("tier") || "");
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || "",
@@ -202,18 +193,6 @@ const SearchPage = () => {
           setSkill(categoryVal || interpretedSkill || queryVal || "");
           
           let finalCity = cityVal || interpretedCity || "";
-          if (!finalCity) {
-            const cachedContext = localStorage.getItem("servicehub_user_location_context");
-            if (cachedContext) {
-              try {
-                const parsed = JSON.parse(cachedContext);
-                if (parsed && parsed.city) finalCity = parsed.city;
-              } catch (_) {}
-            }
-            if (!finalCity) {
-              finalCity = localStorage.getItem("servicehub:lastSearchLocation") || "Noida";
-            }
-          }
           setCity(finalCity);
 
           setResults({
@@ -244,18 +223,7 @@ const SearchPage = () => {
     let queryCity =
       searchParams.get("location") || searchParams.get("city") || "";
 
-    if (!queryCity && !hasQuery) {
-      const cachedContext = localStorage.getItem("servicehub_user_location_context");
-      if (cachedContext) {
-        try {
-          const parsed = JSON.parse(cachedContext);
-          if (parsed && parsed.city) queryCity = parsed.city;
-        } catch (_) {}
-      }
-      if (!queryCity) {
-        queryCity = localStorage.getItem("servicehub:lastSearchLocation") || "Noida";
-      }
-    }
+
 
     const queryTier = searchParams.get("tier") || "";
     const resolvedSearch = query || querySkill || queryCategory;
