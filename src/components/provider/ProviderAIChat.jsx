@@ -598,6 +598,18 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
               </div> */}
               <p className="text-xs font-black text-slate-800 leading-tight">Drop or Select Resume</p>
               
+              {profileContext?.resumeApproval?.status === 'pending' && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded text-[9px] font-black uppercase mt-1 border border-amber-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" /> Pending Approval
+                </span>
+              )}
+
+              {profileContext?.resumeApproval?.status === 'rejected' && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-600 rounded text-[9px] font-black uppercase mt-1 border border-red-200" title={profileContext?.resumeApproval?.rejectionReason}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Rejected
+                </span>
+              )}
+              
               {resumeError && (
                 <p className="mt-1 text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 rounded px-2 py-1 leading-normal max-w-full truncate animate-fadeIn" title={resumeError}>
                   ⚠️ {resumeError}

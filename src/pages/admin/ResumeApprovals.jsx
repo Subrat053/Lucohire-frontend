@@ -63,7 +63,7 @@ const SkeletonRow = () => (
 );
 
 /* ═══════════════════════════════════════════════════════════════ */
-const ProfilePhotoApprovals = () => {
+const ResumeApprovals = () => {
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({ pendingReview: 0, approved: 0, rejected: 0, totalProfiles: 0 });
   const [loading, setLoading] = useState(true);
@@ -83,7 +83,7 @@ const ProfilePhotoApprovals = () => {
   const [rejectModal, setRejectModal] = useState({ open: false, user: null });
   const [remarksModal, setRemarksModal] = useState({ open: false, user: null });
   const [actionLoading, setActionLoading] = useState(false);
-  const [activePhotoUrl, setActivePhotoUrl] = useState(null);
+  const [activeResumeUrl, setActiveResumeUrl] = useState(null);
 
   /* Tab counts */
   const [tabCounts, setTabCounts] = useState({});
@@ -91,7 +91,7 @@ const ProfilePhotoApprovals = () => {
   /* ── Fetch stats ──────────────────────────────────────────────── */
   const fetchStats = useCallback(async () => {
     try {
-      const { data } = await adminAPI.getProfileApprovalStats();
+      const { data } = await adminAPI.getResumeApprovalStats();
       setStats(data);
     } catch { /* silent */ }
   }, []);
@@ -107,7 +107,7 @@ const ProfilePhotoApprovals = () => {
         role: tab?.roleFilter || 'all',
         ...appliedFilters,
       };
-      const { data } = await adminAPI.getProfilePhotoApprovals(params);
+      const { data } = await adminAPI.getResumeApprovals(params);
       setUsers(data.users || []);
       setTotalPages(data.pagination?.pages || 1);
 
@@ -162,8 +162,8 @@ const ProfilePhotoApprovals = () => {
     try {
       const targetUserId = confirmModal.user.user?._id || confirmModal.user.user || confirmModal.user._id;
       const targetRole = confirmModal.user.role || getPrimaryRole(confirmModal.user.roles);
-      await adminAPI.approveProfilePhoto(targetUserId, targetRole);
-      toast.success('Profile photo approved');
+      await adminAPI.approveResume(targetUserId, targetRole);
+      toast.success('Resume approved');
       setConfirmModal({ open: false, user: null });
       fetchUsers(page);
       fetchStats();
@@ -180,8 +180,8 @@ const ProfilePhotoApprovals = () => {
     try {
       const targetUserId = rejectModal.user.user?._id || rejectModal.user.user || rejectModal.user._id;
       const targetRole = rejectModal.user.role || getPrimaryRole(rejectModal.user.roles);
-      await adminAPI.rejectProfilePhoto(targetUserId, targetRole, reason);
-      toast.success('Profile photo rejected');
+      await adminAPI.rejectResume(targetUserId, targetRole, reason);
+      toast.success('Resume rejected');
       setRejectModal({ open: false, user: null });
       fetchUsers(page);
       fetchStats();
@@ -309,9 +309,10 @@ const ProfilePhotoApprovals = () => {
                 ) : (
                   users.map((u) => {
                     const role = getPrimaryRole(u.roles);
-                    const status = u.profilePhotoApproval?.status || 'none';
+                    const status = u.resumeApproval?.status || 'none';
                     const currentPhoto = u.profilePhoto || u.avatar || '';
-                    const pendingPhoto = u.profilePhotoApproval?.pendingUrl || '';
+                    const pendingPhoto = u.resumeApproval?.pendingUrl || '';
+                    const currentResumeUrl = u.resumeUrl || '';
                     const location = u.location || {};
                     const docs = u.documents || [];
 
@@ -334,7 +335,7 @@ const ProfilePhotoApprovals = () => {
                                 )}
                               </div>
                               {pendingPhoto && (
-                                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-amber-400 border-2 border-white rounded-full" title="Has pending photo" />
+                                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-amber-400 border-2 border-white rounded-full" title="Has pending resume" />
                               )}
                             </div>
                             <div className="min-w-0">
@@ -399,11 +400,11 @@ const ProfilePhotoApprovals = () => {
                         {/* Actions */}
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-end gap-1.5">
-                            {(pendingPhoto || currentPhoto) && (
+                            {(pendingPhoto || currentResumeUrl) && (
                               <button
-                                onClick={() => setActivePhotoUrl(toAbsoluteMediaUrl(pendingPhoto || currentPhoto))}
+                                onClick={() => setActiveResumeUrl(pendingPhoto || currentResumeUrl)}
                                 className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition"
-                                title="View Photo"
+                                title="View Resume"
                               >
                                 <Eye className="w-3.5 h-3.5" /> View
                               </button>
@@ -476,8 +477,8 @@ const ProfilePhotoApprovals = () => {
         open={confirmModal.open}
         onClose={() => setConfirmModal({ open: false, user: null })}
         onConfirm={handleApprove}
-        title="Approve Profile Photo"
-        message={`Are you sure you want to approve the profile photo for "${confirmModal.user?.name || 'this user'}"? The pending photo will replace their current profile photo.`}
+        title="Approve Resume"
+        message={`Are you sure you want to approve the resume for "${confirmModal.user?.name || 'this user'}"? The pending resume will replace their current resume.`}
         confirmText="Approve"
         confirmColor="bg-green-600 hover:bg-green-700"
         loading={actionLoading}
@@ -496,25 +497,52 @@ const ProfilePhotoApprovals = () => {
         user={remarksModal.user}
       />
 
-      {activePhotoUrl && (
+      {activeResumeUrl && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-bold text-slate-800 text-sm">Profile Photo Viewer</h3>
-              <button
-                type="button"
-                onClick={() => setActivePhotoUrl(null)}
-                className="p-1.5 hover:bg-slate-100 rounded-full transition text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
+          <div className="bg-white rounded-3xl w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden shadow-2xl relative">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                </div>
+                <h3 className="font-bold text-slate-800 text-sm">Resume Document Viewer</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={activeResumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+                >
+                  Open in New Tab
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setActiveResumeUrl(null)}
+                  className="p-1.5 hover:bg-slate-100 rounded-full transition text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-            <div className="flex-1 bg-slate-100 p-4 flex items-center justify-center">
-              <img
-                src={activePhotoUrl}
-                alt="Profile Photo Preview"
-                className="max-w-full max-h-full object-contain rounded-xl shadow-lg border border-slate-200"
+
+            {/* Viewer Body */}
+            <div className="flex-1 bg-slate-100 p-3 overflow-hidden">
+              <iframe
+                key={activeResumeUrl}
+                src={`https://docs.google.com/viewer?url=${encodeURIComponent(activeResumeUrl)}&embedded=true`}
+                title="Resume Viewer"
+                className="w-full h-full rounded-2xl border-0 bg-white"
+                allow="fullscreen"
               />
+            </div>
+
+            {/* Footer hint */}
+            <div className="px-6 py-2.5 border-t border-slate-100 bg-slate-50/60 shrink-0">
+              <p className="text-[10px] text-slate-400 text-center font-medium">
+                Powered by Google Docs Viewer · If the preview doesn't load, click "Open in New Tab"
+              </p>
             </div>
           </div>
         </div>
@@ -523,4 +551,4 @@ const ProfilePhotoApprovals = () => {
   );
 };
 
-export default ProfilePhotoApprovals;
+export default ResumeApprovals;

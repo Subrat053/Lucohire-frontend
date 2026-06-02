@@ -1481,6 +1481,7 @@ const ProviderProfile = () => {
                 locations: form.locations,
                 portfolioLinks: form.portfolioLinks,
                 whatsappAlerts: form.whatsappAlerts,
+                resumeApproval: profileData?.user?.resumeApproval,
               }}
               missingFields={(() => {
                 const missing = [];
