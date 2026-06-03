@@ -268,6 +268,7 @@ const Navbar = () => {
                         height={32}
                         decoding="async"
                         fetchpriority="high"
+                        loading="lazy"
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : user?.profilePhoto || user?.avatar ? (
@@ -281,6 +282,7 @@ const Navbar = () => {
                         height={32}
                         decoding="async"
                         fetchpriority="high"
+                        loading="lazy"
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (

@@ -19,6 +19,14 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
+            if (
+              id.includes('react-dom') ||
+              id.includes('react-router-dom') ||
+              id.includes('react-helmet-async') ||
+              id.includes('react/')
+            ) {
+              return 'vendor-core';
+            }
             if (id.includes('lucide-react') || id.includes('react-icons')) {
               return 'vendor-icons';
             }
@@ -28,7 +36,12 @@ export default defineConfig({
             if (id.includes('firebase') || id.includes('@react-oauth')) {
               return 'vendor-firebase';
             }
-            return 'vendor';
+            if (id.includes('react-select') || id.includes('react-window')) {
+              return 'vendor-widgets';
+            }
+            if (id.includes('axios') || id.includes('socket.io-client')) {
+              return 'vendor-utils';
+            }
           }
         },
       },

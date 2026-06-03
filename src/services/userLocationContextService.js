@@ -1,4 +1,3 @@
-import { loadGooglePlacesScript } from './googlePlacesService';
 
 /**
  * Request approximate browser location.
@@ -33,6 +32,7 @@ export const getBrowserCurrentLocation = () => {
  */
 export const getApproxLocationFromGoogle = async (lat, lng) => {
   try {
+    const { loadGooglePlacesScript } = await import('./googlePlacesService');
     await loadGooglePlacesScript();
     if (typeof window === 'undefined' || !window.google || !window.google.maps) {
       throw new Error("Google Maps API is not loaded");
