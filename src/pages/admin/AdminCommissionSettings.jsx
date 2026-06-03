@@ -13,6 +13,7 @@ const AdminCommissionSettings = () => {
   const [platformCommissionPercentage, setPlatformCommissionPercentage] = useState(10);
   const [minWithdrawalAmount, setMinWithdrawalAmount] = useState(500);
   const [fixedWithdrawalFee, setFixedWithdrawalFee] = useState(0);
+  const [userReferralCommissionPercentage, setUserReferralCommissionPercentage] = useState(40);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -27,6 +28,7 @@ const AdminCommissionSettings = () => {
       setPlatformCommissionPercentage(data.platformCommissionPercentage ?? 10);
       setMinWithdrawalAmount(data.minWithdrawalAmount ?? 500);
       setFixedWithdrawalFee(data.fixedWithdrawalFee ?? 0);
+      setUserReferralCommissionPercentage(data.userReferralCommissionPercentage ?? 40);
     } catch (err) {
       toast.error(err?.response?.data?.message || t('admin.settingsLoadFail', 'Failed to load commission settings'));
     } finally {
@@ -41,7 +43,8 @@ const AdminCommissionSettings = () => {
       const payload = {
         platformCommissionPercentage: Number(platformCommissionPercentage),
         minWithdrawalAmount: Number(minWithdrawalAmount),
-        fixedWithdrawalFee: Number(fixedWithdrawalFee)
+        fixedWithdrawalFee: Number(fixedWithdrawalFee),
+        userReferralCommissionPercentage: Number(userReferralCommissionPercentage)
       };
 
       await adminWithdrawalAPI.updateCommissionSettings(payload);
@@ -109,6 +112,25 @@ const AdminCommissionSettings = () => {
                 <span className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 font-bold">%</span>
               </div>
               <p className="text-xs text-slate-400 mt-1.5">{t('admin.commissionDesc', 'The percentage share deducted from booking checkouts for the platform pool.')}</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-600 uppercase mb-2">{t('admin.userReferralLabel', 'User Referral Commission Percentage')}</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={0.1}
+                  required
+                  value={userReferralCommissionPercentage}
+                  onChange={e => setUserReferralCommissionPercentage(e.target.value)}
+                  className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:outline-hidden focus:border-indigo-500 transition"
+                  placeholder="e.g. 40"
+                />
+                <span className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 font-bold">%</span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1.5">{t('admin.userReferralDesc', 'The percentage of the plan price credited to the referrer when their invitee purchases a subscription.')}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

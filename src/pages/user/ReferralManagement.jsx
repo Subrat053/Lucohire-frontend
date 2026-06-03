@@ -273,7 +273,7 @@ const ReferralManagement = () => {
             <Share2 className="mr-2" /> Share your link
           </h2>
           <p className="text-indigo-100 mb-8 max-w-md">
-            Earn 10% commission when your referred friends subscribe to any of
+            Earn {stats?.commissionRate || 40}% commission when your referred friends subscribe to any of
             our plans for the first time.
           </p>
 
@@ -488,133 +488,121 @@ const ReferralManagement = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Referrals List */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="text-lg font-bold text-gray-900">
-              Recent Referrals
-            </h3>
-            <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">
-              {stats?.referrals?.length || 0} Total
-            </span>
-          </div>
-          <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto custom-scrollbar">
-            {stats?.referrals?.length > 0 ? (
-              stats.referrals.map((ref) => (
-                <div
-                  key={ref._id}
-                  className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold overflow-hidden border-2 border-white shadow-sm">
-                      {ref.referredUserId?.avatar ? (
-                        <img
-                          src={ref.referredUserId.avatar}
-                          alt={ref.referredUserId.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        ref.referredUserId?.name?.charAt(0) || "U"
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">
-                        {ref.referredUserId?.name || "Unknown User"}
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-12">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+          <h3 className="text-lg font-bold text-gray-900">
+            Recent Referrals
+          </h3>
+          <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full">
+            {stats?.referrals?.length || 0} Total
+          </span>
+        </div>
+        
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wider">
+                <th className="p-4 font-semibold">User</th>
+                <th className="p-4 font-semibold">Email</th>
+                <th className="p-4 font-semibold">Role</th>
+                <th className="p-4 font-semibold">Registered</th>
+                <th className="p-4 font-semibold">Plan</th>
+                <th className="p-4 font-semibold">Activity</th>
+                <th className="p-4 font-semibold">Reward Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {stats?.referrals?.length > 0 ? (
+                stats.referrals.map((ref) => (
+                  <tr key={ref._id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="p-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold shrink-0">
+                          {ref.referredUserId?.avatar ? (
+                            <img
+                              src={ref.referredUserId.avatar}
+                              alt={ref.referredUserId.name}
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : (
+                            ref.referredUserId?.name?.charAt(0) || "U"
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">
+                            {ref.referredUserId?.name || "Unknown User"}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <p className="text-sm text-gray-500 truncate max-w-[200px]">
+                        {ref.referredUserId?.email || "No Email"}
                       </p>
-                      <div className="flex items-center text-xs text-gray-500 mt-0.5">
+                    </td>
+                    <td className="p-4">
+                      <span className="capitalize text-xs font-medium bg-slate-100 text-slate-700 px-2 py-1 rounded-md">
+                        {ref.referredRole || "Unknown"}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center text-xs text-gray-500">
                         <Clock size={12} className="mr-1" />
                         {new Date(ref.createdAt).toLocaleDateString()}
                       </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                        ref.status === "subscribed"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {ref.status}
-                    </span>
-                    {ref.commissionAmount > 0 && (
-                      <p className="text-sm font-bold text-green-600 mt-1">
-                        +₹{ref.commissionAmount}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-12 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-50 rounded-full mb-4">
-                  <UserPlus className="text-gray-300" size={32} />
-                </div>
-                <p className="text-gray-500">
-                  No referrals yet. Share your link to start earning!
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Transactions List */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100">
-            <h3 className="text-lg font-bold text-gray-900">Wallet History</h3>
-          </div>
-          <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto custom-scrollbar">
-            {stats?.transactions?.length > 0 ? (
-              stats.transactions.map((tx) => (
-                <div
-                  key={tx._id}
-                  className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                        tx.direction === "credit"
-                          ? "bg-green-50 text-green-600"
-                          : "bg-red-50 text-red-600"
-                      }`}
-                    >
-                      {tx.direction === "credit" ? (
-                        <ArrowUpRight size={20} />
+                    </td>
+                    <td className="p-4 text-sm font-medium text-gray-700">
+                      {ref.firstSubscriptionId?.planId?.name ? (
+                        <span className="text-indigo-600 font-bold">{ref.firstSubscriptionId.planId.name}</span>
                       ) : (
-                        <ArrowUpRight size={20} className="rotate-180" />
+                        <span className="text-gray-400 italic">No Plan</span>
                       )}
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                          ref.status === "subscribed"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {ref.status}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-col items-start">
+                        <span
+                          className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider mb-1 ${
+                            ref.commissionStatus === "paid"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-orange-100 text-orange-700"
+                          }`}
+                        >
+                          {ref.commissionStatus}
+                        </span>
+                        {ref.commissionAmount > 0 && (
+                          <span className="text-xs font-bold text-gray-900">
+                            +₹{ref.commissionAmount}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="p-12 text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-50 rounded-full mb-4">
+                      <UserPlus className="text-gray-300" size={32} />
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900 capitalize">
-                        {tx.type ? tx.type.replace(/_/g, ' ') : 'Transaction'}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
-                        {tx.description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p
-                      className={`text-sm font-bold ${tx.direction === "credit" ? "text-green-600" : "text-red-600"}`}
-                    >
-                      {tx.direction === "credit" ? "+" : "-"}₹{tx.amount.toFixed(2)}
+                    <p className="text-gray-500">
+                      No referrals yet. Share your link to start earning!
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">
-                      {new Date(tx.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-12 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-50 rounded-full mb-4">
-                  <Wallet className="text-gray-300" size={32} />
-                </div>
-                <p className="text-gray-500">No transactions yet.</p>
-              </div>
-            )}
-          </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
