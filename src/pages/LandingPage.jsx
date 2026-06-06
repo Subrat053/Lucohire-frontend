@@ -174,6 +174,7 @@ const LandingPage = () => {
   const [email, setEmail] = useState("");
 
   const debounceRef = useRef(null);
+  const latestRequestRef = useRef(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -219,17 +220,34 @@ const LandingPage = () => {
 
   const fetchProviders = useCallback(async (s = "", c = "") => {
     const city = c || location.replace(", IN", "");
+    const requestId = latestRequestRef.current + 1;
+    latestRequestRef.current = requestId;
     setProvidersLoading(true);
     try {
-      const { providers: apiList } = await getFeaturedProviders({ skill: s, location: city, city, limit: 4 });
-      const fallbackList = filterDummyProviders(s, city);
-      const finalList = apiList.length > 0 ? apiList : fallbackList.length > 0 ? fallbackList : DUMMY_PROVIDERS;
-      setProviders(finalList.map(normalizeProviderData));
-    } catch (_) {
-      const fallbackList = filterDummyProviders(s, city);
-      setProviders((fallbackList.length > 0 ? fallbackList : DUMMY_PROVIDERS).map(normalizeProviderData));
+      let res = await getFeaturedProviders({ skill: s, location: city, city, limit: 8 });
+      if (latestRequestRef.current !== requestId) return;
+
+      let apiList = res?.providers || [];
+      
+      // Fallback: If no providers are found in the target city, query globally to keep home page populated
+      if (apiList.length === 0) {
+        console.log(`No providers found in ${city}. Fetching globally as fallback...`);
+        res = await getFeaturedProviders({ skill: s, limit: 8 });
+        if (latestRequestRef.current !== requestId) return;
+        apiList = res?.providers || [];
+      }
+
+      const normalized = apiList.map((p, idx) => normalizeProviderData(p, idx));
+      setProviders(normalized);
+    } catch (err) {
+      if (latestRequestRef.current === requestId) {
+        console.error("fetchProviders failed with error:", err);
+        setProviders([]);
+      }
     } finally {
-      setProvidersLoading(false);
+      if (latestRequestRef.current === requestId) {
+        setProvidersLoading(false);
+      }
     }
   }, [location]);
 
@@ -425,7 +443,7 @@ const LandingPage = () => {
             <Pill active={activeTier === "unskilled"} onClick={() => setActiveTier("unskilled")}>{t('search.tierUnskilled')}</Pill>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 items-stretch">
             {providersLoading
               ? Array.from({ length: 4 }).map((_, idx) => (
                   <div key={idx} className="bg-white rounded-2xl border border-[#E7ECF4] p-5 animate-pulse">

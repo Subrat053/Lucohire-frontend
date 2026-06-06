@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { HiSearch, HiBan, HiCheckCircle, HiChevronLeft, HiChevronRight, HiTrash, HiEye, HiX, HiUpload, HiDownload } from 'react-icons/hi';
+import { HiSearch, HiBan, HiCheckCircle, HiChevronLeft, HiChevronRight, HiTrash, HiEye, HiX, HiUpload, HiDownload, HiInformationCircle } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { toAbsoluteMediaUrl } from '../../utils/media';
@@ -10,14 +10,35 @@ const UserDetailModal = ({ userId, onClose }) => {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeResumeUrl, setActiveResumeUrl] = useState(null);
+  const [activeTab, setActiveTab] = useState('provider');
 
   useEffect(() => {
     if (userId) {
-      adminAPI.getUserDetail(userId).then(({ data }) => setDetail(data)).catch(() => toast.error('Failed to load user details')).finally(() => setLoading(false));
+      setLoading(true);
+      adminAPI.getUserDetail(userId)
+        .then(({ data }) => {
+          setDetail(data);
+          const roles = data.user?.roles || (data.user?.role ? [data.user.role] : []);
+          if (roles.includes('provider')) {
+            setActiveTab('provider');
+          } else if (roles.includes('recruiter')) {
+            setActiveTab('recruiter');
+          }
+        })
+        .catch(() => toast.error('Failed to load user details'))
+        .finally(() => setLoading(false));
     }
   }, [userId]);
 
   if (!userId) return null;
+
+  const userRole = detail?.user?.role || detail?.user?.activeRole || (detail?.user?.roles && detail?.user.roles[0]) || '';
+  const userRoles = detail?.user?.roles || (detail?.user?.role ? [detail?.user.role] : []);
+  const hasMultipleProfiles = userRoles.includes('provider') && userRoles.includes('recruiter');
+
+  const selectedProfile = activeTab === 'provider' 
+    ? (detail?.providerProfile || detail?.profile) 
+    : (detail?.recruiterProfile || detail?.profile);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -45,7 +66,7 @@ const UserDetailModal = ({ userId, onClose }) => {
                 <h3 className="text-xl font-bold text-gray-900">{detail.user?.name}</h3>
                 <p className="text-sm text-gray-500">{detail.user?.email} {detail.user?.phone && `· ${detail.user.phone}`}</p>
                 <div className="flex gap-2 mt-1">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${detail.user?.role === 'provider' ? 'bg-green-100 text-green-700' : detail.user?.role === 'recruiter' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{detail.user?.role}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${userRole === 'provider' ? 'bg-green-100 text-green-700' : userRole === 'recruiter' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{userRole}</span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${detail.user?.isBlocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{detail.user?.isBlocked ? 'Blocked' : 'Active'}</span>
                 </div>
               </div>
@@ -56,67 +77,188 @@ const UserDetailModal = ({ userId, onClose }) => {
               <h4 className="font-semibold text-gray-800 mb-2">Account</h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div><span className="text-gray-500">Joined:</span> <span className="font-medium">{new Date(detail.user?.createdAt).toLocaleDateString()}</span></div>
-                <div><span className="text-gray-500">WhatsApp:</span> <span className="font-medium">{detail.user?.whatsappNumber || 'N/A'}</span></div>
-                <div><span className="text-gray-500">Country:</span> <span className="font-medium">{detail.user?.country || 'N/A'}</span></div>
+                <div><span className="text-gray-500">WhatsApp:</span> <span className="font-medium">{detail.user?.whatsappNumber || detail.user?.phone || 'N/A'}</span></div>
+                <div><span className="text-gray-500">Country:</span> <span className="font-medium">{detail.user?.country || selectedProfile?.location?.country || 'N/A'}</span></div>
                 <div><span className="text-gray-500">Expires:</span> <span className="font-medium">{detail.user?.accountExpiresAt ? new Date(detail.user.accountExpiresAt).toLocaleDateString() : 'N/A'}</span></div>
               </div>
             </div>
 
+            {/* Role Tab Switcher (if user has multiple roles) */}
+            {hasMultipleProfiles && (
+              <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('provider')}
+                  className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all ${
+                    activeTab === 'provider'
+                      ? 'bg-white text-indigo-600 shadow-sm border border-gray-100'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Provider Profile
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('recruiter')}
+                  className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all ${
+                    activeTab === 'recruiter'
+                      ? 'bg-white text-indigo-600 shadow-sm border border-gray-100'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Recruiter Profile
+                </button>
+              </div>
+            )}
+
             {/* Profile Info */}
-            {detail.profile && (
+            {selectedProfile && (
               <div className="bg-gray-50 rounded-xl p-4">
-                <h4 className="font-semibold text-gray-800 mb-3 border-b border-gray-150 pb-1.5">Profile Info</h4>
+                <h4 className="font-semibold text-gray-800 mb-3 border-b border-gray-150 pb-1.5 capitalize">
+                  {activeTab} Profile Info
+                </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-sm">
-                  <div><span className="text-gray-500 block text-xs">City / Country</span> <span className="font-medium text-gray-800">{detail.profile.city || 'N/A'}{detail.profile.location?.country ? `, ${detail.profile.location.country}` : ''}</span></div>
-                  <div><span className="text-gray-500 block text-xs">Plan Tier</span> <span className="font-medium text-gray-800 capitalize">{detail.profile.currentPlan || 'Free'}</span></div>
-                  <div><span className="text-gray-500 block text-xs">Experience</span> <span className="font-medium text-gray-800">{detail.profile.experience || 'N/A'}</span></div>
+                  {/* City / Country */}
                   <div>
-                    <span className="text-gray-500 block text-xs">Pricing & Rates</span>
-                    <span className="font-medium text-emerald-600">
-                      {detail.profile.pricing ? (
-                        <>
-                          ₹{detail.profile.pricing} / {detail.profile.pricingType || 'hr'}
-                          {detail.profile.pricingType === 'hourly' && (
-                            <span className="block text-[11px] text-gray-500 font-normal mt-0.5">
-                              (₹{Number(detail.profile.pricing) * 8}/day • ₹{Number(detail.profile.pricing) * 8 * 22}/month)
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        'N/A'
-                      )}
+                    <span className="text-gray-500 block text-xs">City / Country</span>
+                    <span className="font-medium text-gray-800">
+                      {selectedProfile.city || 'N/A'}
+                      {selectedProfile.location?.country || detail.user?.country
+                        ? `, ${selectedProfile.location?.country || detail.user?.country}`
+                        : ''}
                     </span>
                   </div>
-                  {detail.profile.skills && (
-                    <div className="sm:col-span-2">
-                      <span className="text-gray-500 block text-xs mb-1">Skills</span>
-                      <div className="flex flex-wrap gap-1">
-                        {detail.profile.skills.map((skill, index) => (
-                          <span key={index} className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-medium rounded-md">{skill}</span>
-                        ))}
+
+                  {/* Plan Tier */}
+                  <div>
+                    <span className="text-gray-500 block text-xs">Plan Tier</span>
+                    <span className="font-medium text-gray-800 capitalize">
+                      {selectedProfile.currentPlan || 'Free'}
+                    </span>
+                  </div>
+
+                  {/* Provider-specific details */}
+                  {activeTab === 'provider' && (
+                    <>
+                      {/* Experience */}
+                      <div>
+                        <span className="text-gray-500 block text-xs">Experience</span>
+                        <span className="font-medium text-gray-800">
+                          {selectedProfile.experience || 'N/A'}
+                        </span>
                       </div>
-                    </div>
+
+                      {/* Pricing & Rates */}
+                      <div>
+                        <span className="text-gray-500 block text-xs">Pricing & Rates</span>
+                        <span className="font-medium text-emerald-600">
+                          {selectedProfile.pricing ? (
+                            <>
+                              ₹{selectedProfile.pricing} / {selectedProfile.pricingType || 'hr'}
+                              {selectedProfile.pricingType === 'hourly' && (
+                                <span className="block text-[11px] text-gray-500 font-normal mt-0.5">
+                                  (₹{Number(selectedProfile.pricing) * 8}/day • ₹{Number(selectedProfile.pricing) * 8 * 22}/month)
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            'N/A'
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Skills */}
+                      {selectedProfile.skills && selectedProfile.skills.length > 0 && (
+                        <div className="sm:col-span-2">
+                          <span className="text-gray-500 block text-xs mb-1">Skills</span>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedProfile.skills.map((skill, index) => (
+                              <span key={index} className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-medium rounded-md">{skill}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Uploaded Resume */}
+                      {selectedProfile.resumeUrl && (
+                        <div className="sm:col-span-2">
+                          <span className="text-gray-500 block text-xs mb-1">Uploaded Resume</span>
+                          <button
+                            type="button"
+                            onClick={() => setActiveResumeUrl(toAbsoluteMediaUrl(selectedProfile.resumeUrl))}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-150 text-indigo-700 rounded-lg text-xs font-bold transition shadow-xs"
+                          >
+                            📄 View Resume Document
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
-                  {detail.profile.resumeUrl && (
+
+                  {/* Recruiter-specific details */}
+                  {activeTab === 'recruiter' && (
+                    <>
+                      {/* Company Name */}
+                      {selectedProfile.companyName && (
+                        <div>
+                          <span className="text-gray-500 block text-xs">Company</span>
+                          <span className="font-medium text-gray-800">
+                            {selectedProfile.companyName}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* GST Number */}
+                      {selectedProfile.gstNumber && (
+                        <div>
+                          <span className="text-gray-500 block text-xs">GST Number</span>
+                          <span className="font-medium text-gray-800">
+                            {selectedProfile.gstNumber}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Company Type */}
+                      {selectedProfile.companyType && (
+                        <div>
+                          <span className="text-gray-500 block text-xs">Company Type</span>
+                          <span className="font-medium text-gray-800 capitalize">
+                            {selectedProfile.companyType}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Skills Needed */}
+                      {selectedProfile.skillsNeeded && selectedProfile.skillsNeeded.length > 0 && (
+                        <div className="sm:col-span-2">
+                          <span className="text-gray-500 block text-xs mb-1">Skills Looking to Hire</span>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedProfile.skillsNeeded.map((skill, index) => (
+                              <span key={index} className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-medium rounded-md">{skill}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Google Coordinates */}
+                  {selectedProfile.latitude && selectedProfile.longitude && (
                     <div className="sm:col-span-2">
-                      <span className="text-gray-500 block text-xs mb-1">Uploaded Resume</span>
-                      <button
-                        type="button"
-                        onClick={() => setActiveResumeUrl(toAbsoluteMediaUrl(detail.profile.resumeUrl))}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-150 text-indigo-700 rounded-lg text-xs font-bold transition shadow-xs"
-                      >
-                        📄 View Resume Document
-                      </button>
+                      <span className="text-gray-500 block text-xs">Google Coordinates</span>
+                      <span className="font-mono text-xs text-gray-600">
+                        {selectedProfile.latitude.toFixed(6)}, {selectedProfile.longitude.toFixed(6)}
+                      </span>
                     </div>
                   )}
-                  {detail.profile.companyName && <div><span className="text-gray-500 block text-xs">Company</span> <span className="font-medium text-gray-800">{detail.profile.companyName}</span></div>}
-                  {detail.profile.latitude && detail.profile.longitude && (
-                    <div className="sm:col-span-2"><span className="text-gray-500 block text-xs">Google Coordinates</span> <span className="font-mono text-xs text-gray-600">{detail.profile.latitude.toFixed(6)}, {detail.profile.longitude.toFixed(6)}</span></div>
-                  )}
-                  {detail.profile.description && (
+
+                  {/* Bio / Description */}
+                  {selectedProfile.description && (
                     <div className="sm:col-span-2">
                       <span className="text-gray-500 block text-xs">Bio / Description</span>
-                      <p className="font-normal text-gray-700 mt-1 leading-relaxed bg-white border border-gray-100 rounded-lg p-2.5 text-xs whitespace-pre-wrap">{detail.profile.description}</p>
+                      <p className="font-normal text-gray-700 mt-1 leading-relaxed bg-white border border-gray-150 rounded-lg p-2.5 text-xs whitespace-pre-wrap">
+                        {selectedProfile.description}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -375,87 +517,102 @@ const AdminUsers = () => {
                   <tr className="bg-gray-50 border-b border-gray-100">
                     <th className="text-left py-3 px-4 font-medium text-gray-500">User</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Email / Phone</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Role</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 relative group">
+                      <div className="flex items-center gap-1 cursor-help">
+                        <span>Role</span>
+                        <HiInformationCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 transition-colors" />
+                        <div className="absolute left-4 top-full mt-1 w-64 bg-slate-900 text-white text-xs rounded-xl p-3 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 font-normal normal-case border border-slate-800">
+                          <div className="space-y-2">
+                            <p><strong className="text-emerald-400 font-semibold">Provider:</strong> Offers services/skills, views matches, and receives job leads.</p>
+                            <p><strong className="text-blue-400 font-semibold">Recruiter:</strong> Posts jobs, searches providers, and unlocks contacts.</p>
+                            <p><strong className="text-purple-400 font-semibold">Admin/Manager:</strong> Moderates users, manages plans, settings, and logs.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </th>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Status</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Joined</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
-                    <tr key={user._id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                            {user.name?.charAt(0)?.toUpperCase() || '?'}
+                  {users.map((user) => {
+                    const userRole = user.role || user.activeRole || (user.roles && user.roles[0]) || '';
+                    return (
+                      <tr key={user._id} className="border-b border-gray-50 hover:bg-gray-50 transition">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                              {user.name?.charAt(0)?.toUpperCase() || '?'}
+                            </div>
+                            <span className="font-medium text-gray-900">{user.name}</span>
                           </div>
-                          <span className="font-medium text-gray-900">{user.name}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-gray-500">{user.email || user.phone || '-'}</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === 'provider' ? 'bg-green-100 text-green-700' :
-                            user.role === 'recruiter' ? 'bg-blue-100 text-blue-700' :
-                              'bg-purple-100 text-purple-700'
-                          }`}>{user.role}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${user.isBlocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                          }`}>{user.isBlocked ? 'Blocked' : 'Active'}</span>
-                      </td>
-                      <td className="py-3 px-4 text-gray-500">{new Date(user.createdAt).toLocaleDateString()}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => setSelectedUserId(user._id)}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
-                          >
-                            <HiEye className="w-4 h-4" /> View
-                          </button>
-                          {user.role !== 'admin' && (
-                            <>
-                              {user.approvalStatus !== 'approved' && (
-                                <>
-                                  <button
-                                    onClick={() => handleApprove(user._id, true)}
-                                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition"
-                                    title="Approve user account"
-                                  >
-                                    <HiCheckCircle className="w-4 h-4" /> Approve
-                                  </button>
-                                  <button
-                                    onClick={() => handleApprove(user._id, false)}
-                                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition"
-                                    title="Reject user account"
-                                  >
-                                    <HiX className="w-4 h-4" /> Reject
-                                  </button>
-                                </>
-                              )}
-                              <button
-                                onClick={() => toggleBlock(user._id, user.isBlocked)}
-                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition ${user.isBlocked
-                                    ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                                    : 'bg-red-50 text-red-700 hover:bg-red-100'
-                                  }`}
-                              >
-                                {user.isBlocked ? <HiCheckCircle className="w-4 h-4" /> : <HiBan className="w-4 h-4" />}
-                                {user.isBlocked ? 'Unblock' : 'Block'}
-                              </button>
-                              <button
-                                onClick={() => handleDelete(user._id, user.name)}
-                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition"
-                                title="Delete user permanently"
-                              >
-                                <HiTrash className="w-4 h-4" />
-                                Delete
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="py-3 px-4 text-gray-500">{user.email || user.phone || '-'}</td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${userRole === 'provider' ? 'bg-green-100 text-green-700' :
+                              userRole === 'recruiter' ? 'bg-blue-100 text-blue-700' :
+                                'bg-purple-100 text-purple-700'
+                            }`}>{userRole}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${user.isBlocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                            }`}>{user.isBlocked ? 'Blocked' : 'Active'}</span>
+                        </td>
+                        <td className="py-3 px-4 text-gray-500">{new Date(user.createdAt).toLocaleDateString()}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setSelectedUserId(user._id)}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                            >
+                              <HiEye className="w-4 h-4" /> View
+                            </button>
+                            {userRole !== 'admin' && (
+                              <>
+                                {user.approvalStatus !== 'approved' && (
+                                  <>
+                                    <button
+                                      onClick={() => handleApprove(user._id, true)}
+                                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition"
+                                      title="Approve user account"
+                                    >
+                                      <HiCheckCircle className="w-4 h-4" /> Approve
+                                    </button>
+                                    <button
+                                      onClick={() => handleApprove(user._id, false)}
+                                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition"
+                                      title="Reject user account"
+                                    >
+                                      <HiX className="w-4 h-4" /> Reject
+                                    </button>
+                                  </>
+                                )}
+                                <button
+                                  onClick={() => toggleBlock(user._id, user.isBlocked)}
+                                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition ${user.isBlocked
+                                      ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                                      : 'bg-red-50 text-red-700 hover:bg-red-100'
+                                    }`}
+                                >
+                                  {user.isBlocked ? <HiCheckCircle className="w-4 h-4" /> : <HiBan className="w-4 h-4" />}
+                                  {user.isBlocked ? 'Unblock' : 'Block'}
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(user._id, user.name)}
+                                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition"
+                                  title="Delete user permanently"
+                                >
+                                  <HiTrash className="w-4 h-4" />
+                                  Delete
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

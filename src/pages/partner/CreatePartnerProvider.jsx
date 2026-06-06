@@ -14,6 +14,7 @@ import {
 import partnerApi from "../../services/partnerApi";
 import useSubmitLock from "../../hooks/useSubmitLock";
 import { sanitizePayload } from "../../utils/sanitizePayload";
+import CountryPhoneInput from "../../components/common/CountryPhoneInput";
 
 
 const CreatePartnerProvider = () => {
@@ -21,6 +22,8 @@ const CreatePartnerProvider = () => {
     name: "",
     email: "",
     phone: "",
+    countryCode: "+91",
+    nationalNumber: "",
     selectedPlanId: "",
   });
   const [credentials, setCredentials] = useState(null);
@@ -28,6 +31,15 @@ const CreatePartnerProvider = () => {
   const { isSubmitting, withLock } = useSubmitLock();
 
   const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handlePhoneChange = (phoneData) => {
+    setForm((prev) => ({
+      ...prev,
+      phone: phoneData.fullPhone,
+      countryCode: phoneData.countryCode,
+      nationalNumber: phoneData.nationalNumber,
+    }));
+  };
 
 
   const submit = withLock(async (e) => {
@@ -37,7 +49,7 @@ const CreatePartnerProvider = () => {
       const res = await partnerApi.createProvider(cleanForm);
       setCredentials({ email: cleanForm.email, password: res.data.password });
       toast.success("Provider created and payment link sent");
-      setForm({ name: "", email: "", phone: "", selectedPlanId: "" });
+      setForm({ name: "", email: "", phone: "", countryCode: "+91", nationalNumber: "", selectedPlanId: "" });
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to create provider");
     }
@@ -159,7 +171,34 @@ const CreatePartnerProvider = () => {
                   {[
                     { icon: HiUser, name: "name", placeholder: "Full name", type: "text", required: true },
                     { icon: HiMail, name: "email", placeholder: "Email address", type: "email", required: true },
-                    { icon: HiPhone, name: "phone", placeholder: "Phone number", type: "text" },
+                  ].map((field) => {
+                    const Icon = field.icon;
+                    return (
+                      <div key={field.name} className="group relative">
+                        <Icon className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-purple-600" />
+                        <input
+                          name={field.name}
+                          type={field.type}
+                          value={form[field.name]}
+                          onChange={update}
+                          placeholder={field.placeholder}
+                          required={field.required}
+                          className="w-full rounded-3xl border border-white bg-white/80 py-5 pl-14 pr-5 font-semibold text-slate-900 outline-none shadow-sm transition placeholder:text-slate-400 focus:border-purple-200 focus:bg-white focus:ring-4 focus:ring-purple-100"
+                        />
+                      </div>
+                    );
+                  })}
+
+                  <div className="relative">
+                    <CountryPhoneInput
+                      variant="partner-provider"
+                      countryCode={form.countryCode}
+                      nationalNumber={form.nationalNumber}
+                      onChange={handlePhoneChange}
+                    />
+                  </div>
+
+                  {[
                     { icon: HiTicket, name: "selectedPlanId", placeholder: "Plan ID (optional)", type: "text" },
                   ].map((field) => {
                     const Icon = field.icon;

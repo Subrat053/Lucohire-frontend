@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { Agentation } from "agentation";
 
 import ScrollToTop from "./components/common/ScrollToTop";
 import RouteLoader from "./components/common/RouteLoader";
@@ -89,7 +90,7 @@ function App() {
       <Suspense fallback={null}>
         <CookieConsent />
       </Suspense>
-      {user?.activeRole && ['recruiter', 'admin'].includes(user.activeRole) && (
+      {user?.activeRole && ['provider', 'recruiter', 'admin'].includes(user.activeRole) && (
         <Suspense fallback={null}>
           <AIChatWidget role={user.activeRole} />
         </Suspense>
@@ -116,6 +117,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      {import.meta.env.DEV && <Agentation />}
     </Router>
   );
 }

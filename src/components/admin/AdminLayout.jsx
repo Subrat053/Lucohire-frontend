@@ -27,7 +27,7 @@ const navItems = [
   { labelKey: 'admin.navPayments', fallback: 'Payments', path: '/admin/payments',    icon: HiCreditCard },
   { labelKey: 'admin.payoutRequests', fallback: 'Payout Requests', path: '/admin/withdrawals', icon: HiCurrencyRupee, adminOnly: true },
   { labelKey: 'admin.commissionRules', fallback: 'Commission Rules', path: '/admin/commission-settings', icon: HiCog, adminOnly: true },
-  { labelKey: 'admin.providerSubscriptions', fallback: 'Provider Subscriptions', path: '/admin/provider-subscriptions', icon: HiDocumentText },
+  { labelKey: 'admin.userSubscriptions', fallback: 'User Subscriptions', path: '/admin/provider-subscriptions', icon: HiDocumentText },
   { labelKey: 'admin.navWhatsapp', fallback: 'WhatsApp', path: '/admin/whatsapp',    icon: FaWhatsapp },
   { labelKey: 'admin.navCurrency', fallback: 'Currency', path: '/admin/currency',    icon: HiGlobe },
   { labelKey: 'admin.aiOps', fallback: 'AI Ops', path: '/admin/ai',          icon: HiCog, adminOnly: true },

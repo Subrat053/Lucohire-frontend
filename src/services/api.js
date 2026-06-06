@@ -288,7 +288,7 @@ export const adminAPI = {
   login: (data) => ADMIN_API.post("/admin/login", data),
   getMe: () => ADMIN_API.get("/admin/me"),
   getDashboard: () => ADMIN_API.get("/admin/dashboard"),
-  getDashboardStats: () => ADMIN_API.get("/admin/partners/dashboard/stats"),
+  getDashboardStats: (params) => ADMIN_API.get("/admin/partners/dashboard/stats", { params }),
   getUsers: (params) => ADMIN_API.get("/admin/users", { params }),
   uploadProviders: (formData) => ADMIN_API.post("/admin/providers/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -335,6 +335,16 @@ export const adminAPI = {
     ADMIN_API.get("/admin/provider-subscriptions", { params }),
   updateProviderSubscriptionStatus: (id, data) =>
     ADMIN_API.patch(`/admin/provider-subscriptions/${id}/status`, data),
+  getUserSubscriptions: (params) =>
+    ADMIN_API.get("/admin/user-subscriptions", { params }),
+  getUserSubscriptionAnalytics: (params) =>
+    ADMIN_API.get("/admin/user-subscriptions/analytics", { params }),
+  sendUserSubscriptionReminder: (data) =>
+    ADMIN_API.post("/admin/user-subscriptions/send-reminder", data),
+  bulkUserSubscriptionAction: (data) =>
+    ADMIN_API.post("/admin/user-subscriptions/bulk-action", data),
+  updateUserSubscriptionStatus: (id, data) =>
+    ADMIN_API.patch(`/admin/user-subscriptions/${id}/status`, data),
   getJobs: () => ADMIN_API.get("/admin/jobs"),
   uploadProfilePhoto: (formData) =>
     ADMIN_API.post("/admin/profile/photo", formData, {
@@ -363,6 +373,21 @@ export const adminAPI = {
 
   rejectResume: (userId, reason = "") =>
     ADMIN_API.patch(`/admin/resume-approvals/${userId}/reject`, { reason }),
+
+  // ── Profile Review System (complete overhaul) ──────────────────────────
+  getProfileReviews: (params) => ADMIN_API.get("/admin/profile-reviews", { params }),
+  getProfileReviewStats: () => ADMIN_API.get("/admin/profile-reviews/stats"),
+  getDistinctLocations: (params) => ADMIN_API.get("/admin/profile-reviews/distinct-locations", { params }),
+  getProfileReviewDetail: (userId) => ADMIN_API.get(`/admin/profile-reviews/${userId}`),
+  approveProfileSection: (userId, sectionKey) =>
+    ADMIN_API.patch(`/admin/profile-reviews/${userId}/sections/${sectionKey}/approve`),
+  rejectProfileSection: (userId, sectionKey, reason = "") =>
+    ADMIN_API.patch(`/admin/profile-reviews/${userId}/sections/${sectionKey}/reject`, { reason }),
+  addSectionRemark: (userId, sectionKey, remark) =>
+    ADMIN_API.post(`/admin/profile-reviews/${userId}/sections/${sectionKey}/remark`, { remark }),
+  sendProfileCorrectionEmail: (userId, data) =>
+    ADMIN_API.post(`/admin/profile-reviews/${userId}/notify`, data),
+  bulkProfileAction: (data) => ADMIN_API.post("/admin/profile-reviews/bulk", data),
 
   getContent: (type) => ADMIN_API.get(`/admin/content/${type}`),
   updateContent: (type, value) =>
@@ -603,6 +628,7 @@ export const adminWithdrawalAPI = {
   updateStatus: (id, data) => API.put(`/admin/payout-withdrawals/${id}/status`, data),
   getCommissionSettings: () => API.get("/admin/payout-withdrawals/commission-settings"),
   updateCommissionSettings: (data) => API.put("/admin/payout-withdrawals/commission-settings", data),
+  getBillingRuleHistory: () => API.get("/admin/payout-withdrawals/commission-settings/history"),
 };
 
 export default API;

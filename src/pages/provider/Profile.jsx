@@ -19,6 +19,7 @@ import { compressImage } from "../../utils/fileCompressionService";
 import { validateUploadFile } from "../../utils/fileValidationService";
 import SkillSearchSelect from "../../components/common/SkillSearchSelect";
 import SmartMultiSelect from "../../components/common/SmartMultiSelect";
+import CountryPhoneInput, { parsePhoneString } from "../../components/common/CountryPhoneInput";
 import {
   User as UserIcon,
   Phone as PhoneIcon,
@@ -448,7 +449,9 @@ const ProviderProfile = () => {
     pricingType: "",
     location: null,
     profileName: "",
-    phone: "",
+    phone: "",          // full E.164 stored on User
+    countryCode: "+91", // derived from phone for the picker
+    nationalNumber: "", // national part without dial code
     resumeUrl: "",
     pricingReason: "",
   });
@@ -720,6 +723,9 @@ const ProviderProfile = () => {
           displayPhoto = data.user.profilePhotoApproval.pendingUrl;
         }
 
+        const rawPhone = data.user?.phone || "";
+        const parsedPhone = parsePhoneString(rawPhone);
+
         const defaultForm = {
           name: data.user?.name || "",
           skills: data.skills || [],
@@ -740,7 +746,9 @@ const ProviderProfile = () => {
           pricingType: data.pricingType || "",
           location: data.location || null,
           profileName: data.profileName || "",
-          phone: data.user?.phone || "",
+          phone: parsedPhone.fullPhone || rawPhone,
+          countryCode: parsedPhone.countryCode || "+91",
+          nationalNumber: parsedPhone.nationalNumber || "",
           resumeUrl: data.resumeUrl || "",
           pricingReason: data.pricingReason || "",
         };
@@ -1219,12 +1227,13 @@ const ProviderProfile = () => {
       if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
       return toast.error("Please select at least one role (Role is mandatory)");
     }
-    const cleanPhone = String(form.phone || "").replace(/\D/g, "");
-    if (!cleanPhone || cleanPhone.length < 10) {
+    const cleanPhone = form.phone || "";
+    const nationalDigits = String(form.nationalNumber || "").replace(/\D/g, "");
+    if (!nationalDigits || nationalDigits.length < 7) {
       const card = document.getElementById("basic-info-card");
       if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
       return toast.error(
-        "Please enter a valid 10-digit WhatsApp/Contact number (Contact number is mandatory)",
+        "Please enter a valid WhatsApp/Contact number (Contact number is mandatory)",
       );
     }
     if (!form.pricing || Number(form.pricing) <= 0) {
@@ -1304,7 +1313,7 @@ const ProviderProfile = () => {
         pricing: form.pricing,
         pricingType: form.pricingType,
         profileName: form.profileName,
-        phone: cleanPhone,
+        phone: form.phone || (form.countryCode + form.nationalNumber),
         resumeUrl: form.resumeUrl,
       };
       // sanitizePayload only touches string fields, leaves arrays/numbers intact
@@ -1509,11 +1518,8 @@ const ProviderProfile = () => {
                   missing.push("Location / City");
                 if (form.skills.length === 0)
                   missing.push("Speciality / Skill");
-                const cleanPhone = String(form.phone || "").replace(
-                  /\D/g,
-                  "",
-                );
-                if (!cleanPhone || cleanPhone.length < 10)
+                const nationalDigits = String(form.nationalNumber || "").replace(/\D/g, "");
+                if (!nationalDigits || nationalDigits.length < 7)
                   missing.push("WhatsApp / Contact Number");
                 if (!form.pricing || Number(form.pricing) <= 0)
                   missing.push("Payout / Pricing Rate");
@@ -1719,50 +1725,19 @@ const ProviderProfile = () => {
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                   WhatsApp / Contact Number
                 </label>
-                <div className="flex gap-2">
-                  <div className="w-24 shrink-0 relative">
-                    <select
-                      value={
-                        form.phone?.startsWith("+")
-                          ? form.phone.substring(0, 3)
-                          : "+91"
-                      }
-                      onChange={(e) => {
-                        const currentVal = form.phone || "";
-                        const cleanNum = currentVal.replace(/^\+\d+\s*/, "");
-                        setForm({
-                          ...form,
-                          phone: `${e.target.value} ${cleanNum}`,
-                        });
-                      }}
-                      className="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 outline-none bg-slate-50/50 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 appearance-none shadow-inner"
-                    >
-                      <option value="+91">+91 (IN)</option>
-                      <option value="+971">+971 (AE)</option>
-                      <option value="+1">+1 (US)</option>
-                      <option value="+44">+44 (UK)</option>
-                    </select>
-                    <div className="absolute right-3 top-3 pointer-events-none">
-                      <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                    </div>
-                  </div>
-
-                  <input
-                    type="text"
-                    value={form.phone?.replace(/^\+\d+\s*/, "")}
-                    onChange={(e) => {
-                      const cleanPhone = e.target.value
-                        .replace(/\D/g, "")
-                        .substring(0, 10);
-                      const prefix = form.phone?.startsWith("+")
-                        ? form.phone.split(" ")[0]
-                        : "+91";
-                      setForm({ ...form, phone: `${prefix} ${cleanPhone}` });
-                    }}
-                    placeholder="7410258963"
-                    className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
-                  />
-                </div>
+                <CountryPhoneInput
+                  variant="profile"
+                  countryCode={form.countryCode || "+91"}
+                  nationalNumber={form.nationalNumber || ""}
+                  onChange={(phoneData) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      countryCode: phoneData.countryCode,
+                      nationalNumber: phoneData.nationalNumber,
+                      phone: phoneData.fullPhone,
+                    }))
+                  }
+                />
               </div>
             </div>
           </div>

@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import CountryPhoneInput from '../../components/common/CountryPhoneInput';
 
-const initialForm = { name: '', email: '', phone: '', password: '' };
+const initialForm = { name: '', email: '', phone: '', countryCode: '+91', nationalNumber: '', password: '' };
 
 const AdminManagers = () => {
   const [managers, setManagers] = useState([]);
@@ -12,6 +13,15 @@ const AdminManagers = () => {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState('');
+
+  const handlePhoneChange = (phoneData) => {
+    setForm((prev) => ({
+      ...prev,
+      phone: phoneData.fullPhone,
+      countryCode: phoneData.countryCode,
+      nationalNumber: phoneData.nationalNumber,
+    }));
+  };
 
   const fetchData = async () => {
     try {
@@ -89,12 +99,14 @@ const AdminManagers = () => {
               placeholder="Manager email"
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl"
             />
-            <input
-              value={form.phone}
-              onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-              placeholder="Phone (optional)"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl"
-            />
+            <div className="relative">
+              <CountryPhoneInput
+                variant="admin-manager"
+                countryCode={form.countryCode}
+                nationalNumber={form.nationalNumber}
+                onChange={handlePhoneChange}
+              />
+            </div>
             <input
               type="password"
               value={form.password}

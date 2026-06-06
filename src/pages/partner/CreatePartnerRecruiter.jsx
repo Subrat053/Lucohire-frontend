@@ -16,6 +16,7 @@ import {
 import partnerApi from "../../services/partnerApi";
 import useSubmitLock from "../../hooks/useSubmitLock";
 import { sanitizePayload } from "../../utils/sanitizePayload";
+import CountryPhoneInput from "../../components/common/CountryPhoneInput";
 
 
 const CreatePartnerRecruiter = () => {
@@ -23,6 +24,8 @@ const CreatePartnerRecruiter = () => {
     name: "",
     email: "",
     phone: "",
+    countryCode: "+91",
+    nationalNumber: "",
     selectedPlanId: "",
   });
 
@@ -31,6 +34,15 @@ const CreatePartnerRecruiter = () => {
 
   const update = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handlePhoneChange = (phoneData) => {
+    setForm((prev) => ({
+      ...prev,
+      phone: phoneData.fullPhone,
+      countryCode: phoneData.countryCode,
+      nationalNumber: phoneData.nationalNumber,
+    }));
+  };
 
 
   const submit = withLock(async (e) => {
@@ -51,6 +63,8 @@ const CreatePartnerRecruiter = () => {
         name: "",
         email: "",
         phone: "",
+        countryCode: "+91",
+        nationalNumber: "",
         selectedPlanId: "",
       });
     } catch (error) {
@@ -312,17 +326,12 @@ Password: ${credentials.password}`;
                       Contact Number
                     </label>
 
-                    <div className="relative">
-                      <HiPhone className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-600 transition-all" />
-
-                      <input
-                        name="phone"
-                        value={form.phone}
-                        onChange={update}
-                        placeholder="Contact Number"
-                        className="w-full h-16 pl-14 pr-5 rounded-2xl border border-slate-200 bg-slate-50/80 focus:bg-white focus:border-violet-300 focus:ring-4 focus:ring-violet-100 outline-none transition-all text-slate-900 font-semibold"
-                      />
-                    </div>
+                    <CountryPhoneInput
+                      variant="partner-recruiter"
+                      countryCode={form.countryCode}
+                      nationalNumber={form.nationalNumber}
+                      onChange={handlePhoneChange}
+                    />
                   </div>
 
                   {/* Plan ID */}

@@ -33,6 +33,7 @@ import SkillSearchSelect from "../components/common/SkillSearchSelect";
 import useSubmitLock from "../hooks/useSubmitLock";
 import { sanitizePayload } from "../utils/sanitizePayload";
 import CascadeLocationSelect from "../components/common/CascadeLocationSelect";
+import CountryPhoneInput, { parsePhoneString } from "../components/common/CountryPhoneInput";
 
 /* keep all your existing illustration / small components same */
 /* ═══════════════════════════ ILLUSTRATIONS ═══════════════════════════ */
@@ -571,38 +572,15 @@ const OrLine = ({ label }) => (
     <div className="flex-1 border-t border-dashed border-gray-200" />
   </div>
 );
-const PhoneField = ({ value, onChange, accent = "blue" }) => {
-  const { t } = useTranslation();
+const PhoneField = ({ form, onChange, error, accent = "blue" }) => {
   return (
-    <div className="flex gap-2">
-      <div className="flex items-center gap-1.5 px-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-sm text-gray-700 shrink-0 font-medium">
-        <span>🇮🇳</span>
-        <span>+91</span>
-        <svg
-          className="w-3 h-3 text-gray-400 ml-0.5"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </div>
-      <div className="relative flex-1">
-        <HiPhone className="absolute left-3.5 top-3.5 w-5 h-5 text-gray-400" />
-        <input
-          name="phone"
-          aria-label={t("common.phoneNumber", "Phone Number")}
-          value={value}
-          onChange={onChange}
-          placeholder={t("common.phoneNumber", "Phone Number")}
-          inputMode="tel"
-          className={`w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl outline-none transition text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-${accent}-400 focus:border-transparent`}
-        />
-      </div>
-    </div>
+    <CountryPhoneInput
+      countryCode={form.countryCode || "+91"}
+      nationalNumber={form.nationalNumber || ""}
+      onChange={onChange}
+      error={error}
+      accent={accent}
+    />
   );
 };
 
@@ -733,6 +711,8 @@ const AuthPage = () => {
     name: "",
     email: "",
     phone: "",
+    countryCode: "+91",
+    nationalNumber: "",
     password: "",
     confirmPassword: "",
     otp: "",
@@ -800,6 +780,8 @@ const AuthPage = () => {
       name: "",
       email: "",
       phone: "",
+      countryCode: "+91",
+      nationalNumber: "",
       password: "",
       confirmPassword: "",
       otp: "",
@@ -951,6 +933,19 @@ const AuthPage = () => {
     }
   };
 
+  const handlePhoneInputChange = (phoneData) => {
+    setForm((prev) => ({
+      ...prev,
+      phone: phoneData.fullPhone,
+      countryCode: phoneData.countryCode,
+      nationalNumber: phoneData.nationalNumber,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      phone: phoneData.validationError || "",
+    }));
+  };
+
   const loadFirebaseAuth = async () => {
     if (firebaseRef.current) return firebaseRef.current;
 
@@ -969,23 +964,8 @@ const AuthPage = () => {
   };
 
   const getFormattedPhone = () => {
-    const cleanPhone = form.phone.replace(/\D/g, "");
-
-    if (!cleanPhone) return "";
-
-    if (form.phone.startsWith("+")) {
-      return form.phone;
-    }
-
-    if (cleanPhone.length === 10) {
-      return `+91${cleanPhone}`;
-    }
-
-    if (cleanPhone.startsWith("91") && cleanPhone.length === 12) {
-      return `+${cleanPhone}`;
-    }
-
-    return `+91${cleanPhone}`;
+    if (!form.nationalNumber) return "";
+    return (form.countryCode || "+91") + form.nationalNumber;
   };
 
   const setupRecaptcha = () => {
@@ -1127,7 +1107,14 @@ const AuthPage = () => {
       console.log("[PHONE OTP SENT]");
 
       setConfirmationResult(result);
-      setForm((f) => ({ ...f, phone: formattedPhone, otp: "" }));
+      const parsed = parsePhoneString(formattedPhone);
+      setForm((f) => ({
+        ...f,
+        phone: formattedPhone,
+        countryCode: parsed.countryCode,
+        nationalNumber: parsed.nationalNumber,
+        otp: "",
+      }));
 
       toast.success("OTP sent successfully");
       setMode("phone-verify");
@@ -1601,7 +1588,7 @@ const AuthPage = () => {
             required
           />
 
-          <PhoneField value={form.phone} onChange={handleChange} />
+          <PhoneField form={form} onChange={handlePhoneInputChange} error={errors.phone} />
 
           <div className="space-y-1">
             <TextInput
@@ -1805,8 +1792,9 @@ const AuthPage = () => {
           />
 
           <PhoneField
-            value={form.phone}
-            onChange={handleChange}
+            form={form}
+            onChange={handlePhoneInputChange}
+            error={errors.phone}
             accent="green"
           />
 
@@ -2026,8 +2014,9 @@ const AuthPage = () => {
           </div>
 
           <PhoneField
-            value={form.phone}
-            onChange={handleChange}
+            form={form}
+            onChange={handlePhoneInputChange}
+            error={errors.phone}
             accent="green"
           />
 

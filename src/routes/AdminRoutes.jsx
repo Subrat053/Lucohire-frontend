@@ -30,7 +30,8 @@ const AdminSkills = lazy(() => import("../pages/admin/Skills"));
 const AdminWhatsApp = lazy(() => import("../pages/admin/WhatsApp"));
 const AdminCurrency = lazy(() => import("../pages/admin/Currency"));
 const AdminAIOps = lazy(() => import("../pages/admin/AIControlCenter"));
-const ProfilePhotoApprovals = lazy(() => import("../pages/admin/ProfilePhotoApprovals"));
+const ProfileApprovals = lazy(() => import("../pages/admin/ProfileApprovals"));
+const ProfileReviewDetail = lazy(() => import("../pages/admin/ProfileReviewDetail"));
 const ResumeApprovals = lazy(() => import("../pages/admin/ResumeApprovals"));
 const AdminPortfolioApprovals = lazy(() => import("../pages/admin/PortfolioApprovals"));
 const AdminEnquiries = lazy(() => import("../pages/admin/Enquiries"));
@@ -81,7 +82,9 @@ export default function AdminRoutes() {
       <Route path="whatsapp" element={wrap(<AdminWhatsApp />)} />
       <Route path="currency" element={wrap(<AdminCurrency />)} />
       <Route path="ai" element={wrap(<AdminAIOps />)} />
-      <Route path="profile-photo-approvals" element={wrap(<ProfilePhotoApprovals />)} />
+      <Route path="profile-photo-approvals" element={wrap(<ProfileApprovals />)} />
+      <Route path="profile-approvals" element={wrap(<ProfileApprovals />)} />
+      <Route path="profile-approval/:userId" element={wrap(<ProfileReviewDetail />)} />
       <Route path="resume-approvals" element={wrap(<ResumeApprovals />)} />
       <Route path="portfolio-approvals" element={wrap(<AdminPortfolioApprovals />)} />
       <Route path="enquiries" element={wrap(<AdminEnquiries />)} />

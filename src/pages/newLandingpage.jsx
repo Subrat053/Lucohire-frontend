@@ -166,75 +166,93 @@ const Pill = ({ active, children, onClick }) => (
 //   </div>
 // );
 
-const ProviderCard = ({ p, onClick }) => (
-  <div
-    onClick={onClick}
-    className="bg-white rounded-2xl border border-[#E7ECF4] p-5 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition cursor-pointer flex flex-col gap-3"
-  >
-    <div className="flex items-center gap-3">
-      <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold ${p.avatarBg}`}>
-        {p.initials}
-      </div>
+const ProviderCard = ({ p, onClick }) => {
+  const navigate = useNavigate();
+  const maxSkillsToShow = 2;
+  const visibleSkills = p.tags ? p.tags.slice(0, maxSkillsToShow) : [];
+  const remainingSkills = p.tags ? Math.max(0, p.tags.length - maxSkillsToShow) : 0;
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <h3 className="font-bold text-[#081B3A] text-sm truncate">{p.name}</h3>
-          <CheckCircle2 className="w-4 h-4 text-[#12B76A] shrink-0" />
+  return (
+    <div
+      onClick={onClick}
+      className="bg-white rounded-2xl border border-[#E7ECF4] p-5 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition cursor-pointer flex flex-col h-full gap-3 justify-between"
+    >
+      {/* Header section */}
+      <div className="flex items-center gap-3 min-h-[44px]">
+        <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${p.avatarBg}`}>
+          {p.initials}
         </div>
-        <p className="text-xs text-[#6B7280] truncate">{p.role}</p>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h3 className="font-bold text-[#081B3A] text-sm truncate" title={p.name}>{p.name}</h3>
+            <CheckCircle2 className="w-4 h-4 text-[#12B76A] shrink-0" />
+          </div>
+          <p className="text-xs text-[#6B7280] truncate" title={p.role}>{p.role}</p>
+        </div>
       </div>
-    </div>
 
-    <div className="flex items-center gap-1.5 text-xs">
-      <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" />
-      <span className="font-bold text-[#081B3A]">{p.rating}</span>
-      <span className="text-[#6B7280]">({p.reviews} reviews)</span>
-    </div>
+      {/* Rating section */}
+      <div className="flex items-center gap-1.5 text-xs h-4">
+        <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B] shrink-0" />
+        <span className="font-bold text-[#081B3A]">{p.rating}</span>
+        <span className="text-[#6B7280]">({p.reviews} reviews)</span>
+      </div>
 
-    <div className="flex items-center gap-1 text-xs text-[#6B7280]">
-      <MapPin className="w-3 h-3" /> {p.city}
-    </div>
+      {/* Location section */}
+      <div className="flex items-center gap-1 text-xs text-[#6B7280] h-4 truncate">
+        <MapPin className="w-3 h-3 shrink-0" /> <span className="truncate">{p.city}</span>
+      </div>
 
-    <div className="flex flex-wrap gap-1.5">
-      {p.tags.map((t) => (
-        <span
-          key={t}
-          className="text-[11px] font-medium text-[#374151] bg-[#F3F6FB] border border-[#E7ECF4] px-2 py-0.5 rounded-md"
+      {/* Skills/badges section (fixed height) */}
+      <div className="flex flex-wrap items-center gap-1.5 h-7 overflow-hidden">
+        {visibleSkills.map((t) => (
+          <span
+            key={t}
+            className="text-[11px] font-medium text-[#374151] bg-[#F3F6FB] border border-[#E7ECF4] px-2 py-0.5 rounded-md truncate max-w-[100px]"
+            title={t}
+          >
+            {t}
+          </span>
+        ))}
+        {remainingSkills > 0 && (
+          <span className="text-[11px] font-medium text-[#6B7280] bg-[#F3F4F6] border border-[#E5E7EB] px-2 py-0.5 rounded-md shrink-0">
+            +{remainingSkills} more
+          </span>
+        )}
+      </div>
+
+      {/* Price and distance section */}
+      <div className="flex items-baseline justify-between pt-1 border-t border-[#F3F6FB] mt-auto">
+        <div>
+          <span className="text-lg font-extrabold text-[#081B3A]">₹{p.rate}</span>
+          <span className="text-xs text-[#6B7280]"> /hr</span>
+        </div>
+        <span className="text-xs text-[#6B7280]">~{p.distanceKm}m</span>
+      </div>
+
+      {/* CTA buttons row */}
+      <div className="flex gap-2 pt-1 mt-2">
+        <button
+          onClick={(e) => { e.stopPropagation(); navigate('/contact'); }}
+          className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#374151] text-xs font-semibold py-2 rounded-xl hover:bg-[#F7F9FC] transition h-9"
         >
-          {t}
-        </span>
-      ))}
-    </div>
+          <MessageCircle className="w-3.5 h-3.5" /> Contact Us
+        </button>
 
-    <div className="flex items-baseline justify-between pt-1">
-      <div>
-        <span className="text-lg font-extrabold text-[#081B3A]">₹{p.rate}</span>
-        <span className="text-xs text-[#6B7280]"> /hr</span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick();
+          }}
+          className="flex-1 flex items-center justify-center gap-1.5 bg-[#1677FF] hover:bg-[#0E5FCC] text-white text-xs font-bold py-2 rounded-xl transition h-9"
+        >
+          <Phone className="w-3.5 h-3.5" /> Call Now
+        </button>
       </div>
-      <span className="text-xs text-[#6B7280]">~{p.distanceKm}m</span>
     </div>
-
-    <div className="flex gap-2 pt-1">
-      <button
-        onClick={(e) => { e.stopPropagation(); navigate('/contact'); }}
-        className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#374151] text-xs font-semibold py-2 rounded-xl hover:bg-[#F7F9FC] transition"
-      >
-        <MessageCircle className="w-3.5 h-3.5" /> Contact Us
-      </button>
-
-
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onClick();
-        }}
-        className="flex-1 flex items-center justify-center gap-1.5 bg-[#1677FF] hover:bg-[#0E5FCC] text-white text-xs font-bold py-2 rounded-xl transition"
-      >
-        <Phone className="w-3.5 h-3.5" /> Call Now
-      </button>
-    </div>
-  </div>
-);
+  );
+};
 
 /* ═══════════════════════ MAIN PAGE ════════════════════════════════════ */
 const Index = () => {
@@ -404,7 +422,7 @@ const Index = () => {
             <Pill active={activeTier === "semi-skilled"} onClick={() => setActiveTier("semi-skilled")}>Semi-skilled</Pill>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 items-stretch">
             {displayedProviders.map((p) => (
               <ProviderCard key={p._id} p={p} onClick={() => navigate(`/p/${p._id}`)} />
             ))}

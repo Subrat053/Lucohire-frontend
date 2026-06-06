@@ -138,8 +138,8 @@ const PartnerReferrals = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {referrals.length > 0 ? (
-                  referrals.map((member) => (
-                    <tr key={member.userId} className="hover:bg-gray-50/50 transition-colors">
+                  referrals.map((member, index) => (
+                    <tr key={member.userId || member._id || member.id || index} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold shrink-0">

@@ -43,13 +43,20 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
   };
   const planBadgeStyle = badgeStyleByLevel[visibilityLevel] || 'bg-[#E6F2FF] text-[#0B6BFF] border border-[#CFE2FF]';
 
+  // Limit skills to 2 or 3
+  const maxSkillsToShow = 2;
+  const visibleSkills = skills.slice(0, maxSkillsToShow);
+  const remainingSkills = skills.length - maxSkillsToShow;
+
   if (variant === 'landing') {
+    const roleText = provider.role || provider.category || provider.headline || t('common.professional', 'Professional');
     return (
       <div
         onClick={onClick}
-        className="bg-white rounded-2xl border border-[#E7ECF4] p-5 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition cursor-pointer flex flex-col gap-3"
+        className="bg-white rounded-2xl border border-[#E7ECF4] p-5 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition cursor-pointer flex flex-col h-full gap-3 justify-between"
       >
-        <div className="flex items-center gap-3">
+        {/* Header section */}
+        <div className="flex items-center gap-3 min-h-[44px]">
           {image ? (
             <img
               src={toOptimizedMediaUrl(image, { width: 88, height: 88, crop: 'fill', dpr: 'auto' })}
@@ -58,55 +65,67 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
               height={44}
               loading="lazy"
               decoding="async"
-              className="w-11 h-11 rounded-full object-cover border border-[#E7ECF4]"
+              className="w-11 h-11 rounded-full object-cover border border-[#E7ECF4] shrink-0"
             />
           ) : (
-            <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold ${provider.avatarBg || landingAvatarColors[index % landingAvatarColors.length]}`}>
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${provider.avatarBg || landingAvatarColors[index % landingAvatarColors.length]}`}>
               {initials}
             </div>
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <h3 className="font-bold text-[#081B3A] text-sm truncate">{name}</h3>
-              <CheckCircle2 className="w-4 h-4 text-[#12B76A] shrink-0" />
+              <h3 className="font-bold text-[#081B3A] text-sm truncate" title={name}>{name}</h3>
+              {provider.isVerified !== false && <CheckCircle2 className="w-4 h-4 text-[#12B76A] shrink-0" />}
             </div>
-            <p className="text-xs text-[#6B7280] truncate">{provider.role || provider.category || provider.headline || t('common.professional', 'Professional')}</p>
+            <p className="text-xs text-[#6B7280] truncate" title={roleText}>{roleText}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs">
-          <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" />
+        {/* Rating section */}
+        <div className="flex items-center gap-1.5 text-xs h-4">
+          <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B] shrink-0" />
           <span className="font-bold text-[#081B3A]">{rating}</span>
           <span className="text-[#6B7280]">({reviews} {t('common.reviews', 'reviews')})</span>
         </div>
 
-        <div className="flex items-center gap-1 text-xs text-[#6B7280]">
-          <MapPin className="w-3 h-3" /> {location}
+        {/* Location section */}
+        <div className="flex items-center gap-1 text-xs text-[#6B7280] h-4 truncate">
+          <MapPin className="w-3 h-3 shrink-0" /> <span className="truncate">{location || t('common.locationUnavailable', 'Location N/A')}</span>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
-          {skills.slice(0, 3).map((skill) => (
+        {/* Skills section (fixed height) */}
+        <div className="flex flex-wrap items-center gap-1.5 h-7 overflow-hidden">
+          {visibleSkills.map((skill) => (
             <span
               key={skill}
-              className="text-[11px] font-medium text-[#374151] bg-[#F3F6FB] border border-[#E7ECF4] px-2 py-0.5 rounded-md"
+              className="text-[11px] font-medium text-[#374151] bg-[#F3F6FB] border border-[#E7ECF4] px-2 py-0.5 rounded-md truncate max-w-[100px]"
             >
               {skill}
             </span>
           ))}
+          {remainingSkills > 0 && (
+            <span className="text-[11px] font-medium text-[#6B7280] bg-[#F3F4F6] border border-[#E5E7EB] px-2 py-0.5 rounded-md shrink-0">
+              +{remainingSkills} more
+            </span>
+          )}
         </div>
 
-        <div className="flex items-baseline justify-between pt-1">
+        {/* Price and distance section */}
+        <div className="flex items-baseline justify-between pt-1 border-t border-[#F3F6FB] mt-auto">
           <div>
             <span className="text-lg font-extrabold text-[#081B3A]">₹{ratePerHour}</span>
             <span className="text-xs text-[#6B7280]"> /hr</span>
           </div>
-          <span className="text-xs text-[#6B7280]">{provider.distanceKm != null ? `~${provider.distanceKm}m` : ''}</span>
+          <span className="text-xs text-[#6B7280]">
+            {provider.distanceKm != null ? `~${provider.distanceKm}m` : ''}
+          </span>
         </div>
 
-        <div className="flex gap-2 pt-1">
+        {/* CTA buttons row */}
+        <div className="flex gap-2 pt-1 mt-2">
           <button
             onClick={(e) => e.stopPropagation()}
-            className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#374151] text-xs font-semibold py-2 rounded-xl hover:bg-[#F7F9FC] transition"
+            className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#374151] text-xs font-semibold py-2 rounded-xl hover:bg-[#F7F9FC] transition h-9"
           >
             <MessageCircle className="w-3.5 h-3.5" /> {t('common.whatsapp', 'WhatsApp')}
           </button>
@@ -115,7 +134,7 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
               e.stopPropagation();
               onClick?.();
             }}
-            className="flex-1 flex items-center justify-center gap-1.5 bg-[#1677FF] hover:bg-[#0E5FCC] text-white text-xs font-bold py-2 rounded-xl transition"
+            className="flex-1 flex items-center justify-center gap-1.5 bg-[#1677FF] hover:bg-[#0E5FCC] text-white text-xs font-bold py-2 rounded-xl transition h-9"
           >
             <Phone className="w-3.5 h-3.5" /> {t('common.callNow', 'Call Now')}
           </button>
@@ -131,80 +150,130 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
     skilled: t('search.tierSkilled'),
   };
 
+  const roleText = provider.role || provider.category || provider.headline || t('common.professional', 'Professional');
+  const experienceText = provider.experience ? provider.experience : 'N/A';
+  const displayRole = `${roleText} • ${experienceText}`;
+
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-2xl border hover:shadow-md transition-all duration-200 cursor-pointer group p-5 ${badge==='rotation'?'border-amber-300 ring-2 ring-amber-100':badge==='featured'?'border-indigo-200':'border-stone-200'}`}
+      className={`bg-white rounded-2xl border hover:shadow-md transition-all duration-200 cursor-pointer group p-5 flex flex-col h-full gap-3 justify-between ${badge==='rotation'?'border-amber-300 ring-2 ring-amber-100':badge==='featured'?'border-indigo-200':'border-stone-200'}`}
     >
-      {badge && (
-        <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold mb-3 ${badge==='rotation'?'bg-amber-100 text-amber-700':'bg-indigo-100 text-indigo-700'}`}>
-          {badge==='rotation' ? t('search.topProvider') : t('search.featured')}
-        </div>
-      )}
-      {planBadge && (
-        <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold mb-3 ${planBadgeStyle}`}>
-          {planBadge}
-        </div>
-      )}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-xl bg-stone-100 overflow-hidden shrink-0 border border-stone-200">
-            {image ? (
-              <img
-                src={toOptimizedMediaUrl(image, { width: 112, height: 112, crop: 'fill', dpr: 'auto' })}
-                alt={name}
-                width={56}
-                height={56}
-                loading="lazy"
-                decoding="async"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-amber-50 text-amber-600 font-bold text-xl">
-                {initials}
-              </div>
+      <div>
+        {(badge || planBadge) && (
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {badge && (
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${badge==='rotation'?'bg-amber-100 text-amber-700':'bg-indigo-100 text-indigo-700'}`}>
+                {badge==='rotation' ? t('search.topProvider') : t('search.featured')}
+              </span>
+            )}
+            {planBadge && (
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${planBadgeStyle}`}>
+                {planBadge}
+              </span>
             )}
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1 mb-0.5">
-              <h3 className="font-semibold text-stone-800 text-sm truncate">{name}</h3>
-              {provider.isVerified && <HiBadgeCheck className="w-4 h-4 text-blue-500 shrink-0" />}
+        )}
+        
+        {/* Header section */}
+        <div className="flex items-center gap-3 min-h-[44px]">
+          {image ? (
+            <img
+              src={toOptimizedMediaUrl(image, { width: 88, height: 88, crop: 'fill', dpr: 'auto' })}
+              alt={name}
+              width={44}
+              height={44}
+              loading="lazy"
+              decoding="async"
+              className="w-11 h-11 rounded-full object-cover border border-[#E7ECF4] shrink-0"
+            />
+          ) : (
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${provider.avatarBg || landingAvatarColors[index % landingAvatarColors.length]}`}>
+              {initials}
             </div>
-            <div className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-xs font-medium text-stone-700">{rating}</span>
-              <span className="text-xs text-stone-400">({reviews})</span>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <h3 className="font-bold text-[#081B3A] text-sm truncate" title={name}>{name}</h3>
+              {provider.isVerified && <CheckCircle2 className="w-4 h-4 text-[#12B76A] shrink-0" />}
             </div>
-            <p className="text-xs text-stone-400 flex items-center gap-0.5 mt-0.5">
-              <MapPin className="w-3 h-3" />{location}
-              {provider.distanceKm != null && <span>&bull; {provider.distanceKm} km</span>}
-            </p>
+            <p className="text-xs text-[#6B7280] truncate" title={displayRole}>{displayRole}</p>
           </div>
-        </div>
-        <div className="text-right shrink-0">
-          <div className="flex items-center gap-1 justify-end mb-1">
-            <span className={`w-2 h-2 rounded-full inline-block ${available ? 'bg-emerald-400' : 'bg-stone-300'}`}></span>
-            <span className={`text-xs font-medium ${available ? 'text-emerald-600' : 'text-stone-400'}`}>
-              {available ? t('search.available') : t('search.busy')}
-            </span>
-          </div>
-          {ratePerHour && <span className="text-sm font-bold text-stone-800">&#8377;{ratePerHour}<span className="text-xs font-normal text-stone-400">/hr</span></span>}
         </div>
       </div>
-      {provider.headline && <p className="text-xs text-stone-500 mb-3 line-clamp-1">{provider.headline}</p>}
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {skills.slice(0, 4).map((skill, i)=>(
-          <span key={i} className="px-2.5 py-1 bg-stone-100 text-stone-600 text-xs rounded-full font-medium">{skill}</span>
+
+      {/* Rating section */}
+      <div className="flex items-center gap-1.5 text-xs h-4">
+        <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B] shrink-0" />
+        <span className="font-bold text-[#081B3A]">{rating}</span>
+        <span className="text-[#6B7280]">({reviews} {t('common.reviews', 'reviews')})</span>
+      </div>
+
+      {/* Location section */}
+      <div className="flex items-center gap-1 text-xs text-[#6B7280] h-4 truncate">
+        <MapPin className="w-3 h-3 shrink-0" /> <span className="truncate">{location || t('common.locationUnavailable', 'Location N/A')}</span>
+      </div>
+
+      {/* Skills section (fixed height) */}
+      <div className="flex flex-wrap items-center gap-1.5 h-7 overflow-hidden">
+        {visibleSkills.map((skill) => (
+          <span
+            key={skill}
+            className="text-[11px] font-medium text-[#374151] bg-[#F3F6FB] border border-[#E7ECF4] px-2 py-0.5 rounded-md truncate max-w-[100px]"
+          >
+            {skill}
+          </span>
         ))}
-        {skills.length>4&&<span className="px-2.5 py-1 bg-stone-50 text-stone-400 text-xs rounded-full">+{skills.length-4}</span>}
-      </div>
-      <div className="flex gap-2 mt-1">
-        <button onClick={(e)=>{e.stopPropagation();onClick&&onClick();}} className="flex-1 bg-stone-900 hover:bg-stone-700 text-white py-2 rounded-xl text-xs font-semibold transition">{t('search.viewProfile')}</button>
-        {provider.tier && (
-          <span className={`self-center text-xs px-2.5 py-1.5 rounded-xl font-medium capitalize ${tierColors[provider.tier]||'bg-stone-100 text-stone-500'}`}>
-            {tierLabels[provider.tier] || provider.tier.replace('-', ' ')}
+        {remainingSkills > 0 && (
+          <span className="text-[11px] font-medium text-[#6B7280] bg-[#F3F4F6] border border-[#E5E7EB] px-2 py-0.5 rounded-md shrink-0">
+            +{remainingSkills}
           </span>
         )}
+      </div>
+
+      {/* Price and distance section */}
+      <div className="flex items-baseline justify-between pt-1 border-t border-[#F3F6FB] mt-auto">
+        <div>
+          {ratePerHour ? (
+            <span className="text-lg font-extrabold text-[#081B3A]">
+              ₹{ratePerHour}
+              <span className="text-xs font-normal text-[#6B7280]">/hr</span>
+            </span>
+          ) : (
+            <span className="text-xs text-[#6B7280]">Rate N/A</span>
+          )}
+        </div>
+        <span className="text-xs text-[#6B7280]">
+          {provider.distanceKm != null ? `~${provider.distanceKm}m` : ''}
+        </span>
+      </div>
+
+      {/* CTA buttons row */}
+      <div className="flex gap-2 pt-1 mt-2">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            const waNum = provider.whatsappNumber || provider.user?.whatsappNumber || provider.phone || provider.user?.phone;
+            if (waNum) {
+              const cleanNum = String(waNum).replace(/\D/g, '');
+              window.open(`https://wa.me/${cleanNum}`, '_blank');
+            } else {
+              alert(t('common.whatsappUnavailable', 'WhatsApp number not available'));
+            }
+          }}
+          className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#374151] text-xs font-semibold py-2 rounded-xl hover:bg-[#F7F9FC] transition h-9"
+        >
+          <MessageCircle className="w-3.5 h-3.5" /> {t('common.whatsapp', 'WhatsApp')}
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick?.();
+          }}
+          className="flex-1 flex items-center justify-center gap-1.5 bg-[#1677FF] hover:bg-[#0E5FCC] text-white text-xs font-bold py-2 rounded-xl transition h-9"
+        >
+          <Phone className="w-3.5 h-3.5" /> {t('common.callNow', 'Call Now')}
+        </button>
       </div>
     </div>
   );

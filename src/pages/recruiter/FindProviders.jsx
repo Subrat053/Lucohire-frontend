@@ -32,122 +32,140 @@ const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
   const navigate = useNavigate();
   const name = provider.user?.name || provider.name || 'Provider';
 
+  // Limit skills to 2 or 3
+  const skills = Array.isArray(provider.skills) ? provider.skills : [];
+  const maxSkillsToShow = 2;
+  const visibleSkills = skills.slice(0, maxSkillsToShow);
+  const remainingSkills = skills.length - maxSkillsToShow;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-all">
-      <div className="flex items-start gap-3 mb-3">
-        {/* Avatar */}
-        <div className="w-14 h-14 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
-          {(provider.photo || provider.profilePhoto) ? (
-            <img
-              src={toOptimizedMediaUrl(provider.photo || provider.profilePhoto, { width: 112, height: 112, crop: 'fill', dpr: 'auto' })}
-              alt={name}
-              width={56}
-              height={56}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-600 font-bold text-xl">
-              {name[0].toUpperCase()}
-            </div>
-          )}
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <h3 className="font-bold text-gray-900 text-sm truncate">{name}</h3>
-            {provider.isVerified && <HiBadgeCheck className="w-4 h-4 text-blue-500 shrink-0" />}
-            {provider.subscriptionBadge && (
-              <span className="text-xs px-1.5 py-0.5 bg-yellow-50 text-yellow-700 rounded-full border border-yellow-200 font-medium truncate">
-                {provider.subscriptionBadge}
-              </span>
+    <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-all flex flex-col h-full gap-3 justify-between">
+      <div>
+        <div className="flex items-start gap-3 mb-1">
+          {/* Avatar */}
+          <div className="w-14 h-14 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
+            {(provider.photo || provider.profilePhoto) ? (
+              <img
+                src={toOptimizedMediaUrl(provider.photo || provider.profilePhoto, { width: 112, height: 112, crop: 'fill', dpr: 'auto' })}
+                alt={name}
+                width={56}
+                height={56}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-600 font-bold text-xl">
+                {name[0].toUpperCase()}
+              </div>
             )}
           </div>
-          <div className="flex items-center gap-1 mb-0.5">
-            <HiStar className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-xs font-medium text-gray-700">{provider.rating || provider.averageRating || '0.0'}</span>
-            <span className="text-xs text-gray-400">({provider.totalReviews || 0})</span>
-          </div>
-          <p className="text-xs text-gray-500 flex items-center gap-0.5">
-            <HiLocationMarker className="w-3 h-3" /> {provider.city || 'Location N/A'}
-          </p>
-          {provider.pricing && (
-            <p className="text-xs font-bold text-emerald-600 mt-1">
-              ₹{provider.pricing}{provider.pricingType ? ` / ${provider.pricingType}` : ''}
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <h3 className="font-bold text-gray-900 text-sm truncate" title={name}>{name}</h3>
+              {provider.isVerified && <HiBadgeCheck className="w-4 h-4 text-blue-500 shrink-0" />}
+              {provider.subscriptionBadge && (
+                <span className="text-xs px-1.5 py-0.5 bg-yellow-50 text-yellow-700 rounded-full border border-yellow-200 font-medium truncate" title={provider.subscriptionBadge}>
+                  {provider.subscriptionBadge}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 mb-0.5">
+              <HiStar className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="text-xs font-medium text-gray-700">{provider.rating || provider.averageRating || '0.0'}</span>
+              <span className="text-xs text-gray-400">({provider.totalReviews || 0})</span>
+            </div>
+            <p className="text-xs text-gray-500 flex items-center gap-0.5 truncate" title={provider.city || 'Location N/A'}>
+              <HiLocationMarker className="w-3 h-3 shrink-0" /> <span className="truncate">{provider.city || 'Location N/A'}</span>
             </p>
+          </div>
+
+          {/* Tier badge */}
+          {provider.tier && (
+            <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium capitalize ${TIER_COLORS[provider.tier] || 'bg-gray-100 text-gray-600'}`}>
+              {provider.tier.replace('-', ' ')}
+            </span>
           )}
         </div>
+      </div>
 
-
-        {/* Tier badge */}
-        {provider.tier && (
-          <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium capitalize ${TIER_COLORS[provider.tier] || 'bg-gray-100 text-gray-600'}`}>
-            {provider.tier.replace('-', ' ')}
+      {/* Skills (fixed height) */}
+      <div className="flex flex-wrap items-center gap-1.5 h-7 overflow-hidden">
+        {visibleSkills.map((s, i) => (
+          <span key={i} className="text-xs px-2 py-0.5 bg-gray-50 text-gray-600 rounded-full border border-gray-100 truncate max-w-[100px]" title={s}>
+            {s}
+          </span>
+        ))}
+        {remainingSkills > 0 && (
+          <span className="text-xs text-gray-400 font-medium shrink-0">
+            +{remainingSkills} more
           </span>
         )}
       </div>
 
-      {/* Skills */}
-      {provider.skills?.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {provider.skills.slice(0, 3).map((s, i) => (
-            <span key={i} className="text-xs px-2 py-0.5 bg-gray-50 text-gray-600 rounded-full border border-gray-100">{s}</span>
-          ))}
-          {provider.skills.length > 3 && (
-            <span className="text-xs text-gray-400">+{provider.skills.length - 3} more</span>
+      {/* Pricing / rate per hour (fixed vertical position) */}
+      <div className="flex items-baseline justify-between pt-1 border-t border-gray-50 mt-auto">
+        <div>
+          {provider.pricing ? (
+            <p className="text-sm font-bold text-stone-800">
+              ₹{provider.pricing}{provider.pricingType ? ` / ${provider.pricingType}` : ''}
+            </p>
+          ) : (
+            <p className="text-xs text-gray-400">Rate N/A</p>
           )}
         </div>
-      )}
+      </div>
 
-      {/* Contact (if unlocked) */}
-      {provider.isUnlocked && (
-        <div className="flex gap-2 mb-3 bg-green-50 rounded-xl p-2.5 border border-green-100">
-          {provider.phone && (
-            <a href={`tel:${provider.phone}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-green-700 hover:text-green-800">
-              <HiPhone className="w-3.5 h-3.5" /> {provider.phone}
-            </a>
-          )}
-          {provider.whatsapp && (
-            <button 
-              onClick={() => navigate('/contact', { state: { subject: `Enquiry for ${name}`, providerId: provider._id || provider.user?._id } })}
-              className="flex items-center justify-center gap-1 text-xs font-semibold text-green-600 hover:text-green-800 px-2 border-l border-green-200"
-            >
-              <FaWhatsapp className="w-3.5 h-3.5" />
-            </button>
-          )}
-
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => onView(provider)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition"
-        >
-          View Profile <HiChevronRight className="w-3.5 h-3.5" />
-        </button>
-        {!provider.isUnlocked && (
-          <button
-            onClick={() => onUnlock(provider)}
-            disabled={unlocking === provider._id}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition"
-          >
-            {unlocking === provider._id ? (
-              <span className="animate-pulse">Unlocking…</span>
-            ) : (
-              <><HiLockOpen className="w-3.5 h-3.5" /> Unlock Contact</>
-            )}
-          </button>
-        )}
+      {/* Contact & Actions (always at bottom) */}
+      <div className="space-y-2">
+        {/* Contact (if unlocked) */}
         {provider.isUnlocked && (
-          <div className="flex-1 flex items-center justify-center gap-1 py-2 text-xs font-semibold text-green-600 bg-green-50 rounded-xl border border-green-100">
-            <HiLockOpen className="w-3.5 h-3.5" /> Unlocked
+          <div className="flex gap-2 bg-green-50 rounded-xl p-2 border border-green-100 h-9 shrink-0 items-center justify-center">
+            {provider.phone && (
+              <a href={`tel:${provider.phone}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-green-700 hover:text-green-800">
+                <HiPhone className="w-3.5 h-3.5" /> {provider.phone}
+              </a>
+            )}
+            {provider.whatsapp && (
+              <button 
+                onClick={() => navigate('/contact', { state: { subject: `Enquiry for ${name}`, providerId: provider._id || provider.user?._id } })}
+                className="flex items-center justify-center gap-1 text-xs font-semibold text-green-600 hover:text-green-800 px-2 border-l border-green-200"
+              >
+                <FaWhatsapp className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         )}
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => onView(provider)}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition h-9"
+          >
+            View Profile <HiChevronRight className="w-3.5 h-3.5" />
+          </button>
+          {!provider.isUnlocked && (
+            <button
+              onClick={() => onUnlock(provider)}
+              disabled={unlocking === provider._id}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition h-9"
+            >
+              {unlocking === provider._id ? (
+                <span className="animate-pulse">Unlocking…</span>
+              ) : (
+                <><HiLockOpen className="w-3.5 h-3.5" /> Unlock Contact</>
+              )}
+            </button>
+          )}
+          {provider.isUnlocked && (
+            <div className="flex-1 flex items-center justify-center gap-1 py-2 text-xs font-semibold text-green-600 bg-green-50 rounded-xl border border-green-100 h-9">
+              <HiLockOpen className="w-3.5 h-3.5" /> Unlocked
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -563,7 +581,7 @@ const FindProviders = () => {
                 </button>
               </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 items-stretch">
               {providers.map(p => (
                 <ProviderCard
                   key={p._id}

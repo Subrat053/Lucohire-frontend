@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import CountryPhoneInput from '../../components/common/CountryPhoneInput';
 
 const Partners = () => {
   const [partners, setPartners] = useState([]);
@@ -12,9 +13,18 @@ const Partners = () => {
   
   // Create Modal State
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', commissionRate: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', countryCode: '+91', nationalNumber: '', commissionRate: '' });
   const [creating, setCreating] = useState(false);
   const [credentials, setCredentials] = useState(null);
+
+  const handlePhoneChange = (phoneData) => {
+    setForm((prev) => ({
+      ...prev,
+      phone: phoneData.fullPhone,
+      countryCode: phoneData.countryCode,
+      nationalNumber: phoneData.nationalNumber,
+    }));
+  };
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
@@ -25,7 +35,7 @@ const Partners = () => {
       setCredentials({ email: form.email, password: generatedPassword });
       toast.success('Partner created successfully');
       fetchPartners();
-      setForm({ name: '', email: '', phone: '', commissionRate: '' });
+      setForm({ name: '', email: '', phone: '', countryCode: '+91', nationalNumber: '', commissionRate: '' });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create partner');
     } finally {
@@ -324,10 +334,11 @@ const Partners = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                    <input 
-                      value={form.phone} 
-                      onChange={e => setForm({...form, phone: e.target.value})}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" 
+                    <CountryPhoneInput
+                      variant="admin-partner"
+                      countryCode={form.countryCode}
+                      nationalNumber={form.nationalNumber}
+                      onChange={handlePhoneChange}
                     />
                   </div>
                   <div>

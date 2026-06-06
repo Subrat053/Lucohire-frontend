@@ -84,6 +84,7 @@ export default function AIChatWidget({ role = 'recruiter', context = {} }) {
   const nearBottomRef = useRef(true);
   const manualScrollDebounceRef = useRef(null);
   const pendingScrollAfterSendRef = useRef(false);
+  const widgetRef = useRef(null);
 
   const title = ROLE_TITLES[role] || ROLE_TITLES.recruiter;
   const quickPrompts = useMemo(() => starterPromptsByRole[role] || starterPromptsByRole.recruiter, [role]);
@@ -137,6 +138,18 @@ export default function AIChatWidget({ role = 'recruiter', context = {} }) {
 
     pendingScrollAfterSendRef.current = false;
   }, [messages, isOpen, scrollToBottom]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (isOpen && widgetRef.current && !widgetRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   const fetchHistory = useCallback(async (id, options = {}) => {
     const params = {
@@ -304,7 +317,7 @@ export default function AIChatWidget({ role = 'recruiter', context = {} }) {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div ref={widgetRef} className="fixed bottom-5 right-5 z-50">
       {isOpen && (
         <div className="mb-3 w-80 sm:w-96 rounded-2xl border border-gray-200 bg-white shadow-2xl overflow-hidden">
           <div className="px-4 py-3 bg-gray-900 text-white flex items-center justify-between">

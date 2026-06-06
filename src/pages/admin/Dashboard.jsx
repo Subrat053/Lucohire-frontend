@@ -28,7 +28,21 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const loadDashboardStats = useCallback(async (forceRefresh = false) => {
+  // Local state for select fields
+  const [selectedDateRange, setSelectedDateRange] = useState('last30');
+  const [selectedGroupBy, setSelectedGroupBy] = useState('country');
+  const [selectedPlanType, setSelectedPlanType] = useState('all');
+  const [selectedPartnerType, setSelectedPartnerType] = useState('all');
+
+  // Track applied filters separately to avoid trigger requests on select changes
+  const [appliedFilters, setAppliedFilters] = useState({
+    dateRange: 'last30',
+    groupBy: 'country',
+    planType: 'all',
+    partnerType: 'all',
+  });
+
+  const loadDashboardStats = useCallback(async (forceRefresh = false, activeFilters = null) => {
     setLoading(true);
     const now = Date.now();
     const isFresh =
@@ -49,8 +63,9 @@ const Dashboard = () => {
     }
 
     try {
+      const filters = activeFilters || appliedFilters;
       if (!dashboardCache.inflight) {
-        dashboardCache.inflight = adminAPI.getDashboardStats();
+        dashboardCache.inflight = adminAPI.getDashboardStats(filters);
       }
 
       const { data } = await dashboardCache.inflight;
@@ -63,7 +78,33 @@ const Dashboard = () => {
       dashboardCache.inflight = null;
       setLoading(false);
     }
-  }, []);
+  }, [appliedFilters]);
+
+  const handleApplyFilters = () => {
+    const nextFilters = {
+      dateRange: selectedDateRange,
+      groupBy: selectedGroupBy,
+      planType: selectedPlanType,
+      partnerType: selectedPartnerType,
+    };
+    setAppliedFilters(nextFilters);
+    loadDashboardStats(true, nextFilters);
+  };
+
+  const handleResetFilters = () => {
+    setSelectedDateRange('last30');
+    setSelectedGroupBy('country');
+    setSelectedPlanType('all');
+    setSelectedPartnerType('all');
+    const defaultFilters = {
+      dateRange: 'last30',
+      groupBy: 'country',
+      planType: 'all',
+      partnerType: 'all',
+    };
+    setAppliedFilters(defaultFilters);
+    loadDashboardStats(true, defaultFilters);
+  };
 
   useEffect(() => {
     const loadIfActive = async () => {
@@ -95,42 +136,77 @@ const Dashboard = () => {
         <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 hide-scrollbar flex-1">
           <div className="flex items-center gap-2 whitespace-nowrap">
             <span className="text-gray-400">Date Range:</span>
-            <select className="bg-transparent font-medium text-gray-700 outline-none cursor-pointer">
-              <option>Last 30 days</option>
+            <select
+              value={selectedDateRange}
+              onChange={(e) => setSelectedDateRange(e.target.value)}
+              className="bg-transparent font-medium text-gray-700 outline-none cursor-pointer"
+            >
+              <option value="last7">Last 7 days</option>
+              <option value="last30">Last 30 days</option>
+              <option value="last90">Last 90 days</option>
+              <option value="thisYear">This Year</option>
+              <option value="all">All time</option>
             </select>
           </div>
           <div className="flex items-center gap-2 whitespace-nowrap">
             <span className="text-gray-400">Group by:</span>
-            <select className="bg-transparent font-medium text-gray-700 outline-none cursor-pointer">
-              <option>Country</option>
+            <select
+              value={selectedGroupBy}
+              onChange={(e) => setSelectedGroupBy(e.target.value)}
+              className="bg-transparent font-medium text-gray-700 outline-none cursor-pointer"
+            >
+              <option value="country">Country</option>
+              <option value="city">City</option>
             </select>
           </div>
           <div className="flex items-center gap-2 whitespace-nowrap">
             <span className="text-gray-400">Plan Type:</span>
-            <select className="bg-transparent font-medium text-gray-700 outline-none cursor-pointer">
-              <option>All Plans</option>
+            <select
+              value={selectedPlanType}
+              onChange={(e) => setSelectedPlanType(e.target.value)}
+              className="bg-transparent font-medium text-gray-700 outline-none cursor-pointer"
+            >
+              <option value="all">All Plans</option>
+              <option value="free">Free</option>
+              <option value="paid">Paid</option>
+              <option value="custom">Custom</option>
             </select>
           </div>
           <div className="flex items-center gap-2 whitespace-nowrap">
             <span className="text-gray-400">Partner Type:</span>
-            <select className="bg-transparent font-medium text-gray-700 outline-none cursor-pointer">
-              <option>All Partners</option>
+            <select
+              value={selectedPartnerType}
+              onChange={(e) => setSelectedPartnerType(e.target.value)}
+              className="bg-transparent font-medium text-gray-700 outline-none cursor-pointer"
+            >
+              <option value="all">All Partners</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+              <option value="blocked">Blocked</option>
             </select>
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <button
             type="button"
-            onClick={() => loadDashboardStats(true)}
+            onClick={() => loadDashboardStats(true, appliedFilters)}
             disabled={loading}
             className="flex items-center gap-1.5 px-3 py-1.5 text-gray-500 font-medium hover:bg-gray-100 rounded-lg disabled:opacity-50"
           >
             Refresh
           </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 text-gray-500 font-medium hover:bg-gray-100 rounded-lg">
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-gray-500 font-medium hover:bg-gray-100 rounded-lg"
+          >
             Reset
           </button>
-          <button className="px-4 py-1.5 bg-[#7C3AED] text-white rounded-full font-bold shadow-sm hover:bg-[#6D28D9] transition-colors">
+          <button
+            type="button"
+            onClick={handleApplyFilters}
+            className="px-4 py-1.5 bg-[#7C3AED] text-white rounded-full font-bold shadow-sm hover:bg-[#6D28D9] transition-colors"
+          >
             Apply Filters
           </button>
         </div>
@@ -190,7 +266,7 @@ const Dashboard = () => {
                 <h3 className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">Platform Activity</h3>
                 <span className="text-[10px] text-gray-400">Total metrics</span>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <DashboardStatsCard 
                   icon={HiUsers} 
                   label="Total Users" 
@@ -214,7 +290,7 @@ const Dashboard = () => {
                 <h3 className="text-[10px] font-extrabold uppercase tracking-widest">Pending Review</h3>
                 <span className="text-[10px]">Action required</span>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Link to="/admin/users?status=pending">
                   <DashboardStatsCard 
                     icon={HiCheckCircle} 
