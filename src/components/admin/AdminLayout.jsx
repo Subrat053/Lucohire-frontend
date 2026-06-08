@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   HiShieldCheck, HiUsers, HiMail, HiBriefcase, HiCurrencyRupee, HiCog, HiPhotograph,HiLibrary ,
-  HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe, HiUserGroup, HiLink, HiGift, HiLockClosed, HiOutlineDocumentText
+  HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe, HiUserGroup, HiLink, HiGift, HiLockClosed, HiOutlineDocumentText, HiQuestionMarkCircle, HiInformationCircle
 } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
@@ -35,6 +35,10 @@ const navItems = [
   { labelKey: 'admin.navSettings', fallback: 'Settings', path: '/admin/settings',    icon: HiCog },
   { labelKey: 'admin.navTerms', fallback: 'Terms', path: '/admin/terms',       icon: HiDocumentText },
   { labelKey: 'admin.navPrivacy', fallback: 'Privacy', path: '/admin/privacy',     icon: HiShieldExclamation },
+  { labelKey: 'admin.navRefund', fallback: 'Refund Policy', path: '/admin/refund', icon: HiOutlineDocumentText },
+  { labelKey: 'admin.navRenewal', fallback: 'Renewal Policy', path: '/admin/renewal', icon: HiOutlineDocumentText },
+  { labelKey: 'admin.navFaq', fallback: 'FAQ', path: '/admin/faq', icon: HiQuestionMarkCircle },
+  { labelKey: 'admin.navAbout', fallback: 'About Us', path: '/admin/about', icon: HiInformationCircle },
   { labelKey: 'common.changePassword', fallback: 'Change Password', path: '/admin/change-password', icon: HiLockClosed },
 ];
 

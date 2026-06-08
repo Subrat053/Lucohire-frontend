@@ -26,6 +26,10 @@ const AdminPayments = lazy(() => import("../pages/admin/Payments"));
 const AdminProviderSubscriptions = lazy(() => import("../pages/admin/ProviderSubscriptions"));
 const AdminTerms = lazy(() => import("../pages/admin/Terms"));
 const AdminPrivacy = lazy(() => import("../pages/admin/Privacy"));
+const AdminRefundPolicy = lazy(() => import("../pages/admin/RefundPolicy"));
+const AdminRenewalPolicy = lazy(() => import("../pages/admin/RenewalPolicy"));
+const AdminFaq = lazy(() => import("../pages/admin/Faq"));
+const AdminAbout = lazy(() => import("../pages/admin/About"));
 const AdminSkills = lazy(() => import("../pages/admin/Skills"));
 const AdminWhatsApp = lazy(() => import("../pages/admin/WhatsApp"));
 const AdminCurrency = lazy(() => import("../pages/admin/Currency"));
@@ -78,6 +82,10 @@ export default function AdminRoutes() {
       <Route path="provider-subscriptions" element={wrap(<AdminProviderSubscriptions />)} />
       <Route path="terms" element={wrap(<AdminTerms />)} />
       <Route path="privacy" element={wrap(<AdminPrivacy />)} />
+      <Route path="refund" element={wrap(<AdminRefundPolicy />)} />
+      <Route path="renewal" element={wrap(<AdminRenewalPolicy />)} />
+      <Route path="faq" element={wrap(<AdminFaq />)} />
+      <Route path="about" element={wrap(<AdminAbout />)} />
       <Route path="skills" element={wrap(<AdminSkills />)} />
       <Route path="whatsapp" element={wrap(<AdminWhatsApp />)} />
       <Route path="currency" element={wrap(<AdminCurrency />)} />

@@ -531,6 +531,7 @@ export const subscriptionAPI = {
 // Plan APIs
 export const planAPI = {
   getLandingPlans: () => API.get("/plans/landing"),
+  getPlansByAudience: (audience) => API.get("/plans", { params: { audience } }),
 };
 
 // Notification APIs

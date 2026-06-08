@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { HiHeart } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import useTranslation from '../../hooks/useTranslation';
 import { useState } from 'react';
@@ -23,7 +22,7 @@ const Footer = () => {
       links: [
         { label: t('footer.postJob', 'Post a Job'), href: '/recruiter/job-postings' },
         { label: t('footer.findProviders', 'Find Providers'), href: '/search' },
-        { label: t('footer.pricing', 'Pricing'), href: '/recruiter/plans' },
+        { label: t('footer.pricing', 'Pricing'), href: '/pricing?tab=recruiter' },
         { label: t('footer.support', 'Help Center'), href: '/contact' },
       ],
     },
@@ -31,17 +30,18 @@ const Footer = () => {
       title: t('footer.providers', 'Providers'),
       links: [
         { label: t('footer.registerProvider', 'Create Profile'), href: '/signup' },
-        { label: t('footer.pricing', 'Pro Boost'), href: '/provider/plans' },
+        { label: t('footer.pricing', 'Pricing'), href: '/pricing?tab=provider' },
         { label: t('footer.faq', 'Faq'), href: '/faq' },
-        { label: t('footer.terms', 'Renewal'), href: '/terms' },
+        { label: t('footer.renewal', 'Renewal'), href: '/renewal-policy' },
       ],
     },
     {
       title: t('footer.company', 'Company'),
       links: [
-        { label: t('footer.about', 'About'), href: '/about' },
-        { label: t('footer.privacy', 'Privacy'), href: '/privacy' },
-        { label: t('footer.terms', 'Terms'), href: '/terms' },
+        { label: t('footer.about', 'About Us'), href: '/about' },
+        { label: t('footer.privacy', 'Privacy Policy'), href: '/privacy' },
+        { label: t('footer.terms', 'Terms & Conditions'), href: '/terms' },
+        { label: t('footer.refund', 'Refund Policy'), href: '/refund-policy' },
         { label: t('footer.contact', 'Contact Us'), href: '/contact' },
       ],
     },
@@ -85,21 +85,7 @@ const Footer = () => {
           </div>
         ))}
 
-        {/* <div>
-            <p className="text-[11px] font-bold tracking-widest uppercase text-[#1677FF] mb-4">Stay Updated</p>
-            <p className="text-xs text-[#6B7280] mb-3 leading-relaxed">Product news & city launches — once a month.</p>
-            <form onSubmit={(e) => { e.preventDefault(); setEmail(""); }} className="flex gap-2">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@email.com"
-                className="flex-1 min-w-0 border border-[#E7ECF4] rounded-lg px-3 py-2 text-xs outline-none focus:border-[#1677FF]"
-              />
-              <button className="bg-[#081B3A] text-white text-xs font-bold px-4 rounded-lg">Go</button>
-            </form>
 
-          </div> */}
         <div>
           <p className="text-[11px] font-bold tracking-widest uppercase text-[#1677FF] mb-4">
             {t('footer.support', 'Stay Updated')}

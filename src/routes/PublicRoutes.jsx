@@ -15,6 +15,9 @@ const ProviderPublicProfile = lazy(() => import("../pages/ProviderPublicProfile"
 const FaqPage = lazy(() => import("../pages/Faq"));
 const TermsPage = lazy(() => import("../pages/Terms"));
 const PrivacyPage = lazy(() => import("../pages/Privacy"));
+const RefundPolicyPage = lazy(() => import("../pages/RefundPolicy"));
+const RenewalPolicyPage = lazy(() => import("../pages/RenewalPolicy"));
+const PricingPage = lazy(() => import("../pages/Pricing"));
 const AboutPage = lazy(() => import("../pages/AboutPage"))
 const ContactUs = lazy(() => import("../pages/ContactUs"));
 const ProfilePage = lazy(() => import("../pages/ProfilePage"));
@@ -23,7 +26,7 @@ const ExternalMatch = lazy(() => import("../pages/recruiter/ExternalMatch"));
 
 function MainLayout({ children }) {
   const location = useLocation();
-  const publicPaths = ["/", "/search", "/faq", "/terms", "/privacy", "/contact", "/about"];
+  const publicPaths = ["/", "/search", "/faq", "/terms", "/privacy", "/refund-policy", "/renewal-policy", "/pricing", "/contact", "/about"];
   const privateProviderPaths = [
     "/provider/dashboard",
     "/provider/profile",
@@ -77,6 +80,9 @@ export default function PublicRoutes() {
       <Route path="faq" element={wrap(<FaqPage />)} />
       <Route path="terms" element={wrap(<TermsPage />)} />
       <Route path="privacy" element={wrap(<PrivacyPage />)} />
+      <Route path="refund-policy" element={wrap(<RefundPolicyPage />)} />
+      <Route path="renewal-policy" element={wrap(<RenewalPolicyPage />)} />
+      <Route path="pricing" element={wrap(<PricingPage />)} />
       <Route path="about" element={wrap(<AboutPage />)} />
       <Route path="contact" element={wrap(<ContactUs />)} />
 

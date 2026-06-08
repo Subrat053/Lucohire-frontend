@@ -4,13 +4,13 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import useTranslation from '../hooks/useTranslation';
 import Seo from '../components/common/Seo';
 
-const AboutPage = () => {
+const RenewalPolicyPage = () => {
   const { t } = useTranslation();
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    adminAPI.getContent('about').then(res => {
+    adminAPI.getContent('renewal').then(res => {
       setContent(res.data || '');
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -21,14 +21,13 @@ const AboutPage = () => {
   return (
     <div className="max-w-6xl mx-auto px-2 lg:px-4 lg:py-4">
       <Seo
-        title={t('static.aboutTitle', 'About us')}
-        description={t('static.aboutDescription', 'About Us')}
-        canonicalPath="/about"
+        title={t('static.renewalTitle', 'Renewal Policy')}
+        description={t('static.renewalDescription', 'Read the renewal policy for subscription plans on ServiceHub.')}
+        canonicalPath="/renewal-policy"
       />
-      {/* <h1 className="text-3xl font-bold mb-6">{t('static.aboutTitle', 'About Us')}</h1> */}
       <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
     </div>
   );
 };
 
-export default AboutPage;
+export default RenewalPolicyPage;
