@@ -345,7 +345,7 @@ const Navbar = () => {
               //   </button>
               // </div>
               <div className="flex items-center gap-5">
-                <button
+                {/* <button
                   onClick={() => {
                     if (window.location.pathname === "/") {
                       document
@@ -359,9 +359,9 @@ const Navbar = () => {
                 >
                   <span className="text-[15px]">💰</span>
                   <span>{t("navbar.earnFortyPercent", "Earn 40%")}</span>
-                </button>
+                </button> */}
 
-                <button
+                {/* <button
                   onClick={() => {
                     if (window.location.pathname === "/") {
                       document
@@ -375,7 +375,7 @@ const Navbar = () => {
                 >
                   <span className="text-[15px]">🏆</span>
                   <span>{t("navbar.winOneLakh", "Win ₹1 Lakh")}</span>
-                </button>
+                </button> */}
 
                 <button
                   onClick={() => navigate("/login")}
@@ -615,7 +615,7 @@ const Navbar = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
+                    {/* <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => {
                           setMobileOpen(false);
@@ -648,7 +648,7 @@ const Navbar = () => {
                         <span className="text-lg mb-1">🏆</span>
                         {t("navbar.winOneLakh", "Win ₹1 Lakh")}
                       </button>
-                    </div>
+                    </div> */}
 
                     <div className="flex flex-col gap-2 pt-2">
                       <button

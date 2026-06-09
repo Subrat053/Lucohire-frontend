@@ -132,16 +132,41 @@ export const getPlacePredictions = async (query, options = {}) => {
       let suggestions = [];
       let source = "google_global";
 
-      // First call: attempt biased query
       if (nearbyFirst && lat && lng) {
-        suggestions = await getSuggestions(true);
-        source = "google_nearby";
-      }
+        // Parallel fetch biased and global suggestions to prevent location override/biasing issues
+        const [nearbySuggestions, globalSuggestions] = await Promise.all([
+          getSuggestions(true),
+          getSuggestions(false)
+        ]);
 
-      // Fallback: if no results or bias omitted, query globally/country-wide
-      if (suggestions.length === 0) {
+        const seen = new Set();
+        const merged = [];
+
+        for (const s of nearbySuggestions) {
+          const id = s.placePrediction?.placeId;
+          if (id && !seen.has(id)) {
+            seen.add(id);
+            s._source = "google_nearby";
+            merged.push(s);
+          }
+        }
+
+        for (const s of globalSuggestions) {
+          const id = s.placePrediction?.placeId;
+          if (id && !seen.has(id)) {
+            seen.add(id);
+            s._source = country ? "google_country" : "google_global";
+            merged.push(s);
+          }
+        }
+
+        suggestions = merged;
+      } else {
         suggestions = await getSuggestions(false);
         source = country ? "google_country" : "google_global";
+        suggestions.forEach(s => {
+          s._source = source;
+        });
       }
 
       return suggestions.map(s => {
@@ -171,7 +196,7 @@ export const getPlacePredictions = async (query, options = {}) => {
           country: parts[parts.length - 1] || '',
           latitude: null,
           longitude: null,
-          source,
+          source: s._source || source,
           types: prediction.types || [],
         };
       });
@@ -189,7 +214,7 @@ export const getPlacePredictions = async (query, options = {}) => {
           try {
             location = new google.maps.LatLng(Number(lat), Number(lng));
             radiusLegacy = Number(radius);
-          } catch (_) {}
+          } catch (_) { }
         }
 
         const request = {
@@ -214,13 +239,40 @@ export const getPlacePredictions = async (query, options = {}) => {
       let source = "google_global";
 
       if (nearbyFirst && lat && lng) {
-        predictions = await getPredictionsLegacy(true);
-        source = "google_nearby";
-      }
+        // Parallel fetch biased and global legacy predictions
+        const [nearbyPredictions, globalPredictions] = await Promise.all([
+          getPredictionsLegacy(true),
+          getPredictionsLegacy(false)
+        ]);
 
-      if (predictions.length === 0) {
+        const seen = new Set();
+        const merged = [];
+
+        for (const p of nearbyPredictions) {
+          const id = p.place_id;
+          if (id && !seen.has(id)) {
+            seen.add(id);
+            p._source = "google_nearby";
+            merged.push(p);
+          }
+        }
+
+        for (const p of globalPredictions) {
+          const id = p.place_id;
+          if (id && !seen.has(id)) {
+            seen.add(id);
+            p._source = country ? "google_country" : "google_global";
+            merged.push(p);
+          }
+        }
+
+        predictions = merged;
+      } else {
         predictions = await getPredictionsLegacy(false);
         source = country ? "google_country" : "google_global";
+        predictions.forEach(p => {
+          p._source = source;
+        });
       }
 
       return predictions.map(p => {
@@ -244,7 +296,7 @@ export const getPlacePredictions = async (query, options = {}) => {
           country: parts[parts.length - 1] || '',
           latitude: null,
           longitude: null,
-          source,
+          source: p._source || source,
           types: p.types || [],
         };
       });
@@ -334,7 +386,7 @@ export const getPlaceDetails = async (placeId) => {
     if (places.PlacesService) {
       const dummyElement = document.createElement('div');
       const service = new places.PlacesService(dummyElement);
-      
+
       return new Promise((resolve, reject) => {
         service.getDetails(
           {
@@ -361,7 +413,7 @@ export const getPlaceDetails = async (placeId) => {
       const { data } = await locationAPI.getPlaceDetails(placeId);
       const details = data?.data;
       if (!details) throw new Error('No details returned from backend');
-      
+
       return {
         place_id: details.placeId,
         name: details.name,
@@ -393,8 +445,8 @@ export const getPlaceDetails = async (placeId) => {
  */
 export const getCityFromPlace = (place) => {
   if (!place || !place.address_components) return '';
-  const comp = place.address_components.find(c => 
-    c.types.includes('locality') || 
+  const comp = place.address_components.find(c =>
+    c.types.includes('locality') ||
     c.types.includes('sublocality') ||
     c.types.includes('administrative_area_level_2')
   );
@@ -440,8 +492,8 @@ export const getLatLngFromPlace = (place) => {
 
 export const getLocalityFromPlace = (place) => {
   if (!place || !place.address_components) return '';
-  const comp = place.address_components.find(c => 
-    c.types.includes('sublocality') || 
+  const comp = place.address_components.find(c =>
+    c.types.includes('sublocality') ||
     c.types.includes('sublocality_level_1') ||
     c.types.includes('neighborhood')
   );

@@ -356,7 +356,7 @@ const SearchPage = () => {
     setQueryText(val);
     const nextCategory =
       selectedCategory &&
-      val.trim().toLowerCase() === selectedCategory.trim().toLowerCase()
+        val.trim().toLowerCase() === selectedCategory.trim().toLowerCase()
         ? selectedCategory
         : "";
 
@@ -377,7 +377,7 @@ const SearchPage = () => {
   const handleCityChange = (val, locFullObj = null) => {
     setCity(val);
     localStorage.setItem("servicehub:lastSearchLocation", val);
-    
+
     if (locFullObj) {
       setLocationFull(locFullObj);
       if (debouncedUpdateSearchQueryRef.current) {
@@ -493,6 +493,16 @@ const SearchPage = () => {
     if (debouncedUpdateSearchQueryRef.current) {
       clearTimeout(debouncedUpdateSearchQueryRef.current);
     }
+    const hasActiveParams = searchParams.get("query") || 
+                            searchParams.get("skill") || 
+                            searchParams.get("category") || 
+                            searchParams.get("location") || 
+                            searchParams.get("city") || 
+                            searchParams.get("tier") || 
+                            searchParams.get("rating") || 
+                            searchParams.get("experience") || 
+                            searchParams.get("verified");
+
     updateSearchQuery({
       query: "",
       skill: "",
@@ -503,6 +513,18 @@ const SearchPage = () => {
       experience: "",
       verified: "",
     });
+
+    if (!hasActiveParams) {
+      fetchProviders(
+        "",
+        "",
+        { rating: "", experience: "", verified: "" },
+        "",
+        "",
+        { page: 1, append: false },
+        null
+      );
+    }
   };
 
   const hasFilters =
@@ -822,13 +844,13 @@ const SearchPage = () => {
                 <p className="text-stone-500 text-sm max-w-md mx-auto mb-2">
                   {city
                     ? t(
-                        "search.noResultsForLocation",
-                        `No providers found for "${queryText || skill}" in "${city}". Try a different location or broaden your filters.`,
-                      )
+                      "search.noResultsForLocation",
+                      `No providers found for "${queryText || skill}" in "${city}". Try a different location or broaden your filters.`,
+                    )
                     : t(
-                        "search.tryDifferent",
-                        "Try a different skill, location, or adjust your filters.",
-                      )}
+                      "search.tryDifferent",
+                      "Try a different skill, location, or adjust your filters.",
+                    )}
                 </p>
                 {(queryText || skill || city || tierFilter) && (
                   <div className="flex flex-wrap justify-center gap-2 mt-4 mb-6">

@@ -261,7 +261,7 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
               alert(t('common.whatsappUnavailable', 'WhatsApp number not available'));
             }
           }}
-          className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#374151] text-xs font-semibold py-2 rounded-xl hover:bg-[#F7F9FC] transition h-9"
+          className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#ffffff] text-xs font-semibold py-2 rounded-xl bg-[#128C7E] hover:bg-[#075E54] transition h-9"
         >
           <MessageCircle className="w-3.5 h-3.5" /> {t('common.whatsapp', 'WhatsApp')}
         </button>
@@ -270,7 +270,7 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
             e.stopPropagation();
             onClick?.();
           }}
-          className="flex-1 flex items-center justify-center gap-1.5 bg-[#1677FF] hover:bg-[#0E5FCC] text-white text-xs font-bold py-2 rounded-xl transition h-9"
+          className="flex-1 flex items-center justify-center gap-1.5 bg-[#0096FF] hover:bg-[#0E5FCC] text-white text-xs font-bold py-2 rounded-xl transition h-9"
         >
           <Phone className="w-3.5 h-3.5" /> {t('common.callNow', 'Call Now')}
         </button>

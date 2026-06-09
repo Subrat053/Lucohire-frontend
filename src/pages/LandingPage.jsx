@@ -815,17 +815,17 @@ const LandingPage = () => {
             <Share2 className="w-3 h-3" /> Referral Partner Program
           </span>
           <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">
-            Refer & Earn <span className="text-[#1677FF]">40% Commission</span> 💰
+            Refer & Earn <span className="text-[#1677FF]">40% Reward</span> 💰
           </h2>
           <p className="text-[#6B7280] mt-3 text-sm max-w-xl mx-auto">
-            दूसरों का registration करवाओ और हर paid plan पर <b>40% referral commission</b> कमाओ!
+            दूसरों का registration करवाओ और हर paid plan पर <b>40% referral reward</b> कमाओ!
           </p>
 
           <div className="mt-12 grid md:grid-cols-3 gap-5 max-w-4xl mx-auto">
             {[
               { Icon: Share2, step: "Step 1", title: "अपना Referral Link शेयर करो", desc: "Sign up करो और WhatsApp, Facebook पर share करो" },
               { Icon: Users, step: "Step 2", title: "लोगों को Register करवाओ", desc: "Friends, family — जो भी worker या employer है" },
-              { Icon: Wallet, step: "Step 3", title: "40% Commission कमाओ", desc: "Referred user के paid plan पर तुरंत 40% directly!" },
+              { Icon: Wallet, step: "Step 3", title: "40% Reward कमाओ", desc: "Referred user के paid plan पर तुरंत 40% directly!" },
             ].map((s) => (
               <div key={s.step} className="bg-white border border-[#E7ECF4] rounded-2xl p-6 text-left">
                 <s.Icon className="w-6 h-6 text-[#1677FF] mb-4" />
@@ -940,7 +940,7 @@ const LandingPage = () => {
       </section>
 
       {/* ━━━━━━━━ CONTEST ━━━━━━━━ */}
-      <section id="contest-section" className="py-20">
+      {/* <section id="contest-section" className="py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
           <span className="inline-flex items-center gap-2 bg-[#EAF2FF] text-[#1677FF] text-[11px] font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-5">
             <Trophy className="w-3 h-3" /> Registration Champion Contest
@@ -997,7 +997,7 @@ const LandingPage = () => {
             className="bg-[#1677FF] hover:bg-[#0E5FCC] text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-[0_4px_12px_rgba(22,119,255,0.3)]">Register Now <ArrowRight className="w-4 h-4" /></button>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ━━━━━━━━ FINAL CTA ━━━━━━━━ */}
       <section className="px-6 lg:px-8 pb-20">

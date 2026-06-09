@@ -60,14 +60,22 @@ const normalizeSearchResponse = (responseData = {}) => {
 };
 
 export const getProviders = async (params = {}) => {
-  const cacheKey = buildCacheKey(params);
-  const cached = cacheKey ? getCachedSearch(cacheKey) : null;
-  if (cached) return cached;
+  const hasActiveFilters = params.tier || params.rating || params.experience || params.verified;
 
+  if (!hasActiveFilters) {
+    const cacheKey = buildCacheKey(params);
+    const cached = cacheKey ? getCachedSearch(cacheKey) : null;
+    if (cached) return cached;
+
+    const { data } = await searchAPI.providers(params);
+    const normalized = normalizeSearchResponse(data || {});
+    if (cacheKey) setCachedSearch(cacheKey, normalized);
+    return normalized;
+  }
+
+  // Bypass cache completely if any filter is active
   const { data } = await searchAPI.providers(params);
-  const normalized = normalizeSearchResponse(data || {});
-  if (cacheKey) setCachedSearch(cacheKey, normalized);
-  return normalized;
+  return normalizeSearchResponse(data || {});
 };
 
 export const searchProviders = async (filters = {}) => {

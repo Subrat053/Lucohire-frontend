@@ -36,8 +36,8 @@ const UserDetailModal = ({ userId, onClose }) => {
   const userRoles = detail?.user?.roles || (detail?.user?.role ? [detail?.user.role] : []);
   const hasMultipleProfiles = userRoles.includes('provider') && userRoles.includes('recruiter');
 
-  const selectedProfile = activeTab === 'provider' 
-    ? (detail?.providerProfile || detail?.profile) 
+  const selectedProfile = activeTab === 'provider'
+    ? (detail?.providerProfile || detail?.profile)
     : (detail?.recruiterProfile || detail?.profile);
 
   return (
@@ -89,22 +89,20 @@ const UserDetailModal = ({ userId, onClose }) => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('provider')}
-                  className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all ${
-                    activeTab === 'provider'
+                  className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all ${activeTab === 'provider'
                       ? 'bg-white text-indigo-600 shadow-sm border border-gray-100'
                       : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                    }`}
                 >
                   Provider Profile
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('recruiter')}
-                  className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all ${
-                    activeTab === 'recruiter'
+                  className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all ${activeTab === 'recruiter'
                       ? 'bg-white text-indigo-600 shadow-sm border border-gray-100'
                       : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                    }`}
                 >
                   Recruiter Profile
                 </button>
@@ -299,41 +297,41 @@ const UserDetailModal = ({ userId, onClose }) => {
             )}
           </div>
         )}
-      {activeResumeUrl && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-3xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-bold text-slate-800 text-sm">Resume Document Viewer</h3>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setActiveResumeUrl(null)}
-                  className="p-1.5 hover:bg-slate-100 rounded-full transition text-slate-400 hover:text-slate-600"
-                >
-                  <HiX className="w-5 h-5" />
-                </button>
+        {activeResumeUrl && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
+            <div className="bg-white rounded-3xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
+              {/* Header */}
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="font-bold text-slate-800 text-sm">Resume Document Viewer</h3>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveResumeUrl(null)}
+                    className="p-1.5 hover:bg-slate-100 rounded-full transition text-slate-400 hover:text-slate-600"
+                  >
+                    <HiX className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Document Viewer Frame */}
+              <div className="flex-1 bg-slate-100 p-4">
+                {activeResumeUrl.endsWith('.pdf') || activeResumeUrl.includes('/raw/') || activeResumeUrl.includes('.pdf') || activeResumeUrl.includes('cloudinary.com') ? (
+                  <iframe
+                    src={`${activeResumeUrl.includes('cloudinary.com') && !activeResumeUrl.toLowerCase().endsWith('.pdf') ? activeResumeUrl + '.pdf' : activeResumeUrl}#toolbar=0`}
+                    title="Resume Viewer"
+                    className="w-full h-full rounded-2xl border-0"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-white rounded-2xl p-6 text-center space-y-4">
+                    <span className="text-4xl">📄</span>
+                    <p className="text-sm font-semibold text-slate-600 font-sans">Document format view is not supported directly in the browser.</p>
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* Document Viewer Frame */}
-            <div className="flex-1 bg-slate-100 p-4">
-              {activeResumeUrl.endsWith('.pdf') || activeResumeUrl.includes('/raw/') || activeResumeUrl.includes('.pdf') || activeResumeUrl.includes('cloudinary.com') ? (
-                <iframe
-                  src={`${activeResumeUrl.includes('cloudinary.com') && !activeResumeUrl.toLowerCase().endsWith('.pdf') ? activeResumeUrl + '.pdf' : activeResumeUrl}#toolbar=0`}
-                  title="Resume Viewer"
-                  className="w-full h-full rounded-2xl border-0"
-                />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-white rounded-2xl p-6 text-center space-y-4">
-                  <span className="text-4xl">📄</span>
-                  <p className="text-sm font-semibold text-slate-600 font-sans">Document format view is not supported directly in the browser.</p>
-                </div>
-              )}
-            </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </div>
   );
@@ -349,6 +347,7 @@ const AdminUsers = () => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ open: false, userId: null, userName: '' });
   const limit = 15;
 
   useEffect(() => { fetchUsers(); }, [page, roleFilter]);
@@ -405,14 +404,15 @@ const AdminUsers = () => {
     }
   };
 
-  const handleDelete = async (userId, userName) => {
-    if (!confirm(`Are you sure you want to delete "${userName}"?\n\nThis will permanently delete:\n... User account\n... Profile data\n... All associated leads\n... Job posts (if recruiter)\n... Reviews\n\nThis action cannot be undone.`)) {
-      return;
-    }
+  const handleDelete = (userId, userName) => {
+    setDeleteModal({ open: true, userId, userName });
+  };
 
+  const confirmDelete = async () => {
     try {
-      await adminAPI.deleteUser(userId);
+      await adminAPI.deleteUser(deleteModal.userId);
       toast.success('User deleted successfully');
+      setDeleteModal({ open: false, userId: null, userName: '' });
       fetchUsers();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to delete user');
@@ -422,10 +422,10 @@ const AdminUsers = () => {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     const formData = new FormData();
     formData.append('file', file);
-    
+
     try {
       setLoading(true);
       const { data } = await adminAPI.uploadProviders(formData);
@@ -448,7 +448,7 @@ const AdminUsers = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        
+
         {/* Temporary Testing UI */}
         <div className="flex items-center gap-3 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
           <a href="/seed_providers.csv" download className="text-xs font-bold text-indigo-600 flex items-center hover:underline">
@@ -551,8 +551,8 @@ const AdminUsers = () => {
                         <td className="py-3 px-4 text-gray-500">{user.email || user.phone || '-'}</td>
                         <td className="py-3 px-4">
                           <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${userRole === 'provider' ? 'bg-green-100 text-green-700' :
-                              userRole === 'recruiter' ? 'bg-blue-100 text-blue-700' :
-                                'bg-purple-100 text-purple-700'
+                            userRole === 'recruiter' ? 'bg-blue-100 text-blue-700' :
+                              'bg-purple-100 text-purple-700'
                             }`}>{userRole}</span>
                         </td>
                         <td className="py-3 px-4">
@@ -591,8 +591,8 @@ const AdminUsers = () => {
                                 <button
                                   onClick={() => toggleBlock(user._id, user.isBlocked)}
                                   className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition ${user.isBlocked
-                                      ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                                      : 'bg-red-50 text-red-700 hover:bg-red-100'
+                                    ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                                    : 'bg-red-50 text-red-700 hover:bg-red-100'
                                     }`}
                                 >
                                   {user.isBlocked ? <HiCheckCircle className="w-4 h-4" /> : <HiBan className="w-4 h-4" />}
@@ -641,6 +641,41 @@ const AdminUsers = () => {
 
       {/* User Detail Modal */}
       <UserDetailModal userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
+
+      {/* Delete Confirm Modal */}
+      {deleteModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 animate-fade-in">
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-50 mx-auto mb-4">
+              <HiTrash className="w-7 h-7 text-red-500" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 text-center mb-1">Delete User</h3>
+            <p className="text-sm text-gray-500 text-center mb-1">
+              Are you sure you want to permanently delete
+            </p>
+            <p className="text-sm font-semibold text-gray-800 text-center mb-4">
+              &ldquo;{deleteModal.userName}&rdquo;?
+            </p>
+            <p className="text-xs text-gray-400 text-center mb-6">
+              This will permanently remove the user account, profile, leads, reviews, and all associated data. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteModal({ open: false, userId: null, userName: '' })}
+                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

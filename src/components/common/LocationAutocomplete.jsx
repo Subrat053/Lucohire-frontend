@@ -31,7 +31,7 @@ const LocationAutocomplete = ({
   try {
     const context = useLocationContext();
     locationContext = context?.locationContext;
-  } catch (_) {}
+  } catch (_) { }
 
   const googlePlacesServiceRef = useRef(null);
 
@@ -56,7 +56,7 @@ const LocationAutocomplete = ({
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [apiFailed, setApiFailed] = useState(false);
-  
+
   const containerRef = useRef(null);
   const debounceTimer = useRef(null);
 
@@ -102,7 +102,7 @@ const LocationAutocomplete = ({
         };
         // Google Types mapping based on desired mode
         if (mode === 'city') {
-          options.types = ['(cities)'];
+          options.types = ['(regions)'];
         } else if (mode === 'serviceArea') {
           options.types = ['(regions)'];
         } else if (mode === 'jobLocation') {
@@ -111,7 +111,7 @@ const LocationAutocomplete = ({
 
         const service = await getPlacesService();
         const results = await service.getPlacePredictions(trimmed, options);
-        
+
         if (results && results.length > 0) {
           setPredictions(results);
           setApiFailed(false);
@@ -136,10 +136,10 @@ const LocationAutocomplete = ({
     const lowercaseQuery = queryText.toLowerCase();
     const filteredStatic = STATIC_FALLBACK_CITIES.filter(
       item => item.label.toLowerCase().includes(lowercaseQuery) ||
-              item.city.toLowerCase().includes(lowercaseQuery) ||
-              item.country.toLowerCase().includes(lowercaseQuery)
+        item.city.toLowerCase().includes(lowercaseQuery) ||
+        item.country.toLowerCase().includes(lowercaseQuery)
     );
-    
+
     setPredictions(filteredStatic.map(item => ({
       place_id: `static-${item.city.toLowerCase()}`,
       description: item.label,
@@ -189,7 +189,7 @@ const LocationAutocomplete = ({
         const service = await getPlacesService();
         const placeDetails = await service.getPlaceDetails(prediction.place_id);
         const normalized = service.normalizeGooglePlace(placeDetails, locationContext);
-        
+
         if (normalized) {
           setInputValue(normalized.label);
           if (onSelect) {
@@ -236,7 +236,7 @@ const LocationAutocomplete = ({
 
       <div className="relative">
         <HiLocationMarker className={`absolute left-3 top-1/2 -translate-y-1/2 z-10 ${iconClassName || 'w-4 h-4 text-gray-400'}`} />
-        
+
         <input
           type="text"
           value={inputValue}
@@ -257,8 +257,8 @@ const LocationAutocomplete = ({
             if (predictions.length > 0) setIsOpen(true);
           }}
           className={`w-full border rounded-xl pl-9 pr-8 py-2 text-sm transition-all duration-200 outline-none
-            ${error 
-              ? 'border-red-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-red-50/20' 
+            ${error
+              ? 'border-red-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-red-50/20'
               : 'border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-blue-50/10'
             }
             ${disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200' : 'bg-white text-gray-700'}
@@ -293,7 +293,7 @@ const LocationAutocomplete = ({
               Suggestions loading offline mode. You can still type manually.
             </div>
           )}
-          
+
           {(() => {
             const nearbySuggestions = predictions.filter(p => p.source === 'google_nearby');
             const otherSuggestions = predictions.filter(p => p.source !== 'google_nearby');
