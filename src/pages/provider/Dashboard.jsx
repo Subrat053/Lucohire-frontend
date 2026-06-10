@@ -136,7 +136,7 @@ const ProviderDashboard = () => {
   const isProfileEmpty = !profile.city && !profile.skills?.length;
   const planDisplayName = stats.isDefaultPlan
     ? 'Default Monthly Plan'
-    : (stats.planName || stats.currentPlan || 'Free');
+    : (stats.planName || (stats.currentPlan === 'provider-free-default' ? 'Free' : stats.currentPlan) || 'Free');
 
   // useEffect(() => {
   //   if (loading || hasAutoPrompted || !dashboard) return;
@@ -361,7 +361,7 @@ const ProviderDashboard = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('provider.skillsUsed', 'Skills Used')}</span>
-                <span className="font-medium">{profile.skills?.length || 0} / {stats.currentPlan === 'free' ? 4 : '∞'}</span>
+                <span className="font-medium">{profile.skills?.length || 0} / {['free', 'provider-free-default'].includes(stats.currentPlan) ? 4 : '∞'}</span>
               </div>
             </div>
             <Link to={`/provider/plans?redirect=${encodeURIComponent('/provider/dashboard')}`} className="block mt-4 text-center bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-bold shadow-xs transition">

@@ -21,7 +21,7 @@ const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
 const PartnerRoutes = lazy(() => import("./routes/PartnerRoutes"));
 
 function App() {
-  const { user, showWhatsAppPrompt, setShowWhatsAppPrompt } = useAuth();
+  const { user, profile, showWhatsAppPrompt, setShowWhatsAppPrompt } = useAuth();
 
   useEffect(() => {
     const handleChunkError = () => {
@@ -92,7 +92,7 @@ function App() {
       </Suspense>
       {user?.activeRole && ['provider', 'recruiter', 'admin'].includes(user.activeRole) && (
         <Suspense fallback={null}>
-          <AIChatWidget role={user.activeRole} />
+          <AIChatWidget role={user.activeRole} user={user} profile={profile} />
         </Suspense>
       )}
 

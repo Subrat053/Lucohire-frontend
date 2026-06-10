@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { adminWithdrawalAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { 
   HiCog, HiCurrencyRupee, HiCheck, HiShieldCheck, HiOutlineSparkles, 
   HiInformationCircle, HiPlusCircle, HiArrowRight, HiTrendingUp,
-  HiX, HiClock, HiChevronDown, HiChevronUp, HiExclamation
+  HiX, HiClock, HiChevronDown, HiChevronUp, HiExclamation, HiSearch
 } from 'react-icons/hi';
 import useTranslation from '../../hooks/useTranslation';
 
@@ -29,6 +29,75 @@ const AdminCommissionSettings = () => {
 
   const [minPayoutThreshold, setMinPayoutThreshold] = useState(500);
   const [fixedWithdrawalFee, setFixedWithdrawalFee] = useState(0);
+
+  // Dynamic Country GST settings state
+  const [countryGst, setCountryGst] = useState([]);
+  const [newCountry, setNewCountry] = useState('IN');
+  const [newGstPercent, setNewGstPercent] = useState(18);
+
+  const SEED_COUNTRIES = [
+    { code: 'IN', name: 'India', flag: '🇮🇳' },
+    { code: 'US', name: 'United States', flag: '🇺🇸' },
+    { code: 'CA', name: 'Canada', flag: '🇨🇦' },
+    { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
+    { code: 'AU', name: 'Australia', flag: '🇦🇺' },
+    { code: 'DE', name: 'Germany', flag: '🇩🇪' },
+    { code: 'FR', name: 'France', flag: '🇫🇷' },
+    { code: 'AE', name: 'United Arab Emirates', flag: '🇦🇪' },
+    { code: 'SA', name: 'Saudi Arabia', flag: '🇸🇦' },
+    { code: 'SG', name: 'Singapore', flag: '🇸🇬' },
+    { code: 'MY', name: 'Malaysia', flag: '🇲🇾' },
+    { code: 'BD', name: 'Bangladesh', flag: '🇧🇩' },
+    { code: 'PK', name: 'Pakistan', flag: '🇵🇰' },
+    { code: 'NP', name: 'Nepal', flag: '🇳🇵' },
+    { code: 'LK', name: 'Sri Lanka', flag: '🇱🇰' }
+  ];
+
+  const [countriesList, setCountriesList] = useState(SEED_COUNTRIES);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
+  const countryDropdownRef = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+    const loadCountries = async () => {
+      try {
+        const res = await fetch("https://restcountries.com/v3.1/all?fields=name,cca2,flag", {
+          signal: AbortSignal.timeout(6000)
+        });
+        if (!res.ok) throw new Error("API error");
+        const data = await res.json();
+        if (!active) return;
+        const list = data
+          .filter(c => c.cca2 && c.name?.common)
+          .map(c => ({
+            code: c.cca2.toUpperCase(),
+            name: c.name.common,
+            flag: c.flag
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        if (list.length > 20) {
+          setCountriesList(list);
+        }
+      } catch (err) {
+        console.warn("Failed to load country list from API, using default list:", err);
+      }
+    };
+    loadCountries();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(e.target)) {
+        setIsCountryDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // Operational states
   const [loading, setLoading] = useState(true);
@@ -67,6 +136,7 @@ const AdminCommissionSettings = () => {
 
       setMinPayoutThreshold(rule.minPayoutThreshold ?? (data.minWithdrawalAmount ?? 500));
       setFixedWithdrawalFee(rule.fixedWithdrawalFee ?? (data.fixedWithdrawalFee ?? 0));
+      setCountryGst(data.countryGst ?? rule.countryGst ?? []);
 
       // Fetch history in background
       fetchHistory();
@@ -107,6 +177,7 @@ const AdminCommissionSettings = () => {
         cashbackMinTransactionAmount: Number(cashbackMinTransactionAmount),
         minPayoutThreshold: Number(minPayoutThreshold),
         fixedWithdrawalFee: Number(fixedWithdrawalFee),
+        countryGst,
         changeReason
       };
 
@@ -176,6 +247,13 @@ const AdminCommissionSettings = () => {
   const pctNetRev = simNetPlatformRev > 0 ? (((simNetPlatformRev * scale) / simAmount) * 100) : 0;
   const pctReferral = ((simReferralCut * scale) / simAmount) * 100;
   const pctCashback = ((simCashbackCut * scale) / simAmount) * 100;
+
+  const selectedCountryObj = countriesList.find(c => c.code === newCountry) || { code: 'IN', name: 'India', flag: '🇮🇳' };
+
+  const filteredCountries = countriesList.filter(
+    c => c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+         c.code.toLowerCase().includes(countrySearch.toLowerCase())
+  );
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 animate-fade-in">
@@ -457,6 +535,192 @@ const AdminCommissionSettings = () => {
             </div>
           </div>
 
+          {/* Section 5: Country-Specific GST Settings */}
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-2">
+              <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600"><HiOutlineSparkles className="w-5 h-5" /></span>
+              <h2 className="text-lg font-bold text-slate-900">{t('admin.gstSection', 'Country-Specific GST Settings')}</h2>
+            </div>
+            
+            <p className="text-xs text-slate-400">
+              Configure custom GST/tax percentages per country. These settings override the default fallback rate (18%) during checkout.
+            </p>
+
+            {/* Input Row for adding new rules */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+              <div className="relative" ref={countryDropdownRef}>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Select Country</label>
+                <button
+                  type="button"
+                  onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                  className="w-full h-[38px] px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold flex items-center justify-between shadow-xs transition hover:bg-slate-50/50 focus:outline-hidden focus:border-indigo-500"
+                >
+                  <div className="flex items-center gap-2">
+                    {selectedCountryObj?.code && (
+                      <img
+                        src={`https://flagcdn.com/w40/${selectedCountryObj.code.toLowerCase()}.png`}
+                        alt={selectedCountryObj.code}
+                        className="w-5 h-3.5 object-cover rounded-xs shadow-xs shrink-0"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    )}
+                    <span className="truncate">{selectedCountryObj?.name || newCountry} ({selectedCountryObj?.code || newCountry})</span>
+                  </div>
+                  <HiChevronDown className={`w-4 h-4 text-slate-400 transition-transform shrink-0 ${isCountryDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isCountryDropdownOpen && (
+                  <div className="absolute left-0 mt-1.5 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden">
+                    {/* Search bar inside the dropdown */}
+                    <div className="p-2 border-b border-slate-100 sticky top-0 bg-white z-10">
+                      <div className="relative">
+                        <HiSearch className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-slate-400" />
+                        <input
+                          autoFocus
+                          type="text"
+                          placeholder="Search country or code..."
+                          value={countrySearch}
+                          onChange={e => setCountrySearch(e.target.value)}
+                          className="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-xl text-xs font-medium focus:outline-hidden focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                        />
+                      </div>
+                    </div>
+                    {/* Scrollable list of countries */}
+                    <div className="max-h-56 overflow-y-auto py-1 bg-white">
+                      {filteredCountries.length > 0 ? (
+                        filteredCountries.map(c => (
+                          <button
+                            key={c.code}
+                            type="button"
+                            onClick={() => {
+                              setNewCountry(c.code);
+                              setIsCountryDropdownOpen(false);
+                              setCountrySearch('');
+                            }}
+                            className={`flex items-center justify-between w-full px-3.5 py-2 text-left text-xs font-semibold hover:bg-slate-50 transition-colors ${
+                              c.code === newCountry ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              {c.code && (
+                                <img
+                                  src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
+                                  alt={c.code}
+                                  className="w-5 h-3.5 object-cover rounded-xs shadow-xs shrink-0"
+                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                />
+                              )}
+                              <span className="truncate max-w-[150px]">{c.name}</span>
+                            </div>
+                            <span className="text-slate-400 font-mono text-[10px] ml-2 shrink-0">{c.code}</span>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-3.5 py-3 text-center text-xs text-slate-400 font-medium">
+                          No countries found
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">GST/Tax rate (%)</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={0.1}
+                    value={newGstPercent}
+                    onChange={e => setNewGstPercent(e.target.value)}
+                    className="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:border-indigo-500 transition"
+                    placeholder="e.g. 18"
+                  />
+                  <span className="absolute inset-y-0 right-3 flex items-center text-slate-400 font-bold text-xs">%</span>
+                </div>
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const countryCode = String(newCountry || '').trim().toUpperCase();
+                    if (!countryCode) {
+                      toast.error('Please select a valid country');
+                      return;
+                    }
+                    const percent = Number(newGstPercent);
+                    if (isNaN(percent) || percent < 0 || percent > 100) {
+                      toast.error('Please enter a valid GST percentage (0 to 100)');
+                      return;
+                    }
+
+                    // Check if already exists
+                    if (countryGst.some(item => item.country === countryCode)) {
+                      toast.error(`GST rate for ${countryCode} is already configured. Remove it first to re-add.`);
+                      return;
+                    }
+
+                    setCountryGst([...countryGst, { country: countryCode, gstPercent: percent }]);
+                    toast.success(`Added ${countryCode} tax rate of ${percent}%`);
+                    setNewCountry('IN');
+                    setNewGstPercent(18);
+                  }}
+                  className="w-full py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold transition hover:bg-slate-800"
+                >
+                  Add Country GST
+                </button>
+              </div>
+            </div>
+
+            {/* List of current country GST rules */}
+            <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+              {countryGst.length > 0 ? (
+                countryGst.map((item, idx) => {
+                  const countryName = countriesList.find(c => c.code === item.country)?.name || item.country;
+                  return (
+                    <div key={idx} className="flex justify-between items-center bg-slate-50/50 hover:bg-slate-50 border border-slate-100 p-3 rounded-2xl transition">
+                      <div className="flex items-center gap-2.5">
+                        {item.country && (
+                          <img
+                            src={`https://flagcdn.com/w40/${item.country.toLowerCase()}.png`}
+                            alt={item.country}
+                            className="w-5 h-3.5 object-cover rounded-xs shadow-xs shrink-0"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        )}
+                        <span className="text-sm font-bold text-slate-900">{item.country}</span>
+                        <span className="text-xs text-slate-400">({countryName})</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs font-bold text-slate-800 bg-indigo-50 border border-indigo-100/50 px-2.5 py-1 rounded-lg">
+                          {item.gstPercent}% Tax
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCountryGst(countryGst.filter((_, i) => i !== idx));
+                            toast.success(`Removed GST config for ${item.country}`);
+                          }}
+                          className="p-1.5 rounded-full text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition"
+                        >
+                          <HiX className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-6 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                  <p className="text-xs text-slate-400 font-medium">No country-specific GST overrides defined.</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Checkouts will fallback to standard 18% GST.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Form Action */}
           <div className="bg-slate-50 rounded-2xl p-4 flex justify-between items-center border border-slate-200">
             <span className="text-xs text-slate-500 font-medium">Verify changes on split visualizer first.</span>
@@ -588,6 +852,7 @@ const AdminCommissionSettings = () => {
                     <th className="pb-3 px-2">Referrals</th>
                     <th className="pb-3 px-2">Cashbacks</th>
                     <th className="pb-3 px-2">Withdrawals</th>
+                    <th className="pb-3 px-2">GST Rates</th>
                     <th className="pb-3 px-2">Updated By</th>
                     <th className="pb-3 px-2">Effective Date</th>
                     <th className="pb-3 px-2">Reason</th>
@@ -621,6 +886,19 @@ const AdminCommissionSettings = () => {
                       </td>
                       <td className="py-4 px-2 text-slate-500">
                         Min ₹{ruleItem.minPayoutThreshold} · Fee ₹{ruleItem.fixedWithdrawalFee}
+                      </td>
+                      <td className="py-4 px-2 text-slate-500">
+                        {ruleItem.countryGst && ruleItem.countryGst.length > 0 ? (
+                          <div className="flex flex-wrap gap-1 max-w-[150px]">
+                            {ruleItem.countryGst.map((g, i) => (
+                              <span key={i} className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[9px] font-bold">
+                                {g.country}: {g.gstPercent}%
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 font-medium">Default (18%)</span>
+                        )}
                       </td>
                       <td className="py-4 px-2 text-slate-500">
                         {ruleItem.updatedBy ? (
@@ -699,6 +977,7 @@ const AdminCommissionSettings = () => {
                     )}
                     <li>Payout Min: <span className="font-bold text-slate-900">₹{activeRule?.minPayoutThreshold ?? 500}</span></li>
                     <li>Withdraw Fee: <span className="font-bold text-slate-900">₹{activeRule?.fixedWithdrawalFee ?? 0}</span></li>
+                    <li>GST Rules: <span className="font-bold text-slate-900">{(activeRule?.countryGst || []).length} rule(s)</span></li>
                   </ul>
                 </div>
 
@@ -720,6 +999,7 @@ const AdminCommissionSettings = () => {
                     )}
                     <li>Payout Min: <span className="font-bold text-indigo-700">₹{minPayoutThreshold}</span></li>
                     <li>Withdraw Fee: <span className="font-bold text-indigo-700">₹{fixedWithdrawalFee}</span></li>
+                    <li>GST Rules: <span className="font-bold text-indigo-700">{countryGst.length} rule(s)</span></li>
                   </ul>
                 </div>
               </div>

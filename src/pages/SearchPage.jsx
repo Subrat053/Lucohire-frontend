@@ -16,6 +16,7 @@ import {
 } from "../data/skillsData";
 import { normalizeProviderData } from "../utils/providerData";
 import { getProviders as fetchProviderResults } from "../services/providerService";
+import { categoriesAPI } from "../services/api";
 import SharedProviderCard from "../components/providers/ProviderCard";
 import useTranslation from "../hooks/useTranslation";
 import Seo from "../components/common/Seo";
@@ -87,6 +88,23 @@ const SearchPage = () => {
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCats = async () => {
+      try {
+        const { data } = await categoriesAPI.getCategories();
+        if (isMounted && Array.isArray(data)) {
+          setCategories(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
+    };
+    fetchCats();
+    return () => { isMounted = false; };
+  }, []);
 
   const debouncedUpdateSearchQueryRef = useRef(null);
 
@@ -308,7 +326,7 @@ const SearchPage = () => {
       queryTier,
       queryCategory,
       { page: 1, append: false },
-      locationFull,
+      queryCity ? locationFull : null,
     );
   }, [searchParams, fetchProviders, locationFull]);
 
@@ -335,7 +353,7 @@ const SearchPage = () => {
         tierFilter,
         selectedCategory,
         { silent: true },
-        locationFull,
+        city ? locationFull : null,
       );
     }, 60000);
 
@@ -475,7 +493,7 @@ const SearchPage = () => {
       tierFilter,
       selectedCategory,
       { page: nextPage, append: true },
-      locationFull,
+      city ? locationFull : null,
     );
   };
 
@@ -526,6 +544,39 @@ const SearchPage = () => {
       );
     }
   };
+
+  const displayedSkills = (() => {
+    if (tierFilter) {
+      const filteredCats = categories.filter(
+        (c) => c.isActive !== false && (c.tier === tierFilter || c.type === tierFilter)
+      );
+      const skills = [];
+      filteredCats.forEach((cat) => {
+        const catSkills = Array.isArray(cat.skills) ? cat.skills : [];
+        catSkills.forEach((sk) => {
+          if (sk.isActive !== false && sk.name && !skills.includes(sk.name)) {
+            skills.push(sk.name);
+          }
+        });
+      });
+      return skills.slice(0, 24);
+    }
+    if (categories.length > 0) {
+      const skills = [];
+      categories.forEach((cat) => {
+        if (cat.isActive !== false) {
+          const catSkills = Array.isArray(cat.skills) ? cat.skills : [];
+          catSkills.forEach((sk) => {
+            if (sk.isActive !== false && sk.name && !skills.includes(sk.name)) {
+              skills.push(sk.name);
+            }
+          });
+        }
+      });
+      return skills.slice(0, 16);
+    }
+    return POPULAR_SKILLS.slice(0, 16);
+  })();
 
   const hasFilters =
     queryText ||
@@ -698,7 +749,7 @@ const SearchPage = () => {
           className="flex gap-2 overflow-x-auto pb-1 mb-2"
           style={{ scrollbarWidth: "none" }}
         >
-          {POPULAR_SKILLS.slice(0, 16).map((s) => (
+          {displayedSkills.map((s) => (
             <button
               key={s}
               onClick={() => handlePillClick(s)}

@@ -718,6 +718,7 @@ const AuthPage = () => {
     otp: "",
     city: "",
     whatsappNumber: "",
+    isWhatsappSameAsMobile: true,
     selectedRole: preSelectedRole || "provider",
     providerProfile: {
       skills: [],
@@ -787,6 +788,7 @@ const AuthPage = () => {
       otp: "",
       city: "",
       whatsappNumber: "",
+      isWhatsappSameAsMobile: true,
       selectedRole: roleParam || "provider",
       providerProfile: {
         skills: [],
@@ -934,15 +936,37 @@ const AuthPage = () => {
   };
 
   const handlePhoneInputChange = (phoneData) => {
-    setForm((prev) => ({
-      ...prev,
-      phone: phoneData.fullPhone,
-      countryCode: phoneData.countryCode,
-      nationalNumber: phoneData.nationalNumber,
-    }));
+    setForm((prev) => {
+      const nextForm = {
+        ...prev,
+        phone: phoneData.fullPhone,
+        countryCode: phoneData.countryCode,
+        nationalNumber: phoneData.nationalNumber,
+      };
+      if (prev.isWhatsappSameAsMobile !== false) {
+        nextForm.whatsappNumber = phoneData.fullPhone;
+        nextForm.whatsappCountryCode = phoneData.countryCode;
+        nextForm.whatsappNationalNumber = phoneData.nationalNumber;
+      }
+      return nextForm;
+    });
     setErrors((prev) => ({
       ...prev,
       phone: phoneData.validationError || "",
+      ...(form.isWhatsappSameAsMobile !== false ? { whatsappNumber: phoneData.validationError || "" } : {}),
+    }));
+  };
+
+  const handleWhatsappInputChange = (phoneData) => {
+    setForm((prev) => ({
+      ...prev,
+      whatsappNumber: phoneData.fullPhone,
+      whatsappCountryCode: phoneData.countryCode,
+      whatsappNationalNumber: phoneData.nationalNumber,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      whatsappNumber: phoneData.validationError || "",
     }));
   };
 
@@ -1162,6 +1186,8 @@ const AuthPage = () => {
         activeRole: defaultActiveRole,
         role: defaultActiveRole,
         referralCode,
+        isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
+        whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : form.whatsappNumber,
       };
 
       const { data } = await authAPI.phoneLogin(payload);
@@ -1324,6 +1350,8 @@ const AuthPage = () => {
           form.selectedRole === "recruiter"
             ? (form.recruiterProfile.gstNumber || "").trim()
             : undefined,
+        isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
+        whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : form.whatsappNumber,
       };
       const payload = sanitizePayload(rawPayload);
 
@@ -1354,7 +1382,8 @@ const AuthPage = () => {
       const { data } = await authAPI.verifyEmailOtp({
         email: form.email.trim().toLowerCase(),
         otp,
-        whatsappNumber: form.whatsappNumber || undefined,
+        whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : form.whatsappNumber,
+        isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
       });
 
       redirectAfterAuth(data?.data);
@@ -1590,6 +1619,49 @@ const AuthPage = () => {
 
           <PhoneField form={form} onChange={handlePhoneInputChange} error={errors.phone} />
 
+          <div className="flex items-center space-x-2 py-1">
+            <input
+              id="isWhatsappSameAsMobile-email"
+              type="checkbox"
+              checked={form.isWhatsappSameAsMobile !== false}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setForm((prev) => ({
+                  ...prev,
+                  isWhatsappSameAsMobile: checked,
+                  whatsappNumber: checked ? prev.phone : "",
+                  whatsappCountryCode: checked ? prev.countryCode : "+91",
+                  whatsappNationalNumber: checked ? prev.nationalNumber : "",
+                }));
+                if (checked) {
+                  setErrors((prev) => ({ ...prev, whatsappNumber: "" }));
+                }
+              }}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+            />
+            <label htmlFor="isWhatsappSameAsMobile-email" className="text-sm font-semibold text-gray-700 select-none cursor-pointer">
+              {t("auth.whatsappSame", "My WhatsApp number is the same as my mobile number")}
+            </label>
+          </div>
+
+          {form.isWhatsappSameAsMobile === false && (
+            <div className="space-y-1 transition-all duration-300 animate-fadeIn">
+              <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">
+                {t("auth.whatsappNumber", "WhatsApp Number (Optional)")}
+              </label>
+              <CountryPhoneInput
+                countryCode={form.whatsappCountryCode || "+91"}
+                nationalNumber={form.whatsappNationalNumber || ""}
+                onChange={handleWhatsappInputChange}
+                error={errors.whatsappNumber}
+                accent="blue"
+              />
+              <p className="text-gray-400 text-[11px] font-medium pl-1">
+                {t("auth.whatsappHelp", "If unchecked, you may enter a separate WhatsApp number.")}
+              </p>
+            </div>
+          )}
+
           <div className="space-y-1">
             <TextInput
               icon={HiMail}
@@ -1797,6 +1869,49 @@ const AuthPage = () => {
             error={errors.phone}
             accent="green"
           />
+
+          <div className="flex items-center space-x-2 py-1">
+            <input
+              id="isWhatsappSameAsMobile-phone"
+              type="checkbox"
+              checked={form.isWhatsappSameAsMobile !== false}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setForm((prev) => ({
+                  ...prev,
+                  isWhatsappSameAsMobile: checked,
+                  whatsappNumber: checked ? prev.phone : "",
+                  whatsappCountryCode: checked ? prev.countryCode : "+91",
+                  whatsappNationalNumber: checked ? prev.nationalNumber : "",
+                }));
+                if (checked) {
+                  setErrors((prev) => ({ ...prev, whatsappNumber: "" }));
+                }
+              }}
+              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer"
+            />
+            <label htmlFor="isWhatsappSameAsMobile-phone" className="text-sm font-semibold text-gray-700 select-none cursor-pointer">
+              {t("auth.whatsappSame", "My WhatsApp number is the same as my mobile number")}
+            </label>
+          </div>
+
+          {form.isWhatsappSameAsMobile === false && (
+            <div className="space-y-1 transition-all duration-300 animate-fadeIn">
+              <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">
+                {t("auth.whatsappNumber", "WhatsApp Number (Optional)")}
+              </label>
+              <CountryPhoneInput
+                countryCode={form.whatsappCountryCode || "+91"}
+                nationalNumber={form.whatsappNationalNumber || ""}
+                onChange={handleWhatsappInputChange}
+                error={errors.whatsappNumber}
+                accent="green"
+              />
+              <p className="text-gray-400 text-[11px] font-medium pl-1">
+                {t("auth.whatsappHelp", "If unchecked, you may enter a separate WhatsApp number.")}
+              </p>
+            </div>
+          )}
 
           <TextInput
             icon={HiLocationMarker}

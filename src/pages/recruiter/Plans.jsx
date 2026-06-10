@@ -317,11 +317,16 @@ const RecruiterPlans = () => {
                   <h3 className="text-xl font-extrabold text-gray-900">{plan.name}</h3>
 
                   {/* Price */}
-                  <div className="mt-3 mb-6">
-                    <span className="text-4xl font-extrabold text-gray-900">
-                      {formatPrice(plan.price, plan.priceAED, plan.priceUSD)}
+                  <div className="mt-3 mb-6 flex flex-col gap-0.5">
+                    <div className="flex items-baseline">
+                      <span className="text-4xl font-extrabold text-gray-900">
+                        {plan.currencySymbol || '₹'}{Number(plan.price || 0).toLocaleString()}
+                      </span>
+                      <span className="text-gray-400 text-sm ml-1.5">/ {PERIOD_LABELS[plan.duration] || `${plan.duration}d`}</span>
+                    </div>
+                    <span className="text-[10px] text-gray-500 font-semibold mt-1">
+                      {plan.isTaxInclusive ? `${plan.taxName || 'Tax'} Inclusive` : `+ ${plan.taxName || 'GST'} (${plan.gstPercent || 18}%)`}
                     </span>
-                    <span className="text-gray-400 text-sm ml-1.5">/ {PERIOD_LABELS[plan.duration] || `${plan.duration}d`}</span>
                   </div>
 
                   {/* Features */}
@@ -481,12 +486,12 @@ const RecruiterPlans = () => {
                 <div className="divide-y divide-slate-100 bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-500 font-medium">Base Plan Amount</span>
-                    <span className="font-bold text-slate-800">₹{breakdownData.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-bold text-slate-800">{breakdownData.currencySymbol || '₹'}{breakdownData.baseAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs pt-3">
-                    <span className="text-slate-500 font-medium">GST/Taxes ({breakdownData.taxPercent}%)</span>
-                    <span className="font-bold text-slate-800">₹{breakdownData.taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    <span className="text-slate-500 font-medium">{breakdownData.taxName || 'GST/Taxes'} ({breakdownData.taxPercent}%)</span>
+                    <span className="font-bold text-slate-800">{breakdownData.currencySymbol || '₹'}{breakdownData.taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs pt-3 text-[10px] text-slate-400 font-medium">
@@ -495,7 +500,7 @@ const RecruiterPlans = () => {
 
                   <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-200">
                     <span className="text-gray-900 font-extrabold">Final Payable Total</span>
-                    <span className="text-lg font-black text-indigo-600">₹{breakdownData.finalPayableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    <span className="text-lg font-black text-indigo-600">{breakdownData.currencySymbol || '₹'}{breakdownData.finalPayableAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
 

@@ -11,16 +11,19 @@ import {
   SlidersHorizontal,
   Target,
   Wallet,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import RouteLoader from '../../components/common/RouteLoader';
 import {
-  checkoutPlan,
-  confirmPayment,
   getCurrentSubscription,
   getMyPlan,
   getProviderPlans,
   previewPlan,
+  getProviderUsageMetrics,
+  purchaseFixedPlan,
+  confirmPaymentSuccess,
 } from '../../services/providerPlanService';
 import { useAuth } from '../../context/AuthContext';
 import useTranslation from '../../hooks/useTranslation';
@@ -56,22 +59,25 @@ const coverageLabels = {
   custom: 'Custom Coverage',
 };
 
-const formatCurrency = (value) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
+const formatCurrency = (value, symbol = '₹') => `${symbol}${Number(value || 0).toLocaleString()}`;
 
 const buildLocalPreview = (plan, months) => {
   if (!plan) return null;
   const monthlyPrice = Number(plan.priceMonthly || plan.price || 0);
   const discountPercent = DISCOUNT_BY_MONTHS[months] || 0;
   const subtotal = Math.max(0, Math.round(monthlyPrice * months * (1 - discountPercent / 100) * 100) / 100);
-  const gstAmount = Math.round(subtotal * 0.18 * 100) / 100;
+  const taxPercent = plan.gstPercent ?? 18;
+  const gstAmount = Math.round(subtotal * (taxPercent / 100) * 100) / 100;
   const totalAmount = Math.round((subtotal + gstAmount) * 100) / 100;
   return {
     monthlyPrice,
     discountPercent,
     subtotal,
-    gstPercent: 18,
+    gstPercent: taxPercent,
     gstAmount,
     totalAmount,
+    currencySymbol: plan.currencySymbol || '₹',
+    taxName: plan.taxName || 'GST',
   };
 };
 
@@ -95,6 +101,7 @@ const ProviderPlans = () => {
   const [availableSkills, setAvailableSkills] = useState([]);
   const [skillsLoading, setSkillsLoading] = useState(false);
   const [finalizingPayment, setFinalizingPayment] = useState(false);
+  const [usageSummary, setUsageSummary] = useState(null);
 
   const returnTo = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -178,8 +185,13 @@ const ProviderPlans = () => {
       setLoading(true);
       setError('');
       try {
-        const [planList, myPlan] = await Promise.all([getProviderPlans(), getMyPlan()]);
+        const [planList, myPlan, usageMetrics] = await Promise.all([
+          getProviderPlans(),
+          getMyPlan(),
+          getProviderUsageMetrics().catch(() => null)
+        ]);
         setPlans(planList);
+        setUsageSummary(usageMetrics);
 
         if (myPlan?.subscription?.planId) {
           const existing = planList.find((plan) => String(plan._id) === String(myPlan.subscription.planId));
@@ -217,12 +229,14 @@ const ProviderPlans = () => {
         paymentHandledRef.current = true;
         setFinalizingPayment(true);
         try {
-          await confirmPayment({
+          await confirmPaymentSuccess({
             subscriptionId: subId,
             paymentId: sessionId,
             orderId: 'stripe_session',
           });
           await getCurrentSubscription().catch(() => null);
+          const updatedUsage = await getProviderUsageMetrics().catch(() => null);
+          if (updatedUsage) setUsageSummary(updatedUsage);
           toast.success('Payment confirmed! Your plan is now active.');
           sessionStorage.removeItem('paymentReturnTo');
           sessionStorage.removeItem('paymentReturnSource');
@@ -320,8 +334,11 @@ const ProviderPlans = () => {
       skills: skillsDisplay,
       duration: `${selectedDuration} Month${selectedDuration > 1 ? 's' : ''}`,
       subtotal: pricing?.subtotal || 0,
+      gstPercent: pricing?.gstPercent || 18,
       gstAmount: pricing?.gstAmount || 0,
       totalAmount: pricing?.totalAmount || 0,
+      currencySymbol: pricing?.currencySymbol || selectedPlan?.currencySymbol || '₹',
+      taxName: pricing?.taxName || selectedPlan?.taxName || 'GST',
     };
   }, [pricingPreview, selectedDuration, selectedPlan, selectedSkills, selectedPincodes, selectedCities]);
 
@@ -334,7 +351,7 @@ const ProviderPlans = () => {
     setCheckoutLoading(true);
     try {
 
-      const response = await checkoutPlan({
+      const response = await purchaseFixedPlan({
         planId: selectedPlan._id,
         durationMonths: selectedDuration,
         selectedSkills,
@@ -348,12 +365,14 @@ const ProviderPlans = () => {
         // Simulation Flow
         const confirm = window.confirm('Simulation Mode: Click OK to simulate successful payment.');
         if (confirm) {
-          await confirmPayment({
+          await confirmPaymentSuccess({
             subscriptionId: subscription?._id,
             paymentId: 'sim_' + Date.now(),
             orderId: 'sim_order_' + Date.now(),
           });
           await getMyPlan();
+          const updatedUsage = await getProviderUsageMetrics().catch(() => null);
+          if (updatedUsage) setUsageSummary(updatedUsage);
           toast.success('Simulation: Payment successful! Plan activated.');
           sessionStorage.removeItem('paymentReturnTo');
           sessionStorage.removeItem('paymentReturnSource');
@@ -387,12 +406,14 @@ const ProviderPlans = () => {
           name: 'ServiceHub',
           description: selectedPlan.name,
           handler: async (payment) => {
-            await confirmPayment({
+            await confirmPaymentSuccess({
               subscriptionId: subscription?._id,
               paymentId: payment?.razorpay_payment_id,
               orderId: payment?.razorpay_order_id,
             });
             await getMyPlan();
+            const updatedUsage = await getProviderUsageMetrics().catch(() => null);
+            if (updatedUsage) setUsageSummary(updatedUsage);
             toast.success('Payment successful! Plan activated.');
             sessionStorage.removeItem('paymentReturnTo');
             sessionStorage.removeItem('paymentReturnSource');
@@ -411,11 +432,11 @@ const ProviderPlans = () => {
       } else if (checkout?.paymentRequired && checkout?.paymentProvider === 'stripe') {
         // Stripe Flow (Basic redirect or message for now)
         toast.success('Stripe payment initialized. Redirecting...');
-        // Implement Stripe Elements/Redirect here if needed
-        // For now, if no clientSecret, we might just be in a state where manual is better
       } else {
         toast.success(checkout?.message || 'Checkout created. Our team will review your request.');
         await getMyPlan();
+        const updatedUsage = await getProviderUsageMetrics().catch(() => null);
+        if (updatedUsage) setUsageSummary(updatedUsage);
       }
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to start checkout.');
@@ -528,12 +549,15 @@ const ProviderPlans = () => {
                           </ul>
                           <div className="mt-4 flex flex-col gap-0.5">
                             <div className="flex items-baseline gap-1.5">
-                                <span className="text-xl font-extrabold text-[#06133D]">{formatCurrency(priceMonthly)}</span>
+                                <span className="text-xl font-extrabold text-[#06133D]">{formatCurrency(priceMonthly, plan.currencySymbol)}</span>
                                 <span className="text-[10px] font-medium text-[#64748B] uppercase tracking-tighter">/ month</span>
                             </div>
                             {hasOldPrice && (
-                              <span className="text-xs text-[#94A3B8] line-through font-medium">{formatCurrency(oldPrice)}</span>
+                              <span className="text-xs text-[#94A3B8] line-through font-medium">{formatCurrency(oldPrice, plan.currencySymbol)}</span>
                             )}
+                            <span className="text-[10px] text-gray-500 font-semibold mt-0.5">
+                              {plan.isTaxInclusive ? `${plan.taxName || 'Tax'} Inclusive` : `+ ${plan.taxName || 'GST'} (${plan.gstPercent || 18}%)`}
+                            </span>
                           </div>
                           <button
                             type="button"
@@ -863,15 +887,94 @@ const ProviderPlans = () => {
                 </p>
 
                 <button
-                  type="button"
-                  onClick={() => navigate('/provider/profile')}
-                  className="mt-2 text-sm font-semibold text-[#005BFF] inline-flex items-center gap-1"
+                   type="button"
+                   onClick={() => navigate('/provider/profile')}
+                   className="mt-2 text-sm font-semibold text-[#005BFF] inline-flex items-center gap-1"
                 >
                   View Profile <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
           </div>
+          
+          {/* =========================================== */}
+          {/* Usage Metrics Widget */}
+          {usageSummary && (
+            <div className="bg-white border border-[#E8EEF9] rounded-2xl p-5 shadow-sm space-y-4">
+              <h3 className="text-sm font-semibold text-[#06133D] flex items-center gap-2">
+                <BadgeCheck className="w-5 h-5 text-emerald-600" />
+                Current Usage & Limits
+              </h3>
+              
+              <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2 text-[11px] text-[#64748B] flex items-center justify-between">
+                <span>Cycle: <strong className="capitalize">{usageSummary.usageResetCycle || 'monthly'}</strong></span>
+                {usageSummary.periodEnd && (
+                  <span>Next Reset: <strong>{new Date(usageSummary.periodEnd).toLocaleDateString()}</strong></span>
+                )}
+              </div>
+
+              {/* Skills Limit */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#64748B]">Skills Selection</span>
+                  <span className={`font-bold ${usageSummary.skills?.used >= usageSummary.skills?.max ? 'text-amber-600' : 'text-[#06133D]'}`}>
+                    {usageSummary.skills?.used} / {usageSummary.skills?.max}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div 
+                    className={`h-1.5 rounded-full transition-all duration-500 ${usageSummary.skills?.used >= usageSummary.skills?.max ? 'bg-amber-500' : 'bg-blue-600'}`}
+                    style={{ width: `${Math.min(100, (usageSummary.skills?.used / (usageSummary.skills?.max || 1)) * 100)}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Locations Limit */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#64748B]">Service Locations</span>
+                  <span className={`font-bold ${usageSummary.locations?.used >= usageSummary.locations?.max ? 'text-amber-600' : 'text-[#06133D]'}`}>
+                    {usageSummary.locations?.used} / {usageSummary.locations?.max}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div 
+                    className={`h-1.5 rounded-full transition-all duration-500 ${usageSummary.locations?.used >= usageSummary.locations?.max ? 'bg-amber-500' : 'bg-blue-600'}`}
+                    style={{ width: `${Math.min(100, (usageSummary.locations?.used / (usageSummary.locations?.max || 1)) * 100)}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Job Applications Limit */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#64748B]">Job Applications</span>
+                  <span className={`font-bold ${usageSummary.jobApplications?.used >= usageSummary.jobApplications?.max ? 'text-amber-600' : 'text-[#06133D]'}`}>
+                    {usageSummary.jobApplications?.used} / {usageSummary.jobApplications?.max}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div 
+                    className={`h-1.5 rounded-full transition-all duration-500 ${usageSummary.jobApplications?.used >= usageSummary.jobApplications?.max ? 'bg-amber-500' : 'bg-blue-600'}`}
+                    style={{ width: `${Math.min(100, (usageSummary.jobApplications?.used / (usageSummary.jobApplications?.max || 1)) * 100)}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Warning CTA if any limits reached */}
+              {(usageSummary.skills?.used >= usageSummary.skills?.max || 
+                usageSummary.locations?.used >= usageSummary.locations?.max || 
+                usageSummary.jobApplications?.used >= usageSummary.jobApplications?.max) && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="text-[11px] text-amber-800 leading-normal">
+                    <p className="font-semibold">Limits reached or close to being exceeded.</p>
+                    <p className="mt-0.5 text-slate-500">Upgrade to a premium plan below to unlock higher limit bounds.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) }
           {/* =========================================== */}
           <div className="bg-white border border-[#E8EEF9] rounded-xl p-5 shadow-sm">
             <h3 className="text-sm font-semibold text-[#06133D] mb-4">{t('plans.summaryTitle', 'Your Plan Summary')}</h3>
@@ -903,15 +1006,15 @@ const ProviderPlans = () => {
                 <div className="h-px bg-[#EEF2FF]" />
                 <div className="flex items-center justify-between">
                   <span className="text-[#64748B]">{t('plans.summarySubtotal', 'Subtotal')}</span>
-                  <span className="font-semibold text-[#06133D]">{formatCurrency(summary.subtotal)}</span>
+                  <span className="font-semibold text-[#06133D]">{formatCurrency(summary.subtotal, summary.currencySymbol)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#64748B]">{t('plans.summaryGst', 'GST (18%)')}</span>
-                  <span className="font-semibold text-[#06133D]">{formatCurrency(summary.gstAmount)}</span>
+                  <span className="text-[#64748B]">{summary.taxName || 'GST'} ({summary.gstPercent || 18}%)</span>
+                  <span className="font-semibold text-[#06133D]">{formatCurrency(summary.gstAmount, summary.currencySymbol)}</span>
                 </div>
                 <div className="flex items-center justify-between text-base border-t border-dashed border-[#EEF2FF] pt-2">
                   <span className="font-semibold text-[#06133D]">{t('plans.summaryTotal', 'Total Amount')}</span>
-                  <span className="font-bold text-violet-700">{formatCurrency(summary.totalAmount)}</span>
+                  <span className="font-bold text-violet-700">{formatCurrency(summary.totalAmount, summary.currencySymbol)}</span>
                 </div>
               </div>
             ) : (

@@ -284,9 +284,8 @@ const LocationAutocomplete = ({
         </span>
       )}
 
-      {/* Autocomplete Predictions Dropdown */}
       {isOpen && (predictions.length > 0 || apiFailed) && (
-        <div className="absolute left-0 right-0 top-10 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto py-1.5 animate-fadeIn">
+        <div className="absolute left-0 top-10 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto py-1.5 animate-fadeIn min-w-full md:min-w-[320px] w-max max-w-[90vw]">
           {apiFailed && (
             <div className="px-3 py-1 bg-amber-50 text-[11px] text-amber-700 font-medium flex items-center gap-1 border-b border-amber-100/50 mb-1">
               <HiExclamationCircle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />

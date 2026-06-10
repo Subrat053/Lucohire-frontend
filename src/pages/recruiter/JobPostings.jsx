@@ -11,7 +11,9 @@ import {
     HiBookmark,
     HiDownload,
     HiFilter,
+    HiChevronLeft,
     HiChevronRight,
+    HiQuestionMarkCircle,
     HiTrash,
     HiX,
     HiPhone,
@@ -20,8 +22,10 @@ import {
     HiStar,
     HiShieldCheck,
 } from "react-icons/hi";
-import { recruiterAPI } from "../../services/api";
+import { recruiterAPI, providerAPI } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import { ALL_SKILLS, fuzzyResolveSkill } from "../../data/skillsData";
+import LocationAutocomplete from "../../components/common/LocationAutocomplete";
 
 export default function JobPostings() {
     const navigate = useNavigate();
@@ -46,9 +50,65 @@ export default function JobPostings() {
     const [plans, setPlans] = useState([]);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [planSummary, setPlanSummary] = useState(null);
     const [searching, setSearching] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const [savingIds, setSavingIds] = useState(new Set()); // candidateIds currently being saved
+
+    // Sorting & Filtering & Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(5);
+    const [sortField, setSortField] = useState("matchScore");
+    const [filterVerified, setFilterVerified] = useState(false);
+    const [filterResume, setFilterResume] = useState(false);
+    const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+
+    // Reset page on filter/sort/candidates change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [candidates, sortField, filterVerified, filterResume]);
+
+    const filteredCandidates = useMemo(() => {
+        let list = [...candidates];
+
+        // Apply Filters
+        if (filterVerified) {
+            list = list.filter(c => c.isVerified);
+        }
+        if (filterResume) {
+            list = list.filter(c => !!c.resumeUrl);
+        }
+
+        // Apply Sorting
+        list.sort((a, b) => {
+            if (sortField === "experience") {
+                const expA = parseInt(a.experience) || 0;
+                const expB = parseInt(b.experience) || 0;
+                return expB - expA;
+            }
+            if (sortField === "rating") {
+                const ratA = parseFloat(a.rating) || 0;
+                const ratB = parseFloat(b.rating) || 0;
+                return ratB - ratA;
+            }
+            if (sortField === "fee") {
+                const feeA = parseFloat(String(a.fee || '0').replace(/[^\d.]/g, '')) || 0;
+                const feeB = parseFloat(String(b.fee || '0').replace(/[^\d.]/g, '')) || 0;
+                return feeA - feeB; // lowest fee first
+            }
+            // default: matchScore
+            return (b.matchScore || 0) - (a.matchScore || 0);
+        });
+
+        return list;
+    }, [candidates, sortField, filterVerified, filterResume]);
+
+    const totalPages = Math.ceil(filteredCandidates.length / itemsPerPage) || 1;
+
+    const paginatedCandidates = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredCandidates.slice(start, start + itemsPerPage);
+    }, [filteredCandidates, currentPage, itemsPerPage]);
 
     const [aiFilters, setAiFilters] = useState({
         skill: "",
@@ -96,9 +156,10 @@ export default function JobPostings() {
     const loadPage = async () => {
         try {
             setLoading(true);
-            const [jobsRes, plansRes] = await Promise.allSettled([
+            const [jobsRes, plansRes, summaryRes] = await Promise.allSettled([
                 recruiterAPI.getJobPostings(),
                 recruiterAPI.getRecruiterPlans(),
+                recruiterAPI.getRecruiterPlanSummary(),
             ]);
 
             if (jobsRes.status === "fulfilled") {
@@ -115,6 +176,10 @@ export default function JobPostings() {
                     : [];
                 setPlans(apiPlans);
                 setSelectedPlan(apiPlans.find((p) => Number(p.price) === 500) || apiPlans[0] || null);
+            }
+
+            if (summaryRes.status === "fulfilled") {
+                setPlanSummary(summaryRes.value.data || null);
             }
         } catch (error) {
             toast.error("Failed to load recruiter job posting data");
@@ -157,7 +222,7 @@ export default function JobPostings() {
             .trim();
 
         return {
-            skill: aiFilters.skill || cleaned || text,
+            skill: aiFilters.skill || fuzzyResolveSkill(cleaned || text),
             experience,
             location,
             jobTitle: aiFilters.jobTitle,
@@ -374,6 +439,75 @@ export default function JobPostings() {
         }
     };
 
+    const [suggestingBudget, setSuggestingBudget] = useState(false);
+    const handleSuggestBudget = async () => {
+        const activeSkill = aiFilters.skill;
+        const activeCity = aiFilters.location;
+        if (!activeSkill) {
+            toast.error("Please specify a Skill first to get AI suggestion");
+            return;
+        }
+        if (!activeCity) {
+            toast.error("Please specify a Location/City first to get AI suggestion");
+            return;
+        }
+        
+        setSuggestingBudget(true);
+        const toastId = toast.loading("Getting AI budget suggestion...");
+        try {
+            const { data } = await providerAPI.getPricingSuggestion({
+                skill: activeSkill,
+                city: activeCity,
+                experience: aiFilters.experience,
+            });
+            
+            if (data?.avg) {
+                setAiFilters(prev => ({ ...prev, maxFee: String(Math.round(data.avg)) }));
+                toast.success(`AI suggested budget: ₹${Math.round(data.avg)}`, { id: toastId });
+            } else {
+                toast.error("Could not determine suggested budget.", { id: toastId });
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to suggest budget", { id: toastId });
+        } finally {
+            setSuggestingBudget(false);
+        }
+    };
+
+    const handleDownloadResume = (candidate) => {
+        const hasPaidPlan = planSummary?.plan && planSummary.plan.slug !== 'free';
+        if (!hasPaidPlan) {
+            toast.error("Upgrade required to download resumes. Redirecting to plans...", {
+                duration: 4000
+            });
+            setTimeout(() => {
+                navigate('/recruiter/plans');
+            }, 1500);
+            return;
+        }
+
+        const url = candidate.resumeUrl;
+        if (!url) {
+            toast.error("Candidate has not uploaded a resume yet.");
+            return;
+        }
+
+        window.open(url, '_blank');
+    };
+
+    useEffect(() => {
+        if (selectedJob) {
+            setAiFilters((prev) => ({
+                ...prev,
+                jobTitle: selectedJob.title || "",
+                skill: selectedJob.skill || "",
+                location: selectedJob.city || "",
+                maxFee: selectedJob.budgetMax ? String(selectedJob.budgetMax) : "",
+            }));
+            setSearchText(`Find candidates for ${selectedJob.title} in ${selectedJob.city || ""}`.trim());
+        }
+    }, [selectedJobId, selectedJob]);
+
     useEffect(() => {
         loadPage();
     }, []);
@@ -416,7 +550,6 @@ export default function JobPostings() {
                                     key={job._id}
                                     onClick={() => {
                                         setSelectedJobId(job._id);
-                                        handleEditJob(job);
                                     }}
                                     className={`relative w-full max-w-[370px] rounded-2xl border bg-white p-3 xl:p-3.5 2xl:p-4 text-left transition cursor-pointer group ${selectedJobId === job._id
                                         ? "border-[#0066FF] shadow-sm"
@@ -536,42 +669,70 @@ export default function JobPostings() {
                             </button>
                         </div>
 
-                        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                            <input
+                        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-2 items-start">
+                            <select
                                 value={aiFilters.skill}
                                 onChange={(e) => setAiFilters({ ...aiFilters, skill: e.target.value })}
-                                placeholder="Skill"
-                                className="rounded-lg border border-[#E5EAF3] bg-white px-3 py-2 text-xs outline-none"
-                            />
+                                className="rounded-lg border border-[#E5EAF3] bg-white px-3 py-2 text-xs outline-none font-semibold text-gray-700 w-full"
+                            >
+                                <option value="">Select Skill</option>
+                                {aiFilters.skill && !ALL_SKILLS.includes(aiFilters.skill) && (
+                                    <option value={aiFilters.skill}>{aiFilters.skill}</option>
+                                )}
+                                {ALL_SKILLS.slice().sort((a, b) => a.localeCompare(b)).map(skill => (
+                                    <option key={skill} value={skill}>{skill}</option>
+                                ))}
+                            </select>
 
                             <input
                                 value={aiFilters.experience}
                                 onChange={(e) => setAiFilters({ ...aiFilters, experience: e.target.value })}
                                 placeholder="Experience e.g. 3"
-                                className="rounded-lg border border-[#E5EAF3] bg-white px-3 py-2 text-xs outline-none"
+                                className="rounded-lg border border-[#E5EAF3] bg-white px-3 py-2 text-xs outline-none w-full"
                             />
 
-                            <input
+                            <LocationAutocomplete
                                 value={aiFilters.location}
-                                onChange={(e) => setAiFilters({ ...aiFilters, location: e.target.value })}
+                                onChange={(val) => {
+                                    const locStr = typeof val === 'object' ? (val.city || val.label || '') : val;
+                                    setAiFilters(prev => ({ ...prev, location: locStr }));
+                                }}
+                                onSelect={(val) => {
+                                    const locStr = val?.city || val?.label || '';
+                                    setAiFilters(prev => ({ ...prev, location: locStr }));
+                                }}
+                                mode="city"
                                 placeholder="Location"
-                                className="rounded-lg border border-[#E5EAF3] bg-white px-3 py-2 text-xs outline-none"
+                                className="w-full text-xs"
+                                inputClassName="!py-2 !px-3 !pl-9 !border-[#E5EAF3] focus:!ring-1 focus:!ring-purple-500 !rounded-lg !text-xs !bg-white !text-gray-700"
+                                iconClassName="!w-3.5 !h-3.5 !text-gray-400 !left-2.5"
                             />
 
                             <input
                                 value={aiFilters.jobTitle}
                                 onChange={(e) => setAiFilters({ ...aiFilters, jobTitle: e.target.value })}
                                 placeholder="Job Title"
-                                className="rounded-lg border border-[#E5EAF3] bg-white px-3 py-2 text-xs outline-none"
+                                className="rounded-lg border border-[#E5EAF3] bg-white px-3 py-2 text-xs outline-none w-full"
                             />
 
-                            <input
-                                value={aiFilters.maxFee}
-                                onChange={(e) => setAiFilters({ ...aiFilters, maxFee: e.target.value })}
-                                placeholder="Max Budget (₹)"
-                                type="number"
-                                className="rounded-lg border border-[#E5EAF3] bg-white px-3 py-2 text-xs outline-none"
-                            />
+                            <div className="relative flex items-center w-full">
+                                <input
+                                    value={aiFilters.maxFee}
+                                    onChange={(e) => setAiFilters({ ...aiFilters, maxFee: e.target.value })}
+                                    placeholder="Max Budget (₹)"
+                                    type="number"
+                                    className="w-full rounded-lg border border-[#E5EAF3] bg-white pl-3 pr-8 py-2 text-xs outline-none"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleSuggestBudget}
+                                    disabled={suggestingBudget}
+                                    title="AI Suggest Budget"
+                                    className="absolute right-2.5 text-purple-600 hover:text-purple-800 disabled:opacity-50"
+                                >
+                                    <HiSparkles className="w-4 h-4 animate-pulse" />
+                                </button>
+                            </div>
                         </div>
 
                         <div className="mt-3 flex justify-end">
@@ -602,17 +763,90 @@ export default function JobPostings() {
                             <div className="flex items-center gap-2">
                                 <h2 className="font-bold text-[#081B3A]">AI Search Results</h2>
                                 <span className="rounded-full bg-purple-50 px-2 py-1 text-xs font-semibold text-purple-600">
-                                    {candidates.length} Candidates Found
+                                    {filteredCandidates.length} Candidates Found
                                 </span>
                             </div>
 
                             <div className="flex gap-2">
-                                <button className="rounded-lg border border-[#E5EAF3] p-2 text-gray-500">
+                                <button className="rounded-lg border border-[#E5EAF3] p-2 text-gray-500 hover:bg-gray-50">
                                     <HiDownload />
                                 </button>
-                                <button className="rounded-lg border border-[#E5EAF3] p-2 text-gray-500">
-                                    <HiFilter />
-                                </button>
+                                <div className="relative">
+                                    <button 
+                                        onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                                        className={`rounded-lg border p-2 transition-colors ${showFilterDropdown ? 'border-purple-600 bg-purple-50 text-purple-600' : 'border-[#E5EAF3] text-gray-500 hover:bg-gray-50'}`}
+                                        title="Filter & Sort"
+                                    >
+                                        <HiFilter className="h-5 w-5" />
+                                    </button>
+                                    {showFilterDropdown && (
+                                        <>
+                                            <div className="fixed inset-0 z-40" onClick={() => setShowFilterDropdown(false)} />
+                                            <div className="absolute right-0 mt-2 w-72 rounded-2xl border border-[#E5EAF3] bg-white p-4 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                <div className="flex items-center justify-between border-b border-[#E5EAF3] pb-2 mb-3">
+                                                    <span className="font-bold text-[#081B3A]">Filter & Sort</span>
+                                                    <button 
+                                                        onClick={() => {
+                                                            setSortField("matchScore");
+                                                            setFilterVerified(false);
+                                                            setFilterResume(false);
+                                                        }}
+                                                        className="text-xs font-semibold text-purple-600 hover:text-purple-800"
+                                                    >
+                                                        Reset All
+                                                    </button>
+                                                </div>
+
+                                                <div className="mb-4">
+                                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Sort By</span>
+                                                    <div className="space-y-2">
+                                                        {[
+                                                            { value: "matchScore", label: "Match Score (Highest first)" },
+                                                            { value: "experience", label: "Experience (Most first)" },
+                                                            { value: "rating", label: "Rating (Highest first)" },
+                                                            { value: "fee", label: "Budget/Fee (Lowest first)" }
+                                                        ].map((opt) => (
+                                                            <label key={opt.value} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:text-black">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="sortField"
+                                                                    checked={sortField === opt.value}
+                                                                    onChange={() => setSortField(opt.value)}
+                                                                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
+                                                                />
+                                                                <span>{opt.label}</span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Filters</span>
+                                                    <div className="space-y-2">
+                                                        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:text-black">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={filterVerified}
+                                                                onChange={(e) => setFilterVerified(e.target.checked)}
+                                                                className="rounded text-purple-600 focus:ring-purple-500 border-gray-300 h-4 w-4"
+                                                            />
+                                                            <span>Verified Profiles Only</span>
+                                                        </label>
+                                                        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:text-black">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={filterResume}
+                                                                onChange={(e) => setFilterResume(e.target.checked)}
+                                                                className="rounded text-purple-600 focus:ring-purple-500 border-gray-300 h-4 w-4"
+                                                            />
+                                                            <span>Resume Uploaded Only</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -623,18 +857,36 @@ export default function JobPostings() {
                                         <th className="px-4 py-3">Candidate</th>
                                         <th className="px-4 py-3">Experience</th>
                                         <th className="px-4 py-3">Location</th>
-                                        <th className="px-4 py-3">Match Score</th>
+                                        <th className="px-4 py-3 relative group/tooltip">
+                                            <div className="flex items-center gap-1 cursor-pointer">
+                                                <span>Match Score</span>
+                                                <HiQuestionMarkCircle className="h-4 w-4 text-gray-400" />
+                                            </div>
+                                            <div className="absolute left-1/2 bottom-full mb-2 w-64 -translate-x-1/2 scale-0 group-hover/tooltip:scale-100 transition-all origin-bottom bg-[#081B3A] text-white p-3.5 rounded-xl shadow-xl z-50 text-xs font-normal normal-case">
+                                                <p className="font-bold border-b border-gray-700 pb-1.5 mb-1.5 text-gray-300">Match Score Criteria</p>
+                                                <ul className="space-y-1 text-gray-400">
+                                                    <li className="flex justify-between"><span>• Base Fit:</span> <span className="font-semibold text-white">60%</span></li>
+                                                    <li className="flex justify-between"><span>• Skill & Keyword Match:</span> <span className="font-semibold text-green-400">Up to +15%</span></li>
+                                                    <li className="flex justify-between"><span>• Location Proximity:</span> <span className="font-semibold text-green-400">Up to +12%</span></li>
+                                                    <li className="flex justify-between"><span>• Experience Match:</span> <span className="font-semibold text-green-400">Up to +8%</span></li>
+                                                    <li className="flex justify-between"><span>• Budget Alignment:</span> <span className="font-semibold text-green-400">Up to +5%</span></li>
+                                                    <li className="flex justify-between"><span>• Verified Profile:</span> <span className="font-semibold text-green-400">+3% Bonus</span></li>
+                                                    <li className="flex justify-between"><span>• Active Paid Plan:</span> <span className="font-semibold text-green-400">+2% Bonus</span></li>
+                                                </ul>
+                                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[#081B3A]"></div>
+                                            </div>
+                                        </th>
                                         <th className="px-4 py-3 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {candidates.length === 0 && hasSearched && !searching ? (
+                                    {filteredCandidates.length === 0 && hasSearched && !searching ? (
                                         <tr>
                                             <td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-400">
                                                 No candidates found. Try different filters or keywords.
                                             </td>
                                         </tr>
-                                    ) : candidates.map((candidate) => (
+                                    ) : paginatedCandidates.map((candidate) => (
                                         <tr key={candidate.id} className="border-t border-[#F0F2F7]">
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-3">
@@ -658,7 +910,24 @@ export default function JobPostings() {
                                             <td className="px-4 py-3 font-bold text-green-600">
                                                 {candidate.matchScore}%
                                             </td>
-                                            <td className="px-4 py-3 text-right">
+                                            <td className="px-4 py-3 text-right flex justify-end gap-2 items-center">
+                                                {candidate.resumeUrl ? (
+                                                    <button
+                                                        onClick={() => handleDownloadResume(candidate)}
+                                                        title="Download Resume"
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-purple-200 text-purple-600 hover:bg-purple-50 transition"
+                                                    >
+                                                        <HiDownload className="h-4 w-4" />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        disabled
+                                                        title="No resume uploaded"
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 text-gray-300 cursor-not-allowed"
+                                                    >
+                                                        <HiDownload className="h-4 w-4" />
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={() => handleSaveCandidate(candidate.id)}
                                                     disabled={candidate.isSaved || savingIds.has(candidate.id)}
@@ -686,9 +955,68 @@ export default function JobPostings() {
                             </table>
                         </div>
 
-                        <button className="w-full border-t border-[#E5EAF3] py-3 text-sm font-semibold text-[#0066FF]">
-                            View All Results
-                        </button>
+                        {hasSearched && filteredCandidates.length > 0 && (
+                            <div className="flex items-center justify-between border-t border-[#E5EAF3] px-4 py-4 bg-white rounded-b-2xl">
+                                <div className="flex flex-1 justify-between sm:hidden">
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className={`relative inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        Previous
+                                    </button>
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className={`relative ml-3 inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                                    <div>
+                                        <p className="text-xs text-gray-500 font-semibold">
+                                            Showing <span className="text-[#081B3A]">{Math.min((currentPage - 1) * itemsPerPage + 1, filteredCandidates.length)}</span> to{' '}
+                                            <span className="text-[#081B3A]">{Math.min(currentPage * itemsPerPage, filteredCandidates.length)}</span> of{' '}
+                                            <span className="text-[#081B3A]">{filteredCandidates.length}</span> results
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <nav className="isolate inline-flex -space-x-px rounded-lg shadow-sm" aria-label="Pagination">
+                                            <button
+                                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                                disabled={currentPage === 1}
+                                                className={`relative inline-flex items-center rounded-l-lg px-2 py-1.5 text-gray-400 border border-gray-300 hover:bg-gray-50 focus:z-20 transition ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            >
+                                                <span className="sr-only">Previous</span>
+                                                <HiChevronLeft className="h-4 w-4" aria-hidden="true" />
+                                            </button>
+                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                                <button
+                                                    key={page}
+                                                    onClick={() => setCurrentPage(page)}
+                                                    className={`relative inline-flex items-center px-3 py-1.5 text-xs font-bold border-y border-r border-gray-300 transition focus:z-20 ${
+                                                        currentPage === page
+                                                            ? 'z-10 bg-purple-600 text-white border-purple-600'
+                                                            : 'text-gray-900 bg-white hover:bg-gray-50'
+                                                    }`}
+                                                >
+                                                    {page}
+                                                </button>
+                                            ))}
+                                            <button
+                                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                                disabled={currentPage === totalPages}
+                                                className={`relative inline-flex items-center rounded-r-lg px-2 py-1.5 text-gray-400 border-t border-b border-r border-gray-300 hover:bg-gray-50 focus:z-20 transition ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            >
+                                                <span className="sr-only">Next</span>
+                                                <HiChevronRight className="h-4 w-4" aria-hidden="true" />
+                                            </button>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="rounded-2xl border border-[#E5EAF3] bg-white p-4">
@@ -1104,6 +1432,26 @@ export default function JobPostings() {
                                                 )}
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* Resume / CV Section */}
+                                    <div className="rounded-2xl border border-purple-100 bg-purple-50/30 p-6">
+                                        <h5 className="font-bold text-[#081B3A] mb-3 flex items-center gap-2">
+                                            Resume / CV
+                                        </h5>
+                                        {viewingCandidate.resumeUrl ? (
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-gray-600 font-medium">Candidate has uploaded a professional resume.</span>
+                                                <button
+                                                    onClick={() => handleDownloadResume(viewingCandidate)}
+                                                    className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-purple-700 transition"
+                                                >
+                                                    <HiDownload className="w-4 h-4" /> Download Resume
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-sm text-gray-500 italic">No resume uploaded by candidate.</span>
+                                        )}
                                     </div>
                                 </div>
                             )}

@@ -86,6 +86,7 @@ const SectionCard = ({
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectInput, setShowRejectInput] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [useGoogleViewer, setUseGoogleViewer] = useState(true); // default: Google Docs Viewer (avoids Cloudinary raw download)
 
   const isPhoneOrEmail = section.key === 'phone' || section.key === 'email';
 
@@ -146,29 +147,84 @@ const SectionCard = ({
           </a>
         </div>
       )}
-      {section.key === 'resume' && section.url && (
-        <div className="mb-4 space-y-3">
-          <div className="flex flex-wrap gap-2">
-            <a href={toAbsoluteMediaUrl(section.url)} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 text-xs font-medium rounded-lg border border-blue-200 hover:bg-blue-100 transition">
-              <FileText className="w-3.5 h-3.5" /> Open Resume in New Tab
-            </a>
+      {section.key === 'resume' && section.url && (() => {
+        const absUrl = toAbsoluteMediaUrl(section.url);
+        const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(absUrl);
+        // Cloudinary raw files: add fl_inline to prevent forced download
+        const inlineUrl = absUrl.includes('/raw/upload/')
+          ? absUrl.replace('/raw/upload/', '/raw/upload/fl_inline/')
+          : absUrl;
+        const googleDocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(absUrl)}&embedded=true`;
+
+        return (
+          <div className="mb-4 space-y-3">
+            {/* Toolbar */}
+            <div className="flex flex-wrap items-center gap-2">
+              <a href={inlineUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 text-xs font-medium rounded-lg border border-blue-200 hover:bg-blue-100 transition">
+                <FileText className="w-3.5 h-3.5" /> Open in New Tab
+              </a>
+              {!isImage && (
+                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setUseGoogleViewer(true)}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition ${useGoogleViewer ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                    Google Viewer
+                  </button>
+                  <button
+                    onClick={() => setUseGoogleViewer(false)}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition ${!useGoogleViewer ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                    Direct Embed
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Preview */}
+            {isImage ? (
+              <div className="border border-gray-200 rounded-xl overflow-hidden bg-white max-h-[600px] overflow-y-auto">
+                <img src={absUrl} alt="Resume" className="w-full object-contain" />
+              </div>
+            ) : useGoogleViewer ? (
+              <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white relative">
+                <div className="absolute top-2 right-2 z-10">
+                  <span className="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-medium">
+                    via Google Docs Viewer
+                  </span>
+                </div>
+                <iframe
+                  key={`gdocs-${section.url}`}
+                  src={googleDocsUrl}
+                  className="w-full border-0"
+                  style={{ height: '640px' }}
+                  title="Resume Preview"
+                  allow="fullscreen"
+                />
+              </div>
+            ) : (
+              <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
+                <object
+                  data={inlineUrl}
+                  type="application/pdf"
+                  className="w-full border-0"
+                  style={{ height: '640px' }}
+                >
+                  <div className="flex flex-col items-center justify-center py-16 text-center text-gray-500">
+                    <FileText className="w-10 h-10 text-gray-300 mb-3" />
+                    <p className="text-sm font-medium text-gray-700">Direct preview unavailable</p>
+                    <p className="text-xs text-gray-400 mt-1 mb-4">The file may require a different viewer</p>
+                    <button
+                      onClick={() => setUseGoogleViewer(true)}
+                      className="px-4 py-2 text-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                      Switch to Google Viewer
+                    </button>
+                  </div>
+                </object>
+              </div>
+            )}
           </div>
-          {/\.pdf$/i.test(section.url) ? (
-            <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
-              <iframe src={toAbsoluteMediaUrl(section.url)} className="w-full h-120 md:h-150 border-0" title="Resume Preview" />
-            </div>
-          ) : /\.(jpg|jpeg|png|webp|gif)$/i.test(section.url) ? (
-            <div className="border border-gray-200 rounded-xl overflow-hidden bg-white max-h-120 overflow-y-auto">
-              <img src={toAbsoluteMediaUrl(section.url)} alt="Resume" className="w-full object-contain" />
-            </div>
-          ) : (
-            <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
-              <iframe src={toAbsoluteMediaUrl(section.url)} className="w-full h-120 md:h-150 border-0" title="Resume Preview" />
-            </div>
-          )}
-        </div>
-      )}
+        );
+      })()}
       {section.key === 'portfolio' && Array.isArray(section.items) && section.items.length > 0 && (
         <div className="mb-4 flex flex-col gap-3">
           {section.items.map((link, i) => (
@@ -246,9 +302,50 @@ const SectionCard = ({
           ))}
         </div>
       )}
-      {(section.key === 'email' || section.key === 'phone' || section.key === 'companyDetails' || section.key === 'businessDetails' || section.key === 'companyWebsite') && section.value && (
+      {(section.key === 'email' || section.key === 'phone' || section.key === 'companyDetails' || section.key === 'companyWebsite') && section.value && (
         <div className="mb-4 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700 font-medium">
           {section.value}
+        </div>
+      )}
+      {section.key === 'businessDetails' && (
+        <div className="mb-4 space-y-2">
+          {section.value && (
+            <div className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Description / Bio</p>
+              <p>{section.value}</p>
+            </div>
+          )}
+          {(section.extraFields?.experience || section.extraFields?.tier || section.extraFields?.specialities || section.extraFields?.workMode) && (
+            <div className="grid grid-cols-2 gap-2">
+              {section.extraFields?.tier && (
+                <div className="px-3 py-2 bg-indigo-50 rounded-lg border border-indigo-100 text-xs">
+                  <p className="font-semibold text-indigo-400 uppercase tracking-wider mb-0.5">Tier</p>
+                  <p className="capitalize font-medium text-gray-800">{section.extraFields.tier}</p>
+                </div>
+              )}
+              {section.extraFields?.experience && (
+                <div className="px-3 py-2 bg-amber-50 rounded-lg border border-amber-100 text-xs">
+                  <p className="font-semibold text-amber-400 uppercase tracking-wider mb-0.5">Experience</p>
+                  <p className="font-medium text-gray-800">{section.extraFields.experience}</p>
+                </div>
+              )}
+              {section.extraFields?.workMode && (
+                <div className="px-3 py-2 bg-teal-50 rounded-lg border border-teal-100 text-xs">
+                  <p className="font-semibold text-teal-400 uppercase tracking-wider mb-0.5">Work Mode</p>
+                  <p className="capitalize font-medium text-gray-800">{section.extraFields.workMode}</p>
+                </div>
+              )}
+              {section.extraFields?.specialities && (
+                <div className="px-3 py-2 bg-purple-50 rounded-lg border border-purple-100 text-xs col-span-2">
+                  <p className="font-semibold text-purple-400 uppercase tracking-wider mb-0.5">Specialities</p>
+                  <p className="font-medium text-gray-800">{section.extraFields.specialities}</p>
+                </div>
+              )}
+            </div>
+          )}
+          {!section.value && !section.extraFields?.specialities && (
+            <p className="text-xs text-gray-400 italic">No business details provided</p>
+          )}
         </div>
       )}
 
@@ -261,13 +358,13 @@ const SectionCard = ({
               <CheckCircle2 className="w-3.5 h-3.5" /> Approve
             </button>
           )}
-          {!isPhoneOrEmail && section.status !== 'rejected' && (
+          {!isPhoneOrEmail && section.key !== 'skills' && section.status !== 'rejected' && (
             <button onClick={() => setShowRejectInput(v => !v)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition">
-              <XCircle className="w-3.5 h-3.5" /> Reject
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition">
+              <XCircle className="w-3.5 h-3.5" /> Mark Correction
             </button>
           )}
-          {!isPhoneOrEmail && (
+          {!isPhoneOrEmail && section.key !== 'skills' && (
             <button onClick={() => setShowRemarkInput(v => !v)}
               className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
               <MessageSquare className="w-3.5 h-3.5" /> Remark
@@ -279,14 +376,17 @@ const SectionCard = ({
       {/* Reject input */}
       {showRejectInput && (
         <div className="mt-3 space-y-2">
+          <p className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            ⚠️ This marks the section for correction. No email is sent yet — use <strong>Send Correction Email</strong> when all sections are reviewed.
+          </p>
           <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)}
-            placeholder="Enter rejection reason (will be sent to user)..."
+            placeholder="Describe what needs to be corrected..."
             rows={3}
-            className="w-full px-3 py-2 border border-red-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-red-300 resize-none bg-red-50/30" />
+            className="w-full px-3 py-2 border border-amber-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-300 resize-none bg-amber-50/30" />
           <div className="flex gap-2">
             <button onClick={handleReject} disabled={loading}
-              className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition disabled:opacity-50">
-              Confirm Reject
+              className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition disabled:opacity-50">
+              Mark for Correction
             </button>
             <button onClick={() => setShowRejectInput(false)}
               className="px-4 py-1.5 text-xs text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
@@ -734,8 +834,11 @@ export default function ProfileReviewDetail() {
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-1">Send Correction Email</h3>
-            <p className="text-sm text-gray-500 mb-4">
-              An email will be sent to <strong>{user.email || user.name}</strong> listing all rejected sections with their reasons.
+            <p className="text-sm text-gray-500 mb-1">
+              The email below will be sent to <strong>{user.email || user.name}</strong> with all the sections marked for correction.
+            </p>
+            <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
+              ⚠️ This sends ONE consolidated email for all marked sections below. Make sure all corrections are marked before sending.
             </p>
 
             {/* Preview rejected sections */}

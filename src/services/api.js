@@ -443,6 +443,7 @@ export const adminAPI = {
   updateOcrReviewDecision: (id, data) =>
     API.put(`/admin/ai/ocr-review-queue/${id}`, data),
   getAIUsageDashboard: () => API.get("/admin/ai/usage-dashboard"),
+  getAIUsageLogs: (params) => API.get("/admin/ai/usage-logs", { params }),
   getDemandSnapshots: () => API.get("/admin/ai/demand-snapshots"),
   getAIFeatureSettings: () => API.get("/admin/ai/feature-settings"),
   updateAIFeatureSettings: (data) => API.put("/admin/ai/feature-settings", data),
@@ -460,6 +461,10 @@ export const adminAPI = {
   getRewards: (params) => ADMIN_API.get("/admin/partners/rewards", { params }),
   updateRewardStatus: (id, data) => ADMIN_API.patch(`/admin/partners/rewards/${id}/status`, data),
   markRewardsPaid: (data) => ADMIN_API.post("/admin/partners/rewards/mark-paid", data),
+  getCountries: () => ADMIN_API.get("/admin/countries"),
+  createCountryConfig: (data) => ADMIN_API.post("/admin/countries", data),
+  updateCountryConfig: (id, data) => ADMIN_API.put(`/admin/countries/${id}`, data),
+  deleteCountryConfig: (id) => ADMIN_API.delete(`/admin/countries/${id}`),
   // =================================================================
 };
 

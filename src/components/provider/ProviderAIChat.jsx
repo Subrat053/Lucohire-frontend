@@ -807,7 +807,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                   </div>
                 </div>
 
-                {(!user?.currentPlan || String(user.currentPlan).toLowerCase() === 'free') && (
+                {(!user?.currentPlan || String(user.currentPlan).toLowerCase() === 'free' || String(user.currentPlan).toLowerCase() === 'provider-free-default') && (
                   <div className="text-[10px] text-amber-800 bg-red-50/90 px-3 py-2 rounded-xl border border-red-200/40 font-bold max-w-full text-center">
                     <span>⚡ select only one skill and for all skills upgrade plan</span>
                   </div>

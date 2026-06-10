@@ -134,6 +134,8 @@ export const normalizeProviderData = (provider = {}, index = 0, options = {}) =>
     planBadge: provider.planBadge || '',
     pricing: provider.pricing || '',
     pricingType: provider.pricingType || '',
+    whatsappAlerts: provider.whatsappAlerts !== false && provider.user?.whatsappAlerts !== false,
+    isWhatsappSameAsMobile: provider.isWhatsappSameAsMobile !== false && provider.user?.isWhatsappSameAsMobile !== false,
   };
 
 

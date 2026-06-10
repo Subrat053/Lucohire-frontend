@@ -33,6 +33,7 @@ const AdminAbout = lazy(() => import("../pages/admin/About"));
 const AdminSkills = lazy(() => import("../pages/admin/Skills"));
 const AdminWhatsApp = lazy(() => import("../pages/admin/WhatsApp"));
 const AdminCurrency = lazy(() => import("../pages/admin/Currency"));
+const AdminCountries = lazy(() => import("../pages/admin/Countries"));
 const AdminAIOps = lazy(() => import("../pages/admin/AIControlCenter"));
 const ProfileApprovals = lazy(() => import("../pages/admin/ProfileApprovals"));
 const ProfileReviewDetail = lazy(() => import("../pages/admin/ProfileReviewDetail"));
@@ -89,6 +90,7 @@ export default function AdminRoutes() {
       <Route path="skills" element={wrap(<AdminSkills />)} />
       <Route path="whatsapp" element={wrap(<AdminWhatsApp />)} />
       <Route path="currency" element={wrap(<AdminCurrency />)} />
+      <Route path="countries" element={wrap(<AdminCountries />)} />
       <Route path="ai" element={wrap(<AdminAIOps />)} />
       <Route path="profile-photo-approvals" element={wrap(<ProfileApprovals />)} />
       <Route path="profile-approvals" element={wrap(<ProfileApprovals />)} />

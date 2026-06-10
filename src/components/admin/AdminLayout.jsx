@@ -30,6 +30,7 @@ const navItems = [
   { labelKey: 'admin.userSubscriptions', fallback: 'User Subscriptions', path: '/admin/provider-subscriptions', icon: HiDocumentText },
   { labelKey: 'admin.navWhatsapp', fallback: 'WhatsApp', path: '/admin/whatsapp',    icon: FaWhatsapp },
   { labelKey: 'admin.navCurrency', fallback: 'Currency', path: '/admin/currency',    icon: HiGlobe },
+  { labelKey: 'admin.navCountries', fallback: 'Country Config', path: '/admin/countries', icon: HiGlobe },
   { labelKey: 'admin.aiOps', fallback: 'AI Ops', path: '/admin/ai',          icon: HiCog, adminOnly: true },
 
   { labelKey: 'admin.navSettings', fallback: 'Settings', path: '/admin/settings',    icon: HiCog },

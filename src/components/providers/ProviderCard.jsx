@@ -22,6 +22,9 @@ const getInitials = (name = 'Provider') =>
     .join('') || 'P';
 
 const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, index = 0 }) => {
+  // Respect the provider's WhatsApp notification preference.
+  // whatsappAlerts defaults to true in normalizeProviderData, so false means explicitly disabled.
+  const whatsappEnabled = provider.whatsappAlerts !== false;
   const { t } = useTranslation();
   const image = provider.image || provider.profilePhoto || provider.photo || provider.avatar || provider.user?.avatar;
   const name = provider.name || provider.user?.name || 'Service Provider';
@@ -124,7 +127,18 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
         {/* CTA buttons row */}
         <div className="flex gap-2 pt-1 mt-2">
           <button
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              // If WhatsApp is enabled and a number is available → open WhatsApp directly.
+              // Otherwise navigate to the provider's profile so the user can unlock contact details.
+              const waNum = provider.whatsappNumber || provider.user?.whatsappNumber;
+              if (whatsappEnabled && waNum) {
+                const cleanNum = String(waNum).replace(/\D/g, '');
+                window.open(`https://wa.me/${cleanNum}`, '_blank');
+              } else {
+                onClick?.();
+              }
+            }}
             className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#374151] text-xs font-semibold py-2 rounded-xl hover:bg-[#F7F9FC] transition h-9"
           >
             <MessageCircle className="w-3.5 h-3.5" /> {t('common.whatsapp', 'WhatsApp')}
@@ -253,12 +267,15 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
         <button
           onClick={(e) => {
             e.stopPropagation();
-            const waNum = provider.whatsappNumber || provider.user?.whatsappNumber || provider.phone || provider.user?.phone;
-            if (waNum) {
+            // Open WhatsApp only if the provider has given consent (whatsappAlerts = true)
+            // AND a WhatsApp number is available (contact is accessible).
+            // In all other cases silently navigate to the provider's profile.
+            const waNum = provider.whatsappNumber || provider.user?.whatsappNumber;
+            if (whatsappEnabled && waNum) {
               const cleanNum = String(waNum).replace(/\D/g, '');
               window.open(`https://wa.me/${cleanNum}`, '_blank');
             } else {
-              alert(t('common.whatsappUnavailable', 'WhatsApp number not available'));
+              onClick?.();
             }
           }}
           className="flex-1 flex items-center justify-center gap-1.5 border border-[#E7ECF4] text-[#ffffff] text-xs font-semibold py-2 rounded-xl bg-[#128C7E] hover:bg-[#075E54] transition h-9"

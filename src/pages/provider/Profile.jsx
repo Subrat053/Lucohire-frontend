@@ -452,6 +452,10 @@ const ProviderProfile = () => {
     phone: "",          // full E.164 stored on User
     countryCode: "+91", // derived from phone for the picker
     nationalNumber: "", // national part without dial code
+    whatsappNumber: "",
+    isWhatsappSameAsMobile: true,
+    whatsappCountryCode: "+91",
+    whatsappNationalNumber: "",
     resumeUrl: "",
     pricingReason: "",
   });
@@ -630,6 +634,7 @@ const ProviderProfile = () => {
     if (
       !profileData ||
       profileData.currentPlan === "free" ||
+      profileData.currentPlan === "provider-free-default" ||
       !profileData.currentPlan
     )
       return 1;
@@ -660,7 +665,9 @@ const ProviderProfile = () => {
   );
   const isCoverageLocked = usedCoverageCount >= allowedCoverageCount;
   const coveragePlanName =
-    subscriptionSummary?.planName || profileData?.currentPlan || "Free";
+    subscriptionSummary?.planName || 
+    (profileData?.currentPlan === "provider-free-default" ? "Free" : profileData?.currentPlan) || 
+    "Free";
 
   const handleCoverageUpgradeClick = () => {
     if (coverageUpgradeLoading || coverageRefreshLoading) return;
@@ -682,7 +689,8 @@ const ProviderProfile = () => {
   const fetchProfile = async () => {
     try {
       const { data } = await providerAPI.getProfile();
-      setPlan(data.currentPlan || "free");
+      const rawPlan = data.currentPlan || "free";
+      setPlan(rawPlan === "provider-free-default" ? "free" : rawPlan);
       setProfileData(data);
       try {
         const subscriptionResponse = await providerAPI.getCurrentSubscription();
@@ -726,6 +734,9 @@ const ProviderProfile = () => {
         const rawPhone = data.user?.phone || "";
         const parsedPhone = parsePhoneString(rawPhone);
 
+        const rawWhatsapp = data.user?.whatsappNumber || "";
+        const parsedWhatsapp = parsePhoneString(rawWhatsapp);
+
         const defaultForm = {
           name: data.user?.name || "",
           skills: data.skills || [],
@@ -749,6 +760,10 @@ const ProviderProfile = () => {
           phone: parsedPhone.fullPhone || rawPhone,
           countryCode: parsedPhone.countryCode || "+91",
           nationalNumber: parsedPhone.nationalNumber || "",
+          whatsappNumber: parsedWhatsapp.fullPhone || rawWhatsapp,
+          isWhatsappSameAsMobile: data.user?.isWhatsappSameAsMobile !== false,
+          whatsappCountryCode: parsedWhatsapp.countryCode || "+91",
+          whatsappNationalNumber: parsedWhatsapp.nationalNumber || "",
           resumeUrl: data.resumeUrl || "",
           pricingReason: data.pricingReason || "",
         };
@@ -1236,6 +1251,14 @@ const ProviderProfile = () => {
         "Please enter a valid WhatsApp/Contact number (Contact number is mandatory)",
       );
     }
+    if (form.isWhatsappSameAsMobile === false && form.whatsappNationalNumber) {
+      const whatsappDigits = String(form.whatsappNationalNumber || "").replace(/\D/g, "");
+      if (whatsappDigits.length < 7) {
+        const card = document.getElementById("basic-info-card");
+        if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
+        return toast.error("Please enter a valid WhatsApp number.");
+      }
+    }
     if (!form.pricing || Number(form.pricing) <= 0) {
       const card = document.getElementById("rate-payout-card");
       if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1314,6 +1337,8 @@ const ProviderProfile = () => {
         pricingType: form.pricingType,
         profileName: form.profileName,
         phone: form.phone || (form.countryCode + form.nationalNumber),
+        isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
+        whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : (form.whatsappNumber || (form.whatsappCountryCode + form.whatsappNationalNumber)),
         resumeUrl: form.resumeUrl,
       };
       // sanitizePayload only touches string fields, leaves arrays/numbers intact
@@ -1730,15 +1755,67 @@ const ProviderProfile = () => {
                   countryCode={form.countryCode || "+91"}
                   nationalNumber={form.nationalNumber || ""}
                   onChange={(phoneData) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      countryCode: phoneData.countryCode,
-                      nationalNumber: phoneData.nationalNumber,
-                      phone: phoneData.fullPhone,
-                    }))
+                    setForm((prev) => {
+                      const next = {
+                        ...prev,
+                        countryCode: phoneData.countryCode,
+                        nationalNumber: phoneData.nationalNumber,
+                        phone: phoneData.fullPhone,
+                      };
+                      if (prev.isWhatsappSameAsMobile) {
+                        next.whatsappNumber = phoneData.fullPhone;
+                        next.whatsappCountryCode = phoneData.countryCode;
+                        next.whatsappNationalNumber = phoneData.nationalNumber;
+                      }
+                      return next;
+                    })
                   }
                 />
               </div>
+
+              {/* WhatsApp Same As Mobile Toggle */}
+              <div className="flex items-center space-x-2 py-2">
+                <input
+                  id="isWhatsappSameAsMobile-profile"
+                  type="checkbox"
+                  checked={form.isWhatsappSameAsMobile !== false}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setForm((prev) => ({
+                      ...prev,
+                      isWhatsappSameAsMobile: checked,
+                      whatsappNumber: checked ? prev.phone : "",
+                      whatsappCountryCode: checked ? prev.countryCode : "+91",
+                      whatsappNationalNumber: checked ? prev.nationalNumber : "",
+                    }));
+                  }}
+                  className="h-4 w-4 text-violet-600 focus:ring-violet-500 border-gray-300 rounded cursor-pointer"
+                />
+                <label htmlFor="isWhatsappSameAsMobile-profile" className="text-sm font-semibold text-slate-700 select-none cursor-pointer">
+                  My WhatsApp number is the same as my mobile number
+                </label>
+              </div>
+
+              {form.isWhatsappSameAsMobile === false && (
+                <div className="space-y-1 transition-all duration-300 animate-fadeIn">
+                  <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">
+                    WhatsApp Number (Optional)
+                  </label>
+                  <CountryPhoneInput
+                    countryCode={form.whatsappCountryCode || "+91"}
+                    nationalNumber={form.whatsappNationalNumber || ""}
+                    onChange={(phoneData) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        whatsappCountryCode: phoneData.countryCode,
+                        whatsappNationalNumber: phoneData.nationalNumber,
+                        whatsappNumber: phoneData.fullPhone,
+                      }))
+                    }
+                    variant="profile"
+                  />
+                </div>
+              )}
             </div>
           </div>
 

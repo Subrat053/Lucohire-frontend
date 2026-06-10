@@ -77,7 +77,9 @@ const UserDetailModal = ({ userId, onClose }) => {
               <h4 className="font-semibold text-gray-800 mb-2">Account</h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div><span className="text-gray-500">Joined:</span> <span className="font-medium">{new Date(detail.user?.createdAt).toLocaleDateString()}</span></div>
-                <div><span className="text-gray-500">WhatsApp:</span> <span className="font-medium">{detail.user?.whatsappNumber || detail.user?.phone || 'N/A'}</span></div>
+                <div><span className="text-gray-500">Mobile:</span> <span className="font-medium">{detail.user?.phone || 'N/A'}</span></div>
+                <div><span className="text-gray-500">WhatsApp:</span> <span className="font-medium">{detail.user?.whatsappNumber || 'N/A'}</span></div>
+                <div><span className="text-gray-500">Same as Mobile:</span> <span className="font-medium">{detail.user?.isWhatsappSameAsMobile ? 'Yes' : 'No'}</span></div>
                 <div><span className="text-gray-500">Country:</span> <span className="font-medium">{detail.user?.country || selectedProfile?.location?.country || 'N/A'}</span></div>
                 <div><span className="text-gray-500">Expires:</span> <span className="font-medium">{detail.user?.accountExpiresAt ? new Date(detail.user.accountExpiresAt).toLocaleDateString() : 'N/A'}</span></div>
               </div>

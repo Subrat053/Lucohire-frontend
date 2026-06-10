@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { adminAPI, aiAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { HiEye, HiChevronLeft, HiChevronRight, HiX } from 'react-icons/hi';
 
 const MATCH_FIELDS = [
   { key: 'skillMatch', label: 'Skill Match' },
@@ -131,6 +132,44 @@ const AdminAIControlCenter = () => {
   const [usageByFeature, setUsageByFeature] = useState([]);
   const [demandSnapshots, setDemandSnapshots] = useState([]);
 
+  // Telemetry Log States
+  const [logs, setLogs] = useState([]);
+  const [logsTotal, setLogsTotal] = useState(0);
+  const [logsPage, setLogsPage] = useState(1);
+  const [logsPages, setLogsPages] = useState(1);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logFilterFeature, setLogFilterFeature] = useState('');
+  const [logFilterStatus, setLogFilterStatus] = useState('');
+  const [logFilterRole, setLogFilterRole] = useState('');
+  const [selectedLog, setSelectedLog] = useState(null);
+
+  const fetchLogs = async (page = 1) => {
+    setLogsLoading(true);
+    try {
+      const { data } = await adminAPI.getAIUsageLogs({
+        page,
+        limit: 15,
+        feature: logFilterFeature || undefined,
+        status: logFilterStatus || undefined,
+        role: logFilterRole || undefined,
+      });
+      if (data?.success) {
+        setLogs(data.items || []);
+        setLogsTotal(data.total || 0);
+        setLogsPage(data.page || 1);
+        setLogsPages(data.pages || 1);
+      }
+    } catch (error) {
+      console.error('Failed to load AI usage logs', error);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs(1);
+  }, [logFilterFeature, logFilterStatus, logFilterRole]);
+
   const [ocrTestType, setOcrTestType] = useState('text');
   const [ocrTestFile, setOcrTestFile] = useState(null);
   const [ocrTesting, setOcrTesting] = useState(false);
@@ -154,7 +193,7 @@ const AdminAIControlCenter = () => {
         synonymRes,
         fraudRes,
         ocrRes,
-         usageRes,
+        usageRes,
         demandRes,
         skillsRes,
         featureRes,
@@ -183,6 +222,9 @@ const AdminAIControlCenter = () => {
       setUsageByFeature(usageRes.data?.byFeature || []);
       setDemandSnapshots(demandRes.data?.items || []);
       setSkillOptions(extractSkillOptions(skillsRes.data || {}));
+      
+      // Load recent logs
+      fetchLogs(1);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to load AI control center');
     } finally {
@@ -809,6 +851,316 @@ const AdminAIControlCenter = () => {
           </table>
         </div>
       </section>
+
+      <section className="rounded-2xl border border-gray-100 bg-white p-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">AI API Logs & Telemetry</h2>
+            <p className="text-sm text-gray-500 mt-1">Review live executions, model tokens, costs, and inspect payloads.</p>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Feature Filter */}
+            <div className="flex flex-col">
+              <span className="text-[10px] font-semibold text-gray-400 mb-1 uppercase tracking-wider">Feature</span>
+              <select
+                value={logFilterFeature}
+                onChange={(e) => {
+                  setLogFilterFeature(e.target.value);
+                }}
+                className="px-3 py-1.5 border border-gray-200 rounded-xl text-sm bg-white"
+              >
+                <option value="">All Features</option>
+                <option value="provider_profile_builder">Profile Builder</option>
+                <option value="recruiter_job_description">Job Description</option>
+                <option value="provider_pricing_suggestion">Pricing Suggestion</option>
+                <option value="provider_dashboard_insights">Dashboard Insights</option>
+                <option value="role_aware_chat_assistant">Chat Assistant</option>
+                <option value="fraud_cluster_review">Fraud Review</option>
+                <option value="boost_suggestion_copy">Boost Copy</option>
+                <option value="ai.search_interpret">Search Interpretation</option>
+                <option value="provider_profile_embedding">Profile Embedding</option>
+                <option value="recruiter_hire_history_embedding">Recruiter History Embedding</option>
+                <option value="search_query_embedding">Search Query Embedding</option>
+                <option value="job_intent_embedding">Job Intent Embedding</option>
+                <option value="embedding_generic">Generic Embedding</option>
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex flex-col">
+              <span className="text-[10px] font-semibold text-gray-400 mb-1 uppercase tracking-wider">Status</span>
+              <select
+                value={logFilterStatus}
+                onChange={(e) => {
+                  setLogFilterStatus(e.target.value);
+                }}
+                className="px-3 py-1.5 border border-gray-200 rounded-xl text-sm bg-white"
+              >
+                <option value="">All Statuses</option>
+                <option value="success">Success</option>
+                <option value="fallback">Fallback</option>
+                <option value="failed">Failed</option>
+              </select>
+            </div>
+
+            {/* Role Filter */}
+            <div className="flex flex-col">
+              <span className="text-[10px] font-semibold text-gray-400 mb-1 uppercase tracking-wider">Role</span>
+              <select
+                value={logFilterRole}
+                onChange={(e) => {
+                  setLogFilterRole(e.target.value);
+                }}
+                className="px-3 py-1.5 border border-gray-200 rounded-xl text-sm bg-white"
+              >
+                <option value="">All Roles</option>
+                <option value="recruiter">Recruiter</option>
+                <option value="provider">Provider</option>
+                <option value="admin">Admin</option>
+                <option value="system">System</option>
+              </select>
+            </div>
+
+            {/* Reset Filters */}
+            {(logFilterFeature || logFilterStatus || logFilterRole) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLogFilterFeature('');
+                  setLogFilterStatus('');
+                  setLogFilterRole('');
+                }}
+                className="mt-5 px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200 font-medium"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+
+        {logsLoading ? (
+          <div className="py-8 flex items-center justify-center">
+            <LoadingSpinner size="md" text="Loading logs..." />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="overflow-auto border border-gray-100 rounded-2xl">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-500 bg-gray-50/70 border-b border-gray-100">
+                    <th className="py-3 px-4 font-semibold">Timestamp</th>
+                    <th className="py-3 px-4 font-semibold">User & Role</th>
+                    <th className="py-3 px-4 font-semibold">Feature</th>
+                    <th className="py-3 px-4 font-semibold">Model / Provider</th>
+                    <th className="py-3 px-4 font-semibold">Latency / Tokens</th>
+                    <th className="py-3 px-4 font-semibold">Est. Cost</th>
+                    <th className="py-3 px-4 font-semibold text-center">Status</th>
+                    <th className="py-3 px-4 font-semibold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {logs.map((item) => (
+                    <tr key={item._id} className="hover:bg-gray-50/50 text-gray-700 transition-colors duration-150">
+                      <td className="py-3 px-4 whitespace-nowrap text-xs text-gray-500">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <div className="flex flex-col text-left">
+                          {item.userId ? (
+                            <>
+                              <span className="font-medium text-gray-800 text-xs">{item.userId.name || 'No Name'}</span>
+                              <span className="text-[10px] text-gray-400">{item.userId.email}</span>
+                            </>
+                          ) : (
+                            <span className="font-medium text-gray-400 text-xs italic">System</span>
+                          )}
+                          <span className="text-[9px] uppercase font-bold text-indigo-500/80 mt-0.5">{item.role}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-block px-2 py-0.5 text-xs font-mono bg-slate-100 text-slate-700 rounded-md border border-slate-200/50 max-w-[160px] truncate" title={item.feature}>
+                          {item.feature}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex flex-col text-left">
+                          <span className="text-xs font-semibold text-gray-800 capitalize">{item.provider}</span>
+                          <span className="text-[10px] text-gray-500 truncate max-w-[140px]" title={item.model}>{item.model || 'N/A'}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <div className="flex flex-col text-left">
+                          <span className="text-xs font-medium text-gray-800">{item.latencyMs ? `${Math.round(item.latencyMs)} ms` : 'N/A'}</span>
+                          <span className="text-[10px] text-gray-400">{item.totalTokens ? `${item.totalTokens.toLocaleString()} tokens` : '0 tokens'}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap text-xs font-mono text-gray-800">
+                        ${Number(item.estimatedCostUsd || 0).toFixed(6)}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap text-center">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                          item.status === 'success'
+                            ? 'bg-green-50 text-green-700 border-green-200'
+                            : item.status === 'fallback'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-red-50 text-red-700 border-red-200'
+                        }`}>
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap text-right">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedLog(item)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition-colors duration-150 font-medium"
+                        >
+                          <HiEye className="w-3.5 h-3.5" />
+                          Inspect
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {logs.length === 0 && (
+                    <tr>
+                      <td className="py-6 px-4 text-center text-gray-500" colSpan={8}>
+                        No telemetry logs matched the filter criteria.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            {logsPages > 1 && (
+              <div className="flex items-center justify-between border-t border-gray-100 pt-4 px-1">
+                <span className="text-xs text-gray-500">
+                  Showing page <span className="font-semibold text-gray-700">{logsPage}</span> of{' '}
+                  <span className="font-semibold text-gray-700">{logsPages}</span> | Total{' '}
+                  <span className="font-semibold text-gray-700">{logsTotal}</span> logs
+                </span>
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={logsPage <= 1}
+                    onClick={() => fetchLogs(logsPage - 1)}
+                    className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-55 disabled:hover:bg-white text-gray-600 transition-colors"
+                  >
+                    <HiChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={logsPage >= logsPages}
+                    onClick={() => fetchLogs(logsPage + 1)}
+                    className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-55 disabled:hover:bg-white text-gray-600 transition-colors"
+                  >
+                    <HiChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* Details Modal */}
+      {selectedLog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl relative my-8 text-left">
+            <button
+              type="button"
+              onClick={() => setSelectedLog(null)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 transition-all duration-200"
+            >
+              <HiX className="w-5 h-5" />
+            </button>
+
+            <div className="mb-6">
+              <div className="flex flex-wrap items-center gap-3">
+                <h3 className="text-lg font-bold text-gray-900">AI Execution Details</h3>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                  selectedLog.status === 'success'
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : selectedLog.status === 'fallback'
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : 'bg-red-50 text-red-700 border-red-200'
+                }`}>
+                  {selectedLog.status}
+                </span>
+              </div>
+              <p className="text-sm text-gray-500 mt-1 font-mono">{selectedLog._id}</p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100 mb-6">
+              <div>
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Timestamp</span>
+                <p className="text-xs font-medium text-gray-800 mt-0.5">{new Date(selectedLog.createdAt).toLocaleString()}</p>
+              </div>
+              <div>
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Feature</span>
+                <p className="text-xs font-mono font-semibold text-indigo-600 mt-0.5 truncate" title={selectedLog.feature}>{selectedLog.feature}</p>
+              </div>
+              <div>
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Provider & Model</span>
+                <p className="text-xs font-medium text-gray-800 mt-0.5 truncate" title={`${selectedLog.provider} / ${selectedLog.model}`}>
+                  <span className="capitalize">{selectedLog.provider}</span> ({selectedLog.model || 'N/A'})
+                </p>
+              </div>
+              <div>
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Latency</span>
+                <p className="text-xs font-medium text-gray-800 mt-0.5">{selectedLog.latencyMs ? `${Math.round(selectedLog.latencyMs)} ms` : 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Estimated Cost</span>
+                <p className="text-xs font-semibold text-gray-800 mt-0.5">${Number(selectedLog.estimatedCostUsd || 0).toFixed(6)}</p>
+              </div>
+              <div>
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Tokens</span>
+                <p className="text-xs font-medium text-gray-800 mt-0.5">
+                  In: {selectedLog.inputTokens?.toLocaleString() || 0} | Out: {selectedLog.outputTokens?.toLocaleString() || 0}
+                </p>
+              </div>
+              <div className="col-span-2">
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Executing User (Role)</span>
+                <p className="text-xs font-medium text-gray-800 mt-0.5 truncate">
+                  {selectedLog.userId ? (
+                    `${selectedLog.userId.name || 'Unnamed'} (${selectedLog.userId.email})`
+                  ) : (
+                    'System'
+                  )}{' '}
+                  <span className="text-[10px] font-bold text-indigo-500 uppercase">[{selectedLog.role}]</span>
+                </p>
+              </div>
+            </div>
+
+            {selectedLog.errorMessage && (
+              <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
+                <span className="text-[10px] font-bold text-red-700 uppercase tracking-wider">Execution Error</span>
+                <p className="text-sm font-medium text-red-800 mt-1 whitespace-pre-wrap font-mono">{selectedLog.errorMessage}</p>
+              </div>
+            )}
+
+            <div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Raw Payload & Telemetry Metadata</span>
+              <pre className="mt-2 text-xs bg-gray-950 text-gray-200 p-4 rounded-xl overflow-x-auto max-h-96 font-mono whitespace-pre-wrap">
+                {JSON.stringify(selectedLog, null, 2)}
+              </pre>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedLog(null)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors duration-200"
+              >
+                Close details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -45,6 +45,10 @@ const RecruiterProfile = () => {
 
   const [form, setForm] = useState({
     name: '',
+    email: '',
+    phone: '',
+    whatsappNumber: '',
+    isWhatsappSameAsMobile: true,
     companyName: '',
     companyType: 'individual',
     city: '',
@@ -75,6 +79,20 @@ const RecruiterProfile = () => {
 
   useEffect(() => { fetchProfile(); }, []);
 
+  // Update form fields reactively when user context loads or updates
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        name: prev.name || user.name || '',
+        email: prev.email || user.email || '',
+        phone: prev.phone || user.phone || '',
+        whatsappNumber: prev.whatsappNumber || user.whatsappNumber || '',
+        isWhatsappSameAsMobile: prev.isWhatsappSameAsMobile ?? (user.isWhatsappSameAsMobile !== false),
+      }));
+    }
+  }, [user]);
+
   const fetchProfile = async () => {
     try {
       const { data } = await recruiterAPI.getDashboard();
@@ -82,7 +100,11 @@ const RecruiterProfile = () => {
       setProfile(p);
 
       setForm({
-        name: user?.name || '',
+        name: p.name || user?.name || '',
+        email: p.email || user?.email || '',
+        phone: p.phone || user?.phone || '',
+        whatsappNumber: p.whatsappNumber || user?.whatsappNumber || '',
+        isWhatsappSameAsMobile: p.isWhatsappSameAsMobile !== false,
         companyName: p.companyName || '',
         companyType: p.companyType || 'individual',
         city: p.city || '',
@@ -196,6 +218,12 @@ const RecruiterProfile = () => {
   const handleSave = withLock(async (e) => {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
     if (!form.name.trim()) return toast.error('Name is required');
+    if (form.isWhatsappSameAsMobile === false && form.whatsappNumber) {
+      const cleanWhatsapp = String(form.whatsappNumber).replace(/\D/g, '');
+      if (cleanWhatsapp.length < 7) {
+        return toast.error('Please enter a valid WhatsApp number.');
+      }
+    }
     setSaving(true);
     try {
       const cleanPayload = sanitizePayload(form);
@@ -203,9 +231,11 @@ const RecruiterProfile = () => {
       cleanPayload.skillsNeeded = form.skillsNeeded;
       cleanPayload.location = form.location; // object, not string
       await recruiterAPI.updateProfile(cleanPayload);
+      await fetchUser();
+      await fetchProfile();
       toast.success('Profile saved!');
-    } catch {
-      toast.error('Failed to save profile');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to save profile');
     } finally {
       setSaving(false);
     }
@@ -324,6 +354,68 @@ const RecruiterProfile = () => {
                   />
                 </InputField>
               </div>
+              <div className="grid sm:grid-cols-2 gap-4 mt-4">
+                <InputField label="Email Address">
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    className={inputCls}
+                    placeholder="Your email address"
+                  />
+                </InputField>
+                <InputField label="Mobile Number">
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setForm((prev) => ({
+                        ...prev,
+                        phone: val,
+                        ...(prev.isWhatsappSameAsMobile ? { whatsappNumber: val } : {}),
+                      }));
+                    }}
+                    className={inputCls}
+                    placeholder="Your phone number"
+                  />
+                </InputField>
+              </div>
+
+              {/* WhatsApp Same As Mobile Toggle */}
+              <div className="flex items-center space-x-2 mt-4">
+                <input
+                  id="isWhatsappSameAsMobile-recruiter"
+                  type="checkbox"
+                  checked={form.isWhatsappSameAsMobile !== false}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setForm((prev) => ({
+                      ...prev,
+                      isWhatsappSameAsMobile: checked,
+                      whatsappNumber: checked ? prev.phone : "",
+                    }));
+                  }}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                />
+                <label htmlFor="isWhatsappSameAsMobile-recruiter" className="text-sm font-semibold text-gray-700 select-none cursor-pointer">
+                  My WhatsApp number is the same as my mobile number
+                </label>
+              </div>
+
+              {form.isWhatsappSameAsMobile === false && (
+                <div className="mt-4 transition-all duration-300 animate-fadeIn">
+                  <InputField label="WhatsApp Number (Optional)">
+                    <input
+                      type="tel"
+                      value={form.whatsappNumber}
+                      onChange={(e) => setForm({ ...form, whatsappNumber: e.target.value })}
+                      className={inputCls}
+                      placeholder="Your WhatsApp number"
+                    />
+                  </InputField>
+                </div>
+              )}
               <div className="grid sm:grid-cols-2 gap-4 mt-4">
                 <InputField label="Company / Brand Name">
                   <input

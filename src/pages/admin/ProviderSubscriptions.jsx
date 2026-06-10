@@ -270,6 +270,10 @@ const ProviderSubscriptions = () => {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [plans, setPlans] = useState([]);
   const [offerCodeInput, setOfferCodeInput] = useState('');
+  
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
 
   const searchTimeout = useRef(null);
 
@@ -290,10 +294,38 @@ const ProviderSubscriptions = () => {
     setFilters(prev => ({ ...prev, ...dates }));
   }, [filters.datePreset]);
 
-  // Load plans for filter dropdown
+  // Load plans and countries for filter dropdown
   useEffect(() => {
     adminAPI.getPlans().then(({ data }) => setPlans(Array.isArray(data) ? data : data?.plans || [])).catch(() => {});
+    adminAPI.getDistinctLocations().then(({ data }) => setCountries(data.countries || [])).catch(() => {});
   }, []);
+
+  // Fetch states when country changes
+  useEffect(() => {
+    if (!filters.country) {
+      setStates([]);
+      setCities([]);
+      return;
+    }
+    adminAPI.getDistinctLocations({ country: filters.country })
+      .then(({ data }) => {
+        setStates(data.states || []);
+      })
+      .catch(() => {});
+  }, [filters.country]);
+
+  // Fetch cities when state changes
+  useEffect(() => {
+    if (!filters.country || !filters.state) {
+      setCities([]);
+      return;
+    }
+    adminAPI.getDistinctLocations({ country: filters.country, state: filters.state })
+      .then(({ data }) => {
+        setCities(data.cities || []);
+      })
+      .catch(() => {});
+  }, [filters.country, filters.state]);
 
   const buildQueryParams = useCallback(() => ({
     page, limit,
@@ -371,8 +403,29 @@ const ProviderSubscriptions = () => {
     setPage(1);
   };
 
+  const handleCountryChange = (val) => {
+    setFilters(prev => ({
+      ...prev,
+      country: val,
+      state: '',
+      city: '',
+    }));
+    setPage(1);
+  };
+
+  const handleStateChange = (val) => {
+    setFilters(prev => ({
+      ...prev,
+      state: val,
+      city: '',
+    }));
+    setPage(1);
+  };
+
   const resetFilters = () => {
     setFilters(DEFAULT_FILTERS);
+    setStates([]);
+    setCities([]);
     setPage(1);
     setDebouncedSearch('');
   };
@@ -539,17 +592,25 @@ const ProviderSubscriptions = () => {
               {plans.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
             </select>
             {/* Country */}
-            <select value={filters.country} onChange={e => setFilter('country', e.target.value)}
+            <select value={filters.country} onChange={e => handleCountryChange(e.target.value)}
               className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white text-gray-700 cursor-pointer">
               <option value="">All Countries</option>
-              {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+              {countries.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             {/* State */}
-            <input type="text" placeholder="State…" value={filters.state} onChange={e => setFilter('state', e.target.value)}
-              className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+            <select value={filters.state} onChange={e => handleStateChange(e.target.value)}
+              disabled={!filters.country}
+              className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white text-gray-700 cursor-pointer disabled:opacity-50">
+              <option value="">All States</option>
+              {states.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
             {/* City */}
-            <input type="text" placeholder="City…" value={filters.city} onChange={e => setFilter('city', e.target.value)}
-              className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+            <select value={filters.city} onChange={e => setFilter('city', e.target.value)}
+              disabled={!filters.state}
+              className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white text-gray-700 cursor-pointer disabled:opacity-50">
+              <option value="">All Cities</option>
+              {cities.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
             {/* Locality */}
             <input type="text" placeholder="Locality…" value={filters.locality} onChange={e => setFilter('locality', e.target.value)}
               className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
@@ -657,6 +718,11 @@ const ProviderSubscriptions = () => {
                   {subscriptions.map((item) => {
                     const isSelected = selectedIds.includes(item.subscriptionId);
                     const needsAction = ['expired', 'cancelled', 'paused'].includes(item.subscriptionStatus);
+                    
+                    // 5-day expiration check (difference between endDate and now)
+                    const daysToExpiry = item.endDate ? (new Date(item.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24) : null;
+                    const isExpiringSoon = daysToExpiry !== null && daysToExpiry >= 0 && daysToExpiry <= 5;
+                    const canSendReminder = needsAction || (item.subscriptionStatus === 'active' && isExpiringSoon);
                     return (
                       <tr key={item.subscriptionId}
                         className={`hover:bg-gray-50/70 transition group ${isSelected ? 'bg-indigo-50/50' : ''}`}>
@@ -761,7 +827,7 @@ const ProviderSubscriptions = () => {
                             <option value="">Actions</option>
                             {item.subscriptionStatus !== 'active' && <option value="activate">✓ Activate</option>}
                             {item.subscriptionStatus !== 'cancelled' && <option value="cancel">✕ Cancel</option>}
-                            {needsAction && <option value="remind">📧 Send Reminder</option>}
+                            {canSendReminder && <option value="remind">📧 Send Reminder</option>}
                           </select>
                         </td>
                       </tr>

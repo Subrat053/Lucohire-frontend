@@ -39,7 +39,10 @@ const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
   const remainingSkills = skills.length - maxSkillsToShow;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-all flex flex-col h-full gap-3 justify-between">
+    <div
+      onClick={() => onView(provider)}
+      className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-all cursor-pointer flex flex-col h-full gap-3 justify-between"
+    >
       <div>
         <div className="flex items-start gap-3 mb-1">
           {/* Avatar */}
@@ -119,53 +122,37 @@ const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
       </div>
 
       {/* Contact & Actions (always at bottom) */}
-      <div className="space-y-2">
-        {/* Contact (if unlocked) */}
-        {provider.isUnlocked && (
-          <div className="flex gap-2 bg-green-50 rounded-xl p-2 border border-green-100 h-9 shrink-0 items-center justify-center">
-            {provider.phone && (
-              <a href={`tel:${provider.phone}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-green-700 hover:text-green-800">
-                <HiPhone className="w-3.5 h-3.5" /> {provider.phone}
-              </a>
-            )}
-            {provider.whatsapp && (
-              <button 
-                onClick={() => navigate('/contact', { state: { subject: `Enquiry for ${name}`, providerId: provider._id || provider.user?._id } })}
-                className="flex items-center justify-center gap-1 text-xs font-semibold text-green-600 hover:text-green-800 px-2 border-l border-green-200"
-              >
-                <FaWhatsapp className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => onView(provider)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition h-9"
-          >
-            View Profile <HiChevronRight className="w-3.5 h-3.5" />
-          </button>
-          {!provider.isUnlocked && (
-            <button
-              onClick={() => onUnlock(provider)}
-              disabled={unlocking === provider._id}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition h-9"
-            >
-              {unlocking === provider._id ? (
-                <span className="animate-pulse">Unlocking…</span>
-              ) : (
-                <><HiLockOpen className="w-3.5 h-3.5" /> Unlock Contact</>
-              )}
-            </button>
-          )}
-          {provider.isUnlocked && (
-            <div className="flex-1 flex items-center justify-center gap-1 py-2 text-xs font-semibold text-green-600 bg-green-50 rounded-xl border border-green-100 h-9">
-              <HiLockOpen className="w-3.5 h-3.5" /> Unlocked
-            </div>
-          )}
-        </div>
+      <div className="flex gap-2 pt-1 mt-2">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            const whatsappEnabled = provider.whatsappAlerts !== false;
+            const waNum = provider.whatsapp || provider.whatsappNumber || provider.phone || provider.user?.whatsappNumber || provider.user?.phone;
+            if (provider.isUnlocked && whatsappEnabled && waNum) {
+              const cleanNum = String(waNum).replace(/\D/g, '');
+              window.open(`https://wa.me/${cleanNum}`, '_blank');
+            } else {
+              onView(provider);
+            }
+          }}
+          className="flex-1 flex items-center justify-center gap-1.5 border border-gray-100 text-[#ffffff] text-xs font-semibold py-2 rounded-xl bg-[#128C7E] hover:bg-[#075E54] transition h-9"
+        >
+          <FaWhatsapp className="w-3.5 h-3.5" /> WhatsApp
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            const phone = provider.phone || provider.user?.phone;
+            if (provider.isUnlocked && phone) {
+              window.location.href = `tel:${phone}`;
+            } else {
+              onView(provider);
+            }
+          }}
+          className="flex-1 flex items-center justify-center gap-1.5 bg-[#0096FF] hover:bg-[#0E5FCC] text-white text-xs font-bold py-2 rounded-xl transition h-9"
+        >
+          <HiPhone className="w-3.5 h-3.5" /> Call Now
+        </button>
       </div>
     </div>
   );
@@ -224,6 +211,8 @@ const FindProviders = () => {
           lat: selectedCoords.lat,
           lng: selectedCoords.lon,
         } : {}),
+        tier: tierFilter || undefined,
+        rating: ratingFilter || undefined,
         sortBy: 'match',
         availability: true,
         page,
@@ -298,7 +287,7 @@ const FindProviders = () => {
         prev.map(p => {
           const pid = p.user?._id || p._id;
           if (pid === providerId) {
-            return { ...p, isUnlocked: true, phone: data.phone, whatsapp: data.whatsapp };
+            return { ...p, isUnlocked: true, phone: data.phone, whatsapp: data.whatsapp, whatsappAlerts: data.whatsappAlerts !== false };
           }
           return p;
         })
@@ -347,7 +336,7 @@ const FindProviders = () => {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-2 lg:px-4 py-2 lg:py-6">
         {/* Search Form */}
         <form ref={searchRef} onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-100 p-4 mb-4" onClick={e => e.stopPropagation()}>
           <div className="mb-3">
@@ -358,21 +347,13 @@ const FindProviders = () => {
                 if (!parsed) return;
                 if (parsed.extractedSkill) setSkill(parsed.extractedSkill);
                 if (parsed.extractedCity) setCity(parsed.extractedCity);
+                if (parsed.extractedTier) setTierFilter(parsed.extractedTier);
               }}
             />
           </div>
 
           <div className="flex flex-wrap gap-3 items-end">
-            <div className="w-full">
-              <label className="block text-xs text-gray-500 font-medium mb-1">Natural language request</label>
-              <input
-                type="text"
-                placeholder="e.g. Need a verified plumber near Andheri under 1500"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-              />
-            </div>
+
             <div className="flex-1 min-w-40 relative">
               <label className="block text-xs text-gray-500 font-medium mb-1">Skill / Profession</label>
               <div className="relative">
@@ -517,40 +498,6 @@ const FindProviders = () => {
           </div>
         ) : providers.length > 0 ? (
           <>
-            {interpreted && (
-              <div className="mb-4 p-4 rounded-xl border border-emerald-200 bg-emerald-50">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-emerald-900 font-bold mb-2">🤖 AI Interpretation</p>
-                    <p className="text-xs text-emerald-700 mb-3">Your search was interpreted as:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {interpreted.skill && <span className="text-xs px-3 py-1.5 rounded-full bg-white border border-emerald-300 text-emerald-700 font-medium">Service: {interpreted.skill}</span>}
-                      {interpreted.city && <span className="text-xs px-3 py-1.5 rounded-full bg-white border border-emerald-300 text-emerald-700 font-medium">Location: {interpreted.city}</span>}
-                      {interpreted.locality && <span className="text-xs px-3 py-1.5 rounded-full bg-white border border-emerald-300 text-emerald-700 font-medium">Area: {interpreted.locality}</span>}
-                      {typeof interpreted.confidence === 'number' && (
-                        <span className="text-xs px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">
-                          Confidence: {Math.round(interpreted.confidence * 100)}%
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {providers.some((p) => p.aiRecommended) && (
-              <div className="mb-4 p-4 rounded-xl border border-emerald-100 bg-emerald-50">
-                <p className="text-sm text-emerald-700 font-semibold mb-2">Top 3 AI Recommended</p>
-                <div className="grid sm:grid-cols-3 gap-2">
-                  {providers.filter((p) => p.aiRecommended).slice(0, 3).map((provider) => (
-                    <div key={`rec_${provider._id}`} className="bg-white border border-emerald-100 rounded-lg p-2">
-                      <p className="text-xs font-semibold text-gray-800 truncate">{provider.user?.name || 'Provider'}</p>
-                      <p className="text-xs text-gray-500">Score: {provider.matchScore || '-'}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <div className="flex items-center justify-between mb-3">
               <div>

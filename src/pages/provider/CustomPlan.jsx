@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { providerAPI } from '../../services/api';
-import { checkoutPlan, confirmPayment, getMyPlan } from '../../services/providerPlanService';
+import { checkoutPlan, confirmPaymentSuccess, getMyPlan } from '../../services/providerPlanService';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -778,8 +778,9 @@ const CustomPlan = () => {
       if (checkout?.simulationMode) {
         const confirm = window.confirm('Simulation Mode: Click OK to simulate successful payment and instantly activate customized plan.');
         if (confirm) {
-          await confirmPayment({
+          await confirmPaymentSuccess({
             subscriptionId: subscription?._id,
+            placeId: subscription?._id, // compatibility
             paymentId: 'sim_' + Date.now(),
             orderId: 'sim_order_' + Date.now()
           });
@@ -1852,8 +1853,8 @@ const CustomPlan = () => {
                 
                 <div className="flex justify-between text-slate-500">
                   <span className="flex items-center gap-1.5">
-                    GST (18%) 
-                    <button type="button" onClick={() => toast.info('Goods and Services Tax of 18% is applicable on digital advertising visibility services.')} className="text-slate-400 hover:text-slate-600">
+                    GST ({pricingBreakdown.gstPercent || 18}%) 
+                    <button type="button" onClick={() => toast.info(`Goods and Services Tax of ${pricingBreakdown.gstPercent || 18}% is applicable on digital advertising visibility services.`)} className="text-slate-400 hover:text-slate-600">
                       ⓘ
                     </button>
                   </span>

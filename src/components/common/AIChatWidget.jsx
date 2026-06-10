@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { aiAPI } from '../../services/api';
 
 const ROLE_TITLES = {
@@ -67,7 +68,8 @@ function mergeMessages(existing = [], incoming = []) {
   return sortMessages(Array.from(map.values()));
 }
 
-export default function AIChatWidget({ role = 'recruiter', context = {} }) {
+export default function AIChatWidget({ role = 'recruiter', user = null, profile = null }) {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -275,7 +277,9 @@ export default function AIChatWidget({ role = 'recruiter', context = {} }) {
         conversationId: activeConversationId,
         message: prompt,
         clientMessageId,
-        context,
+        context: {
+          currentPage: location.pathname,
+        },
       });
 
       const payload = data?.data || {};

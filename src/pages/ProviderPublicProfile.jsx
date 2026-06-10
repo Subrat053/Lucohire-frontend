@@ -425,8 +425,16 @@ const ProviderPublicProfile = () => {
                   )}
                   
                   <button 
-                    onClick={() => navigate('/contact', { state: { subject: `Enquiry for ${userName}`, providerId: profile.user?._id } })}
-                    className="w-full flex items-center justify-center space-x-2 bg-[#25D366] text-white py-3.5 rounded-2xl font-bold shadow-lg hover:bg-[#20bd5a] transition active:scale-95"
+                    disabled={profile.whatsappAlerts === false}
+                    onClick={() => {
+                      if (profile.whatsappAlerts === false) return;
+                      navigate('/contact', { state: { subject: `Enquiry for ${userName}`, providerId: profile.user?._id } });
+                    }}
+                    className={`w-full flex items-center justify-center space-x-2 py-3.5 rounded-2xl font-bold shadow-lg transition
+                      ${profile.whatsappAlerts === false 
+                        ? "bg-slate-200 text-slate-400 opacity-60 cursor-not-allowed select-none pointer-events-none" 
+                        : "bg-[#25D366] text-white hover:bg-[#20bd5a] active:scale-95"
+                      }`}
                   >
                     <FaWhatsapp className="w-5 h-5" />
                     <span>WhatsApp Message</span>
