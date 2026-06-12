@@ -69,7 +69,19 @@ export const normalizeProviderData = (provider = {}, index = 0, options = {}) =>
 
   const rating = asNumber(provider.rating ?? provider.avgRating ?? provider.averageRating, 0);
   const totalReviews = asNumber(provider.totalReviews ?? provider.reviewCount ?? provider.reviews, 0);
-  const ratePerHour = asNumber(provider.ratePerHour ?? provider.hourlyRate ?? provider.rate ?? provider.price, 0);
+  
+  const cleanPricing = typeof provider.pricing === 'string' 
+    ? parseFloat(provider.pricing.replace(/[^\d.]/g, '')) 
+    : provider.pricing;
+
+  const ratePerHour = asNumber(
+    provider.ratePerHour ??
+      provider.hourlyRate ??
+      provider.rate ??
+      provider.price ??
+      cleanPricing,
+    0
+  );
 
   const description =
     firstNonEmpty(provider.description, provider.headline, provider.about) ||
@@ -118,7 +130,7 @@ export const normalizeProviderData = (provider = {}, index = 0, options = {}) =>
     headline: provider.headline || description,
     role: provider.role || `${category} • ${experience}`,
     tags: asArray(provider.tags).length > 0 ? asArray(provider.tags) : mergedSkills.slice(0, 3),
-    distanceKm: provider.distanceKm ?? provider.distance ?? index + 1,
+    distanceKm: provider.distanceKm ?? provider.distance ?? null,
     tier: provider.tier || 'skilled',
     isVerified: provider.isVerified !== false,
     isAvailable: provider.isAvailable !== false,

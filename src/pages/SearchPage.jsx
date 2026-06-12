@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import {
   HiSearch,
@@ -89,6 +89,60 @@ const SearchPage = () => {
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [skillDropdownOpen, setSkillDropdownOpen] = useState(false);
+  const skillDropdownRef = useRef(null);
+
+  const allSkills = useMemo(() => {
+    return categories
+      .filter((cat) => cat.isActive !== false)
+      .flatMap((cat) =>
+        (cat.skills || [])
+          .filter((s) => s.isActive !== false)
+          .map((s) => ({ name: s.name, tier: cat.tier, category: cat.name }))
+      );
+  }, [categories]);
+
+  const filteredSkills = useMemo(() => {
+    const q = (queryText || "").trim().toLowerCase();
+    if (!q) return allSkills;
+    return allSkills.filter((s) => s.name.toLowerCase().includes(q));
+  }, [allSkills, queryText]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (skillDropdownRef.current && !skillDropdownRef.current.contains(e.target)) {
+        setSkillDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleSkillSelect = (skillName, skillTier) => {
+    setQueryText(skillName);
+    setSkill(skillName);
+    setSkillDropdownOpen(false);
+
+    if (debouncedUpdateSearchQueryRef.current) {
+      clearTimeout(debouncedUpdateSearchQueryRef.current);
+    }
+
+    if (skillTier) {
+      setTierFilter(skillTier);
+    }
+
+    updateSearchQuery({
+      query: skillName,
+      skill: skillName,
+      city,
+      tier: skillTier || tierFilter,
+      category: "",
+      rating: filters.rating,
+      experience: filters.experience,
+      verified: filters.verified,
+    });
+  };
+
 
   useEffect(() => {
     let isMounted = true;
@@ -647,15 +701,69 @@ const SearchPage = () => {
       <div className="bg-white border-b border-stone-100 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1 min-w-0">
+            <div ref={skillDropdownRef} className="relative flex-1 min-w-0">
               <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
               <input
                 value={queryText}
-                onChange={(e) => handleSkillChange(e.target.value)}
+                onChange={(e) => {
+                  handleSkillChange(e.target.value);
+                  setSkillDropdownOpen(true);
+                }}
+                onFocus={() => setSkillDropdownOpen(true)}
                 placeholder={t("search.searchSkillPlaceholder")}
                 aria-label={t("search.searchSkillPlaceholder")}
-                className="w-full pl-10 pr-4 py-2.5 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent outline-none text-sm bg-[#faf9f7]"
+                className="w-full pl-10 pr-10 py-2.5 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent outline-none text-sm bg-[#faf9f7]"
               />
+              {queryText && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSkillChange("");
+                    setSkillDropdownOpen(false);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 cursor-pointer z-10"
+                >
+                  <HiX className="w-4 h-4" />
+                </button>
+              )}
+
+              {/* Skill suggestions dropdown */}
+              {skillDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-full bg-white rounded-2xl shadow-xl border border-stone-100 z-50 max-h-[300px] overflow-y-auto">
+                  {filteredSkills.length === 0 ? (
+                    <div className="px-4 py-3 text-xs text-stone-400 italic">
+                      {queryText.trim() ? `No matches for "${queryText}"` : 'Start typing to search skills…'}
+                    </div>
+                  ) : (
+                    Object.entries(
+                      filteredSkills.reduce((acc, s) => {
+                        if (!acc[s.category]) acc[s.category] = [];
+                        acc[s.category].push(s);
+                        return acc;
+                      }, {})
+                    ).map(([catName, group]) => (
+                      <div key={catName}>
+                        <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-stone-400 bg-stone-50 sticky top-0">
+                          {catName}
+                        </div>
+                        {group.map((s) => (
+                          <button
+                            key={s.name}
+                            type="button"
+                            onClick={() => handleSkillSelect(s.name, s.tier)}
+                            className="w-full text-left px-4 py-2 text-xs text-stone-700 font-medium hover:bg-amber-50 hover:text-amber-700 transition flex items-center justify-between gap-2 cursor-pointer"
+                          >
+                            <span>{s.name}</span>
+                            <span className="text-[9px] text-stone-400 font-bold uppercase px-1.5 py-0.5 rounded-full bg-stone-100 shrink-0">
+                              {s.tier}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
             <div className="relative flex-1 min-w-0">
               <LocationAutocomplete

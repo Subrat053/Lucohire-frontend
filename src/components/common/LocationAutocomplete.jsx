@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { HiLocationMarker, HiExclamationCircle, HiCheckCircle } from 'react-icons/hi';
+import { Locate } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useLocationContext } from '../../context/LocationContext';
 
 // Standard fallback cities list if Google Places fails, is restricted, or returns zero results.
@@ -56,6 +58,124 @@ const LocationAutocomplete = ({
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [apiFailed, setApiFailed] = useState(false);
+  const [fetchingGeo, setFetchingGeo] = useState(false);
+
+  const handleFetchLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setFetchingGeo(true);
+    setLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        let normalized = null;
+
+        // 1. Try to get details using Google reverse geocoding first
+        try {
+          const service = await getPlacesService();
+          if (service && service.reverseGeocode) {
+            const placeResult = await service.reverseGeocode(latitude, longitude);
+            normalized = service.normalizeGooglePlace(placeResult, locationContext);
+          }
+        } catch (geocodeErr) {
+          console.warn('Google reverse geocoding failed, trying OpenStreetMap Nominatim:', geocodeErr);
+        }
+
+        // 2. Fallback to OpenStreetMap Nominatim API directly from browser
+        if (!normalized) {
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=en`
+            );
+            if (response.ok) {
+              const data = await response.json();
+              if (data && data.display_name) {
+                const addr = data.address || {};
+                const city = addr.city || addr.town || addr.village || addr.suburb || addr.municipality || '';
+                const state = addr.state || addr.province || '';
+                const country = addr.country || '';
+
+                normalized = {
+                  label: data.display_name,
+                  value: data.display_name,
+                  placeId: `nominatim-${data.place_id || Date.now()}`,
+                  city: city,
+                  locality: city,
+                  state: state,
+                  country: country,
+                  latitude: Number(latitude),
+                  longitude: Number(longitude),
+                  isFallbackSelection: true
+                };
+              }
+            }
+          } catch (nominatimErr) {
+            console.warn('Nominatim reverse geocoding failed, trying backend nearby API:', nominatimErr);
+          }
+        }
+
+        // 3. Fallback to backend nearby API
+        if (!normalized) {
+          try {
+            const { locationAPI } = await import('../../services/api');
+            const response = await locationAPI.nearby(latitude, longitude);
+            if (response?.data?.success && Array.isArray(response.data.data) && response.data.data.length > 0) {
+              const nearest = response.data.data[0];
+              normalized = {
+                label: nearest.name,
+                value: nearest.name,
+                placeId: `nearby-${nearest.lat}-${nearest.lon}`,
+                city: nearest.name,
+                locality: nearest.name,
+                state: '',
+                country: '',
+                latitude: nearest.lat,
+                longitude: nearest.lon,
+                isFallbackSelection: true
+              };
+            }
+          } catch (backendErr) {
+            console.warn('Backend nearby API failed:', backendErr);
+          }
+        }
+
+        // Apply result or show error toast
+        if (normalized) {
+          setInputValue(normalized.label);
+          if (onSelect) {
+            onSelect(normalized);
+          } else if (onChange) {
+            onChange(normalized);
+          }
+          toast.success('Location updated successfully!');
+        } else {
+          toast.error('Could not determine address for your location. Try searching manually.');
+        }
+
+        setFetchingGeo(false);
+        setLoading(false);
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        let msg = 'Failed to fetch location';
+        if (error.code === error.PERMISSION_DENIED) {
+          msg = 'Location permission denied. Please allow location access in your browser settings.';
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          msg = 'Location information is unavailable.';
+        } else if (error.code === error.TIMEOUT) {
+          msg = 'Location request timed out.';
+        }
+        toast.error(msg);
+        setFetchingGeo(false);
+        setLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const containerRef = useRef(null);
   const debounceTimer = useRef(null);
@@ -117,19 +237,57 @@ const LocationAutocomplete = ({
           setApiFailed(false);
           setIsOpen(true);
         } else {
-          // Fallback to static lists if Google returns zero results
-          triggerStaticFallback(trimmed);
+          // Google returned zero results — try backend, then static
+          await tryBackendFallback(trimmed);
         }
       } catch (err) {
         if (process.env.NODE_ENV === 'development') {
-          console.warn('Google Places prediction API failed: ', err);
+          console.warn('Google Places prediction API failed, trying backend: ', err.message);
         }
-        setApiFailed(true);
-        triggerStaticFallback(trimmed);
+        // Google Maps JS API failed (key blocked, network issue, etc.)
+        // Try backend locationAPI which uses server-side Google Places REST API
+        await tryBackendFallback(trimmed);
       } finally {
         setLoading(false);
       }
     }, 400);
+  };
+
+  const tryBackendFallback = async (queryText) => {
+    try {
+      const { locationAPI } = await import('../../services/api');
+      const response = await locationAPI.searchPlaces(queryText);
+      const list = Array.isArray(response.data?.data) ? response.data.data : [];
+      if (list.length > 0) {
+        const predictions = list.map(p => ({
+          place_id: p.placeId || `backend-${Date.now()}`,
+          placeId: p.placeId,
+          description: p.formattedAddress || p.name,
+          label: p.formattedAddress || p.name,
+          value: p.formattedAddress || p.name,
+          structured_formatting: {
+            main_text: p.name,
+            secondary_text: p.formattedAddress,
+          },
+          city: p.city || p.name || '',
+          locality: p.locality || p.name || '',
+          state: p.state || '',
+          country: p.country || '',
+          latitude: p.latitude ?? null,
+          longitude: p.longitude ?? null,
+          source: 'backend',
+        }));
+        setPredictions(predictions);
+        setApiFailed(false);
+        setIsOpen(true);
+        return;
+      }
+    } catch (backendErr) {
+      console.warn('Backend location search also failed:', backendErr.message);
+    }
+    // Last resort: static city list
+    setApiFailed(true);
+    triggerStaticFallback(queryText);
   };
 
   const triggerStaticFallback = (queryText) => {
@@ -184,35 +342,64 @@ const LocationAutocomplete = ({
         } else if (onChange) {
           onChange(normalized);
         }
+      } else if (prediction.latitude != null && prediction.city) {
+        // Prediction already has full location data (from backend fallback) - use it directly
+        // without attempting a getPlaceDetails call (which would trigger blocked Google Maps JS API)
+        const normalized = {
+          label: prediction.description || prediction.label || prediction.value || '',
+          value: prediction.description || prediction.label || prediction.value || '',
+          placeId: prediction.place_id || prediction.placeId || '',
+          city: prediction.city || prediction.structured_formatting?.main_text || '',
+          locality: prediction.locality || '',
+          state: prediction.state || '',
+          country: prediction.country || '',
+          latitude: prediction.latitude,
+          longitude: prediction.longitude,
+          isFallbackSelection: true,
+        };
+        setInputValue(normalized.label);
+        if (onSelect) {
+          onSelect(normalized);
+        } else if (onChange) {
+          onChange(normalized);
+        }
       } else {
-        // Handle actual Google place selection
+        // Handle actual Google place selection (attempt getPlaceDetails with fallback chain)
         const service = await getPlacesService();
-        const placeDetails = await service.getPlaceDetails(prediction.place_id);
-        const normalized = service.normalizeGooglePlace(placeDetails, locationContext);
+        try {
+          const placeDetails = await service.getPlaceDetails(prediction.place_id);
+          const normalized = service.normalizeGooglePlace(placeDetails, locationContext);
 
-        if (normalized) {
-          setInputValue(normalized.label);
-          if (onSelect) {
-            onSelect(normalized);
-          } else if (onChange) {
-            onChange(normalized);
+          if (normalized) {
+            setInputValue(normalized.label);
+            if (onSelect) {
+              onSelect(normalized);
+            } else if (onChange) {
+              onChange(normalized);
+            }
+          } else {
+            throw new Error('Normalization returned null');
           }
-        } else {
-          throw new Error('Normalization returned null');
+        } catch (detailsErr) {
+          // getPlaceDetails failed (Google Maps JS API blocked or network error)
+          // Fall through to use prediction inline data as best-effort
+          throw detailsErr;
         }
       }
     } catch (err) {
-      console.error('Failed to select prediction details: ', err);
-      // Secure fallback: select prediction text as label
+      console.warn('Failed to select prediction details, using inline data: ', err.message);
+      // Best-effort fallback: use whatever data is already on the prediction object
+      const label = prediction.description || prediction.label || prediction.value || '';
       const fallbackVal = {
-        label: prediction.description,
-        value: prediction.description,
-        placeId: prediction.place_id,
-        city: prediction.structured_formatting?.main_text || '',
-        state: '',
-        country: '',
-        latitude: null,
-        longitude: null,
+        label,
+        value: label,
+        placeId: prediction.place_id || prediction.placeId || '',
+        city: prediction.city || prediction.structured_formatting?.main_text || '',
+        locality: prediction.locality || '',
+        state: prediction.state || '',
+        country: prediction.country || '',
+        latitude: prediction.latitude ?? null,
+        longitude: prediction.longitude ?? null,
         isFallbackSelection: true
       };
       setInputValue(fallbackVal.label);
@@ -256,7 +443,7 @@ const LocationAutocomplete = ({
             getPlacesService();
             if (predictions.length > 0) setIsOpen(true);
           }}
-          className={`w-full border rounded-xl pl-9 pr-8 py-2 text-sm transition-all duration-200 outline-none
+          className={`w-full border rounded-xl pl-9 pr-16 py-2 text-sm transition-all duration-200 outline-none
             ${error
               ? 'border-red-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-red-50/20'
               : 'border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-blue-50/10'
@@ -268,13 +455,23 @@ const LocationAutocomplete = ({
         />
 
         {loading && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
+          <div className="absolute right-10 top-1/2 -translate-y-1/2 flex items-center justify-center">
             <svg className="animate-spin h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
           </div>
         )}
+
+        <button
+          type="button"
+          onClick={handleFetchLocation}
+          title="Fetch current location"
+          disabled={disabled || fetchingGeo}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed z-20 cursor-pointer"
+        >
+          <Locate className={`w-4 h-4 ${fetchingGeo ? 'animate-pulse text-blue-600' : ''}`} />
+        </button>
       </div>
 
       {error && (

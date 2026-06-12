@@ -31,7 +31,7 @@ const TABS = [
   { key: 'all',       label: 'All Profiles',          roleFilter: 'all' },
   { key: 'partner',   label: 'Partners / Agents',     roleFilter: 'partner' },
   { key: 'recruiter', label: 'Recruiters',             roleFilter: 'recruiter' },
-  { key: 'provider',  label: 'Candidates / Providers', roleFilter: 'provider' },
+  { key: 'provider',  label: 'Providers', roleFilter: 'provider' },
 ];
 
 /* ── Stats Card ─────────────────────────────────────────────────── */
@@ -266,7 +266,7 @@ export default function ProfileApprovals() {
   };
 
   const getRoleLabel = (role) => {
-    if (role === 'provider') return 'Candidate';
+    if (role === 'provider') return 'Provider';
     return role?.charAt(0).toUpperCase() + role?.slice(1) || 'User';
   };
 
@@ -510,9 +510,17 @@ export default function ProfileApprovals() {
 
                         {/* Type */}
                         <td className="px-4 py-3.5">
-                          <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-lg border capitalize ${ROLE_BADGE[u.primaryRole] || ROLE_BADGE.user}`}>
-                            {getRoleLabel(u.primaryRole)}
-                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {Array.isArray(u.roles) ? Array.from(new Set(u.roles)).map(r => (
+                              <span key={r} className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md border capitalize ${ROLE_BADGE[r] || ROLE_BADGE.user}`}>
+                                {getRoleLabel(r)}
+                              </span>
+                            )) : (
+                              <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-lg border capitalize ${ROLE_BADGE[u.primaryRole] || ROLE_BADGE.user}`}>
+                                {getRoleLabel(u.primaryRole)}
+                              </span>
+                            )}
+                          </div>
                           {u.skills?.length > 0 && (
                             <p className="text-xs text-gray-400 mt-1 truncate max-w-[100px]">{u.skills.join(', ')}</p>
                           )}

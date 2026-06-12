@@ -18,7 +18,7 @@ export default function useStripePayment() {
   const [loading, setLoading] = useState(false);
 
   const initiatePayment = useCallback(
-    async ({ planId, onSuccess, onFailure }) => {
+    async ({ planId, onSuccess, onFailure, ...rest }) => {
       setLoading(true);
       try {
         // Build return URLs from current page location so Stripe redirects
@@ -47,6 +47,7 @@ export default function useStripePayment() {
           cancelUrl,
           preferredCurrency,
           preferredCountry,
+          ...rest,
         });
 
         // ---- Simulation mode: auto-completed on backend ----

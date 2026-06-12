@@ -43,6 +43,7 @@ import {
   UploadCloud,
   Trash2,
   Camera,
+  FileText,
   Compass,
   RefreshCw,
   Search,
@@ -461,6 +462,37 @@ const ProviderProfile = () => {
   });
 
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [emailOtp, setEmailOtp] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
+
+  useEffect(() => {
+    if (resendCountdown === 0) return;
+    const timer = setInterval(() => {
+      setResendCountdown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCountdown]);
+
+  const handleCancelOtp = () => {
+    setIsOtpModalOpen(false);
+    setEmailOtp("");
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCountdown > 0) return;
+    setSendingOtp(true);
+    try {
+      await providerAPI.sendPhoneChangeOtp();
+      toast.success("OTP sent to your registered email address.");
+      setResendCountdown(60);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to resend OTP.");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
 
   const handleAiAutoFillApply = (data) => {
     setForm((prev) => ({
@@ -621,13 +653,7 @@ const ProviderProfile = () => {
     };
   }, [fetchUser, location.pathname, location.state, navigate]);
 
-  useEffect(() => {
-    if (hasInitialized.current && isDirty) {
-      const userId = profileData?.user?._id || user?._id || "";
-      const draftKey = userId ? `lucohire_profile_draft_${userId}` : "lucohire_profile_draft";
-      localStorage.setItem(draftKey, JSON.stringify(form));
-    }
-  }, [form, isDirty, profileData, user]);
+
 
   // Calculate max locations allowed by plan
   const maxLocations = (() => {
@@ -768,24 +794,7 @@ const ProviderProfile = () => {
           pricingReason: data.pricingReason || "",
         };
 
-        const userId = data.user?._id || user?._id || "";
-        const draftKey = userId ? `lucohire_profile_draft_${userId}` : "lucohire_profile_draft";
-        const savedDraft = localStorage.getItem(draftKey);
-        if (savedDraft) {
-          try {
-            const parsedDraft = JSON.parse(savedDraft);
-            setForm({
-              ...defaultForm,
-              ...parsedDraft,
-            });
-            toast.success("Recovered unsaved draft changes!");
-          } catch (e) {
-            console.error("Failed to parse profile draft", e);
-            setForm(defaultForm);
-          }
-        } else {
-          setForm(defaultForm);
-        }
+        setForm(defaultForm);
 
         if (displayPhoto) setPhotoPreview(toAbsoluteMediaUrl(displayPhoto));
         hasInitialized.current = true;
@@ -879,13 +888,17 @@ const ProviderProfile = () => {
     });
   };
 
-  const addSkill = (skill) => {
+  const addSkill = (skill, skillTier) => {
     if (String(plan).toLowerCase() === "free" && form.skills.length >= 1) {
       setShowUpgradePrompt(true);
       toast.error("for free plan you can only use one skill");
       return;
     }
-    setForm({ ...form, skills: [...form.skills, skill] });
+    const nextForm = { ...form, skills: [...form.skills, skill] };
+    if (skillTier) {
+      nextForm.tier = skillTier;
+    }
+    setForm(nextForm);
   };
   const removeSkill = (skill) => {
     const updated = form.skills.filter((s) => s !== skill);
@@ -1096,7 +1109,7 @@ const ProviderProfile = () => {
 
     setAiSuggestion(null);
     setPricingSuggestion(null);
-    toast.success("AI suggestion applied to your profile draft");
+    toast.success("AI suggestion applied to your profile");
   };
 
   const applyPricingSuggestion = () => {
@@ -1116,7 +1129,7 @@ const ProviderProfile = () => {
       pricingType: selectedType,
     }));
     setPricingSuggestion(null);
-    toast.success("AI pricing suggestion applied to your draft");
+    toast.success("AI pricing suggestion applied");
   };
 
   const handleAISuggestVisibility = () => {
@@ -1294,6 +1307,27 @@ const ProviderProfile = () => {
       );
     }
 
+    const nextPhone = form.phone || (form.countryCode + form.nationalNumber);
+    const cleanNextPhone = String(nextPhone || "").replace(/\D/g, "");
+    const cleanOriginalPhone = String(profileData?.user?.phone || "").replace(/\D/g, "");
+    const isPhoneChanged = cleanNextPhone !== cleanOriginalPhone;
+
+    if (isPhoneChanged && !emailOtp) {
+      setIsOtpModalOpen(true);
+      setSendingOtp(true);
+      try {
+        await providerAPI.sendPhoneChangeOtp();
+        toast.success("OTP sent to your registered email address.");
+        setResendCountdown(60);
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Failed to send OTP. Please try again.");
+        setIsOtpModalOpen(false);
+      } finally {
+        setSendingOtp(false);
+      }
+      return;
+    }
+
     setSaving(true);
     try {
       const cleanLocations = form.locations
@@ -1340,6 +1374,7 @@ const ProviderProfile = () => {
         isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
         whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : (form.whatsappNumber || (form.whatsappCountryCode + form.whatsappNationalNumber)),
         resumeUrl: form.resumeUrl,
+        emailOtp: emailOtp || undefined,
       };
       // sanitizePayload only touches string fields, leaves arrays/numbers intact
       const payload = sanitizePayload(rawPayload);
@@ -1352,10 +1387,9 @@ const ProviderProfile = () => {
 
       const { data } = await providerAPI.updateProfile(payload);
       setCompletion(data.profileCompletion || completion);
-      const userId = profileData?.user?._id || user?._id || "";
-      const draftKey = userId ? `lucohire_profile_draft_${userId}` : "lucohire_profile_draft";
-      localStorage.removeItem(draftKey);
       toast.success("Profile updated successfully!");
+      setIsOtpModalOpen(false);
+      setEmailOtp("");
       hasInitialized.current = false;
       await fetchProfile();
     } catch (err) {
@@ -1485,32 +1519,6 @@ const ProviderProfile = () => {
           </div>
         </div>
 
-        {/* Unsaved Changes Banner */}
-        {isDirty && hasInitialized.current && (
-          <div className="mb-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-4 rounded-[20px] shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-amber-400/50 animate-fade-in backdrop-blur-md">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center text-lg shrink-0">
-                ⚠️
-              </div>
-              <div>
-                <p className="font-extrabold text-sm tracking-wide">
-                  Unsaved Profile Changes
-                </p>
-                <p className="text-xs text-amber-55 mt-0.5">
-                  You have unsaved edits in your profile draft. Click save in the footer below to update your public details.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className="px-6 py-2 bg-white text-orange-600 font-extrabold rounded-xl hover:bg-slate-50 active:scale-95 transition text-xs shrink-0 shadow-md"
-            >
-              {saving ? "Saving..." : "Save Draft Now"}
-            </button>
-          </div>
-        )}
 
         {/* ── Section 1: Compact Hero Profile Row ── */}
         <div className="bg-white rounded-[15px] border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.06)] overflow-hidden min-h-[130px] md:h-[130px] mb-8 flex flex-col md:flex-row items-stretch">
@@ -1727,23 +1735,37 @@ const ProviderProfile = () => {
             </div>
 
             <div className="flex-1 flex flex-col justify-center space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      name: e.target.value,
-                      profileName: e.target.value,
-                    })
-                  }
-                  placeholder="e.g. Sujit"
-                  className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        name: e.target.value,
+                        profileName: e.target.value,
+                      })
+                    }
+                    placeholder="e.g. Sujit"
+                    className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                    Registered Email (Read-Only)
+                  </label>
+                  <input
+                    type="email"
+                    value={profileData?.user?.email || user?.email || ""}
+                    disabled
+                    className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed outline-none shadow-sm font-semibold"
+                  />
+                </div>
               </div>
 
               <div>
@@ -2376,29 +2398,44 @@ const ProviderProfile = () => {
             </div>
             
             <div className="relative flex-1 flex items-center">
-              <select
-                value={
-                  [
-                    "Fresher",
-                    "0-1 years",
-                    "1-3 years",
-                    "3-5 years",
-                    "5+ years",
-                  ].includes(form.experience)
-                    ? form.experience
-                    : "3-5 years"
+              {(() => {
+                const experienceOptions = [
+                  { value: "Fresher", label: "Fresher (Entry-level)" },
+                  { value: "0-1 years", label: "0-1 years (Junior)" },
+                  { value: "1-3 years", label: "1-3 years (Intermediate)" },
+                  { value: "3-5 years", label: "3-5 years (Experienced)" },
+                  { value: "5-10 years", label: "5-10 years (Senior)" },
+                  { value: "10-15 years", label: "10-15 years (Expert)" },
+                  { value: "15-20 years", label: "15-20 years (Specialist)" },
+                  { value: "20-30 years", label: "20-30 years (Veteran)" },
+                  { value: "30+ years", label: "30+ years (Master)" },
+                ];
+
+                const experienceValue = form.experience || "3-5 years";
+                const hasMatchingOption = experienceOptions.some(opt => opt.value === experienceValue);
+                if (!hasMatchingOption && form.experience) {
+                  experienceOptions.push({
+                    value: form.experience,
+                    label: `${form.experience} (Custom)`
+                  });
                 }
-                onChange={(e) =>
-                  setForm({ ...form, experience: e.target.value })
-                }
-                className="w-full px-4 py-2 text-xs rounded-xl border border-slate-200 outline-none bg-slate-50/50 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 appearance-none shadow-inner text-slate-700 font-bold"
-              >
-                <option value="Fresher">Fresher (Entry-level)</option>
-                <option value="0-1 years">0-1 years (Junior)</option>
-                <option value="1-3 years">1-3 years (Intermediate)</option>
-                <option value="3-5 years">3-5 years (Experienced)</option>
-                <option value="5+ years">5+ years (Senior Expert)</option>
-              </select>
+
+                return (
+                  <select
+                    value={experienceValue}
+                    onChange={(e) =>
+                      setForm({ ...form, experience: e.target.value })
+                    }
+                    className="w-full px-4 py-2 text-xs rounded-xl border border-slate-200 outline-none bg-slate-50/50 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 appearance-none shadow-inner text-slate-700 font-bold"
+                  >
+                    {experienceOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                );
+              })()}
               <div className="absolute right-4 top-[18px] pointer-events-none">
                 <ChevronDown className="w-4 h-4 text-slate-400" />
               </div>
@@ -2435,6 +2472,33 @@ const ProviderProfile = () => {
                   className={`block w-4.5 h-4.5 bg-white rounded-full shadow absolute top-0.5 transition-transform duration-200 ${form.whatsappAlerts ? "translate-x-5.5" : "translate-x-0.5"}`}
                 />
               </button>
+            </div>
+          </div>
+
+          {/* Row 6 Card: Professional Bio */}
+          <div id="bio-card" className="md:col-span-2 bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col justify-between min-h-[200px] transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 shrink-0">
+              <FileText className="w-5 h-5 text-violet-600 shrink-0" />
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">Professional Bio</h3>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Brief summary of your skills and background</p>
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-col justify-between text-left">
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="Describe your professional experience, key skills, and what services you offer..."
+                rows={4}
+                className="w-full px-4 py-3 text-xs rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition resize-y font-semibold text-slate-700 leading-relaxed"
+              />
+              <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400 font-semibold">
+                <span>Minimum 20 characters required.</span>
+                <span className={(form.description || "").trim().length >= 20 ? "text-emerald-600 font-bold" : "text-amber-600 font-bold"}>
+                  {(form.description || "").trim().length} characters
+                </span>
+              </div>
             </div>
           </div>
 
@@ -2478,18 +2542,6 @@ const ProviderProfile = () => {
               </div>
 
               <div className="flex items-center gap-3 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={saving}
-                  className={`flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
-                    isDirty
-                      ? "bg-amber-500 hover:bg-amber-600 text-white shadow-sm"
-                      : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                  }`}
-                >
-                  {saving ? "Saving Draft..." : "Save Draft"}
-                </button>
                 <button
                   type="submit"
                   disabled={saving}
@@ -2552,6 +2604,91 @@ const ProviderProfile = () => {
           </div>
         </form>
       </div>
+
+      {isOtpModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn">
+          {/* Glass backdrop */}
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+            onClick={handleCancelOtp}
+          />
+          
+          {/* Modal Container */}
+          <div className="relative bg-white/95 backdrop-blur-md rounded-[24px] p-6 shadow-2xl border border-slate-100 max-w-sm w-full text-center overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+            {/* Decorative glow */}
+            <div className="absolute -top-10 -left-10 w-24 h-24 bg-violet-400/20 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-indigo-400/20 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="relative">
+              {/* Icon */}
+              <div className="mx-auto w-12 h-12 bg-violet-50 text-violet-600 rounded-2xl flex items-center justify-center mb-4">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+
+              <h3 className="text-base font-black text-slate-800 tracking-tight">Verify Mobile Change</h3>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                We sent a 6-digit verification code to <span className="font-bold text-slate-700">{profileData?.user?.email}</span>. Enter it below to confirm your phone number change.
+              </p>
+
+              {/* Input */}
+              <div className="my-5">
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={emailOtp}
+                  onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ""))}
+                  placeholder="Enter 6-digit OTP"
+                  className="w-full text-center tracking-widest text-lg font-black py-2.5 px-4 rounded-xl border border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 outline-none bg-slate-50/50 shadow-inner transition placeholder:tracking-normal placeholder:font-bold placeholder:text-xs placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* Resend */}
+              <div className="mb-5">
+                {resendCountdown > 0 ? (
+                  <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                    Resend code in <span className="text-violet-600">{resendCountdown}s</span>
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={sendingOtp}
+                    className="text-[10px] font-extrabold text-violet-600 hover:text-violet-700 uppercase tracking-wider underline outline-none"
+                  >
+                    Resend Code
+                  </button>
+                )}
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleCancelOtp}
+                  className="flex-1 px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-extrabold text-xs transition active:scale-95 outline-none"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSave(null)}
+                  disabled={saving || emailOtp.length !== 6}
+                  className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-extrabold py-2 rounded-xl shadow-md transition active:scale-95 disabled:opacity-50 disabled:pointer-events-none text-xs flex items-center justify-center gap-1.5 outline-none"
+                >
+                  {saving ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <span>Confirm</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -166,6 +166,15 @@ const Pill = ({ active, children, onClick }) => (
 //   </div>
 // );
 
+const formatDistance = (dist) => {
+  if (dist == null || !Number.isFinite(Number(dist))) return '';
+  const num = Number(dist);
+  if (num < 1) {
+    return `~${Math.round(num * 1000)} m`;
+  }
+  return `~${num.toFixed(1)} km`;
+};
+
 const ProviderCard = ({ p, onClick }) => {
   const navigate = useNavigate();
   const maxSkillsToShow = 2;
@@ -228,7 +237,7 @@ const ProviderCard = ({ p, onClick }) => {
           <span className="text-lg font-extrabold text-[#081B3A]">₹{p.rate}</span>
           <span className="text-xs text-[#6B7280]"> /hr</span>
         </div>
-        <span className="text-xs text-[#6B7280]">~{p.distanceKm}m</span>
+        <span className="text-xs text-[#6B7280]">{formatDistance(p.distanceKm)}</span>
       </div>
 
       {/* CTA buttons row */}

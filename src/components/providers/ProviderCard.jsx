@@ -21,6 +21,15 @@ const getInitials = (name = 'Provider') =>
     .map((part) => part[0]?.toUpperCase())
     .join('') || 'P';
 
+const formatDistance = (dist) => {
+  if (dist == null || !Number.isFinite(Number(dist))) return '';
+  const num = Number(dist);
+  if (num < 1) {
+    return `~${Math.round(num * 1000)} m`;
+  }
+  return `~${num.toFixed(1)} km`;
+};
+
 const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, index = 0 }) => {
   // Respect the provider's WhatsApp notification preference.
   // whatsappAlerts defaults to true in normalizeProviderData, so false means explicitly disabled.
@@ -116,11 +125,24 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
         {/* Price and distance section */}
         <div className="flex items-baseline justify-between pt-1 border-t border-[#F3F6FB] mt-auto">
           <div>
-            <span className="text-lg font-extrabold text-[#081B3A]">₹{ratePerHour}</span>
-            <span className="text-xs text-[#6B7280]"> /hr</span>
+            {provider.pricing ? (
+              <>
+                <span className="text-lg font-extrabold text-[#081B3A]">₹{provider.pricing}</span>
+                {provider.pricingType && (
+                  <span className="text-xs text-[#6B7280]"> /{provider.pricingType === 'hourly' ? 'hr' : provider.pricingType === 'daily' ? 'day' : provider.pricingType === 'monthly' ? 'mo' : provider.pricingType}</span>
+                )}
+              </>
+            ) : ratePerHour ? (
+              <>
+                <span className="text-lg font-extrabold text-[#081B3A]">₹{ratePerHour}</span>
+                <span className="text-xs text-[#6B7280]"> /hr</span>
+              </>
+            ) : (
+              <span className="text-xs text-[#6B7280]">Rate N/A</span>
+            )}
           </div>
           <span className="text-xs text-[#6B7280]">
-            {provider.distanceKm != null ? `~${provider.distanceKm}m` : ''}
+            {formatDistance(provider.distanceKm)}
           </span>
         </div>
 
@@ -248,7 +270,14 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
       {/* Price and distance section */}
       <div className="flex items-baseline justify-between pt-1 border-t border-[#F3F6FB] mt-auto">
         <div>
-          {ratePerHour ? (
+          {provider.pricing ? (
+            <span className="text-lg font-extrabold text-[#081B3A]">
+              ₹{provider.pricing}
+              {provider.pricingType && (
+                <span className="text-xs font-normal text-[#6B7280]">/{provider.pricingType === 'hourly' ? 'hr' : provider.pricingType === 'daily' ? 'day' : provider.pricingType === 'monthly' ? 'mo' : provider.pricingType}</span>
+              )}
+            </span>
+          ) : ratePerHour ? (
             <span className="text-lg font-extrabold text-[#081B3A]">
               ₹{ratePerHour}
               <span className="text-xs font-normal text-[#6B7280]">/hr</span>
@@ -258,7 +287,7 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
           )}
         </div>
         <span className="text-xs text-[#6B7280]">
-          {provider.distanceKm != null ? `~${provider.distanceKm}m` : ''}
+          {formatDistance(provider.distanceKm)}
         </span>
       </div>
 

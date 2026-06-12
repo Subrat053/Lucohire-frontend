@@ -89,9 +89,10 @@ const SectionCard = ({
   const [useGoogleViewer, setUseGoogleViewer] = useState(true); // default: Google Docs Viewer (avoids Cloudinary raw download)
 
   const isPhoneOrEmail = section.key === 'phone' || section.key === 'email';
+  const isServiceAreas = section.key === 'serviceAreas';
 
   const Icon = SECTION_ICONS[section.key] || FileText;
-  const s = STATUS_STYLES[section.status] || STATUS_STYLES.not_submitted;
+  const s = isServiceAreas ? { border: 'border-gray-200', bg: 'bg-white', text: 'text-blue-500' } : (STATUS_STYLES[section.status] || STATUS_STYLES.not_submitted);
 
   const handleApprove = async () => {
     setLoading(true);
@@ -118,12 +119,12 @@ const SectionCard = ({
   };
 
   return (
-    <div className={`rounded-2xl border p-5 transition-all ${s.border} ${section.status === 'rejected' ? 'bg-red-50/30' : section.status === 'approved' ? 'bg-green-50/20' : 'bg-white'}`}>
+    <div className={`rounded-2xl border p-5 transition-all ${isServiceAreas ? 'border-gray-200 bg-white shadow-sm' : `${s.border} ${section.status === 'rejected' ? 'bg-red-50/30' : section.status === 'approved' ? 'bg-green-50/20' : 'bg-white'}`}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${s.bg}`}>
-            <Icon className={`w-4.5 h-4.5 ${s.text}`} />
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isServiceAreas ? 'bg-blue-50' : s.bg}`}>
+            <Icon className={`w-4.5 h-4.5 ${isServiceAreas ? 'text-blue-500' : s.text}`} />
           </div>
           <div>
             <h3 className="font-semibold text-gray-900 text-sm">{section.label}</h3>
@@ -132,7 +133,7 @@ const SectionCard = ({
             )}
           </div>
         </div>
-        <StatusBadge status={section.status} />
+        {!isServiceAreas && <StatusBadge status={section.status} />}
       </div>
 
       {/* Preview */}
@@ -302,6 +303,39 @@ const SectionCard = ({
           ))}
         </div>
       )}
+      {section.key === 'serviceAreas' && (
+        <div className="mb-4 space-y-4 text-left">
+          {section.value && (
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Primary Location (Base Address)</p>
+              <div className="px-3.5 py-2.5 bg-gray-50 rounded-xl border border-gray-200 text-sm text-gray-700 font-medium flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
+                <span>{section.value}</span>
+              </div>
+            </div>
+          )}
+          {Array.isArray(section.items) && section.items.length > 0 && (() => {
+            const uniqueItems = Array.from(new Set(section.items.map(item => String(item).trim()).filter(Boolean)));
+            if (uniqueItems.length === 0) return null;
+            return (
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Service Coverage Cities/Areas</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {uniqueItems.map((area, i) => (
+                    <span key={i} className="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200/80 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                      {area}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+          {!section.value && (!section.items || section.items.length === 0) && (
+            <p className="text-xs text-gray-400 italic">No location or service areas provided</p>
+          )}
+        </div>
+      )}
       {(section.key === 'email' || section.key === 'phone' || section.key === 'companyDetails' || section.key === 'companyWebsite') && section.value && (
         <div className="mb-4 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700 font-medium">
           {section.value}
@@ -350,7 +384,7 @@ const SectionCard = ({
       )}
 
       {/* Action buttons */}
-      {section.status !== 'not_submitted' && (
+      {section.status !== 'not_submitted' && section.key !== 'serviceAreas' && (
         <div className="flex items-center flex-wrap gap-2 mt-2">
           {section.status !== 'approved' && (
             <button onClick={handleApprove} disabled={loading}
@@ -674,13 +708,24 @@ export default function ProfileReviewDetail() {
                     ? <img src={photo} alt={user.name} className="w-full h-full object-cover" />
                     : <UserIcon className="w-8 h-8 text-purple-400" />}
                 </div>
-                <span className={`absolute -bottom-1 -right-1 text-2xs font-semibold px-2 py-0.5 rounded-full border capitalize
-                  ${ROLE_BADGE[user.primaryRole] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                  {user.primaryRole === 'provider' ? 'Candidate' : user.primaryRole}
-                </span>
               </div>
               <div className="min-w-0">
-                <h2 className="text-xl font-bold text-gray-900 truncate">{user.name || '—'}</h2>
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <h2 className="text-xl font-bold text-gray-900 truncate">{user.name || '—'}</h2>
+                  <div className="flex flex-wrap gap-1">
+                    {Array.isArray(user.roles) ? Array.from(new Set(user.roles)).map(r => (
+                      <span key={r} className={`text-2xs font-semibold px-2 py-0.5 rounded-full border capitalize
+                        ${ROLE_BADGE[r] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                        {r === 'provider' ? 'Provider' : r}
+                      </span>
+                    )) : (
+                      <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full border capitalize
+                        ${ROLE_BADGE[user.primaryRole] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                        {user.primaryRole === 'provider' ? 'Provider' : user.primaryRole}
+                      </span>
+                    )}
+                  </div>
+                </div>
                 <div className="mt-2 space-y-1 text-xs text-gray-500">
                   {user.email && (
                     <div className="flex items-center gap-1.5 min-w-0">
@@ -692,6 +737,19 @@ export default function ProfileReviewDetail() {
                     <div className="flex items-center gap-1.5">
                       <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                       <span>{user.phone}</span>
+                    </div>
+                  )}
+                  {user.phoneHistory && user.phoneHistory.length > 0 && (
+                    <div className="mt-1.5 pl-3 border-l-2 border-purple-100 space-y-1 text-[10px] text-gray-400 text-left">
+                      <span className="font-bold text-gray-400 uppercase tracking-wider block mb-1">Previous Numbers:</span>
+                      {user.phoneHistory.map((historyItem, idx) => (
+                        <div key={idx} className="flex flex-col leading-tight border-b border-gray-50 pb-1 last:border-0 last:pb-0">
+                          <span className="font-semibold text-gray-600">{historyItem.phone}</span>
+                          <span className="text-[9px] text-gray-400">
+                            {new Date(historyItem.changedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   )}
                   <div className="flex items-center gap-1.5">

@@ -187,6 +187,7 @@ export const providerAPI = {
   getProfile: () => API.get("/provider/profile"),
   scrapeMatches: () => API.get("/provider/scrape-matches", { timeout: 60000 }),
   updateProfile: (data) => API.put("/provider/profile", data),
+  sendPhoneChangeOtp: () => API.post("/provider/profile/send-phone-change-otp"),
   aiSuggestProfile: (data) => API.post("/provider/profile/ai-suggest", data),
   buildAIProfile: (data) => API.post("/provider/ai/build-profile", data),
   extractProfileData: (data) => API.post("/provider/ai/extract-profile", data), // Module 1 UI
@@ -227,6 +228,7 @@ export const recruiterAPI = {
   publicSearch: (params) => API.get("/recruiter/public-search", { params }),
   search: (params) => API.get("/recruiter/search", { params }),
   viewProvider: (id) => API.get(`/recruiter/view-provider/${id}`),
+  viewCv: (id) => API.get(`/recruiter/view-cv/${id}`),
   unlockContact: (providerId) => API.post(`/recruiter/unlock/${providerId}`),
   checkUnlockStatus: (providerId) =>
     API.get(`/recruiter/unlock-status/${providerId}`),

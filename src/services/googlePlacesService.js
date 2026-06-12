@@ -4,6 +4,24 @@ import { haversineDistanceKm } from '../utils/locationUtils';
 let scriptLoadingPromise = null;
 
 /**
+ * Clean location label by removing " Division" and removing duplicate components (e.g. "Delhi, Delhi, India" -> "Delhi, India").
+ * @param {string} label 
+ * @returns {string}
+ */
+export const cleanLocationLabel = (label) => {
+  if (!label) return '';
+  let cleaned = label.replace(/\s+Division\b/gi, '');
+  const parts = cleaned.split(',').map(p => p.trim()).filter(Boolean);
+  const uniqueParts = [];
+  for (const part of parts) {
+    if (!uniqueParts.includes(part)) {
+      uniqueParts.push(part);
+    }
+  }
+  return uniqueParts.join(', ');
+};
+
+/**
  * Dynamically loads the Google Places API script if not already loaded.
  * Uses the environment variable VITE_GOOGLE_PLACES_API_KEY.
  * @returns {Promise<any>}
@@ -171,9 +189,9 @@ export const getPlacePredictions = async (query, options = {}) => {
 
       return suggestions.map(s => {
         const prediction = s.placePrediction;
-        const main_text = prediction.mainText ? (typeof prediction.mainText === 'string' ? prediction.mainText : prediction.mainText.toString()) : '';
-        const secondary_text = prediction.secondaryText ? (typeof prediction.secondaryText === 'string' ? prediction.secondaryText : prediction.secondaryText.toString()) : '';
-        const description = prediction.text ? (typeof prediction.text === 'string' ? prediction.text : prediction.text.toString()) : (main_text + ' ' + secondary_text).trim();
+        const main_text = cleanLocationLabel(prediction.mainText ? (typeof prediction.mainText === 'string' ? prediction.mainText : prediction.mainText.toString()) : '');
+        const secondary_text = cleanLocationLabel(prediction.secondaryText ? (typeof prediction.secondaryText === 'string' ? prediction.secondaryText : prediction.secondaryText.toString()) : '');
+        const description = cleanLocationLabel(prediction.text ? (typeof prediction.text === 'string' ? prediction.text : prediction.text.toString()) : (main_text + ' ' + secondary_text).trim());
 
         // Approximate city and state from secondary text
         const parts = secondary_text.split(',').map(p => p.trim());
@@ -276,16 +294,17 @@ export const getPlacePredictions = async (query, options = {}) => {
       }
 
       return predictions.map(p => {
-        const main_text = p.structured_formatting?.main_text || '';
-        const secondary_text = p.structured_formatting?.secondary_text || '';
+        const main_text = cleanLocationLabel(p.structured_formatting?.main_text || '');
+        const secondary_text = cleanLocationLabel(p.structured_formatting?.secondary_text || '');
+        const description = cleanLocationLabel(p.description || '');
         const parts = secondary_text.split(',').map(part => part.trim());
 
         return {
-          label: p.description,
-          value: p.description,
+          label: description,
+          value: description,
           place_id: p.place_id,
           placeId: p.place_id,
-          description: p.description,
+          description: description,
           structured_formatting: {
             main_text,
             secondary_text,
@@ -310,25 +329,30 @@ export const getPlacePredictions = async (query, options = {}) => {
     try {
       const { data } = await locationAPI.searchPlaces(query, options);
       const list = Array.isArray(data?.data) ? data.data : [];
-      return list.map(p => ({
-        label: p.formattedAddress || p.name,
-        value: p.formattedAddress || p.name,
-        place_id: p.placeId,
-        placeId: p.placeId,
-        description: p.formattedAddress || p.name,
-        structured_formatting: {
-          main_text: p.name,
-          secondary_text: p.formattedAddress,
-        },
-        city: p.city || '',
-        locality: p.locality || p.name,
-        state: p.state || '',
-        country: p.country || 'India',
-        latitude: p.latitude,
-        longitude: p.longitude,
-        source: "google_global",
-        types: p.types || [],
-      }));
+      return list.map(p => {
+        const label = cleanLocationLabel(p.formattedAddress || p.name);
+        const name = cleanLocationLabel(p.name);
+        const secText = cleanLocationLabel(p.formattedAddress);
+        return {
+          label: label,
+          value: label,
+          place_id: p.placeId,
+          placeId: p.placeId,
+          description: label,
+          structured_formatting: {
+            main_text: name,
+            secondary_text: secText,
+          },
+          city: cleanLocationLabel(p.city || ''),
+          locality: cleanLocationLabel(p.locality || p.name),
+          state: cleanLocationLabel(p.state || ''),
+          country: cleanLocationLabel(p.country || 'India'),
+          latitude: p.latitude,
+          longitude: p.longitude,
+          source: "google_global",
+          types: p.types || [],
+        };
+      });
     } catch (backendError) {
       console.error('Backend autocomplete search fallback failed:', backendError);
       throw error;
@@ -508,12 +532,12 @@ export const getLocalityFromPlace = (place) => {
  */
 export const normalizeGooglePlace = (place, context = null) => {
   if (!place) return null;
-  const city = getCityFromPlace(place);
-  const state = getStateFromPlace(place);
-  const country = getCountryFromPlace(place);
+  const city = cleanLocationLabel(getCityFromPlace(place));
+  const state = cleanLocationLabel(getStateFromPlace(place));
+  const country = cleanLocationLabel(getCountryFromPlace(place));
   const { latitude, longitude } = getLatLngFromPlace(place);
-  const label = place.formatted_address || place.name || '';
-  const locality = getLocalityFromPlace(place);
+  const label = cleanLocationLabel(place.formatted_address || place.name || '');
+  const locality = cleanLocationLabel(getLocalityFromPlace(place));
 
   let distanceFromUserKm = null;
   if (context && context.latitude && context.longitude && latitude && longitude) {
@@ -535,3 +559,47 @@ export const normalizeGooglePlace = (place, context = null) => {
     raw: place,
   };
 };
+
+/**
+ * Reverse geocode latitude and longitude to a place details object.
+ * @param {number} lat 
+ * @param {number} lng 
+ * @returns {Promise<object>}
+ */
+export const reverseGeocode = async (lat, lng) => {
+  try {
+    const google = await loadGooglePlacesScript();
+    if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
+      throw new Error('Google Maps Geocoder is not loaded');
+    }
+    const geocoder = new window.google.maps.Geocoder();
+
+    const geocodePromise = new Promise((resolve, reject) => {
+      try {
+        geocoder.geocode({ location: { lat: Number(lat), lng: Number(lng) } }, (results, status) => {
+          if (status === 'OK') {
+            if (results && results[0]) {
+              resolve(results[0]);
+            } else {
+              reject(new Error('No geocoding results found'));
+            }
+          } else {
+            reject(new Error(`Geocoder failed with status: ${status}`));
+          }
+        });
+      } catch (err) {
+        reject(err);
+      }
+    });
+
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Google Geocoder timed out')), 2000);
+    });
+
+    return await Promise.race([geocodePromise, timeoutPromise]);
+  } catch (error) {
+    console.error('Google reverse geocode failed:', error);
+    throw error;
+  }
+};
+

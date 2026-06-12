@@ -1,17 +1,16 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  HiSearch, HiLocationMarker, HiStar, HiBadgeCheck, HiFilter, HiX,
-  HiLockOpen, HiLockClosed, HiPhone, HiChevronRight, HiChevronLeft,
-  HiUsers, HiSparkles, HiRefresh,
+  HiSearch, HiLocationMarker, HiStar, HiBadgeCheck,
+  HiLockOpen, HiPhone, HiChevronRight, HiChevronLeft,
+  HiUsers, HiSparkles, HiRefresh, HiX,
 } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import toast from 'react-hot-toast';
-import { recruiterAPI, searchAPI, subscriptionAPI } from '../../services/api';
+import { recruiterAPI, searchAPI, subscriptionAPI, categoriesAPI } from '../../services/api';
 import { toOptimizedMediaUrl } from '../../utils/media';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import LocationSearch from '../../components/LocationSearch';
-import NaturalLanguageIntentBar from '../../components/recruiter/NaturalLanguageIntentBar';
 import InstantHirePanel from '../../components/recruiter/InstantHirePanel';
 import CompareProvidersModal from '../../components/recruiter/CompareProvidersModal';
 
@@ -163,12 +162,13 @@ const ProviderCard = memo(ProviderCardBase);
 /* ── Main Page ───────────────────────────────────────────────────────── */
 const FindProviders = () => {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
   const [skill, setSkill] = useState('');
+  const [skillQuery, setSkillQuery] = useState('');
+  const [skillDropdownOpen, setSkillDropdownOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
   const [city, setCity] = useState('');
   const [tierFilter, setTierFilter] = useState('');
   const [ratingFilter, setRatingFilter] = useState('');
-  const [interpreted, setInterpreted] = useState(null);
   const [providers, setProviders] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(false);
@@ -181,12 +181,63 @@ const FindProviders = () => {
   const [topMatches, setTopMatches] = useState([]);
   const [showMatchesDropdown, setShowMatchesDropdown] = useState(false);
   const searchRef = useRef(null);
+  const skillDropdownRef = useRef(null);
+
+  // Flat skill list with tier info from categories
+  const allSkills = categories
+    .filter(cat => cat.isActive !== false)
+    .flatMap(cat =>
+      (cat.skills || [])
+        .filter(s => s.isActive !== false)
+        .map(s => ({ name: s.name, tier: cat.tier, category: cat.name }))
+    );
+
+  const filteredSkills = allSkills.filter(s =>
+    s.name.toLowerCase().includes(skillQuery.toLowerCase())
+  );
+
+  const handleSkillSelect = (skillName, skillTier) => {
+    setSkill(skillName);
+    setSkillQuery(skillName);
+    setSkillDropdownOpen(false);
+    if (skillTier) setTierFilter(skillTier);
+  };
+
+  const handleSkillInputChange = (e) => {
+    const val = e.target.value;
+    setSkillQuery(val);
+    setSkill(val);
+    setSkillDropdownOpen(true);
+    // Clear auto-tier if user types manually
+  };
+
+  const handleSkillClear = () => {
+    setSkill('');
+    setSkillQuery('');
+    setSkillDropdownOpen(false);
+  };
+
+  // Close skill dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (skillDropdownRef.current && !skillDropdownRef.current.contains(e.target)) {
+        setSkillDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => {
     subscriptionAPI.getMySubscription()
       .then(r => setSubscription(r.data))
       .catch(() => {});
-      
+
+    // Fetch skill categories for autocomplete
+    categoriesAPI.getCategories()
+      .then(res => setCategories(Array.isArray(res.data) ? res.data : []))
+      .catch(err => console.error('Failed to fetch skill categories', err));
+
     // Fetch generic top providers for the search dropdown
     searchAPI.providers({ limit: 10, sortBy: 'rating' }).then(res => {
       if (res.data?.providers) {
@@ -196,15 +247,14 @@ const FindProviders = () => {
   }, []);
 
   const doSearch = useCallback(async (page = 1) => {
-    if (!query.trim() && !skill.trim() && !city.trim()) {
-      toast('Enter a requirement, skill, or city to search', { icon: 'ℹ️' });
+    if (!skill.trim() && !city.trim()) {
+      toast('Enter a skill or city to search', { icon: 'ℹ️' });
       return;
     }
     setLoading(true);
     setHasSearched(true);
     try {
       const params = {
-        query: query.trim() || undefined,
         skill: skill.trim() || undefined,
         city: city.trim() || undefined,
         ...(selectedCoords.lat !== null && selectedCoords.lon !== null ? {
@@ -222,7 +272,6 @@ const FindProviders = () => {
       const { data } = await searchAPI.providers(params);
       const list = data.providers || [];
       setProviders(list);
-      setInterpreted(data.intent || null);
       setPagination(data.pagination || { page, pages: 1, total: list.length });
       setCurrentPage(page);
     } catch (primaryErr) {
@@ -242,7 +291,6 @@ const FindProviders = () => {
         });
         const list = data.providers || data.results || (Array.isArray(data) ? data : []);
         setProviders(list);
-        setInterpreted(null);
         setPagination(data.pagination || { page, pages: 1, total: list.length });
         setCurrentPage(page);
       } catch (err) {
@@ -251,7 +299,7 @@ const FindProviders = () => {
     } finally {
       setLoading(false);
     }
-  }, [query, skill, city, tierFilter, ratingFilter, selectedCoords]);
+  }, [skill, city, tierFilter, ratingFilter, selectedCoords]);
 
   const handleSearch = useCallback((e) => {
     e.preventDefault();
@@ -339,62 +387,65 @@ const FindProviders = () => {
       <div className="max-w-7xl mx-auto px-2 lg:px-4 py-2 lg:py-6">
         {/* Search Form */}
         <form ref={searchRef} onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-100 p-4 mb-4" onClick={e => e.stopPropagation()}>
-          <div className="mb-3">
-            <NaturalLanguageIntentBar
-              query={query}
-              onChange={setQuery}
-              onApplyIntent={(parsed) => {
-                if (!parsed) return;
-                if (parsed.extractedSkill) setSkill(parsed.extractedSkill);
-                if (parsed.extractedCity) setCity(parsed.extractedCity);
-                if (parsed.extractedTier) setTierFilter(parsed.extractedTier);
-              }}
-            />
-          </div>
-
           <div className="flex flex-wrap gap-3 items-end">
 
-            <div className="flex-1 min-w-40 relative">
+            {/* Skill Autocomplete */}
+            <div ref={skillDropdownRef} className="flex-1 min-w-40 relative">
               <label className="block text-xs text-gray-500 font-medium mb-1">Skill / Profession</label>
               <div className="relative">
                 <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="e.g. Plumber, Electrician…"
-                  value={skill}
-                  onChange={e => setSkill(e.target.value)}
-                  onFocus={() => setShowMatchesDropdown(true)}
-                  className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  value={skillQuery}
+                  onChange={handleSkillInputChange}
+                  onFocus={() => setSkillDropdownOpen(true)}
+                  className="w-full border border-gray-200 rounded-xl pl-9 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
+                {skillQuery && (
+                  <button
+                    type="button"
+                    onClick={handleSkillClear}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <HiX className="w-4 h-4" />
+                  </button>
+                )}
               </div>
 
-              {/* Top Matches Dropdown */}
-              {showMatchesDropdown && topMatches.length > 0 && (
-                <div className="absolute top-full left-0 mt-2 w-full min-w-[300px] bg-white rounded-2xl shadow-xl border border-gray-100 z-50 max-h-[350px] overflow-y-auto animate-fadeInUp">
-                  <div className="p-3 border-b border-gray-50 bg-blue-50/50 sticky top-0">
-                    <h4 className="text-xs font-bold text-blue-800 flex items-center gap-1.5">
-                      <HiSparkles className="w-3.5 h-3.5" /> 
-                      Top Rated Candidates
-                    </h4>
-                  </div>
-                  <div className="divide-y divide-gray-50">
-                    {topMatches.map(match => (
-                      <div 
-                        key={match._id} 
-                        onClick={() => {
-                          handleView(match);
-                          setShowMatchesDropdown(false);
-                        }}
-                        className="p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                      >
-                        <h5 className="font-semibold text-sm text-gray-800">{match.user?.name || match.name || 'Provider'}</h5>
-                        <div className="flex gap-2 text-xs text-gray-500 mt-1">
-                          <span className="flex items-center gap-1 font-medium text-blue-600">{match.skills?.[0] || 'General'}</span>
-                          <span className="flex items-center gap-1"><HiLocationMarker className="w-3 h-3"/> {match.city || 'Anywhere'}</span>
+              {/* Skill Suggestions Dropdown */}
+              {skillDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-full min-w-[280px] bg-white rounded-2xl shadow-xl border border-gray-100 z-50 max-h-[300px] overflow-y-auto">
+                  {filteredSkills.length === 0 ? (
+                    <div className="px-4 py-3 text-xs text-gray-400 italic">
+                      {skillQuery.trim() ? `No matches for "${skillQuery}"` : 'Start typing to search skills…'}
+                    </div>
+                  ) : (
+                    Object.entries(
+                      filteredSkills.reduce((acc, s) => {
+                        if (!acc[s.category]) acc[s.category] = [];
+                        acc[s.category].push(s);
+                        return acc;
+                      }, {})
+                    ).map(([catName, group]) => (
+                      <div key={catName}>
+                        <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-gray-400 bg-gray-50 sticky top-0">
+                          {catName}
                         </div>
+                        {group.map(s => (
+                          <button
+                            key={s.name}
+                            type="button"
+                            onMouseDown={() => handleSkillSelect(s.name, s.tier)}
+                            className="w-full text-left px-4 py-2 text-xs text-gray-700 font-medium hover:bg-blue-50 hover:text-blue-700 transition flex items-center justify-between gap-2"
+                          >
+                            <span>{s.name}</span>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase px-1.5 py-0.5 rounded-full bg-gray-100 shrink-0">{s.tier}</span>
+                          </button>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    ))
+                  )}
                 </div>
               )}
             </div>
@@ -486,15 +537,6 @@ const FindProviders = () => {
             <HiUsers className="w-12 h-12 mx-auto mb-3 text-gray-300" />
             <p className="font-semibold text-gray-600">No providers found</p>
             <p className="text-sm text-gray-400 mt-1">Try different skill or location keywords</p>
-            {interpreted && (
-              <div className="mt-4 text-left max-w-md mx-auto">
-                <p className="text-xs text-gray-500 font-semibold mb-2">AI interpreted your search as:</p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {interpreted.skill && <span className="text-xs px-2 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-700">{interpreted.skill}</span>}
-                  {interpreted.city && <span className="text-xs px-2 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-700">{interpreted.city}</span>}
-                </div>
-              </div>
-            )}
           </div>
         ) : providers.length > 0 ? (
           <>
@@ -504,11 +546,6 @@ const FindProviders = () => {
                 <p className="text-sm text-gray-700 font-semibold">
                   {pagination.total ?? providers.length} provider{providers.length !== 1 ? 's' : ''} found
                 </p>
-                {(interpreted?.skill || interpreted?.city) && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Showing results for <span className="font-medium text-gray-700">{[interpreted?.skill, interpreted?.city].filter(Boolean).join(' in ')}</span>
-                  </p>
-                )}
               </div>
               <div className="flex items-center gap-3">
                 {providers.length >= 2 && (

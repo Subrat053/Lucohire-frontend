@@ -21,6 +21,7 @@ import {
     HiLocationMarker,
     HiStar,
     HiShieldCheck,
+    HiEye,
 } from "react-icons/hi";
 import { recruiterAPI, providerAPI } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
@@ -54,6 +55,9 @@ export default function JobPostings() {
     const [searching, setSearching] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const [savingIds, setSavingIds] = useState(new Set()); // candidateIds currently being saved
+    const [activeResumeUrl, setActiveResumeUrl] = useState(null);
+    const [viewingResumeCandidate, setViewingResumeCandidate] = useState(null);
+    const [fetchingResume, setFetchingResume] = useState(false);
 
     // Sorting & Filtering & Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -76,7 +80,7 @@ export default function JobPostings() {
             list = list.filter(c => c.isVerified);
         }
         if (filterResume) {
-            list = list.filter(c => !!c.resumeUrl);
+            list = list.filter(c => !!c.resumeUrl || c.hasResume);
         }
 
         // Apply Sorting
@@ -292,6 +296,8 @@ export default function JobPostings() {
                     isSaved:      item.isSaved || false,
                     shortBio:     item.shortBio || "",
                     skills:       item.skills || [],
+                    resumeUrl:    item.resumeUrl || "",
+                    hasResume:    item.hasResume || false,
                 }))
             );
 
@@ -474,8 +480,38 @@ export default function JobPostings() {
         }
     };
 
+    const handleViewResume = async (candidate) => {
+        if (fetchingResume) return;
+
+        const candidateId = candidate.id || candidate._id;
+        const toastId = toast.loading("Loading resume preview...");
+        try {
+            setFetchingResume(true);
+            const { data } = await recruiterAPI.viewCv(candidateId);
+            if (data?.resumeUrl) {
+                setActiveResumeUrl(data.resumeUrl);
+                setViewingResumeCandidate(candidate);
+                toast.success("Resume loaded!", { id: toastId });
+            } else {
+                toast.error("Could not load resume URL.", { id: toastId });
+            }
+        } catch (err) {
+            const status = err.response?.status;
+            const msg = err.response?.data?.message || "Failed to load resume";
+            toast.error(msg, { id: toastId });
+            if (status === 403) {
+                setTimeout(() => {
+                    navigate('/recruiter/plans');
+                }, 1500);
+            }
+        } finally {
+            setFetchingResume(false);
+        }
+    };
+
     const handleDownloadResume = (candidate) => {
-        const hasPaidPlan = planSummary?.plan && planSummary.plan.slug !== 'free';
+        const isAdmin = user?.role === 'admin' || user?.activeRole === 'admin';
+        const hasPaidPlan = isAdmin || (planSummary?.plan && planSummary.plan.slug !== 'free');
         if (!hasPaidPlan) {
             toast.error("Upgrade required to download resumes. Redirecting to plans...", {
                 duration: 4000
@@ -911,13 +947,13 @@ export default function JobPostings() {
                                                 {candidate.matchScore}%
                                             </td>
                                             <td className="px-4 py-3 text-right flex justify-end gap-2 items-center">
-                                                {candidate.resumeUrl ? (
+                                                {(candidate.resumeUrl || candidate.hasResume) ? (
                                                     <button
-                                                        onClick={() => handleDownloadResume(candidate)}
-                                                        title="Download Resume"
+                                                        onClick={() => handleViewResume(candidate)}
+                                                        title="View Resume"
                                                         className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-purple-200 text-purple-600 hover:bg-purple-50 transition"
                                                     >
-                                                        <HiDownload className="h-4 w-4" />
+                                                        <HiEye className="h-4 w-4" />
                                                     </button>
                                                 ) : (
                                                     <button
@@ -925,7 +961,7 @@ export default function JobPostings() {
                                                         title="No resume uploaded"
                                                         className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 text-gray-300 cursor-not-allowed"
                                                     >
-                                                        <HiDownload className="h-4 w-4" />
+                                                        <HiEye className="h-4 w-4" />
                                                     </button>
                                                 )}
                                                 <button
@@ -1312,7 +1348,7 @@ export default function JobPostings() {
             {/* Candidate Profile Modal */}
             {isProfileModalOpen && viewingCandidate && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-                    <div className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl animate-in fade-in zoom-in duration-200">
+                    <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in fade-in zoom-in duration-200">
                         {/* Header */}
                         <div className="flex items-center justify-between border-b border-gray-100 p-6">
                             <h3 className="text-xl font-bold text-[#081B3A]">Candidate Profile</h3>
@@ -1325,7 +1361,7 @@ export default function JobPostings() {
                         </div>
 
                         {/* Content */}
-                        <div className="overflow-y-auto p-6 max-h-[calc(90vh-140px)]">
+                        <div className="flex-1 overflow-y-auto p-6">
                             {viewingCandidate.loading ? (
                                 <div className="flex flex-col items-center justify-center py-20">
                                     <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#0066FF] border-t-transparent"></div>
@@ -1415,8 +1451,8 @@ export default function JobPostings() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div>
                                             <h5 className="font-bold text-[#081B3A] mb-3">About Candidate</h5>
-                                            <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                                                {viewingCandidate.shortBio || viewingCandidate.description || "No bio provided by candidate."}
+                                            <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-2xl border border-gray-100 whitespace-pre-line">
+                                                {viewingCandidate.description || viewingCandidate.shortBio || "No bio provided by candidate."}
                                             </p>
                                         </div>
                                         <div>
@@ -1439,14 +1475,14 @@ export default function JobPostings() {
                                         <h5 className="font-bold text-[#081B3A] mb-3 flex items-center gap-2">
                                             Resume / CV
                                         </h5>
-                                        {viewingCandidate.resumeUrl ? (
+                                        {(viewingCandidate.resumeUrl || viewingCandidate.hasResume) ? (
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm text-gray-600 font-medium">Candidate has uploaded a professional resume.</span>
                                                 <button
-                                                    onClick={() => handleDownloadResume(viewingCandidate)}
+                                                    onClick={() => handleViewResume(viewingCandidate)}
                                                     className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-purple-700 transition"
                                                 >
-                                                    <HiDownload className="w-4 h-4" /> Download Resume
+                                                    <HiEye className="w-4 h-4" /> View Resume
                                                 </button>
                                             </div>
                                         ) : (
@@ -1458,10 +1494,10 @@ export default function JobPostings() {
                         </div>
 
                         {/* Footer */}
-                        <div className="border-t border-gray-100 bg-gray-50 p-6 flex justify-end gap-3">
+                        <div className="border-t border-gray-100 bg-gray-50 p-4 sm:p-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 shrink-0">
                             <button
                                 onClick={() => setIsProfileModalOpen(false)}
-                                className="rounded-xl border border-gray-200 bg-white px-6 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+                                className="w-full sm:w-auto rounded-xl border border-gray-200 bg-white px-6 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
                             >
                                 Close
                             </button>
@@ -1471,7 +1507,7 @@ export default function JobPostings() {
                                     setIsProfileModalOpen(false);
                                 }}
                                 disabled={viewingCandidate.isSaved}
-                                className={`rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition-all active:scale-95 ${
+                                className={`w-full sm:w-auto rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition-all active:scale-95 ${
                                     viewingCandidate.isSaved 
                                     ? "bg-green-500 cursor-default" 
                                     : "bg-purple-600 hover:bg-purple-700 shadow-purple-200"
@@ -1479,6 +1515,63 @@ export default function JobPostings() {
                             >
                                 {viewingCandidate.isSaved ? "Saved" : "Save Candidate"}
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Resume Viewer Popup Modal */}
+            {activeResumeUrl && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-3xl w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-200">
+                        {/* Header */}
+                        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-purple-50 rounded-xl flex items-center justify-center">
+                                    <HiEye className="w-4 h-4 text-purple-600" />
+                                </div>
+                                <h3 className="font-bold text-[#081B3A] text-sm">
+                                    Resume of {viewingResumeCandidate?.name || "Candidate"}
+                                </h3>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <a
+                                    href={activeResumeUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-purple-600 rounded-xl hover:bg-purple-700 transition shadow-md shadow-purple-100"
+                                >
+                                    <HiDownload className="w-3.5 h-3.5" /> Download
+                                </a>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setActiveResumeUrl(null);
+                                        setViewingResumeCandidate(null);
+                                    }}
+                                    className="p-1.5 hover:bg-gray-100 rounded-full transition text-gray-400 hover:text-gray-600"
+                                >
+                                    <HiX className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Viewer Body */}
+                        <div className="flex-1 bg-gray-50 p-4 overflow-hidden">
+                            <iframe
+                                key={activeResumeUrl}
+                                src={`https://docs.google.com/viewer?url=${encodeURIComponent(activeResumeUrl)}&embedded=true`}
+                                title="Resume Viewer"
+                                className="w-full h-full rounded-2xl border-0 bg-white shadow-inner"
+                                allow="fullscreen"
+                            />
+                        </div>
+
+                        {/* Footer hint */}
+                        <div className="px-6 py-3 border-t border-gray-100 bg-gray-50 shrink-0 text-center">
+                            <p className="text-xs text-gray-400 font-medium">
+                                Powered by Google Docs Viewer · If the preview does not load, click the "Download" button to save or view it directly.
+                            </p>
                         </div>
                     </div>
                 </div>

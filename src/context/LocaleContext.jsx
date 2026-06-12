@@ -21,6 +21,20 @@ const CURRENCY_SYMBOLS = {
   CAD: 'C$',
 };
 
+const COUNTRY_TO_CURRENCY = {
+  IN: 'INR',
+  AE: 'AED',
+  US: 'USD',
+  GB: 'GBP',
+  FR: 'EUR',
+  DE: 'EUR',
+  ES: 'EUR',
+  PT: 'EUR',
+  JP: 'JPY',
+  AU: 'AUD',
+  CA: 'CAD',
+};
+
 const LANGUAGE_OPTIONS = [
   { code: 'en', label: 'English' },
   { code: 'hi', label: 'Hindi (हिंदी)' },
@@ -119,7 +133,7 @@ export const LocaleProvider = ({ children }) => {
 
     localeAPI.detect().then(({ data }) => {
       const detectedCountry = data?.country || browserDefaults.country;
-      const detectedCurrency = data?.currency || browserDefaults.currency;
+      const detectedCurrency = data?.currency || COUNTRY_TO_CURRENCY[detectedCountry] || browserDefaults.currency;
       const detectedLocale = data?.locale || browserDefaults.locale;
 
       if (!storedCountry || storedCountry !== detectedCountry) {
@@ -149,10 +163,13 @@ export const LocaleProvider = ({ children }) => {
   useEffect(() => {
     if (!user) return;
 
+    const userCountry = user.country || country;
+    const fallbackCurrency = COUNTRY_TO_CURRENCY[userCountry] || currency;
+
     if (!hasManualCurrencyOverride() || !hasManualLanguageOverride()) {
       applyLocale(
-        user.country || country,
-        hasManualCurrencyOverride() ? null : (user.currency || currency),
+        userCountry,
+        hasManualCurrencyOverride() ? null : (user.currency || fallbackCurrency),
         hasManualLanguageOverride() ? null : (user.preferredLanguage || user.locale || locale)
       );
     }
@@ -163,8 +180,8 @@ export const LocaleProvider = ({ children }) => {
 
     if (!user.country || !user.currency || !user.locale) {
       authAPI.updateLocale({
-        country: user.country || country,
-        currency: user.currency || currency,
+        country: userCountry,
+        currency: user.currency || COUNTRY_TO_CURRENCY[user.country || country] || currency,
         locale: user.preferredLanguage || user.locale || locale,
       }).catch(() => {});
     }

@@ -47,6 +47,7 @@ export default function SkillSearchSelect({
   const allSkills = categories
     .filter(cat => cat.isActive !== false)
     .filter(cat => {
+      if (query.trim() !== '') return true;
       if (!tier) return true;
       return String(cat.tier || '').toLowerCase() === String(tier || '').toLowerCase();
     })
@@ -66,7 +67,7 @@ export default function SkillSearchSelect({
       skill.name.toLowerCase().includes(query.toLowerCase())
   );
 
-  const handleAdd = (skillName) => {
+  const handleAdd = (skillName, skillTier) => {
     if (selected.includes(skillName)) return;
 
     if (selected.length >= maxAllowed) {
@@ -78,7 +79,7 @@ export default function SkillSearchSelect({
       return;
     }
 
-    onAdd(skillName);
+    onAdd(skillName, skillTier);
     setQuery('');
   };
 
@@ -160,7 +161,7 @@ export default function SkillSearchSelect({
                     <button
                       key={skill.name}
                       type="button"
-                      onClick={() => handleAdd(skill.name)}
+                      onClick={() => handleAdd(skill.name, skill.tier)}
                       className="w-full text-left px-5 py-2.5 text-xs text-slate-700 font-semibold hover:bg-violet-50/40 hover:text-violet-700 transition flex items-center justify-between"
                     >
                       <span>{skill.name}</span>
