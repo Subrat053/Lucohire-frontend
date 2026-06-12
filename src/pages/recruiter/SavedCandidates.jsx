@@ -22,7 +22,9 @@ const normalizeSaved = (lead) => {
         source: lead.metadata?.source || 'ai_smart_search',
         experience: lead.experience || 'N/A',
         location: lead.location || 'Unknown',
-        isSaved: true
+        isSaved: true,
+        isUnlocked: !!lead.isUnlocked,
+        jobPost: lead.jobPost || null
     };
 };
 
@@ -183,8 +185,9 @@ export default function SavedCandidates() {
             ) : (
                 <div className="rounded-2xl border border-[#E5EAF3] bg-white overflow-hidden">
                     {/* Table header */}
-                    <div className="grid grid-cols-[1fr_auto] sm:grid-cols-[2fr_1.5fr_1fr] items-center gap-2 border-b border-[#E5EAF3] px-4 py-3 text-xs font-bold uppercase text-gray-400 tracking-wide">
+                    <div className="grid grid-cols-[1.2fr_1fr_auto] sm:grid-cols-[2fr_1.5fr_1.2fr_0.8fr] items-center gap-4 border-b border-[#E5EAF3] px-4 py-3 text-xs font-bold uppercase text-gray-400 tracking-wide">
                         <span>Candidate</span>
+                        <span>Saved For</span>
                         <span className="hidden sm:block">Saved On</span>
                         <span className="text-right">Actions</span>
                     </div>
@@ -192,7 +195,7 @@ export default function SavedCandidates() {
                     {filtered.map((candidate) => (
                         <div
                             key={candidate.leadId}
-                            className="grid grid-cols-[1fr_auto] sm:grid-cols-[2fr_1.5fr_1fr] items-center gap-2 border-b border-[#F0F2F7] px-4 py-3 last:border-0 hover:bg-[#F7F9FF] transition"
+                            className="grid grid-cols-[1.2fr_1fr_auto] sm:grid-cols-[2fr_1.5fr_1.2fr_0.8fr] items-center gap-4 border-b border-[#F0F2F7] px-4 py-3 last:border-0 hover:bg-[#F7F9FF] transition"
                         >
                             {/* Candidate Info */}
                             <div className="flex items-center gap-3 min-w-0">
@@ -213,26 +216,58 @@ export default function SavedCandidates() {
                                 >
                                     <p className="font-semibold text-[#081B3A] group-hover:text-[#0066FF] transition-colors truncate">{candidate.name}</p>
                                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
-                                        {candidate.email && (
-                                            <a
-                                                href={`mailto:${candidate.email}`}
-                                                className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#0066FF] transition truncate"
+                                        {candidate.isUnlocked || (candidate.email && candidate.phone) ? (
+                                            <>
+                                                {candidate.email && (
+                                                    <a
+                                                        href={`mailto:${candidate.email}`}
+                                                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#0066FF] transition truncate"
+                                                    >
+                                                        <HiMail className="h-3 w-3 shrink-0" />
+                                                        {candidate.email}
+                                                    </a>
+                                                )}
+                                                {candidate.phone && (
+                                                    <a
+                                                        href={`tel:${candidate.phone}`}
+                                                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#0066FF] transition"
+                                                    >
+                                                        <HiPhone className="h-3 w-3 shrink-0" />
+                                                        {candidate.phone}
+                                                    </a>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <span 
+                                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-400 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-full hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleViewProfile(candidate);
+                                                }}
                                             >
-                                                <HiMail className="h-3 w-3 shrink-0" />
-                                                {candidate.email}
-                                            </a>
-                                        )}
-                                        {candidate.phone && (
-                                            <a
-                                                href={`tel:${candidate.phone}`}
-                                                className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#0066FF] transition"
-                                            >
-                                                <HiPhone className="h-3 w-3 shrink-0" />
-                                                {candidate.phone}
-                                            </a>
+                                                🔒 Contact details locked · Click to unlock
+                                            </span>
                                         )}
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Saved For */}
+                            <div className="min-w-0">
+                                {candidate.jobPost?.title ? (
+                                    <div className="flex flex-col">
+                                        <span className="font-semibold text-gray-700 text-sm truncate">
+                                            {candidate.jobPost.title}
+                                        </span>
+                                        {candidate.jobPost.category && (
+                                            <span className="text-[10px] text-gray-400 font-medium uppercase mt-0.5">
+                                                {candidate.jobPost.category}
+                                            </span>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <span className="text-xs text-gray-400 italic">General Search</span>
+                                )}
                             </div>
 
                             {/* Saved On */}
@@ -264,7 +299,7 @@ export default function SavedCandidates() {
             {/* Candidate Profile Modal */}
             {isProfileModalOpen && viewingCandidate && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-                    <div className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl animate-in fade-in zoom-in duration-200 text-left">
+                    <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in fade-in zoom-in duration-200 text-left">
                         {/* Header */}
                         <div className="flex items-center justify-between border-b border-gray-100 p-6">
                             <h3 className="text-xl font-bold text-[#081B3A]">Candidate Profile</h3>
@@ -277,7 +312,7 @@ export default function SavedCandidates() {
                         </div>
 
                         {/* Content */}
-                        <div className="overflow-y-auto p-6 max-h-[calc(90vh-140px)]">
+                        <div className="flex-1 overflow-y-auto p-6">
                             {viewingCandidate.loading ? (
                                 <div className="flex flex-col items-center justify-center py-20">
                                     <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#0066FF] border-t-transparent"></div>
@@ -363,8 +398,8 @@ export default function SavedCandidates() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div>
                                             <h5 className="font-bold text-[#081B3A] mb-3">About Candidate</h5>
-                                            <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                                                {viewingCandidate.shortBio || viewingCandidate.description || "No bio provided by candidate."}
+                                            <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-2xl border border-gray-100 whitespace-pre-line">
+                                                {viewingCandidate.description || viewingCandidate.shortBio || "No bio provided by candidate."}
                                             </p>
                                         </div>
                                         <div>
@@ -386,10 +421,10 @@ export default function SavedCandidates() {
                         </div>
 
                         {/* Footer */}
-                        <div className="border-t border-gray-100 bg-gray-50 p-6 flex justify-end gap-3">
+                        <div className="border-t border-gray-100 bg-gray-50 p-4 sm:p-6 flex justify-end gap-3 shrink-0">
                             <button
                                 onClick={() => setIsProfileModalOpen(false)}
-                                className="rounded-xl border border-gray-200 bg-white px-6 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+                                className="w-full sm:w-auto rounded-xl border border-gray-200 bg-white px-6 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
                             >
                                 Close
                             </button>
