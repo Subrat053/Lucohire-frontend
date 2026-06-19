@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import AdminProtectedRoute from "../components/common/AdminProtectedRoute";
 import AdminLayout from "../components/admin/AdminLayout";
 import Navbar from "../components/common/Navbar";
@@ -61,6 +61,7 @@ export default function AdminRoutes() {
   
   return (
     <Routes>
+      <Route path="" element={<Navigate to="dashboard" replace />} />
       <Route path="dashboard" element={wrap(<AdminDashboard />)} />
       <Route path="withdrawals" element={wrap(<AdminWithdrawals />)} />
       <Route path="commission-settings" element={wrap(<AdminCommissionSettings />)} />

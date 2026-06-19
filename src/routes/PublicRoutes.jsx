@@ -4,11 +4,6 @@ import ProtectedRoute from "../components/common/ProtectedRoute";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
 
-// Lazy-loaded pages
-const AuthPage = lazy(() => import("../pages/AuthPage"));
-const ForgotPassword = lazy(() => import("../pages/auth/ForgotPassword"));
-const ResetPassword = lazy(() => import("../pages/auth/ResetPassword"));
-const MagicLinkVerify = lazy(() => import("../pages/auth/MagicLinkVerify"));
 const LandingPage = lazy(() => import("../pages/LandingPage"));
 const SearchPage = lazy(() => import("../pages/SearchPage"));
 const ProviderPublicProfile = lazy(() => import("../pages/ProviderPublicProfile"));
@@ -63,18 +58,9 @@ export default function PublicRoutes() {
   
   return (
     <Routes>
-      {/* Auth pages - full screen, no Navbar/Footer */}
-      <Route path="auth" element={<Navigate to="/signup" replace />} />
-      <Route path="login" element={<AuthPage />} />
-      <Route path="signup" element={<AuthPage />} />
-      <Route path="forgot-password" element={<ForgotPassword />} />
-      <Route path="reset-password/:token" element={<ResetPassword />} />
-      <Route path="auth/magic" element={<MagicLinkVerify />} />
-      
       {/* Public Pages with Navbar/Footer */}
       <Route path="" element={wrap(<LandingPage />)} />
       <Route path="search" element={wrap(<SearchPage />)} />
-      <Route path="auth/magic-verify" element={wrap(<MagicLinkVerify />)} />
       <Route path="external-match" element={wrap(<ExternalMatch />)} />
       <Route path="p/:id" element={wrap(<ProviderPublicProfile />)} />
       <Route path="faq" element={wrap(<FaqPage />)} />

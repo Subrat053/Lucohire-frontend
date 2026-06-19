@@ -855,7 +855,7 @@ const AuthPage = () => {
         navigate("/provider/dashboard", { replace: true });
         break;
       case "recruiter":
-        navigate("/recruiter/dashboard", { replace: true });
+        navigate("/recruiter/job-postings", { replace: true });
         break;
 
       case "manager":

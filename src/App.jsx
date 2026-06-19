@@ -4,7 +4,7 @@ import { Toaster } from "react-hot-toast";
 import { Agentation } from "agentation";
 
 import ScrollToTop from "./components/common/ScrollToTop";
-import RouteLoader from "./components/common/RouteLoader";
+import PageLoader from "./components/common/PageLoader";
 import NotFound from "./components/common/NotFound";
 import { useAuth } from "./context/AuthContext";
 
@@ -14,11 +14,12 @@ const CookieConsent = lazy(() => import("./components/common/CookieConsent"));
 const AIChatWidget = lazy(() => import("./components/common/AIChatWidget"));
 
 // Route Groups
-const PublicRoutes = lazy(() => import("./routes/PublicRoutes"));
+const AuthRoutes = lazy(() => import("./routes/AuthRoutes"));
 const ProviderRoutes = lazy(() => import("./routes/ProviderRoutes"));
 const RecruiterRoutes = lazy(() => import("./routes/RecruiterRoutes"));
 const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
 const PartnerRoutes = lazy(() => import("./routes/PartnerRoutes"));
+const DashboardRedirect = lazy(() => import("./components/common/DashboardRedirect"));
 
 function App() {
   const { user, profile, showWhatsAppPrompt, setShowWhatsAppPrompt } = useAuth();
@@ -96,7 +97,7 @@ function App() {
         </Suspense>
       )}
 
-      <Suspense fallback={<RouteLoader />}>
+      <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Provider Panel Routes */}
           <Route path="/provider/*" element={<ProviderRoutes />} />
@@ -110,8 +111,11 @@ function App() {
           {/* Partner Panel Routes */}
           <Route path="/partner/*" element={<PartnerRoutes />} />
 
-          {/* Public & Common Shared Routes */}
-          <Route path="/*" element={<PublicRoutes />} />
+          {/* Global Dashboard Redirect */}
+          <Route path="/dashboard" element={<DashboardRedirect />} />
+
+          {/* Auth & Public Routes */}
+          <Route path="/*" element={<AuthRoutes />} />
 
           {/* 404 — role-aware */}
           <Route path="*" element={<NotFound />} />

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { HiUsers, HiUserAdd, HiBriefcase, HiCheckCircle, HiArrowRight, HiSearch, HiFilter, HiChevronRight, HiPhotograph } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
@@ -8,8 +8,8 @@ import toast from 'react-hot-toast';
 
 // Import all the new dashboard components
 import DashboardStatsCard from '../../components/admin/DashboardStatsCard';
-import RevenueChart from '../../components/admin/RevenueChart';
-import EarningsSourceChart from '../../components/admin/EarningsSourceChart';
+const RevenueChart = lazy(() => import('../../components/admin/RevenueChart'));
+const EarningsSourceChart = lazy(() => import('../../components/admin/EarningsSourceChart'));
 import TopPartnersTable from '../../components/admin/TopPartnersTable';
 import RewardProgramTable from '../../components/admin/RewardProgramTable';
 import PlatformSummary from '../../components/admin/PlatformSummary';
@@ -313,8 +313,12 @@ const Dashboard = () => {
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <RevenueChart data={stats.revenueTrend || []} />
-            <EarningsSourceChart data={stats.earningsBySource || []} />
+            <Suspense fallback={<div className="bg-white p-6 rounded-2xl border border-gray-100 h-80 flex items-center justify-center text-xs text-gray-400">Loading Revenue Chart...</div>}>
+              <RevenueChart data={stats.revenueTrend || []} />
+            </Suspense>
+            <Suspense fallback={<div className="bg-white p-6 rounded-2xl border border-gray-100 h-80 flex items-center justify-center text-xs text-gray-400">Loading Earnings Source Chart...</div>}>
+              <EarningsSourceChart data={stats.earningsBySource || []} />
+            </Suspense>
           </div>
 
           {/* Tables Row */}

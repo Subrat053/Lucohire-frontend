@@ -10,9 +10,9 @@ const getDashboardByRole = (role) => {
     case "manager":
       return "/partner/dashboard";
     case "provider":
-      return "/provider/plans";
+      return "/provider/dashboard";
     case "recruiter":
-      return "/recruiter/dashboard";
+      return "/recruiter/job-postings";
     default:
       return "/";
   }

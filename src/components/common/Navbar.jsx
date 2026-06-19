@@ -94,7 +94,7 @@ const Navbar = () => {
       case "provider":
         return "/provider/dashboard";
       case "recruiter":
-        return "/recruiter/dashboard";
+        return "/recruiter/job-postings";
       case "admin":
         return "/admin/dashboard";
       case "manager":
@@ -111,7 +111,7 @@ const Navbar = () => {
     const targetPath =
       targetRole === "provider"
         ? "/provider/dashboard"
-        : "/recruiter/dashboard";
+        : "/recruiter/job-postings";
 
     if (activeRole === targetRole) {
       navigate(targetPath, { replace: true });
@@ -151,7 +151,7 @@ const Navbar = () => {
     const targetPath =
       completionModal.role === "provider"
         ? "/provider/dashboard"
-        : "/recruiter/dashboard";
+        : "/recruiter/job-postings";
     navigate(targetPath, { replace: true });
   };
 

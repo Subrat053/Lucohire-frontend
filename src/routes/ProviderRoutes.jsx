@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import ProviderLayout from "../components/provider/ProviderLayout";
 import Navbar from "../components/common/Navbar";
@@ -39,6 +39,7 @@ export default function ProviderRoutes() {
   
   return (
     <Routes>
+      <Route path="" element={<Navigate to="dashboard" replace />} />
       <Route path="dashboard" element={wrap(<ProviderDashboard />)} />
       <Route path="profile" element={wrap(<ProviderProfile />)} />
       <Route path="plans" element={wrap(<ProviderPlans />)} />

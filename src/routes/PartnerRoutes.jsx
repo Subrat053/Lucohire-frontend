@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import PartnerProtectedRoute from "../components/common/PartnerProtectedRoute";
 import PartnerLayout from "../pages/partner/PartnerLayout";
 import Navbar from "../components/common/Navbar";
@@ -32,6 +32,7 @@ export default function PartnerRoutes() {
   
   return (
     <Routes>
+      <Route path="" element={<Navigate to="dashboard" replace />} />
       <Route path="dashboard" element={wrap(<PartnerDashboard />)} />
       <Route path="payouts" element={wrap(<PartnerPayouts />)} />
       <Route path="create-provider" element={wrap(<CreatePartnerProvider />)} />

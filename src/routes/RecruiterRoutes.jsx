@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import RecruiterLayout from "../components/recruiter/RecruiterLayout";
 import Navbar from "../components/common/Navbar";
@@ -44,6 +44,7 @@ export default function RecruiterRoutes() {
   
   return (
     <Routes>
+      <Route path="" element={<Navigate to="job-postings" replace />} />
       <Route path="dashboard" element={wrap(<RecruiterDashboard />)} />
       <Route path="post-job" element={wrap(<RecruiterPostJob />)} />
       <Route path="plans" element={wrap(<RecruiterPlans />)} />
