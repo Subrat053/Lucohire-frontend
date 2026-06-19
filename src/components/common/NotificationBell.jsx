@@ -187,11 +187,15 @@ const NotificationBell = () => {
   return (
     <div className="relative" ref={panelRef}>
       <button
+        type="button"
         onClick={handleOpen}
         className="relative p-2 rounded-xl hover:bg-gray-100 transition text-gray-600"
         title="Notifications"
+        aria-label="Open notifications menu"
+        aria-expanded={open}
+        aria-controls="notifications-dropdown"
       >
-        <HiBell className="w-5 h-5" />
+        <HiBell className="w-5 h-5" aria-hidden="true" />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none min-w-4.5 min-h-4.5 px-0.5">
             {unreadCount > 9 ? '9+' : unreadCount}
@@ -200,20 +204,27 @@ const NotificationBell = () => {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+        <div id="notifications-dropdown" className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <h4 className="font-bold text-gray-900 text-sm">Notifications</h4>
             <div className="flex items-center gap-2">
-              {unreadCount > 0 && (
+               {unreadCount > 0 && (
                 <button
+                  type="button"
                   onClick={markAllAsRead}
                   className="text-xs text-indigo-600 font-medium hover:underline"
                 >
                   Mark all read
                 </button>
               )}
-              <button onClick={() => setOpen(false)} className="p-1 hover:bg-gray-100 rounded-lg">
-                <HiX className="w-3.5 h-3.5 text-gray-500" />
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="p-1 hover:bg-gray-100 rounded-lg"
+                aria-label="Close notifications menu"
+                aria-controls="notifications-dropdown"
+              >
+                <HiX className="w-3.5 h-3.5 text-gray-500" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -244,11 +255,13 @@ const NotificationBell = () => {
                       <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
                     </div>
                     <button
+                      type="button"
                       onClick={() => deleteNotification(n._id)}
                       className="self-start p-1 rounded-md text-gray-300 hover:text-red-500 hover:bg-red-50 transition"
                       title="Delete"
+                      aria-label="Delete notification"
                     >
-                      <HiTrash className="w-3.5 h-3.5" />
+                      <HiTrash className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                     {!n.isRead && (
                       <div className="w-2 h-2 bg-indigo-500 rounded-full mt-1.5 shrink-0" />
@@ -261,6 +274,7 @@ const NotificationBell = () => {
             {hasMore && notifications.length > 0 && (
               <div className="px-4 py-3">
                 <button
+                  type="button"
                   onClick={loadMore}
                   disabled={loadingMore}
                   className="w-full text-xs font-semibold text-indigo-600 border border-indigo-100 rounded-lg py-2 hover:bg-indigo-50 disabled:opacity-60"

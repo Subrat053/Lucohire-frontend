@@ -58,8 +58,13 @@ const RoleCompletionModal = ({ isOpen, onClose, role, onComplete }) => {
               <p className="text-xs text-gray-500">Just a few details to get you started</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400">
-            <X size={20} />
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400"
+            aria-label="Close modal"
+          >
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 

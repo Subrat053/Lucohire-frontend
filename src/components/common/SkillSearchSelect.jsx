@@ -98,8 +98,9 @@ export default function SkillSearchSelect({
                 type="button"
                 onClick={() => onRemove(skill)}
                 className="text-violet-400 hover:text-red-500 transition leading-none font-bold ml-1"
+                aria-label={`Remove skill ${skill}`}
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </span>
           ))}
@@ -111,18 +112,22 @@ export default function SkillSearchSelect({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between px-4 py-3 text-sm rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition text-left text-slate-700 font-semibold"
+        aria-label="Toggle specialities dropdown"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-controls="specialities-dropdown-menu"
       >
         <span className={selected.length === 0 ? 'text-slate-400 font-normal' : ''}>
           {selected.length === 0
             ? 'Select specialities / skills...'
             : `${selected.length} specialit${selected.length > 1 ? 'ies' : 'y'} selected`}
         </span>
-        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute z-40 mt-2 w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-fade-in">
+        <div id="specialities-dropdown-menu" className="absolute z-40 mt-2 w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-fade-in">
           {/* Search Input */}
           <div className="p-3 border-b border-slate-100 flex items-center gap-2">
             <Search className="w-4 h-4 text-slate-400 shrink-0" />

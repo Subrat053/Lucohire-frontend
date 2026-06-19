@@ -30,8 +30,13 @@ const WhatsAppNumberModal = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 relative animate-in">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-          <HiX className="w-5 h-5" />
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          aria-label="Close modal"
+        >
+          <HiX className="w-5 h-5" aria-hidden="true" />
         </button>
 
         <div className="text-center mb-6">
@@ -62,19 +67,24 @@ const WhatsAppNumberModal = ({ isOpen, onClose }) => {
           </div>
 
           <button
+            type="button"
             onClick={handleSave}
             disabled={saving || phone.length < 10}
             className="w-full py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition disabled:opacity-50"
             style={{ background: saving || phone.length < 10 ? '#9ca3af' : 'linear-gradient(90deg,#22c55e,#16a34a)' }}
           >
             {saving ? (
-              <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving...</>
+              <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" aria-hidden="true" /> Saving...</>
             ) : (
-              <><FaWhatsapp className="w-5 h-5" /> Save WhatsApp Number</>
+              <><FaWhatsapp className="w-5 h-5" aria-hidden="true" /> Save WhatsApp Number</>
             )}
           </button>
 
-          <button onClick={onClose} className="w-full text-sm text-gray-400 hover:text-gray-600 transition">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full text-sm text-gray-400 hover:text-gray-600 transition"
+          >
             Skip for now
           </button>
         </div>

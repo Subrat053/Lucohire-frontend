@@ -173,6 +173,7 @@ const Navbar = () => {
       }
     >
       <button
+        type="button"
         onClick={() => openRolePanel("recruiter")}
         disabled={switchingRole}
         className={`rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm disabled:opacity-60 ${activeRole === "recruiter" ? "border-amber-400 bg-amber-500 text-white" : "border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-200"}`}
@@ -182,6 +183,7 @@ const Navbar = () => {
           : getRoleButtonLabel("recruiter")}
       </button>
       <button
+        type="button"
         onClick={() => openRolePanel("provider")}
         disabled={switchingRole}
         className={`rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm disabled:opacity-60 ${activeRole === "provider" ? "border-emerald-400 bg-emerald-500 text-white" : "border-emerald-300 bg-emerald-100 text-emerald-900 hover:bg-emerald-200"}`}
@@ -252,8 +254,13 @@ const Navbar = () => {
             {isAuthenticated ? (
               <div className="relative" ref={dropdownRef}>
                 <button
+                  type="button"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center space-x-2 bg-gray-50 rounded-full px-3 py-1.5 hover:bg-gray-100 transition"
+                  aria-label="Open profile menu"
+                  aria-expanded={dropdownOpen}
+                  aria-haspopup="true"
+                  aria-controls="profile-dropdown-menu"
                 >
                   <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
                     {user?.profilePhotoApproval?.status === "pending" &&
@@ -286,7 +293,7 @@ const Navbar = () => {
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
-                      <HiUser className="text-indigo-600" />
+                      <HiUser className="text-indigo-600" aria-hidden="true" />
                     )}
                   </div>
                   <span className="max-w-24 truncate text-sm font-medium text-gray-700">
@@ -294,7 +301,7 @@ const Navbar = () => {
                   </span>
                 </button>
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-1rem)] bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-fade-in">
+                  <div id="profile-dropdown-menu" className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-1rem)] bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-fade-in">
                     <div className="px-4 py-2 border-b border-gray-100">
                       <p className="font-medium text-sm">{user?.name}</p>
                       <p className="text-xs text-gray-500">{user?.email}</p>
@@ -307,7 +314,7 @@ const Navbar = () => {
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <HiHome className="text-gray-400" />
+                      <HiHome className="text-gray-400" aria-hidden="true" />
                       <span>{t("navbar.dashboard")}</span>
                     </Link>
                     {activeRole !== "manager" && (
@@ -316,15 +323,16 @@ const Navbar = () => {
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       >
-                        <HiCog className="text-gray-400" />
+                        <HiCog className="text-gray-400" aria-hidden="true" />
                         <span>{t("navbar.settings")}</span>
                       </Link>
                     )}
                     <button
+                      type="button"
                       onClick={handleLogout}
                       className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                     >
-                      <HiLogout className="text-red-400" />
+                      <HiLogout className="text-red-400" aria-hidden="true" />
                       <span>{t("navbar.logout")}</span>
                     </button>
                   </div>
@@ -378,6 +386,7 @@ const Navbar = () => {
                 </button> */}
 
                 <button
+                  type="button"
                   onClick={() => navigate("/login")}
                   className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
                 >
@@ -385,6 +394,7 @@ const Navbar = () => {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => navigate("/signup")}
                   className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-700 transition shadow-sm"
                 >
@@ -404,6 +414,7 @@ const Navbar = () => {
             <NotificationBell />
             {canSwitchRoles && (
               <button
+                type="button"
                 onClick={handleQuickToggle}
                 disabled={switchingRole}
                 className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold shadow-sm disabled:opacity-60 ${nextRole === "recruiter" ? "border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-200" : "border-emerald-300 bg-emerald-100 text-emerald-900 hover:bg-emerald-200"}`}
@@ -421,11 +432,19 @@ const Navbar = () => {
                       )}
               </button>
             )}
-            <button name="hamburger" className="p-2" onClick={() => setMobileOpen(!mobileOpen)}>
+            <button
+              type="button"
+              name="hamburger"
+              className="p-2"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-navigation"
+            >
               {mobileOpen ? (
-                <HiX className="w-6 h-6" />
+                <HiX className="w-6 h-6" aria-hidden="true" />
               ) : (
-                <HiMenu className="w-6 h-6" />
+                <HiMenu className="w-6 h-6" aria-hidden="true" />
               )}
             </button>
           </div>
@@ -443,6 +462,7 @@ const Navbar = () => {
 
           {/* Drawer Panel */}
           <aside
+            id="mobile-navigation"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
@@ -464,10 +484,13 @@ const Navbar = () => {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setMobileOpen(false)}
                 className="p-1 rounded-lg hover:bg-gray-100 transition"
+                aria-label="Close navigation menu"
+                aria-controls="mobile-navigation"
               >
-                <HiX className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+                <HiX className="w-5 h-5 text-gray-500 hover:text-gray-700" aria-hidden="true" />
               </button>
             </div>
 
@@ -603,55 +626,22 @@ const Navbar = () => {
                 {isAuthenticated ? (
                   <div className="space-y-2">
                     <button
+                      type="button"
                       onClick={() => {
                         handleLogout();
                         setMobileOpen(false);
                       }}
                       className="w-full flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition"
                     >
-                      <HiLogout className="w-5 h-5 text-red-400" />
+                      <HiLogout className="w-5 h-5 text-red-400" aria-hidden="true" />
                       <span>{t("navbar.logout")}</span>
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {/* <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => {
-                          setMobileOpen(false);
-                          if (window.location.pathname === "/") {
-                            document
-                              .getElementById("referral-section")
-                              ?.scrollIntoView({ behavior: "smooth" });
-                          } else {
-                            navigate("/#referral-section");
-                          }
-                        }}
-                        className="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100"
-                      >
-                        <span className="text-lg mb-1">💰</span>
-                        {t("navbar.earnFortyPercent", "Earn 40%")}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setMobileOpen(false);
-                          if (window.location.pathname === "/") {
-                            document
-                              .getElementById("contest-section")
-                              ?.scrollIntoView({ behavior: "smooth" });
-                          } else {
-                            navigate("/#contest-section");
-                          }
-                        }}
-                        className="flex flex-col items-center justify-center p-3 rounded-xl bg-indigo-50 text-indigo-600 font-bold text-xs border border-indigo-100"
-                      >
-                        <span className="text-lg mb-1">🏆</span>
-                        {t("navbar.winOneLakh", "Win ₹1 Lakh")}
-                      </button>
-                    </div> */}
-
                     <div className="flex flex-col gap-2 pt-2">
                       <button
+                        type="button"
                         onClick={() => {
                           navigate("/login");
                           setMobileOpen(false);
@@ -661,6 +651,7 @@ const Navbar = () => {
                         {t("navbar.login")}
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
                           navigate("/signup");
                           setMobileOpen(false);

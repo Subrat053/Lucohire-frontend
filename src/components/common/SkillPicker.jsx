@@ -91,9 +91,13 @@ const SkillPicker = ({
             <span key={skill}
               className="inline-flex items-center gap-1 px-3 py-1 bg-stone-100 text-stone-800 rounded-full text-sm font-medium border border-stone-200">
               {skill}
-              <button type="button" onClick={() => removeSkill(skill)}
-                className="text-stone-400 hover:text-red-500 transition ml-0.5">
-                <HiX className="w-3.5 h-3.5" />
+              <button
+                type="button"
+                onClick={() => removeSkill(skill)}
+                className="text-stone-400 hover:text-red-500 transition ml-0.5"
+                aria-label={`Remove skill ${skill}`}
+              >
+                <HiX className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </span>
           ))}
@@ -110,16 +114,20 @@ const SkillPicker = ({
             ? 'bg-stone-50 border-stone-100 text-stone-400 cursor-not-allowed'
             : 'bg-white border-stone-200 text-stone-600 hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400'
           }`}
+        aria-label="Toggle skill picker dropdown"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-controls="skill-picker-dropdown"
       >
         <span className={selectedSkills.length === 0 ? 'text-stone-400' : ''}>
           {atMax ? `Max ${maxSkills} skills reached` : placeholder}
         </span>
-        <HiChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <HiChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
       {/* Dropdown panel */}
       {open && !atMax && (
-        <div className="relative z-50 mt-1 w-full bg-white border border-stone-200 rounded-2xl shadow-xl overflow-hidden">
+        <div id="skill-picker-dropdown" className="relative z-50 mt-1 w-full bg-white border border-stone-200 rounded-2xl shadow-xl overflow-hidden">
           {/* Search */}
           <div className="p-2 border-b border-stone-100">
             <div className="relative">

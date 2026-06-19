@@ -154,22 +154,28 @@ const LanguageDropdown = ({ mobile = false, onChangeComplete }) => {
       onKeyDown={handleKeyDown}
     >
       <button
+        type="button"
         onClick={() => setOpen((prev) => !prev)}
         className={`flex items-center space-x-2 bg-gray-50 rounded-full px-3 py-1.5 hover:bg-gray-100 transition border border-gray-200 ${
           mobile ? 'w-full justify-between' : ''
         }`}
+        aria-label="Select language"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-controls="language-dropdown-menu"
       >
         <div className="flex items-center space-x-2 min-w-0">
-          <HiGlobeAlt className="text-indigo-500 w-4 h-4 shrink-0" />
+          <HiGlobeAlt className="text-indigo-500 w-4 h-4 shrink-0" aria-hidden="true" />
           <span className="text-sm font-semibold text-gray-700 truncate max-w-32">
             {activeLanguage?.label || 'English'}
           </span>
         </div>
-        <HiChevronDown className={`text-gray-500 w-4 h-4 transition shrink-0 ${open ? 'rotate-180' : ''}`} />
+        <HiChevronDown className={`text-gray-500 w-4 h-4 transition shrink-0 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
       {open && (
         <div 
+          id="language-dropdown-menu"
           className={`${
             mobile 
               ? 'relative w-full mt-2 border border-gray-200 bg-gray-50' 
@@ -230,7 +236,7 @@ const LanguageDropdown = ({ mobile = false, onChangeComplete }) => {
                           } ${isSelected ? 'text-indigo-600 font-semibold' : ''}`}
                         >
                           <span className="truncate">{item.label}</span>
-                          {isSelected && <HiCheck className="text-indigo-500 w-4 h-4 shrink-0" />}
+                          {isSelected && <HiCheck className="text-indigo-500 w-4 h-4 shrink-0" aria-hidden="true" />}
                         </button>
                       );
                     })}
@@ -256,7 +262,7 @@ const LanguageDropdown = ({ mobile = false, onChangeComplete }) => {
                           } ${isSelected ? 'text-indigo-600 font-semibold' : ''}`}
                         >
                           <span className="truncate">{item.label}</span>
-                          {isSelected && <HiCheck className="text-indigo-500 w-4 h-4 shrink-0" />}
+                          {isSelected && <HiCheck className="text-indigo-500 w-4 h-4 shrink-0" aria-hidden="true" />}
                         </button>
                       );
                     })}
@@ -270,13 +276,15 @@ const LanguageDropdown = ({ mobile = false, onChangeComplete }) => {
                       <button
                         key={item.code}
                         type="button"
+                        role="option"
+                        aria-selected={isSelected}
                         onClick={() => handleSelect(item.code)}
                         className={`w-full flex items-center justify-between text-left px-4 py-2 text-sm transition ${
                           isHighlighted ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50 text-gray-700'
                         } ${isSelected ? 'text-indigo-600 font-semibold' : ''}`}
                       >
                         <span className="truncate">{item.label}</span>
-                        {isSelected && <HiCheck className="text-indigo-500 w-4 h-4 shrink-0" />}
+                        {isSelected && <HiCheck className="text-indigo-500 w-4 h-4 shrink-0" aria-hidden="true" />}
                       </button>
                     );
                   })

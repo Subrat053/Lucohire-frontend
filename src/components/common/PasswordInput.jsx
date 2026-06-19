@@ -26,9 +26,9 @@ const PasswordInput = ({ value, onChange, name, placeholder, error, autoComplete
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           {showPassword ? (
-            <HiEyeOff className="w-5 h-5" />
+            <HiEyeOff className="w-5 h-5" aria-hidden="true" />
           ) : (
-            <HiEye className="w-5 h-5" />
+            <HiEye className="w-5 h-5" aria-hidden="true" />
           )}
         </button>
       </div>
