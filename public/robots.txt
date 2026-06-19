@@ -20,4 +20,4 @@ Disallow: /private
 Disallow: /internal
 Disallow: /tmp
 
-Sitemap: https://lucohire.mallofcayman.online/sitemap.xml
+Sitemap: https://www.lucohire.com/sitemap.xml

@@ -421,7 +421,7 @@ const Navbar = () => {
                       )}
               </button>
             )}
-            <button className="p-2" onClick={() => setMobileOpen(!mobileOpen)}>
+            <button name="hamburger" className="p-2" onClick={() => setMobileOpen(!mobileOpen)}>
               {mobileOpen ? (
                 <HiX className="w-6 h-6" />
               ) : (
