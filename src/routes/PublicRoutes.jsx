@@ -18,6 +18,7 @@ const ContactUs = lazy(() => import("../pages/ContactUs"));
 const ProfilePage = lazy(() => import("../pages/ProfilePage"));
 const PendingApproval = lazy(() => import("../pages/PendingApproval"));
 const ExternalMatch = lazy(() => import("../pages/recruiter/ExternalMatch"));
+const ProviderSharedProfile = lazy(() => import("../pages/ProviderSharedProfile"));
 
 function MainLayout({ children }) {
   const location = useLocation();
@@ -42,7 +43,14 @@ function MainLayout({ children }) {
     location.pathname.startsWith("/p/") &&
     location.pathname.split("/").filter(Boolean).length === 2;
     
-  const showFooter = publicPaths.includes(location.pathname) || isPublicProviderProfile;
+  const isSharedProfile =
+    location.pathname.startsWith("/profile/share/") &&
+    location.pathname.split("/").filter(Boolean).length === 3;
+    
+  const showFooter =
+    publicPaths.includes(location.pathname) ||
+    isPublicProviderProfile ||
+    isSharedProfile;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -78,6 +86,9 @@ export default function PublicRoutes() {
           <ProfilePage />
         </ProtectedRoute>
       )} />
+
+      {/* Public secure shareable preview profile */}
+      <Route path="profile/share/:token" element={wrap(<ProviderSharedProfile />)} />
       {/* Approval holding page — auth required but NO role/approval gate (avoids circular redirect) */}
       <Route path="pending-approval" element={wrap(
         <ProtectedRoute>

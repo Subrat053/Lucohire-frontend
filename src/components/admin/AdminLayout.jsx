@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   HiShieldCheck, HiUsers, HiMail, HiBriefcase, HiCurrencyRupee, HiCog, HiPhotograph,HiLibrary ,
-  HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe, HiUserGroup, HiLink, HiGift, HiLockClosed, HiOutlineDocumentText, HiQuestionMarkCircle, HiInformationCircle
+  HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe, HiUserGroup, HiLink, HiGift, HiLockClosed, HiOutlineDocumentText, HiQuestionMarkCircle, HiInformationCircle, HiClipboardList
 } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
@@ -41,6 +41,11 @@ const navItems = [
   { labelKey: 'admin.navFaq', fallback: 'FAQ', path: '/admin/faq', icon: HiQuestionMarkCircle },
   { labelKey: 'admin.navAbout', fallback: 'About Us', path: '/admin/about', icon: HiInformationCircle },
   { labelKey: 'common.changePassword', fallback: 'Change Password', path: '/admin/change-password', icon: HiLockClosed },
+  // ─── Logs & Audit ───────────────────────────────────────────────────────────
+  { labelKey: 'admin.otpLogs', fallback: 'OTP Logs', path: '/admin/otp-logs', icon: HiShieldCheck, adminOnly: true },
+  { labelKey: 'admin.aiResumeLogs', fallback: 'AI Resume Logs', path: '/admin/ai-resume-logs', icon: HiClipboardList, adminOnly: true },
+  { labelKey: 'admin.candidateUnlockLogs', fallback: 'Unlock Logs', path: '/admin/candidate-unlock-logs', icon: HiLockClosed, adminOnly: true },
+  { labelKey: 'admin.resumeAccessLogs', fallback: 'Resume Access Logs', path: '/admin/resume-access-logs', icon: HiOutlineDocumentText, adminOnly: true },
 ];
 
 const AdminLayout = ({ children }) => {

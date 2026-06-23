@@ -176,6 +176,10 @@ export const authAPI = {
     API.post(`/auth/reset-password/${token}`, data),
   requestMagicLink: (data) => API.post("/auth/magic-link/request", data),
   verifyMagicLink: (data) => API.post("/auth/magic-link/verify", data),
+  sendOtp: (data) => API.post("/otp/send", data),
+  verifyOtp: (data) => API.post("/otp/verify", data),
+  updateEmail: (data) => API.put("/auth/update-email", data),
+  updateTimezone: (timezone) => API.post("/auth/update-timezone", { timezone }),
 };
 
 export const userAPI = {
@@ -188,6 +192,8 @@ export const providerAPI = {
   scrapeMatches: () => API.get("/provider/scrape-matches", { timeout: 60000 }),
   updateProfile: (data) => API.put("/provider/profile", data),
   sendPhoneChangeOtp: () => API.post("/provider/profile/send-phone-change-otp"),
+  getNearbyJobs: (params) => API.get("/jobs/nearby", { params }),
+  getWageEstimate: (data) => API.post("/wage-estimator", data),
   aiSuggestProfile: (data) => API.post("/provider/profile/ai-suggest", data),
   buildAIProfile: (data) => API.post("/provider/ai/build-profile", data),
   extractProfileData: (data) => API.post("/provider/ai/extract-profile", data), // Module 1 UI
@@ -216,6 +222,7 @@ export const providerAPI = {
   getJobById: (jobId) => API.get(`/provider/jobs/${jobId}`),
   applyToJob: (jobId, data) => API.post(`/provider/jobs/${jobId}/apply`, data),
   getApplications: () => API.get("/provider/applications"),
+  getSkillGapReport: () => API.post("/candidate/skill-gap-report"),
 };
 
 // Recruiter APIs
@@ -276,6 +283,7 @@ export const recruiterAPI = {
   unlockProvider: (providerId, data) => API.post(`/recruiter/provider/${providerId}/unlock`, data),
   getProviderProfile: (providerId) => API.get(`/recruiter/provider/${providerId}/profile`),
   getApplicationDetails: (applicationId) => API.get(`/recruiter/applications/${applicationId}`),
+  getSignedResumeUrl: (candidateId) => API.post(`/candidates/${candidateId}/resume-url`),
   // ==================================================================
 };
 
@@ -551,7 +559,7 @@ export const notificationAPI = {
 
 // Profile APIs
 export const profileAPI = {
-  getByUserId: (userId) => API.get(`/profile/${userId}`),
+  getByUserId: (userId, params) => API.get(`/profile/${userId}`, { params }),
   updateMyProfile: (data) => API.patch("/profile", data),
   completeRole: (data) => API.post("/profile/complete-role", data),
 };
@@ -606,6 +614,11 @@ export const locationAPI = {
 export const enquiryAPI = {
   create: (data) => API.post('/enquiry', data),
   getAll: () => API.get('/enquiry'),
+};
+
+export const profileShareAPI = {
+  generateToken: (candidateId, data) => API.post(`/profile-share/${candidateId}`, data),
+  getSharedProfile: (token) => API.get(`/profile-share/view/${token}`),
 };
 
 export const referralAPI = {

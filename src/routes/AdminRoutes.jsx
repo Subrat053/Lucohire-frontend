@@ -41,6 +41,10 @@ const ResumeApprovals = lazy(() => import("../pages/admin/ResumeApprovals"));
 const AdminPortfolioApprovals = lazy(() => import("../pages/admin/PortfolioApprovals"));
 const AdminEnquiries = lazy(() => import("../pages/admin/Enquiries"));
 const ChangePassword = lazy(() => import("../pages/user/ChangePassword"));
+const AdminOtpLogs = lazy(() => import("../pages/admin/OtpLogs"));
+const AdminAiResumeLogs = lazy(() => import("../pages/admin/AiResumeLogs"));
+const AdminCandidateUnlockLogs = lazy(() => import("../pages/admin/CandidateUnlockLogs"));
+const AdminResumeAccessLogs = lazy(() => import("../pages/admin/ResumeAccessLogs"));
 
 function AdminLayoutWrapper({ children }) {
   return (
@@ -100,6 +104,11 @@ export default function AdminRoutes() {
       <Route path="portfolio-approvals" element={wrap(<AdminPortfolioApprovals />)} />
       <Route path="enquiries" element={wrap(<AdminEnquiries />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />
+      {/* Logs & Audit */}
+      <Route path="otp-logs" element={wrap(<AdminOtpLogs />)} />
+      <Route path="ai-resume-logs" element={wrap(<AdminAiResumeLogs />)} />
+      <Route path="candidate-unlock-logs" element={wrap(<AdminCandidateUnlockLogs />)} />
+      <Route path="resume-access-logs" element={wrap(<AdminResumeAccessLogs />)} />
     </Routes>
   );
 }

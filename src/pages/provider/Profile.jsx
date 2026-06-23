@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { providerAPI, aiAPI } from "../../services/api";
+import { authAPI, providerAPI, aiAPI, profileShareAPI } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import RouteLoader from "../../components/common/RouteLoader";
 import toast from "react-hot-toast";
@@ -20,6 +20,9 @@ import { validateUploadFile } from "../../utils/fileValidationService";
 import SkillSearchSelect from "../../components/common/SkillSearchSelect";
 import SmartMultiSelect from "../../components/common/SmartMultiSelect";
 import CountryPhoneInput, { parsePhoneString } from "../../components/common/CountryPhoneInput";
+import OtpVerificationModal from "../../components/otp/OtpVerificationModal";
+import ClientResumeGenerator from "../../components/provider/ClientResumeGenerator";
+import SkillGapReportModal from "../../components/provider/SkillGapReportModal";
 import {
   User as UserIcon,
   Phone as PhoneIcon,
@@ -44,6 +47,7 @@ import {
   Trash2,
   Camera,
   FileText,
+  Share2,
   Compass,
   RefreshCw,
   Search,
@@ -429,6 +433,8 @@ const ProviderProfile = () => {
   const [subscriptionSummary, setSubscriptionSummary] = useState(null);
   const [coverageRefreshLoading, setCoverageRefreshLoading] = useState(false);
   const [coverageUpgradeLoading, setCoverageUpgradeLoading] = useState(false);
+  const [showResumeGenerator, setShowResumeGenerator] = useState(false);
+  const [isSkillGapModalOpen, setIsSkillGapModalOpen] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -459,6 +465,7 @@ const ProviderProfile = () => {
     whatsappNationalNumber: "",
     resumeUrl: "",
     pricingReason: "",
+    email: "",
   });
 
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
@@ -466,6 +473,9 @@ const ProviderProfile = () => {
   const [emailOtp, setEmailOtp] = useState("");
   const [sendingOtp, setSendingOtp] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
+
+  const [isEmailOtpModalOpen, setIsEmailOtpModalOpen] = useState(false);
+  const [emailToVerify, setEmailToVerify] = useState("");
 
   useEffect(() => {
     if (resendCountdown === 0) return;
@@ -478,6 +488,35 @@ const ProviderProfile = () => {
   const handleCancelOtp = () => {
     setIsOtpModalOpen(false);
     setEmailOtp("");
+  };
+
+  const handleSendEmailVerifyOtp = async () => {
+    if (!form.email) {
+      toast.error("Please enter an email address.");
+      return;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    setEmailToVerify(form.email.toLowerCase().trim());
+    setIsEmailOtpModalOpen(true);
+  };
+
+  const handleShareProfile = async () => {
+    if (!user?._id) return;
+    const toastId = toast.loading("Generating secure shareable link...");
+    try {
+      const { data } = await profileShareAPI.generateToken(user._id);
+      if (data?.shareUrl) {
+        await navigator.clipboard.writeText(data.shareUrl);
+        toast.success("Shareable link copied to clipboard!", { id: toastId });
+      } else {
+        toast.error("Failed to generate link.", { id: toastId });
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to generate link.", { id: toastId });
+    }
   };
 
   const handleResendOtp = async () => {
@@ -792,6 +831,7 @@ const ProviderProfile = () => {
           whatsappNationalNumber: parsedWhatsapp.nationalNumber || "",
           resumeUrl: data.resumeUrl || "",
           pricingReason: data.pricingReason || "",
+          email: data.user?.email || "",
         };
 
         setForm(defaultForm);
@@ -1508,14 +1548,37 @@ const ProviderProfile = () => {
               Customise your public listing, service areas, and AI optimizations.
             </p>
           </div>
-          <div className="flex items-center gap-2 bg-white border border-slate-100 px-4 py-2 rounded-2xl shadow-xs shrink-0">
-            <span className="w-2 h-2 rounded-full bg-violet-600 animate-pulse" />
-            <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider">
-              Plan:
-            </span>
-            <span className="text-xs text-violet-700 font-black uppercase tracking-wider bg-violet-50 px-3 py-1 rounded-xl border border-violet-100">
-              {plan ? plan.toUpperCase() : "FREE"}
-            </span>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsSkillGapModalOpen(true)}
+              className="py-2.5 px-4 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-xl text-xs font-black shadow-md hover:shadow-indigo-200 transition duration-200 flex items-center justify-center gap-1.5"
+            >
+              <Sparkles className="w-4 h-4" /> AI Skill-Gap Report
+            </button>
+            <button
+              type="button"
+              onClick={handleShareProfile}
+              className="py-2.5 px-4 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-violet-200 transition duration-200 flex items-center justify-center gap-1.5"
+            >
+              <Share2 className="w-4 h-4" /> Share Profile
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowResumeGenerator(true)}
+              className="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-indigo-200 transition duration-200 flex items-center justify-center gap-1.5"
+            >
+              <FileText className="w-4 h-4" /> Download Resume (PDF)
+            </button>
+            <div className="flex items-center gap-2 bg-white border border-slate-100 px-4 py-2 rounded-2xl shadow-xs shrink-0">
+              <span className="w-2 h-2 rounded-full bg-violet-600 animate-pulse" />
+              <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider">
+                Plan:
+              </span>
+              <span className="text-xs text-violet-700 font-black uppercase tracking-wider bg-violet-50 px-3 py-1 rounded-xl border border-violet-100">
+                {plan ? plan.toUpperCase() : "FREE"}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -1712,11 +1775,49 @@ const ProviderProfile = () => {
           </div>
         </div>
 
+        {showResumeGenerator && (
+          <ClientResumeGenerator
+            user={user}
+            profile={form}
+            onClose={() => setShowResumeGenerator(false)}
+          />
+        )}
+
+        <SkillGapReportModal
+          isOpen={isSkillGapModalOpen}
+          onClose={() => setIsSkillGapModalOpen(false)}
+          plan={plan}
+        />
+
         {/* ── AI Auto-Fill Modal ── */}
         <AIProfileAutoFillModal
           isOpen={isAiModalOpen}
           onClose={() => setIsAiModalOpen(false)}
           onApply={handleAiAutoFillApply}
+        />
+
+        {/* ── Email OTP Verification Modal ── */}
+        <OtpVerificationModal
+          isOpen={isEmailOtpModalOpen}
+          onClose={() => setIsEmailOtpModalOpen(false)}
+          email={emailToVerify}
+          purpose="change_email"
+          title="Verify Your Email"
+          description={`We are sending a 6-digit verification code to ${emailToVerify}.`}
+          onSuccess={async () => {
+            try {
+              await authAPI.updateEmail({ email: emailToVerify });
+              toast.success("Email verified and saved successfully!");
+              setIsEmailOtpModalOpen(false);
+              if (typeof fetchUser === "function") {
+                await fetchUser();
+              }
+              hasInitialized.current = false;
+              await fetchProfile();
+            } catch (err) {
+              toast.error(err.response?.data?.message || "Failed to update email.");
+            }
+          }}
         />
 
         {/* ── SECTION 2: 2-Column Desktop Grid with Equal Heights ── */}
@@ -1757,14 +1858,31 @@ const ProviderProfile = () => {
 
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                    Registered Email (Read-Only)
+                    {profileData?.user?.isEmailVerified ? "Registered Email" : "Add Email (OTP Verification Required)"}
                   </label>
-                  <input
-                    type="email"
-                    value={profileData?.user?.email || user?.email || ""}
-                    disabled
-                    className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed outline-none shadow-sm font-semibold"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      value={form.email || ""}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      disabled={!!profileData?.user?.isEmailVerified}
+                      placeholder="e.g. name@example.com"
+                      className={`w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 outline-none transition ${
+                        profileData?.user?.isEmailVerified
+                          ? "bg-slate-100 text-slate-400 cursor-not-allowed font-semibold"
+                          : "focus:border-violet-500 focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner"
+                      }`}
+                    />
+                    {!profileData?.user?.isEmailVerified && form.email && form.email !== (profileData?.user?.email || "") && (
+                      <button
+                        type="button"
+                        onClick={handleSendEmailVerifyOtp}
+                        className="px-4 py-2 rounded-xl bg-violet-600 text-white text-[10px] font-black uppercase tracking-wider hover:bg-violet-700 hover:shadow-md transition duration-200 shrink-0"
+                      >
+                        Verify & Save
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 

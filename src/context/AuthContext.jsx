@@ -234,6 +234,27 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener("auth:invalid-token", handler);
   }, [logout]);
 
+  useEffect(() => {
+    if (user && user.isAuthenticated && !["admin", "manager", "partner"].includes(user.activeRole)) {
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (tz && user.timezone !== tz) {
+          authAPI.updateTimezone(tz)
+            .then(res => {
+              if (res.data?.success) {
+                const updatedUser = { ...user, timezone: tz };
+                localStorage.setItem("authUser", JSON.stringify(updatedUser));
+                setUser(updatedUser);
+              }
+            })
+            .catch(() => {});
+        }
+      } catch (e) {
+        console.error("Failed to auto-update timezone:", e);
+      }
+    }
+  }, [user]);
+
   const saveUserSession = useCallback(
     ({ token: nextToken, user: nextUser }) => {
       if (!nextToken || !nextUser) return null;
