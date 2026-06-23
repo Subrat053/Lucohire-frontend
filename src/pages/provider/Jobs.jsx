@@ -21,6 +21,7 @@ import toast from "react-hot-toast";
 import { providerAPI, subscriptionAPI } from "../../services/api";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import LocationSearch from "../../components/LocationSearch";
+import RecruiterProfileModal from "../../components/recruiter/RecruiterProfileModal";
 
 const BUDGET_LABELS = {
   fixed: "Fixed",
@@ -120,7 +121,7 @@ const ApplyModal = ({ job, onClose, onSuccess }) => {
 };
 
 /* ── Job Details Modal ────────────────────────────────────────────────── */
-const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
+const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
   useEffect(() => {
     let metaTag = null;
     if (job?.isExternal) {
@@ -157,7 +158,16 @@ const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
             </h3>
             <p className="text-xs text-gray-500 mt-1">
               Posted {postedAgo} by{" "}
-              <span className="font-semibold text-gray-700">
+              <span
+                onClick={() => {
+                  if (job.recruiter?._id) {
+                    onRecruiterClick(job.recruiter._id, job.companyName || job.recruiter?.name);
+                  }
+                }}
+                className={`font-semibold text-gray-700 ${
+                  job.recruiter?._id ? "cursor-pointer hover:text-indigo-600 hover:underline transition-colors" : ""
+                }`}
+              >
                 {job.recruiter?.name || "Company"}
               </span>
             </p>
@@ -259,7 +269,16 @@ const JobDetailsModal = ({ job, onClose, onApplyNow }) => {
               About The Company
             </h4>
             <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 space-y-2">
-              <p className="text-xs sm:text-sm font-bold text-gray-800">
+              <p
+                onClick={() => {
+                  if (job.recruiter?._id) {
+                    onRecruiterClick(job.recruiter._id, job.companyName || job.recruiter?.name);
+                  }
+                }}
+                className={`text-xs sm:text-sm font-bold text-gray-800 ${
+                  job.recruiter?._id ? "cursor-pointer hover:text-indigo-600 hover:underline transition-colors w-fit" : ""
+                }`}
+              >
                 {job.companyName || job.recruiter?.name || "Recruiter Company"}
               </p>
               <p className="text-xs text-gray-600 leading-relaxed italic">
@@ -345,7 +364,7 @@ const JobCardSkeleton = () => (
 );
 
 /* ── Job Card ────────────────────────────────────────────────────────── */
-const JobCard = ({ job, onViewDetails }) => {
+const JobCard = ({ job, onViewDetails, onRecruiterClick }) => {
   const budgetText =
     job.budgetType === "negotiable"
       ? "Negotiable"
@@ -383,13 +402,23 @@ const JobCard = ({ job, onViewDetails }) => {
               )}
             </div>
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 mb-2">
-              <span className="flex items-center gap-1">
+              <span
+                onClick={(e) => {
+                  if (job.recruiter?._id) {
+                    e.stopPropagation();
+                    onRecruiterClick(job.recruiter._id, job.companyName || job.recruiter?.name);
+                  }
+                }}
+                className={`flex items-center gap-1 ${
+                  job.recruiter?._id ? "cursor-pointer hover:text-indigo-600 hover:underline transition-colors" : ""
+                }`}
+              >
                 <HiOfficeBuilding className="w-3.5 h-3.5" />
                 {job.companyName || job.recruiter?.name || "Company"}
               </span>
               <span className="flex items-center gap-1">
                 <HiLocationMarker className="w-3.5 h-3.5" />
-                {job.city}
+                {job.city} {job.distance !== undefined ? `(${job.distance} km)` : ''}
               </span>
               <span className="flex items-center gap-1">
                 <HiClock className="w-3.5 h-3.5" />
@@ -478,7 +507,7 @@ const JobCard = ({ job, onViewDetails }) => {
 };
 
 /* ── Applications Tab ────────────────────────────────────────────────── */
-const ApplicationsTab = () => {
+const ApplicationsTab = ({ onRecruiterClick }) => {
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -518,7 +547,18 @@ const ApplicationsTab = () => {
                 {app.jobPost?.title || "Job"}
               </h4>
               <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 mt-1">
-                <span className="flex items-center gap-1">
+                <span
+                  onClick={() => {
+                    const recruiter = app.jobPost?.recruiter;
+                    const recId = recruiter?._id || (typeof recruiter === "string" ? recruiter : null);
+                    if (recId) {
+                      onRecruiterClick(recId, app.jobPost?.companyName || recruiter?.name);
+                    }
+                  }}
+                  className={`flex items-center gap-1 ${
+                    (app.jobPost?.recruiter?._id || app.jobPost?.recruiter) ? "cursor-pointer hover:text-indigo-600 hover:underline transition-colors" : ""
+                  }`}
+                >
                   <HiOfficeBuilding className="w-3.5 h-3.5" />
                   {app.jobPost?.companyName ||
                     app.jobPost?.recruiter?.name ||
@@ -567,24 +607,75 @@ const ProviderJobs = () => {
   const [search, setSearch] = useState({ skill: "", city: "" });
   const [applyTarget, setApplyTarget] = useState(null);
   const [viewDetailTarget, setViewDetailTarget] = useState(null);
+  const [recruiterProfileTarget, setRecruiterProfileTarget] = useState(null);
+
+  const handleRecruiterClick = (id, name) => {
+    setRecruiterProfileTarget({ id, name });
+  };
+
+  const [nearbyOnly, setNearbyOnly] = useState(false);
+  const [radius, setRadius] = useState(50);
+  const [userCoords, setUserCoords] = useState(null);
+
+  const toggleNearbyOnly = () => {
+    if (nearbyOnly) {
+      setNearbyOnly(false);
+    } else {
+      if (userCoords) {
+        setNearbyOnly(true);
+      } else {
+        setLoading(true);
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const coords = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+            setUserCoords(coords);
+            setNearbyOnly(true);
+            setLoading(false);
+          },
+          (error) => {
+            setLoading(false);
+            console.error("Geolocation error:", error);
+            toast.error("Location access denied or unavailable. Please enable location permissions in your browser.");
+          },
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      }
+    }
+  };
+
+  const handleRadiusChange = (newRadius) => {
+    setRadius(newRadius);
+  };
 
   const fetchJobs = useCallback(
-    async (page = 1) => {
+    async (page = 1, currentRadius = radius, currentNearbyOnly = nearbyOnly) => {
       setLoading(true);
       try {
         const params = { page, limit: 15 };
-        if (search.skill) params.skill = search.skill;
-        if (search.city) params.city = search.city;
-        const { data } = await providerAPI.getJobs(params);
-        setJobs(data.jobs || []);
-        setPagination(data.pagination || { page: 1, pages: 1, total: 0 });
-      } catch {
+        if (currentNearbyOnly && userCoords) {
+          params.lat = userCoords.lat;
+          params.lng = userCoords.lng;
+          params.radius = currentRadius;
+          const { data } = await providerAPI.getNearbyJobs(params);
+          setJobs(data.jobs || []);
+          setPagination(data.pagination || { page: 1, pages: 1, total: (data.jobs || []).length });
+        } else {
+          if (search.skill) params.skill = search.skill;
+          if (search.city) params.city = search.city;
+          const { data } = await providerAPI.getJobs(params);
+          setJobs(data.jobs || []);
+          setPagination(data.pagination || { page: 1, pages: 1, total: 0 });
+        }
+      } catch (err) {
         toast.error("Failed to load jobs");
       } finally {
         setLoading(false);
       }
     },
-    [search],
+    [search, userCoords, radius, nearbyOnly],
   );
 
   const [scraping, setScraping] = useState(false);
@@ -610,11 +701,14 @@ const ProviderJobs = () => {
   };
 
   useEffect(() => {
-    if (search.skill || search.city) {
-      fetchJobs(1);
+    if (nearbyOnly) {
+      if (userCoords) {
+        fetchJobs(1, radius, nearbyOnly);
+      }
+    } else if (search.skill || search.city) {
+      fetchJobs(1, radius, nearbyOnly);
     } else {
       setLoading(true);
-      // Fetch top matches to show directly in card format!
       providerAPI
         .getMatches()
         .then((res) => {
@@ -627,13 +721,13 @@ const ProviderJobs = () => {
         })
         .catch((err) => {
           console.error("Failed to fetch top matches", err);
-          fetchJobs(1); // fallback to general jobs if matches query fails
+          fetchJobs(1, radius, nearbyOnly);
         })
         .finally(() => {
           setLoading(false);
         });
     }
-  }, [search, fetchJobs]);
+  }, [search, fetchJobs, nearbyOnly, userCoords, radius]);
 
   // Run a fresh scrape automatically on page load in the background
   useEffect(() => {
@@ -821,11 +915,40 @@ const ProviderJobs = () => {
                     className="focus:ring-indigo-300"
                   />
                 </div>
-                <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
-                  {(search.skill || search.city) && (
+                <div className="flex flex-wrap gap-2 w-full md:w-auto mt-2 md:mt-0 items-center">
+                  <button
+                    type="button"
+                    onClick={toggleNearbyOnly}
+                    className={`flex-1 md:flex-none px-4 py-2 text-sm font-bold border rounded-xl transition duration-200 flex items-center gap-1.5 ${
+                      nearbyOnly
+                        ? "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700 shadow-md"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    <HiLocationMarker className={`w-4 h-4 ${nearbyOnly ? "text-white" : "text-gray-400"}`} />
+                    {nearbyOnly ? `Nearby` : "Show Nearby"}
+                  </button>
+
+                  {nearbyOnly && (
+                    <select
+                      value={radius}
+                      onChange={(e) => handleRadiusChange(Number(e.target.value))}
+                      className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 outline-none"
+                    >
+                      <option value={10}>Within 10 km</option>
+                      <option value={25}>Within 25 km</option>
+                      <option value={50}>Within 50 km</option>
+                      <option value={100}>Within 100 km</option>
+                    </select>
+                  )}
+
+                  {(search.skill || search.city || nearbyOnly) && (
                     <button
                       type="button"
-                      onClick={clearFilters}
+                      onClick={() => {
+                        clearFilters();
+                        setNearbyOnly(false);
+                      }}
                       className="flex-1 md:flex-none px-4 py-2 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition text-center"
                     >
                       Clear
@@ -833,7 +956,8 @@ const ProviderJobs = () => {
                   )}
                   <button
                     type="submit"
-                    className="flex-1 md:flex-none justify-center px-5 py-2 text-sm font-bold text-white bg-[#081B3A] rounded-xl hover:bg-[#0E2854] transition flex items-center gap-2"
+                    disabled={nearbyOnly}
+                    className="flex-1 md:flex-none justify-center px-5 py-2 text-sm font-bold text-white bg-[#081B3A] rounded-xl hover:bg-[#0E2854] transition flex items-center gap-2 disabled:opacity-50"
                   >
                     <HiFilter className="w-4 h-4" /> Search
                   </button>
@@ -852,16 +976,30 @@ const ProviderJobs = () => {
               <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-100 shadow-2xs">
                 <HiBriefcase className="w-12 h-12 mx-auto mb-3 opacity-40" />
                 <p className="font-medium text-gray-600">No jobs found</p>
-                {(search.skill || search.city) && (
-                  <p className="text-sm mt-1">
-                    Try different keywords or{" "}
-                    <button
-                      onClick={clearFilters}
-                      className="text-indigo-600 font-medium"
-                    >
-                      clear filters
-                    </button>
-                  </p>
+                {nearbyOnly ? (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-sm">There are no jobs within {radius} km of your location.</p>
+                    {radius < 100 && (
+                      <button
+                        onClick={() => handleRadiusChange(100)}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-md"
+                      >
+                        Expand Search to 100 km
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  (search.skill || search.city) && (
+                    <p className="text-sm mt-1">
+                      Try different keywords or{" "}
+                      <button
+                        onClick={clearFilters}
+                        className="text-indigo-600 font-medium"
+                      >
+                        clear filters
+                      </button>
+                    </p>
+                  )
                 )}
               </div>
             ) : (
@@ -876,6 +1014,7 @@ const ProviderJobs = () => {
                       key={job._id}
                       job={job}
                       onViewDetails={setViewDetailTarget}
+                      onRecruiterClick={handleRecruiterClick}
                     />
                   ))}
                 </div>
@@ -906,7 +1045,9 @@ const ProviderJobs = () => {
           </>
         )}
 
-        {tab === "applications" && <ApplicationsTab />}
+        {tab === "applications" && (
+          <ApplicationsTab onRecruiterClick={handleRecruiterClick} />
+        )}
       </div>
 
       {/* View Details Modal */}
@@ -915,6 +1056,7 @@ const ProviderJobs = () => {
           job={viewDetailTarget}
           onClose={() => setViewDetailTarget(null)}
           onApplyNow={(job) => setApplyTarget(job)}
+          onRecruiterClick={handleRecruiterClick}
         />
       )}
 
@@ -924,6 +1066,15 @@ const ProviderJobs = () => {
           job={applyTarget}
           onClose={() => setApplyTarget(null)}
           onSuccess={handleApplySuccess}
+        />
+      )}
+
+      {/* Recruiter Profile Modal */}
+      {recruiterProfileTarget && (
+        <RecruiterProfileModal
+          recruiterId={recruiterProfileTarget.id}
+          companyFallbackName={recruiterProfileTarget.name}
+          onClose={() => setRecruiterProfileTarget(null)}
         />
       )}
     </div>
