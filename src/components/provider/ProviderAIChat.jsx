@@ -44,13 +44,18 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
     const exactMatch = ALL_SKILLS.find(s => s.toLowerCase() === normalized);
     if (exactMatch) return exactMatch;
     
-    // 2. Substring check
-    const substringMatch = ALL_SKILLS.find(s => 
-      normalized.includes(s.toLowerCase()) || s.toLowerCase().includes(normalized)
-    );
+    // 2. Safe substring check (only for whole words)
+    const substringMatch = ALL_SKILLS.find(s => {
+      const sLower = s.toLowerCase();
+      // Only match if it's a significant word (>3 chars) and is bounded
+      return (normalized.length >= 3 && sLower.includes(normalized)) || 
+             (sLower.length >= 3 && normalized.includes(sLower));
+    });
+    
     if (substringMatch) return substringMatch;
     
-    return null;
+    // 3. Instead of returning null and erasing the skill, return the properly capitalized raw skill
+    return parsedSkill.trim();
   };
 
   const normalizeSkillLevel = (level) => {
@@ -329,24 +334,32 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
     container.scrollTop = container.scrollHeight;
   }, [messages, isOpen]);
 
+  const bioGeneratedRef = useRef(false);
+  const passiveSkillsMappedRef = useRef(false);
+
   // Initial passive inference: map skills -> speciality and auto-generate bio when appropriate
   useEffect(() => {
     // Map existing skills to speciality labels without asking the user
     try {
-      if (profileContext && Array.isArray(profileContext.skills) && profileContext.skills.length > 0 && onUpdateField) {
+      if (!passiveSkillsMappedRef.current && profileContext && Array.isArray(profileContext.skills) && profileContext.skills.length > 0 && onUpdateField) {
         const mapped = profileContext.skills.map(s => mapSkillToSpeciality(s));
         // Only update if mapping changed something
         const changed = mapped.some((m, idx) => m !== profileContext.skills[idx]);
         if (changed) {
+          passiveSkillsMappedRef.current = true;
           onUpdateField('skills', mapped);
+        } else {
+          // If no change needed, mark as mapped so we don't keep checking
+          passiveSkillsMappedRef.current = true;
         }
       }
 
       // Auto-generate a bio if missing or too short
       const hasDescription = profileContext.description && String(profileContext.description).trim().length >= 20;
-      if (!hasDescription && onUpdateField) {
+      if (!hasDescription && onUpdateField && !bioGeneratedRef.current) {
         const bio = generateAutoBio(profileContext);
         if (bio) {
+          bioGeneratedRef.current = true;
           onUpdateField('description', bio);
           // Prepend an assistant message to preview generated bio
           setMessages((prev) => [

@@ -18,6 +18,7 @@ export function testAIParser(payload) {
 
 export function uploadResume(formData) {
   return API.post('/provider/ai/build-from-resume', formData, {
+    timeout: 60000,
     headers: {
       'Content-Type': 'multipart/form-data',
     },
