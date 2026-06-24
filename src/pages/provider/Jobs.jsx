@@ -23,6 +23,7 @@ import { getJobMatchingEngine } from "../../services/providerAIService";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import LocationSearch from "../../components/LocationSearch";
 import RecruiterProfileModal from "../../components/recruiter/RecruiterProfileModal";
+import AIExpiryBadge from "../../components/ai/AIExpiryBadge";
 
 const BUDGET_LABELS = {
   fixed: "Fixed",
@@ -183,6 +184,10 @@ const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
 
         {/* Scrollable Content */}
         <div className="p-6 space-y-6 overflow-y-auto flex-1 text-sm text-gray-700">
+          
+          {/* AI Expiry Predictor Badge */}
+          <AIExpiryBadge jobId={job._id} />
+
           {/* Main Info Badges */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100/50">
             <div className="space-y-1">

@@ -131,12 +131,17 @@ const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
               const cleanNum = String(waNum).replace(/\D/g, '');
               window.open(`https://wa.me/${cleanNum}`, '_blank');
             } else {
-              onView(provider);
+              onUnlock(provider);
             }
           }}
-          className="flex-1 flex items-center justify-center gap-1.5 border border-gray-100 text-[#ffffff] text-xs font-semibold py-2 rounded-xl bg-[#128C7E] hover:bg-[#075E54] transition h-9"
+          className="flex-1 flex items-center justify-center gap-1.5 border border-gray-100 text-[#ffffff] text-xs font-semibold py-2 rounded-xl bg-[#128C7E] hover:bg-[#075E54] transition h-9 group"
         >
-          <FaWhatsapp className="w-3.5 h-3.5" /> WhatsApp
+          <FaWhatsapp className="w-3.5 h-3.5" /> 
+          {provider.isUnlocked ? 'WhatsApp' : (
+            <span className="flex items-center gap-1 opacity-90 blur-[0.5px]">
+               {provider.phone || 'WhatsApp'} <div className="text-[8px]">🔒</div>
+            </span>
+          )}
         </button>
         <button
           onClick={(e) => {
@@ -145,12 +150,17 @@ const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
             if (provider.isUnlocked && phone) {
               window.location.href = `tel:${phone}`;
             } else {
-              onView(provider);
+              onUnlock(provider);
             }
           }}
-          className="flex-1 flex items-center justify-center gap-1.5 bg-[#0096FF] hover:bg-[#0E5FCC] text-white text-xs font-bold py-2 rounded-xl transition h-9"
+          className="flex-1 flex items-center justify-center gap-1.5 bg-[#0096FF] hover:bg-[#0E5FCC] text-white text-xs font-bold py-2 rounded-xl transition h-9 group"
         >
-          <HiPhone className="w-3.5 h-3.5" /> Call Now
+          <HiPhone className="w-3.5 h-3.5" /> 
+          {provider.isUnlocked ? 'Call Now' : (
+            <span className="flex items-center gap-1 opacity-90 blur-[0.5px]">
+              {provider.phone || 'Call Now'} <div className="text-[8px]">🔒</div>
+            </span>
+          )}
         </button>
       </div>
     </div>

@@ -24,6 +24,7 @@ const RecruiterTransactions = lazy(() => import("../pages/recruiter/Transactions
 const RecruiterSettings = lazy(() => import("../pages/recruiter/Settings"));
 const ChangePassword = lazy(() => import("../pages/user/ChangePassword"));
 const ReferralManagement = lazy(() => import("../pages/user/ReferralManagement"));
+const PremiumCopilot = lazy(() => import("../pages/recruiter/PremiumCopilot"));
 
 function RecruiterLayoutWrapper({ children }) {
   return (
@@ -67,6 +68,7 @@ export default function RecruiterRoutes() {
       <Route path="settings" element={wrap(<RecruiterSettings />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />
       <Route path="referrals" element={wrap(<ReferralManagement />)} />
+      <Route path="copilot" element={wrap(<PremiumCopilot />)} />
     </Routes>
   );
 }

@@ -449,16 +449,40 @@ const ProviderPublicProfile = () => {
                   )}
                 </div>
               ) : (
-                <div>
-                  <div className="bg-black/20 rounded-2xl p-5 mb-5 text-center border border-white/10 backdrop-blur-sm">
-                    <div className="text-4xl mb-3 drop-shadow-md">🔒</div>
+                <div className="space-y-3 mb-5">
+                  <div className="bg-black/20 rounded-2xl p-4 text-center border border-white/10 backdrop-blur-sm mb-2">
                     <p className="text-sm text-indigo-100 leading-relaxed font-medium">
                       {profile.isDummy
                         ? 'Demo provider contact is intentionally hidden.'
-                        : 'Contact information is protected. Unlock to view phone number and WhatsApp details.'}
+                        : 'Contact information is protected. Unlock to view full details.'}
                     </p>
                   </div>
-                  <button onClick={handleUnlock} disabled={unlocking || profile.isDummy}
+
+                  {profile.phone && (
+                    <button onClick={handleUnlock} disabled={unlocking || profile.isDummy} className="w-full flex items-center justify-center space-x-2 bg-white/10 text-white py-3.5 rounded-2xl font-bold border border-white/20 backdrop-blur-md hover:bg-white/20 transition group">
+                      <HiPhone className="w-5 h-5 text-indigo-300" />
+                      <span className="opacity-90">{profile.phone}</span>
+                      <span className="ml-2 text-xs bg-indigo-500/50 px-2 py-0.5 rounded text-indigo-100 flex items-center gap-1"><div className="text-[10px]">🔒</div> Unlock</span>
+                    </button>
+                  )}
+
+                  {profile.email && (
+                    <button onClick={handleUnlock} disabled={unlocking || profile.isDummy} className="w-full flex items-center justify-center space-x-2 bg-indigo-800/50 text-indigo-200 border border-indigo-700/50 py-3.5 rounded-2xl font-bold backdrop-blur-md hover:bg-indigo-800/70 transition group">
+                      <HiMail className="w-5 h-5 text-indigo-400" />
+                      <span className="opacity-90">{profile.email}</span>
+                      <span className="ml-2 text-xs bg-indigo-600/50 px-2 py-0.5 rounded text-indigo-200 flex items-center gap-1"><div className="text-[10px]">🔒</div> Unlock</span>
+                    </button>
+                  )}
+
+                  {profile.hasResume && (
+                    <button onClick={handleUnlock} disabled={unlocking || profile.isDummy} className="w-full flex items-center justify-center space-x-2 bg-emerald-900/40 text-emerald-200 border border-emerald-700/50 py-3.5 rounded-2xl font-bold backdrop-blur-md hover:bg-emerald-900/60 transition group">
+                      <span className="text-lg">📄</span>
+                      <span className="opacity-90 blur-[1px]">Download Resume.pdf</span>
+                      <span className="ml-2 text-xs bg-emerald-600/50 px-2 py-0.5 rounded text-emerald-100 flex items-center gap-1"><div className="text-[10px]">🔒</div> Unlock</span>
+                    </button>
+                  )}
+                </div>
+                <button onClick={handleUnlock} disabled={unlocking || profile.isDummy}
                     className="w-full bg-white text-indigo-900 py-4 rounded-2xl font-extrabold shadow-xl hover:bg-indigo-50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group">
                     {unlocking ? (
                       <><span className="w-5 h-5 border-3 border-indigo-900 border-t-transparent rounded-full animate-spin" /> Unlocking...</>

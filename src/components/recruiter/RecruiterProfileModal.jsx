@@ -14,6 +14,7 @@ import {
 import toast from "react-hot-toast";
 import { profileAPI } from "../../services/api";
 import LoadingSpinner from "../common/LoadingSpinner";
+import AIReputationBadge from "../ai/AIReputationBadge";
 
 export default function RecruiterProfileModal({ recruiterId, companyFallbackName, onClose }) {
   const [profileData, setProfileData] = useState(null);
@@ -100,6 +101,11 @@ export default function RecruiterProfileModal({ recruiterId, companyFallbackName
             </div>
           ) : (
             <>
+              {/* AI Reputation Predictor Badge */}
+              {profileData?.user?._id && (
+                <AIReputationBadge recruiterId={profileData.user._id} />
+              )}
+
               {/* Stats Card Grid */}
               <div className="grid grid-cols-3 gap-2 bg-indigo-50/30 p-3.5 rounded-2xl border border-indigo-100/50">
                 <div className="text-center space-y-0.5">

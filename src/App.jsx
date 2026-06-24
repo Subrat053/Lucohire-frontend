@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { Agentation } from "agentation";
@@ -6,6 +6,7 @@ import { Agentation } from "agentation";
 import ScrollToTop from "./components/common/ScrollToTop";
 import PageLoader from "./components/common/PageLoader";
 import NotFound from "./components/common/NotFound";
+import PwaInstallPrompt from "./components/common/PwaInstallPrompt";
 import { useAuth } from "./context/AuthContext";
 
 // Lazy-loaded global modals/widgets
@@ -23,6 +24,21 @@ const DashboardRedirect = lazy(() => import("./components/common/DashboardRedire
 
 function App() {
   const { user, profile, showWhatsAppPrompt, setShowWhatsAppPrompt } = useAuth();
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    // Listen for PWA install prompt
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
 
   useEffect(() => {
     const handleChunkError = () => {
@@ -122,6 +138,9 @@ function App() {
         </Routes>
       </Suspense>
       {import.meta.env.DEV && <Agentation />}
+
+      {/* Animated PWA Install Prompt */}
+      <PwaInstallPrompt deferredPrompt={deferredPrompt} setDeferredPrompt={setDeferredPrompt} />
     </Router>
   );
 }

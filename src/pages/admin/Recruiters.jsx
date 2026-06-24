@@ -4,6 +4,7 @@ import { HiSearch, HiCheckCircle, HiXCircle, HiEye, HiTrash } from 'react-icons/
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
+import AIReputationBadge from '../../components/ai/AIReputationBadge';
 
 const AdminRecruiters = () => {
   const navigate = useNavigate();
@@ -223,6 +224,12 @@ const AdminRecruiters = () => {
               <h3 className="text-lg font-bold text-gray-900">{selectedRecruiter.user?.name}</h3>
               <p className="text-sm text-gray-500">{selectedRecruiter.companyName || 'Individual recruiter'}</p>
             </div>
+
+            {selectedRecruiter.user && selectedRecruiter.user._id && (
+              <div className="mb-6">
+                <AIReputationBadge recruiterId={selectedRecruiter.user._id} />
+              </div>
+            )}
 
             <div className="space-y-3 text-sm mb-6">
               <div className="flex justify-between"><span className="text-gray-500">Company</span><span className="font-medium">{selectedRecruiter.companyName || 'N/A'}</span></div>

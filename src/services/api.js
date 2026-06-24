@@ -82,6 +82,8 @@ const ADMIN_API = axios.create({
   withCredentials: true,
 });
 
+
+
 export { API, AUTH_API, ADMIN_API };
 
 API.interceptors.request.use(
@@ -224,6 +226,7 @@ export const providerAPI = {
   applyToJob: (jobId, data) => API.post(`/provider/jobs/${jobId}/apply`, data),
   getApplications: () => API.get("/provider/applications"),
   getSkillGapReport: () => API.post("/candidate/skill-gap-report"),
+  getBenchmark: (id) => API.get(`/provider/benchmark/${id}`),
 };
 
 // Recruiter APIs
@@ -300,6 +303,7 @@ export const adminAPI = {
   login: (data) => ADMIN_API.post("/admin/login", data),
   getMe: () => ADMIN_API.get("/admin/me"),
   getDashboard: () => ADMIN_API.get("/admin/dashboard"),
+  getHealthMetrics: () => ADMIN_API.get("/admin/health/metrics"),
   getDashboardStats: (params) => ADMIN_API.get("/admin/partners/dashboard/stats", { params }),
   getUsers: (params) => ADMIN_API.get("/admin/users", { params }),
   uploadProviders: (formData) => ADMIN_API.post("/admin/providers/upload", formData, {
@@ -500,6 +504,8 @@ export const searchAPI = {
 
 export const aiAPI = {
   health: () => API.get("/ai/health"),
+  getJobExpiryPrediction: (jobId) => API.get(`/jobs/${jobId}/expiry-prediction`),
+  getRecruiterReputation: (recruiterId) => API.get(`/recruiter/${recruiterId}/reputation`),
 
   profileBuild: (data) => API.post("/ai/profile/build", data),
   profileImprove: (data) => API.post("/ai/profile/improve", data),

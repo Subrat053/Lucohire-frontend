@@ -43,6 +43,7 @@ const navItems = [
   // { label: 'Job Postings', path: '/recruiter/post-job', icon: HiBriefcase },
   { label: 'Job Postings', fallback: 'Job Postings', path: '/recruiter/job-postings', icon: HiBriefcase },
   { label: 'Interested Candidates', fallback: 'Interested Candidates', path: '/recruiter/interested-candidates', icon: HiUsers },
+  { label: 'Recruiter Copilot', fallback: 'Recruiter Copilot', path: '/recruiter/copilot', icon: HiSparkles, badge: 'AI' },
   { label: 'AI Smart Search', fallback: 'AI Smart Search', path: '/recruiter/ai-smart-search', icon: HiSparkles, badge: 'New' },
   // { label: 'Shortlisted Candidates', fallback: 'Shortlisted Candidates', path: '/recruiter/shortlisted-candidates', icon: HiBookmark },
   { label: 'Saved Candidates', fallback: 'Saved Candidates', path: '/recruiter/saved-candidates', icon: HiBookmark },

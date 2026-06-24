@@ -5,6 +5,7 @@ import { providerAPI } from '../../services/api';
 import { getIncomeOpportunities } from '../../services/providerAIService';
 import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import MarketBenchmarkAlert from '../../components/providers/MarketBenchmarkAlert';
 // import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
 import BoostSuggestionCard from '../../components/provider/BoostSuggestionCard';
 import toast from 'react-hot-toast';
@@ -285,9 +286,11 @@ const ProviderDashboard = () => {
           <div className="w-full bg-amber-100 rounded-full h-2.5">
             <div className="bg-amber-500 h-2.5 rounded-full transition-all" style={{ width: `${stats.profileCompletion}%` }}></div>
           </div>
-          <p className="text-sm text-amber-700 mt-2">{t('provider.completeProfileDesc', 'Complete your profile to get more leads and appear in search results.')}</p>
+          <p className="text-gray-600 mt-1">{t('provider.overview', 'Here is an overview of your activity.')}</p>
         </div>
       )}
+
+      {user && user._id && <MarketBenchmarkAlert candidateId={user.providerProfileId || user._id} />}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">

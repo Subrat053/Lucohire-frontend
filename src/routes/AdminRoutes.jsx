@@ -46,6 +46,8 @@ const AdminOtpLogs = lazy(() => import("../pages/admin/OtpLogs"));
 const AdminAiResumeLogs = lazy(() => import("../pages/admin/AiResumeLogs"));
 const AdminCandidateUnlockLogs = lazy(() => import("../pages/admin/CandidateUnlockLogs"));
 const AdminResumeAccessLogs = lazy(() => import("../pages/admin/ResumeAccessLogs"));
+const HealthDashboard = lazy(() => import("../pages/admin/HealthDashboard"));
+const BulkOutreach = lazy(() => import("../components/admin/BulkOutreach"));
 
 function AdminLayoutWrapper({ children }) {
   return (
@@ -111,6 +113,12 @@ export default function AdminRoutes() {
       <Route path="ai-resume-logs" element={wrap(<AdminAiResumeLogs />)} />
       <Route path="candidate-unlock-logs" element={wrap(<AdminCandidateUnlockLogs />)} />
       <Route path="resume-access-logs" element={wrap(<AdminResumeAccessLogs />)} />
+      
+      {/* Engine Control */}
+      <Route path="health" element={wrap(<HealthDashboard />)} />
+      <Route path="outreach" element={wrap(<BulkOutreach />)} />
+
+      <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
   );
 }

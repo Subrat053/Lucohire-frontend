@@ -252,6 +252,20 @@ export default function ProviderSharedProfile() {
               <p className="text-[10px] text-slate-350 leading-relaxed mb-4">
                 This is a secure share link. The candidate's contact information (Email, Mobile, WhatsApp, and Resume PDF) is masked to prevent unauthorized downloads and harvesting.
               </p>
+
+              <div className="space-y-2 mb-4">
+                {profile?.user?.phone || profile?.phone ? (
+                  <div className="flex items-center justify-center gap-2 bg-white/10 text-white/90 py-2 rounded-xl text-xs font-bold font-mono">
+                    <span className="blur-[1px]">{profile?.user?.phone || profile?.phone}</span>
+                  </div>
+                ) : null}
+                
+                {profile?.user?.email || profile?.email ? (
+                  <div className="flex items-center justify-center gap-2 bg-white/10 text-white/90 py-2 rounded-xl text-xs font-bold font-mono">
+                    <span className="blur-[1px]">{profile?.user?.email || profile?.email}</span>
+                  </div>
+                ) : null}
+              </div>
               
               <button 
                 onClick={() => navigate("/")}
