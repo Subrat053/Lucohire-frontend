@@ -23,6 +23,12 @@ const navItems = [
     path: '/provider/grow-with-ai',
     icon: HiSparkles,
   },
+  { 
+    label: 'AI Tips', 
+    fallback: 'AI Tips', 
+    path: '/provider/ai-tips',
+    icon: HiSparkles,
+  },
   { label: 'Jobs for Me', fallback: 'Jobs for Me', path: '/provider/job-for-me',icon: HiBriefcase },
   { label: 'My Plan', fallback: 'My Plan', path: '/provider/my-plan',          icon: HiPhone },
   { label: 'Refer & Earn', fallback: 'Refer & Earn', path: '/provider/referrals', icon: HiPlusCircle },

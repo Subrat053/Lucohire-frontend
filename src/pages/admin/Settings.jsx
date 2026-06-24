@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HiSave, HiRefresh, HiCog, HiPhotograph, HiDocumentText, HiEye, HiEyeOff, HiCloud, HiChip, HiCheckCircle } from 'react-icons/hi';
+import { HiSave, HiRefresh, HiCog, HiPhotograph, HiDocumentText, HiEye, HiEyeOff, HiCloud, HiChip, HiCheckCircle, HiDatabase } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -557,6 +557,8 @@ const AdminSettings = () => {
           )}
         </div>
       )}
+
+      
     </div>
   );
 };

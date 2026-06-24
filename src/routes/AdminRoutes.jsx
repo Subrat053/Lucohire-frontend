@@ -23,6 +23,7 @@ const AdminPlans = lazy(() => import("../pages/admin/Plans"));
 const AdminSettings = lazy(() => import("../pages/admin/Settings"));
 const AdminManagers = lazy(() => import("../pages/admin/Managers"));
 const AdminPayments = lazy(() => import("../pages/admin/Payments"));
+const AdminStagingCandidates = lazy(() => import("../pages/admin/StagingCandidates"));
 const AdminProviderSubscriptions = lazy(() => import("../pages/admin/ProviderSubscriptions"));
 const AdminTerms = lazy(() => import("../pages/admin/Terms"));
 const AdminPrivacy = lazy(() => import("../pages/admin/Privacy"));
@@ -85,6 +86,7 @@ export default function AdminRoutes() {
       <Route path="settings" element={wrap(<AdminSettings />)} />
       <Route path="managers" element={wrap(<AdminManagers />)} />
       <Route path="payments" element={wrap(<AdminPayments />)} />
+      <Route path="staging-candidates" element={wrap(<AdminStagingCandidates />)} />
       <Route path="provider-subscriptions" element={wrap(<AdminProviderSubscriptions />)} />
       <Route path="terms" element={wrap(<AdminTerms />)} />
       <Route path="privacy" element={wrap(<AdminPrivacy />)} />

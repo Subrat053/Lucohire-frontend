@@ -19,6 +19,7 @@ const ProfilePage = lazy(() => import("../pages/ProfilePage"));
 const PendingApproval = lazy(() => import("../pages/PendingApproval"));
 const ExternalMatch = lazy(() => import("../pages/recruiter/ExternalMatch"));
 const ProviderSharedProfile = lazy(() => import("../pages/ProviderSharedProfile"));
+const ClaimProfile = lazy(() => import("../pages/auth/ClaimProfile"));
 
 function MainLayout({ children }) {
   const location = useLocation();
@@ -79,6 +80,9 @@ export default function PublicRoutes() {
       <Route path="pricing" element={wrap(<PricingPage />)} />
       <Route path="about" element={wrap(<AboutPage />)} />
       <Route path="contact" element={wrap(<ContactUs />)} />
+
+      {/* Claim Profile Landings Page */}
+      <Route path="claim-profile/:token" element={wrap(<ClaimProfile />)} />
 
       {/* Protected Shared Pages */}
       <Route path="profile/:id" element={wrap(

@@ -479,6 +479,11 @@ export const adminAPI = {
   createCountryConfig: (data) => ADMIN_API.post("/admin/countries", data),
   updateCountryConfig: (id, data) => ADMIN_API.put(`/admin/countries/${id}`, data),
   deleteCountryConfig: (id) => ADMIN_API.delete(`/admin/countries/${id}`),
+
+  // Scraper Staging Candidates
+  getStagingCandidates: (params) => ADMIN_API.get("/admin/staging-candidates", { params }),
+  updateStagingCandidateToggle: (id, type, value) => ADMIN_API.put(`/admin/staging-candidates/${id}/toggle`, { type, value }),
+
   // =================================================================
 };
 

@@ -21,6 +21,7 @@ const ProviderPayoutSettings = lazy(() => import("../pages/provider/PayoutSettin
 const AddMember = lazy(() => import("../pages/provider/AddMember"));
 const CareerHealthDashboard = lazy(() => import("../pages/provider/CareerHealthDashboard"));
 const GrowWithAIDashboard = lazy(() => import("../pages/provider/GrowWithAIDashboard"));
+const AITips = lazy(() => import("../pages/provider/AITips"));
 
 function ProviderLayoutWrapper({ children }) {
   return (
@@ -65,6 +66,7 @@ export default function ProviderRoutes() {
       
       {/* Grow with AI Routes */}
       <Route path="grow-with-ai" element={wrap(<GrowWithAIDashboard />)} />
+      <Route path="ai-tips" element={wrap(<AITips />)} />
     </Routes>
   );
 }

@@ -59,3 +59,9 @@ export function getJobMatchingEngine(payload) {
   });
 }
 
+export function getAICareerReport(payload) {
+  return API.post('/provider/ai/career-report', payload, {
+    timeout: 90000,
+  });
+}
+
