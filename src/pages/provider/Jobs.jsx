@@ -19,6 +19,7 @@ import {
 import { FaRupeeSign } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { providerAPI, subscriptionAPI } from "../../services/api";
+import { getJobMatchingEngine } from "../../services/providerAIService";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import LocationSearch from "../../components/LocationSearch";
 import RecruiterProfileModal from "../../components/recruiter/RecruiterProfileModal";
@@ -609,6 +610,59 @@ const ProviderJobs = () => {
   const [viewDetailTarget, setViewDetailTarget] = useState(null);
   const [recruiterProfileTarget, setRecruiterProfileTarget] = useState(null);
 
+  const [aiMatchResults, setAiMatchResults] = useState(null);
+  const [isMatchLoading, setIsMatchLoading] = useState(false);
+  const [resumeMissing, setResumeMissing] = useState(false);
+
+  const handleRunAIMatch = async () => {
+    const fileHash = localStorage.getItem('lastResumeHash');
+    if (!fileHash) {
+      setResumeMissing(true);
+      toast.error("Please upload your resume in the Grow with AI tab first!");
+      return;
+    }
+
+    if (jobs.length === 0) {
+      toast.error("No jobs available to analyze.");
+      return;
+    }
+
+    // Check local cache first
+    const currentJobsHash = jobs.map(j => j._id || j.title).join(',');
+    const cachedHash = localStorage.getItem('cachedScrapeJobsHash');
+    if (cachedHash && currentJobsHash === cachedHash) {
+      const cachedData = localStorage.getItem('cachedAiMatchResults');
+      if (cachedData) {
+         setAiMatchResults(JSON.parse(cachedData));
+         toast.success("AI Analysis Complete!");
+         return;
+      }
+    }
+
+    setIsMatchLoading(true);
+    setResumeMissing(false);
+    
+    try {
+      const res = await getJobMatchingEngine({ fileHash, jobs });
+      if (res.data?.success && res.data?.data?.matched_jobs) {
+        setAiMatchResults(res.data.data.matched_jobs);
+        
+        // Save to cache
+        localStorage.setItem('cachedScrapeJobsHash', currentJobsHash);
+        localStorage.setItem('cachedAiMatchResults', JSON.stringify(res.data.data.matched_jobs));
+        
+        toast.success("AI Analysis Complete!");
+      } else {
+        toast.error("Failed to generate AI match analysis.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred during AI analysis.");
+    } finally {
+      setIsMatchLoading(false);
+    }
+  };
+
   const handleRecruiterClick = (id, name) => {
     setRecruiterProfileTarget({ id, name });
   };
@@ -682,8 +736,11 @@ const ProviderJobs = () => {
 
   const handleScrapeMatches = async () => {
     try {
+      // Remove response from UI while refreshing
+      setAiMatchResults(null);
       setScraping(true);
       setLoading(true);
+      
       const res = await providerAPI.scrapeMatches();
       if (res.data?.success) {
         toast.success("Successfully fetched new matches!");
@@ -833,6 +890,102 @@ const ProviderJobs = () => {
 
         {tab === "browse" && (
           <>
+            {/* AI Job Matching Engine Panel */}
+            <div className="bg-indigo-50/50 rounded-2xl border border-indigo-100 p-6 mb-6 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <HiSparkles className="w-24 h-24 text-indigo-500" />
+              </div>
+              <div className="relative z-10">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-indigo-900 flex items-center gap-2">
+                      <HiSparkles className="w-6 h-6 text-indigo-600" />
+                      AI Job Matching Engine
+                    </h2>
+                    <p className="text-sm text-indigo-700 mt-1">
+                      Let our AI analyze your uploaded resume against the top jobs to find your perfect fit and growth potential.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleRunAIMatch}
+                    disabled={isMatchLoading || jobs.length === 0}
+                    className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {isMatchLoading ? (
+                      <>
+                        <HiSparkles className="w-5 h-5 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <HiSparkles className="w-5 h-5" />
+                        Run AI Match
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {resumeMissing && (
+                  <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm flex items-start gap-2">
+                    <HiExclamationCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div>
+                      <strong>Missing Resume:</strong> We couldn't find your resume data. Please go to the 
+                      <Link to="/provider/grow-with-ai" className="font-bold underline ml-1 hover:text-amber-900">Grow with AI</Link> 
+                      {" "}tab to upload or update your resume first.
+                    </div>
+                  </div>
+                )}
+
+                {aiMatchResults && aiMatchResults.length > 0 && (
+                  <div className="mt-6 space-y-4">
+                    <h3 className="font-bold text-gray-800 mb-2">Analysis Results for Top Jobs:</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {aiMatchResults.map((match, idx) => {
+                        const jobData = jobs.find(j => j._id === match.job_id || j.title === match.job_id) || jobs[idx];
+                        if (!jobData) return null;
+                        
+                        return (
+                          <div key={idx} className="bg-white rounded-xl p-4 border border-indigo-50 shadow-sm flex flex-col h-full">
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="font-bold text-gray-900 truncate pr-2">{jobData.title}</h4>
+                              <div className="flex flex-col items-end">
+                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${match.match_score >= 80 ? 'bg-green-100 text-green-700' : match.match_score >= 60 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                                  {match.match_score}% Match
+                                </span>
+                                <span className="text-[10px] text-gray-500 font-medium mt-1 uppercase">Priority: {match.apply_priority}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="text-xs text-gray-600 space-y-2 flex-1">
+                              <p><strong className="text-gray-800">Fit Reason:</strong> {match.fit_reason}</p>
+                              {match.missing_skills?.length > 0 && (
+                                <div>
+                                  <strong className="text-gray-800">Missing Skills:</strong>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {match.missing_skills.map((skill, sIdx) => (
+                                      <span key={sIdx} className="bg-red-50 text-red-600 px-1.5 py-0.5 rounded text-[10px] border border-red-100">{skill}</span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              <p><strong className="text-indigo-800">Growth:</strong> {match.growth_potential}</p>
+                            </div>
+                            
+                            <button
+                              onClick={() => setViewDetailTarget(jobData)}
+                              className="mt-3 w-full py-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition"
+                            >
+                              View Job Details
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Search Bar */}
             <div className="relative">
               <form

@@ -73,6 +73,11 @@ const UpgradeModal = ({ onClose, navigate }) => {
 /* ── Application Card ────────────────────────────────────────────────── */
 const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock }) => {
   const [updating, setUpdating] = useState(false);
+  const [showSkillGap, setShowSkillGap] = useState(false);
+  const [skillGapData, setSkillGapData] = useState(null);
+  const [loadingSkillGap, setLoadingSkillGap] = useState(false);
+  const navigate = useNavigate();
+
   const provider = application.provider;
   const job = application.jobPost;
   const currentStatus = application.status;
@@ -104,6 +109,28 @@ const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock })
       toast.error(err.response?.data?.message || "Failed to delete application");
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleGenerateSkillGap = async () => {
+    if (skillGapData) {
+      setShowSkillGap(!showSkillGap);
+      return;
+    }
+    
+    setLoadingSkillGap(true);
+    setShowSkillGap(true);
+    try {
+      const res = await recruiterAPI.getSkillGap({
+        providerId: provider._id,
+        jobId: job._id
+      });
+      setSkillGapData(res.data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to generate skill gap report');
+      setShowSkillGap(false);
+    } finally {
+      setLoadingSkillGap(false);
     }
   };
 
@@ -215,6 +242,127 @@ const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock })
               <span className="flex items-center gap-1.5 font-medium"><HiMail className="w-4 h-4 text-emerald-500" />{provider.email}</span>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* AI Skill Gap Button */}
+      <div className="pt-2">
+        <button
+          onClick={handleGenerateSkillGap}
+          className={`px-4 py-2 text-xs font-bold rounded-xl border flex items-center justify-center gap-2 transition-all w-full sm:w-auto ${
+            showSkillGap 
+              ? 'bg-purple-50 text-purple-700 border-purple-200'
+              : 'bg-white text-gray-700 border-gray-200 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200'
+          }`}
+        >
+          <HiSparkles className={showSkillGap ? "text-purple-600" : "text-gray-400"} />
+          {showSkillGap ? 'Hide AI Match Analysis' : 'AI Match Analysis'}
+        </button>
+      </div>
+
+      {/* AI Skill Gap Panel */}
+      {showSkillGap && (
+        <div className="p-4 bg-gradient-to-br from-purple-50/50 to-indigo-50/30 border border-purple-100 rounded-xl mt-2 animate-fadeIn space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+              <HiSparkles className="w-4 h-4" />
+            </div>
+            <h4 className="font-bold text-gray-900 text-sm">AI Skill Gap Match</h4>
+          </div>
+
+          {loadingSkillGap ? (
+            <div className="flex flex-col items-center justify-center py-6 text-purple-600 space-y-3">
+              <HiSparkles className="w-8 h-8 animate-pulse opacity-60" />
+              <p className="text-xs font-semibold animate-pulse">Analyzing candidate against Job Description...</p>
+            </div>
+          ) : skillGapData && skillGapData.analysis ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left Column: Score & Matched Skills (Free) */}
+              <div className="space-y-4">
+                <div className="p-4 bg-white rounded-xl border border-purple-100 shadow-sm flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Match Score</p>
+                    <div className="text-2xl font-black text-gray-900">
+                      {skillGapData.analysis.job_match_score || 0}%
+                    </div>
+                  </div>
+                  <div className="w-14 h-14 rounded-full border-4 flex items-center justify-center text-sm font-bold bg-gray-50"
+                    style={{ borderColor: skillGapData.analysis.job_match_score > 70 ? '#10B981' : skillGapData.analysis.job_match_score > 40 ? '#F59E0B' : '#EF4444', color: skillGapData.analysis.job_match_score > 70 ? '#047857' : skillGapData.analysis.job_match_score > 40 ? '#B45309' : '#B91C1C' }}
+                  >
+                    {skillGapData.analysis.job_match_score || 0}%
+                  </div>
+                </div>
+
+                <div className="p-4 bg-white rounded-xl border border-purple-100 shadow-sm">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Matched Skills</p>
+                  <div className="flex flex-wrap gap-2">
+                    {skillGapData.analysis.matched_skills && skillGapData.analysis.matched_skills.length > 0 ? (
+                      skillGapData.analysis.matched_skills.map((s, i) => (
+                        <span key={i} className="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-md text-[10px] font-semibold flex items-center gap-1">
+                          <HiCheckCircle className="w-3 h-3" /> {s}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">No exact matches found.</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Missing Skills & Hiring Path (Premium Locked) */}
+              {!skillGapData.isSubscribed ? (
+                <div className="p-5 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200 shadow-inner flex flex-col items-center justify-center text-center space-y-3 relative overflow-hidden h-full min-h-[160px]">
+                  <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px]"></div>
+                  <div className="relative z-10 space-y-3">
+                    <div className="w-10 h-10 rounded-full bg-white text-gray-400 flex items-center justify-center mx-auto shadow-sm border border-gray-100">
+                      <HiLockClosed className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-800">Detailed Gap Analysis Locked</h4>
+                      <p className="text-[10px] text-gray-500 mt-1 max-w-[200px] mx-auto">Upgrade to view missing critical skills and the fastest hire path for this candidate.</p>
+                    </div>
+                    <button 
+                      onClick={() => navigate('/recruiter/plans')}
+                      className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg text-[10px] font-bold shadow-sm hover:from-purple-700 hover:to-indigo-700 transition"
+                    >
+                      Upgrade Plan
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="p-4 bg-white rounded-xl border border-rose-100 shadow-sm">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Missing Critical Skills</p>
+                    <div className="flex flex-wrap gap-2">
+                      {skillGapData.analysis.missing_critical_skills && skillGapData.analysis.missing_critical_skills.length > 0 ? (
+                        skillGapData.analysis.missing_critical_skills.map((s, i) => (
+                          <span key={i} className="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-md text-[10px] font-semibold flex items-center gap-1">
+                            <HiX className="w-3 h-3" /> {s}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">None! Candidate meets requirements.</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-white rounded-xl border border-indigo-100 shadow-sm">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Fastest Hire Path</p>
+                    <p className="text-xs text-gray-700 leading-relaxed font-medium">
+                      {skillGapData.analysis.fastest_hire_path || "Ready to hire based on matched skills."}
+                    </p>
+                    {skillGapData.analysis.hire_ready_after && (
+                      <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 text-[10px] font-bold">
+                        <HiClock className="w-3 h-3" /> Estimated Readiness: {skillGapData.analysis.hire_ready_after}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+             <div className="text-center py-4 text-xs text-red-500">Failed to load analysis.</div>
+          )}
         </div>
       )}
 

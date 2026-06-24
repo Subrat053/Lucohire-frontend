@@ -147,6 +147,9 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
       
       // Open editable preview before applying, smart merge suggestions with non-empty existing profileContext values
       const rawAi = data.data || {};
+      if (data.fileHash) {
+        localStorage.setItem('lastResumeHash', data.fileHash);
+      }
 
       // 1. Normalize skillLevel
       const rawLevel = rawAi.skillLevel || profileContext.skillTier || 'unskilled';

@@ -24,3 +24,38 @@ export function uploadResume(formData) {
     },
   });
 }
+
+export function getAtsOptimizer(data) {
+  return API.post('/provider/ai/ats-optimizer', data);
+}
+
+export function getCareerHealth(payload) {
+  return API.post('/provider/ai/career-health', payload, {
+    timeout: 60000,
+  });
+}
+
+export function getCareerGPS(payload) {
+  return API.post('/provider/ai/career-gps', payload, {
+    timeout: 60000,
+  });
+}
+
+export function getHiringBarriers(payload) {
+  return API.post('/provider/ai/hiring-barriers', payload, {
+    timeout: 60000,
+  });
+}
+
+export function getSkillGap(payload) {
+  return API.post('/provider/ai/skill-gap', payload, {
+    timeout: 60000,
+  });
+}
+
+export function getJobMatchingEngine(payload) {
+  return API.post('/provider/ai/job-matching-engine', payload, {
+    timeout: 90000,
+  });
+}
+

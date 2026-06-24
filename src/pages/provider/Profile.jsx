@@ -1432,6 +1432,11 @@ const ProviderProfile = () => {
       setEmailOtp("");
       hasInitialized.current = false;
       await fetchProfile();
+
+      if (localStorage.getItem('lastResumeHash')) {
+        // Option to redirect to Career Health Dashboard
+        navigate('/provider/career-health', { state: { parsedData: rawPayload } });
+      }
     } catch (err) {
       if (err.response?.data?.upgradeRequired) {
         toast.error(err.response.data.message);

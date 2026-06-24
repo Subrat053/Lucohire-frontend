@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail, HiLockClosed, HiPlusCircle, HiCreditCard, HiUserAdd
+  HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail, HiLockClosed, HiPlusCircle, HiCreditCard, HiUserAdd, HiSparkles
 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../common/NotificationBell';
@@ -11,6 +11,18 @@ import useTranslation from '../../hooks/useTranslation';
 const navItems = [
   { label: 'Dashboard', fallback: 'Dashboard', path: '/provider/dashboard',      icon: HiTrendingUp },
   { label: 'Profile', fallback: 'Profile', path: '/provider/profile',        icon: HiCog },
+  { 
+    label: 'AI Report', 
+    fallback: 'AI Report', 
+    path: '/provider/career-health',
+    icon: HiTrendingUp,
+  },
+  { 
+    label: 'Grow with AI', 
+    fallback: 'Grow with AI', 
+    path: '/provider/grow-with-ai',
+    icon: HiSparkles,
+  },
   { label: 'Jobs for Me', fallback: 'Jobs for Me', path: '/provider/job-for-me',icon: HiBriefcase },
   { label: 'My Plan', fallback: 'My Plan', path: '/provider/my-plan',          icon: HiPhone },
   { label: 'Refer & Earn', fallback: 'Refer & Earn', path: '/provider/referrals', icon: HiPlusCircle },
@@ -49,25 +61,60 @@ const ProviderLayout = ({ children }) => {
 
       {/* Nav Items */}
       <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
-        {navItems.map(({ label, fallback, path, icon: Icon }) => {
-          const active = location.pathname === path;
+        {navItems.map((item) => {
+          const { label, fallback, path, icon: Icon, subItems } = item;
+          const active = location.pathname === path || (path && location.pathname.startsWith(path + '/')) || (subItems && subItems.some(sub => location.pathname === sub.path));
+
           return (
-            <Link
-              key={path}
-              to={path}
-              onClick={onNavClick}
-              title={collapsed ? label : undefined}
-              className={`flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all group
-                ${active
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }
-                ${collapsed ? 'justify-center' : 'space-x-3'}
-              `}
-            >
-              <Icon className={`w-5 h-5 shrink-0 ${active ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} />
-              {!collapsed && <span>{t(label, fallback)}</span>}
-            </Link>
+            <div key={path || label} className="flex flex-col">
+              {path ? (
+                <Link
+                  to={path}
+                  onClick={onNavClick}
+                  title={collapsed ? label : undefined}
+                  className={`flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all group
+                    ${active && !subItems
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }
+                    ${collapsed ? 'justify-center' : 'space-x-3'}
+                  `}
+                >
+                  <Icon className={`w-5 h-5 shrink-0 ${active && !subItems ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} />
+                  {!collapsed && <span>{t(label, fallback)}</span>}
+                </Link>
+              ) : (
+                <div
+                  title={collapsed ? label : undefined}
+                  className={`flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all group text-gray-800 bg-gray-50
+                    ${collapsed ? 'justify-center' : 'space-x-3'}
+                  `}
+                >
+                  <Icon className="w-5 h-5 shrink-0 text-gray-500" />
+                  {!collapsed && <span className="font-bold">{t(label, fallback)}</span>}
+                </div>
+              )}
+
+              {subItems && !collapsed && (
+                <div className="ml-8 mt-1 space-y-1 flex flex-col">
+                  {subItems.map((sub) => {
+                    const subActive = location.pathname === sub.path;
+                    return (
+                      <Link
+                        key={sub.path}
+                        to={sub.path}
+                        onClick={onNavClick}
+                        className={`text-xs px-3 py-2 rounded-md font-medium transition-colors ${
+                          subActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                        }`}
+                      >
+                        {t(sub.label, sub.fallback)}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>

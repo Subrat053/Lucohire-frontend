@@ -19,6 +19,8 @@ const ReferralManagement = lazy(() => import("../pages/user/ReferralManagement")
 const ProviderWallet = lazy(() => import("../pages/provider/Wallet"));
 const ProviderPayoutSettings = lazy(() => import("../pages/provider/PayoutSettings"));
 const AddMember = lazy(() => import("../pages/provider/AddMember"));
+const CareerHealthDashboard = lazy(() => import("../pages/provider/CareerHealthDashboard"));
+const GrowWithAIDashboard = lazy(() => import("../pages/provider/GrowWithAIDashboard"));
 
 function ProviderLayoutWrapper({ children }) {
   return (
@@ -54,6 +56,15 @@ export default function ProviderRoutes() {
       <Route path="add-member" element={wrap(<AddMember />)} />
       <Route path="wallet" element={wrap(<ProviderWallet />)} />
       <Route path="payout-settings" element={wrap(<ProviderPayoutSettings />)} />
+
+      {/* Career Health Routes */}
+      <Route path="career-health" element={wrap(<CareerHealthDashboard />)} />
+      <Route path="career-health/analytics" element={wrap(<CareerHealthDashboard tab="analytics" />)} />
+      <Route path="career-health/actions" element={wrap(<CareerHealthDashboard tab="actions" />)} />
+      <Route path="career-health/gps" element={wrap(<CareerHealthDashboard tab="gps" />)} />
+      
+      {/* Grow with AI Routes */}
+      <Route path="grow-with-ai" element={wrap(<GrowWithAIDashboard />)} />
     </Routes>
   );
 }

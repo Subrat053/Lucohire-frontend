@@ -284,6 +284,7 @@ export const recruiterAPI = {
   getProviderProfile: (providerId) => API.get(`/recruiter/provider/${providerId}/profile`),
   getApplicationDetails: (applicationId) => API.get(`/recruiter/applications/${applicationId}`),
   getSignedResumeUrl: (candidateId) => API.post(`/candidates/${candidateId}/resume-url`),
+  getSkillGap: (data) => API.post("/recruiter/ai/skill-gap", data),
   // ==================================================================
 };
 
