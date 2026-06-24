@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { HiEye, HiUsers, HiPhone, HiTrendingUp, HiStar, HiClock, HiCheckCircle, HiBell, HiBriefcase, HiDocumentText, HiSparkles, HiLocationMarker } from 'react-icons/hi';
+import { HiEye, HiUsers, HiPhone, HiTrendingUp, HiStar, HiClock, HiCheckCircle, HiBell, HiBriefcase, HiDocumentText, HiSparkles, HiLocationMarker, HiLockClosed, HiArrowRight, HiRefresh } from 'react-icons/hi';
 import { providerAPI } from '../../services/api';
+import { getIncomeOpportunities } from '../../services/providerAIService';
 import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 // import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
@@ -29,6 +30,11 @@ const ProviderDashboard = () => {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [topJobs, setTopJobs] = useState([]);
+
+  // AI-08: Income Opportunities
+  const [incomeLoading, setIncomeLoading] = useState(true);
+  const [incomeData, setIncomeData] = useState(null);
+  const [incomeIsLocked, setIncomeIsLocked] = useState(false);
 
   const loadDashboard = useCallback(async (forceRefresh = false) => {
     const now = Date.now();
@@ -109,6 +115,29 @@ const ProviderDashboard = () => {
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
+
+  // AI-08: Fetch income opportunities on mount
+  useEffect(() => {
+    let cancelled = false;
+    const fetchIncomePaths = async () => {
+      try {
+        setIncomeLoading(true);
+        const res = await getIncomeOpportunities();
+        if (!cancelled && res.data?.success) {
+          setIncomeData(res.data.data);
+          setIncomeIsLocked(res.data.isLocked || false);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('[AI-08] Failed to fetch income opportunities:', err.message);
+        }
+      } finally {
+        if (!cancelled) setIncomeLoading(false);
+      }
+    };
+    fetchIncomePaths();
+    return () => { cancelled = true; };
+  }, []);
 
   const [scraping, setScraping] = useState(false);
 
@@ -280,6 +309,13 @@ const ProviderDashboard = () => {
         ))}
       </div>
 
+      {/* AI-08: Income Opportunities Dashboard */}
+      <IncomeOpportunitiesSection
+        loading={incomeLoading}
+        data={incomeData}
+        isLocked={incomeIsLocked}
+      />
+
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Recent Leads */}
@@ -393,5 +429,186 @@ const ProviderDashboard = () => {
     </div>
   );
 };
+
+// ── AI-08: Income Opportunities Section ──────────────────────────────────────
+
+const PATH_ICONS = {
+  full_time:     { emoji: '🏢', color: 'bg-blue-50 text-blue-700 border-blue-100' },
+  part_time:     { emoji: '⏰', color: 'bg-purple-50 text-purple-700 border-purple-100' },
+  freelance:     { emoji: '💻', color: 'bg-teal-50 text-teal-700 border-teal-100' },
+  contract:      { emoji: '📝', color: 'bg-amber-50 text-amber-700 border-amber-100' },
+  consulting:    { emoji: '🎯', color: 'bg-rose-50 text-rose-700 border-rose-100' },
+  local_service: { emoji: '📍', color: 'bg-green-50 text-green-700 border-green-100' },
+  remote:        { emoji: '🌐', color: 'bg-indigo-50 text-indigo-700 border-indigo-100' },
+};
+
+const PRIORITY_STYLES = {
+  High:   'bg-green-100 text-green-800',
+  Medium: 'bg-amber-100 text-amber-800',
+  Low:    'bg-gray-100 text-gray-600',
+};
+
+function IncomeOpportunitiesSection({ loading, data, isLocked }) {
+  const navigate = useNavigate();
+  const paths = data?.recommended_paths || [];
+
+  // Map path_type → exact JobPost schema enum values
+  // scheduleType: 'one_time' | 'part_time' | 'full_time' | 'flexible' | 'shift'
+  // workMode: 'onsite' | 'remote' | 'hybrid' | 'travel'
+  const PATH_TYPE_HINTS = {
+    full_time:     { scheduleType: 'full_time' },
+    part_time:     { scheduleType: 'part_time' },
+    freelance:     { scheduleType: 'flexible' },
+    contract:      { scheduleType: 'shift' },
+    consulting:    { scheduleType: 'flexible' },
+    local_service: { workMode: 'onsite' },
+    remote:        { workMode: 'remote' },
+  };
+
+  const handleFindJobs = (path) => {
+    navigate('/provider/job-for-me', {
+      state: {
+        fromIncomePath: true,
+        pathType: path.path_type,
+        pathTitle: path.title,
+        ...PATH_TYPE_HINTS[path.path_type],
+      },
+    });
+  };
+
+  // Loading skeleton
+  if (loading) {
+    return (
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-5 bg-gray-200 rounded w-48 animate-pulse" />
+          <div className="h-5 bg-indigo-100 rounded-full w-16 animate-pulse" />
+        </div>
+        <div className="flex gap-4 overflow-x-auto pb-2">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="min-w-[240px] bg-white rounded-2xl border border-gray-100 p-5 animate-pulse space-y-3 flex-shrink-0">
+              <div className="h-8 w-8 bg-gray-200 rounded-xl" />
+              <div className="h-4 bg-gray-200 rounded w-3/4" />
+              <div className="h-3 bg-gray-100 rounded w-full" />
+              <div className="h-3 bg-gray-100 rounded w-5/6" />
+              <div className="h-6 bg-gray-200 rounded-full w-24" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // No data yet (e.g., profile incomplete)
+  if (!data || paths.length === 0) {
+    return (
+      <div className="mb-8 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl border border-indigo-100 p-6">
+        <div className="flex items-center gap-3 mb-2">
+          <HiSparkles className="text-indigo-500 w-5 h-5" />
+          <h2 className="font-bold text-gray-900">Your Income Opportunities</h2>
+          <span className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-semibold">AI</span>
+        </div>
+        <p className="text-sm text-gray-500">
+          Complete your profile with skills and location to get personalized income path recommendations.
+        </p>
+        <Link to="/provider/profile" className="inline-flex items-center gap-1 mt-3 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
+          Complete Profile <HiArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <HiSparkles className="text-indigo-500 w-5 h-5" />
+          <h2 className="font-bold text-gray-900">Your Income Opportunities</h2>
+          <span className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-semibold">AI</span>
+          <span className="text-xs text-gray-400 font-medium">Updated weekly</span>
+        </div>
+        <Link to="/provider/job-for-me" className="text-sm text-indigo-600 hover:underline font-medium">
+          Browse All Jobs →
+        </Link>
+      </div>
+
+      {/* AI Summary */}
+      {data.summary && (
+        <p className="text-sm text-gray-500 mb-4 max-w-2xl">{data.summary}</p>
+      )}
+
+      {/* Cards Row */}
+      <div className="flex gap-4 overflow-x-auto pb-3 -mx-1 px-1">
+        {paths.map((path, idx) => {
+          const meta = PATH_ICONS[path.path_type] || PATH_ICONS.full_time;
+          return (
+            <div
+              key={idx}
+              className="min-w-[240px] max-w-[260px] flex-shrink-0 bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-md transition-shadow group"
+            >
+              {/* Icon + type badge */}
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-10 h-10 ${meta.color} rounded-xl flex items-center justify-center text-lg border`}>
+                  {meta.emoji}
+                </div>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${PRIORITY_STYLES[path.priority] || PRIORITY_STYLES.Medium}`}>
+                  {path.priority}
+                </span>
+              </div>
+
+              {/* Title */}
+              <h3 className="font-bold text-gray-900 text-sm mb-1 leading-tight">{path.title}</h3>
+
+              {/* Reason */}
+              <p className="text-xs text-gray-500 leading-relaxed mb-3 line-clamp-2">{path.reason}</p>
+
+              {/* Weekly earning chip */}
+              {path.weekly_earning_estimate && (
+                <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg px-2.5 py-1 text-xs font-bold mb-3">
+                  💰 {path.weekly_earning_estimate}
+                </div>
+              )}
+
+              {/* Action step */}
+              {path.action_step && (
+                <p className="text-xs text-indigo-600 font-medium leading-snug mb-3">
+                  → {path.action_step}
+                </p>
+              )}
+
+              {/* CTA — navigate with path context so Jobs page can pre-filter */}
+              <button
+                onClick={() => handleFindJobs(path)}
+                className="flex items-center justify-center gap-1 w-full text-xs font-semibold py-2 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors group-hover:bg-indigo-600 group-hover:text-white"
+              >
+                Find Jobs <HiArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          );
+        })}
+
+        {/* Premium lock card — shown only if free tier and there are more paths */}
+        {isLocked && (
+          <div className="min-w-[220px] flex-shrink-0 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-100 p-5 flex flex-col items-center justify-center text-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-md">
+              <HiLockClosed className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-gray-900 text-sm">+4 More Paths</p>
+              <p className="text-xs text-gray-500 mt-1">Upgrade to unlock all income opportunities.</p>
+            </div>
+            <Link
+              to="/provider/plans"
+              className="text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl transition-colors"
+            >
+              Upgrade Plan
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default ProviderDashboard;
