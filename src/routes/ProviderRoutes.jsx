@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import ProviderLayout from "../components/provider/ProviderLayout";
 import Navbar from "../components/common/Navbar";
@@ -39,6 +39,7 @@ function ProviderLayoutWrapper({ children }) {
 
 export default function ProviderRoutes() {
   const wrap = (children) => <ProviderLayoutWrapper>{children}</ProviderLayoutWrapper>;
+  const location = useLocation();
   
   return (
     <Routes>
@@ -51,6 +52,7 @@ export default function ProviderRoutes() {
       <Route path="leads" element={wrap(<ProviderLeads />)} />
       <Route path="history" element={wrap(<ProviderHistory />)} />
       <Route path="job-for-me" element={wrap(<ProviderJobs />)} />
+      <Route path="jobs" element={<Navigate to="/provider/job-for-me" state={location.state} replace />} />
       <Route path="contacted" element={wrap(<ProviderContacted />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />
       <Route path="referrals" element={wrap(<ReferralManagement />)} />

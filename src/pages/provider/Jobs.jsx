@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   HiBriefcase,
   HiLocationMarker,
@@ -597,6 +597,7 @@ const ApplicationsTab = ({ onRecruiterClick }) => {
 
 /* ── Main Page ───────────────────────────────────────────────────────── */
 const ProviderJobs = () => {
+  const location = useLocation();
   const [tab, setTab] = useState("browse"); // 'browse' | 'applications'
   const [jobs, setJobs] = useState([]);
   const [topMatches, setTopMatches] = useState([]);
@@ -613,6 +614,23 @@ const ProviderJobs = () => {
   const [aiMatchResults, setAiMatchResults] = useState(null);
   const [isMatchLoading, setIsMatchLoading] = useState(false);
   const [resumeMissing, setResumeMissing] = useState(false);
+
+  // ── Income Path Filter ──────────────────────────────────────────────
+  // Computed SYNCHRONOUSLY from location.state so the first data-fetch
+  // useEffect already sees the correct value (no async race condition).
+  const navState = location.state;
+  const initialIncomeFilter = (() => {
+    if (!navState?.fromIncomePath) return null;
+    const f = { pathTitle: navState.pathTitle || navState.pathType || 'Related Jobs' };
+    if (navState.scheduleType) f.scheduleType = navState.scheduleType;
+    if (navState.workMode) f.workMode = navState.workMode;
+    return f;
+  })();
+  const [incomePathFilter, setIncomePathFilter] = useState(initialIncomeFilter);
+  const [incomePathBanner, setIncomePathBanner] = useState(
+    navState?.fromIncomePath ? (navState.pathTitle || 'Income Path Jobs') : null
+  );
+
 
   const handleRunAIMatch = async () => {
     const fileHash = localStorage.getItem('lastResumeHash');
@@ -719,6 +737,9 @@ const ProviderJobs = () => {
         } else {
           if (search.skill) params.skill = search.skill;
           if (search.city) params.city = search.city;
+          // Apply income path type filters when navigated from Dashboard cards
+          if (incomePathFilter?.scheduleType) params.scheduleType = incomePathFilter.scheduleType;
+          if (incomePathFilter?.workMode) params.workMode = incomePathFilter.workMode;
           const { data } = await providerAPI.getJobs(params);
           setJobs(data.jobs || []);
           setPagination(data.pagination || { page: 1, pages: 1, total: 0 });
@@ -729,7 +750,7 @@ const ProviderJobs = () => {
         setLoading(false);
       }
     },
-    [search, userCoords, radius, nearbyOnly],
+    [search, userCoords, radius, nearbyOnly, incomePathFilter],
   );
 
   const [scraping, setScraping] = useState(false);
@@ -762,6 +783,9 @@ const ProviderJobs = () => {
       if (userCoords) {
         fetchJobs(1, radius, nearbyOnly);
       }
+    } else if (incomePathFilter) {
+      // Navigated from Dashboard income path card — fetch by scheduleType/workMode
+      fetchJobs(1, radius, nearbyOnly);
     } else if (search.skill || search.city) {
       fetchJobs(1, radius, nearbyOnly);
     } else {
@@ -784,10 +808,12 @@ const ProviderJobs = () => {
           setLoading(false);
         });
     }
-  }, [search, fetchJobs, nearbyOnly, userCoords, radius]);
+  }, [search, fetchJobs, nearbyOnly, userCoords, radius, incomePathFilter]);
 
   // Run a fresh scrape automatically on page load in the background
+  // Skipped if an income path filter is active (it would overwrite filtered results)
   useEffect(() => {
+    if (incomePathFilter) return; // don't override filtered results
     providerAPI
       .scrapeMatches()
       .then((res) => {
@@ -799,7 +825,7 @@ const ProviderJobs = () => {
         }
       })
       .catch((err) => console.error("Auto-scrape failed", err));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     subscriptionAPI
@@ -890,6 +916,29 @@ const ProviderJobs = () => {
 
         {tab === "browse" && (
           <>
+            {/* Income Path Context Banner — shown when arriving from Dashboard income cards */}
+            {incomePathBanner && (
+              <div className="flex items-center justify-between bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-xl px-4 py-3 mb-4 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <HiSparkles className="w-4 h-4 text-indigo-500 shrink-0" />
+                  <span className="text-sm text-indigo-800 font-medium">
+                    Showing jobs related to: <strong>{incomePathBanner}</strong>
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    setIncomePathBanner(null);
+                    setIncomePathFilter(null);
+                    setSearch({ skill: "", city: "" });
+                    setFilters({ skill: "", city: "" });
+                  }}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold ml-3 shrink-0 flex items-center gap-1"
+                >
+                  <HiX className="w-3.5 h-3.5" /> Clear filter
+                </button>
+              </div>
+            )}
+
             {/* AI Job Matching Engine Panel */}
             <div className="bg-indigo-50/50 rounded-2xl border border-indigo-100 p-6 mb-6 shadow-sm relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-10">

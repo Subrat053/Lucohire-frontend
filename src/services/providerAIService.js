@@ -65,3 +65,8 @@ export function getAICareerReport(payload) {
   });
 }
 
+export function getIncomeOpportunities() {
+  return API.post('/provider/ai/income-opportunities', {}, {
+    timeout: 60000,
+  });
+}

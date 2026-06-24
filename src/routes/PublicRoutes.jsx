@@ -33,6 +33,7 @@ function MainLayout({ children }) {
     "/provider/leads",
     "/provider/history",
     "/provider/job-for-me",
+    "/provider/jobs",
     "/provider/contacted",
     "/provider/change-password",
     "/provider/referrals",
