@@ -184,6 +184,7 @@ export const authAPI = {
 
 export const userAPI = {
   updateLanguage: (data) => API.put("/user/language", data),
+  eraseAccount: () => API.delete("/user/profile/erase"),
 };
 
 // Provider APIs

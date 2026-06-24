@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { authAPI, providerAPI, aiAPI, profileShareAPI } from "../../services/api";
+import { authAPI, providerAPI, aiAPI, profileShareAPI, userAPI } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import RouteLoader from "../../components/common/RouteLoader";
 import toast from "react-hot-toast";
@@ -435,6 +435,9 @@ const ProviderProfile = () => {
   const [coverageUpgradeLoading, setCoverageUpgradeLoading] = useState(false);
   const [showResumeGenerator, setShowResumeGenerator] = useState(false);
   const [isSkillGapModalOpen, setIsSkillGapModalOpen] = useState(false);
+  const [showErasureModal, setShowErasureModal] = useState(false);
+  const [erasureConsent, setErasureConsent] = useState(false);
+  const [isErasing, setIsErasing] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -1278,6 +1281,26 @@ const ProviderProfile = () => {
       toast.success("Photo removed");
     } catch {
       toast.error("Failed to remove photo from server");
+    }
+  };
+
+  const handleEraseAccount = async () => {
+    if (!erasureConsent) {
+      toast.error("Please accept the terms to proceed with deletion.");
+      return;
+    }
+    try {
+      setIsErasing(true);
+      const res = await userAPI.eraseAccount();
+      if (res.data.success) {
+        toast.success("Account permanently erased.");
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1500);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to erase account");
+      setIsErasing(false);
     }
   };
 
@@ -2685,6 +2708,18 @@ const ProviderProfile = () => {
               </div>
             </div>
 
+            {/* Erasure Action */}
+            <div className="mt-12 mb-4 max-w-7xl mx-auto flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowErasureModal(true)}
+                className="rounded-2xl bg-[linear-gradient(180deg,#fca5a5_0%,#ef4444_45%,#991b1b_100%)] bg-size-[100%_200%] animate-[gradient_5s_ease_infinite] px-6 py-3 text-white font-bold border border-red-300/30 shadow-[0_0_20px_rgba(248,113,113,0.45),0_0_40px_rgba(153,27,27,0.35)] hover:shadow-[0_0_30px_rgba(248,113,113,0.7),0_0_60px_rgba(153,27,27,0.55)] hover:scale-[1.03] hover:brightness-110 transition-all duration-300 flex items-center justify-center gap-2 text-xs"
+              >
+                <Trash2 className="w-4 h-4 text-white" />
+                Remove My Profile Permanently from Lucohire network
+              </button>
+            </div>
+
             {/* Premium feature benefit icons */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-t border-slate-100/60">
               <div className="flex flex-col items-center text-center p-4 bg-white rounded-2xl border border-slate-100 shadow-xs">
@@ -2805,6 +2840,76 @@ const ProviderProfile = () => {
                     </>
                   ) : (
                     <span>Confirm</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Erasure Modal */}
+      {showErasureModal && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-red-100 animate-fadeIn">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                <ShieldAlert className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-black text-slate-800 mb-2">Permanent Data Erasure</h3>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed mb-6">
+                This action is irreversible. All your data, including profiles, matches, leads, jobs, resumes, and communications, will be wiped out.
+              </p>
+
+              <div className="w-full bg-red-50 p-4 rounded-xl text-left border border-red-100 mb-6 space-y-3">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                  <span className="text-xs font-semibold text-red-800">All data removed. No backup available.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                  <span className="text-xs font-semibold text-red-800">No storage maintained on our servers.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                  <span className="text-xs font-semibold text-red-800">Lucohire is not responsible for data loss.</span>
+                </div>
+              </div>
+
+              <label className="flex items-start gap-3 w-full mb-6 cursor-pointer group text-left">
+                <input
+                  type="checkbox"
+                  checked={erasureConsent}
+                  onChange={(e) => setErasureConsent(e.target.checked)}
+                  className="mt-1 shrink-0 cursor-pointer rounded text-red-600 focus:ring-red-500"
+                />
+                <span className="text-[11px] text-slate-600 font-medium select-none group-hover:text-slate-800 transition-colors leading-tight">
+                  I understand that clicking confirm will permanently wipe out all my data from the Lucohire network immediately for legal compliance.
+                </span>
+              </label>
+
+              <div className="flex gap-3 w-full">
+                <button
+                  type="button"
+                  onClick={() => setShowErasureModal(false)}
+                  disabled={isErasing}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs transition active:scale-95 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEraseAccount}
+                  disabled={!erasureConsent || isErasing}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl shadow-[0_4px_10px_rgba(220,38,38,0.3)] transition active:scale-95 disabled:opacity-50 disabled:pointer-events-none text-xs flex items-center justify-center gap-1.5"
+                >
+                  {isErasing ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Erasing...</span>
+                    </>
+                  ) : (
+                    <span>Confirm Deletion</span>
                   )}
                 </button>
               </div>
