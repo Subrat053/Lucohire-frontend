@@ -1,128 +1,50 @@
-import { useEffect, useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
-import { adminAPI, aiAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { HiEye, HiChevronLeft, HiChevronRight, HiX } from 'react-icons/hi';
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { adminAPI } from "../../services/api";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import {
+  HiEye,
+  HiRefresh,
+  HiCheckCircle,
+  HiXCircle,
+  HiExclamationCircle,
+  HiDocumentText,
+  HiAdjustments,
+  HiChartBar,
+} from "react-icons/hi";
 
-const MATCH_FIELDS = [
-  { key: 'skillMatch', label: 'Skill Match' },
-  { key: 'locationDistance', label: 'Location Distance' },
-  { key: 'availability', label: 'Availability' },
-  { key: 'trustRating', label: 'Trust Rating' },
-  { key: 'responseSpeed', label: 'Response Speed' },
-  { key: 'subscriptionBoost', label: 'Subscription Boost' },
-  { key: 'leadFreshness', label: 'Lead Freshness' },
-  { key: 'profileCompleteness', label: 'Profile Completeness' },
+const MODELS = [
+  { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash (Default Free)" },
+  { value: "gemini-1.5-flash-lite", label: "Gemini 1.5 Flash-Lite (Low Cost)" },
+  { value: "gpt-4o-mini", label: "GPT-4o-mini (Low Cost)" },
+  { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet (Premium)" },
+  { value: "gpt-4o", label: "GPT-4o (Premium)" },
 ];
 
-const TRUST_FIELDS = [
-  { key: 'rating', label: 'Rating' },
-  { key: 'responseTime', label: 'Response Time' },
-  { key: 'profileCompleteness', label: 'Profile Completeness' },
-  { key: 'rejectionRate', label: 'Rejection Rate' },
-  { key: 'verificationStatus', label: 'Verification Status' },
-  { key: 'fraudPenalty', label: 'Fraud Penalty' },
+const FEATURES = [
+  { value: "resume_parser", label: "Resume Parser" },
+  { value: "ats_score", label: "ATS Score" },
+  { value: "job_match", label: "Job Match" },
+  { value: "premium_skill_gap", label: "Premium Skill Gap" },
+  { value: "career_gps", label: "Career GPS" },
 ];
-
-const FEATURE_FIELDS = [
-  { key: 'aiEnabled', label: 'Global AI Enabled' },
-  { key: 'chatEnabled', label: 'Chat Assistant' },
-  { key: 'profileEnabled', label: 'Profile Builder' },
-  { key: 'embeddingsEnabled', label: 'Vector Embeddings' },
-  { key: 'ocrEnabled', label: 'OCR Verification' },
-  { key: 'fraudEnabled', label: 'Fraud Detection / AI Review' },
-];
-
 
 const DEFAULT_PROMPT_FORM = {
-  key: '',
-  role: 'system',
-  template: '',
+  feature_name: "",
+  description: "",
+  role: "system",
+  prompt_template: "",
+  model_name: "gemini-1.5-flash",
   temperature: 0.2,
-  maxTokens: 700,
+  maxTokens: 800,
+  is_active: true,
 };
 
-const DEFAULT_SYNONYM_FORM = {
-  canonicalSkillId: '',
-  label: '',
-  normalizedLabel: '',
-  locale: 'en',
-  status: 'active',
-};
-
-const OCR_TEST_OPTIONS = [
-  { value: 'text', label: 'OCR Text' },
-  { value: 'document', label: 'OCR Document' },
-  { value: 'labels', label: 'Label Detection' },
-];
-
-const toInputValueMap = (fields, source = {}) => {
-  const output = {};
-  fields.forEach((field) => {
-    output[field.key] = source[field.key] !== null && source[field.key] !== undefined
-      ? String(source[field.key])
-      : '';
-  });
-  return output;
-};
-
-const toNumericPayload = (source = {}) => {
-  const output = {};
-  Object.entries(source).forEach(([key, value]) => {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) {
-      output[key] = parsed;
-    }
-  });
-  return output;
-};
-
-const extractSkillOptions = (payload = {}) => {
-  const categories = payload.categories || payload.items || payload.data || [];
-  if (!Array.isArray(categories)) return [];
-
-  const options = [];
-  categories.forEach((category) => {
-    const skills = Array.isArray(category.skills) ? category.skills : [];
-    skills.forEach((skill) => {
-      if (!skill?._id) return;
-      options.push({
-        id: String(skill._id),
-        label: `${skill.name || 'Unnamed'} (${category.name || 'Category'})`,
-      });
-    });
-  });
-
-  return options;
-};
-
-const formatFileSize = (bytes = 0) => {
-  const size = Number(bytes || 0);
-  if (!Number.isFinite(size) || size <= 0) return '0 KB';
-  if (size < 1024) return `${size} B`;
-  if (size < (1024 * 1024)) return `${(size / 1024).toFixed(1)} KB`;
-  return `${(size / (1024 * 1024)).toFixed(2)} MB`;
-};
-
-const AdminAIControlCenter = () => {
+const AIControlCenter = () => {
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState("telemetry");
 
-  const [matchWeights, setMatchWeights] = useState(toInputValueMap(MATCH_FIELDS));
-  const [trustWeights, setTrustWeights] = useState(toInputValueMap(TRUST_FIELDS));
-  const [featureSettings, setFeatureSettings] = useState(toInputValueMap(FEATURE_FIELDS));
-
-
-  const [promptTemplates, setPromptTemplates] = useState([]);
-  const [promptForm, setPromptForm] = useState(DEFAULT_PROMPT_FORM);
-  const [editingPromptId, setEditingPromptId] = useState('');
-
-  const [skillOptions, setSkillOptions] = useState([]);
-  const [skillSynonyms, setSkillSynonyms] = useState([]);
-  const [synonymForm, setSynonymForm] = useState(DEFAULT_SYNONYM_FORM);
-
-  const [fraudQueue, setFraudQueue] = useState([]);
-  const [ocrQueue, setOcrQueue] = useState([]);
+  // Telemetry states
   const [usageSummary, setUsageSummary] = useState({
     totalRequests: 0,
     totalCostUsd: 0,
@@ -132,1030 +54,767 @@ const AdminAIControlCenter = () => {
   const [usageByFeature, setUsageByFeature] = useState([]);
   const [demandSnapshots, setDemandSnapshots] = useState([]);
 
-  // Telemetry Log States
-  const [logs, setLogs] = useState([]);
-  const [logsTotal, setLogsTotal] = useState(0);
-  const [logsPage, setLogsPage] = useState(1);
-  const [logsPages, setLogsPages] = useState(1);
-  const [logsLoading, setLogsLoading] = useState(false);
-  const [logFilterFeature, setLogFilterFeature] = useState('');
-  const [logFilterStatus, setLogFilterStatus] = useState('');
-  const [logFilterRole, setLogFilterRole] = useState('');
-  const [selectedLog, setSelectedLog] = useState(null);
+  // Prompt Templates states
+  const [promptTemplates, setPromptTemplates] = useState([]);
+  const [editingPrompt, setEditingPrompt] = useState(null);
+  const [promptForm, setPromptForm] = useState(DEFAULT_PROMPT_FORM);
 
-  const fetchLogs = async (page = 1) => {
-    setLogsLoading(true);
+  // Auditing states
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditPages, setAuditPages] = useState(1);
+  const [auditFeature, setAuditFeature] = useState("");
+  const [auditStatus, setAuditStatus] = useState("");
+  const [selectedAudit, setSelectedAudit] = useState(null);
+  const [rerunningIds, setRerunningIds] = useState(new Set());
+
+  const fetchTelemetry = async () => {
     try {
-      const { data } = await adminAPI.getAIUsageLogs({
-        page,
-        limit: 15,
-        feature: logFilterFeature || undefined,
-        status: logFilterStatus || undefined,
-        role: logFilterRole || undefined,
-      });
-      if (data?.success) {
-        setLogs(data.items || []);
-        setLogsTotal(data.total || 0);
-        setLogsPage(data.page || 1);
-        setLogsPages(data.pages || 1);
-      }
-    } catch (error) {
-      console.error('Failed to load AI usage logs', error);
-    } finally {
-      setLogsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLogs(1);
-  }, [logFilterFeature, logFilterStatus, logFilterRole]);
-
-  const [ocrTestType, setOcrTestType] = useState('text');
-  const [ocrTestFile, setOcrTestFile] = useState(null);
-  const [ocrTesting, setOcrTesting] = useState(false);
-  const [ocrTestResult, setOcrTestResult] = useState(null);
-  const [ocrTestError, setOcrTestError] = useState('');
-
-  const activePrompt = useMemo(
-    () => promptTemplates.find((item) => item._id === editingPromptId) || null,
-    [promptTemplates, editingPromptId]
-  );
-
-  const fetchAll = async (silent = false) => {
-    try {
-      if (silent) setRefreshing(true);
-      else setLoading(true);
-
-      const [
-        matchRes,
-        trustRes,
-        promptRes,
-        synonymRes,
-        fraudRes,
-        ocrRes,
-        usageRes,
-        demandRes,
-        skillsRes,
-        featureRes,
-      ] = await Promise.all([
-        adminAPI.getAIMatchWeights(),
-        adminAPI.getAITrustWeights(),
-        adminAPI.getPromptTemplates(),
-        adminAPI.getSkillSynonyms(),
-        adminAPI.getFraudQueue(),
-        adminAPI.getOcrReviewQueue(),
+      const [usageRes, demandRes] = await Promise.all([
         adminAPI.getAIUsageDashboard(),
         adminAPI.getDemandSnapshots(),
-        adminAPI.getSkillCategories(),
-        adminAPI.getAIFeatureSettings(),
       ]);
-
-      setMatchWeights(toInputValueMap(MATCH_FIELDS, matchRes.data?.weights || {}));
-      setTrustWeights(toInputValueMap(TRUST_FIELDS, trustRes.data?.weights || {}));
-      setFeatureSettings(toInputValueMap(FEATURE_FIELDS, featureRes.data?.settings || {}));
-
-      setPromptTemplates(promptRes.data?.items || []);
-      setSkillSynonyms(synonymRes.data?.items || []);
-      setFraudQueue(fraudRes.data?.items || []);
-      setOcrQueue(ocrRes.data?.items || []);
       setUsageSummary(usageRes.data?.summary || usageSummary);
       setUsageByFeature(usageRes.data?.byFeature || []);
       setDemandSnapshots(demandRes.data?.items || []);
-      setSkillOptions(extractSkillOptions(skillsRes.data || {}));
-      
-      // Load recent logs
-      fetchLogs(1);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to load AI control center');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    } catch (err) {
+      console.error("Failed to load telemetry", err);
     }
+  };
+
+  const fetchPromptTemplates = async () => {
+    try {
+      const res = await adminAPI.getPromptTemplates();
+      setPromptTemplates(res.data?.items || []);
+    } catch (err) {
+      console.error("Failed to load prompt templates", err);
+    }
+  };
+
+  const fetchAuditLogs = async (page = 1) => {
+    try {
+      const res = await adminAPI.getAiAnalysisResults({
+        page,
+        limit: 15,
+        feature_name: auditFeature || undefined,
+        status: auditStatus || undefined,
+      });
+      if (res.data?.success) {
+        setAuditLogs(res.data.items || []);
+        setAuditTotal(res.data.total || 0);
+        setAuditPage(res.data.page || 1);
+        setAuditPages(res.data.pages || 1);
+      }
+    } catch (err) {
+      console.error("Failed to load audit logs", err);
+    }
+  };
+
+  const loadAll = async () => {
+    setLoading(true);
+    await Promise.all([fetchTelemetry(), fetchPromptTemplates(), fetchAuditLogs(1)]);
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchAll();
+    loadAll();
   }, []);
 
-  const saveMatchWeights = async () => {
-    try {
-      await adminAPI.updateAIMatchWeights(toNumericPayload(matchWeights));
-      toast.success('Match weights updated');
-      fetchAll(true);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update match weights');
-    }
-  };
+  useEffect(() => {
+    fetchAuditLogs(1);
+  }, [auditFeature, auditStatus]);
 
-  const saveTrustWeights = async () => {
-    try {
-      await adminAPI.updateAITrustWeights(toNumericPayload(trustWeights));
-      toast.success('Trust weights updated');
-      fetchAll(true);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update trust weights');
-    }
-  };
-
-  const saveFeatureSettings = async () => {
-    try {
-      await adminAPI.updateAIFeatureSettings(toNumericPayload(featureSettings));
-      toast.success('AI feature settings updated');
-      fetchAll(true);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update feature settings');
-    }
-  };
-
-
-  const submitPrompt = async (event) => {
-    event.preventDefault();
-    try {
-      const payload = {
-        ...promptForm,
-        temperature: Number(promptForm.temperature),
-        maxTokens: Number(promptForm.maxTokens),
-      };
-
-      if (editingPromptId) {
-        await adminAPI.updatePromptTemplate(editingPromptId, payload);
-        toast.success('Prompt template updated');
-      } else {
-        await adminAPI.createPromptTemplate(payload);
-        toast.success('Prompt template created');
-      }
-
-      setPromptForm(DEFAULT_PROMPT_FORM);
-      setEditingPromptId('');
-      fetchAll(true);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save prompt template');
-    }
-  };
-
-  const editPrompt = (item) => {
-    setEditingPromptId(item._id);
+  const handleEditPrompt = (template) => {
+    setEditingPrompt(template);
     setPromptForm({
-      key: item.key || '',
-      role: item.role || 'system',
-      template: item.template || '',
-      temperature: Number(item.temperature || 0.2),
-      maxTokens: Number(item.maxTokens || 700),
+      feature_name: template.feature_name || template.key || "",
+      description: template.description || "",
+      role: template.role || "system",
+      prompt_template: template.prompt_template || template.template || "",
+      model_name: template.model_name || "gemini-1.5-flash",
+      temperature: template.temperature ?? 0.2,
+      maxTokens: template.maxTokens ?? 800,
+      is_active: template.is_active ?? template.isActive ?? true,
     });
   };
 
-  const submitSynonym = async (event) => {
-    event.preventDefault();
-    try {
-      await adminAPI.createSkillSynonym({
-        ...synonymForm,
-        normalizedLabel: synonymForm.normalizedLabel || synonymForm.label,
-      });
-      toast.success('Skill synonym added');
-      setSynonymForm(DEFAULT_SYNONYM_FORM);
-      fetchAll(true);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add skill synonym');
-    }
+  const handleCancelEdit = () => {
+    setEditingPrompt(null);
+    setPromptForm(DEFAULT_PROMPT_FORM);
   };
 
-  const updateSynonymStatus = async (id, status) => {
+  const handleSavePrompt = async (e) => {
+    e.preventDefault();
     try {
-      await adminAPI.updateSkillSynonym(id, { status });
-      toast.success('Synonym updated');
-      fetchAll(true);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update synonym');
-    }
-  };
-
-  const removeSynonym = async (id) => {
-    if (!window.confirm('Delete this synonym?')) return;
-    try {
-      await adminAPI.deleteSkillSynonym(id);
-      toast.success('Synonym deleted');
-      fetchAll(true);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete synonym');
-    }
-  };
-
-  const takeOcrAction = async (id, status) => {
-    try {
-      await adminAPI.updateOcrReviewDecision(id, {
-        status,
-        reasons: [`Decision set from admin UI: ${status}`],
-      });
-      toast.success(`OCR decision updated: ${status}`);
-      fetchAll(true);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update OCR decision');
-    }
-  };
-
-  const runOcrTest = async (event) => {
-    event.preventDefault();
-
-    if (!ocrTestFile) {
-      toast.error('Please choose an image file to scan.');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('image', ocrTestFile);
-
-    setOcrTesting(true);
-    setOcrTestError('');
-    setOcrTestResult(null);
-
-    try {
-      let response;
-      if (ocrTestType === 'document') {
-        response = await aiAPI.ocrDocument(formData);
-      } else if (ocrTestType === 'labels') {
-        response = await aiAPI.ocrLabels(formData);
+      if (editingPrompt) {
+        await adminAPI.updatePromptTemplate(editingPrompt._id, promptForm);
+        toast.success("Prompt template updated successfully!");
       } else {
-        response = await aiAPI.ocrText(formData);
+        await adminAPI.createPromptTemplate(promptForm);
+        toast.success("Prompt template created successfully!");
       }
-
-      setOcrTestResult(response.data?.data || {});
-      toast.success('OCR scan completed successfully.');
-    } catch (error) {
-      const message = error.response?.data?.message || 'OCR scan failed';
-      setOcrTestError(message);
-      toast.error(message);
-    } finally {
-      setOcrTesting(false);
+      handleCancelEdit();
+      fetchPromptTemplates();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to save template");
     }
+  };
+
+  const handleRerun = async (audit) => {
+    if (rerunningIds.has(audit._id)) return;
+
+    setRerunningIds((prev) => {
+      const next = new Set(prev);
+      next.add(audit._id);
+      return next;
+    });
+
+    const loadId = toast.loading("Bypassing cache and re-running AI analysis...");
+    try {
+      const res = await adminAPI.rerunAiAnalysis({ analysisId: audit._id });
+      if (res.data?.success) {
+        toast.success("Analysis completed successfully!", { id: loadId });
+        fetchAuditLogs(auditPage);
+        fetchTelemetry();
+      } else {
+        toast.error(res.data?.message || "Re-run analysis failed", { id: loadId });
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Re-run analysis failed", { id: loadId });
+    } finally {
+      setRerunningIds((prev) => {
+        const next = new Set(prev);
+        next.delete(audit._id);
+        return next;
+      });
+    }
+  };
+
+  const calculateCacheSavings = () => {
+    return (usageByFeature.reduce((acc, curr) => acc + (curr.requests || 0), 0) * 0.0005).toFixed(4);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading AI control center..." />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900">
+        <LoadingSpinner size="lg" text="Loading AI Operations Control Center..." />
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">AI Operations Center</h1>
-          <p className="text-gray-500 mt-1">Manage weights, prompts, review queues, and usage telemetry.</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => fetchAll(true)}
-          disabled={refreshing}
-          className="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
-        >
-          {refreshing ? 'Refreshing...' : 'Refresh'}
-        </button>
-      </div>
-
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-gray-100 bg-white p-4">
-          <p className="text-xs text-gray-500">AI Requests</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{Number(usageSummary.totalRequests || 0).toLocaleString()}</p>
-        </div>
-        <div className="rounded-2xl border border-gray-100 bg-white p-4">
-          <p className="text-xs text-gray-500">AI Cost (USD)</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">${Number(usageSummary.totalCostUsd || 0).toFixed(4)}</p>
-        </div>
-        <div className="rounded-2xl border border-gray-100 bg-white p-4">
-          <p className="text-xs text-gray-500">Token Volume</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{Number(usageSummary.totalTokens || 0).toLocaleString()}</p>
-        </div>
-        <div className="rounded-2xl border border-gray-100 bg-white p-4">
-          <p className="text-xs text-gray-500">Avg Latency</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{Math.round(Number(usageSummary.avgLatencyMs || 0))} ms</p>
-        </div>
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-6">
-        <section className="rounded-2xl border border-gray-100 bg-white p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Match Weights</h2>
-            <button type="button" onClick={saveMatchWeights} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm">Save</button>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {MATCH_FIELDS.map((field) => (
-              <label key={field.key} className="text-sm text-gray-600">
-                {field.label}
-                <input
-                  type="number"
-                  value={matchWeights[field.key]}
-                  onChange={(e) => setMatchWeights((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                  className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-xl"
-                />
-              </label>
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-gray-100 bg-white p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Trust Weights</h2>
-            <button type="button" onClick={saveTrustWeights} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm">Save</button>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {TRUST_FIELDS.map((field) => (
-              <label key={field.key} className="text-sm text-gray-600">
-                {field.label}
-                <input
-                  type="number"
-                  value={trustWeights[field.key]}
-                  onChange={(e) => setTrustWeights((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                  className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-xl"
-                />
-              </label>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <section className="rounded-2xl border border-gray-100 bg-white p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">AI Feature Toggles</h2>
-          <button type="button" onClick={saveFeatureSettings} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm">Save</button>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {FEATURE_FIELDS.map((field) => (
-            <div key={field.key} className="flex flex-col gap-2 p-3 border border-gray-100 rounded-xl bg-gray-50/50">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{field.label}</span>
-              <div className="flex items-center justify-between mt-1">
-                <span className={`text-xs font-bold ${featureSettings[field.key] === '1' ? 'text-green-600' : 'text-red-500'}`}>
-                  {featureSettings[field.key] === '1' ? 'ENABLED' : 'DISABLED'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setFeatureSettings((prev) => ({ ...prev, [field.key]: prev[field.key] === '1' ? '0' : '1' }))}
-                  className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${featureSettings[field.key] === '1' ? 'bg-indigo-600' : 'bg-gray-300'}`}
-                >
-                  <span className={`block w-3.5 h-3.5 bg-white rounded-full shadow absolute top-0.75 transition-transform duration-200 ${featureSettings[field.key] === '1' ? 'translate-x-5.5' : 'translate-x-1'}`} />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="grid lg:grid-cols-2 gap-6">
-        <section className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Prompt Templates</h2>
-
-
-          <form onSubmit={submitPrompt} className="space-y-3">
-            <div className="grid sm:grid-cols-2 gap-3">
-              <input
-                value={promptForm.key}
-                onChange={(e) => setPromptForm((prev) => ({ ...prev, key: e.target.value }))}
-                placeholder="Template key"
-                className="px-3 py-2 border border-gray-200 rounded-xl"
-                required
-              />
-              <select
-                value={promptForm.role}
-                onChange={(e) => setPromptForm((prev) => ({ ...prev, role: e.target.value }))}
-                className="px-3 py-2 border border-gray-200 rounded-xl"
-              >
-                <option value="system">system</option>
-                <option value="provider">provider</option>
-                <option value="recruiter">recruiter</option>
-                <option value="admin">admin</option>
-              </select>
-            </div>
-
-            <textarea
-              value={promptForm.template}
-              onChange={(e) => setPromptForm((prev) => ({ ...prev, template: e.target.value }))}
-              placeholder="Prompt template text"
-              rows={6}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl"
-              required
-            />
-
-            <div className="grid sm:grid-cols-2 gap-3">
-              <label className="text-sm text-gray-600">
-                Temperature
-                <input
-                  type="number"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={promptForm.temperature}
-                  onChange={(e) => setPromptForm((prev) => ({ ...prev, temperature: e.target.value }))}
-                  className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-xl"
-                />
-              </label>
-              <label className="text-sm text-gray-600">
-                Max Tokens
-                <input
-                  type="number"
-                  min="32"
-                  value={promptForm.maxTokens}
-                  onChange={(e) => setPromptForm((prev) => ({ ...prev, maxTokens: e.target.value }))}
-                  className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-xl"
-                />
-              </label>
-            </div>
-
-            <div className="flex gap-2">
-              <button type="submit" className="px-4 py-2 rounded-xl bg-indigo-600 text-white">
-                {editingPromptId ? 'Update Template' : 'Create Template'}
-              </button>
-              {editingPromptId && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingPromptId('');
-                    setPromptForm(DEFAULT_PROMPT_FORM);
-                  }}
-                  className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700"
-                >
-                  Cancel Edit
-                </button>
-              )}
-            </div>
-          </form>
-
-          <div className="mt-5 space-y-2 max-h-72 overflow-auto pr-1">
-            {promptTemplates.map((item) => (
-              <button
-                key={item._id}
-                type="button"
-                onClick={() => editPrompt(item)}
-                className={`w-full text-left border rounded-xl p-3 ${activePrompt?._id === item._id ? 'border-indigo-400 bg-indigo-50' : 'border-gray-100 bg-white'}`}
-              >
-                <p className="font-medium text-gray-900">{item.key}</p>
-                <p className="text-xs text-gray-500">role: {item.role} | version: {item.version || 1} | active: {item.isActive ? 'yes' : 'no'}</p>
-              </button>
-            ))}
-            {promptTemplates.length === 0 && <p className="text-sm text-gray-500">No prompt templates found.</p>}
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Skill Synonyms</h2>
-
-          <form onSubmit={submitSynonym} className="space-y-3 mb-4">
-            <select
-              value={synonymForm.canonicalSkillId}
-              onChange={(e) => setSynonymForm((prev) => ({ ...prev, canonicalSkillId: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl"
-              required
-            >
-              <option value="">Select canonical skill</option>
-              {skillOptions.map((item) => (
-                <option key={item.id} value={item.id}>{item.label}</option>
-              ))}
-            </select>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <input
-                value={synonymForm.label}
-                onChange={(e) => setSynonymForm((prev) => ({ ...prev, label: e.target.value }))}
-                placeholder="Label"
-                className="px-3 py-2 border border-gray-200 rounded-xl"
-                required
-              />
-              <input
-                value={synonymForm.normalizedLabel}
-                onChange={(e) => setSynonymForm((prev) => ({ ...prev, normalizedLabel: e.target.value }))}
-                placeholder="Normalized label (optional)"
-                className="px-3 py-2 border border-gray-200 rounded-xl"
-              />
-            </div>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <input
-                value={synonymForm.locale}
-                onChange={(e) => setSynonymForm((prev) => ({ ...prev, locale: e.target.value }))}
-                placeholder="Locale (ex: en, hi)"
-                className="px-3 py-2 border border-gray-200 rounded-xl"
-              />
-              <select
-                value={synonymForm.status}
-                onChange={(e) => setSynonymForm((prev) => ({ ...prev, status: e.target.value }))}
-                className="px-3 py-2 border border-gray-200 rounded-xl"
-              >
-                <option value="active">active</option>
-                <option value="inactive">inactive</option>
-              </select>
-            </div>
-            <button type="submit" className="px-4 py-2 rounded-xl bg-indigo-600 text-white">Add Synonym</button>
-          </form>
-
-          <div className="space-y-2 max-h-80 overflow-auto pr-1">
-            {skillSynonyms.map((item) => (
-              <div key={item._id} className="border border-gray-100 rounded-xl p-3">
-                <p className="font-medium text-gray-900">{item.label}</p>
-                <p className="text-xs text-gray-500">normalized: {item.normalizedLabel} | locale: {item.locale} | status: {item.status}</p>
-                <div className="flex gap-2 mt-2">
-                  <button
-                    type="button"
-                    onClick={() => updateSynonymStatus(item._id, item.status === 'active' ? 'inactive' : 'active')}
-                    className="px-3 py-1.5 text-xs rounded-lg bg-amber-50 text-amber-700"
-                  >
-                    Toggle Status
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeSynonym(item._id)}
-                    className="px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-            {skillSynonyms.length === 0 && <p className="text-sm text-gray-500">No skill synonyms found.</p>}
-          </div>
-        </section>
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-6">
-        <section className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Fraud Review Queue</h2>
-          <div className="space-y-2 max-h-80 overflow-auto pr-1">
-            {fraudQueue.map((item) => (
-              <div key={item._id} className="border border-gray-100 rounded-xl p-3">
-                <p className="text-sm font-semibold text-gray-900">{item.reason}</p>
-                <p className="text-xs text-gray-500">severity: {item.severity} | status: {item.status}</p>
-                <p className="text-xs text-gray-500">user: {item.userId}</p>
-              </div>
-            ))}
-            {fraudQueue.length === 0 && <p className="text-sm text-gray-500">No open fraud flags.</p>}
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">OCR Review Queue</h2>
-          <div className="space-y-2 max-h-80 overflow-auto pr-1">
-            {ocrQueue.map((item) => (
-              <div key={item._id} className="border border-gray-100 rounded-xl p-3">
-                <p className="text-sm font-semibold text-gray-900">{item.documentType} | {item.status}</p>
-                <p className="text-xs text-gray-500">provider: {item.providerId}</p>
-                <p className="text-xs text-gray-500">confidence: {Number(item.confidence || 0).toFixed(2)}</p>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <button type="button" onClick={() => takeOcrAction(item._id, 'verified')} className="px-3 py-1.5 text-xs rounded-lg bg-green-50 text-green-700">Verify</button>
-                  <button type="button" onClick={() => takeOcrAction(item._id, 'rejected')} className="px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700">Reject</button>
-                  <button type="button" onClick={() => takeOcrAction(item._id, 'needs_review')} className="px-3 py-1.5 text-xs rounded-lg bg-amber-50 text-amber-700">Needs Review</button>
-                </div>
-              </div>
-            ))}
-            {ocrQueue.length === 0 && <p className="text-sm text-gray-500">No OCR review items.</p>}
-          </div>
-        </section>
-      </div>
-
-      <section className="rounded-2xl border border-gray-100 bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <div className="min-h-screen bg-gray-50 text-gray-800 py-8 px-4 sm:px-6 lg:px-8 font-sans">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">OCR Scan Tester</h2>
-            <p className="text-sm text-gray-500 mt-1">Upload a document image, run OCR, and inspect the extracted result instantly.</p>
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+              <span className="h-4 w-4 rounded-full bg-violet-600 animate-pulse inline-block" />
+              AI Operations Command Center
+            </h1>
+            <p className="text-gray-500 mt-2 text-sm">
+              Audit AI pipeline steps, tweak models/prompts, inspect cost logs, and monitor token caches.
+            </p>
           </div>
-        </div>
-
-        <form onSubmit={runOcrTest} className="grid lg:grid-cols-4 gap-3 items-end">
-          <label className="text-sm text-gray-600 lg:col-span-1">
-            Scan type
-            <select
-              value={ocrTestType}
-              onChange={(e) => setOcrTestType(e.target.value)}
-              className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-xl"
-            >
-              {OCR_TEST_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="text-sm text-gray-600 lg:col-span-2">
-            Upload document image
-            <input
-              type="file"
-              accept="image/jpeg,image/jpg,image/png,image/webp"
-              onChange={(e) => {
-                const file = e.target.files?.[0] || null;
-                setOcrTestFile(file);
-                setOcrTestError('');
-                setOcrTestResult(null);
-              }}
-              className="mt-1 block w-full text-sm text-gray-700 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700"
-            />
-            <p className="text-xs text-gray-500 mt-1">Allowed: JPG, PNG, WEBP. Max size is controlled by backend upload limit.</p>
-          </label>
-
           <button
-            type="submit"
-            disabled={ocrTesting || !ocrTestFile}
-            className="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
+            onClick={() => loadAll()}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium shadow-sm transition-all text-sm self-start"
           >
-            {ocrTesting ? 'Scanning...' : 'Upload & Scan'}
+            <HiRefresh className="h-4 w-4" />
+            Refresh Telemetry
           </button>
-        </form>
-
-        {ocrTestFile && (
-          <p className="text-sm text-gray-600 mt-3">
-            Selected file: <span className="font-medium text-gray-800">{ocrTestFile.name}</span> ({formatFileSize(ocrTestFile.size)})
-          </p>
-        )}
-
-        {ocrTestError && (
-          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {ocrTestError}
-          </div>
-        )}
-
-        {ocrTestResult && (
-          <div className="mt-4 space-y-3">
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <p className="text-sm font-semibold text-gray-800 mb-2">OCR Output Preview</p>
-              {typeof ocrTestResult.fullText === 'string' && ocrTestResult.fullText.trim() ? (
-                <pre className="text-xs text-gray-700 whitespace-pre-wrap max-h-44 overflow-auto">{ocrTestResult.fullText}</pre>
-              ) : (
-                <p className="text-sm text-gray-600">No full text returned for this scan type.</p>
-              )}
-            </div>
-
-            <div className="rounded-xl border border-gray-200 bg-white p-4">
-              <p className="text-sm font-semibold text-gray-800 mb-2">Raw Response</p>
-              <pre className="text-xs text-gray-700 whitespace-pre-wrap max-h-64 overflow-auto">{JSON.stringify(ocrTestResult, null, 2)}</pre>
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-2xl border border-gray-100 bg-white p-5">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">AI Usage by Feature</h2>
-        <div className="overflow-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-gray-500 border-b border-gray-100">
-                <th className="py-2 pr-4">Feature</th>
-                <th className="py-2 pr-4">Requests</th>
-                <th className="py-2 pr-4">Cost (USD)</th>
-                <th className="py-2">Tokens</th>
-              </tr>
-            </thead>
-            <tbody>
-              {usageByFeature.map((item) => (
-                <tr key={item._id || 'unknown'} className="border-b border-gray-50 text-gray-700">
-                  <td className="py-2 pr-4">{item._id || 'unknown'}</td>
-                  <td className="py-2 pr-4">{Number(item.requests || 0).toLocaleString()}</td>
-                  <td className="py-2 pr-4">${Number(item.costUsd || 0).toFixed(4)}</td>
-                  <td className="py-2">{Number(item.tokens || 0).toLocaleString()}</td>
-                </tr>
-              ))}
-              {usageByFeature.length === 0 && (
-                <tr>
-                  <td className="py-3 text-gray-500" colSpan={4}>No usage records available.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-gray-100 bg-white p-5">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Demand Snapshots</h2>
-        <div className="overflow-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-gray-500 border-b border-gray-100">
-                <th className="py-2 pr-4">Skill</th>
-                <th className="py-2 pr-4">City</th>
-                <th className="py-2 pr-4">Demand</th>
-                <th className="py-2 pr-4">Supply</th>
-                <th className="py-2 pr-4">Unmet</th>
-                <th className="py-2">Confidence</th>
-              </tr>
-            </thead>
-            <tbody>
-              {demandSnapshots.map((item) => (
-                <tr key={item._id} className="border-b border-gray-50 text-gray-700">
-                  <td className="py-2 pr-4">{item.skill}</td>
-                  <td className="py-2 pr-4">{item.city}</td>
-                  <td className="py-2 pr-4">{item.demandCount}</td>
-                  <td className="py-2 pr-4">{item.supplyCount}</td>
-                  <td className="py-2 pr-4">{item.unmetDemandScore}</td>
-                  <td className="py-2">{Number(item.confidence || 0).toFixed(2)}</td>
-                </tr>
-              ))}
-              {demandSnapshots.length === 0 && (
-                <tr>
-                  <td className="py-3 text-gray-500" colSpan={6}>No demand snapshots available.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-gray-100 bg-white p-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">AI API Logs & Telemetry</h2>
-            <p className="text-sm text-gray-500 mt-1">Review live executions, model tokens, costs, and inspect payloads.</p>
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Feature Filter */}
-            <div className="flex flex-col">
-              <span className="text-[10px] font-semibold text-gray-400 mb-1 uppercase tracking-wider">Feature</span>
-              <select
-                value={logFilterFeature}
-                onChange={(e) => {
-                  setLogFilterFeature(e.target.value);
-                }}
-                className="px-3 py-1.5 border border-gray-200 rounded-xl text-sm bg-white"
-              >
-                <option value="">All Features</option>
-                <option value="provider_profile_builder">Profile Builder</option>
-                <option value="recruiter_job_description">Job Description</option>
-                <option value="provider_pricing_suggestion">Pricing Suggestion</option>
-                <option value="provider_dashboard_insights">Dashboard Insights</option>
-                <option value="role_aware_chat_assistant">Chat Assistant</option>
-                <option value="fraud_cluster_review">Fraud Review</option>
-                <option value="boost_suggestion_copy">Boost Copy</option>
-                <option value="ai.search_interpret">Search Interpretation</option>
-                <option value="provider_profile_embedding">Profile Embedding</option>
-                <option value="recruiter_hire_history_embedding">Recruiter History Embedding</option>
-                <option value="search_query_embedding">Search Query Embedding</option>
-                <option value="job_intent_embedding">Job Intent Embedding</option>
-                <option value="embedding_generic">Generic Embedding</option>
-              </select>
-            </div>
-
-            {/* Status Filter */}
-            <div className="flex flex-col">
-              <span className="text-[10px] font-semibold text-gray-400 mb-1 uppercase tracking-wider">Status</span>
-              <select
-                value={logFilterStatus}
-                onChange={(e) => {
-                  setLogFilterStatus(e.target.value);
-                }}
-                className="px-3 py-1.5 border border-gray-200 rounded-xl text-sm bg-white"
-              >
-                <option value="">All Statuses</option>
-                <option value="success">Success</option>
-                <option value="fallback">Fallback</option>
-                <option value="failed">Failed</option>
-              </select>
-            </div>
-
-            {/* Role Filter */}
-            <div className="flex flex-col">
-              <span className="text-[10px] font-semibold text-gray-400 mb-1 uppercase tracking-wider">Role</span>
-              <select
-                value={logFilterRole}
-                onChange={(e) => {
-                  setLogFilterRole(e.target.value);
-                }}
-                className="px-3 py-1.5 border border-gray-200 rounded-xl text-sm bg-white"
-              >
-                <option value="">All Roles</option>
-                <option value="recruiter">Recruiter</option>
-                <option value="provider">Provider</option>
-                <option value="admin">Admin</option>
-                <option value="system">System</option>
-              </select>
-            </div>
-
-            {/* Reset Filters */}
-            {(logFilterFeature || logFilterStatus || logFilterRole) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setLogFilterFeature('');
-                  setLogFilterStatus('');
-                  setLogFilterRole('');
-                }}
-                className="mt-5 px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200 font-medium"
-              >
-                Clear
-              </button>
-            )}
-          </div>
         </div>
 
-        {logsLoading ? (
-          <div className="py-8 flex items-center justify-center">
-            <LoadingSpinner size="md" text="Loading logs..." />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="overflow-auto border border-gray-100 rounded-2xl">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-500 bg-gray-50/70 border-b border-gray-100">
-                    <th className="py-3 px-4 font-semibold">Timestamp</th>
-                    <th className="py-3 px-4 font-semibold">User & Role</th>
-                    <th className="py-3 px-4 font-semibold">Feature</th>
-                    <th className="py-3 px-4 font-semibold">Model / Provider</th>
-                    <th className="py-3 px-4 font-semibold">Latency / Tokens</th>
-                    <th className="py-3 px-4 font-semibold">Est. Cost</th>
-                    <th className="py-3 px-4 font-semibold text-center">Status</th>
-                    <th className="py-3 px-4 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {logs.map((item) => (
-                    <tr key={item._id} className="hover:bg-gray-50/50 text-gray-700 transition-colors duration-150">
-                      <td className="py-3 px-4 whitespace-nowrap text-xs text-gray-500">
-                        {new Date(item.createdAt).toLocaleString()}
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <div className="flex flex-col text-left">
-                          {item.userId ? (
-                            <>
-                              <span className="font-medium text-gray-800 text-xs">{item.userId.name || 'No Name'}</span>
-                              <span className="text-[10px] text-gray-400">{item.userId.email}</span>
-                            </>
-                          ) : (
-                            <span className="font-medium text-gray-400 text-xs italic">System</span>
-                          )}
-                          <span className="text-[9px] uppercase font-bold text-indigo-500/80 mt-0.5">{item.role}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="inline-block px-2 py-0.5 text-xs font-mono bg-slate-100 text-slate-700 rounded-md border border-slate-200/50 max-w-[160px] truncate" title={item.feature}>
-                          {item.feature}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex flex-col text-left">
-                          <span className="text-xs font-semibold text-gray-800 capitalize">{item.provider}</span>
-                          <span className="text-[10px] text-gray-500 truncate max-w-[140px]" title={item.model}>{item.model || 'N/A'}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <div className="flex flex-col text-left">
-                          <span className="text-xs font-medium text-gray-800">{item.latencyMs ? `${Math.round(item.latencyMs)} ms` : 'N/A'}</span>
-                          <span className="text-[10px] text-gray-400">{item.totalTokens ? `${item.totalTokens.toLocaleString()} tokens` : '0 tokens'}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap text-xs font-mono text-gray-800">
-                        ${Number(item.estimatedCostUsd || 0).toFixed(6)}
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                          item.status === 'success'
-                            ? 'bg-green-50 text-green-700 border-green-200'
-                            : item.status === 'fallback'
-                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : 'bg-red-50 text-red-700 border-red-200'
-                        }`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap text-right">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedLog(item)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition-colors duration-150 font-medium"
-                        >
-                          <HiEye className="w-3.5 h-3.5" />
-                          Inspect
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {logs.length === 0 && (
-                    <tr>
-                      <td className="py-6 px-4 text-center text-gray-500" colSpan={8}>
-                        No telemetry logs matched the filter criteria.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+        {/* Tab Selectors */}
+        <div className="flex border-b border-gray-200 gap-2">
+          <button
+            onClick={() => setActiveTab("telemetry")}
+            className={`py-3 px-6 text-sm font-semibold tracking-wide border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === "telemetry"
+                ? "border-violet-600 text-violet-700 bg-violet-50"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            <HiChartBar className="h-4 w-4" />
+            Usage Telemetry
+          </button>
+          <button
+            onClick={() => setActiveTab("prompts")}
+            className={`py-3 px-6 text-sm font-semibold tracking-wide border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === "prompts"
+                ? "border-violet-600 text-violet-700 bg-violet-50"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            <HiAdjustments className="h-4 w-4" />
+            Prompt Templates
+          </button>
+          <button
+            onClick={() => setActiveTab("audits")}
+            className={`py-3 px-6 text-sm font-semibold tracking-wide border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === "audits"
+                ? "border-violet-600 text-violet-700 bg-violet-50"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            <HiDocumentText className="h-4 w-4" />
+            AI Pipeline Audits
+          </button>
+        </div>
 
-            {/* Pagination Controls */}
-            {logsPages > 1 && (
-              <div className="flex items-center justify-between border-t border-gray-100 pt-4 px-1">
-                <span className="text-xs text-gray-500">
-                  Showing page <span className="font-semibold text-gray-700">{logsPage}</span> of{' '}
-                  <span className="font-semibold text-gray-700">{logsPages}</span> | Total{' '}
-                  <span className="font-semibold text-gray-700">{logsTotal}</span> logs
+        {/* 1. Usage Telemetry Tab */}
+        {activeTab === "telemetry" && (
+          <div className="space-y-6 animate-fadeIn">
+            {/* Telemetry Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs relative overflow-hidden group hover:border-violet-350 transition-all">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Total AI Calls</span>
+                <span className="text-3xl font-extrabold text-gray-900 mt-2 block">
+                  {Number(usageSummary.totalRequests || 0).toLocaleString()}
                 </span>
-                
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={logsPage <= 1}
-                    onClick={() => fetchLogs(logsPage - 1)}
-                    className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-55 disabled:hover:bg-white text-gray-600 transition-colors"
-                  >
-                    <HiChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    type="button"
-                    disabled={logsPage >= logsPages}
-                    onClick={() => fetchLogs(logsPage + 1)}
-                    className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-55 disabled:hover:bg-white text-gray-600 transition-colors"
-                  >
-                    <HiChevronRight className="w-5 h-5" />
-                  </button>
+                <span className="text-xs text-gray-400 mt-1 block">Live API invocations</span>
+              </div>
+              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs relative overflow-hidden group hover:border-cyan-350 transition-all">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Cached Hits</span>
+                <span className="text-3xl font-extrabold text-cyan-600 mt-2 block">
+                  {Number(auditLogs.filter((l) => l.status === "cached").length || 0).toLocaleString()}
+                </span>
+                <span className="text-xs text-gray-400 mt-1 block">Bypassed model costs</span>
+              </div>
+              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs relative overflow-hidden group hover:border-red-350 transition-all">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Failed Calls</span>
+                <span className="text-3xl font-extrabold text-red-600 mt-2 block">
+                  {Number(auditLogs.filter((l) => l.status === "failed").length || 0).toLocaleString()}
+                </span>
+                <span className="text-xs text-gray-400 mt-1 block">JSON/Network errors</span>
+              </div>
+              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs relative overflow-hidden group hover:border-emerald-350 transition-all">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Total AI Cost</span>
+                <span className="text-3xl font-extrabold text-emerald-600 mt-2 block">
+                  ${Number(usageSummary.totalCostUsd || 0).toFixed(4)}
+                </span>
+                <span className="text-xs text-gray-400 mt-1 block">Calculated in USD</span>
+              </div>
+              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs relative overflow-hidden group hover:border-violet-350 transition-all">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Est. Cache Savings</span>
+                <span className="text-3xl font-extrabold text-violet-600 mt-2 block">
+                  ${calculateCacheSavings()}
+                </span>
+                <span className="text-xs text-gray-400 mt-1 block">Free tier optimization</span>
+              </div>
+            </div>
+
+            {/* Feature Usage Stats */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-xs">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3">AI Costs by Feature</h3>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm divide-y divide-gray-200">
+                    <thead>
+                      <tr className="text-left text-gray-400 bg-gray-50">
+                        <th className="py-2.5 px-4 font-semibold">Feature Name</th>
+                        <th className="py-2.5 px-4 font-semibold">Total Requests</th>
+                        <th className="py-2.5 px-4 font-semibold text-right">Est. Cost (USD)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-gray-700">
+                      {usageByFeature.map((item) => (
+                        <tr key={item._id} className="hover:bg-gray-50/50 transition">
+                          <td className="py-3 px-4 font-mono text-violet-600">{item._id || "general"}</td>
+                          <td className="py-3 px-4">{item.requests}</td>
+                          <td className="py-3 px-4 text-right font-mono text-emerald-600">
+                            ${Number(item.costUsd || 0).toFixed(5)}
+                          </td>
+                        </tr>
+                      ))}
+                      {usageByFeature.length === 0 && (
+                        <tr>
+                          <td colSpan={3} className="py-4 text-center text-gray-400">
+                            No telemetry logs compiled yet.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            )}
+
+              {/* Demand Snapshots */}
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-xs">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3">AI Market Demand Analysis</h3>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm divide-y divide-gray-200">
+                    <thead>
+                      <tr className="text-left text-gray-400 bg-gray-50">
+                        <th className="py-2.5 px-4 font-semibold">Skill</th>
+                        <th className="py-2.5 px-4 font-semibold">City</th>
+                        <th className="py-2.5 px-4 font-semibold text-center">Unmet Demand</th>
+                        <th className="py-2.5 px-4 font-semibold text-right">Confidence</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-gray-700">
+                      {demandSnapshots.slice(0, 8).map((item) => (
+                        <tr key={item._id} className="hover:bg-gray-50/50 transition">
+                          <td className="py-3 px-4 font-semibold text-gray-900">{item.skill}</td>
+                          <td className="py-3 px-4 text-gray-500">{item.city}</td>
+                          <td className="py-3 px-4 text-center font-mono text-violet-600">{item.unmetDemandScore}</td>
+                          <td className="py-3 px-4 text-right font-mono text-cyan-600">
+                            {Number(item.confidence || 0).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                      {demandSnapshots.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="py-4 text-center text-gray-400">
+                            No market demand snapshots available.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
         )}
-      </section>
 
-      {/* Details Modal */}
-      {selectedLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl relative my-8 text-left">
+        {/* 2. Prompt Templates Tab */}
+        {activeTab === "prompts" && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
+            {/* Templates list */}
+            <div className="lg:col-span-2 space-y-4">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-xs">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3">Prompt Templates</h3>
+                <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+                  {promptTemplates.map((item) => (
+                    <div
+                      key={item._id}
+                      onClick={() => handleEditPrompt(item)}
+                      className={`border rounded-xl p-4 cursor-pointer transition-all text-left ${
+                        editingPrompt?._id === item._id
+                          ? "border-violet-500 bg-violet-50/50"
+                          : "border-gray-200 bg-white hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-sm font-bold text-violet-600">
+                          {item.feature_name || item.key}
+                        </span>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
+                            item.is_active
+                              ? "bg-green-50 text-green-700 border border-green-200"
+                              : "bg-gray-100 text-gray-400 border border-gray-200"
+                          }`}
+                        >
+                          {item.is_active ? "Active" : "Disabled"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2 line-clamp-2">
+                        {item.prompt_template || item.template}
+                      </p>
+                      <div className="flex items-center justify-between text-[10px] text-gray-400 mt-3 border-t border-gray-100 pt-2">
+                        <span>Model: <span className="text-gray-700 font-mono">{item.model_name || "gemini-1.5-flash"}</span></span>
+                        <span>Version: <span className="text-gray-700 font-mono">v{item.version || 1}</span></span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Editor card */}
+            <div className="lg:col-span-1">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-xs sticky top-8">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3">
+                  {editingPrompt ? "Edit Prompt Template" : "New Prompt Template"}
+                </h3>
+                <form onSubmit={handleSavePrompt} className="space-y-4 text-left">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">
+                      Feature Name
+                    </label>
+                    <select
+                      value={promptForm.feature_name}
+                      onChange={(e) => setPromptForm((p) => ({ ...p, feature_name: e.target.value }))}
+                      disabled={Boolean(editingPrompt)}
+                      className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                      required
+                    >
+                      <option value="">Select AI Feature</option>
+                      {FEATURES.map((f) => (
+                        <option key={f.value} value={f.value}>{f.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">
+                      Active Model
+                    </label>
+                    <select
+                      value={promptForm.model_name}
+                      onChange={(e) => setPromptForm((p) => ({ ...p, model_name: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                    >
+                      {MODELS.map((m) => (
+                        <option key={m.value} value={m.value}>{m.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">
+                      Prompt Template
+                    </label>
+                    <textarea
+                      value={promptForm.prompt_template}
+                      onChange={(e) => setPromptForm((p) => ({ ...p, prompt_template: e.target.value }))}
+                      placeholder="Prompt text... use {{candidate_data}}, {{job_data}}, etc. as placeholders"
+                      rows={8}
+                      className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-xs font-mono text-gray-800 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">
+                        Temp (0 - 1)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value={promptForm.temperature}
+                        onChange={(e) => setPromptForm((p) => ({ ...p, temperature: parseFloat(e.target.value) }))}
+                        className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">
+                        Max Tokens
+                      </label>
+                      <input
+                        type="number"
+                        min="64"
+                        value={promptForm.maxTokens}
+                        onChange={(e) => setPromptForm((p) => ({ ...p, maxTokens: parseInt(e.target.value) }))}
+                        className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-gray-100 pt-3 mt-3">
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      Status Enable Toggle
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPromptForm((p) => ({ ...p, is_active: !p.is_active }))}
+                      className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
+                        promptForm.is_active ? "bg-violet-600" : "bg-gray-300"
+                      }`}
+                    >
+                      <span
+                        className={`block w-4.5 h-4.5 bg-white rounded-full absolute top-0.75 transition-transform duration-200 ${
+                          promptForm.is_active ? "translate-x-5.5" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      type="submit"
+                      className="flex-1 py-2 px-4 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium text-sm transition-all"
+                    >
+                      Save Changes
+                    </button>
+                    {editingPrompt && (
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-all"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3. AI Pipeline Audits Tab */}
+        {activeTab === "audits" && (
+          <div className="space-y-4 animate-fadeIn">
+            {/* Filter Bar */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-4 flex flex-wrap items-center justify-between gap-4 shadow-xs">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex flex-col text-left">
+                  <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                    AI Feature
+                  </span>
+                  <select
+                    value={auditFeature}
+                    onChange={(e) => setAuditFeature(e.target.value)}
+                    className="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  >
+                    <option value="">All Features</option>
+                    {FEATURES.map((f) => (
+                      <option key={f.value} value={f.value}>{f.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                    Status
+                  </span>
+                  <select
+                    value={auditStatus}
+                    onChange={(e) => setAuditStatus(e.target.value)}
+                    className="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="success">Success</option>
+                    <option value="repaired">Repaired</option>
+                    <option value="cached">Cached</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="text-xs text-gray-500">
+                Audited <span className="font-semibold text-gray-900">{auditTotal}</span> pipeline executions
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm divide-y divide-gray-200">
+                  <thead>
+                    <tr className="text-left text-gray-400 bg-gray-50 border-b border-gray-100">
+                      <th className="py-3.5 px-4 font-semibold">Timestamp</th>
+                      <th className="py-3.5 px-4 font-semibold">Executing User</th>
+                      <th className="py-3.5 px-4 font-semibold">Feature Name</th>
+                      <th className="py-3.5 px-4 font-semibold">Model Name</th>
+                      <th className="py-3.5 px-4 font-semibold text-center">Confidence</th>
+                      <th className="py-3.5 px-4 font-semibold text-center">Status</th>
+                      <th className="py-3.5 px-4 font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 text-gray-700">
+                    {auditLogs.map((item) => (
+                      <tr key={item._id} className="hover:bg-gray-50/50 transition-all">
+                        <td className="py-3 px-4 whitespace-nowrap text-xs text-gray-400">
+                          {new Date(item.created_at || item.createdAt).toLocaleString()}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {item.user_id ? (
+                            <div className="flex flex-col text-left">
+                              <span className="font-medium text-gray-900 text-xs">
+                                {item.user_id.name || "User"}
+                              </span>
+                              <span className="text-[10px] text-gray-400">{item.user_id.email}</span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 italic text-xs">System</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="inline-block px-2 py-0.5 text-xs font-mono bg-violet-50 border border-violet-100 text-violet-600 rounded">
+                            {item.feature_name}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 font-mono text-xs text-gray-500">
+                          {item.model_name}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex flex-col items-center justify-center">
+                            <span className="font-mono text-xs font-semibold text-gray-950">
+                              {item.confidence_score}%
+                            </span>
+                            {item.needs_review && (
+                              <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] font-bold bg-red-50 text-red-600 border border-red-200 mt-1 uppercase tracking-wider">
+                                <HiExclamationCircle className="h-2 w-2" />
+                                Needs Review
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-center whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                              item.status === "success"
+                                ? "bg-green-50 text-green-700 border-green-200"
+                                : item.status === "repaired"
+                                ? "bg-purple-50 text-purple-700 border-purple-200"
+                                : item.status === "cached"
+                                ? "bg-cyan-50 text-cyan-700 border-cyan-200"
+                                : "bg-red-50 text-red-700 border-red-200"
+                            }`}
+                          >
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setSelectedAudit(item)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-all border border-gray-200"
+                            >
+                              <HiEye className="h-3.5 w-3.5" />
+                              Inspect
+                            </button>
+                            <button
+                              onClick={() => handleRerun(item)}
+                              disabled={rerunningIds.has(item._id)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-violet-50 hover:bg-violet-100 text-violet-700 font-medium rounded-lg border border-violet-200 disabled:opacity-50 transition-all"
+                            >
+                              <HiRefresh className="h-3.5 w-3.5" />
+                              {rerunningIds.has(item._id) ? "Running..." : "Re-run"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {auditLogs.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-gray-400">
+                          No AI executions matched filter criteria.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {auditPages > 1 && (
+                <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 py-4 px-6 text-xs text-gray-500">
+                  <span>
+                    Page <span className="font-semibold text-gray-900">{auditPage}</span> of{" "}
+                    <span className="font-semibold text-gray-900">{auditPages}</span>
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => fetchAuditLogs(auditPage - 1)}
+                      disabled={auditPage <= 1}
+                      className="px-3 py-1 bg-white border border-gray-200 text-gray-700 rounded hover:bg-gray-50 disabled:opacity-50 transition-all"
+                    >
+                      Prev
+                    </button>
+                    <button
+                      onClick={() => fetchAuditLogs(auditPage + 1)}
+                      disabled={auditPage >= auditPages}
+                      className="px-3 py-1 bg-white border border-gray-200 text-gray-700 rounded hover:bg-gray-50 disabled:opacity-50 transition-all"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Inspect Modal */}
+      {selectedAudit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white border border-gray-200 rounded-2xl max-w-5xl w-full p-6 shadow-2xl relative text-left my-8">
             <button
-              type="button"
-              onClick={() => setSelectedLog(null)}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 transition-all duration-200"
+              onClick={() => setSelectedAudit(null)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-all"
             >
-              <HiX className="w-5 h-5" />
+              <HiXCircle className="w-6 h-6" />
             </button>
 
-            <div className="mb-6">
-              <div className="flex flex-wrap items-center gap-3">
-                <h3 className="text-lg font-bold text-gray-900">AI Execution Details</h3>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-                  selectedLog.status === 'success'
-                    ? 'bg-green-50 text-green-700 border-green-200'
-                    : selectedLog.status === 'fallback'
-                    ? 'bg-amber-50 text-amber-700 border-amber-200'
-                    : 'bg-red-50 text-red-700 border-red-200'
-                }`}>
-                  {selectedLog.status}
+            <div className="mb-4">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                Audit Inspection Pane
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
+                    selectedAudit.status === "success"
+                      ? "bg-green-50 text-green-700 border-green-200"
+                      : "bg-red-50 text-red-700 border-red-200"
+                  }`}
+                >
+                  {selectedAudit.status}
+                </span>
+              </h3>
+              <p className="text-xs text-gray-400 font-mono mt-1">{selectedAudit._id}</p>
+            </div>
+
+            {/* Summary Metadata */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 mb-6 text-xs text-gray-500">
+              <div>
+                <span className="block text-gray-400 uppercase tracking-wider font-semibold">Timestamp</span>
+                <span className="text-gray-800 mt-1 inline-block">
+                  {new Date(selectedAudit.created_at || selectedAudit.createdAt).toLocaleString()}
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mt-1 font-mono">{selectedLog._id}</p>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100 mb-6">
               <div>
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Timestamp</span>
-                <p className="text-xs font-medium text-gray-800 mt-0.5">{new Date(selectedLog.createdAt).toLocaleString()}</p>
+                <span className="block text-gray-400 uppercase tracking-wider font-semibold">Feature</span>
+                <span className="text-violet-600 font-mono mt-1 inline-block">
+                  {selectedAudit.feature_name}
+                </span>
               </div>
               <div>
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Feature</span>
-                <p className="text-xs font-mono font-semibold text-indigo-600 mt-0.5 truncate" title={selectedLog.feature}>{selectedLog.feature}</p>
+                <span className="block text-gray-400 uppercase tracking-wider font-semibold">Model / Provider</span>
+                <span className="text-gray-800 mt-1 inline-block">
+                  {selectedAudit.model_name}
+                </span>
               </div>
               <div>
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Provider & Model</span>
-                <p className="text-xs font-medium text-gray-800 mt-0.5 truncate" title={`${selectedLog.provider} / ${selectedLog.model}`}>
-                  <span className="capitalize">{selectedLog.provider}</span> ({selectedLog.model || 'N/A'})
-                </p>
-              </div>
-              <div>
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Latency</span>
-                <p className="text-xs font-medium text-gray-800 mt-0.5">{selectedLog.latencyMs ? `${Math.round(selectedLog.latencyMs)} ms` : 'N/A'}</p>
-              </div>
-              <div>
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Estimated Cost</span>
-                <p className="text-xs font-semibold text-gray-800 mt-0.5">${Number(selectedLog.estimatedCostUsd || 0).toFixed(6)}</p>
-              </div>
-              <div>
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Tokens</span>
-                <p className="text-xs font-medium text-gray-800 mt-0.5">
-                  In: {selectedLog.inputTokens?.toLocaleString() || 0} | Out: {selectedLog.outputTokens?.toLocaleString() || 0}
-                </p>
-              </div>
-              <div className="col-span-2">
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Executing User (Role)</span>
-                <p className="text-xs font-medium text-gray-800 mt-0.5 truncate">
-                  {selectedLog.userId ? (
-                    `${selectedLog.userId.name || 'Unnamed'} (${selectedLog.userId.email})`
-                  ) : (
-                    'System'
-                  )}{' '}
-                  <span className="text-[10px] font-bold text-indigo-500 uppercase">[{selectedLog.role}]</span>
-                </p>
+                <span className="block text-gray-400 uppercase tracking-wider font-semibold">Confidence Score</span>
+                <span className="text-cyan-600 font-bold mt-1 inline-block">
+                  {selectedAudit.confidence_score}% {selectedAudit.needs_review ? "(Needs Review)" : ""}
+                </span>
               </div>
             </div>
 
-            {selectedLog.errorMessage && (
+            {/* Error Message if failed */}
+            {selectedAudit.error_message && (
               <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
-                <span className="text-[10px] font-bold text-red-700 uppercase tracking-wider">Execution Error</span>
-                <p className="text-sm font-medium text-red-800 mt-1 whitespace-pre-wrap font-mono">{selectedLog.errorMessage}</p>
+                <span className="text-xs font-bold text-red-700 uppercase tracking-wider">Error Details</span>
+                <pre className="text-xs font-mono text-red-600 mt-2 whitespace-pre-wrap">
+                  {selectedAudit.error_message}
+                </pre>
               </div>
             )}
 
-            <div>
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Raw Payload & Telemetry Metadata</span>
-              <pre className="mt-2 text-xs bg-gray-950 text-gray-200 p-4 rounded-xl overflow-x-auto max-h-96 font-mono whitespace-pre-wrap">
-                {JSON.stringify(selectedLog, null, 2)}
-              </pre>
+            {/* Payload Breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">
+                  Raw AI Model Response (Audit Only)
+                </span>
+                <pre className="bg-gray-50 border border-gray-200 text-gray-700 p-4 rounded-xl font-mono text-[11px] h-96 overflow-y-auto whitespace-pre-wrap">
+                  {selectedAudit.raw_response || "No raw response recorded"}
+                </pre>
+              </div>
+              <div>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">
+                  Parsed JSON Schema (Dashboard Rendered)
+                </span>
+                <pre className="bg-gray-50 border border-gray-200 text-violet-800 p-4 rounded-xl font-mono text-[11px] h-96 overflow-y-auto whitespace-pre-wrap">
+                  {JSON.stringify(selectedAudit.parsed_json || {}, null, 2)}
+                </pre>
+              </div>
             </div>
 
             <div className="mt-6 flex justify-end">
               <button
-                type="button"
-                onClick={() => setSelectedLog(null)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors duration-200"
+                onClick={() => setSelectedAudit(null)}
+                className="px-5 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-all border border-gray-200"
               >
-                Close details
+                Close Inspector
               </button>
             </div>
           </div>
@@ -1165,4 +824,4 @@ const AdminAIControlCenter = () => {
   );
 };
 
-export default AdminAIControlCenter;
+export default AIControlCenter;
