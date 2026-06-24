@@ -459,6 +459,8 @@ export const adminAPI = {
   getDemandSnapshots: () => API.get("/admin/ai/demand-snapshots"),
   getAIFeatureSettings: () => API.get("/admin/ai/feature-settings"),
   updateAIFeatureSettings: (data) => API.put("/admin/ai/feature-settings", data),
+  getAiAnalysisResults: (params) => API.get("/admin/ai/analysis-results", { params }),
+  rerunAiAnalysis: (data) => API.post("/admin/ai/analysis-results/rerun", data),
   // =================================================================
 
   approveUser: (userId) => API.patch(`/admin/users/${userId}/approve`),

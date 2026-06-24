@@ -153,6 +153,73 @@ const AdminSettings = () => {
     return '⚙️';
   };
 
+  const isToggleSetting = (setting) => {
+    const key = String(setting.key || '').toLowerCase();
+    const val = setting.value;
+    
+    // Check if value is boolean or string boolean
+    if (typeof val === 'boolean' || val === 'true' || val === 'false') {
+      return true;
+    }
+    
+    // Check if key name implies boolean and value is 0 or 1
+    const isZeroOrOne = val === 0 || val === 1 || val === '0' || val === '1';
+    if (isZeroOrOne) {
+      if (
+        key.includes('enabled') || 
+        key.includes('active') || 
+        key.includes('notification') || 
+        key.includes('feature') ||
+        key.includes('mode') ||
+        key.includes('status') ||
+        key.includes('flag')
+      ) {
+        return true;
+      }
+    }
+    
+    // Fallback checks on key name
+    return key.includes('enabled') || 
+           key.includes('active') || 
+           key.includes('notification') ||
+           key.includes('simulation_mode');
+  };
+
+  const getToggleChecked = (settingId) => {
+    const val = editValues[settingId];
+    return val === true || val === 1 || val === '1' || String(val).toLowerCase() === 'true';
+  };
+
+  const handleToggleChange = async (setting, checked) => {
+    let newValue = checked;
+    if (typeof setting.value === 'number') {
+      newValue = checked ? 1 : 0;
+    } else if (typeof setting.value === 'string') {
+      if (setting.value === '1' || setting.value === '0') {
+        newValue = checked ? '1' : '0';
+      } else if (setting.value.toLowerCase() === 'true' || setting.value.toLowerCase() === 'false') {
+        newValue = checked ? 'true' : 'false';
+      }
+    }
+
+    setEditValues(v => ({ ...v, [setting._id]: newValue }));
+
+    try {
+      await adminAPI.updateSettings({
+        settings: [{
+          key: setting.key,
+          value: newValue,
+          description: setting.description,
+          category: setting.category
+        }]
+      });
+      toast.success(`${setting.key} updated`);
+    } catch {
+      toast.error(`Failed to update ${setting.key}`);
+      setEditValues(v => ({ ...v, [setting._id]: setting.value }));
+    }
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="lg" /></div>;
 
   return (
@@ -210,30 +277,40 @@ const AdminSettings = () => {
                       <p className="text-xs text-gray-400 mt-1 ml-7">{setting.description}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 sm:shrink-0">
-                    {typeof setting.value === 'boolean' ? (
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked={editValues[setting._id] || false}
-                          onChange={(e) => setEditValues(v => ({ ...v, [setting._id]: e.target.checked }))}
-                          className="sr-only peer" />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
-                      </label>
+                  <div className="flex items-center gap-4 sm:shrink-0">
+                    {isToggleSetting(setting) ? (
+                      <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-xl px-3 py-1.5 transition">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 select-none">
+                          {getToggleChecked(setting._id) ? 'Enabled' : 'Disabled'}
+                        </span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={getToggleChecked(setting._id)}
+                            onChange={(e) => handleToggleChange(setting, e.target.checked)}
+                            className="sr-only peer" 
+                          />
+                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
+                        </label>
+                      </div>
                     ) : (
-                      <input
-                        type={typeof setting.value === 'number' ? 'number' : 'text'}
-                        value={editValues[setting._id] ?? ''}
-                        onChange={(e) => {
-                          const val = typeof setting.value === 'number' ? Number(e.target.value) : e.target.value;
-                          setEditValues(v => ({ ...v, [setting._id]: val }));
-                        }}
-                        className="w-36 sm:w-44 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                      />
+                      <>
+                        <input
+                          type={typeof setting.value === 'number' ? 'number' : 'text'}
+                          value={editValues[setting._id] ?? ''}
+                          onChange={(e) => {
+                            const val = typeof setting.value === 'number' ? Number(e.target.value) : e.target.value;
+                            setEditValues(v => ({ ...v, [setting._id]: val }));
+                          }}
+                          className="w-36 sm:w-44 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        />
+                        <button onClick={() => handleSaveSetting(setting)}
+                          className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm font-medium shrink-0">
+                          <HiSave className="w-4 h-4" />
+                          <span className="hidden sm:inline">Save</span>
+                        </button>
+                      </>
                     )}
-                    <button onClick={() => handleSaveSetting(setting)}
-                      className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm font-medium shrink-0">
-                      <HiSave className="w-4 h-4" />
-                      <span className="hidden sm:inline">Save</span>
-                    </button>
                   </div>
                 </div>
               </div>
