@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation, Link } from "react-router-dom";
 import {
   HiSearch,
   HiLocationMarker,
@@ -676,12 +676,12 @@ const SearchPage = () => {
         className={`grid gap-5 pb-5 ${columns === 1 ? "grid-cols-1" : columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"}`}
       >
         {rowItems.map((p, i) => (
-          <SharedProviderCard
-            key={p._id || `${index}-${i}`}
-            provider={p}
-            t={t}
-            onClick={() => navigate(`/p/${p._id || p.user?._id}`)}
-          />
+          <Link key={p._id || `${index}-${i}`} to={`/p/${p._id || p.user?._id}`} className="block h-full text-inherit">
+            <SharedProviderCard
+              provider={p}
+              t={t}
+            />
+          </Link>
         ))}
       </div>
     );
@@ -967,15 +967,13 @@ const SearchPage = () => {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 items-stretch">
                   {results.providers.map((p, i) => (
-                    <SharedProviderCard
-                      key={p._id || i}
-                      provider={p}
-                      index={i}
-                      t={t}
-                      onClick={() =>
-                        navigate(`/p/${p._id || p.user?._id}`)
-                      }
-                    />
+                    <Link key={p._id || i} to={`/p/${p._id || p.user?._id}`} className="block h-full text-inherit">
+                      <SharedProviderCard
+                        provider={p}
+                        index={i}
+                        t={t}
+                      />
+                    </Link>
                   ))}
                 </div>
 

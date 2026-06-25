@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Award, Info } from 'lucide-react';
+import { TrendingUp, Award } from 'lucide-react';
 import { providerAPI } from '../../services/api';
 
 const MarketBenchmarkAlert = ({ candidateId }) => {
@@ -47,11 +47,7 @@ const MarketBenchmarkAlert = ({ candidateId }) => {
               You are better than <span className="font-bold text-indigo-600">{benchmark.percentile}%</span> of {benchmark.designation}s in the <span className="font-medium text-gray-800">{benchmark.city}</span> market right now.
             </p>
           </div>
-          <div className="hidden sm:flex flex-shrink-0 items-center justify-center">
-            <button className="text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
-              <Info className="w-3.5 h-3.5" /> View Details
-            </button>
-          </div>
+
         </div>
 
       </div>

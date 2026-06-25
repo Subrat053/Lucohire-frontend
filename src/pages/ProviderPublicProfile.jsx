@@ -481,7 +481,7 @@ const ProviderPublicProfile = () => {
                       <span className="ml-2 text-xs bg-emerald-600/50 px-2 py-0.5 rounded text-emerald-100 flex items-center gap-1"><div className="text-[10px]">🔒</div> Unlock</span>
                     </button>
                   )}
-                </div>
+                
                 <button onClick={handleUnlock} disabled={unlocking || profile.isDummy}
                     className="w-full bg-white text-indigo-900 py-4 rounded-2xl font-extrabold shadow-xl hover:bg-indigo-50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group">
                     {unlocking ? (

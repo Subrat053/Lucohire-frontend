@@ -438,6 +438,8 @@ const ProviderProfile = () => {
   const [showErasureModal, setShowErasureModal] = useState(false);
   const [erasureConsent, setErasureConsent] = useState(false);
   const [isErasing, setIsErasing] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -513,6 +515,8 @@ const ProviderProfile = () => {
       const { data } = await profileShareAPI.generateToken(user._id);
       if (data?.shareUrl) {
         await navigator.clipboard.writeText(data.shareUrl);
+        setShareUrl(data.shareUrl);
+        setIsShareModalOpen(true);
         toast.success("Shareable link copied to clipboard!", { id: toastId });
       } else {
         toast.error("Failed to generate link.", { id: toastId });
@@ -2325,8 +2329,8 @@ const ProviderProfile = () => {
             </div>
           </div>
 
-          {/* Row 3 Card 1: Languages Spoken (Max height 250px) */}
-          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col h-[250px] max-h-[250px] overflow-y-auto transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+          {/* Row 3 Card 1: Languages Spoken */}
+          <div className="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-50 flex flex-col min-h-[250px] h-full transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
             <div className="flex items-center gap-3 pb-2 border-b border-slate-100 mb-3 shrink-0">
               <Globe className="w-5 h-5 text-violet-600 shrink-0" />
               <div>
@@ -2911,6 +2915,147 @@ const ProviderProfile = () => {
                   ) : (
                     <span>Confirm Deletion</span>
                   )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Profile Modal */}
+      {isShareModalOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-100 relative overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setIsShareModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-650 p-1.5 hover:bg-slate-50 rounded-full transition-colors outline-none"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center mb-4">
+                <Share2 className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-black text-slate-800 tracking-tight">Share Your Profile</h3>
+              <p className="text-xs text-slate-400 font-semibold mt-1 mb-6">
+                Spread the word! Copy the link or share it directly to your social networks.
+              </p>
+
+              {/* Share Channels Grid */}
+              <div className="grid grid-cols-3 gap-4 w-full mb-6">
+                {/* WhatsApp */}
+                <a
+                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent("Check out my professional profile on Lucohire: " + shareUrl)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-100 hover:border-violet-100 hover:bg-violet-50/30 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#25D366]/10 text-[#25D366] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436.002 9.858-4.41 9.86-9.85.001-2.636-1.02-5.115-2.875-6.973-1.854-1.859-4.326-2.882-6.966-2.883-5.438 0-9.862 4.412-9.865 9.853-.001 1.765.46 3.49 1.336 5.01l-.988 3.6 3.693-.968zm10.741-6.98c-.28-.14-1.65-.815-1.905-.907-.255-.093-.44-.139-.626.14-.185.28-.718.907-.88 1.092-.163.186-.325.21-.605.07-.28-.14-1.18-.435-2.247-1.388-.83-.74-1.388-1.653-1.55-1.93-.163-.28-.018-.43.122-.57.126-.127.28-.326.42-.489.14-.163.186-.28.28-.465.093-.186.046-.35-.023-.49-.07-.14-.626-1.507-.858-2.065-.226-.54-.452-.465-.626-.475-.162-.008-.348-.01-.533-.01-.186 0-.488.07-.743.35-.255.28-.975.953-.975 2.326 0 1.373 1 2.7 1.14 2.885.14.186 1.967 3.003 4.76 4.21.665.286 1.184.457 1.587.585.67.213 1.277.183 1.757.11.536-.08 1.65-.674 1.884-1.326.233-.652.233-1.21.163-1.325-.07-.11-.255-.21-.536-.35z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] text-slate-650 font-bold">WhatsApp</span>
+                </a>
+
+                {/* Facebook */}
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-100 hover:border-violet-100 hover:bg-violet-50/30 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#1877F2]/10 text-[#1877F2] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] text-slate-650 font-bold">Facebook</span>
+                </a>
+
+                {/* Twitter / X */}
+                <a
+                  href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("Check out my professional profile on Lucohire:")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-100 hover:border-violet-100 hover:bg-violet-50/30 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#000000]/10 text-slate-800 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] text-slate-650 font-bold">Twitter / X</span>
+                </a>
+
+                {/* LinkedIn */}
+                <a
+                  href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-100 hover:border-violet-100 hover:bg-violet-50/30 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#0A66C2]/10 text-[#0A66C2] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                      <path d="M22.23 0H1.77C.8 0 0 .77 0 1.72v20.56C0 23.23.8 24 1.77 24h20.46c.98 0 1.77-.77 1.77-1.72V1.72C24 .77 23.2 0 22.23 0zM7.12 20.45H3.56V9H7.12v11.45zM5.34 7.43c-1.14 0-2.06-.92-2.06-2.06 0-1.14.92-2.06 2.06-2.06 1.14 0 2.06.92 2.06 2.06 0 1.14-.92 2.06-2.06 2.06zm15.11 13.02h-3.56v-5.6c0-1.34-.03-3.05-1.86-3.05-1.86 0-2.14 1.45-2.14 2.95v5.7H9.33V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] text-slate-650 font-bold">LinkedIn</span>
+                </a>
+
+                {/* Telegram */}
+                <a
+                  href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("Check out my professional profile on Lucohire:")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-100 hover:border-violet-100 hover:bg-violet-50/30 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#0088cc]/10 text-[#0088cc] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M11.944 0C5.344 0 0 5.344 0 11.944c0 6.6 5.344 11.944 11.944 11.944 6.6 0 11.944-5.344 11.944-11.944C23.888 5.344 18.544 0 11.944 0zm5.836 8.261l-1.9 8.95c-.14.64-.52.8-.06.54l-2.9-2.14-1.4 1.35c-.15.15-.28.27-.57.27l.2-2.95 5.37-4.85c.23-.2-.05-.31-.36-.1l-6.64 4.18-2.86-.9c-.62-.2-.63-.62.13-.92l11.16-4.3c.52-.2.97.11.83.92z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] text-slate-650 font-bold">Telegram</span>
+                </a>
+
+                {/* Instagram (Tips) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(shareUrl);
+                    toast.success("Link copied! Paste it in your Instagram bio or story.");
+                  }}
+                  className="flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-100 hover:border-violet-100 hover:bg-violet-50/30 transition-all duration-200 group w-full outline-none"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#E1306C]/10 text-[#E1306C] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] text-slate-650 font-bold">Instagram</span>
+                </button>
+              </div>
+
+              {/* Copy Link Input box */}
+              <div className="w-full flex items-center gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-100 shadow-inner">
+                <input
+                  type="text"
+                  readOnly
+                  value={shareUrl}
+                  className="flex-1 bg-transparent text-xs font-semibold text-slate-700 outline-none px-2 select-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(shareUrl);
+                    toast.success("Link copied!");
+                  }}
+                  className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition active:scale-95 shrink-0"
+                >
+                  Copy
                 </button>
               </div>
             </div>

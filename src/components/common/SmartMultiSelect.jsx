@@ -206,7 +206,7 @@ export default function SmartMultiSelect({
   const atLimit = Number.isFinite(Number(maxItems)) && normalizedSelected.length >= Number(maxItems);
 
   return (
-    <div ref={rootRef} className="relative w-full">
+    <div ref={rootRef} className={`relative w-full ${open ? 'z-50' : 'z-0'}`}>
       <div className="flex flex-wrap gap-2 mb-3">
         {normalizedSelected.map((value) => (
           <span
@@ -254,7 +254,7 @@ export default function SmartMultiSelect({
       </div>
 
       {open && !atLimit && (
-        <div className="absolute z-50 mt-2 w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-fade-in">
+        <div className="absolute z-[100] mt-2 w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-fade-in">
           <div className="max-h-60 overflow-y-auto divide-y divide-slate-50">
             {!query.trim() && (
               <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/70">

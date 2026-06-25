@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Search, MapPin, ChevronDown, ArrowRight, Star, ShieldCheck,
   Phone, Check, Sparkles, Zap, Brain, Wrench, ChevronRight,
@@ -427,7 +427,7 @@ const LandingPage = () => {
               </h2>
               <p className="text-[#6B7280] mt-2 text-sm">{t('landing.topPoolSubtitle', 'Top 5 per skill + city — rotates every 60s for fair lead distribution.')}</p>
             </div>
-            <a onClick={() => navigate('/search')} className="text-sm font-semibold text-[#1677FF] hover:underline cursor-pointer">{t('common.viewAll', 'View all →')}</a>
+            <Link to="/search" className="text-sm font-semibold text-[#1677FF] hover:underline">{t('common.viewAll', 'View all →')}</Link>
           </div>
 
           <div className="flex flex-wrap items-center gap-5 text-xs text-[#6B7280] mb-6">
@@ -453,7 +453,9 @@ const LandingPage = () => {
                   </div>
                 ))
                 : displayedProviders.map((p, index) => (
-                  <SharedProviderCard key={p._id} provider={p} variant="landing" index={index} onClick={() => navigate(`/p/${p._id}`)} />
+                  <Link key={p._id} to={`/p/${p._id}`} className="block h-full text-inherit">
+                    <SharedProviderCard provider={p} variant="landing" index={index} />
+                  </Link>
                 ))}
           </div>
         </div>
@@ -469,14 +471,18 @@ const LandingPage = () => {
                 {t('landing.everyNeed', 'Every household & business need')}
               </h2>
             </div>
-            <a onClick={() => navigate('/search')} className="text-sm font-semibold text-[#1677FF] hover:underline cursor-pointer">{t('common.viewAll', 'View all →')}</a>
+            <Link to="/search" className="text-sm font-semibold text-[#1677FF] hover:underline">{t('common.viewAll', 'View all →')}</Link>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {CATEGORIES.map(({ name, Icon, count }) => (
-              <button
+              <Link
                 key={name}
-                onClick={() => handleCategoryClick(name)}
+                to={`/search?category=${encodeURIComponent(name)}`}
+                onClick={() => {
+                  setActiveCategory(name);
+                  setSkill(name === "More" ? "" : name);
+                }}
                 className={`bg-white border rounded-2xl p-5 flex flex-col items-center gap-2 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition ${
                   activeCategory === name ? "border-[#1677FF] ring-2 ring-[#EAF2FF]" : "border-[#E7ECF4]"
                 }`}
@@ -484,7 +490,7 @@ const LandingPage = () => {
                 <Icon className="w-6 h-6 text-[#1677FF]" />
                 <p className="font-bold text-sm text-[#081B3A] mt-1">{t(`landing.category.${name}`, name)}</p>
                 <p className="text-[11px] text-[#6B7280]">{t(`landing.categoryCount.${name}`, count)}</p>
-              </button>
+              </Link>
             ))}
           </div>
         </div>
