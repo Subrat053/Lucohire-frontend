@@ -21,20 +21,18 @@ export default function AITips() {
       
       const fileHash = localStorage.getItem('lastResumeHash');
       
-      if (!fileHash) {
-        setError("Please upload your resume in the 'Grow with AI' tab to generate your AI Career Report.");
-        setLoading(false);
-        return;
-      }
-
       const response = await getAICareerReport({ fileHash });
       if (response?.data?.data) {
         setReportData(response.data.data);
       } else {
-        setError("Please upload your resume in the 'Grow with AI' tab to generate your AI Career Report.");
+        setError("To generate your AI Career Report, please upload your resume or complete your profile details.");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to load AI Career Report. Ensure you have uploaded your resume.");
+      if (err.response?.data?.code === 'REQUIRED_DATA_MISSING') {
+        setError(err.response.data.message);
+      } else {
+        setError(err.response?.data?.message || "Failed to load AI Career Report. Ensure you have uploaded your resume or completed your profile.");
+      }
       toast.error("Failed to load AI Career Report");
     } finally {
       setLoading(false);
@@ -55,13 +53,13 @@ export default function AITips() {
       <div className="p-6 max-w-4xl mx-auto">
         <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center mt-10">
           <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-red-800 mb-2">Resume Data Required</h2>
+          <h2 className="text-xl font-bold text-red-800 mb-2">Profile Actions Required</h2>
           <p className="text-red-600 mb-6 max-w-md mx-auto">{error}</p>
           <Link
-            to="/provider/grow-with-ai"
+            to="/provider/profile"
             className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors gap-2"
           >
-            Go to Grow with AI <ArrowRight className="w-5 h-5" />
+            Go to Profile <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
       </div>

@@ -12,6 +12,7 @@ const TABS = [
   { id: 'profile',   label: 'Admin Profile', icon: HiPhotograph },
   { id: 'content',   label: 'Page Content',  icon: HiDocumentText },
   { id: 'rotation',  label: 'Rotation Pools',icon: HiChip },
+  { id: 'ai-ops',    label: 'AI OPS',        icon: HiDatabase },
 ];
 
 const AdminSettings = () => {
@@ -145,6 +146,7 @@ const AdminSettings = () => {
 
   const getSettingIcon = (key) => {
     const k = key?.toLowerCase() || '';
+    if (k.startsWith('ai.') || k.includes('ai.')) return '🤖';
     if (k.includes('rotation')) return '🔄';
     if (k.includes('free') || k.includes('limit')) return '⚡';
     if (k.includes('profile')) return '👤';
@@ -254,70 +256,142 @@ const AdminSettings = () => {
       </div>
 
       {/* ── General Settings ── */}
-      {activeTab === 'general' && (
-        <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
-          {settings.length === 0 ? (
-            <div className="p-16 text-center text-gray-400">
-              <HiCog className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p>No platform settings configured yet.</p>
-            </div>
-          ) : (
-            settings.map((setting) => (
-              <div key={setting._id} className="p-4 sm:p-5">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">{getSettingIcon(setting.key)}</span>
-                      <h3 className="font-semibold text-gray-900 text-sm">{setting.key}</h3>
-                      {setting.category && (
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs">{setting.category}</span>
+      {activeTab === 'general' && (() => {
+        const generalSettings = settings.filter(s => !s.key.startsWith('ai.'));
+        return (
+          <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
+            {generalSettings.length === 0 ? (
+              <div className="p-16 text-center text-gray-400">
+                <HiCog className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p>No platform settings configured yet.</p>
+              </div>
+            ) : (
+              generalSettings.map((setting) => (
+                <div key={setting._id} className="p-4 sm:p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{getSettingIcon(setting.key)}</span>
+                        <h3 className="font-semibold text-gray-900 text-sm">{setting.key}</h3>
+                        {setting.category && (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs">{setting.category}</span>
+                        )}
+                      </div>
+                      {setting.description && (
+                        <p className="text-xs text-gray-400 mt-1 ml-7">{setting.description}</p>
                       )}
                     </div>
-                    {setting.description && (
-                      <p className="text-xs text-gray-400 mt-1 ml-7">{setting.description}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 sm:shrink-0">
-                    {isToggleSetting(setting) ? (
-                      <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-xl px-3 py-1.5 transition">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 select-none">
-                          {getToggleChecked(setting._id) ? 'Enabled' : 'Disabled'}
-                        </span>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input 
-                            type="checkbox" 
-                            checked={getToggleChecked(setting._id)}
-                            onChange={(e) => handleToggleChange(setting, e.target.checked)}
-                            className="sr-only peer" 
+                    <div className="flex items-center gap-4 sm:shrink-0">
+                      {isToggleSetting(setting) ? (
+                        <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-xl px-3 py-1.5 transition">
+                          <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 select-none">
+                            {getToggleChecked(setting._id) ? 'Enabled' : 'Disabled'}
+                          </span>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={getToggleChecked(setting._id)}
+                              onChange={(e) => handleToggleChange(setting, e.target.checked)}
+                              className="sr-only peer" 
+                            />
+                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
+                          </label>
+                        </div>
+                      ) : (
+                        <>
+                          <input
+                            type={typeof setting.value === 'number' ? 'number' : 'text'}
+                            value={editValues[setting._id] ?? ''}
+                            onChange={(e) => {
+                              const val = typeof setting.value === 'number' ? Number(e.target.value) : e.target.value;
+                              setEditValues(v => ({ ...v, [setting._id]: val }));
+                            }}
+                            className="w-36 sm:w-44 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                           />
-                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
-                        </label>
-                      </div>
-                    ) : (
-                      <>
-                        <input
-                          type={typeof setting.value === 'number' ? 'number' : 'text'}
-                          value={editValues[setting._id] ?? ''}
-                          onChange={(e) => {
-                            const val = typeof setting.value === 'number' ? Number(e.target.value) : e.target.value;
-                            setEditValues(v => ({ ...v, [setting._id]: val }));
-                          }}
-                          className="w-36 sm:w-44 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                        />
-                        <button onClick={() => handleSaveSetting(setting)}
-                          className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm font-medium shrink-0">
-                          <HiSave className="w-4 h-4" />
-                          <span className="hidden sm:inline">Save</span>
-                        </button>
-                      </>
-                    )}
+                          <button onClick={() => handleSaveSetting(setting)}
+                            className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm font-medium shrink-0">
+                            <HiSave className="w-4 h-4" />
+                            <span className="hidden sm:inline">Save</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
+              ))
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── AI OPS Settings ── */}
+      {activeTab === 'ai-ops' && (() => {
+        const aiSettings = settings.filter(s => s.key.startsWith('ai.'));
+        return (
+          <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
+            {aiSettings.length === 0 ? (
+              <div className="p-16 text-center text-gray-400">
+                <HiDatabase className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p>No AI platform settings configured yet.</p>
               </div>
-            ))
-          )}
-        </div>
-      )}
+            ) : (
+              aiSettings.map((setting) => (
+                <div key={setting._id} className="p-4 sm:p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{getSettingIcon(setting.key)}</span>
+                        <h3 className="font-semibold text-gray-900 text-sm">{setting.key}</h3>
+                        {setting.category && (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs">{setting.category}</span>
+                        )}
+                      </div>
+                      {setting.description && (
+                        <p className="text-xs text-gray-400 mt-1 ml-7">{setting.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 sm:shrink-0">
+                      {isToggleSetting(setting) ? (
+                        <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-xl px-3 py-1.5 transition">
+                          <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 select-none">
+                            {getToggleChecked(setting._id) ? 'Enabled' : 'Disabled'}
+                          </span>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={getToggleChecked(setting._id)}
+                              onChange={(e) => handleToggleChange(setting, e.target.checked)}
+                              className="sr-only peer" 
+                            />
+                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
+                          </label>
+                        </div>
+                      ) : (
+                        <>
+                          <input
+                            type={typeof setting.value === 'number' ? 'number' : 'text'}
+                            value={editValues[setting._id] ?? ''}
+                            onChange={(e) => {
+                              const val = typeof setting.value === 'number' ? Number(e.target.value) : e.target.value;
+                              setEditValues(v => ({ ...v, [setting._id]: val }));
+                            }}
+                            className="w-36 sm:w-44 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                          />
+                          <button onClick={() => handleSaveSetting(setting)}
+                            className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm font-medium shrink-0">
+                            <HiSave className="w-4 h-4" />
+                            <span className="hidden sm:inline">Save</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Cloudinary Settings ── */}
       {activeTab === 'cloudinary' && (

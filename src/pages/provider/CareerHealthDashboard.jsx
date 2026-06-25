@@ -16,6 +16,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
   const [report, setReport] = useState(null);
   const [isLocked, setIsLocked] = useState(false);
   const [activeTab, setActiveTab] = useState('employability');
+  const [errorMessage, setErrorMessage] = useState(null);
 
   // When coming from Profile.jsx after resume upload, we might pass fileHash or parsedData in state
   const { state } = location;
@@ -29,11 +30,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
   const fetchReport = async () => {
     try {
       setLoading(true);
-      if (!fileHash && !parsedData) {
-        // Just fail silently if no data to analyze, the UI will handle it
-        setLoading(false);
-        return;
-      }
+      setErrorMessage(null);
       
       const { data } = await getCareerHealth({ fileHash, parsedData });
       if (data.success) {
@@ -47,7 +44,12 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
       }
     } catch (error) {
       console.error("Failed to fetch career health report:", error);
-      toast.error("Failed to generate career health report.");
+      if (error.response?.data?.code === 'REQUIRED_DATA_MISSING') {
+        setErrorMessage(error.response.data.message);
+      } else {
+        toast.error("Failed to generate career health report.");
+        setErrorMessage("An error occurred while loading your AI Career Health Report.");
+      }
     } finally {
       setLoading(false);
     }
@@ -106,7 +108,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
     summary: "Upload your resume to generate a personalized AI career health summary, highlighting your strengths, weaknesses, and potential growth."
   }), []);
 
-  const isEmptyState = !report && !loading;
+  const isEmptyState = (!report && !loading) || !!errorMessage;
   const displayData = isLocked || isEmptyState ? { ...report, ...mockDeepData } : report;
   const overviewData = isEmptyState ? mockOverviewData : report;
 
@@ -242,15 +244,15 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
         {isEmptyState && (
           <div className="absolute inset-0 z-30 flex flex-col items-center justify-center backdrop-blur-xl bg-white/60 rounded-3xl pb-10 pointer-events-auto shadow-sm">
             <HiExclamationCircle className="w-16 h-16 text-indigo-600 mb-4 animate-bounce" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Upload Resume for AI Analysis</h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto text-center">
-              Our AI needs to analyze your latest resume to generate your deep Career Health metrics and personalized action plan.
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Profile Actions Required</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto text-center px-4">
+              {errorMessage || "Our AI needs to analyze your latest resume to generate your deep Career Health metrics and personalized action plan."}
             </p>
             <Link 
               to="/provider/profile" 
-              className="bg-indigo-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-indigo-700 transition-colors shadow-lg hover:shadow-xl"
+              className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg hover:shadow-xl"
             >
-              Upload Resume & Get Score
+              Go to Profile
             </Link>
           </div>
         )}

@@ -41,8 +41,8 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const requestUrl = new URL(event.request.url);
 
-  // For API requests, try network first, then cache if offline
-  if (requestUrl.pathname.startsWith('/api/') || requestUrl.pathname.startsWith('/auth/')) {
+  // For API requests, try network first, then cache if offline (GET requests only)
+  if ((requestUrl.pathname.startsWith('/api/') || requestUrl.pathname.startsWith('/auth/')) && event.request.method === 'GET') {
     event.respondWith(
       fetch(event.request)
         .then(response => {

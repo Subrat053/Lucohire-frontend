@@ -22,6 +22,8 @@ export default function GrowWithAIDashboard() {
   const [barriersData, setBarriersData] = useState(null);
   const [barriersLocked, setBarriersLocked] = useState(false);
 
+  const [errorMessage, setErrorMessage] = useState(null);
+
   const { state } = location;
   const fileHash = state?.fileHash || localStorage.getItem('lastResumeHash');
   const parsedData = state?.parsedData;
@@ -34,18 +36,22 @@ export default function GrowWithAIDashboard() {
   const fetchGPS = async () => {
     try {
       setGpsLoading(true);
-      if (!fileHash && !parsedData) return;
+      setErrorMessage(null);
       
       const { data } = await getCareerGPS({ fileHash, parsedData });
       if (data.success) {
         console.log("=== GPS Data from OpenAI ===", data.data);
         setGpsData(data.data);
-        // setGpsLocked(data.isLocked);
         setGpsLocked(false);
         if (fileHash) localStorage.setItem('lastResumeHash', fileHash);
       }
     } catch (error) {
       console.error("Failed to fetch GPS data:", error);
+      if (error.response?.data?.code === 'REQUIRED_DATA_MISSING') {
+        setErrorMessage(error.response.data.message);
+      } else {
+        setErrorMessage("An error occurred while loading your AI Career GPS.");
+      }
     } finally {
       setGpsLoading(false);
     }
@@ -54,13 +60,11 @@ export default function GrowWithAIDashboard() {
   const fetchBarriers = async () => {
     try {
       setBarriersLoading(true);
-      if (!fileHash && !parsedData) return;
       
       const { data } = await getHiringBarriers({ fileHash, parsedData });
       if (data.success) {
         console.log("=== Hiring Barriers from OpenAI ===", data.data);
         setBarriersData(data.data);
-        // setBarriersLocked(data.isLocked);
         setBarriersLocked(false);
       }
     } catch (error) {
@@ -70,7 +74,7 @@ export default function GrowWithAIDashboard() {
     }
   };
 
-  if (!fileHash && !parsedData) {
+  if (errorMessage) {
     return (
       <div className="max-w-4xl mx-auto p-8">
         <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-xs">
@@ -79,13 +83,13 @@ export default function GrowWithAIDashboard() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Grow with AI</h2>
           <p className="text-gray-500 mb-8 max-w-md mx-auto">
-            Upload your resume to unlock AI-powered career path recommendations and discover why you might not be getting hired.
+            {errorMessage}
           </p>
           <Link
             to="/provider/profile"
             className="inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
           >
-            <span>Go to Profile to Upload Resume</span>
+            <span>Go to Profile</span>
             <HiArrowRight className="w-5 h-5" />
           </Link>
         </div>
