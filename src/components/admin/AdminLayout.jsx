@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   HiShieldCheck, HiUsers, HiMail, HiBriefcase, HiCurrencyRupee, HiCog, HiPhotograph,HiLibrary ,
-  HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe, HiUserGroup, HiLink, HiGift, HiLockClosed, HiOutlineDocumentText, HiQuestionMarkCircle, HiInformationCircle, HiClipboardList, HiDatabase
+  HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiDocumentText, HiShieldExclamation, HiCreditCard, HiCollection, HiGlobe, HiUserGroup, HiLink, HiGift, HiLockClosed, HiOutlineDocumentText, HiQuestionMarkCircle, HiInformationCircle, HiClipboardList, HiDatabase, HiTerminal
 } from 'react-icons/hi';
 import { Activity } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -14,7 +14,7 @@ const navItems = [
   { labelKey: 'admin.navDashboard', fallback: 'Dashboard', path: '/admin/dashboard',  icon: HiShieldCheck },
   { labelKey: 'admin.healthDashboard', fallback: 'Health & Cost Monitors', path: '/admin/health', icon: Activity, adminOnly: true },
   { labelKey: 'admin.outreachEngine', fallback: 'Bulk Outreach', path: '/admin/outreach', icon: HiMail, adminOnly: true },
-  { labelKey: 'admin.dataPipeline', fallback: 'Data Pipeline', path: '/admin/data-pipeline', icon: HiDatabase, adminOnly: true },
+  { labelKey: 'admin.dataPipeline', fallback: 'Smart Run Command', path: '/admin/data-pipeline', icon: HiTerminal, adminOnly: true },
   { labelKey: 'admin.partners', fallback: 'Partners', path: '/admin/partners',    icon: HiUserGroup },
   { labelKey: 'admin.managerBankAccounts', fallback: 'Bank Accounts', path: '/admin/manager-bank-accounts', icon: HiLibrary },
   { labelKey: 'admin.partnerPayouts', fallback: 'Partner Payouts', path: '/admin/partner-payouts', icon: HiCurrencyRupee },

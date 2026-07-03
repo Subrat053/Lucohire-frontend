@@ -49,7 +49,7 @@ const AdminCandidateUnlockLogs = lazy(() => import("../pages/admin/CandidateUnlo
 const AdminResumeAccessLogs = lazy(() => import("../pages/admin/ResumeAccessLogs"));
 const HealthDashboard = lazy(() => import("../pages/admin/HealthDashboard"));
 const BulkOutreach = lazy(() => import("../components/admin/BulkOutreach"));
-const DataPipeline = lazy(() => import("../pages/Admin/DataPipeline"));
+const DataPipeline = lazy(() => import("../pages/admin/DataPipeline"));
 
 // Synced Jobs & ATS Sync Module
 const JobSources = lazy(() => import("../pages/admin/JobSources"));
@@ -78,7 +78,7 @@ export default function AdminRoutes() {
   
   return (
     <Routes>
-      <Route path="" element={<Navigate to="dashboard" replace />} />
+      <Route path="" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="dashboard" element={wrap(<AdminDashboard />)} />
       <Route path="withdrawals" element={wrap(<AdminWithdrawals />)} />
       <Route path="commission-settings" element={wrap(<AdminCommissionSettings />)} />

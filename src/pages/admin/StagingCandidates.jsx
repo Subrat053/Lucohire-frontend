@@ -9,13 +9,14 @@ export default function StagingCandidates() {
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('staged');
+  const [leadStatusFilter, setLeadStatusFilter] = useState('all');
   const [pagination, setPagination] = useState({ page: 1, total: 0, pages: 1 });
   const [editValues, setEditValues] = useState({});
 
   useEffect(() => {
     fetchCandidates();
     fetchSettings();
-  }, [statusFilter, pagination.page]);
+  }, [statusFilter, leadStatusFilter, pagination.page]);
 
   const fetchSettings = async () => {
     try {
@@ -42,7 +43,8 @@ export default function StagingCandidates() {
       const { data } = await adminAPI.getStagingCandidates({
         page: pagination.page,
         limit: 50,
-        status: statusFilter !== 'all' ? statusFilter : undefined
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        leadStatus: leadStatusFilter !== 'all' ? leadStatusFilter : undefined
       });
       setCandidates(data.data);
       setPagination(data.pagination);
@@ -93,6 +95,19 @@ export default function StagingCandidates() {
             <option value="staged">Staged (Pending Outreach)</option>
             <option value="outreach_sent">Outreach Sent</option>
             <option value="claimed">Claimed (Active User)</option>
+          </select>
+          <select
+            value={leadStatusFilter}
+            onChange={(e) => {
+              setLeadStatusFilter(e.target.value);
+              setPagination(prev => ({ ...prev, page: 1 }));
+            }}
+            className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="all">All Lead Tiers</option>
+            <option value="Verified Active Candidate">Verified Active Candidate</option>
+            <option value="Active Signal Lead">Active Signal Lead</option>
+            <option value="Raw Lead">Raw Lead</option>
           </select>
         </div>
       </div>
@@ -179,7 +194,9 @@ export default function StagingCandidates() {
                   <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Source Query</th>
                   <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Email Toggle</th>
                   <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">WA Toggle</th>
-                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Outreach Status</th>
+                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Lead Status</th>
+                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
                   <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Scraped</th>
                 </tr>
               </thead>
@@ -238,6 +255,29 @@ export default function StagingCandidates() {
                         }`}>
                           {cand.status.replace('_', ' ')}
                         </span>
+                      </td>
+                      <td className="p-4">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          cand.leadStatus === 'Verified Active Candidate' ? 'bg-green-100 text-green-800' :
+                          cand.leadStatus === 'Active Signal Lead' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {cand.leadStatus || 'Raw Lead'}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-gray-900">{cand.activeScore || 0}</span>
+                          <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full ${
+                                (cand.activeScore || 0) >= 100 ? 'bg-green-500' :
+                                (cand.activeScore || 0) >= 31 ? 'bg-yellow-500' : 'bg-gray-400'
+                              }`} 
+                              style={{ width: `${Math.min(100, cand.activeScore || 0)}%` }} 
+                            />
+                          </div>
+                        </div>
                       </td>
                       <td className="p-4 text-xs text-gray-500 whitespace-nowrap">
                         {formatDistanceToNow(new Date(cand.createdAt), { addSuffix: true })}
