@@ -36,6 +36,12 @@ const navItems = [
   { labelKey: 'admin.navWhatsapp', fallback: 'WhatsApp', path: '/admin/whatsapp',    icon: FaWhatsapp },
   { labelKey: 'admin.navCurrency', fallback: 'Currency', path: '/admin/currency',    icon: HiGlobe },
   { labelKey: 'admin.navCountries', fallback: 'Country Config', path: '/admin/countries', icon: HiGlobe },
+  { labelKey: 'admin.jobSources', fallback: 'Job Ingestion Sources', path: '/admin/job-sources', icon: HiDatabase },
+  { labelKey: 'admin.companySources', fallback: 'ATS Companies', path: '/admin/company-sources', icon: HiLink },
+  { labelKey: 'admin.externalJobs', fallback: 'Synced Jobs List', path: '/admin/external-jobs', icon: HiBriefcase },
+  { labelKey: 'admin.syncReports', fallback: 'Sync Reports', path: '/admin/sync-reports', icon: HiClipboardList },
+  { labelKey: 'admin.syncErrors', fallback: 'Sync Error Center', path: '/admin/sync-errors', icon: HiShieldExclamation },
+  { labelKey: 'admin.recruiterLeads', fallback: 'Recruiter Leads', path: '/admin/recruiter-leads', icon: HiUsers },
   { labelKey: 'admin.aiOps', fallback: 'AI Ops', path: '/admin/ai',          icon: HiCog, adminOnly: true },
 
   { labelKey: 'admin.navSettings', fallback: 'Settings', path: '/admin/settings',    icon: HiCog },

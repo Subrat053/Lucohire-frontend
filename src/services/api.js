@@ -227,6 +227,10 @@ export const providerAPI = {
   getApplications: () => API.get("/provider/applications"),
   getSkillGapReport: () => API.post("/candidate/skill-gap-report"),
   getBenchmark: (id) => API.get(`/provider/benchmark/${id}`),
+  getRecommendations: () => API.get("/candidate-matching/recommendations"),
+  getSavedJobs: () => API.get("/candidate-matching/saved"),
+  toggleSaveJob: (data) => API.post("/candidate-matching/save", data),
+  trackApplyClick: (jobId) => API.post(`/candidate-matching/${jobId}/apply-click`),
 };
 
 // Recruiter APIs
@@ -483,6 +487,42 @@ export const adminAPI = {
   createCountryConfig: (data) => ADMIN_API.post("/admin/countries", data),
   updateCountryConfig: (id, data) => ADMIN_API.put(`/admin/countries/${id}`, data),
   deleteCountryConfig: (id) => ADMIN_API.delete(`/admin/countries/${id}`),
+  validateCountryConfig: (id) => ADMIN_API.post(`/admin/countries/${id}/validate`),
+  activateCountryConfig: (id) => ADMIN_API.post(`/admin/countries/${id}/activate`),
+  deactivateCountryConfig: (id) => ADMIN_API.post(`/admin/countries/${id}/deactivate`),
+
+  // External Job Sources
+  getJobSources: () => ADMIN_API.get("/admin/job-sources"),
+  createJobSource: (data) => ADMIN_API.post("/admin/job-sources", data),
+  updateJobSource: (id, data) => ADMIN_API.put(`/admin/job-sources/${id}`, data),
+  testJobSource: (id) => ADMIN_API.post(`/admin/job-sources/${id}/test`),
+  syncJobSource: (id) => ADMIN_API.post(`/admin/job-sources/${id}/sync`),
+  pauseJobSource: (id) => ADMIN_API.post(`/admin/job-sources/${id}/pause`),
+  resumeJobSource: (id) => ADMIN_API.post(`/admin/job-sources/${id}/resume`),
+
+  // Company Sources
+  getCompanySources: (params) => ADMIN_API.get("/admin/company-sources", { params }),
+  createCompanySource: (data) => ADMIN_API.post("/admin/company-sources", data),
+  updateCompanySource: (id, data) => ADMIN_API.put(`/admin/company-sources/${id}`, data),
+  deleteCompanySource: (id) => ADMIN_API.delete(`/admin/company-sources/${id}`),
+  importCompanySources: (data) => ADMIN_API.post("/admin/company-sources/import", data),
+
+  // External Jobs
+  getExternalJobs: (params) => ADMIN_API.get("/external-jobs/admin/list", { params }),
+  updateExternalJob: (id, data) => ADMIN_API.put(`/external-jobs/admin/${id}`, data),
+  deleteExternalJob: (id) => ADMIN_API.delete(`/external-jobs/admin/${id}`),
+  refreshExternalJob: (id) => ADMIN_API.post(`/external-jobs/admin/${id}/refresh`),
+
+  // Sync logs & controls
+  getSyncReports: (params) => ADMIN_API.get("/admin/sync/reports", { params }),
+  getSyncErrors: () => ADMIN_API.get("/admin/sync/errors"),
+  retrySyncLog: (id) => ADMIN_API.post(`/admin/sync/errors/${id}/retry`),
+  triggerDailySync: () => ADMIN_API.post("/admin/sync/run"),
+
+  // Recruiter Leads
+  getRecruiterLeads: (params) => ADMIN_API.get("/admin/recruiter-leads", { params }),
+  updateRecruiterLead: (id, data) => ADMIN_API.put(`/admin/recruiter-leads/${id}`, data),
+  deleteRecruiterLead: (id) => ADMIN_API.delete(`/admin/recruiter-leads/${id}`),
 
   // Scraper Staging Candidates
   getStagingCandidates: (params) => ADMIN_API.get("/admin/staging-candidates", { params }),

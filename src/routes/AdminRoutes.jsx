@@ -51,6 +51,14 @@ const HealthDashboard = lazy(() => import("../pages/admin/HealthDashboard"));
 const BulkOutreach = lazy(() => import("../components/admin/BulkOutreach"));
 const DataPipeline = lazy(() => import("../pages/Admin/DataPipeline"));
 
+// Synced Jobs & ATS Sync Module
+const JobSources = lazy(() => import("../pages/admin/JobSources"));
+const CompanySources = lazy(() => import("../pages/admin/CompanySources"));
+const ExternalJobs = lazy(() => import("../pages/admin/ExternalJobs"));
+const SyncReports = lazy(() => import("../pages/admin/SyncReports"));
+const SyncErrors = lazy(() => import("../pages/admin/SyncErrors"));
+const RecruiterLeads = lazy(() => import("../pages/admin/RecruiterLeads"));
+
 function AdminLayoutWrapper({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -110,18 +118,27 @@ export default function AdminRoutes() {
       <Route path="portfolio-approvals" element={wrap(<AdminPortfolioApprovals />)} />
       <Route path="enquiries" element={wrap(<AdminEnquiries />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />
+      
       {/* Logs & Audit */}
       <Route path="otp-logs" element={wrap(<AdminOtpLogs />)} />
       <Route path="ai-resume-logs" element={wrap(<AdminAiResumeLogs />)} />
       <Route path="candidate-unlock-logs" element={wrap(<AdminCandidateUnlockLogs />)} />
       <Route path="resume-access-logs" element={wrap(<AdminResumeAccessLogs />)} />
       
+      {/* Ingestion & ATS Sync Engine Control */}
+      <Route path="job-sources" element={wrap(<JobSources />)} />
+      <Route path="company-sources" element={wrap(<CompanySources />)} />
+      <Route path="external-jobs" element={wrap(<ExternalJobs />)} />
+      <Route path="sync-reports" element={wrap(<SyncReports />)} />
+      <Route path="sync-errors" element={wrap(<SyncErrors />)} />
+      <Route path="recruiter-leads" element={wrap(<RecruiterLeads />)} />
+
       {/* Engine Control */}
       <Route path="health" element={wrap(<HealthDashboard />)} />
       <Route path="outreach" element={wrap(<BulkOutreach />)} />
       <Route path="data-pipeline" element={wrap(<DataPipeline />)} />
 
-      <Route path="*" element={<Navigate to="dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
     </Routes>
   );
 }

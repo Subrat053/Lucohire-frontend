@@ -311,6 +311,58 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* Job Ingestion & B2B Leads Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">Automation & Job Sync</h3>
+                <span className="text-[10px] text-gray-400">Ingestion health</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Link to="/admin/external-jobs">
+                  <DashboardStatsCard 
+                    icon={HiBriefcase} 
+                    label="Synced External Jobs" 
+                    value={(stats.totalExternalJobs || 0).toLocaleString('en-IN')} 
+                  />
+                </Link>
+                <Link to="/admin/company-sources">
+                  <DashboardStatsCard 
+                    icon={HiUsers} 
+                    label="Configured Companies" 
+                    value={(stats.totalCompanySources || 0).toLocaleString('en-IN')} 
+                  />
+                </Link>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">B2B Growth & Leads</h3>
+                <span className="text-[10px] text-gray-400">Captured HR contacts</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Link to="/admin/recruiter-leads">
+                  <DashboardStatsCard 
+                    icon={HiCheckCircle} 
+                    label="Recruiter Leads" 
+                    value={(stats.totalRecruiterLeads || 0).toLocaleString('en-IN')} 
+                  />
+                </Link>
+                <div className="bg-white p-4 rounded-xl border border-gray-100 flex flex-col justify-between h-[86px]">
+                  <span className="text-[10px] font-medium text-gray-400">Last Sync Status</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${stats.lastSyncLog?.status === 'success' ? 'bg-emerald-500' : (stats.lastSyncLog?.status === 'failed' ? 'bg-rose-500' : 'bg-amber-400')}`} />
+                    <span className="text-sm font-bold text-gray-800 capitalize">{stats.lastSyncLog?.status || 'idle'}</span>
+                  </div>
+                  <span className="text-[9px] text-gray-400">
+                    {stats.lastSyncLog?.completedAt ? new Date(stats.lastSyncLog.completedAt).toLocaleString('en-IN') : 'No sync recorded'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Suspense fallback={<div className="bg-white p-6 rounded-2xl border border-gray-100 h-80 flex items-center justify-center text-xs text-gray-400">Loading Revenue Chart...</div>}>
