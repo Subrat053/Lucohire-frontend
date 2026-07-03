@@ -18,6 +18,7 @@ export default function ClaimProfile() {
   const [profile, setProfile] = useState(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [consentAccepted, setConsentAccepted] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -47,6 +48,11 @@ export default function ClaimProfile() {
 
     if (password !== confirmPassword) {
       toast.error('Passwords do not match.');
+      return;
+    }
+
+    if (!consentAccepted) {
+      toast.error('You must accept the terms and consent to be verified.');
       return;
     }
 
@@ -153,6 +159,24 @@ export default function ClaimProfile() {
               </div>
             </div>
 
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="consent"
+                  type="checkbox"
+                  required
+                  checked={consentAccepted}
+                  onChange={(e) => setConsentAccepted(e.target.checked)}
+                  className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="consent" className="font-medium text-gray-700">
+                  I consent to verify my profile and accept the <a href="#" className="text-indigo-600 hover:underline">Terms of Service</a> & <a href="#" className="text-indigo-600 hover:underline">Privacy Policy</a>.
+                </label>
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={submitting}
@@ -161,10 +185,6 @@ export default function ClaimProfile() {
               {submitting ? 'Creating Account...' : 'Confirm & Claim Profile'}
             </button>
           </form>
-          
-          <p className="mt-4 text-xs text-center text-gray-500">
-            By claiming this profile, you agree to the Lucohire Terms of Service and Privacy Policy.
-          </p>
         </div>
       </div>
     </div>
