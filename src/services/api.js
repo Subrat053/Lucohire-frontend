@@ -78,7 +78,7 @@ const AUTH_API = axios.create({
 // Admin API uses v1 routes
 const ADMIN_API = axios.create({
   baseURL: ADMIN_BASE_URL,
-  timeout: 15000,
+  timeout: 90000,
   withCredentials: true,
 });
 

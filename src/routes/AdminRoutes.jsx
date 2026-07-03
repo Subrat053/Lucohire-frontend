@@ -41,6 +41,7 @@ const ProfileReviewDetail = lazy(() => import("../pages/admin/ProfileReviewDetai
 const ResumeApprovals = lazy(() => import("../pages/admin/ResumeApprovals"));
 const AdminPortfolioApprovals = lazy(() => import("../pages/admin/PortfolioApprovals"));
 const AdminEnquiries = lazy(() => import("../pages/admin/Enquiries"));
+
 const ChangePassword = lazy(() => import("../pages/user/ChangePassword"));
 const AdminOtpLogs = lazy(() => import("../pages/admin/OtpLogs"));
 const AdminAiResumeLogs = lazy(() => import("../pages/admin/AiResumeLogs"));
@@ -48,6 +49,7 @@ const AdminCandidateUnlockLogs = lazy(() => import("../pages/admin/CandidateUnlo
 const AdminResumeAccessLogs = lazy(() => import("../pages/admin/ResumeAccessLogs"));
 const HealthDashboard = lazy(() => import("../pages/admin/HealthDashboard"));
 const BulkOutreach = lazy(() => import("../components/admin/BulkOutreach"));
+const DataPipeline = lazy(() => import("../pages/Admin/DataPipeline"));
 
 function AdminLayoutWrapper({ children }) {
   return (
@@ -117,6 +119,7 @@ export default function AdminRoutes() {
       {/* Engine Control */}
       <Route path="health" element={wrap(<HealthDashboard />)} />
       <Route path="outreach" element={wrap(<BulkOutreach />)} />
+      <Route path="data-pipeline" element={wrap(<DataPipeline />)} />
 
       <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
