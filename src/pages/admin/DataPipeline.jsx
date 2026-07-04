@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HiPlus, HiPlay, HiDatabase, HiCog, HiSparkles, HiTerminal, HiCheckCircle, HiExclamationCircle } from 'react-icons/hi';
+import { HiPlus, HiPlay, HiDatabase, HiCog, HiSparkles, HiTerminal, HiCheckCircle, HiExclamationCircle, HiRefresh } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import { ADMIN_API } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -28,9 +28,12 @@ const ACTIVE_FILTERS = [
 
 const DataPipeline = () => {
   const [configs, setConfigs] = useState([]);
+  const [automations, setAutomations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('runner'); // 'runner' or 'configs'
+  const [activeTab, setActiveTab] = useState('runner');
   const [manageFilterCountry, setManageFilterCountry] = useState('All');
+  const [dbCountries, setDbCountries] = useState([]); // countries from DB
+  const [syncing, setSyncing] = useState(false);
 
   // Wizard / Smart Command State
   const [formData, setFormData] = useState({
@@ -63,6 +66,20 @@ const DataPipeline = () => {
   });
 
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showAutomationModal, setShowAutomationModal] = useState(false);
+  const [editingAutomationId, setEditingAutomationId] = useState(null);
+  const [newAutomation, setNewAutomation] = useState({
+    name: '',
+    configId: '',
+    frequency: 'daily',
+    searchQuery: '',
+    location: '',
+    jobType: '',
+    maxRecordsPerRun: 100,
+    maxSpendPerRun: 10,
+    outreachChannels: ['email']
+  });
+
   const [globalSettings, setGlobalSettings] = useState({
     maxRecordsPerDay: 3000,
     maxRecordsPerMonth: 90000,
@@ -95,6 +112,17 @@ const DataPipeline = () => {
     }
   };
 
+  const fetchAutomations = async () => {
+    try {
+      const { data } = await ADMIN_API.get('/admin/data-pipeline/automations');
+      if (data.success) {
+        setAutomations(data.automations);
+      }
+    } catch (err) {
+      console.error('Failed to load automations', err);
+    }
+  };
+
   const fetchSettings = async () => {
     try {
       const { data } = await ADMIN_API.get('/admin/data-pipeline/settings');
@@ -119,9 +147,39 @@ const DataPipeline = () => {
     }
   };
 
+  const fetchCountries = async () => {
+    try {
+      const { data } = await ADMIN_API.get('/admin/countries');
+      if (data.success && data.countries) {
+        setDbCountries(data.countries.map(c => c.countryName));
+      }
+    } catch (err) {
+      console.error('Failed to load countries from DB', err);
+    }
+  };
+
+  const handleSyncFromCountries = async () => {
+    setSyncing(true);
+    try {
+      const { data } = await ADMIN_API.post('/admin/data-pipeline/configs/sync-from-countries');
+      if (data.success) {
+        toast.success(data.message);
+        fetchConfigs();
+      } else {
+        toast.error(data.error || 'Sync failed');
+      }
+    } catch (err) {
+      toast.error('Sync failed: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   useEffect(() => {
     fetchConfigs();
     fetchSettings();
+    fetchAutomations();
+    fetchCountries();
   }, []);
 
   const handleCreateConfig = async (e) => {
@@ -200,6 +258,75 @@ const DataPipeline = () => {
       aiPromptTemplate: 'Extract the following fields from the JSON: name, email, phone, jobTitle, skills(array). Return ONLY valid JSON array.'
     });
     setShowAddModal(true);
+  };
+
+  const handleCreateAutomation = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingAutomationId) {
+        const { data } = await ADMIN_API.put(`/admin/data-pipeline/automations/${editingAutomationId}`, newAutomation);
+        if (data.success) {
+          toast.success('Automation updated successfully');
+          setShowAutomationModal(false);
+          setEditingAutomationId(null);
+          fetchAutomations();
+        } else {
+          toast.error(data.message || 'Failed to update automation');
+        }
+      } else {
+        const { data } = await ADMIN_API.post('/admin/data-pipeline/automations', newAutomation);
+        if (data.success) {
+          toast.success('Automation created successfully');
+          setShowAutomationModal(false);
+          fetchAutomations();
+        } else {
+          toast.error(data.message || 'Failed to create automation');
+        }
+      }
+    } catch (err) {
+      toast.error('Network error while saving automation');
+    }
+  };
+
+  const handleDeleteAutomation = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this automation?')) return;
+    try {
+      const { data } = await ADMIN_API.delete(`/admin/data-pipeline/automations/${id}`);
+      if (data.success) {
+        toast.success('Automation deleted');
+        fetchAutomations();
+      }
+    } catch (err) {
+      toast.error('Network error');
+    }
+  };
+
+  const handleToggleAutomation = async (id) => {
+    try {
+      const { data } = await ADMIN_API.patch(`/admin/data-pipeline/automations/${id}/toggle`);
+      if (data.success) {
+        toast.success('Automation status toggled');
+        fetchAutomations();
+      }
+    } catch (err) {
+      toast.error('Network error');
+    }
+  };
+
+  const openAddAutomationModal = () => {
+    setEditingAutomationId(null);
+    setNewAutomation({
+      name: '',
+      configId: configs.length > 0 ? configs[0]._id : '',
+      frequency: 'daily',
+      searchQuery: '',
+      location: '',
+      jobType: '',
+      maxRecordsPerRun: 100,
+      maxSpendPerRun: 10,
+      outreachChannels: ['email']
+    });
+    setShowAutomationModal(true);
   };
 
   // Smart Command Handlers
@@ -339,6 +466,14 @@ const DataPipeline = () => {
             <HiCog /> Manage Data Sources
           </div>
         </button>
+        <button 
+          onClick={() => setActiveTab('automations')} 
+          className={`px-6 py-3 font-medium text-sm rounded-t-lg transition-colors ${activeTab === 'automations' ? 'bg-white border-t border-l border-r border-gray-200 text-indigo-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+        >
+          <div className="flex items-center gap-2">
+            <HiDatabase /> Automations
+          </div>
+        </button>
       </div>
 
       {activeTab === 'runner' && (
@@ -361,7 +496,7 @@ const DataPipeline = () => {
                   ) : (
                     <select required className="mt-1 w-full border-gray-300 rounded-lg p-2 bg-gray-50" value={formData.configId} onChange={e => setFormData({...formData, configId: e.target.value})}>
                       <option value="">-- Select Source --</option>
-                      {configs.filter(c => c.country === formData.country).map(c => (
+                      {configs.filter(c => c.country === formData.country || c.country === 'Global').map(c => (
                         <option key={c._id} value={c._id}>{c.name} ({c.type})</option>
                       ))}
                     </select>
@@ -370,12 +505,17 @@ const DataPipeline = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">3. Skill / Keyword</label>
-                  <select className="mt-1 w-full border-gray-300 rounded-lg p-2 bg-gray-50" value={formData.skill} onChange={e => setFormData({...formData, skill: e.target.value})}>
-                    {SKILL_OPTIONS.map(s => <option key={s}>{s}</option>)}
-                  </select>
-                  {formData.skill === 'Other (Custom)' && (
-                    <input type="text" required placeholder="Type custom skill..." className="mt-2 w-full border-gray-300 rounded-lg p-2" value={formData.customSkill} onChange={e => setFormData({...formData, customSkill: e.target.value})} />
-                  )}
+                  <input 
+                    type="text"
+                    list="skill-options" 
+                    className="mt-1 w-full border-gray-300 rounded-lg p-2 bg-gray-50" 
+                    placeholder="E.g. React Developer" 
+                    value={formData.skill} 
+                    onChange={e => setFormData({...formData, skill: e.target.value})} 
+                  />
+                  <datalist id="skill-options">
+                    {SKILL_OPTIONS.filter(s => s !== 'Other (Custom)').map(s => <option key={s} value={s} />)}
+                  </datalist>
                 </div>
 
                 <div>
@@ -438,12 +578,20 @@ const DataPipeline = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">11. Outreach Channel</label>
                   <div className="flex space-x-4 mt-2">
-                    {['Email', 'WhatsApp', 'SMS'].map(channel => (
-                      <label key={channel} className="flex items-center space-x-1 text-sm text-gray-700 cursor-pointer">
-                        <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500" checked={formData.outreachChannels.includes(channel)} onChange={() => handleChannelToggle(channel)} />
-                        <span>{channel}</span>
-                      </label>
-                    ))}
+                    <label className="flex items-center space-x-2">
+                      <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500" checked={formData.outreachChannels.includes('email')} onChange={(e) => {
+                        if(e.target.checked) setFormData({...formData, outreachChannels: [...formData.outreachChannels, 'email']});
+                        else setFormData({...formData, outreachChannels: formData.outreachChannels.filter(c => c !== 'email')});
+                      }} />
+                      <span className="text-sm font-medium">Email</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500" checked={formData.outreachChannels.includes('whatsapp')} onChange={(e) => {
+                        if(e.target.checked) setFormData({...formData, outreachChannels: [...formData.outreachChannels, 'whatsapp']});
+                        else setFormData({...formData, outreachChannels: formData.outreachChannels.filter(c => c !== 'whatsapp')});
+                      }} />
+                      <span className="text-sm font-medium">WhatsApp</span>
+                    </label>
                   </div>
                 </div>
               </div>
@@ -490,10 +638,15 @@ const DataPipeline = () => {
 
                   {result.map((c, idx) => (
                     <div className="bg-white p-3 rounded border shadow-sm text-sm" key={idx}>
-                      <p className="font-bold text-gray-900">{c.name}</p>
-                      <p className="text-gray-500">{c.jobTitle} • Score: {c.activeScore}</p>
-                      {formData.runMode === 'Live Fetch' && (
-                         <p className="text-xs text-blue-600 mt-1">Staged for: {formData.outreachChannels.join(', ') || 'No Outreach'}</p>
+                      <div className="flex justify-between items-start gap-2">
+                        <p className="font-bold text-gray-900">{c.name}</p>
+                        <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${c.leadStatus === 'Active Signal Lead' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{c.leadStatus}</span>
+                      </div>
+                      <p className="text-gray-600 mt-0.5">{c.jobTitle}{c.location ? ` • ${c.location}` : ''}</p>
+                      <p className="text-gray-400 text-xs mt-0.5">Active Score: {c.activeScore}</p>
+                      {c.skills?.length > 0 && <p className="text-xs text-indigo-600 mt-1">{c.skills.slice(0, 5).join(', ')}</p>}
+                      {c.publicProfileUrl && (
+                        <a href={c.publicProfileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 underline mt-1 block truncate">{c.publicProfileUrl}</a>
                       )}
                     </div>
                   ))}
@@ -507,16 +660,27 @@ const DataPipeline = () => {
       {activeTab === 'configs' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-4 md:p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h2 className="text-lg font-bold text-gray-900">Configured Data Sources</h2>
-            <div className="flex items-center gap-3 w-full md:w-auto">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Configured Data Sources</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Sources synced from Countries page appear here automatically.</p>
+            </div>
+            <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
               <select 
-                className="border-gray-300 rounded-lg text-sm p-1.5 focus:ring-indigo-500 focus:border-indigo-500 w-full md:w-auto"
+                className="border-gray-300 rounded-lg text-sm p-1.5 focus:ring-indigo-500 focus:border-indigo-500"
                 value={manageFilterCountry}
                 onChange={(e) => setManageFilterCountry(e.target.value)}
               >
                 <option value="All">All Countries</option>
-                {COUNTRY_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                {[...new Set([...COUNTRY_OPTIONS, ...dbCountries])].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
+              <button
+                onClick={handleSyncFromCountries}
+                disabled={syncing}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+              >
+                <HiRefresh className={syncing ? 'animate-spin' : ''} />
+                {syncing ? 'Syncing...' : 'Sync from Countries'}
+              </button>
               <button onClick={openAddModal} className="bg-indigo-600 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1 whitespace-nowrap">
                 <HiPlus /> Add Source
               </button>
@@ -531,21 +695,71 @@ const DataPipeline = () => {
                 {configs.filter(c => manageFilterCountry === 'All' || c.country === manageFilterCountry).map(c => (
                   <div key={c._id} className="border border-gray-200 rounded-lg p-4 flex flex-col justify-between hover:border-indigo-300 transition-colors">
                     <div>
-                      <div className="flex justify-between items-start">
+                      <div className="flex justify-between items-start gap-2 flex-wrap">
                         <h3 className="font-bold text-gray-900">{c.name}</h3>
-                        <span className="bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded font-medium">{c.country}</span>
+                        <div className="flex gap-1 flex-wrap">
+                          <span className="bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded font-medium">{c.country}</span>
+                          {c.type === 'free_api' && <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-bold">🆓 FREE</span>}
+                        </div>
                       </div>
                       <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
-                        Type: <span className="font-mono text-xs">{c.type}</span>
-                        | Status: <span className={`text-xs font-bold ${c.status === 'Ready / Free' ? 'text-green-600' : 'text-yellow-600'}`}>{c.status || 'Ready / Free'}</span>
+                        Type: <span className="font-mono text-xs">{c.type === 'free_api' ? `free_api (${c.sourceKey})` : c.type}</span>
+                        | Status: <span className={`text-xs font-bold ${c.status?.includes('Ready') ? 'text-green-600' : 'text-yellow-600'}`}>{c.status || 'Ready / Free'}</span>
                       </p>
-                      <p className="text-sm text-gray-500 mt-1 truncate">
-                        Endpoint: <span className="text-gray-900" title={c.endpointOrActorId}>{c.endpointOrActorId}</span>
-                      </p>
+                      {c.type !== 'free_api' && (
+                        <p className="text-sm text-gray-500 mt-1 truncate">
+                          Endpoint: <span className="text-gray-900" title={c.endpointOrActorId}>{c.endpointOrActorId}</span>
+                        </p>
+                      )}
                     </div>
                     <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
                       <button onClick={() => openEditModal(c)} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium px-3 py-1 bg-indigo-50 rounded">Edit</button>
                       <button onClick={() => handleDeleteConfig(c._id)} className="text-sm text-red-600 hover:text-red-800 font-medium px-3 py-1 bg-red-50 rounded">Delete</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'automations' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-4 md:p-6 border-b border-gray-100 flex justify-between items-center">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <HiDatabase className="text-indigo-600" /> Scheduled Automations
+            </h2>
+            <button onClick={openAddAutomationModal} className="bg-indigo-600 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1">
+              <HiPlus /> New Automation
+            </button>
+          </div>
+          
+          <div className="p-4 md:p-6">
+            {automations.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No automations scheduled. Create one to run sourcing automatically.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {automations.map(auto => (
+                  <div key={auto._id} className="border border-gray-200 rounded-lg p-4 flex flex-col justify-between hover:border-indigo-300 transition-colors">
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-bold text-gray-900 text-lg">{auto.name}</h3>
+                        <span className={`text-xs px-2 py-1 rounded font-bold ${auto.status === 'active' ? 'bg-green-100 text-green-700' : auto.status === 'error' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
+                          {auto.status.toUpperCase()}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600"><strong>Source:</strong> {auto.configId?.name || 'Unknown'}</p>
+                      <p className="text-sm text-gray-600"><strong>Query:</strong> {auto.searchQuery} in {auto.location || 'Anywhere'}</p>
+                      <p className="text-sm text-gray-600"><strong>Schedule:</strong> Runs {auto.frequency}</p>
+                      <p className="text-sm text-gray-600"><strong>Limits:</strong> {auto.maxRecordsPerRun} records / run</p>
+                      <p className="text-sm text-gray-600"><strong>Last Run:</strong> {auto.lastRunAt ? new Date(auto.lastRunAt).toLocaleString() : 'Never'}</p>
+                    </div>
+                    <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                      <button onClick={() => handleToggleAutomation(auto._id)} className="text-sm text-gray-700 hover:bg-gray-100 font-medium px-3 py-1 border border-gray-300 rounded">
+                        {auto.status === 'active' ? 'Pause' : 'Resume'}
+                      </button>
+                      <button onClick={() => handleDeleteAutomation(auto._id)} className="text-sm text-red-600 hover:text-red-800 font-medium px-3 py-1 bg-red-50 rounded">Delete</button>
                     </div>
                   </div>
                 ))}
@@ -601,18 +815,13 @@ const DataPipeline = () => {
                     <input type="url" required className="mt-1 w-full border-gray-300 rounded-lg shadow-sm p-2 bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500" value={newConfig.endpointOrActorId} onChange={e => setNewConfig({...newConfig, endpointOrActorId: e.target.value})} placeholder="e.g. https://api.example.com/v1/jobs" />
                     <p className="text-xs text-gray-500 mt-1">Must include https://</p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">HTTP Method</label>
                       <select className="mt-1 w-full border-gray-300 rounded-lg shadow-sm p-2 bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500" value={newConfig.apiMethod || 'GET'} onChange={e => setNewConfig({...newConfig, apiMethod: e.target.value})}>
                         <option>GET</option>
                         <option>POST</option>
                       </select>
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700">API Headers (JSON)</label>
-                      <input type="text" className="mt-1 w-full border-gray-300 rounded-lg shadow-sm p-2 bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm" value={newConfig.apiHeaders || ''} onChange={e => setNewConfig({...newConfig, apiHeaders: e.target.value})} placeholder='{"Authorization": "Bearer ..."}' />
                     </div>
                   </div>
                   {newConfig.apiMethod === 'POST' && (
@@ -668,29 +877,89 @@ const DataPipeline = () => {
         </div>
       )}
 
-      {/* Global Safety Settings Modal */}
-      {showSettingsModal && (
+      {/* Add Automation Modal */}
+      {showAutomationModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto m-4">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <HiCog className="text-gray-500" /> Global Budget & Quota
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto m-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              {editingAutomationId ? 'Edit Automation' : 'New Automation Schedule'}
             </h2>
-            <form onSubmit={saveSettings} className="space-y-4">
+            <form onSubmit={handleCreateAutomation} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Max Records / Day</label>
-                  <input type="number" className="mt-1 w-full border-gray-300 rounded-lg p-2" value={globalSettings.maxRecordsPerDay || 0} onChange={e => setGlobalSettings({...globalSettings, maxRecordsPerDay: Number(e.target.value)})} />
-                  <p className="text-xs text-gray-500 mt-1">Used today: {globalSettings.dailyRecordsUsed || 0}</p>
+                  <label className="block text-sm font-medium text-gray-700">Automation Name</label>
+                  <input type="text" required className="mt-1 w-full border-gray-300 rounded shadow-sm p-2" value={newAutomation.name} onChange={e => setNewAutomation({...newAutomation, name: e.target.value})} placeholder="e.g. Daily React Devs" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Max Spend / Day ($)</label>
-                  <input type="number" className="mt-1 w-full border-gray-300 rounded-lg p-2" value={globalSettings.maxSpendPerDay || 0} onChange={e => setGlobalSettings({...globalSettings, maxSpendPerDay: Number(e.target.value)})} />
-                  <p className="text-xs text-gray-500 mt-1">Used today: ${globalSettings.dailySpendUsed || 0}</p>
+                  <label className="block text-sm font-medium text-gray-700">Data Source</label>
+                  <select required className="mt-1 w-full border-gray-300 rounded shadow-sm p-2" value={newAutomation.configId} onChange={e => setNewAutomation({...newAutomation, configId: e.target.value})}>
+                    {configs.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Run Frequency</label>
+                  <select required className="mt-1 w-full border-gray-300 rounded shadow-sm p-2" value={newAutomation.frequency} onChange={e => setNewAutomation({...newAutomation, frequency: e.target.value})}>
+                    <option value="hourly">Hourly</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Search Keywords</label>
+                  <input type="text" required className="mt-1 w-full border-gray-300 rounded shadow-sm p-2" value={newAutomation.searchQuery} onChange={e => setNewAutomation({...newAutomation, searchQuery: e.target.value})} placeholder="e.g. React Developer" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Location</label>
+                  <input type="text" className="mt-1 w-full border-gray-300 rounded shadow-sm p-2" value={newAutomation.location} onChange={e => setNewAutomation({...newAutomation, location: e.target.value})} placeholder="e.g. New York, USA" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Max Records / Run</label>
+                  <input type="number" required className="mt-1 w-full border-gray-300 rounded shadow-sm p-2" value={newAutomation.maxRecordsPerRun} onChange={e => setNewAutomation({...newAutomation, maxRecordsPerRun: Number(e.target.value)})} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Outreach Channels</label>
+                <div className="flex gap-4">
+                  {['email', 'whatsapp'].map(ch => (
+                    <label key={ch} className="flex items-center gap-2">
+                      <input type="checkbox" checked={newAutomation.outreachChannels.includes(ch)} onChange={e => {
+                        if (e.target.checked) setNewAutomation({...newAutomation, outreachChannels: [...newAutomation.outreachChannels, ch]});
+                        else setNewAutomation({...newAutomation, outreachChannels: newAutomation.outreachChannels.filter(c => c !== ch)});
+                      }} className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                      <span className="capitalize">{ch}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100 flex justify-end gap-3 mt-6">
+                <button type="button" onClick={() => setShowAutomationModal(false)} className="px-4 py-2 text-gray-700 font-medium">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg shadow-sm">Save Automation</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Global Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 m-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><HiCog className="text-gray-500"/> Global Safety Limits</h2>
+            <form onSubmit={saveSettings} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Max Records / Day</label>
+                  <input type="number" className="mt-1 w-full border-gray-300 rounded shadow-sm p-2" value={globalSettings.maxRecordsPerDay} onChange={e => setGlobalSettings({...globalSettings, maxRecordsPerDay: Number(e.target.value)})} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Max Records / Month</label>
-                  <input type="number" className="mt-1 w-full border-gray-300 rounded-lg p-2" value={globalSettings.maxRecordsPerMonth || 0} onChange={e => setGlobalSettings({...globalSettings, maxRecordsPerMonth: Number(e.target.value)})} />
-                  <p className="text-xs text-gray-500 mt-1">Used month: {globalSettings.monthlyRecordsUsed || 0}</p>
+                  <input type="number" className="mt-1 w-full border-gray-300 rounded shadow-sm p-2" value={globalSettings.maxRecordsPerMonth} onChange={e => setGlobalSettings({...globalSettings, maxRecordsPerMonth: Number(e.target.value)})} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Max Spend / Day ($)</label>
+                  <input type="number" className="mt-1 w-full border-gray-300 rounded shadow-sm p-2" value={globalSettings.maxSpendPerDay} onChange={e => setGlobalSettings({...globalSettings, maxSpendPerDay: Number(e.target.value)})} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Max Spend / Month ($)</label>

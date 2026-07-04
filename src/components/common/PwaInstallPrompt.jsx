@@ -7,8 +7,14 @@ export default function PwaInstallPrompt({ deferredPrompt, setDeferredPrompt }) 
 
   useEffect(() => {
     if (deferredPrompt) {
+      if (sessionStorage.getItem('pwaPromptShown')) {
+        return;
+      }
       // Small delay for smooth entry animation
-      const timer = setTimeout(() => setShow(true), 100);
+      const timer = setTimeout(() => {
+        setShow(true);
+        sessionStorage.setItem('pwaPromptShown', 'true');
+      }, 100);
       return () => clearTimeout(timer);
     } else {
       setShow(false);
