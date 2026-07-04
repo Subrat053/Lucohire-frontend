@@ -183,6 +183,7 @@ export default function GrowWithAIDashboard() {
             loading={barriersLoading} 
             data={barriersData} 
             isLocked={barriersLocked} 
+            gpsData={gpsData}
           />
         )}
 
@@ -341,7 +342,7 @@ function CareerGPSPanel({ loading, data, isLocked }) {
   );
 }
 
-function HiringBarriersPanel({ loading, data, isLocked }) {
+function HiringBarriersPanel({ loading, data, isLocked, gpsData }) {
   if (loading) {
     return (
       <div className="p-12 text-center">
@@ -432,7 +433,7 @@ function HiringBarriersPanel({ loading, data, isLocked }) {
                   <HiCheckCircle className="text-amber-500" /> Skill Issues
                 </h5>
                 <ul className="space-y-2 text-sm text-gray-600">
-                  {(data.skill_issues || ['Issue 1']).map((issue, i) => (
+                  {((gpsData?.missing_skills?.length > 0 ? gpsData.missing_skills : data.skill_issues) || ['No major skill issues detected']).map((issue, i) => (
                     <li key={i}>• {issue}</li>
                   ))}
                 </ul>
