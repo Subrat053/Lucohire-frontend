@@ -25,6 +25,7 @@ const LocationAutocomplete = ({
   error = '',
   required = false,
   disabled = false,
+  allowRemote = false,
   className = '',
   inputClassName = '',
   iconClassName = '',
@@ -230,7 +231,24 @@ const LocationAutocomplete = ({
         }
 
         const service = await getPlacesService();
-        const results = await service.getPlacePredictions(trimmed, options);
+        let results = await service.getPlacePredictions(trimmed, options) || [];
+
+        if (allowRemote && 'remote'.startsWith(trimmed.toLowerCase())) {
+          results.unshift({
+            place_id: 'remote_option',
+            description: 'Remote (Work from anywhere)',
+            structured_formatting: {
+              main_text: 'Remote',
+              secondary_text: 'Work from anywhere'
+            },
+            isRemoteSelection: true,
+            latitude: null,
+            longitude: null,
+            city: 'Remote',
+            state: '',
+            country: ''
+          });
+        }
 
         if (results && results.length > 0) {
           setPredictions(results);
@@ -335,6 +353,24 @@ const LocationAutocomplete = ({
           ...prediction.staticData,
           placeId: prediction.place_id,
           isFallbackSelection: true
+        };
+        setInputValue(normalized.label);
+        if (onSelect) {
+          onSelect(normalized);
+        } else if (onChange) {
+          onChange(normalized);
+        }
+      } else if (prediction.isRemoteSelection) {
+        const normalized = {
+          placeId: prediction.place_id,
+          label: prediction.description,
+          value: prediction.description,
+          city: prediction.city,
+          state: prediction.state,
+          country: prediction.country,
+          latitude: null,
+          longitude: null,
+          isRemote: true
         };
         setInputValue(normalized.label);
         if (onSelect) {

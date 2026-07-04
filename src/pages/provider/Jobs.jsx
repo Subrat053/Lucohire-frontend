@@ -223,9 +223,16 @@ const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
             <h4 className="font-bold text-gray-900 text-sm sm:text-base border-l-4 border-indigo-600 pl-2">
               Job Description
             </h4>
-            <p className="text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 whitespace-pre-line text-xs sm:text-sm">
-              {job.description || "No detailed description available."}
-            </p>
+            {job.description ? (
+              <div 
+                className="text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 text-xs sm:text-sm prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: job.description }}
+              />
+            ) : (
+              <p className="text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 whitespace-pre-line text-xs sm:text-sm">
+                No detailed description available.
+              </p>
+            )}
           </div>
 
           {/* Requirements & Skills */}
@@ -461,7 +468,7 @@ const JobCard = ({ job, onViewDetails, onRecruiterClick }) => {
 
         {job.description && (
           <p className="text-xs sm:text-sm text-gray-500 mt-3 line-clamp-2 leading-relaxed">
-            {job.description}
+            {job.description.replace(/<[^>]*>?/gm, '')}
           </p>
         )}
 
@@ -760,30 +767,7 @@ const ProviderJobs = () => {
     [search, userCoords, radius, nearbyOnly, incomePathFilter],
   );
 
-  const [scraping, setScraping] = useState(false);
 
-  const handleScrapeMatches = async () => {
-    try {
-      // Remove response from UI while refreshing
-      setAiMatchResults(null);
-      setScraping(true);
-      setLoading(true);
-      
-      const res = await providerAPI.scrapeMatches();
-      if (res.data?.success) {
-        toast.success("Successfully fetched new matches!");
-        const matchedJobs = res.data.data || [];
-        setJobs(matchedJobs);
-        setTopMatches(matchedJobs);
-        setPagination({ page: 1, pages: 1, total: matchedJobs.length });
-      }
-    } catch (error) {
-      toast.error("Failed to scrape new matches.");
-    } finally {
-      setScraping(false);
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (nearbyOnly) {
@@ -817,22 +801,7 @@ const ProviderJobs = () => {
     }
   }, [search, fetchJobs, nearbyOnly, userCoords, radius, incomePathFilter]);
 
-  // Run a fresh scrape automatically on page load in the background
-  // Skipped if an income path filter is active (it would overwrite filtered results)
-  useEffect(() => {
-    if (incomePathFilter) return; // don't override filtered results
-    providerAPI
-      .scrapeMatches()
-      .then((res) => {
-        if (res.data?.success && !search.skill && !search.city) {
-          const matchedJobs = res.data.data || [];
-          setJobs(matchedJobs);
-          setTopMatches(matchedJobs);
-          setPagination({ page: 1, pages: 1, total: matchedJobs.length });
-        }
-      })
-      .catch((err) => console.error("Auto-scrape failed", err));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   useEffect(() => {
     subscriptionAPI
@@ -896,16 +865,6 @@ const ProviderJobs = () => {
               </div>
             )}
           </div>
-          <button
-            onClick={handleScrapeMatches}
-            disabled={scraping}
-            className="rounded-full bg-[linear-gradient(180deg,#67e8f9_0%,#3b82f6_45%,#a855f7_100%)] bg-size-[100%_200%] animate-[gradient_5s_ease_infinite] px-6 py-3 text-white font-semibold border border-cyan-300/30 shadow-[0_0_20px_rgba(34,211,238,0.45),0_0_40px_rgba(168,85,247,0.35)] hover:shadow-[0_0_30px_rgba(34,211,238,0.7),0_0_60px_rgba(168,85,247,0.55)] hover:scale-[1.03] hover:brightness-110 transition-all duration-300 flex items-center justify-center gap-2"
-          >
-            <HiSparkles
-              className={`w-5 h-5 ${scraping ? "animate-spin text-indigo-500" : "text-indigo-600"}`}
-            />
-            {scraping ? "Scraping..." : "Refresh with AI Scraper"}
-          </button>
         </div>
       </div>
 
@@ -1118,6 +1077,7 @@ const ProviderJobs = () => {
                     City / Location
                   </label>
                   <LocationSearch
+                    allowRemote={true}
                     value={filters.city}
                     onChange={(value) =>
                       setFilters((f) => ({ ...f, city: value }))

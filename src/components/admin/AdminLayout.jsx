@@ -70,7 +70,7 @@ const AdminLayout = ({ children }) => {
     logout();
   };
 
-  const SidebarContent = ({ onNavClick }) => (
+  const renderSidebarContent = (onNavClick) => (
     <div className="flex flex-col h-full">
       {/* Brand */}
       <div className={`flex items-center px-4 py-5 border-b border-gray-100 ${collapsed ? 'justify-center' : 'space-x-3'}`}>
@@ -135,7 +135,7 @@ const AdminLayout = ({ children }) => {
       <aside className={`hidden md:flex flex-col bg-white border-r border-gray-100 transition-all duration-300 shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)]
         ${collapsed ? 'w-16' : 'w-56'}
       `}>
-        <SidebarContent />
+        {renderSidebarContent()}
         {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -150,7 +150,7 @@ const AdminLayout = ({ children }) => {
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
           <aside className="relative w-56 h-full bg-white shadow-xl flex flex-col">
-            <SidebarContent onNavClick={() => setMobileOpen(false)} />
+            {renderSidebarContent(() => setMobileOpen(false))}
           </aside>
         </div>
       )}
