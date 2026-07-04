@@ -19,8 +19,11 @@ const CompanySources = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showImportForm, setShowImportForm] = useState(false);
+  const [showDiscoverForm, setShowDiscoverForm] = useState(false);
   const [form, setForm] = useState({ ...emptyCompany });
   const [importText, setImportText] = useState('');
+  const [discoverState, setDiscoverState] = useState({ atsType: 'greenhouse', countryCode: 'IN', keywords: '' });
+  const [discovering, setDiscovering] = useState(false);
   const [filters, setFilters] = useState({ country: '', atsType: '', status: '', search: '', page: 1 });
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
 
@@ -37,6 +40,25 @@ const CompanySources = () => {
       toast.error('Failed to load company sources');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDiscover = async (e) => {
+    e.preventDefault();
+    try {
+      setDiscovering(true);
+      const { data } = await adminAPI.triggerDiscovery(discoverState);
+      if (data.success) {
+        toast.success(data.message || 'Discovery complete!');
+        setShowDiscoverForm(false);
+        fetchCompanies();
+      } else {
+        toast.error(data.message || 'Discovery failed');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Discovery request failed');
+    } finally {
+      setDiscovering(false);
     }
   };
 
@@ -104,12 +126,18 @@ const CompanySources = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">ATS Company Discovery</h1>
           <p className="text-sm text-gray-500 mt-1 font-medium">Discover and import hiring companies to ingest their active job board postings automatically.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => { setShowDiscoverForm(true); }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl transition font-medium text-sm border border-indigo-200"
+          >
+            <HiShieldCheck className="w-5 h-5" /> Auto-Discover
+          </button>
           <button
             onClick={() => { setShowImportForm(true); setImportText(''); }}
             className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition font-medium text-sm border border-gray-200"
@@ -218,6 +246,74 @@ const CompanySources = () => {
           </div>
         )}
       </div>
+
+      {/* Auto-Discover Modal */}
+      {showDiscoverForm && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 animate-scale-up">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-lg font-bold text-gray-900">Auto-Discover Companies</h2>
+              <button onClick={() => setShowDiscoverForm(false)} className="p-1 hover:bg-gray-100 rounded-lg text-gray-500"><HiX className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={handleDiscover} className="space-y-4">
+              <p className="text-sm text-gray-500 mb-2">The system will autonomously crawl Google for active ATS boards and add valid companies to your database.</p>
+              
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Target ATS Engine</label>
+                <select
+                  required
+                  value={discoverState.atsType}
+                  onChange={(e) => setDiscoverState({ ...discoverState, atsType: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-indigo-500 transition-all text-sm"
+                >
+                  <option value="greenhouse">Greenhouse</option>
+                  <option value="lever">Lever</option>
+                  <option value="ashby">Ashby</option>
+                  <option value="smartrecruiters">SmartRecruiters</option>
+                  <option value="workable">Workable</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Target Country</label>
+                <select
+                  required
+                  value={discoverState.countryCode}
+                  onChange={(e) => setDiscoverState({ ...discoverState, countryCode: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-indigo-500 transition-all text-sm"
+                >
+                  <option value="IN">India (IN)</option>
+                  <option value="US">USA (US)</option>
+                  <option value="GB">UK (GB)</option>
+                  <option value="CA">Canada (CA)</option>
+                  <option value="AE">UAE (AE)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Target Keywords (Optional)</label>
+                <input
+                  type="text"
+                  value={discoverState.keywords}
+                  onChange={(e) => setDiscoverState({ ...discoverState, keywords: e.target.value })}
+                  placeholder="e.g. Software Engineer, React"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-indigo-500 transition-all text-sm"
+                />
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3">
+                <button type="button" onClick={() => setShowDiscoverForm(false)} className="px-4 py-2 font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition">
+                  Cancel
+                </button>
+                <button disabled={discovering} type="submit" className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition shadow-md disabled:opacity-50 flex items-center gap-2">
+                  {discovering ? <LoadingSpinner size="sm" /> : <HiShieldCheck className="w-5 h-5" />}
+                  {discovering ? 'Crawling...' : 'Run Discovery'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Manual Creation Modal */}
       {showForm && (

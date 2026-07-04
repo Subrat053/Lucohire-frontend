@@ -506,6 +506,7 @@ export const adminAPI = {
   updateCompanySource: (id, data) => ADMIN_API.put(`/admin/company-sources/${id}`, data),
   deleteCompanySource: (id) => ADMIN_API.delete(`/admin/company-sources/${id}`),
   importCompanySources: (data) => ADMIN_API.post("/admin/company-sources/import", data),
+  triggerDiscovery: (data) => ADMIN_API.post("/admin/company-sources/discover", data),
 
   // External Jobs
   getExternalJobs: (params) => ADMIN_API.get("/external-jobs/admin/list", { params }),
