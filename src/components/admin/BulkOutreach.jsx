@@ -3,13 +3,72 @@ import { Send, Clock, CheckCircle2, Users, AlertCircle, RefreshCw } from 'lucide
 import toast from 'react-hot-toast';
 
 export default function BulkOutreach() {
-  const [audience, setAudience] = useState('Providers');
+  const [audience, setAudience] = useState('Candidate');
   const [channel, setChannel] = useState('Email');
   const [subject, setSubject] = useState('Top companies are looking for your skills on Lucohire');
   const [template, setTemplate] = useState('Hi {{firstName}},\n\nTop companies on Lucohire are looking to hire a professional with your exact skills.\n\nWe have pre-built a private profile for you to start matching with jobs instantly.\n\nClaim your profile now to get started.');
   
+  const [csvData, setCsvData] = useState([]);
+  const [fileName, setFileName] = useState('');
+  
   const [isDispatching, setIsDispatching] = useState(false);
   const [queueStatus, setQueueStatus] = useState(null);
+
+  const handleAudienceChange = (type) => {
+    setAudience(type);
+    if (type === 'Candidate') {
+      setSubject('Top companies are looking for your skills on Lucohire');
+      setTemplate('Hi {{firstName}},\n\nTop companies on Lucohire are looking to hire a professional with your exact skills.\n\nWe have pre-built a private profile for you to start matching with jobs instantly.\n\nClaim your profile now to get started.');
+    } else {
+      setSubject('Top candidates available for your open roles on Lucohire');
+      setTemplate('Hi {{firstName}},\n\nWe have verified professionals on Lucohire that perfectly match your job requirements.\n\nSign in to review their profiles and start hiring instantly.');
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setFileName(file.name);
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const lines = text.split('\n');
+      const parsedData = [];
+      // Assuming first row might be headers like Name,Email. Let's just do a basic parse
+      // Skip row 0 if it contains "name" or "email"
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const parts = line.split(',');
+        if (parts.length >= 2) {
+          const name = parts[0].trim();
+          const email = parts[1].trim();
+          
+          if (i === 0 && name.toLowerCase().includes('name') && email.toLowerCase().includes('email')) {
+            continue; // Skip header
+          }
+          parsedData.push({ name, email });
+        }
+      }
+      setCsvData(parsedData);
+      toast.success(`Loaded ${parsedData.length} contacts from CSV`);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleDownloadSampleCsv = () => {
+    const csvContent = "Name,Email\nJohn Doe,john@example.com\nJane Smith,jane@example.com";
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'sample_outreach_contacts.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const fetchStatus = async () => {
     try {
@@ -47,7 +106,7 @@ export default function BulkOutreach() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ audience, channel, subject, template })
+        body: JSON.stringify({ audience, channel, subject, template, csvData })
       });
 
       const data = await res.json();
@@ -126,16 +185,61 @@ export default function BulkOutreach() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Target Audience</label>
-              <select 
-                value={audience}
-                onChange={(e) => setAudience(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition-shadow"
-              >
-                <option value="Providers">Staging Candidates (Providers)</option>
-                <option value="Users">Employers (Recruiters)</option>
-              </select>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => handleAudienceChange('Candidate')}
+                  className={`flex-1 py-2.5 rounded-lg border font-medium transition-all ${
+                    audience === 'Candidate'
+                      ? 'bg-indigo-50 border-indigo-600 text-indigo-700'
+                      : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  Candidate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAudienceChange('Company')}
+                  className={`flex-1 py-2.5 rounded-lg border font-medium transition-all ${
+                    audience === 'Company'
+                      ? 'bg-indigo-50 border-indigo-600 text-indigo-700'
+                      : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  Company
+                </button>
+              </div>
             </div>
             
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-semibold text-gray-700">Upload CSV (Name, Email)</label>
+                <button
+                  type="button"
+                  onClick={handleDownloadSampleCsv}
+                  className="text-xs text-indigo-600 hover:text-indigo-700 font-medium hover:underline"
+                >
+                  Download Sample CSV
+                </button>
+              </div>
+              <div className="flex items-center gap-4">
+                <label className="cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-lg font-medium transition-all w-full text-center">
+                  <span>{fileName || 'Choose CSV File...'}</span>
+                  <input 
+                    type="file" 
+                    accept=".csv" 
+                    className="hidden" 
+                    onChange={handleFileUpload} 
+                  />
+                </label>
+              </div>
+              {csvData.length > 0 && (
+                <p className="text-sm text-green-600 mt-2 font-medium">Ready to dispatch to {csvData.length} recipients</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Channel</label>
               <select 
