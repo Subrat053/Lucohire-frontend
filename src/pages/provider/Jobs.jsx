@@ -610,8 +610,8 @@ const ProviderJobs = () => {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState(null);
-  const [filters, setFilters] = useState({ skill: "", city: "" });
-  const [search, setSearch] = useState({ skill: "", city: "" });
+  const [filters, setFilters] = useState({ skill: "", city: "", origin: "all", source: "" });
+  const [search, setSearch] = useState({ skill: "", city: "", origin: "all", source: "" });
   const [applyTarget, setApplyTarget] = useState(null);
   const [viewDetailTarget, setViewDetailTarget] = useState(null);
   const [recruiterProfileTarget, setRecruiterProfileTarget] = useState(null);
@@ -742,6 +742,8 @@ const ProviderJobs = () => {
         } else {
           if (search.skill) params.skill = search.skill;
           if (search.city) params.city = search.city;
+          if (search.origin) params.origin = search.origin;
+          if (search.source) params.source = search.source;
           // Apply income path type filters when navigated from Dashboard cards
           if (incomePathFilter?.scheduleType) params.scheduleType = incomePathFilter.scheduleType;
           if (incomePathFilter?.workMode) params.workMode = incomePathFilter.workMode;
@@ -849,13 +851,18 @@ const ProviderJobs = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    setSearch({ skill: filters.skill, city: filters.city });
+    setSearch({ 
+      skill: filters.skill, 
+      city: filters.city, 
+      origin: filters.origin, 
+      source: filters.source 
+    });
     setShowMatchesDropdown(false);
   };
 
   const clearFilters = () => {
-    setFilters({ skill: "", city: "" });
-    setSearch({ skill: "", city: "" });
+    setFilters({ skill: "", city: "", origin: "all", source: "" });
+    setSearch({ skill: "", city: "", origin: "all", source: "" });
   };
 
   const planName = subscription?.plan?.name;
@@ -1122,6 +1129,50 @@ const ProviderJobs = () => {
                     className="focus:ring-indigo-300"
                   />
                 </div>
+                <div className="flex-1 min-w-[200px] w-full">
+                  <label className="block text-xs text-gray-500 font-medium mb-1">
+                    Job Source / Type
+                  </label>
+                  <select
+                    value={filters.origin}
+                    onChange={(e) =>
+                      setFilters((f) => ({ ...f, origin: e.target.value, source: e.target.value !== "external" ? "" : f.source }))
+                    }
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 outline-none h-[38px]"
+                  >
+                    <option value="all">All Jobs (Internal & Ingested)</option>
+                    <option value="internal">Direct Jobs (Internal Platform)</option>
+                    <option value="external">Ingested Jobs (Aggregators & ATS)</option>
+                  </select>
+                </div>
+
+                {filters.origin === "external" && (
+                  <div className="flex-1 min-w-[200px] w-full">
+                    <label className="block text-xs text-gray-500 font-medium mb-1">
+                      Ingestion Source
+                    </label>
+                    <select
+                      value={filters.source}
+                      onChange={(e) =>
+                        setFilters((f) => ({ ...f, source: e.target.value }))
+                      }
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 outline-none h-[38px]"
+                    >
+                      <option value="">All Ingestion Sources</option>
+                      <option value="adzuna">Adzuna</option>
+                      <option value="jooble">Jooble</option>
+                      <option value="remoteok">RemoteOK</option>
+                      <option value="remotive">Remotive</option>
+                      <option value="arbeitnow">Arbeitnow</option>
+                      <option value="themuse">The Muse</option>
+                      <option value="greenhouse">Greenhouse</option>
+                      <option value="lever">Lever</option>
+                      <option value="ashby">Ashby</option>
+                      <option value="smartrecruiters">SmartRecruiters</option>
+                      <option value="workable">Workable</option>
+                    </select>
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-2 w-full md:w-auto mt-2 md:mt-0 items-center">
                   <button
                     type="button"
