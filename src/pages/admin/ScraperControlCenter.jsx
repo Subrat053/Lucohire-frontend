@@ -1,0 +1,49 @@
+import { useState } from 'react';
+import { HiBriefcase, HiLink, HiLightningBolt } from 'react-icons/hi';
+import CompaniesRegistry from './CompaniesRegistry';
+import CompanySources from './CompanySources';
+import LiveScraper from './LiveScraper';
+
+const ScraperControlCenter = () => {
+  const [activeTab, setActiveTab] = useState('csv-scraper');
+
+  const tabs = [
+    { id: 'csv-scraper', label: 'CSV Scraper (Registry)', icon: HiBriefcase },
+    { id: 'career-crawler', label: 'Website Career Page Crawler', icon: HiLink },
+    { id: 'live-tester', label: 'Live Tester', icon: HiLightningBolt },
+  ];
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mb-6 border-b border-gray-200">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Scrapers & Crawlers</h1>
+        <nav className="-mb-px flex space-x-6 overflow-x-auto">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`
+                whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors
+                ${activeTab === tab.id
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }
+              `}
+            >
+              <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-indigo-500' : 'text-gray-400'}`} />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      <div className="mt-4 pipeline-child-wrapper">
+        {activeTab === 'csv-scraper' && <CompaniesRegistry />}
+        {activeTab === 'career-crawler' && <CompanySources />}
+        {activeTab === 'live-tester' && <LiveScraper />}
+      </div>
+    </div>
+  );
+};
+
+export default ScraperControlCenter;

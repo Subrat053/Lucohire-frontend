@@ -21,7 +21,8 @@ const CompanySources = () => {
   const [showImportForm, setShowImportForm] = useState(false);
   const [showDiscoverForm, setShowDiscoverForm] = useState(false);
   const [form, setForm] = useState({ ...emptyCompany });
-  const [importText, setImportText] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [importing, setImporting] = useState(false);
   const [discoverState, setDiscoverState] = useState({ atsType: 'greenhouse', countryCode: 'IN', keywords: '' });
   const [discovering, setDiscovering] = useState(false);
   const [filters, setFilters] = useState({ country: '', atsType: '', status: '', search: '', page: 1 });
@@ -89,30 +90,39 @@ const CompanySources = () => {
     }
   };
 
+  const handleDownloadSample = () => {
+    const csvContent = "companyName,companyDomain,atsType,atsIdentifier,countryCode,careerUrl\nStripe,stripe.com,greenhouse,stripe,US,https://stripe.com/jobs\nSpotify,spotify.com,greenhouse,spotify,US,https://lifeatspotify.com";
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "company_sources_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleBulkImport = async (e) => {
     e.preventDefault();
-    if (!importText.trim()) {
-      toast.error('Please input JSON array or CSV text');
+    if (!selectedFile) {
+      toast.error('Please select a CSV file');
       return;
     }
 
     try {
-      let payload;
-      try {
-        // Try parsing JSON first
-        payload = JSON.parse(importText);
-      } catch (err) {
-        // Treat as CSV
-        payload = { csvString: importText };
-      }
+      setImporting(true);
+      const formData = new FormData();
+      formData.append('file', selectedFile);
 
-      const { data } = await adminAPI.importCompanySources(payload);
+      const { data } = await adminAPI.importCompanySources(formData);
       toast.success(data.message || 'Import processed successfully!');
       setShowImportForm(false);
-      setImportText('');
+      setSelectedFile(null);
       fetchCompanies();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Bulk import failed');
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -125,7 +135,7 @@ const CompanySources = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="py-2">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">ATS Company Discovery</h1>
@@ -139,7 +149,7 @@ const CompanySources = () => {
             <HiShieldCheck className="w-5 h-5" /> Auto-Discover
           </button>
           <button
-            onClick={() => { setShowImportForm(true); setImportText(''); }}
+            onClick={() => { setShowImportForm(true); setSelectedFile(null); }}
             className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition font-medium text-sm border border-gray-200"
           >
             <HiDownload className="w-5 h-5" /> Bulk Import
@@ -184,6 +194,7 @@ const CompanySources = () => {
           <option value="lever">Lever</option>
           <option value="ashby">Ashby</option>
           <option value="workable">Workable</option>
+          <option value="custom">Custom Crawler (Auto)</option>
         </select>
       </div>
 
@@ -192,57 +203,70 @@ const CompanySources = () => {
         {companies.length === 0 ? (
           <div className="p-10 text-center text-gray-500">No companies found. Create or import company profiles to sync ATS jobs.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Company</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Domain</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">ATS Platform</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">ATS Identifier</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Country</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Jobs Synced</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Hiring Level</th>
-                  <th className="px-6 py-3.5 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100 text-sm">
-                {companies.map((c) => (
-                  <tr key={c._id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900">{c.companyName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-blue-600 font-medium hover:underline">
-                      <a href={`https://${c.companyDomain}`} target="_blank" rel="noreferrer">{c.companyDomain}</a>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap capitalize text-gray-700">{c.atsType}</td>
-                    <td className="px-6 py-4 whitespace-nowrap font-mono text-xs text-gray-500">{c.atsIdentifier}</td>
-                    <td className="px-6 py-4 whitespace-nowrap font-mono font-bold text-blue-600">{c.countryCode}</td>
-                    <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-800">{c.activeJobCount || 0}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold capitalize ${
-                        c.hiringLevel === 'priority' 
-                          ? 'bg-red-50 text-red-700' 
-                          : c.hiringLevel === 'very_high' 
-                            ? 'bg-orange-50 text-orange-700' 
-                            : c.hiringLevel === 'high' 
-                              ? 'bg-yellow-50 text-yellow-700' 
-                              : 'bg-green-50 text-green-700'
-                      }`}>
-                        {c.hiringLevel || 'normal'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleDelete(c._id)}
-                        className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
-                        title="Delete"
-                      >
-                        <HiTrash className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-50/50">
+            {companies.map((c) => (
+              <div key={c._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col relative group">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 line-clamp-1" title={c.companyName}>{c.companyName}</h3>
+                    <a href={`https://${c.companyDomain}`} target="_blank" rel="noreferrer" className="text-sm font-semibold text-blue-600 hover:underline flex items-center gap-1 mt-1">
+                      {c.companyDomain}
+                    </a>
+                  </div>
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    c.hiringLevel === 'priority' 
+                      ? 'bg-red-50 text-red-700' 
+                      : c.hiringLevel === 'very_high' 
+                        ? 'bg-orange-50 text-orange-700' 
+                        : c.hiringLevel === 'high' 
+                          ? 'bg-yellow-50 text-yellow-700' 
+                          : 'bg-green-50 text-green-700'
+                  }`}>
+                    {c.hiringLevel || 'normal'}
+                  </span>
+                </div>
+
+                <div className="space-y-3 mb-6 flex-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500 font-medium">ATS Platform</span>
+                    <span className="font-mono text-xs font-bold capitalize text-gray-700 bg-gray-100 px-2 py-1 rounded-lg">
+                      {c.atsType}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500 font-medium">Identifier</span>
+                    <span className="font-mono text-xs text-gray-500 truncate max-w-[120px]" title={c.atsIdentifier}>
+                      {c.atsIdentifier}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500 font-medium">Country</span>
+                    <span className="font-mono text-xs font-bold text-blue-600 px-2 py-1 bg-blue-50 rounded-lg">
+                      {c.countryCode}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-50">
+                    <span className="text-gray-500 font-medium">Jobs Synced</span>
+                    <span className="font-bold text-gray-800 bg-gray-100 px-2.5 py-0.5 rounded-full">
+                      {c.activeJobCount || 0}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-auto">
+                  <button
+                    onClick={() => handleDelete(c._id)}
+                    className="p-2 bg-gray-50 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition border border-gray-200"
+                    title="Delete"
+                  >
+                    <HiTrash className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -358,15 +382,18 @@ const CompanySources = () => {
                     <option value="lever">Lever</option>
                     <option value="ashby">Ashby</option>
                     <option value="workable">Workable</option>
+                    <option value="custom">Custom Crawler (Auto)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">ATS Identifier (Slug)</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                    {form.atsType === 'custom' ? 'Career Page URL (Optional)' : 'ATS Identifier (Slug)'}
+                  </label>
                   <input
-                    required
+                    required={form.atsType !== 'custom'}
                     value={form.atsIdentifier}
                     onChange={(e) => setForm(f => ({ ...f, atsIdentifier: e.target.value }))}
-                    placeholder="e.g. stripe"
+                    placeholder={form.atsType === 'custom' ? 'Leave blank to auto-search' : 'e.g. stripe'}
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -429,15 +456,37 @@ const CompanySources = () => {
             </div>
             <form onSubmit={handleBulkImport} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Paste CSV String or JSON Array</label>
-                <textarea
-                  required
-                  rows={8}
-                  value={importText}
-                  onChange={(e) => setImportText(e.target.value)}
-                  placeholder={`CSV Format:\ncompanyName,companyDomain,atsType,atsIdentifier,countryCode\nStripe,stripe.com,greenhouse,stripe,US\n\nOr JSON:\n[\n  {"companyName": "Stripe", "companyDomain": "stripe.com", "atsType": "greenhouse", "atsIdentifier": "stripe", "countryCode": "US"}\n]`}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none text-xs font-mono focus:ring-2 focus:ring-blue-500 bg-gray-50"
-                />
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Upload CSV File</label>
+                <div className="mt-2 flex justify-center rounded-xl border border-dashed border-gray-300 px-6 py-8 hover:bg-gray-50 transition cursor-pointer relative">
+                  <div className="text-center">
+                    <HiDownload className="mx-auto h-8 w-8 text-gray-300" aria-hidden="true" />
+                    <div className="mt-4 flex text-sm leading-6 text-gray-600 justify-center">
+                      <label className="relative cursor-pointer rounded-md bg-transparent font-semibold text-indigo-600 focus-within:outline-none hover:text-indigo-500">
+                        <span>Upload a file</span>
+                        <input
+                          type="file"
+                          accept=".csv"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          onChange={(e) => setSelectedFile(e.target.files[0])}
+                          required
+                        />
+                      </label>
+                    </div>
+                    <p className="text-xs leading-5 text-gray-500">
+                      {selectedFile ? selectedFile.name : 'CSV up to 10MB'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center py-2">
+                <button
+                  type="button"
+                  onClick={handleDownloadSample}
+                  className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 flex items-center gap-1"
+                >
+                  <HiDownload className="w-4 h-4" /> Download Sample Template
+                </button>
               </div>
 
               <div className="flex gap-3 pt-4 border-t border-gray-100">
@@ -445,14 +494,17 @@ const CompanySources = () => {
                   type="button"
                   onClick={() => setShowImportForm(false)}
                   className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
+                  disabled={importing}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition shadow-md"
+                  disabled={importing || !selectedFile}
+                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  Parse & Import
+                  {importing ? <LoadingSpinner size="sm" /> : <HiPlus className="w-4 h-4" />}
+                  {importing ? 'Processing...' : 'Upload & Sync'}
                 </button>
               </div>
             </form>

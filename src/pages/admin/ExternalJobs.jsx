@@ -60,11 +60,18 @@ const ExternalJobs = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="py-2">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Synced Job Postings</h1>
-          <p className="text-sm text-gray-500 mt-1">Monitor and manage all jobs fetched from external sources and synced ATS platforms.</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Monitor and manage all jobs fetched from external sources and synced ATS platforms. 
+            {pagination?.total !== undefined && (
+              <span className="font-semibold text-indigo-600 ml-2 bg-indigo-50 px-2 py-0.5 rounded-full">
+                Total Scraped: {pagination.total.toLocaleString()}
+              </span>
+            )}
+          </p>
         </div>
       </div>
 
@@ -118,65 +125,70 @@ const ExternalJobs = () => {
         {jobs.length === 0 ? (
           <div className="p-10 text-center text-gray-500">No synced jobs found matching the active filters. Run ingestion sync to fetch jobs.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Job Title</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Company</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Location</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Source</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Salary Period</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Apply Link</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3.5 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100 text-sm">
-                {jobs.map((job) => (
-                  <tr key={job._id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900">{job.title}</td>
-                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-gray-600">{job.companyName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">{job.city}, {job.countryCode}</td>
-                    <td className="px-6 py-4 whitespace-nowrap capitalize text-gray-700 font-mono text-xs">{job.source}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-600 font-semibold">
-                      {job.salaryMin ? `${job.currency} ${job.salaryMin.toLocaleString()} - ${job.salaryMax ? job.salaryMax.toLocaleString() : 'N/A'}` : 'Not Specified'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-blue-600 hover:underline">
-                      <a href={job.applyUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 font-semibold">
-                        View URL <HiExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
-                        job.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
-                      }`}>
-                        {job.isActive ? 'Active' : 'Closed'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handleRefresh(job._id)}
-                          disabled={refreshingId === job._id}
-                          className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"
-                          title="Force Refresh"
-                        >
-                          <HiRefresh className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(job._id)}
-                          className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
-                          title="Delete"
-                        >
-                          <HiTrash className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-50/50">
+            {jobs.map((job) => (
+              <div key={job._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col relative group">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 line-clamp-1" title={job.title}>{job.title}</h3>
+                    <p className="text-sm font-semibold text-gray-500 flex items-center gap-2 mt-1">
+                      {job.companyName}
+                      <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                      {job.city}, {job.countryCode}
+                    </p>
+                  </div>
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    job.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    {job.isActive ? 'Active' : 'Closed'}
+                  </span>
+                </div>
+
+                <div className="space-y-3 mb-6 flex-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500 font-medium">ATS Source</span>
+                    <span className="font-mono text-xs font-bold capitalize text-gray-700 bg-gray-100 px-2 py-1 rounded-lg">
+                      {job.source}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500 font-medium">Salary</span>
+                    <span className="font-semibold text-gray-800">
+                      {job.salaryMin ? `${job.currency || '$'} ${job.salaryMin.toLocaleString()} - ${job.salaryMax ? job.salaryMax.toLocaleString() : 'N/A'}` : 'Not Specified'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-gray-100 mt-auto">
+                  <a
+                    href={job.applyUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl transition font-semibold text-sm"
+                  >
+                    View Source <HiExternalLink className="w-4 h-4" />
+                  </a>
+                  
+                  <button
+                    onClick={() => handleRefresh(job._id)}
+                    disabled={refreshingId === job._id}
+                    className="p-2 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-blue-600 rounded-xl transition border border-gray-200"
+                    title="Force Refresh"
+                  >
+                    {refreshingId === job._id ? <LoadingSpinner size="sm" /> : <HiRefresh className="w-5 h-5" />}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleDelete(job._id)}
+                    className="p-2 bg-gray-50 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition border border-gray-200"
+                    title="Delete"
+                  >
+                    <HiTrash className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

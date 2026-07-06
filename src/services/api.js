@@ -409,6 +409,10 @@ export const adminAPI = {
     ADMIN_API.post(`/admin/profile-reviews/${userId}/notify`, data),
   bulkProfileAction: (data) => ADMIN_API.post("/admin/profile-reviews/bulk", data),
 
+  // Registry Companies (Type 3)
+  getRegistryCompanies: (params) => ADMIN_API.get('/admin/registry-companies', { params }),
+  syncRegistryCompany: (id) => ADMIN_API.post(`/admin/registry-companies/${id}/sync`),
+
   getContent: (type) => ADMIN_API.get(`/admin/content/${type}`),
   updateContent: (type, value) =>
     ADMIN_API.put(`/admin/content/${type}`, { value }),
@@ -507,6 +511,7 @@ export const adminAPI = {
   deleteCompanySource: (id) => ADMIN_API.delete(`/admin/company-sources/${id}`),
   importCompanySources: (data) => ADMIN_API.post("/admin/company-sources/import", data),
   triggerDiscovery: (data) => ADMIN_API.post("/admin/company-sources/discover", data),
+  liveTestCrawler: (data) => ADMIN_API.post("/admin/company-sources/live-test", data),
 
   // External Jobs
   getExternalJobs: (params) => ADMIN_API.get("/external-jobs/admin/list", { params }),
@@ -522,6 +527,8 @@ export const adminAPI = {
 
   // Recruiter Leads
   getRecruiterLeads: (params) => ADMIN_API.get("/admin/recruiter-leads", { params }),
+  getManualOutreachLeads: () => ADMIN_API.get("/admin/recruiter-leads/manual"),
+  uploadRecruiterLeadsCsv: (formData) => ADMIN_API.post("/admin/recruiter-leads/upload-csv", formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   updateRecruiterLead: (id, data) => ADMIN_API.put(`/admin/recruiter-leads/${id}`, data),
   deleteRecruiterLead: (id) => ADMIN_API.delete(`/admin/recruiter-leads/${id}`),
 

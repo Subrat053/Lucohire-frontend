@@ -58,6 +58,8 @@ const ExternalJobs = lazy(() => import("../pages/admin/ExternalJobs"));
 const SyncReports = lazy(() => import("../pages/admin/SyncReports"));
 const SyncErrors = lazy(() => import("../pages/admin/SyncErrors"));
 const RecruiterLeads = lazy(() => import("../pages/admin/RecruiterLeads"));
+const ScrapedDataVault = lazy(() => import("../pages/admin/ScrapedDataVault"));
+const ScraperControlCenter = lazy(() => import("../pages/admin/ScraperControlCenter"));
 
 function AdminLayoutWrapper({ children }) {
   return (
@@ -137,6 +139,8 @@ export default function AdminRoutes() {
       <Route path="health" element={wrap(<HealthDashboard />)} />
       <Route path="outreach" element={wrap(<BulkOutreach />)} />
       <Route path="data-pipeline" element={wrap(<DataPipeline />)} />
+      <Route path="scraped-vault" element={wrap(<ScrapedDataVault />)} />
+      <Route path="crawlers" element={wrap(<ScraperControlCenter />)} />
 
       <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
     </Routes>

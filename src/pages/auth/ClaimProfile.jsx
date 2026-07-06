@@ -18,6 +18,7 @@ export default function ClaimProfile() {
   const [profile, setProfile] = useState(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(true); // Show by default so they can see the generated password
   const [consentAccepted, setConsentAccepted] = useState(false);
 
   useEffect(() => {
@@ -26,6 +27,10 @@ export default function ClaimProfile() {
         const { data } = await axios.get(`${API_URL}/claim-profile/${token}`);
         if (data.success) {
           setProfile(data.data);
+          // Generate a secure random password for them
+          const generatedPass = 'Lc' + Math.random().toString(36).slice(-6) + Math.floor(Math.random() * 100) + '!';
+          setPassword(generatedPass);
+          setConfirmPassword(generatedPass);
         }
       } catch (error) {
         toast.error(error.response?.data?.message || 'Invalid or expired claim link.');
@@ -125,6 +130,11 @@ export default function ClaimProfile() {
           </div>
 
           <form className="space-y-6" onSubmit={handleClaim}>
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-sm text-yellow-800 shadow-sm">
+              <p className="font-bold mb-1">We've generated a secure password for you.</p>
+              <p>You can use this password to claim your account now. Please copy it or change it to something you will remember.</p>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Set a Password to Claim Account</label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -132,32 +142,20 @@ export default function ClaimProfile() {
                   <HiLockClosed className="text-gray-400 w-5 h-5" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setConfirmPassword(e.target.value); // Keep them in sync if they just edit the first one
+                  }}
                   className="pl-10 w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                   placeholder="At least 6 characters"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <HiLockClosed className="text-gray-400 w-5 h-5" />
-                </div>
-                <input
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10 w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                  placeholder="Repeat your password"
-                />
-              </div>
-            </div>
+            {/* Hide confirm password visually to reduce clutter since we keep it in sync, but it's technically still there in state */}
 
             <div className="flex items-start">
               <div className="flex items-center h-5">
