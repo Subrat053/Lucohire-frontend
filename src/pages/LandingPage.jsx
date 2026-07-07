@@ -1,1048 +1,680 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import {
-  Search, MapPin, ChevronDown, ArrowRight, Star, ShieldCheck,
-  Phone, Check, Sparkles, Zap, Brain, Wrench, ChevronRight,
-  Hammer, GraduationCap, Car, Utensils, Brush, Briefcase,
-  Paintbrush, Scissors, WashingMachine, MoreHorizontal, Plug,
-  Share2, Users, Wallet, Trophy, Medal, Award, Quote, Plus,
-  Globe2, ShieldAlert, Repeat, Languages, MessageCircle,
-  BarChart3, Lock, CheckCircle2, Flame,
-} from "lucide-react";
-import { recruiterAPI, localeAPI, planAPI, searchAPI } from "../services/api";
-import { filterDummyProviders, DUMMY_PROVIDERS } from "../data/skillsData";
-import { toAbsoluteMediaUrl } from "../utils/media";
-import { extractProvidersList, normalizeProviderData } from "../utils/providerData";
-import { detectNearestLocation } from "../utils/location";
-import { getFeaturedProviders } from "../services/providerService";
-import { useAuth } from "../context/AuthContext";
-import { useLocationContext } from "../context/LocationContext";
-import SharedProviderCard from "../components/providers/ProviderCard";
-import useTranslation from "../hooks/useTranslation";
-import Seo from "../components/common/Seo";
-import toast from "react-hot-toast";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { 
+  Search, MapPin, CheckCircle2, ArrowRight, ShieldCheck, 
+  MessageCircle, Scale, Building2, Users, Briefcase, 
+  Check, Zap, Target, Star, Phone
+} from 'lucide-react';
 
-/* ─────────── Mock data (keeps providers.map dynamic) ─────────── */
-// type Provider = {
-//   _id: string;
-//   initials: string;
-//   name: string;
-//   role: string;
-//   experience: number;
-//   rating: number;
-//   reviews: number;
-//   city: string;
-//   distanceKm: number;
-//   tags: string[];
-//   rate: number;
-//   tier: "skilled" | "semi-skilled";
-//   avatarBg: string;
-// };
-
-const getInitials = (name = "Provider") =>
-  name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "P";
-
-const avatarColors = [
-  "bg-[#DFFBF0] text-[#08905B]",
-  "bg-[#EAF2FF] text-[#1677FF]",
-  "bg-[#FFF3E6] text-[#E56700]",
-  "bg-[#F4E8FF] text-[#8A38D6]",
-  "bg-[#FEF3C7] text-[#B45309]",
-  "bg-[#DCFCE7] text-[#15803D]",
+// Mock Data for Live Jobs
+const LIVE_JOBS = [
+  { id: 1, company: 'TCS', title: 'Software Engineer', logo: 'tcs', loc: 'Bengaluru', salary: '₹8-12 LPA', time: '2m ago' },
+  { id: 2, company: 'Infosys', title: 'Data Analyst', logo: 'infosys', loc: 'Remote', salary: '₹6-9 LPA', time: '3m ago' },
+  { id: 3, company: 'Wipro', title: 'HR Executive', logo: 'wipro', loc: 'Delhi', salary: '₹3-6 LPA', time: '4m ago' },
+  { id: 4, company: 'Deloitte', title: 'Graphic Designer', logo: 'deloitte', loc: 'Mumbai', salary: '₹4-7 LPA', time: '5m ago' },
+  { id: 5, company: 'Accenture', title: 'Backend Developer', logo: 'accenture', loc: 'Pune', salary: '₹7-11 LPA', time: '6m ago' },
 ];
 
-const normalizeProvider = (provider = {}, index = 0) => {
-  const normalized = normalizeProviderData(provider, index, { isDummy: provider?.isDummy });
-  const skills = Array.isArray(normalized.skills) ? normalized.skills : [];
-  const name = normalized.name;
-  const rating = Number(normalized.rating || 0);
-  const reviews = Number(normalized.totalReviews || 0);
-  const rate = Number(normalized.ratePerHour || 0);
-
-  return {
-    ...normalized,
-    initials: normalized.initials || getInitials(name),
-    role: normalized.role || `${normalized.category} • ${normalized.experience}`,
-    rating,
-    reviews,
-    totalReviews: reviews,
-    city: normalized.location,
-    distanceKm: normalized.distanceKm ?? index + 5,
-    tags: normalized.tags || skills.slice(0, 3),
-    skills,
-    rate,
-    ratePerHour: rate,
-    tier: normalized.tier || "skilled",
-    avatarBg: normalized.avatarBg || avatarColors[index % avatarColors.length],
-    isVerified: normalized.isVerified !== false,
-    isAvailable: normalized.isAvailable !== false,
-    profilePhoto: normalized.profilePhoto,
-  };
-};
-
-const CATEGORIES = [
-  { name: "Maid", Icon: Brush, count: "650+ pros" },
-  { name: "Driver", Icon: Car, count: "700+ pros" },
-  { name: "Cook", Icon: Utensils, count: "800+ pros" },
-  { name: "Electrician", Icon: Plug, count: "320+ pros" },
-  { name: "Plumber", Icon: Wrench, count: "380+ pros" },
-  { name: "Carpenter", Icon: Hammer, count: "150+ pros" },
-  { name: "Tutor", Icon: GraduationCap, count: "440+ pros" },
-  { name: "Labour", Icon: Briefcase, count: "200+ pros" },
-  { name: "Painter", Icon: Paintbrush, count: "120+ pros" },
-  { name: "Salon", Icon: Scissors, count: "180+ pros" },
-  { name: "Laundry", Icon: WashingMachine, count: "60+ pros" },
-  { name: "More", Icon: MoreHorizontal, count: "All pros" },
+// Mock Data for Top Talent
+const TOP_TALENT = [
+  { id: 1, name: 'KL Rahul', role: 'Bookkeeping', exp: '5 years', rating: 5.0, reviews: 20, loc: 'Noida', skills: ['Bookkeeping', 'Excel', '+3 more'], rate: '₹500 /hr', initials: 'KR', color: 'bg-green-100 text-green-700' },
+  { id: 2, name: 'Manoj Joshi', role: 'Bookkeeping', exp: '5 years', rating: 5.0, reviews: 20, loc: 'Noida', skills: ['Bookkeeping', 'Excel', '+3 more'], rate: '₹500 /hr', initials: 'MJ', color: 'bg-blue-100 text-blue-700' },
+  { id: 3, name: 'Amit Singh', role: 'Bookkeeping', exp: '6 years', rating: 5.0, reviews: 20, loc: 'Noida', skills: ['Bookkeeping', 'Excel', '+3 more'], rate: '₹500 /hr', initials: 'AS', color: 'bg-yellow-100 text-yellow-700' },
+  { id: 4, name: 'Priya Gupta', role: 'Bookkeeping', exp: '5 years', rating: 5.0, reviews: 20, loc: 'Noida', skills: ['Bookkeeping', 'Excel', '+3 more'], rate: '₹500 /hr', initials: 'PG', color: 'bg-purple-100 text-purple-700' },
+  { id: 5, name: 'Ravi Sharma', role: 'Bookkeeping', exp: '5 years', rating: 5.0, reviews: 20, loc: 'Noida', skills: ['Bookkeeping', 'Excel', '+3 more'], rate: '₹500 /hr', initials: 'RS', color: 'bg-pink-100 text-pink-700' },
 ];
 
-const SUGGESTIONS = [
-  "Maid near me",
-  "Driver tomorrow 6am",
-  "Electrician AC repair",
-  "Cook part-time evening",
-];
-
-const CITIES = [
-  { name: "Noida", count: "12,400+ pros" },
-  { name: "Greater Noida", count: "8,500+ pros" },
-  { name: "Delhi", count: "21,300+ pros" },
-  { name: "Gurugram", count: "15,700+ pros" },
-  { name: "Ghaziabad", count: "9,260+ pros" },
-  { name: "Faridabad", count: "5,500+ pros" },
-  { name: "Bengaluru", count: "19,400+ pros" },
-  { name: "Mumbai", count: "26,800+ pros" },
-  { name: "Pune", count: "10,860+ pros" },
-  { name: "Hyderabad", count: "11,600+ pros" },
-];
-
-/* ─────────── Reusable atoms ─────────── */
-
-const SectionLabel = ({ children }) => (
-  <p className="text-[11px] font-bold tracking-[0.2em] text-[#1677FF] uppercase mb-3">
-    {children}
-  </p>
-);
-
-
-const Pill = ({ active, children, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition whitespace-nowrap ${
-      active
-        ? "bg-[#081B3A] text-white border-[#081B3A]"
-        : "bg-white text-[#374151] border-[#E7ECF4] hover:border-[#1677FF] hover:text-[#1677FF]"
-    }`}
-  >
-    {children}
-  </button>
-);
-
-
-/* ─────────── Reusable atoms ─────────── */
-const LandingPage = () => {
+export default function LandingPage() {
   const navigate = useNavigate();
-  const { profile, isAuthenticated } = useAuth();
-  const { refreshLocationContext, locationPermissionStatus } = useLocationContext();
-  const { t } = useTranslation();
-  const siteUrl = import.meta.env.VITE_SITE_URL || (typeof window !== "undefined" ? window.location.origin : "");
-  const schema = siteUrl
-    ? [
-        {
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "Lucohire",
-          url: siteUrl,
-        },
-        {
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          name: "Lucohire",
-          url: siteUrl,
-        },
-      ]
-    : null;
+  const { user } = useAuth();
+  // Search State
+  const [jobSearch, setJobSearch] = useState('');
+  const [jobLocation, setJobLocation] = useState('');
+  const [talentSearch, setTalentSearch] = useState('');
 
-  const [skill, setSkill] = useState("");
-  const [location, setLocation] = useState("Noida, IN");
-  const [providers, setProviders] = useState([]);
-  const [providersLoading, setProvidersLoading] = useState(false);
-  const [landingPlans, setLandingPlans] = useState([]);
-  const [plansLoading, setPlansLoading] = useState(false);
-  const [activeTier, setActiveTier] = useState("all");
-  const [activeCategory, setActiveCategory] = useState("");
-  const [openFaq, setOpenFaq] = useState();
-  const [email, setEmail] = useState("");
-
-  const debounceRef = useRef(null);
-  const latestRequestRef = useRef(0);
-
-  useEffect(() => {
-    let isMounted = true;
-    const fallbackCityByCountry = { IN: "Noida", AE: "Dubai", US: "New York", GB: "London", CA: "Toronto", AU: "Sydney", DE: "Berlin", FR: "Paris", JP: "Tokyo", SG: "Singapore" };
-
-    const detectCitySafely = async () => {
-      if (isAuthenticated) {
-        try {
-          const detected = await detectNearestLocation();
-          if (isMounted && detected?.city) {
-            const label = [detected.city, detected.state].filter(Boolean).join(', ');
-            if (label) {
-              setLocation(label);
-              localStorage.setItem('servicehub:lastSearchLocation', label);
-              return;
-            }
-          }
-        } catch (_) {}
-      }
-
-      const profileLocation = [profile?.city, profile?.state].filter(Boolean).join(', ');
-      if (isMounted && profileLocation) {
-        setLocation(profileLocation);
-        return;
-      }
-
-      const storedLocation = localStorage.getItem('servicehub:lastSearchLocation');
-      if (isMounted && storedLocation) {
-        setLocation(storedLocation);
-        return;
-      }
-
-      try {
-        const { data } = await localeAPI.detect();
-        const country = String(data?.country || "").toUpperCase();
-        if (isMounted && fallbackCityByCountry[country]) setLocation(`${fallbackCityByCountry[country]}, ${country || "IN"}`);
-      } catch (_) {}
-    };
-
-    detectCitySafely();
-    return () => { isMounted = false; };
-  }, [profile, isAuthenticated]);
-
-  const fetchProviders = useCallback(async (s = "", c = "") => {
-    const city = c || location.replace(", IN", "");
-    const requestId = latestRequestRef.current + 1;
-    latestRequestRef.current = requestId;
-    setProvidersLoading(true);
-    try {
-      let res = await getFeaturedProviders({ skill: s, location: city, city, limit: 8 });
-      if (latestRequestRef.current !== requestId) return;
-
-      let apiList = res?.providers || [];
-      
-      // Fallback: If no providers are found in the target city, query globally to keep home page populated
-      if (apiList.length === 0) {
-        console.log(`No providers found in ${city}. Fetching globally as fallback...`);
-        res = await getFeaturedProviders({ skill: s, limit: 8 });
-        if (latestRequestRef.current !== requestId) return;
-        apiList = res?.providers || [];
-      }
-
-      const normalized = apiList.map((p, idx) => normalizeProviderData(p, idx));
-      setProviders(normalized);
-    } catch (err) {
-      if (latestRequestRef.current === requestId) {
-        console.error("fetchProviders failed with error:", err);
-        setProviders([]);
-      }
-    } finally {
-      if (latestRequestRef.current === requestId) {
-        setProvidersLoading(false);
-      }
-    }
-  }, [location]);
-
-  useEffect(() => {
-    fetchProviders("");
-  }, [fetchProviders]);
-
-  const fetchLandingPlans = useCallback(async () => {
-    setPlansLoading(true);
-    try {
-      const { data } = await planAPI.getLandingPlans();
-      if (Array.isArray(data)) {
-        setLandingPlans(data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch landing plans", err);
-    } finally {
-      setPlansLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchLandingPlans();
-  }, [fetchLandingPlans]);
-
-  useEffect(() => {
-    if (activeCategory) return;
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-
-    debounceRef.current = setTimeout(() => fetchProviders(skill, location.replace(", IN", "")), 350);
-
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [skill, fetchProviders, activeCategory, location]);
-
-  const handleSearch = async (e) => {
+  const handleJobSearch = (e) => {
     e.preventDefault();
-
-    if (!skill.trim()) {
-      toast.error(t('landing.enterRequirement', 'Please enter your requirement'));
-      return;
-    }
-
-    const toastId = toast.loading(t('landing.parsingSearch', 'Analyzing search query...'));
-    try {
-      const { data } = await searchAPI.parseIntentAI({ query: skill });
-      const parsedIntent = data?.parsed || data?.data?.parsed || {};
-      const querySkill = parsedIntent.extractedSkill || skill;
-      const queryLocation = parsedIntent.extractedCity || "";
-      
-      toast.success(t('landing.parsingSuccess', 'Match criteria determined!'), { id: toastId });
-      
-      if (queryLocation) {
-        localStorage.setItem('servicehub:lastSearchLocation', queryLocation);
-        navigate(`/search?query=${encodeURIComponent(querySkill)}&location=${encodeURIComponent(queryLocation)}`);
-      } else {
-        navigate(`/search?query=${encodeURIComponent(querySkill)}`);
-      }
-    } catch (err) {
-      toast.dismiss(toastId);
-      navigate(`/search?query=${encodeURIComponent(skill)}`);
+    if (user?.activeRole === 'provider') {
+      navigate('/provider/job-for-me', { state: { formData: { skills: jobSearch, location: jobLocation } } });
+    } else if (user?.activeRole === 'recruiter') {
+      navigate('/recruiter/dashboard');
+    } else {
+      navigate(`/unlock-matches`, { state: { formData: { skills: jobSearch, location: jobLocation } } });
     }
   };
 
-  const handleCategoryClick = (categoryName) => {
-    setActiveCategory(categoryName);
-    setSkill(categoryName === "More" ? "" : categoryName);
-    navigate(`/search?category=${encodeURIComponent(categoryName)}`);
+  const handleTalentSearch = (e) => {
+    e.preventDefault();
+    navigate(`/search?query=${encodeURIComponent(talentSearch)}`);
   };
-
-  const displayedProviders = providers.filter(
-    (p) => activeTier === "all" || p.tier === activeTier
-  );
 
   return (
-    <>
-      <Seo
-        title={t("landing.homeTitle", "AI Hiring for Providers & Recruiters")}
-        description={t("landing.homeDescription", "Find verified service providers fast with AI matching, fair lead distribution, and WhatsApp-first hiring.")}
-        canonicalPath="/"
-        schema={schema}
-      />
-      <div className="min-h-screen bg-white text-[#081B3A] font-sans antialiased">
-      {/* ━━━━━━━━ NAVBAR ━━━━━━━━ */}
+    <div className="w-full bg-white font-sans text-gray-900 overflow-hidden">
       
-
-      {/* ━━━━━━━━ HERO ━━━━━━━━ */}
-      <section className="bg-[#F7F9FC] py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex justify-center mb-8">
-            <span className="inline-flex items-center gap-2 bg-white border border-[#E7ECF4] rounded-full px-3 py-1 text-xs font-semibold text-[#374151] shadow-[0_4px_12px_rgba(0,0,0,0.04)]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#12B76A] animate-pulse" />
-              {t('landing.verifiedNow', '1,29,264 verified pros online now')}
-            </span>
-          </div>
-
-          <div className="max-w-5xl mx-auto bg-white rounded-3xl border border-[#E7ECF4] shadow-[0_20px_60px_rgba(8,27,58,0.08)] p-6 sm:p-8 md:p-10">
-            <div className="flex items-center justify-between mb-5">
-              <span className="inline-flex items-center gap-1.5 bg-[#EAF2FF] text-[#1677FF] lg:text-[11px] text-[8px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full">
-                <Sparkles className="w-3 h-3" /> {t('landing.aiMatchEngine', 'AI Match Engine')}
-              </span>
-              <span className="text-[12px] lg:text-sm text-[#6B7280] text-end">{t('landing.averageMatch', 'Average match in ~ 10.2s')}</span>
-            </div>
-
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight text-[#081B3A]">
-              {t('landing.heroTitle', 'Tell us what you need.')}
-            </h1>
-            <p className="text-[#1677FF] font-semibold mt-2 text-lg">{t('landing.heroSubtitle', 'Get 5 best matches instantly.')}</p>
-
-            <form onSubmit={handleSearch} className="mt-6 lg:my-10">
-              <div className="bg-[#F7F9FC] border border-[#E7ECF4] rounded-xl p-1 lg:p-2 flex flex-col sm:flex-row sm:items-center gap-2">
-                <div className="w-full flex-1 flex items-center gap-2 px-3">
-                  {/* <Search className="lg:w-4 lg:h-4 text-[#6B7280]" /> */}
-                  <input
-                    value={skill}
-                    onChange={(e) => {
-                      setActiveCategory("");
-                      setSkill(e.target.value);
-                    }}
-                    placeholder={t('landing.searchPrompt', "Type like you speak… e.g 'maid morning time Noida'")}
-                    className="flex-1 bg-transparent text-sm text-[#081B3A] placeholder-[#9CA3AF] lg:py-3 outline-none"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto bg-[#1677FF] hover:bg-[#0E5FCC] text-white lg:text-sm text-[9px] font-bold px-2 py-1 lg:px-5 lg:py-3 rounded-xl flex items-center justify-center gap-1.5 transition shadow-[0_4px_12px_rgba(22,119,255,0.3)]"
-                >
-                  {t('landing.findMatch', 'Find Match')} <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </form>
-
-            {isAuthenticated && locationPermissionStatus !== "granted" && (
-              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-amber-800">
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
-                  {t('landing.locationBannerText', 'Allow location permission to get verified service providers near you automatically.')}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => refreshLocationContext(true)}
-                  className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg transition shrink-0 ml-2"
-                >
-                  {t('landing.enableLocation', 'Enable Location')}
-                </button>
-              </div>
-            )}
-
-            <div className="mt-5 flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-bold text-[#6B7280] tracking-wider">{t('landing.try', 'TRY:')}</span>
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => {
-                    setActiveCategory("");
-                    setSkill(s);
-                  }}
-                  className="text-[11px] lg:text-xs text-[#374151] border border-[#E7ECF4] bg-white px-3 py-1 rounded-full hover:border-[#1677FF] hover:text-[#1677FF] transition"
-                >
-                  {t(`landing.suggestion.${s}`, s)}
-                </button>
-              ))}
-            </div>
-          </div>
+      {/* 1. Top Banner (Only on Landing Page) */}
+      <div className="w-full bg-blue-50 py-2 flex justify-center items-center border-b border-blue-100">
+        <div className="flex items-center text-sm text-blue-700 font-medium">
+          <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          India&apos;s AI-Powered Hiring Platform
         </div>
-      </section>
+      </div>
 
-      {/* ━━━━━━━━ VERIFIED PROS ━━━━━━━━ */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-6 flex-wrap gap-4">
-            <div>
-              <SectionLabel>{t('landing.topPool', 'Top Pool')}</SectionLabel>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#081B3A]">
-                {t('landing.verifiedReady', 'Verified pros, ready right now')}
-              </h2>
-              <p className="text-[#6B7280] mt-2 text-sm">{t('landing.topPoolSubtitle', 'Top 5 per skill + city — rotates every 60s for fair lead distribution.')}</p>
-            </div>
-            <Link to="/search" className="text-sm font-semibold text-[#1677FF] hover:underline">{t('common.viewAll', 'View all →')}</Link>
+      {/* 2. Hero Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 flex flex-col items-center">
+        
+        {/* Main Job Search Bar */}
+        <form onSubmit={handleJobSearch} className="w-full max-w-4xl bg-white border border-gray-200 rounded-full shadow-sm p-2 flex flex-col sm:flex-row items-center relative z-10 hover:shadow-md transition">
+          <div className="flex-1 flex items-center pl-4 pr-2 w-full sm:w-auto">
+            <Search className="w-5 h-5 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Search jobs by title, skills, or company" 
+              className="w-full bg-transparent border-none focus:ring-0 text-gray-700 ml-2 py-2 outline-none"
+              value={jobSearch}
+              onChange={(e) => setJobSearch(e.target.value)}
+            />
           </div>
+          <div className="hidden sm:block w-px h-8 bg-gray-200 mx-2"></div>
+          <div className="flex-1 flex items-center pl-4 pr-2 w-full sm:w-auto mt-2 sm:mt-0">
+            <MapPin className="w-5 h-5 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="All Locations" 
+              className="w-full bg-transparent border-none focus:ring-0 text-gray-700 ml-2 py-2 outline-none"
+              value={jobLocation}
+              onChange={(e) => setJobLocation(e.target.value)}
+            />
+          </div>
+          <button 
+            type="submit"
+            className="w-full sm:w-auto mt-2 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors flex-shrink-0"
+          >
+            Search Jobs
+          </button>
+        </form>
 
-          <div className="flex flex-wrap items-center gap-5 text-xs text-[#6B7280] mb-6">
-            <span className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" /> {t('landing.avgRating', '4.8 avg rating')}</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#12B76A]" /> {t('landing.aadhaarVerified', 'Aadhaar verified')}</span>
-            <span className="flex items-center gap-1.5"><MessageCircle className="w-3.5 h-3.5 text-[#12B76A]" /> {t('landing.whatsappReplyTime', 'WhatsApp reply ~10 min')}</span>
-          </div>
-
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
-            <Pill active={activeTier === "all"} onClick={() => setActiveTier("all")}>{t('search.all')}</Pill>
-            <Pill active={activeTier === "skilled"} onClick={() => setActiveTier("skilled")}>{t('search.tierSkilled')}</Pill>
-            <Pill active={activeTier === "semi-skilled"} onClick={() => setActiveTier("semi-skilled")}>{t('search.tierSemiSkilled')}</Pill>
-            <Pill active={activeTier === "unskilled"} onClick={() => setActiveTier("unskilled")}>{t('search.tierUnskilled')}</Pill>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 items-stretch">
-            {providersLoading
-              ? Array.from({ length: 4 }).map((_, idx) => (
-                  <div key={idx} className="bg-white rounded-2xl border border-[#E7ECF4] p-5 animate-pulse">
-                    <div className="h-6 bg-[#EEF2F7] rounded w-2/3 mb-4" />
-                    <div className="h-4 bg-[#EEF2F7] rounded w-1/2 mb-3" />
-                    <div className="h-4 bg-[#EEF2F7] rounded w-1/3" />
-                  </div>
-                ))
-                : displayedProviders.map((p, index) => (
-                  <Link key={p._id} to={`/p/${p._id}`} className="block h-full text-inherit">
-                    <SharedProviderCard provider={p} variant="landing" index={index} />
-                  </Link>
-                ))}
-          </div>
+        {/* Popular Searches */}
+        <div className="mt-6 flex flex-wrap justify-center items-center gap-3 text-sm">
+          <span className="text-gray-500 font-medium">Popular Searches:</span>
+          {['React Developer', 'UI/UX Designer', 'Data Analyst', 'Marketing', 'Python Developer'].map((term) => (
+            <button 
+              key={term} 
+              onClick={() => { 
+                setJobSearch(term); 
+                if (user?.activeRole === 'provider') {
+                  navigate(`/provider/job-for-me`, { state: { formData: { skills: term, location: '' } } });
+                } else if (user?.activeRole === 'recruiter') {
+                  navigate('/recruiter/dashboard');
+                } else {
+                  navigate(`/unlock-matches`, { state: { formData: { skills: term, location: '' } } }); 
+                }
+              }}
+              className="px-4 py-1.5 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-blue-300 hover:text-blue-600 transition"
+            >
+              {term}
+            </button>
+          ))}
         </div>
-      </section>
+      </div>
 
-      {/* ━━━━━━━━ CATEGORY GRID ━━━━━━━━ */}
-      <section className="bg-[#F7F9FC] py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
-            <div>
-              <SectionLabel>{t('landing.categories', 'Categories')}</SectionLabel>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-                {t('landing.everyNeed', 'Every household & business need')}
-              </h2>
-            </div>
-            <Link to="/search" className="text-sm font-semibold text-[#1677FF] hover:underline">{t('common.viewAll', 'View all →')}</Link>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {CATEGORIES.map(({ name, Icon, count }) => (
-              <Link
-                key={name}
-                to={`/search?category=${encodeURIComponent(name)}`}
-                onClick={() => {
-                  setActiveCategory(name);
-                  setSkill(name === "More" ? "" : name);
-                }}
-                className={`bg-white border rounded-2xl p-5 flex flex-col items-center gap-2 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition ${
-                  activeCategory === name ? "border-[#1677FF] ring-2 ring-[#EAF2FF]" : "border-[#E7ECF4]"
-                }`}
-              >
-                <Icon className="w-6 h-6 text-[#1677FF]" />
-                <p className="font-bold text-sm text-[#081B3A] mt-1">{t(`landing.category.${name}`, name)}</p>
-                <p className="text-[11px] text-[#6B7280]">{t(`landing.categoryCount.${name}`, count)}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ━━━━━━━━ TWO SIDES ━━━━━━━━ */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <SectionLabel>{t('landing.howItWorks', 'How it works')}</SectionLabel>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              {t('landing.twoSides', 'Two sides.')} <span className="italic font-serif text-[#1677FF]">{t('landing.oneFlow', 'One simple flow.')}</span>
-            </h2>
-            <p className="text-[#6B7280] mt-3 text-sm max-w-xl mx-auto">
-              {t('landing.howItWorksDesc', "Whether you're hiring or earning — ServiceHub's AI handles matching, alerts and follow-ups.")}
-            </p>
-          </div>
-
+      {/* 3. Dual Pathway Cards */}
+      {!user && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Recruiters */}
-            <div className="bg-white border border-[#E7ECF4] rounded-3xl p-8 shadow-[0_10px_40px_rgba(0,0,0,0.04)]">
-              <SectionLabel>{t('landing.forRecruiters', 'For Recruiters')}</SectionLabel>
-              <h3 className="text-2xl font-extrabold tracking-tight mb-6">{t('landing.recruiterValue', 'Find. Match. Hire.')}</h3>
+          
+          {/* Candidate Card */}
+          <div className="bg-[#f8fbff] border border-blue-100 rounded-2xl p-8 flex flex-col relative overflow-hidden group hover:shadow-lg transition duration-300">
+            <div className="flex items-center mb-6">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm border border-blue-50 mr-4 text-blue-500">
+                <Users className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">I&apos;m a Candidate</h2>
+                <p className="text-sm text-gray-500 mt-1">Discover verified opportunities that match your skills and goals.</p>
+              </div>
+            </div>
+            <div className="space-y-4 mb-8 flex-1">
               {[
-                { Icon: Search, title: t('landing.recruiterStep1Title', "Search or post"), desc: t('landing.recruiterStep1Desc', "Type your need in plain Hinglish — AI parses skill, city, budget.") },
-                { Icon: CheckCircle2, title: t('landing.recruiterStep2Title', "Get 5 best matches"), desc: t('landing.recruiterStep2Desc', "Auto-ranked by trust score, distance, response speed.") },
-                { Icon: Lock, title: t('landing.recruiterStep3Title', "Unlock & WhatsApp"), desc: t('landing.recruiterStep3Desc', "Pay-per-unlock or plan. Chat directly. Hire same day.") },
-              ].map((s, i) => (
-                <div key={s.title} className="flex gap-4 py-4 border-t border-[#E7ECF4] first:border-t-0">
-                  <div className="w-10 h-10 rounded-xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
-                    <s.Icon className="w-4.5 h-4.5 text-[#1677FF]" />
+                { title: 'AI-Matched Opportunities', desc: 'Get job recommendations that perfectly match your skills, experience & goals.' },
+                { title: 'One Profile, Global Opportunities', desc: 'Build one profile and access opportunities across India and 5+ countries.' },
+                { title: 'AI Career Insights', desc: 'Get AI resume score, skill gap analysis and know why you&apos;re not getting hired.' }
+              ].map((feature, idx) => (
+                <div key={idx} className="flex items-start">
+                  <div className="mt-0.5 w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 flex-shrink-0">
+                    <Check className="w-3 h-3" strokeWidth={3} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold tracking-widest text-[#6B7280]">0{i + 1}</p>
-                    <p className="font-bold text-[#081B3A]">{s.title}</p>
-                    <p className="text-xs text-[#6B7280] mt-1 leading-relaxed">{s.desc}</p>
+                    <h4 className="text-sm font-bold text-gray-900">{feature.title}</h4>
+                    <p className="text-xs text-gray-500 leading-relaxed mt-0.5">{feature.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* Providers */}
-            <div className="bg-[#081B3A] text-white border border-[#081B3A] rounded-3xl p-8 shadow-[0_20px_60px_rgba(8,27,58,0.25)]">
-              <p className="text-[11px] font-bold tracking-[0.2em] text-[#1677FF] uppercase mb-3">{t('landing.forProviders', 'For Service Providers')}</p>
-              <h3 className="text-2xl font-extrabold tracking-tight mb-6">{t('landing.providerValue', 'Get found. Get paid.')}</h3>
-              {[
-                { Icon: Users, title: t('landing.providerStep1Title', "Sign up in 60s"), desc: t('landing.providerStep1Desc', "WhatsApp / Google / Email. Pick role, add 2-4 skills. Free.") },
-                { Icon: BarChart3, title: t('landing.providerStep2Title', "Get rotating leads"), desc: t('landing.providerStep2Desc', "Top pool of 5 rotates every 60s — fair lead distribution.") },
-                { Icon: MessageCircle, title: t('landing.providerStep3Title', "Reply, deal, earn"), desc: t('landing.providerStep3Desc', "Lead lands on WhatsApp. Confirm deal — rating unlocks.") },
-              ].map((s, i) => (
-                <div key={s.title} className="flex gap-4 py-4 border-t border-white/10 first:border-t-0">
-                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                    <s.Icon className="w-4.5 h-4.5 text-[#1677FF]" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold tracking-widest text-white/50">0{i + 1}</p>
-                    <p className="font-bold">{s.title}</p>
-                    <p className="text-xs text-white/60 mt-1 leading-relaxed">{s.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <button 
+              onClick={() => navigate('/candidate-landing')}
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex justify-center items-center gap-2 transition"
+            >
+              Find Matching Jobs <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
+
+          {/* Recruiter Card */}
+          <div className="bg-[#f6fcf8] border border-green-100 rounded-2xl p-8 flex flex-col relative overflow-hidden group hover:shadow-lg transition duration-300">
+            <div className="flex items-center mb-6">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm border border-green-50 mr-4 text-green-500">
+                <Briefcase className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">I&apos;m a Recruiter</h2>
+                <p className="text-sm text-gray-500 mt-1">Find and hire top talent faster and build high-performing teams.</p>
+              </div>
+            </div>
+            <div className="space-y-4 mb-8 flex-1">
+              {[
+                { title: 'AI Shortlisted Candidates', desc: 'Get AI-matched and pre-screened candidates who fit your job requirements.' },
+                { title: 'Verified & Skilled Talent Pool', desc: 'Access a reliable pool of verified and job-ready professionals.' },
+                { title: 'Post Jobs & Hire Faster', desc: 'Post your job for free, reach the right talent, and hire with confidence.' }
+              ].map((feature, idx) => (
+                <div key={idx} className="flex items-start">
+                  <div className="mt-0.5 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3 flex-shrink-0">
+                    <Check className="w-3 h-3" strokeWidth={3} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900">{feature.title}</h4>
+                    <p className="text-xs text-gray-500 leading-relaxed mt-0.5">{feature.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button 
+              onClick={() => navigate('/signup')}
+              className="w-full py-3.5 bg-white border-2 border-green-500 text-green-600 hover:bg-green-50 rounded-xl font-bold flex justify-center items-center gap-2 transition"
+            >
+              Post Free Job <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+
         </div>
-      </section>
+      </div>
+      )}
 
-      {/* ━━━━━━━━ AI ENGINE ━━━━━━━━ */}
-      <section className="bg-[#F7F9FC] py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <SectionLabel>{t('landing.theEngine', 'The Engine')}</SectionLabel>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              {t('landing.engineTitle', 'Not just a directory.')}<br />
-              <span className="italic font-serif text-[#1677FF]">{t('landing.engineSubtitle', 'An AI that hires for you.')}</span>
-            </h2>
-            <p className="text-[#6B7280] mt-3 text-sm max-w-2xl mx-auto">
-              {t('landing.engineDesc', 'We replaced manual sorting with a learning system that ranks, routes and follows up — so you spend seconds, not hours.')}
-            </p>
+      {/* 4. Live Jobs Banner */}
+      <div className="w-full bg-[#0a1930] py-8 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-6 text-white">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+              <h3 className="font-bold text-lg">Live Jobs</h3>
+              <span className="text-sm text-gray-400 hidden sm:inline-block">New jobs added every minute</span>
+            </div>
+            <button className="text-sm text-blue-300 hover:text-white flex items-center gap-1 transition">
+              View All Jobs <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[
-              { Icon: Globe2, title: t('landing.engineFeature1Title', "AI Best Match"), desc: t('landing.engineFeature1Desc', "Weighted scoring on skill, distance, rating, response speed & boost — picks top 5 instantly.") },
-              { Icon: Zap, title: t('landing.engineFeature2Title', "Auto Lead Distribution"), desc: t('landing.engineFeature2Desc', "No manual routing. System rotates leads fairly so every verified pro gets a fair chance.") },
-              { Icon: ShieldCheck, title: t('landing.engineFeature3Title', "AI Trust Score"), desc: t('landing.engineFeature3Desc', "Every provider has a 0-100 score from completion, reviews & response time. Fully transparent.") },
-              { Icon: Languages, title: t('landing.engineFeature4Title', "Hinglish Search"), desc: t('landing.engineFeature4Desc', "Search the way you speak — 'maid evening part time' just works. No filters needed.") },
-              { Icon: ShieldAlert, title: t('landing.engineFeature5Title', "Fraud Detection"), desc: t('landing.engineFeature5Desc', "Spots fake profiles, duplicate accounts and spam patterns automatically.") },
-              { Icon: Repeat, title: t('landing.engineFeature6Title', "Repeat Hire Memory"), desc: t('landing.engineFeature6Desc', "Hired before? We remember. One tap to rebook the same provider — or a similar one nearby.") },
-            ].map((f) => (
-              <div key={f.title} className="bg-white border border-[#E7ECF4] rounded-2xl p-6 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition">
-                <f.Icon className="w-5 h-5 text-[#1677FF] mb-4" />
-                <h3 className="font-bold text-[#081B3A] mb-1.5">{f.title}</h3>
-                <p className="text-xs text-[#6B7280] leading-relaxed">{f.desc}</p>
+          
+          <div className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar">
+            {LIVE_JOBS.map(job => (
+              <div key={job.id} className="min-w-[280px] bg-white rounded-xl p-5 flex-shrink-0 cursor-pointer hover:-translate-y-1 transition duration-300">
+                <h4 className="font-bold text-red-500 text-xl mb-3 tracking-tight">{job.company}</h4>
+                <h5 className="font-bold text-gray-900 text-[15px] mb-1">{job.title}</h5>
+                <p className="text-xs text-gray-500 mb-4">{job.company}</p>
+                <div className="flex items-center text-xs text-gray-600 font-medium mb-4">
+                  <span>{job.loc}</span>
+                  <span className="mx-2">•</span>
+                  <span>{job.salary}</span>
+                </div>
+                <div className="text-[11px] text-gray-400 font-medium">{job.time}</div>
               </div>
             ))}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ━━━━━━━━ STATS DARK BAR ━━━━━━━━ */}
-      <section className="bg-[#081B3A] text-white py-10">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
-          {[
-            { v: "1,25,000+", l: t('landing.statHouseholds', "Households served") },
-            { v: "50,000+", l: t('landing.statJobs', "Jobs posted") },
-            { v: "4.8★", l: t('landing.statRating', "Average rating") },
-            { v: "~10 min", l: t('landing.statReply', "Avg WhatsApp reply") },
-            { v: "24/7", l: t('landing.statSupport', "Verified support") },
-          ].map((s) => (
-            <div key={s.l}>
-              <p className="text-2xl md:text-3xl font-extrabold tracking-tight">{s.v}</p>
-              <p className="text-[10px] tracking-[0.2em] uppercase text-white/50 mt-1.5">{s.l}</p>
+      {/* 5. Top Talent Available */}
+      {(!user || user?.activeRole === 'recruiter') && (
+        <div className="bg-[#f8fbff] py-16 w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">Top Talent Available for <span className="text-blue-600">Hourly Work</span></h2>
+          
+          {/* Filters Bar */}
+          <form onSubmit={handleTalentSearch} className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-3 mb-10">
+            <div className="flex-1 min-w-[200px] flex items-center bg-gray-50 rounded-lg px-4 py-2 border border-gray-100">
+              <Search className="w-4 h-4 text-gray-400 mr-2" />
+              <input 
+                type="text" 
+                placeholder="Search talent by skills or name" 
+                className="bg-transparent border-none focus:ring-0 text-sm w-full outline-none"
+                value={talentSearch}
+                onChange={(e) => setTalentSearch(e.target.value)}
+              />
             </div>
-          ))}
-        </div>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-2 text-[12px] text-white/40">
-          {[t('landing.trust1', "Aadhaar Verified"), t('landing.trust2', "Razorpay Secure"), t('landing.trust3', "Meta WhatsApp API"), t('landing.trust4', "MSME Registered"), t('landing.trust5', "ISO 27001 Aligned")].map((b) => (
-            <span key={b} className="flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-[#1677FF]" />{b}</span>
-          ))}
-        </div>
-      </section>
+            {['Skills', 'Experience', 'Hourly Rate', 'Availability', 'All Locations'].map((filter, i) => (
+              <div key={i} className="hidden lg:flex items-center text-sm text-gray-600 bg-white border border-gray-200 rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-50">
+                {filter === 'All Locations' && <MapPin className="w-3.5 h-3.5 mr-1.5 text-gray-400" />}
+                {filter}
+                <svg className="w-4 h-4 ml-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            ))}
+            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-2.5 rounded-lg ml-auto transition">
+              Search Talent
+            </button>
+          </form>
 
-      {/* ━━━━━━━━ WHATSAPP NATIVE ━━━━━━━━ */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <SectionLabel>{t('landing.whatsappNative', 'WhatsApp · Native')}</SectionLabel>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">
-              {t('landing.whatsappTitle', 'Every lead lands where you actually reply —')} <span className="italic font-serif text-[#1677FF]">{t('common.whatsapp', 'WhatsApp.')}</span>
-            </h2>
-            <p className="text-[#6B7280] mt-4 text-sm leading-relaxed">
-              {t('landing.whatsappDesc', "Built on Meta's Cloud API. From signup to renewal, every moment is a clean, branded message with delivery status and opt-out.")}
-            </p>
-
-            <div className="mt-6 grid sm:grid-cols-2 gap-3 text-sm">
-              {[
-                t('landing.whatsappFeature1', "Signup welcome + verification"),
-                t('landing.whatsappFeature2', "Job post confirmation"),
-                t('landing.whatsappFeature3', "Plan / credit expiry reminder"),
-                t('landing.whatsappFeature4', "Payment success & invoice"),
-                t('landing.whatsappFeature5', "New lead alert (skill, city, budget)"),
-                t('landing.whatsappFeature6', "Daily performance summary"),
-              ].map((b) => (
-                <div key={b} className="flex items-start gap-2 text-[#374151]">
-                  <Check className="w-4 h-4 text-[#12B76A] mt-0.5 shrink-0" />
-                  <span>{b}</span>
+          {/* Candidate Cards Carousel */}
+          <div className="flex space-x-6 overflow-x-auto pb-4 hide-scrollbar">
+            {TOP_TALENT.map(candidate => (
+              <div key={candidate.id} className="min-w-[280px] bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex-shrink-0 flex flex-col hover:shadow-md transition duration-300">
+                <div className="flex justify-between items-start mb-4">
+                  <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-full flex items-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></div>
+                    Available Today
+                  </span>
+                  <svg className="w-5 h-5 text-gray-300 hover:text-red-500 cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                 </div>
-              ))}
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-[#6B7280]">
-              <span>● {t('landing.metaApi', 'Meta Cloud API')}</span>
-              <span>● {t('landing.multiLang', 'Multi-language')}</span>
-              <span>● {t('landing.twoWayReply', 'Two-way replies')}</span>
-            </div>
-          </div>
-
-          {/* Phone mock */}
-          <div className="flex justify-center">
-            <div className="relative w-70 bg-[#081B3A] rounded-[42px] p-3 shadow-[0_30px_80px_rgba(8,27,58,0.25)]">
-              <div className="bg-[#FAF7F2] rounded-4xl overflow-hidden">
-                <div className="bg-[#075E54] text-white px-4 py-3 flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm">L</div>
+                
+                <div className="flex items-center mb-4">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg mr-4 ${candidate.color}`}>
+                    {candidate.initials}
+                  </div>
                   <div>
-                    <p className="text-sm font-semibold">Lucohire</p>
-                    <p className="text-[10px] opacity-70">online</p>
+                    <h3 className="font-bold text-gray-900 flex items-center text-lg">
+                      {candidate.name} <CheckCircle2 className="w-4 h-4 text-green-500 ml-1" />
+                    </h3>
+                    <p className="text-xs text-gray-500 font-medium">{candidate.role} • {candidate.exp}</p>
                   </div>
                 </div>
-                <div className="p-3 space-y-2 min-h-80">
-                  {[
-                    { t: "🎉 Welcome Anita! Your provider profile is verified.", c: "bg-[#FFF8E1]" },
-                    { t: "🔔 New lead — Maid in Gaur City\nBudget ₹6,000/mo · Mornings", c: "bg-[#FFF8E1]" },
-                    { t: "Yes, available. Can start Monday.", c: "bg-[#DCF8C6] ml-auto", me: true },
-                    { t: "✅ Reply forwarded to client", c: "bg-[#FFF8E1]" },
-                    { t: "💰 Payment ₹499 received · Pro Boost active", c: "bg-[#FFF8E1]" },
-                  ].map((m, i) => (
-                    <div key={i} className={`text-[11px] leading-snug px-2.5 py-1.5 rounded-lg max-w-[80%] whitespace-pre-line text-[#081B3A] shadow-sm ${m.c}`}>
-                      {m.t}
-                    </div>
+
+                <div className="flex items-center text-xs mb-4">
+                  <Star className="w-3.5 h-3.5 text-yellow-400 fill-current mr-1" />
+                  <span className="font-bold text-gray-900 mr-1">{candidate.rating.toFixed(1)}</span>
+                  <span className="text-gray-400">({candidate.reviews} reviews)</span>
+                </div>
+
+                <div className="flex items-center text-xs text-gray-500 mb-4 font-medium">
+                  <MapPin className="w-3.5 h-3.5 mr-1" /> {candidate.loc}
+                </div>
+
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {candidate.skills.map((skill, i) => (
+                    <span key={i} className="text-[11px] font-medium text-gray-600 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-md">
+                      {skill}
+                    </span>
                   ))}
                 </div>
+
+                <div className="mt-auto">
+                  <div className="font-bold text-xl text-gray-900 mb-4">{candidate.rate}</div>
+                  <div className="flex gap-2">
+                    <button className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-bold py-2.5 rounded-xl flex justify-center items-center text-sm transition">
+                      <svg className="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                      WhatsApp
+                    </button>
+                    <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl flex justify-center items-center text-sm transition">
+                      <Phone className="w-4 h-4 mr-2" />
+                      Call Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* 6. Why Choose Lucohire? */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Why Choose <span className="text-blue-600">Lucohire</span>?</h2>
+        
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <h4 className="font-bold text-gray-900 mb-2">AI-Powered Matching</h4>
+            <p className="text-sm text-gray-500 leading-relaxed">Our AI matches the right talent to the right opportunity in seconds.</p>
+          </div>
+          <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <h4 className="font-bold text-gray-900 mb-2">Verified & Trusted</h4>
+            <p className="text-sm text-gray-500 leading-relaxed">Every profile and job is verified for authenticity and trust.</p>
+          </div>
+          <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
+              <MessageCircle className="w-6 h-6" />
+            </div>
+            <h4 className="font-bold text-gray-900 mb-2">WhatsApp-First</h4>
+            <p className="text-sm text-gray-500 leading-relaxed">Communicate instantly with candidates or recruiters via WhatsApp.</p>
+          </div>
+          <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
+              <Scale className="w-6 h-6" />
+            </div>
+            <h4 className="font-bold text-gray-900 mb-2">Fair Distribution</h4>
+            <p className="text-sm text-gray-500 leading-relaxed">Equal visibility for everyone — no favoritism, just fairness.</p>
+          </div>
+        </div>
+
+        {/* Stats Banner */}
+        <div className="bg-[#f8fbff] border border-blue-100 rounded-2xl p-6 sm:p-10 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="flex items-center justify-center sm:justify-start">
+            <Briefcase className="w-8 h-8 text-blue-600 mr-4 hidden sm:block" />
+            <div>
+              <div className="text-2xl font-bold text-gray-900">10K+</div>
+              <div className="text-sm text-gray-500 font-medium">Jobs Live</div>
+            </div>
+          </div>
+          <div className="flex items-center justify-center sm:justify-start">
+            <CheckCircle2 className="w-8 h-8 text-blue-600 mr-4 hidden sm:block" />
+            <div>
+              <div className="text-2xl font-bold text-gray-900">50K+</div>
+              <div className="text-sm text-gray-500 font-medium">Verified Providers</div>
+            </div>
+          </div>
+          <div className="flex items-center justify-center sm:justify-start">
+            <Building2 className="w-8 h-8 text-blue-600 mr-4 hidden sm:block" />
+            <div>
+              <div className="text-2xl font-bold text-gray-900">2K+</div>
+              <div className="text-sm text-gray-500 font-medium">Companies</div>
+            </div>
+          </div>
+          <div className="flex items-center justify-center sm:justify-start">
+            <Target className="w-8 h-8 text-blue-600 mr-4 hidden sm:block" />
+            <div>
+              <div className="text-2xl font-bold text-gray-900">98%</div>
+              <div className="text-sm text-gray-500 font-medium">Success Rate</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 7. How Lucohire Works */}
+      <div className="w-full bg-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">How <span className="text-blue-600">Lucohire</span> Works</h2>
+          
+          <div className="grid lg:grid-cols-2 gap-12">
+            {/* For Candidates */}
+            <div className="bg-[#f8fbff] rounded-2xl p-8 border border-blue-50">
+              <h3 className="text-blue-600 font-bold text-center mb-8">For Candidates</h3>
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+                <div className="flex flex-col items-center text-center max-w-[120px]">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-sm mb-4">
+                    <Users className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">Create Profile</h4>
+                  <p className="text-xs text-gray-500">Build your profile in minutes.</p>
+                </div>
+                <ArrowRight className="w-6 h-6 text-gray-300 hidden sm:block" />
+                <div className="flex flex-col items-center text-center max-w-[120px]">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-sm mb-4">
+                    <Search className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">AI Match</h4>
+                  <p className="text-xs text-gray-500">Get AI-matched jobs that fit you best.</p>
+                </div>
+                <ArrowRight className="w-6 h-6 text-gray-300 hidden sm:block" />
+                <div className="flex flex-col items-center text-center max-w-[120px]">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-sm mb-4">
+                    <Briefcase className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">Get Hired</h4>
+                  <p className="text-xs text-gray-500">Apply, connect and get hired faster.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* For Recruiters */}
+            <div className="bg-[#f6fcf8] rounded-2xl p-8 border border-green-50">
+              <h3 className="text-green-600 font-bold text-center mb-8">For Recruiters</h3>
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+                <div className="flex flex-col items-center text-center max-w-[120px]">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-green-600 shadow-sm mb-4">
+                    <Building2 className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">Post Job</h4>
+                  <p className="text-xs text-gray-500">Post your job for free in minutes.</p>
+                </div>
+                <ArrowRight className="w-6 h-6 text-gray-300 hidden sm:block" />
+                <div className="flex flex-col items-center text-center max-w-[120px]">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-green-600 shadow-sm mb-4">
+                    <Zap className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">AI Shortlist</h4>
+                  <p className="text-xs text-gray-500">AI finds and shortlists the best matches.</p>
+                </div>
+                <ArrowRight className="w-6 h-6 text-gray-300 hidden sm:block" />
+                <div className="flex flex-col items-center text-center max-w-[120px]">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-green-600 shadow-sm mb-4">
+                    <CheckCircle2 className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">Hire Faster</h4>
+                  <p className="text-xs text-gray-500">Connect, interview and hire the right talent.</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ━━━━━━━━ PRICING ━━━━━━━━ */}
-      <section className="bg-[#F7F9FC] py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <SectionLabel>{t('plans.title', 'Plans')}</SectionLabel>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">{t('landing.pricingTitle', 'Pay only when you grow.')}</h2>
-            <p className="text-[#6B7280] mt-2 text-sm">{t('landing.pricingSubtitle', 'Transparent pricing. No hidden fees. Cancel anytime.')}</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
-            {plansLoading ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="bg-white border border-[#E7ECF4] rounded-3xl p-7 animate-pulse h-96" />
-              ))
-            ) : landingPlans.length > 0 ? (
-              landingPlans.map((p, index) => {
-                const isFree = Number(p.price) === 0;
-                const ctaLink = isFree ? "/signup" : "/login";
-                // If exactly 3 plans, highlight the middle one (index 1)
-                // If more than 3, highlight index 1 of the first 3, etc.
-                // But usually there are 3. Let's stick to index 1 as the primary highlight.
-                const isDark = index === 1;
-                
-                return (
-                  <div
-                    key={p._id}
-                    className={`relative rounded-3xl p-7 border transition-all hover:shadow-lg ${
-                      isDark
-                        ? "bg-[#081B3A] text-white border-[#081B3A] shadow-[0_30px_70px_rgba(8,27,58,0.25)] md:scale-105 z-10"
-                        : "bg-white border-[#E7ECF4]"
-                    }`}
-                  >
-                    {p.isPopular && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F59E0B] text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
-                        {t('common.popular', 'Most Popular')}
-                      </span>
-                    )}
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 ${isDark ? "bg-white/10" : "bg-[#EAF2FF]"}`}>
-                      <Sparkles className="w-5 h-5 text-[#1677FF]" />
-                    </div>
-                    <p className={`font-bold ${isDark ? "text-white" : "text-[#081B3A]"}`}>{p.name}</p>
-                    <div className="mt-3 flex items-baseline gap-2">
-                      <span className="text-4xl font-extrabold tracking-tight">
-                        {isFree ? t('common.free', "Free") : `₹${p.price}`}
-                      </span>
-                      {!isFree && (
-                        <span className={`text-xs ${isDark ? "text-white/60" : "text-[#6B7280]"}`}>
-                          {t('plans.perMonth', "per month")}
-                        </span>
-                      )}
-                    </div>
-                    <p className={`text-xs mt-1 ${isDark ? "text-white/60" : "text-[#6B7280]"}`}>
-                      {p.description || (isFree ? t('plans.starterNote', "For first-time providers") : t('plans.proNote', "Most popular"))}
-                    </p>
-
-                    <ul className="mt-6 space-y-2.5">
-                      {p.features?.map((perk, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <Check className={`w-4 h-4 mt-0.5 shrink-0 ${isDark ? "text-[#1677FF]" : "text-[#12B76A]"}`} />
-                          <span className={isDark ? "text-white/85" : "text-[#374151]"}>{perk}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <button
-                      className={`mt-7 w-full py-3 rounded-xl font-bold text-sm transition ${
-                        isDark
-                          ? "bg-white text-[#081B3A] hover:bg-white/90"
-                          : "bg-[#1677FF] text-white hover:bg-[#0E5FCC]"
-                      }`}
-                      onClick={() => navigate(ctaLink)}
-                    >
-                      {isFree ? t('plans.starterCta', "Start free") : (p.slug === 'business' ? t('plans.businessCta', "Talk to sales") : t('plans.proCta', "Boost my profile"))}
-                    </button>
-                  </div>
-                );
-              })
-            ) : (
-              // Fallback to static if no plans from backend
-              [
-                { name: t('plans.starterName', "Starter"), price: t('common.free', "Free"), note: t('plans.starterNote', "For first-time providers"), featured: false, perks: [t('plans.starterPerk1', "Profile + 2 skills"), t('plans.starterPerk2', "Basic ranking"), t('plans.starterPerk3', "WhatsApp lead alerts"), t('plans.starterPerk4', "1 city / area")], cta: t('plans.starterCta', "Start free"), ctaLink: "/signup" },
-                { name: t('plans.proName', "Pro Boost"), price: "₹499", per: t('plans.perMonth', "per month"), note: t('plans.proNote', "Most popular"), featured: true, perks: [t('plans.proPerk1', "All Starter features"), t('plans.proPerk2', "Top-pool rotation (60s)"), t('plans.proPerk3', "Up to 5 skills"), t('plans.proPerk4', "Priority lead distribution"), t('plans.proPerk5', "AI profile builder")], cta: t('plans.proCta', "Boost my profile"), ctaLink: "/login" },
-                { name: t('plans.businessName', "Business"), price: "₹1,999", per: t('plans.perMonth', "per month"), note: t('plans.businessNote', "Teams & agencies"), featured: false, perks: [t('plans.businessPerk1', "Unlimited skills & areas"), t('plans.businessPerk2', "Featured placement"), t('plans.businessPerk3', "Bulk hire & unlocks"), t('plans.businessPerk4', "Team accounts"), t('plans.businessPerk5', "Dedicated success manager")], cta: t('plans.businessCta', "Talk to sales"), ctaLink: "/contact" },
-              ].map((p, index) => {
-                const isDark = index === 1;
-                return (
-                  <div
-                    key={p.name}
-                    className={`relative rounded-3xl p-7 border transition-all hover:shadow-lg ${
-                      isDark
-                        ? "bg-[#081B3A] text-white border-[#081B3A] shadow-[0_30px_70px_rgba(8,27,58,0.25)] md:scale-105 z-10"
-                        : "bg-white border-[#E7ECF4]"
-                    }`}
-                  >
-                    {p.featured && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F59E0B] text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
-                        {t('common.popular', 'Most Popular')}
-                      </span>
-                    )}
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 ${isDark ? "bg-white/10" : "bg-[#EAF2FF]"}`}>
-                      <Sparkles className="w-5 h-5 text-[#1677FF]" />
-                    </div>
-                    <p className={`font-bold ${isDark ? "text-white" : "text-[#081B3A]"}`}>{p.name}</p>
-                    <div className="mt-3 flex items-baseline gap-2">
-                      <span className="text-4xl font-extrabold tracking-tight">{p.price}</span>
-                      {p.per && <span className={`text-xs ${isDark ? "text-white/60" : "text-[#6B7280]"}`}>{p.per}</span>}
-                    </div>
-                    <p className={`text-xs mt-1 ${isDark ? "text-white/60" : "text-[#6B7280]"}`}>{p.note}</p>
-
-                    <ul className="mt-6 space-y-2.5">
-                      {p.perks.map((perk) => (
-                        <li key={perk} className="flex items-start gap-2 text-sm">
-                          <Check className={`w-4 h-4 mt-0.5 shrink-0 ${isDark ? "text-[#1677FF]" : "text-[#12B76A]"}`} />
-                          <span className={isDark ? "text-white/85" : "text-[#374151]"}>{perk}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <button
-                      className={`mt-7 w-full py-3 rounded-xl font-bold text-sm transition ${
-                        isDark
-                          ? "bg-white text-[#081B3A] hover:bg-white/90"
-                          : "bg-[#1677FF] text-white hover:bg-[#0E5FCC]"
-                      }`}
-                      onClick={() => navigate(p.ctaLink)}
-                    >
-                      {p.cta}
-                    </button>
-                  </div>
-                );
-              })
-            )}
+      {/* 8. Trusted By */}
+      <div className="w-full border-y border-gray-100 py-10 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+          <div className="flex justify-between items-center space-x-8 opacity-60 grayscale hover:grayscale-0 transition duration-500 flex-nowrap overflow-x-auto hide-scrollbar">
+            <h3 className="text-xl font-bold tracking-tighter shrink-0"><span className="text-blue-500">G</span>oogle</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-gray-600">Microsoft</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-blue-700">Infosys</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-red-500">tcs</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-green-800">Deloitte.</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0">accenture</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-red-600">wipro</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-yellow-600">amazon</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-blue-900">IBM</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-blue-400">Capgemini</h3>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ━━━━━━━━ REFERRAL ━━━━━━━━ */}
-      <section id="referral-section" className="py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
-          <span className="inline-flex items-center gap-2 bg-[#EAF2FF] text-[#1677FF] text-[11px] font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-5">
-            <Share2 className="w-3 h-3" /> Referral Partner Program
-          </span>
-          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">
-            Refer & Earn <span className="text-[#1677FF]">40% Reward</span> 💰
-          </h2>
-          <p className="text-[#6B7280] mt-3 text-sm max-w-xl mx-auto">
-            दूसरों का registration करवाओ और हर paid plan पर <b>40% referral reward</b> कमाओ!
-          </p>
-
-          <div className="mt-12 grid md:grid-cols-3 gap-5 max-w-4xl mx-auto">
-            {[
-              { Icon: Share2, step: "Step 1", title: "अपना Referral Link शेयर करो", desc: "Sign up करो और WhatsApp, Facebook पर share करो" },
-              { Icon: Users, step: "Step 2", title: "लोगों को Register करवाओ", desc: "Friends, family — जो भी worker या employer है" },
-              { Icon: Wallet, step: "Step 3", title: "40% Reward कमाओ", desc: "Referred user के paid plan पर तुरंत 40% directly!" },
-            ].map((s) => (
-              <div key={s.step} className="bg-white border border-[#E7ECF4] rounded-2xl p-6 text-left">
-                <s.Icon className="w-6 h-6 text-[#1677FF] mb-4" />
-                <p className="text-[10px] font-bold tracking-widest text-[#6B7280] uppercase">{s.step}</p>
-                <p className="font-bold mt-1 text-[#081B3A]">{s.title}</p>
-                <p className="text-xs text-[#6B7280] mt-2 leading-relaxed">{s.desc}</p>
+      {/* 9. Why Candidates / Recruiters Love Lucohire */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-24">
+          
+          {/* Candidates Love */}
+          <div>
+            <h3 className="text-xl font-bold text-blue-600 mb-8 text-center sm:text-left">Why Candidates Love Lucohire</h3>
+            <div className="grid sm:grid-cols-2 gap-8">
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex justify-center items-center text-blue-600 mr-3">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">AI Resume Analysis</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Get AI feedback to improve your resume.</p>
               </div>
-            ))}
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex justify-center items-center text-blue-600 mr-3">
+                    <Target className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Why I&apos;m Not Getting Hired</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">AI tells you what&apos;s holding you back.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex justify-center items-center text-blue-600 mr-3">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Skill Gap Analysis</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Discover skill gaps and upskill smartly.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex justify-center items-center text-blue-600 mr-3">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Global Opportunities</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Explore jobs across India & 5+ countries.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex justify-center items-center text-blue-600 mr-3">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Verified Jobs Only</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Apply only to verified and genuine jobs.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex justify-center items-center text-blue-600 mr-3">
+                    <MessageCircle className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">WhatsApp Updates</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Get interview calls & status on WhatsApp.</p>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-8 max-w-3xl mx-auto bg-white border border-[#E7ECF4] rounded-2xl p-8">
-            <p className="text-[11px] font-bold tracking-widest text-[#1677FF] uppercase mb-2">Unlimited Earning Potential</p>
-            <p className="text-3xl md:text-4xl font-extrabold tracking-tight">₹10,000 – ₹1,00,000+ <span className="text-[#6B7280] font-bold text-2xl">/ month</span></p>
-            <p className="text-xs text-[#6B7280] mt-2">Top referral partners earn lakhs — no limit on referrals.</p>
+          {/* Recruiters Love */}
+          <div>
+            <h3 className="text-xl font-bold text-green-600 mb-8 text-center sm:text-left">Why Recruiters Love Lucohire</h3>
+            <div className="grid sm:grid-cols-2 gap-8">
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-3">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">AI Candidate Ranking</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">AI ranks candidates by best match.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-3">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Verified Talent Pool</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Hire from trusted and verified professionals.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-3">
+                    <Scale className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Duplicate Detection</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">AI removes duplicate profiles automatically.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-3">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">AI Shortlisting</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Save time with AI shortlisting the best candidates.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-3">
+                    <Briefcase className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Free Job Posting</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Post jobs for free and start hiring instantly.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-3">
+                    <Building2 className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">ATS Dashboard</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Manage jobs, applicants and pipelines easily.</p>
+              </div>
+            </div>
           </div>
+        </div>
+      </div>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <button className="bg-white border border-[#E7ECF4] text-[#374151] px-5 py-3 rounded-xl text-sm font-semibold hover:border-[#1677FF] hover:text-[#1677FF] transition">Learn More</button>
-            <button className="bg-[#1677FF] hover:bg-[#0E5FCC] text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition shadow-[0_4px_12px_rgba(22,119,255,0.3)]"
-              onClick={()=>navigate('/signup')}>
-              Become Referral Partner <ArrowRight className="w-4 h-4" />
+      {/* 10. Bottom Stats */}
+      <div className="w-full border-t border-gray-100 py-10 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap justify-between items-center gap-6">
+            <div className="flex items-center">
+              <Briefcase className="w-6 h-6 text-blue-600 mr-3" />
+              <div>
+                <div className="font-bold text-gray-900">25K+</div>
+                <div className="text-xs text-gray-500">Jobs Posted Today</div>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <Users className="w-6 h-6 text-green-500 mr-3" />
+              <div>
+                <div className="font-bold text-gray-900">1.5L+</div>
+                <div className="text-xs text-gray-500">Candidates Hired</div>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <CheckCircle2 className="w-6 h-6 text-blue-600 mr-3" />
+              <div>
+                <div className="font-bold text-gray-900">12K+</div>
+                <div className="text-xs text-gray-500">Active Recruiters</div>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <MapPin className="w-6 h-6 text-blue-600 mr-3" />
+              <div>
+                <div className="font-bold text-gray-900">5+</div>
+                <div className="text-xs text-gray-500">Countries</div>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <Building2 className="w-6 h-6 text-blue-600 mr-3" />
+              <div>
+                <div className="font-bold text-gray-900">1000+</div>
+                <div className="text-xs text-gray-500">Top Companies</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 11. Final CTA Banner */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="bg-[#0a1930] rounded-2xl p-8 sm:p-12 flex flex-col md:flex-row justify-between items-center">
+          <div className="mb-8 md:mb-0 text-center md:text-left">
+            <h2 className="text-3xl font-bold text-white mb-2">Ready to Hire Smarter?</h2>
+            <p className="text-blue-200">Join Lucohire and experience the power of AI in hiring.</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            <button 
+              onClick={() => navigate('/candidate-landing')}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl flex justify-center items-center gap-2 transition whitespace-nowrap"
+            >
+              Find Matching Jobs <ArrowRight className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => navigate('/signup')}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl flex justify-center items-center gap-2 transition whitespace-nowrap"
+            >
+              Post Free Job <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
-      </section>
-
-      {/* ━━━━━━━━ COVERAGE ━━━━━━━━ */}
-      <section className="bg-[#F7F9FC] py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
-            <div>
-              <SectionLabel>Coverage</SectionLabel>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Live in your city. Growing fast.</h2>
-            </div>
-            {/* <a className="text-sm font-semibold text-[#1677FF] hover:underline cursor-pointer">Request your city →</a> */}
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {CITIES.map((c) => (
-              <div key={c.name} className="bg-white border border-[#E7ECF4] rounded-2xl p-5 hover:shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition">
-                <p className="font-bold text-[#081B3A]">{c.name}</p>
-                <p className="text-xs text-[#6B7280] mt-1">{c.count}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ━━━━━━━━ TESTIMONIALS ━━━━━━━━ */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <SectionLabel>Voices</SectionLabel>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Real people. Real results.</h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-5">
-            {[
-              { name: "Priya Sharma", role: "Recruiter · Gaur City, Noida", text: "Maid mil gayi 20 minute me. WhatsApp pe seedha baat hui, agle din join kar liya. Game changer!", initials: "P", bg: "bg-[#FFE4E6] text-[#9F1239]" },
-              { name: "Manoj Plumber", role: "Provider · Noida Extension", text: "Pehle din bekar lagta tha. Pro Boost liya, 6-8 hafte me jobs aati hain. Income double ho gayi.", initials: "M", bg: "bg-[#DCFCE7] text-[#15803D]" },
-              { name: "Amit Verma", role: "Recruiter · Greater Noida", text: "Verified profiles, fair pricing — trust banta hai. Apartment ke 14 flats ne yahin se hire kiya.", initials: "A", bg: "bg-[#081B3A] text-white" },
-            ].map((t) => (
-              <div key={t.name} className="bg-white border border-[#E7ECF4] rounded-2xl p-6 relative">
-                <Quote className="absolute top-4 right-4 w-7 h-7 text-[#E7ECF4]" />
-                <div className="flex gap-0.5 mb-3">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-[#F59E0B] text-[#F59E0B]" />)}
-                </div>
-                <p className="text-sm text-[#374151] leading-relaxed mb-5">"{t.text}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-[#E7ECF4]">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold ${t.bg}`}>{t.initials}</div>
-                  <div>
-                    <p className="font-bold text-sm text-[#081B3A]">{t.name}</p>
-                    <p className="text-[11px] text-[#6B7280]">{t.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ━━━━━━━━ FAQ ━━━━━━━━ */}
-      <section className="bg-[#F7F9FC] py-20">
-        <div className="max-w-3xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <SectionLabel>FAQ</SectionLabel>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Everything you wanted to ask.</h2>
-          </div>
-
-          <div className="space-y-3">
-            {[
-              { q: "Kya providers verified hote hain?", a: "Haan — Aadhaar + phone + selfie verification. Trust score 0-100 publicly visible." },
-              { q: "Lead milne ka process kaise kaam karta hai?", a: "AI top 5 matches WhatsApp pe bhejta hai. First reply, first deal. Fair rotation har 60 seconds." },
-              { q: "Free plan me kya milta hai?", a: "Profile, 2 skills, basic ranking, WhatsApp alerts, 1 city. Forever free for providers." },
-              { q: "Recruiter ke liye kya cost hai?", a: "Search free. Pay-per-unlock ya monthly plan — apni zarurat ke hisaab se chuno." },
-              { q: "Payment safe hai?", a: "Razorpay encrypted gateway. UPI, cards, netbanking — sab supported. Invoice WhatsApp pe milta hai." },
-              { q: "Refund policy?", a: "7-day money-back on Pro Boost & Business plans if you don't get a single matched lead." },
-            ].map((f, i) => (
-              <div key={f.q} className="bg-white border border-[#E7ECF4] rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between p-4 text-left"
-                >
-                  <span className="font-semibold text-sm text-[#081B3A]">{f.q}</span>
-                  <ChevronDown className={`w-4 h-4 text-[#6B7280] transition ${openFaq === i ? "rotate-180" : ""}`} />
-                </button>
-                {openFaq === i && <div className="px-4 pb-4 text-sm text-[#6B7280] leading-relaxed">{f.a}</div>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ━━━━━━━━ CONTEST ━━━━━━━━ */}
-      {/* <section id="contest-section" className="py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
-          <span className="inline-flex items-center gap-2 bg-[#EAF2FF] text-[#1677FF] text-[11px] font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-5">
-            <Trophy className="w-3 h-3" /> Registration Champion Contest
-          </span>
-          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight ">
-            Complete Profile & Win Cash Rewards <Flame className="w-9 h-9 text-[#F59E0B] inline-flex items-center gap-3 flex-wrap justify-center" />
-          </h2>
-          <p className="text-[#6B7280] mt-3 text-sm max-w-xl mx-auto">
-            अपने friends, family और जानने वालों का registration करवाओ — जितने ज्यादा profiles, उतना ऊपर rank!
-          </p>
-
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            {["1️⃣ अपना account बनाओ", "2️⃣ Friends/Family से register करवाओ", "3️⃣ सबसे ज्यादा = Cash Prize 🏆"].map((s) => (
-              <span key={s} className="bg-white border border-[#E7ECF4] text-sm font-semibold text-[#374151] px-4 py-2 rounded-full">{s}</span>
-            ))}
-          </div>
-
-          <div className="mt-10 grid md:grid-cols-3 gap-5 max-w-4xl mx-auto">
-            {[
-              { place: "1st Place", color: "bg-[#FEF3C7] border-[#F59E0B]", Icon: Trophy, iconColor: "text-[#F59E0B]", label: "Most Registrations", prize: "₹10,000" },
-              { place: "2nd Place", color: "bg-[#F3F4F6] border-[#9CA3AF]", Icon: Medal, iconColor: "text-[#6B7280]", label: "2nd Highest", prize: "₹5,000" },
-              { place: "Next 5", color: "bg-[#FFEDD5] border-[#F59E0B]", Icon: Award, iconColor: "text-[#B45309]", label: "₹2,000 each", prize: "₹10,000" },
-            ].map((p) => (
-              <div key={p.place} className={`rounded-2xl border-2 ${p.color} p-6`}>
-                <span className="inline-block bg-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full text-[#374151] border border-[#E7ECF4]">{p.place}</span>
-                <p.Icon className={`w-12 h-12 ${p.iconColor} mx-auto mt-5`} />
-                <p className="text-xs text-[#6B7280] mt-3">{p.label}</p>
-                <p className="text-3xl font-extrabold text-[#081B3A] mt-2">{p.prize}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 max-w-3xl mx-auto bg-white border border-[#E7ECF4] rounded-2xl p-6">
-            <p className="text-[11px] font-bold tracking-widest text-[#1677FF] uppercase">Annual Grand Champion 🏆</p>
-            <p className="text-4xl font-extrabold mt-2 tracking-tight">₹1,00,000</p>
-            <p className="text-xs text-[#6B7280] mt-1">Yearly mega prize for the top performer</p>
-          </div>
-
-          <div className="mt-8 flex justify-center gap-2">
-            {[
-              { v: "07", l: "Days" }, { v: "11", l: "Hrs" }, { v: "58", l: "Min" }, { v: "27", l: "Sec" },
-            ].map((t) => (
-              <div key={t.l} className="bg-white border border-[#E7ECF4] rounded-xl px-4 py-2 min-w-15">
-                <p className="text-xl font-extrabold text-[#081B3A]">{t.v}</p>
-                <p className="text-[9px] tracking-widest uppercase text-[#6B7280]">{t.l}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <button className="bg-white border border-[#E7ECF4] text-[#374151] px-5 py-3 rounded-xl text-sm font-semibold flex items-center gap-2"><Trophy className="w-4 h-4" /> View Leaderboard</button>
-            <button 
-            onClick={()=>{navigate('/signup')}}
-            className="bg-[#1677FF] hover:bg-[#0E5FCC] text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-[0_4px_12px_rgba(22,119,255,0.3)]">Register Now <ArrowRight className="w-4 h-4" /></button>
-          </div>
-        </div>
-      </section> */}
-
-      {/* ━━━━━━━━ FINAL CTA ━━━━━━━━ */}
-      <section className="px-6 lg:px-8 pb-20">
-        <div className="max-w-7xl mx-auto rounded-3xl overflow-hidden relative" style={{ background: "linear-gradient(135deg,#0A1B3D 0%,#102A5E 60%,#1E3A8A 100%)" }}>
-          <div className="absolute inset-0 opacity-30" style={{ background: "radial-gradient(circle at 30% 50%, rgba(22,119,255,0.4), transparent 60%)" }} />
-          <div className="relative px-6 py-20 text-center text-white">
-            <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-[11px] font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-6 backdrop-blur">
-              <Users className="w-3 h-3" /> Join 1,25,000+ on Lucohire
-            </span>
-            <h2 className="text-4xl md:text-6xl font-extrabold tracking-tight">
-              Hire smarter.<br />
-              <span className="italic font-serif text-[#1677FF]">Earn faster.</span>
-            </h2>
-            <p className="text-white/70 text-sm mt-4 max-w-md mx-auto">
-              One AI engine for both sides of hiring. Sign up in 60 seconds — your first match arrives on WhatsApp.
-            </p>
-
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <button 
-              onClick={()=>navigate('/login')}
-              className="bg-white/10 border border-white/20 backdrop-blur text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-white/20 transition">
-                I'm Hiring <ArrowRight className="w-4 h-4" />
-              </button>
-              <button 
-              onClick={()=>navigate('/signup')}
-              className="bg-[#1677FF] hover:bg-[#0E5FCC] text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-[0_4px_20px_rgba(22,119,255,0.5)] transition">
-                I Provide Services <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            <p className="text-[11px] text-white/40 mt-6">No credit card · Free forever plan · Cancel anytime</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ━━━━━━━━ FOOTER ━━━━━━━━ */}
       </div>
-    </>
-  );
-};
 
-export default LandingPage;
+    </div>
+  );
+}

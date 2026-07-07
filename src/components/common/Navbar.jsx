@@ -235,6 +235,12 @@ const Navbar = () => {
               {t("navbar.home")}
             </Link>
             <Link
+              to="/candidate-landing"
+              className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm"
+            >
+              {t("navbar.findJobs", "Find Jobs")}
+            </Link>
+            <Link
               to="/search"
               className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm"
             >
@@ -510,8 +516,16 @@ const Navbar = () => {
                   <span>{t("navbar.home")}</span>
                 </Link>
                 <Link
+                  to="/candidate-landing"
+                  className="flex items-center space-x-3 rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <HiUsers className="w-5 h-5 text-gray-400" />
+                  <span>{t("navbar.findJobs", "Find Jobs")}</span>
+                </Link>
+                <Link
                   to="/search"
-                  className="flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition"
+                  className="flex items-center space-x-3 rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50"
                   onClick={() => setMobileOpen(false)}
                 >
                   <HiUsers className="w-5 h-5 text-gray-400" />

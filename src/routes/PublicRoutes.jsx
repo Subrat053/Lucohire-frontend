@@ -20,6 +20,8 @@ const PendingApproval = lazy(() => import("../pages/PendingApproval"));
 const ExternalMatch = lazy(() => import("../pages/recruiter/ExternalMatch"));
 const ProviderSharedProfile = lazy(() => import("../pages/ProviderSharedProfile"));
 const ClaimProfile = lazy(() => import("../pages/auth/ClaimProfile"));
+const GuestDiscovery = lazy(() => import("../pages/candidate/GuestDiscovery"));
+const LockedResults = lazy(() => import("../pages/candidate/LockedResults"));
 
 function MainLayout({ children }) {
   const location = useLocation();
@@ -84,6 +86,10 @@ export default function PublicRoutes() {
 
       {/* Claim Profile Landings Page */}
       <Route path="claim-profile/:token" element={wrap(<ClaimProfile />)} />
+
+      {/* Guest Discovery & Match Flow */}
+      <Route path="candidate-landing" element={wrap(<GuestDiscovery />)} />
+      <Route path="unlock-matches" element={wrap(<LockedResults />)} />
 
       {/* Protected Shared Pages */}
       <Route path="profile/:id" element={wrap(
