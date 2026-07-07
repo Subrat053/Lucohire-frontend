@@ -23,6 +23,10 @@ const RecruiterLeads = () => {
     'Hi {{name}},\n\nWe noticed your impressive background! Lucohire is an exclusive platform where top companies actively seek out talented professionals like you.\n\nHere is your exclusive profile link to view your matched opportunities and start connecting with recruiters:\n{{profile_link}}\n\nTake control of your career journey. If you want to be removed from our outreach, click here:\n{{delete_link}}'
   );
 
+  // Single Company Scrape State
+  const [manualScrapeCompany, setManualScrapeCompany] = useState('');
+  const [isScrapingManual, setIsScrapingManual] = useState(false);
+
   const fetchLeads = async () => {
     try {
       setLoading(true);
@@ -44,6 +48,23 @@ const RecruiterLeads = () => {
   useEffect(() => {
     fetchLeads();
   }, [filters, activeTab]);
+
+  const handleManualScrape = async (e) => {
+    e.preventDefault();
+    if (!manualScrapeCompany.trim()) return toast.error('Please enter a company name');
+    
+    setIsScrapingManual(true);
+    try {
+      const { data } = await adminAPI.scrapeManualLeads({ companyName: manualScrapeCompany });
+      toast.success(data.message || 'Leads scraped successfully!');
+      setManualScrapeCompany('');
+      if (activeTab === 'automatic') fetchLeads();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to scrape leads');
+    } finally {
+      setIsScrapingManual(false);
+    }
+  };
 
   const handleStatusChange = async (id, newStatus) => {
     try {
@@ -120,23 +141,40 @@ const RecruiterLeads = () => {
 
   return (
     <div className="py-2">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Recruiter B2B Leads</h1>
           <p className="text-sm text-gray-500 mt-1">Monitor high-hiring companies, public careers contacts, and business development leads.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <form onSubmit={handleManualScrape} className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Company Name (e.g. Stripe)"
+              value={manualScrapeCompany}
+              onChange={(e) => setManualScrapeCompany(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[200px]"
+            />
+            <button
+              type="submit"
+              disabled={isScrapingManual}
+              className="px-4 py-2 bg-gray-900 text-white font-medium rounded-lg text-sm hover:bg-gray-800 disabled:opacity-50 transition-colors whitespace-nowrap"
+            >
+              {isScrapingManual ? 'Scraping...' : 'Live Scrape Leads'}
+            </button>
+          </form>
+          <div className="w-px h-8 bg-gray-200 mx-1 hidden md:block"></div>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition font-medium text-sm shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition font-medium text-sm shadow-sm whitespace-nowrap"
           >
-            <HiUpload className="w-5 h-5" /> Import B2B Leads (CSV)
+            <HiUpload className="w-4 h-4" /> Import CSV
           </button>
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl border border-gray-200 transition font-medium text-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 rounded-lg border border-gray-300 transition font-medium text-sm whitespace-nowrap"
           >
-            <HiDownload className="w-5 h-5" /> Export B2B Leads
+            <HiDownload className="w-4 h-4" /> Export
           </button>
         </div>
       </div>

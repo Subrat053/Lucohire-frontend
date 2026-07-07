@@ -529,6 +529,7 @@ export const adminAPI = {
   getRecruiterLeads: (params) => ADMIN_API.get("/admin/recruiter-leads", { params }),
   getManualOutreachLeads: () => ADMIN_API.get("/admin/recruiter-leads/manual"),
   uploadRecruiterLeadsCsv: (formData) => ADMIN_API.post("/admin/recruiter-leads/upload-csv", formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  scrapeManualLeads: (data) => ADMIN_API.post('/admin/recruiter-leads/scrape-manual', data),
   updateRecruiterLead: (id, data) => ADMIN_API.put(`/admin/recruiter-leads/${id}`, data),
   deleteRecruiterLead: (id) => ADMIN_API.delete(`/admin/recruiter-leads/${id}`),
 

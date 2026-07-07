@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { HiBriefcase, HiLink, HiLightningBolt } from 'react-icons/hi';
-import CompaniesRegistry from './CompaniesRegistry';
-import CompanySources from './CompanySources';
 import LiveScraper from './LiveScraper';
+import LiveTester from './LiveTester';
 
 const ScraperControlCenter = () => {
-  const [activeTab, setActiveTab] = useState('csv-scraper');
+  const [activeTab, setActiveTab] = useState('live-tester');
 
   const tabs = [
-    { id: 'csv-scraper', label: 'CSV Scraper (Registry)', icon: HiBriefcase },
-    { id: 'career-crawler', label: 'Website Career Page Crawler', icon: HiLink },
-    { id: 'live-tester', label: 'Live Tester', icon: HiLightningBolt },
+    { id: 'live-tester', label: 'Single Scraper', icon: HiLightningBolt },
+    { id: 'bulk-scraper', label: 'Bulk Scraper', icon: HiBriefcase },
   ];
 
   return (
@@ -38,9 +36,8 @@ const ScraperControlCenter = () => {
       </div>
 
       <div className="mt-4 pipeline-child-wrapper">
-        {activeTab === 'csv-scraper' && <CompaniesRegistry />}
-        {activeTab === 'career-crawler' && <CompanySources />}
-        {activeTab === 'live-tester' && <LiveScraper />}
+        {activeTab === 'live-tester' && <LiveTester />}
+        {activeTab === 'bulk-scraper' && <LiveScraper />}
       </div>
     </div>
   );
