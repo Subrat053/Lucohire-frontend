@@ -40,6 +40,12 @@ const navItems = [
   { label: 'History', fallback: 'History', path: '/provider/history',        icon: HiClock },
   { label: 'Wallet', fallback: 'Wallet', path: '/provider/wallet',              icon: HiCreditCard },
   { label: 'Payment Settings', fallback: 'Payment Settings', path: '/provider/payout-settings', icon: HiCog },
+  { 
+    label: 'Support', 
+    fallback: 'Support', 
+    path: '/provider/support',
+    icon: HiCog
+  },
   { label: 'Change Password', fallback: 'Change Password', path: '/provider/change-password', icon: HiLockClosed },
 ];
 
@@ -49,6 +55,13 @@ const ProviderLayout = ({ children }) => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  
+  const impersonatorRestriction = localStorage.getItem('impersonatorRestriction');
+  const displayedNavItems = impersonatorRestriction === 'payment' 
+    ? navItems.filter(item => item.path === '/provider/payout-settings')
+    : impersonatorRestriction === 'manager_support'
+      ? navItems.filter(item => item.path === '/provider/profile' || item.path === '/provider/job-for-me')
+      : navItems;
   
   const [planTag, setPlanTag] = useState({ loading: true, type: 'Free', days: 0 });
 
@@ -105,7 +118,7 @@ const ProviderLayout = ({ children }) => {
 
       {/* Nav Items */}
       <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
-        {navItems.map((item) => {
+        {displayedNavItems.map((item) => {
           const { label, fallback, path, icon: Icon, subItems } = item;
           const active = location.pathname === path || (path && location.pathname.startsWith(path + '/')) || (subItems && subItems.some(sub => location.pathname === sub.path));
 

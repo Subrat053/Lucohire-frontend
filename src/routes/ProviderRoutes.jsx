@@ -22,6 +22,7 @@ const AddMember = lazy(() => import("../pages/provider/AddMember"));
 const CareerHealthDashboard = lazy(() => import("../pages/provider/CareerHealthDashboard"));
 const GrowWithAIDashboard = lazy(() => import("../pages/provider/GrowWithAIDashboard"));
 const AITips = lazy(() => import("../pages/provider/AITips"));
+const ProviderSupport = lazy(() => import("../pages/provider/Support"));
 
 function ProviderLayoutWrapper({ children }) {
   return (
@@ -59,6 +60,7 @@ export default function ProviderRoutes() {
       <Route path="add-member" element={wrap(<AddMember />)} />
       <Route path="wallet" element={wrap(<ProviderWallet />)} />
       <Route path="payout-settings" element={wrap(<ProviderPayoutSettings />)} />
+      <Route path="support/:type?" element={wrap(<ProviderSupport />)} />
 
       {/* Career Health Routes */}
       <Route path="career-health" element={wrap(<CareerHealthDashboard />)} />
