@@ -86,6 +86,7 @@ const Navbar = () => {
   const handleLogout = () => {
     logout();
     setDropdownOpen(false);
+    setMobileOpen(false);
   };
 
   const getDashboardLink = () => {

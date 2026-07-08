@@ -43,7 +43,7 @@ const navItems = [
 ];
 
 const ProviderLayout = ({ children }) => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -177,6 +177,7 @@ const ProviderLayout = ({ children }) => {
               Active Session
             </div>
           </div>
+
           <main className="flex-1 overflow-auto p-0">
             {children}
           </main>

@@ -176,6 +176,8 @@ const RecruiterLayout = ({ children }) => {
           </div>
         </div>
 
+
+
         <main className="flex-1 overflow-auto p-0">
           {children}
         </main>

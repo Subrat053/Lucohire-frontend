@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { HiLockClosed, HiEye, HiEyeOff, HiShieldCheck } from "react-icons/hi";
 import { authAPI } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
 const ChangePassword = () => {
+  const { refreshUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -37,10 +39,29 @@ const ChangePassword = () => {
     try {
       await authAPI.changePassword(formData);
       toast.success("Password changed successfully");
+      
+      // Force local update immediately as a fallback
+      try {
+        const cachedStr = localStorage.getItem('authUser') || localStorage.getItem('user');
+        if (cachedStr) {
+          const cachedUser = JSON.parse(cachedStr);
+          cachedUser.hasPassword = true;
+          localStorage.setItem('authUser', JSON.stringify(cachedUser));
+        }
+      } catch(e) {}
+
+      // Refresh user data so hasPassword is updated in React context
+      if (refreshUser) await refreshUser();
+      
       setFormData({
         newPassword: "",
         confirmPassword: "",
       });
+      
+      // Auto-redirect to dashboard to clear state
+      setTimeout(() => {
+         window.location.href = user?.activeRole === 'recruiter' ? '/recruiter/dashboard' : '/provider/dashboard';
+      }, 1500);
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to change password");
     } finally {
@@ -131,7 +152,7 @@ const ChangePassword = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-16 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-violet-200 hover:shadow-violet-300 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full h-16 bg-linear-to-r from-violet-600 to-indigo-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-violet-200 hover:shadow-violet-300 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
               {loading ? (
                 <div className="w-6 h-6 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />

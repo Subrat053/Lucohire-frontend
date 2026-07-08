@@ -1,0 +1,685 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { 
+  Search, MapPin, CheckCircle2, ArrowRight, ShieldCheck, 
+  MessageCircle, Scale, Building2, Users, Briefcase, 
+  Check, Zap, Target, Star, Phone
+} from 'lucide-react';
+
+// Mock Data for Live Jobs
+const LIVE_JOBS = [
+  { id: 1, company: 'TCS', title: 'Software Engineer', logo: 'tcs', loc: 'Bengaluru', salary: '₹8-12 LPA', time: '2m ago' },
+  { id: 2, company: 'Infosys', title: 'Data Analyst', logo: 'infosys', loc: 'Remote', salary: '₹6-9 LPA', time: '3m ago' },
+  { id: 3, company: 'Wipro', title: 'HR Executive', logo: 'wipro', loc: 'Delhi', salary: '₹3-6 LPA', time: '4m ago' },
+  { id: 4, company: 'Deloitte', title: 'Graphic Designer', logo: 'deloitte', loc: 'Mumbai', salary: '₹4-7 LPA', time: '5m ago' },
+  { id: 5, company: 'Accenture', title: 'Backend Developer', logo: 'accenture', loc: 'Pune', salary: '₹7-11 LPA', time: '6m ago' },
+];
+
+// Mock Data for Top Talent
+const TOP_TALENT = [
+  { id: 1, name: 'Arvind Singh', role: 'Driver', rating: 4.9, reviews: 120, loc: 'Mumbai, India', badges: ['Verified Background', 'Safe Driver'], rate: '₹300/hr', image: 'https://randomuser.me/api/portraits/men/32.jpg' },
+  { id: 2, name: 'Priya Sharma', role: 'House Maid', rating: 4.8, reviews: 85, loc: 'Delhi, India', badges: ['Verified Background', 'Top Rated'], rate: '₹200/hr', image: 'https://randomuser.me/api/portraits/women/44.jpg' },
+  { id: 3, name: 'Amit Kumar', role: 'Plumber', rating: 4.7, reviews: 64, loc: 'Bengaluru, India', badges: ['Expert', 'Quick Responder'], rate: '₹400/hr', image: 'https://randomuser.me/api/portraits/men/22.jpg' },
+  { id: 4, name: 'Neha Gupta', role: 'Tutor', rating: 5.0, reviews: 42, loc: 'Pune, India', badges: ['Verified Background', 'Subject Expert'], rate: '₹600/hr', image: 'https://randomuser.me/api/portraits/women/31.jpg' }
+];
+
+
+export default function LandingPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  // Search State
+  const [jobSearch, setJobSearch] = useState('');
+  const [jobLocation, setJobLocation] = useState('');
+  const [talentSearch, setTalentSearch] = useState('');
+
+  const handleJobSearch = (e) => {
+    e.preventDefault();
+    if (user?.activeRole === 'provider') {
+      navigate('/provider/job-for-me', { state: { formData: { skills: jobSearch, location: jobLocation } } });
+    } else if (user?.activeRole === 'recruiter') {
+      navigate('/recruiter/dashboard');
+    } else {
+      navigate(`/unlock-matches`, { state: { formData: { skills: jobSearch, location: jobLocation } } });
+    }
+  };
+
+  const handleTalentSearch = (e) => {
+    e.preventDefault();
+    navigate(`/search?query=${encodeURIComponent(talentSearch)}`);
+  };
+
+  return (
+    <div className="w-full bg-white font-sans text-gray-900 overflow-hidden">
+      
+      {/* 1. Top Banner (Only on Landing Page) */}
+      <div className="w-full bg-blue-50 py-2 flex justify-center items-center border-b border-blue-100">
+        <div className="flex items-center text-sm text-blue-700 font-medium">
+          <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          India&apos;s AI-Powered Hiring Platform
+        </div>
+      </div>
+
+      {/* 2. Hero Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 flex flex-col items-center">
+        
+        {/* Main Job Search Bar */}
+        <form onSubmit={handleJobSearch} className="w-full max-w-4xl bg-white border border-gray-200 rounded-3xl sm:rounded-full shadow-sm p-3 sm:p-2 flex flex-col sm:flex-row items-center relative z-10 hover:shadow-md transition gap-3 sm:gap-0">
+          <div className="flex-1 flex items-center px-4 py-1 sm:py-0 w-full sm:w-auto bg-gray-50 sm:bg-transparent rounded-xl sm:rounded-none border border-gray-100 sm:border-none">
+            <Search className="w-5 h-5 text-gray-400 shrink-0" />
+            <input 
+              type="text" 
+              placeholder="Search jobs by title, skills, or company" 
+              className="w-full bg-transparent border-none focus:ring-0 text-gray-700 ml-2 py-2 outline-none text-sm sm:text-base"
+              value={jobSearch}
+              onChange={(e) => setJobSearch(e.target.value)}
+            />
+          </div>
+          <div className="hidden sm:block w-px h-8 bg-gray-200 mx-2"></div>
+          <div className="flex-1 flex items-center px-4 py-1 sm:py-0 w-full sm:w-auto bg-gray-50 sm:bg-transparent rounded-xl sm:rounded-none border border-gray-100 sm:border-none">
+            <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
+            <input 
+              type="text" 
+              placeholder="All Locations" 
+              className="w-full bg-transparent border-none focus:ring-0 text-gray-700 ml-2 py-2 outline-none text-sm sm:text-base"
+              value={jobLocation}
+              onChange={(e) => setJobLocation(e.target.value)}
+            />
+          </div>
+          <button 
+            type="submit"
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl sm:rounded-full transition-colors flex-shrink-0"
+          >
+            Search Jobs
+          </button>
+        </form>
+
+        {/* Popular Searches */}
+        <div className="mt-6 flex flex-wrap justify-center items-center gap-3 text-sm">
+          <span className="text-gray-500 font-medium">Popular Searches:</span>
+          {['React Developer', 'UI/UX Designer', 'Data Analyst', 'Marketing', 'Python Developer'].map((term) => (
+            <button 
+              key={term} 
+              onClick={() => { 
+                setJobSearch(term); 
+                if (user?.activeRole === 'provider') {
+                  navigate(`/provider/job-for-me`, { state: { formData: { skills: term, location: '' } } });
+                } else if (user?.activeRole === 'recruiter') {
+                  navigate('/recruiter/dashboard');
+                } else {
+                  navigate(`/unlock-matches`, { state: { formData: { skills: term, location: '' } } }); 
+                }
+              }}
+              className="px-4 py-1.5 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-blue-300 hover:text-blue-600 transition"
+            >
+              {term}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. Dual Pathway Cards */}
+      {!user && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+          <div className="grid md:grid-cols-2 gap-6">
+          
+          {/* Candidate Card */}
+          <div className="bg-[#f8fbff] border border-blue-100 rounded-2xl p-8 flex flex-col relative overflow-hidden group hover:shadow-lg transition duration-300">
+            <div className="flex items-center mb-6">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm border border-blue-50 mr-4 text-blue-500">
+                <Users className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">I&apos;m a Candidate</h2>
+                <p className="text-sm text-gray-500 mt-1">Discover verified opportunities that match your skills and goals.</p>
+              </div>
+            </div>
+            <div className="space-y-4 mb-8 flex-1">
+              {[
+                { title: 'AI-Matched Opportunities', desc: 'Get job recommendations that perfectly match your skills, experience & goals.' },
+                { title: 'One Profile, Global Opportunities', desc: 'Build one profile and access opportunities across India and 5+ countries.' },
+                { title: 'AI Career Insights', desc: 'Get AI resume score, skill gap analysis and know why you&apos;re not getting hired.' }
+              ].map((feature, idx) => (
+                <div key={idx} className="flex items-start">
+                  <div className="mt-0.5 w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 flex-shrink-0">
+                    <Check className="w-3 h-3" strokeWidth={3} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900">{feature.title}</h4>
+                    <p className="text-xs text-gray-500 leading-relaxed mt-0.5">{feature.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button 
+              onClick={() => navigate('/candidate-landing')}
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex justify-center items-center gap-2 transition"
+            >
+              Find Matching Jobs <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Recruiter Card */}
+          <div className="bg-[#f6fcf8] border border-green-100 rounded-2xl p-8 flex flex-col relative overflow-hidden group hover:shadow-lg transition duration-300">
+            <div className="flex items-center mb-6">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm border border-green-50 mr-4 text-green-500">
+                <Briefcase className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">I&apos;m a Recruiter</h2>
+                <p className="text-sm text-gray-500 mt-1">Find and hire top talent faster and build high-performing teams.</p>
+              </div>
+            </div>
+            <div className="space-y-4 mb-8 flex-1">
+              {[
+                { title: 'AI Shortlisted Candidates', desc: 'Get AI-matched and pre-screened candidates who fit your job requirements.' },
+                { title: 'Verified & Skilled Talent Pool', desc: 'Access a reliable pool of verified and job-ready professionals.' },
+                { title: 'Post Jobs & Hire Faster', desc: 'Post your job for free, reach the right talent, and hire with confidence.' }
+              ].map((feature, idx) => (
+                <div key={idx} className="flex items-start">
+                  <div className="mt-0.5 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3 flex-shrink-0">
+                    <Check className="w-3 h-3" strokeWidth={3} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900">{feature.title}</h4>
+                    <p className="text-xs text-gray-500 leading-relaxed mt-0.5">{feature.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button 
+              onClick={() => navigate('/signup')}
+              className="w-full py-3.5 bg-white border-2 border-green-500 text-green-600 hover:bg-green-50 rounded-xl font-bold flex justify-center items-center gap-2 transition"
+            >
+              Post Free Job <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+
+        </div>
+      </div>
+      )}
+
+      {/* 4. Live Jobs Banner */}
+      <div className="w-full bg-[#0a1930] py-8 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-6 text-white">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+              <h3 className="font-bold text-lg">Live Jobs</h3>
+              <span className="text-sm text-gray-400 hidden sm:inline-block">New jobs added every minute</span>
+            </div>
+            <button className="text-sm text-blue-300 hover:text-white flex items-center gap-1 transition">
+              View All Jobs <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+          
+          <div className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar">
+            {LIVE_JOBS.map(job => (
+              <div key={job.id} className="min-w-[280px] bg-white rounded-xl p-5 flex-shrink-0 cursor-pointer hover:-translate-y-1 transition duration-300">
+                <h4 className="font-bold text-red-500 text-xl mb-3 tracking-tight">{job.company}</h4>
+                <h5 className="font-bold text-gray-900 text-[15px] mb-1">{job.title}</h5>
+                <p className="text-xs text-gray-500 mb-4">{job.company}</p>
+                <div className="flex items-center text-xs text-gray-600 font-medium mb-4">
+                  <span>{job.loc}</span>
+                  <span className="mx-2">•</span>
+                  <span>{job.salary}</span>
+                </div>
+                <div className="text-[11px] text-gray-400 font-medium">{job.time}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Top Talent Available */}
+      {(!user || user?.activeRole === 'recruiter') && (
+        <div className="bg-[#f8fbff] py-16 w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">Top Talent Available for <span className="text-blue-600">Hourly Work</span></h2>
+          
+          {/* Filters Bar */}
+          <form onSubmit={handleTalentSearch} className="bg-white p-3 rounded-2xl sm:rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 mb-10">
+            <div className="flex-1 min-w-[200px] flex items-center bg-gray-50 rounded-lg px-4 py-2.5 sm:py-2 border border-gray-100">
+              <Search className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
+              <input 
+                type="text" 
+                placeholder="Search talent by skills or name" 
+                className="bg-transparent border-none focus:ring-0 text-sm w-full outline-none"
+                value={talentSearch}
+                onChange={(e) => setTalentSearch(e.target.value)}
+              />
+            </div>
+            <div className="hidden lg:flex items-center gap-3">
+              {['Skills', 'Experience', 'Hourly Rate', 'Availability', 'All Locations'].map((filter, i) => (
+                <div key={i} className="flex items-center text-sm text-gray-600 bg-white border border-gray-200 rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-50 whitespace-nowrap">
+                  {filter === 'All Locations' && <MapPin className="w-3.5 h-3.5 mr-1.5 text-gray-400" />}
+                  {filter}
+                  <svg className="w-4 h-4 ml-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              ))}
+            </div>
+            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-3 sm:py-2.5 rounded-lg sm:ml-auto transition whitespace-nowrap">
+              Search Talent
+            </button>
+          </form>
+
+          {/* Candidate Cards Carousel */}
+          <div className="flex space-x-6 overflow-x-auto pb-4 hide-scrollbar">
+            {TOP_TALENT.map(candidate => (
+              <div key={candidate.id} className="min-w-[280px] bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex-shrink-0 flex flex-col h-full">
+                <div className="flex items-start gap-4 mb-4">
+                  <img src={candidate.image} alt={candidate.name} className="w-16 h-16 rounded-full object-cover border border-gray-100" />
+                  <div>
+                    <h3 className="font-bold text-lg text-gray-900">{candidate.name}</h3>
+                    <p className="text-sm text-gray-500 mb-1">{candidate.role}</p>
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                      <span className="font-medium">{candidate.rating}</span>
+                      <span>({candidate.reviews} reviews)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {candidate.badges?.map((badge, idx) => (
+                    <span key={idx} className="bg-green-50 text-green-700 px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 border border-green-100">
+                      <ShieldCheck className="w-3 h-3" />
+                      {badge}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-1 text-sm text-gray-500 mb-6">
+                  <MapPin className="w-4 h-4" />
+                  <span>Location: {candidate.loc}</span>
+                </div>
+
+                <div className="mt-auto pt-4 border-t border-gray-100">
+                  <div className="font-bold text-xl text-gray-900 mb-4">{candidate.rate}</div>
+                  <div className="flex gap-2">
+                    <button className="flex-1 py-2 rounded-lg border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition-colors text-sm">
+                      View Profile
+                    </button>
+                    <button className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors text-sm">
+                      Book Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* 6. Why Choose Lucohire? */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Why Choose <span className="text-blue-600">Lucohire</span>?</h2>
+        
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <h4 className="font-bold text-gray-900 mb-2">AI-Powered Matching</h4>
+            <p className="text-sm text-gray-500 leading-relaxed">Our AI matches the right talent to the right opportunity in seconds.</p>
+          </div>
+          <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <h4 className="font-bold text-gray-900 mb-2">Verified & Trusted</h4>
+            <p className="text-sm text-gray-500 leading-relaxed">Every profile and job is verified for authenticity and trust.</p>
+          </div>
+          <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
+              <MessageCircle className="w-6 h-6" />
+            </div>
+            <h4 className="font-bold text-gray-900 mb-2">WhatsApp-First</h4>
+            <p className="text-sm text-gray-500 leading-relaxed">Communicate instantly with candidates or recruiters via WhatsApp.</p>
+          </div>
+          <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
+              <Scale className="w-6 h-6" />
+            </div>
+            <h4 className="font-bold text-gray-900 mb-2">Fair Distribution</h4>
+            <p className="text-sm text-gray-500 leading-relaxed">Equal visibility for everyone — no favoritism, just fairness.</p>
+          </div>
+        </div>
+
+        {/* Stats Banner */}
+        <div className="bg-[#f8fbff] border border-blue-100 rounded-2xl p-6 sm:p-10 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="flex items-center justify-center sm:justify-start">
+            <Briefcase className="w-8 h-8 text-blue-600 mr-4 hidden sm:block" />
+            <div>
+              <div className="text-2xl font-bold text-gray-900">10K+</div>
+              <div className="text-sm text-gray-500 font-medium">Jobs Live</div>
+            </div>
+          </div>
+          <div className="flex items-center justify-center sm:justify-start">
+            <CheckCircle2 className="w-8 h-8 text-blue-600 mr-4 hidden sm:block" />
+            <div>
+              <div className="text-2xl font-bold text-gray-900">50K+</div>
+              <div className="text-sm text-gray-500 font-medium">Verified Providers</div>
+            </div>
+          </div>
+          <div className="flex items-center justify-center sm:justify-start">
+            <Building2 className="w-8 h-8 text-blue-600 mr-4 hidden sm:block" />
+            <div>
+              <div className="text-2xl font-bold text-gray-900">2K+</div>
+              <div className="text-sm text-gray-500 font-medium">Companies</div>
+            </div>
+          </div>
+          <div className="flex items-center justify-center sm:justify-start">
+            <Target className="w-8 h-8 text-blue-600 mr-4 hidden sm:block" />
+            <div>
+              <div className="text-2xl font-bold text-gray-900">98%</div>
+              <div className="text-sm text-gray-500 font-medium">Success Rate</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 7. How Lucohire Works */}
+      <div className="w-full bg-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">How <span className="text-blue-600">Lucohire</span> Works</h2>
+          
+          <div className="grid lg:grid-cols-2 gap-12">
+            {/* For Candidates */}
+            <div className="bg-[#f8fbff] rounded-2xl p-6 sm:p-8 border border-blue-50">
+              <h3 className="text-blue-600 font-bold text-center mb-8 text-lg">For Candidates</h3>
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6">
+                <div className="flex flex-col items-center text-center max-w-[140px] sm:max-w-[120px]">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-sm mb-3 sm:mb-4">
+                    <Users className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">Create Profile</h4>
+                  <p className="text-xs text-gray-500">Build your profile in minutes.</p>
+                </div>
+                <div className="block sm:hidden text-gray-300 my-2 rotate-90">
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+                <ArrowRight className="w-6 h-6 text-gray-300 hidden sm:block shrink-0" />
+                
+                <div className="flex flex-col items-center text-center max-w-[140px] sm:max-w-[120px]">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-sm mb-3 sm:mb-4">
+                    <Search className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">AI Match</h4>
+                  <p className="text-xs text-gray-500">Get AI-matched jobs that fit you best.</p>
+                </div>
+                <div className="block sm:hidden text-gray-300 my-2 rotate-90">
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+                <ArrowRight className="w-6 h-6 text-gray-300 hidden sm:block shrink-0" />
+
+                <div className="flex flex-col items-center text-center max-w-[140px] sm:max-w-[120px]">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-sm mb-3 sm:mb-4">
+                    <Briefcase className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">Get Hired</h4>
+                  <p className="text-xs text-gray-500">Apply, connect and get hired faster.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* For Recruiters */}
+            <div className="bg-[#f6fcf8] rounded-2xl p-6 sm:p-8 border border-green-50">
+              <h3 className="text-green-600 font-bold text-center mb-8 text-lg">For Recruiters</h3>
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6">
+                <div className="flex flex-col items-center text-center max-w-[140px] sm:max-w-[120px]">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center text-green-600 shadow-sm mb-3 sm:mb-4">
+                    <Building2 className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">Post Job</h4>
+                  <p className="text-xs text-gray-500">Post your job for free in minutes.</p>
+                </div>
+                <div className="block sm:hidden text-gray-300 my-2 rotate-90">
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+                <ArrowRight className="w-6 h-6 text-gray-300 hidden sm:block shrink-0" />
+                
+                <div className="flex flex-col items-center text-center max-w-[140px] sm:max-w-[120px]">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center text-green-600 shadow-sm mb-3 sm:mb-4">
+                    <Zap className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">AI Shortlist</h4>
+                  <p className="text-xs text-gray-500">AI finds and shortlists the best matches.</p>
+                </div>
+                <div className="block sm:hidden text-gray-300 my-2 rotate-90">
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+                <ArrowRight className="w-6 h-6 text-gray-300 hidden sm:block shrink-0" />
+                
+                <div className="flex flex-col items-center text-center max-w-[140px] sm:max-w-[120px]">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center text-green-600 shadow-sm mb-3 sm:mb-4">
+                    <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">Hire Faster</h4>
+                  <p className="text-xs text-gray-500">Connect, interview and hire the right talent.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 8. Trusted By */}
+      <div className="w-full border-y border-gray-100 py-10 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+          <div className="flex justify-between items-center space-x-8 opacity-60 grayscale hover:grayscale-0 transition duration-500 flex-nowrap overflow-x-auto hide-scrollbar">
+            <h3 className="text-xl font-bold tracking-tighter shrink-0"><span className="text-blue-500">G</span>oogle</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-gray-600">Microsoft</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-blue-700">Infosys</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-red-500">tcs</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-green-800">Deloitte.</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0">accenture</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-red-600">wipro</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-yellow-600">amazon</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-blue-900">IBM</h3>
+            <h3 className="text-xl font-bold tracking-tighter shrink-0 text-blue-400">Capgemini</h3>
+          </div>
+        </div>
+      </div>
+
+      {/* 9. Why Candidates / Recruiters Love Lucohire */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-24">
+          
+          {/* Candidates Love */}
+          <div>
+            <h3 className="text-xl font-bold text-blue-600 mb-8 text-center sm:text-left">Why Candidates Love Lucohire</h3>
+            <div className="grid sm:grid-cols-2 gap-8">
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex justify-center items-center text-blue-600 mr-3">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">AI Resume Analysis</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Get AI feedback to improve your resume.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex justify-center items-center text-blue-600 mr-3">
+                    <Target className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Why I&apos;m Not Getting Hired</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">AI tells you what&apos;s holding you back.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex justify-center items-center text-blue-600 mr-3">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Skill Gap Analysis</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Discover skill gaps and upskill smartly.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex justify-center items-center text-blue-600 mr-3">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Global Opportunities</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Explore jobs across India & 5+ countries.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex justify-center items-center text-blue-600 mr-3">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Verified Jobs Only</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Apply only to verified and genuine jobs.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex justify-center items-center text-blue-600 mr-3">
+                    <MessageCircle className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">WhatsApp Updates</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Get interview calls & status on WhatsApp.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Recruiters Love */}
+          <div>
+            <h3 className="text-xl font-bold text-green-600 mb-8 text-center sm:text-left">Why Recruiters Love Lucohire</h3>
+            <div className="grid sm:grid-cols-2 gap-8">
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-3">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">AI Candidate Ranking</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">AI ranks candidates by best match.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-3">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Verified Talent Pool</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Hire from trusted and verified professionals.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-3">
+                    <Scale className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Duplicate Detection</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">AI removes duplicate profiles automatically.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-3">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">AI Shortlisting</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Save time with AI shortlisting the best candidates.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-3">
+                    <Briefcase className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">Free Job Posting</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Post jobs for free and start hiring instantly.</p>
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-3">
+                    <Building2 className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">ATS Dashboard</h4>
+                </div>
+                <p className="text-xs text-gray-500 pl-11">Manage jobs, applicants and pipelines easily.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 10. Bottom Stats */}
+      <div className="w-full border-t border-gray-100 py-10 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap justify-between items-center gap-6">
+            <div className="flex items-center">
+              <Briefcase className="w-6 h-6 text-blue-600 mr-3" />
+              <div>
+                <div className="font-bold text-gray-900">25K+</div>
+                <div className="text-xs text-gray-500">Jobs Posted Today</div>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <Users className="w-6 h-6 text-green-500 mr-3" />
+              <div>
+                <div className="font-bold text-gray-900">1.5L+</div>
+                <div className="text-xs text-gray-500">Candidates Hired</div>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <CheckCircle2 className="w-6 h-6 text-blue-600 mr-3" />
+              <div>
+                <div className="font-bold text-gray-900">12K+</div>
+                <div className="text-xs text-gray-500">Active Recruiters</div>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <MapPin className="w-6 h-6 text-blue-600 mr-3" />
+              <div>
+                <div className="font-bold text-gray-900">5+</div>
+                <div className="text-xs text-gray-500">Countries</div>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <Building2 className="w-6 h-6 text-blue-600 mr-3" />
+              <div>
+                <div className="font-bold text-gray-900">1000+</div>
+                <div className="text-xs text-gray-500">Top Companies</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 11. Final CTA Banner */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="bg-[#0a1930] rounded-2xl p-8 sm:p-12 flex flex-col md:flex-row justify-between items-center">
+          <div className="mb-8 md:mb-0 text-center md:text-left">
+            <h2 className="text-3xl font-bold text-white mb-2">Ready to Hire Smarter?</h2>
+            <p className="text-blue-200">Join Lucohire and experience the power of AI in hiring.</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            <button 
+              onClick={() => navigate('/candidate-landing')}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl flex justify-center items-center gap-2 transition whitespace-nowrap"
+            >
+              Find Matching Jobs <ArrowRight className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => navigate('/signup')}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl flex justify-center items-center gap-2 transition whitespace-nowrap"
+            >
+              Post Free Job <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  );
+}
