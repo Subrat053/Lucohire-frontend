@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { 
   HiLockClosed, HiSparkles, HiBriefcase, HiTrendingUp, HiExclamationCircle, HiCheckCircle, HiArrowRight, HiDocumentSearch, HiOutlineDocumentSearch, HiCheck, HiOutlineExclamationCircle, HiExclamation
 } from 'react-icons/hi';
-import { getCareerGPS, getHiringBarriers, getSkillGap, getAtsOptimizer } from '../../services/providerAIService';
+import { getCareerGPS, getHiringBarriers, getSkillGap, getAtsOptimizer, getAiUsage } from '../../services/providerAIService';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -24,14 +24,32 @@ export default function GrowWithAIDashboard() {
 
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
+
   const { state } = location;
   const fileHash = state?.fileHash || localStorage.getItem('lastResumeHash');
   const parsedData = state?.parsedData;
 
   useEffect(() => {
+    fetchUsage();
     fetchGPS();
     fetchBarriers();
   }, [fileHash, parsedData]);
+
+  const fetchUsage = async () => {
+    try {
+      setUsageLoading(true);
+      const { data } = await getAiUsage();
+      if (data.success) {
+        setAiUsage({ limits: data.limits || {}, usage: data.usage || {} });
+      }
+    } catch (error) {
+      console.error('Failed to fetch AI usage', error);
+    } finally {
+      setUsageLoading(false);
+    }
+  };
 
   const fetchGPS = async () => {
     try {
@@ -168,38 +186,105 @@ export default function GrowWithAIDashboard() {
         </button>
       </div>
 
+      {/* Usage Banner */}
+      {!usageLoading && (
+        <div className="bg-indigo-50/50 border-b border-indigo-100 px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <HiSparkles className="w-4 h-4 text-indigo-600" />
+            <span className="text-sm font-medium text-indigo-900">
+              {activeTab === 'gps' && 'Career GPS Limit: '}
+              {activeTab === 'barriers' && 'Why Not Hired Limit: '}
+              {activeTab === 'skillgap' && 'Skill Gap Limit: '}
+              {activeTab === 'ats' && 'ATS Score Limit: '}
+              
+              {(() => {
+                const map = { gps: 'careerGps', barriers: 'whyNotHired', skillgap: 'skillGapReport', ats: 'atsScore' };
+                const key = map[activeTab];
+                const limit = aiUsage.limits[key] || 0;
+                const used = aiUsage.usage[key] || 0;
+                if (limit === -1) return <span className="font-bold text-indigo-700">Unlimited</span>;
+                if (limit === 0) return <span className="font-bold text-red-600">Not included in plan</span>;
+                return <span className="font-bold text-indigo-700">{Math.max(0, limit - used)} / {limit} requests remaining</span>;
+              })()}
+            </span>
+          </div>
+          <Link to="/provider/plans" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-100 px-3 py-1 rounded-full transition-colors">
+            Upgrade Plan
+          </Link>
+        </div>
+      )}
+
       {/* Tab Content */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden">
-        {activeTab === 'gps' && (
-          <CareerGPSPanel 
-            loading={gpsLoading} 
-            data={gpsData} 
-            isLocked={gpsLocked} 
-          />
-        )}
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden relative">
         
-        {activeTab === 'barriers' && (
-          <HiringBarriersPanel 
-            loading={barriersLoading} 
-            data={barriersData} 
-            isLocked={barriersLocked} 
-            gpsData={gpsData}
-          />
-        )}
+        {/* UI Block Overlay */}
+        {!usageLoading && (() => {
+          const map = { gps: 'careerGps', barriers: 'whyNotHired', skillgap: 'skillGapReport', ats: 'atsScore' };
+          const key = map[activeTab];
+          const limit = aiUsage.limits[key] || 0;
+          const used = aiUsage.usage[key] || 0;
+          
+          if (limit !== -1 && (limit === 0 || used >= limit)) {
+            return (
+              <div className="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                  <HiLockClosed className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {limit === 0 ? 'Feature Not Available' : 'Usage Limit Reached'}
+                </h3>
+                <p className="text-gray-500 max-w-md mb-6">
+                  {limit === 0 
+                    ? "Your current plan does not include access to this AI feature. Upgrade your plan to unlock."
+                    : `You have used all ${limit} requests for this feature in the current billing cycle.`}
+                </p>
+                <Link to="/provider/plans" className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
+                  Upgrade Plan
+                </Link>
+              </div>
+            );
+          }
+          return null;
+        })()}
 
-        {activeTab === 'skillgap' && (
-          <SkillGapPanel 
-            fileHash={fileHash}
-            parsedData={parsedData}
-          />
-        )}
+        <div className={!usageLoading && (() => {
+          const map = { gps: 'careerGps', barriers: 'whyNotHired', skillgap: 'skillGapReport', ats: 'atsScore' };
+          const key = map[activeTab];
+          const limit = aiUsage.limits[key] || 0;
+          const used = aiUsage.usage[key] || 0;
+          return (limit !== -1 && (limit === 0 || used >= limit)) ? 'opacity-30 pointer-events-none' : '';
+        })() ? 'opacity-30 pointer-events-none' : ''}>
+          {activeTab === 'gps' && (
+            <CareerGPSPanel 
+              loading={gpsLoading} 
+              data={gpsData} 
+              isLocked={gpsLocked} 
+            />
+          )}
+          
+          {activeTab === 'barriers' && (
+            <HiringBarriersPanel 
+              loading={barriersLoading} 
+              data={barriersData} 
+              isLocked={barriersLocked} 
+              gpsData={gpsData}
+            />
+          )}
 
-        {activeTab === 'ats' && (
-          <AtsOptimizerPanel 
-            fileHash={fileHash}
-            parsedData={parsedData}
-          />
-        )}
+          {activeTab === 'skillgap' && (
+            <SkillGapPanel 
+              fileHash={fileHash}
+              parsedData={parsedData}
+            />
+          )}
+
+          {activeTab === 'ats' && (
+            <AtsOptimizerPanel 
+              fileHash={fileHash}
+              parsedData={parsedData}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

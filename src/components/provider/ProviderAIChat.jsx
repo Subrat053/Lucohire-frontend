@@ -15,7 +15,7 @@ function makeId(prefix = 'm') {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-export default function ProviderAIChat({ profileContext = {}, missingFields = [], onUpdateField, inline = false }) {
+export default function ProviderAIChat({ profileContext = {}, missingFields = [], onUpdateField, inline = false, aiUsage = {} }) {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(inline);
   const [input, setInput] = useState('');
@@ -700,6 +700,28 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                 📄
               </div> */}
               <p className="text-xs font-black text-slate-800 leading-tight">Drop or Select Resume</p>
+              
+              {/* Resume Improvement Usage Badge */}
+              {(() => {
+                const limit = aiUsage?.limits?.resumeImprovement;
+                const used = aiUsage?.usage?.resumeImprovement || 0;
+                if (limit === undefined || limit === null) return null;
+                const isUnlimited = limit === 99999 || limit === -1;
+                const remaining = isUnlimited ? '∞' : Math.max(0, limit - used);
+                const isExhausted = !isUnlimited && remaining === 0;
+                return (
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase mt-1 border ${
+                    isExhausted
+                      ? 'bg-red-50 text-red-600 border-red-200'
+                      : isUnlimited
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                        : 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isExhausted ? 'bg-red-500' : 'bg-indigo-500'}`} />
+                    {isUnlimited ? 'Unlimited Uploads' : isExhausted ? 'Limit Reached' : `${remaining} Upload${remaining !== 1 ? 's' : ''} Left`}
+                  </span>
+                );
+              })()}
               
               {profileContext?.resumeApproval?.status === 'pending' && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded text-[9px] font-black uppercase mt-1 border border-amber-200">

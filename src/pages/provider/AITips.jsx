@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Sparkles, AlertCircle, ArrowRight, Briefcase, TrendingUp, Lightbulb, Target, CheckCircle2 } from "lucide-react";
-import { getAICareerReport } from "../../services/providerAIService";
+import { Sparkles, AlertCircle, ArrowRight, Briefcase, TrendingUp, Lightbulb, Target, CheckCircle2, Lock } from "lucide-react";
+import { getAICareerReport, getAiUsage } from "../../services/providerAIService";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import toast from "react-hot-toast";
 
@@ -9,10 +9,27 @@ export default function AITips() {
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
 
   useEffect(() => {
+    fetchUsage();
     fetchAICareerReport();
   }, []);
+
+  const fetchUsage = async () => {
+    try {
+      setUsageLoading(true);
+      const { data } = await getAiUsage();
+      if (data.success) {
+        setAiUsage({ limits: data.limits || {}, usage: data.usage || {} });
+      }
+    } catch (error) {
+      console.error('Failed to fetch AI usage', error);
+    } finally {
+      setUsageLoading(false);
+    }
+  };
 
   const fetchAICareerReport = async () => {
     try {
@@ -33,12 +50,10 @@ export default function AITips() {
       } else {
         setError(err.response?.data?.message || "Failed to load AI Career Report. Ensure you have uploaded your resume or completed your profile.");
       }
-      toast.error("Failed to load AI Career Report");
     } finally {
       setLoading(false);
     }
   };
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 min-h-[60vh]">
@@ -67,7 +82,63 @@ export default function AITips() {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-8 pb-20">
+    <div className="p-6 max-w-5xl mx-auto space-y-8 pb-20 relative">
+      
+      {/* Usage Banner */}
+      {!usageLoading && (
+        <div className="bg-indigo-50/50 border border-indigo-100 px-6 py-3 rounded-2xl flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-indigo-600" />
+            <span className="text-sm font-medium text-indigo-900">
+              Career Report Limit: 
+              {(() => {
+                const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
+                const used = aiUsage.usage['aiCareerAnalysis'] || 0;
+                if (limit === -1) return <span className="font-bold text-indigo-700 ml-1">Unlimited</span>;
+                if (limit === 0) return <span className="font-bold text-red-600 ml-1">Not included in plan</span>;
+                return <span className="font-bold text-indigo-700 ml-1">{Math.max(0, limit - used)} / {limit} requests remaining</span>;
+              })()}
+            </span>
+          </div>
+          <Link to="/provider/plans" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-100 px-3 py-1 rounded-full transition-colors">
+            Upgrade Plan
+          </Link>
+        </div>
+      )}
+      
+      {/* UI Block Overlay */}
+      {!usageLoading && (() => {
+        const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
+        const used = aiUsage.usage['aiCareerAnalysis'] || 0;
+        
+        if (limit !== -1 && (limit === 0 || used >= limit)) {
+          return (
+            <div className="absolute inset-0 z-40 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center rounded-2xl">
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                <Lock className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                {limit === 0 ? 'Feature Not Available' : 'Usage Limit Reached'}
+              </h3>
+              <p className="text-gray-500 max-w-md mb-6">
+                {limit === 0 
+                  ? "Your current plan does not include access to AI Career Reports. Upgrade your plan to unlock."
+                  : `You have used all ${limit} requests for this feature in the current billing cycle.`}
+              </p>
+              <Link to="/provider/plans" className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
+                Upgrade Plan
+              </Link>
+            </div>
+          );
+        }
+        return null;
+      })()}
+
+      <div className={!usageLoading && (() => {
+        const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
+        const used = aiUsage.usage['aiCareerAnalysis'] || 0;
+        return (limit !== -1 && (limit === 0 || used >= limit)) ? 'opacity-30 pointer-events-none' : '';
+      })() ? 'opacity-30 pointer-events-none space-y-8' : 'space-y-8'}>
       <div>
         <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 flex items-center gap-3">
           <Sparkles className="w-8 h-8 text-indigo-500" />
@@ -195,6 +266,7 @@ export default function AITips() {
         )}
       </div>
 
-    </div>
+        </div>
+      </div>
   );
 }

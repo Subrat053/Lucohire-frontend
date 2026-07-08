@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { 
   HiLockClosed, HiTrendingUp, HiLightBulb, HiChartBar, HiCheckCircle, HiExclamationCircle, HiBriefcase 
 } from 'react-icons/hi';
-import { getCareerHealth } from '../../services/providerAIService';
+import { getCareerHealth, getAiUsage } from '../../services/providerAIService';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -18,14 +18,32 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
   const [activeTab, setActiveTab] = useState('employability');
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
+
   // When coming from Profile.jsx after resume upload, we might pass fileHash or parsedData in state
   const { state } = location;
   const fileHash = state?.fileHash || localStorage.getItem('lastResumeHash');
   const parsedData = state?.parsedData;
 
   useEffect(() => {
+    fetchUsage();
     fetchReport();
   }, [fileHash, parsedData]);
+
+  const fetchUsage = async () => {
+    try {
+      setUsageLoading(true);
+      const { data } = await getAiUsage();
+      if (data.success) {
+        setAiUsage({ limits: data.limits || {}, usage: data.usage || {} });
+      }
+    } catch (error) {
+      console.error('Failed to fetch AI usage', error);
+    } finally {
+      setUsageLoading(false);
+    }
+  };
 
   const fetchReport = async () => {
     try {
@@ -171,14 +189,14 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
   };
 
   const tabs = [
-    { id: 'employability', label: 'Employability', icon: HiBriefcase },
-    { id: 'salaryGrowth', label: 'Salary Growth', icon: HiTrendingUp },
-    { id: 'marketDemand', label: 'Market Demand', icon: HiChartBar },
-    { id: 'futureReadiness', label: 'Future Readiness', icon: HiLightBulb },
-    { id: 'aiResistance', label: 'AI Resistance', icon: HiLockClosed },
+      { id: 'employability', label: 'Employability Score', icon: HiBriefcase },
+      { id: 'salaryGrowth', label: 'Salary Growth Insights', icon: HiTrendingUp },
+      { id: 'marketDemand', label: 'Market Demand', icon: HiChartBar },
+      { id: 'futureReadiness', label: 'Future Readiness', icon: HiLightBulb },
+      { id: 'aiResistance', label: 'AI Resistance', icon: HiLockClosed },
   ];
 
-  const currentPanel = categoryDetails[activeTab];
+  const currentPanel = categoryDetails[activeTab] || categoryDetails['employability'];
 
   if (loading) {
     return (
@@ -240,7 +258,62 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
 
 
 
+      {/* Usage Banner */}
+      {!usageLoading && (
+        <div className="bg-indigo-50/50 border-b border-indigo-100 px-6 py-3 mb-6 rounded-xl flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <HiChartBar className="w-4 h-4 text-indigo-600" />
+            <span className="text-sm font-medium text-indigo-900">
+              Career Analysis Limit: 
+              {(() => {
+                const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
+                const used = aiUsage.usage['aiCareerAnalysis'] || 0;
+                if (limit === -1) return <span className="font-bold text-indigo-700 ml-1">Unlimited</span>;
+                if (limit === 0) return <span className="font-bold text-red-600 ml-1">Not included in plan</span>;
+                return <span className="font-bold text-indigo-700 ml-1">{Math.max(0, limit - used)} / {limit} requests remaining</span>;
+              })()}
+            </span>
+          </div>
+          <Link to="/provider/plans" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-100 px-3 py-1 rounded-full transition-colors">
+            Upgrade Plan
+          </Link>
+        </div>
+      )}
+
       <div className="relative">
+        {/* UI Block Overlay */}
+        {!usageLoading && (() => {
+          const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
+          const used = aiUsage.usage['aiCareerAnalysis'] || 0;
+          
+          if (limit !== -1 && (limit === 0 || used >= limit)) {
+            return (
+              <div className="absolute inset-0 z-40 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center rounded-3xl">
+                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                  <HiLockClosed className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {limit === 0 ? 'Feature Not Available' : 'Usage Limit Reached'}
+                </h3>
+                <p className="text-gray-500 max-w-md mb-6">
+                  {limit === 0 
+                    ? "Your current plan does not include access to AI Career Analysis. Upgrade your plan to unlock."
+                    : `You have used all ${limit} requests for this feature in the current billing cycle.`}
+                </p>
+                <Link to="/provider/plans" className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
+                  Upgrade Plan
+                </Link>
+              </div>
+            );
+          }
+          return null;
+        })()}
+
+        <div className={!usageLoading && (() => {
+          const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
+          const used = aiUsage.usage['aiCareerAnalysis'] || 0;
+          return (limit !== -1 && (limit === 0 || used >= limit)) ? 'opacity-30 pointer-events-none' : '';
+        })() ? 'opacity-30 pointer-events-none' : ''}>
         {isEmptyState && (
           <div className="absolute inset-0 z-30 flex flex-col items-center justify-center backdrop-blur-xl bg-white/60 rounded-3xl pb-10 pointer-events-auto shadow-sm">
             <HiExclamationCircle className="w-16 h-16 text-indigo-600 mb-4 animate-bounce" />
@@ -402,6 +475,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
               </ul>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>

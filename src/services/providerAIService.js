@@ -12,6 +12,10 @@ export function getAIHealth() {
   return API.get('/provider/ai/health');
 }
 
+export function getAiUsage() {
+  return API.get('/provider/ai/usage', { timeout: 30000 });
+}
+
 export function testAIParser(payload) {
   return API.post('/provider/ai/test', payload);
 }

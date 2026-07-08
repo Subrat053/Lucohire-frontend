@@ -18,7 +18,20 @@ const emptyPlan = {
   isActive: true,
   showOnLandingPage: false,
   availableCountries: [],
-  countryPricing: []
+  countryPricing: [],
+  aiLimits: {
+    chatAssistant: 0,
+    aiCareerAnalysis: 0,
+    atsScore: 0,
+    skillGapReport: 0,
+    whyNotHired: 0,
+    interviewCallProb: 0,
+    resumeImprovement: 0,
+    careerGps: 0,
+    salaryInsights: 0,
+    mockInterview: 0,
+    claudeDeepReports: 0,
+  }
 };
 const PLAN_TIERS = [
   { label: 'Free', slug: 'free', group: 'Main' },
@@ -308,6 +321,7 @@ const AdminPlans = () => {
       showOnLandingPage: target.showOnLandingPage === true,
       availableCountries: target.availableCountries || [],
       countryPricing: target.countryPricing || [],
+      aiLimits: target.aiLimits ? { ...target.aiLimits } : { ...emptyPlan.aiLimits },
     });
     setShowForm(true);
   };
@@ -790,18 +804,53 @@ const AdminPlans = () => {
               </div>
 
               {form.type === 'provider' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Max Skills</label>
-                    <input type="number" min="1" value={form.maxSkills} onChange={e => setForm(f => ({ ...f, maxSkills: Number(e.target.value) }))}
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" />
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Max Skills</label>
+                      <input type="number" min="1" value={form.maxSkills} onChange={e => setForm(f => ({ ...f, maxSkills: Number(e.target.value) }))}
+                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Boost Weight</label>
+                      <input type="number" min="1" value={form.boostWeight} onChange={e => setForm(f => ({ ...f, boostWeight: Number(e.target.value) }))}
+                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Boost Weight</label>
-                    <input type="number" min="1" value={form.boostWeight} onChange={e => setForm(f => ({ ...f, boostWeight: Number(e.target.value) }))}
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" />
+                  
+                  {/* AI Limits Section */}
+                  <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 mt-2">
+                    <h3 className="font-bold text-sm text-purple-900 mb-3 flex items-center gap-2">
+                      <HiStar className="w-4 h-4 text-purple-600" />
+                      AI Feature Limits (-1 for unlimited)
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {[
+                        { key: 'chatAssistant', label: 'Chat Assistant' },
+                        { key: 'aiCareerAnalysis', label: 'Career Analysis' },
+                        { key: 'atsScore', label: 'ATS Score' },
+                        { key: 'skillGapReport', label: 'Skill Gap' },
+                        { key: 'whyNotHired', label: 'Why Not Hired' },
+                        { key: 'interviewCallProb', label: 'Interview Prob' },
+                        { key: 'resumeImprovement', label: 'Resume Improv.' },
+                        { key: 'careerGps', label: 'Career GPS' },
+                        { key: 'salaryInsights', label: 'Salary Insights' },
+                        { key: 'mockInterview', label: 'Mock Interview' },
+                        { key: 'claudeDeepReports', label: 'Deep Reports' },
+                      ].map(field => (
+                        <div key={field.key}>
+                          <label className="block text-xs font-medium text-gray-700 mb-1 truncate" title={field.label}>{field.label}</label>
+                          <input type="number" min="-1" value={form.aiLimits?.[field.key] || 0} 
+                            onChange={e => setForm(f => ({ 
+                              ...f, 
+                              aiLimits: { ...f.aiLimits, [field.key]: Number(e.target.value) } 
+                            }))}
+                            className="w-full px-2 py-1.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm" />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
               {form.type === 'recruiter' && (
                 <div>

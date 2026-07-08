@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail, HiLockClosed, HiPlusCircle, HiCreditCard, HiUserAdd, HiSparkles
@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../common/NotificationBell';
 import LanguageDropdown from '../LanguageDropdown';
 import useTranslation from '../../hooks/useTranslation';
+import { getCurrentSubscription } from '../../services/providerPlanService';
 
 const navItems = [
   { label: 'Dashboard', fallback: 'Dashboard', path: '/provider/dashboard',      icon: HiTrendingUp },
@@ -48,6 +49,34 @@ const ProviderLayout = ({ children }) => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  
+  const [planTag, setPlanTag] = useState({ loading: true, type: 'Free', days: 0 });
+
+  useEffect(() => {
+    const fetchPlan = async () => {
+      try {
+        const data = await getCurrentSubscription();
+        const activePlan = data?.subscription || data;
+        
+        // If the user's plan is not free, mark as Paid and check expiry
+        if (activePlan && activePlan.status === 'active' && activePlan.planName?.toLowerCase() !== 'free') {
+          const endDate = activePlan.expiresAt || activePlan.endDate;
+          if (endDate) {
+            const diff = new Date(endDate).getTime() - new Date().getTime();
+            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            setPlanTag({ loading: false, type: 'Paid', days: days > 0 ? days : 0 });
+          } else {
+            setPlanTag({ loading: false, type: 'Paid', days: 0 });
+          }
+        } else {
+          setPlanTag({ loading: false, type: 'Free', days: 0 });
+        }
+      } catch (err) {
+        setPlanTag({ loading: false, type: 'Free', days: 0 });
+      }
+    };
+    fetchPlan();
+  }, []);
 
   const handleLogout = () => { logout(); };
 
@@ -58,7 +87,16 @@ const ProviderLayout = ({ children }) => {
         <div className="w-8 h-8 bg-linear-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
           <HiTrendingUp className="text-white w-4 h-4" />
         </div>
-        {!collapsed && <span className="font-bold text-gray-800 text-sm">{t('provider.panel', 'Provider Panel')}</span>}
+        {!collapsed && (
+          <div className="flex flex-col">
+            <span className="font-bold text-gray-800 text-sm">{t('provider.panel', 'Provider Panel')}</span>
+            {!planTag.loading && (
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 mt-0.5 rounded-full w-fit ${planTag.type === 'Free' ? 'bg-gray-100 text-gray-600' : 'bg-emerald-100 text-emerald-700'}`}>
+                {planTag.type === 'Free' ? 'Free' : `${planTag.days} Days Left`}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* <div className="px-2 py-3 border-b border-gray-100">

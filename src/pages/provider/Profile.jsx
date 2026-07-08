@@ -14,6 +14,7 @@ import DocumentVerificationStatusCard from "../../components/provider/DocumentVe
 import AIProfileAssistant from "../../components/provider/AIProfileAssistant";
 import AIProfileAutoFillModal from "../../components/provider/AIProfileAutoFillModal";
 import ProviderAIChat from "../../components/provider/ProviderAIChat";
+import { getAiUsage } from "../../services/providerAIService";
 import PortfolioLinksManager from "../../components/common/PortfolioLinksManager";
 import { compressImage } from "../../utils/fileCompressionService";
 import { validateUploadFile } from "../../utils/fileValidationService";
@@ -440,6 +441,7 @@ const ProviderProfile = () => {
   const [isErasing, setIsErasing] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
+  const [aiUsageData, setAiUsageData] = useState({ limits: {}, usage: {} });
 
   const [form, setForm] = useState({
     name: "",
@@ -851,6 +853,13 @@ const ProviderProfile = () => {
     } finally {
       setLoading(false);
     }
+    // Fetch AI usage limits/current usage silently (non-blocking)
+    try {
+      const usageRes = await getAiUsage();
+      if (usageRes?.data?.success) {
+        setAiUsageData({ limits: usageRes.data.limits || {}, usage: usageRes.data.usage || {} });
+      }
+    } catch (_) { /* ignore */ }
   };
 
   const addLocation = (loc) => {
@@ -1621,6 +1630,7 @@ const ProviderProfile = () => {
           <div className="w-full md:w-[70%] p-6 flex flex-col justify-center">
             <ProviderAIChat
               inline={true}
+              aiUsage={aiUsageData}
               profileContext={{
                 userId: user?._id,
                 name: form.name,

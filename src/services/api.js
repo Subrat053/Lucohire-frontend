@@ -222,6 +222,7 @@ export const providerAPI = {
     }),
   getHistory: () => API.get("/provider/history"),
   getJobs: (params) => API.get("/provider/jobs", { params }),
+  getJobAiInsights: (jobIds) => API.post("/provider/jobs/ai-insights", { jobIds }),
   getJobById: (jobId) => API.get(`/provider/jobs/${jobId}`),
   applyToJob: (jobId, data) => API.post(`/provider/jobs/${jobId}/apply`, data),
   getApplications: () => API.get("/provider/applications"),
