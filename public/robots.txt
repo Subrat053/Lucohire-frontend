@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /provider-dashboard
+Disallow: /recruiter-dashboard
+Disallow: /partner-dashboard
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /settings
+Disallow: /checkout
+Disallow: /payment
+Disallow: /transactions
+Disallow: /verification
+Disallow: /api
+Disallow: /private
+Disallow: /internal
+Disallow: /tmp
+
+Sitemap: https://www.lucohire.com/sitemap.xml
