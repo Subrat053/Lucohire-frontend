@@ -39,7 +39,14 @@ self.addEventListener('activate', event => {
 
 // Fetch event - network first for API, cache first for static assets
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+
   const requestUrl = new URL(event.request.url);
+
+  // Ignore external API calls to avoid CORS errors (like restcountries.com)
+  if (requestUrl.origin !== self.location.origin && requestUrl.pathname.includes('/v3.1/all')) {
+    return;
+  }
 
   // For API requests, try network first, then cache if offline (GET requests only)
   if ((requestUrl.pathname.startsWith('/api/') || requestUrl.pathname.startsWith('/auth/')) && event.request.method === 'GET') {
