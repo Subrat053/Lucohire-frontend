@@ -97,6 +97,7 @@ export function useOtpVerification({ purpose, onSuccess }) {
     } catch (err) {
       console.error('[OTP] Firebase phone auth failed:', err.message);
       setState(s => ({ ...s, error: 'Failed to send SMS OTP. Please try email OTP instead.' }));
+      throw err; // MUST rethrow so sendOtp knows it failed!
     }
   }, []);
 
