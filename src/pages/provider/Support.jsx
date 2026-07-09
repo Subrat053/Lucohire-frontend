@@ -352,10 +352,6 @@ const Support = () => {
               <HiPaperAirplane className="w-5 h-5 rotate-90" />
             </button>
           </form>
-          
-          <div className="mt-3 flex items-center justify-between px-1">
-             <p className="text-[10px] text-gray-400 font-medium">Backup contact: {adminEmail}</p>
-          </div>
         </div>
 
       </div>

@@ -24,6 +24,8 @@ import CountryPhoneInput, { parsePhoneString } from "../../components/common/Cou
 import OtpVerificationModal from "../../components/otp/OtpVerificationModal";
 import ClientResumeGenerator from "../../components/provider/ClientResumeGenerator";
 import SkillGapReportModal from "../../components/provider/SkillGapReportModal";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { auth } from "../../config/firebase";
 import {
   User as UserIcon,
   Phone as PhoneIcon,
@@ -477,6 +479,9 @@ const ProviderProfile = () => {
 
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [firebaseToken, setFirebaseToken] = useState("");
+  const [confirmationResult, setConfirmationResult] = useState(null);
+  const [verifyingPhone, setVerifyingPhone] = useState("");
   const [emailOtp, setEmailOtp] = useState("");
   const [sendingOtp, setSendingOtp] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
@@ -495,19 +500,8 @@ const ProviderProfile = () => {
   const handleCancelOtp = () => {
     setIsOtpModalOpen(false);
     setEmailOtp("");
-  };
-
-  const handleSendEmailVerifyOtp = async () => {
-    if (!form.email) {
-      toast.error("Please enter an email address.");
-      return;
-    }
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-      toast.error("Please enter a valid email address.");
-      return;
-    }
-    setEmailToVerify(form.email.toLowerCase().trim());
-    setIsEmailOtpModalOpen(true);
+    setFirebaseToken("");
+    setConfirmationResult(null);
   };
 
   const handleShareProfile = async () => {
@@ -528,18 +522,64 @@ const ProviderProfile = () => {
     }
   };
 
-  const handleResendOtp = async () => {
-    if (resendCountdown > 0) return;
-    setSendingOtp(true);
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        'profile-recaptcha-container',
+        {
+          size: 'invisible',
+          callback: () => {},
+          'expired-callback': () => {
+            if (window.recaptchaVerifier) {
+              window.recaptchaVerifier.clear();
+              window.recaptchaVerifier = null;
+            }
+          },
+        }
+      );
+    }
+    return window.recaptchaVerifier;
+  };
+
+  const startFirebaseVerification = async (phoneToVerify) => {
+    const cleanPhone = phoneToVerify.replace(/\D/g, "");
+    if (cleanPhone.length < 10) {
+      toast.error("Please enter a valid mobile number");
+      return;
+    }
+    
+    let formattedPhone = cleanPhone;
+    if (cleanPhone.length === 10) {
+      formattedPhone = `+91${cleanPhone}`;
+    } else if (cleanPhone.startsWith('91') && cleanPhone.length === 12) {
+      formattedPhone = `+${cleanPhone}`;
+    } else {
+      formattedPhone = `+${cleanPhone}`;
+    }
+
     try {
-      await providerAPI.sendPhoneChangeOtp();
-      toast.success("OTP sent to your registered email address.");
-      setResendCountdown(60);
+      setSendingOtp(true);
+      setVerifyingPhone(formattedPhone);
+      const verifier = setupRecaptcha();
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, verifier);
+      setConfirmationResult(confirmation);
+      setIsOtpModalOpen(true);
+      toast.success("Verification code sent to your mobile");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to resend OTP.");
+      console.error(err);
+      toast.error("Failed to send OTP. Please try again.");
+      setIsOtpModalOpen(false);
     } finally {
       setSendingOtp(false);
     }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCountdown > 0) return;
+    const nextPhone = form.phone || (form.countryCode + form.nationalNumber);
+    await startFirebaseVerification(nextPhone);
+    setResendCountdown(60);
   };
 
   const handleAiAutoFillApply = (data) => {
@@ -1317,7 +1357,7 @@ const ProviderProfile = () => {
     }
   };
 
-  const handleSave = withSaveLock(async (e) => {
+  const handleSave = withSaveLock(async (e, overrideToken = null) => {
     if (e && typeof e.preventDefault === "function") e.preventDefault();
     if (!form.city && form.locations.length === 0) {
       const card = document.getElementById("locations-card");
@@ -1385,22 +1425,10 @@ const ProviderProfile = () => {
 
     const nextPhone = form.phone || (form.countryCode + form.nationalNumber);
     const cleanNextPhone = String(nextPhone || "").replace(/\D/g, "");
-    const cleanOriginalPhone = String(profileData?.user?.phone || "").replace(/\D/g, "");
-    const isPhoneChanged = cleanNextPhone !== cleanOriginalPhone;
 
-    if (isPhoneChanged && !emailOtp) {
-      setIsOtpModalOpen(true);
-      setSendingOtp(true);
-      try {
-        await providerAPI.sendPhoneChangeOtp();
-        toast.success("OTP sent to your registered email address.");
-        setResendCountdown(60);
-      } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to send OTP. Please try again.");
-        setIsOtpModalOpen(false);
-      } finally {
-        setSendingOtp(false);
-      }
+    const finalToken = overrideToken || firebaseToken;
+    if (!finalToken) {
+      await startFirebaseVerification(nextPhone);
       return;
     }
 
@@ -1450,7 +1478,7 @@ const ProviderProfile = () => {
         isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
         whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : (form.whatsappNumber || (form.whatsappCountryCode + form.whatsappNationalNumber)),
         resumeUrl: form.resumeUrl,
-        emailOtp: emailOtp || undefined,
+        firebaseToken: finalToken || undefined,
       };
       // sanitizePayload only touches string fields, leaves arrays/numbers intact
       const payload = sanitizePayload(rawPayload);
@@ -1466,6 +1494,8 @@ const ProviderProfile = () => {
       toast.success("Profile updated successfully!");
       setIsOtpModalOpen(false);
       setEmailOtp("");
+      setFirebaseToken("");
+      setConfirmationResult(null);
       hasInitialized.current = false;
       await fetchProfile();
 
@@ -1593,7 +1623,7 @@ const ProviderProfile = () => {
             <button
               type="button"
               onClick={() => setIsSkillGapModalOpen(true)}
-              className="py-2.5 px-4 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-xl text-xs font-black shadow-md hover:shadow-indigo-200 transition duration-200 flex items-center justify-center gap-1.5"
+              className="py-2.5 px-4 bg-blue-600 text-white rounded-xl text-xs font-black shadow-md hover:shadow-indigo-200 transition duration-200 flex items-center justify-center gap-1.5"
             >
               <Sparkles className="w-4 h-4" /> AI Skill-Gap Report
             </button>
@@ -2797,9 +2827,9 @@ const ProviderProfile = () => {
                 <ShieldCheck className="w-6 h-6" />
               </div>
 
-              <h3 className="text-base font-black text-slate-800 tracking-tight">Verify Mobile Change</h3>
+              <h3 className="text-base font-black text-slate-800 tracking-tight">Verify Mobile Number</h3>
               <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-                We sent a 6-digit verification code to <span className="font-bold text-slate-700">{profileData?.user?.email}</span>. Enter it below to confirm your phone number change.
+                We sent a 6-digit verification code to <strong className="text-slate-800">{verifyingPhone || "your mobile number"}</strong>. Enter it below to save your profile.
               </p>
 
               {/* Input */}
@@ -2843,7 +2873,28 @@ const ProviderProfile = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleSave(null)}
+                  onClick={async () => {
+                    if (emailOtp.length !== 6) {
+                      toast.error("Please enter a 6-digit OTP");
+                      return;
+                    }
+                    if (!confirmationResult) {
+                      toast.error("Verification session expired. Please resend OTP.");
+                      return;
+                    }
+                    setSaving(true);
+                    try {
+                      const result = await confirmationResult.confirm(emailOtp);
+                      const token = await result.user.getIdToken(true);
+                      setFirebaseToken(token);
+                      toast.success("Phone verified!");
+                      // Use a timeout to allow the state to update, then trigger handleSave
+                      setTimeout(() => handleSave(null, token), 100);
+                    } catch (err) {
+                      toast.error("Invalid or expired OTP");
+                      setSaving(false);
+                    }
+                  }}
                   disabled={saving || emailOtp.length !== 6}
                   className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-extrabold py-2 rounded-xl shadow-md transition active:scale-95 disabled:opacity-50 disabled:pointer-events-none text-xs flex items-center justify-center gap-1.5 outline-none"
                 >
@@ -2861,6 +2912,9 @@ const ProviderProfile = () => {
           </div>
         </div>
       )}
+      
+      {/* Recaptcha Container */}
+      <div id="profile-recaptcha-container"></div>
 
       {/* Erasure Modal */}
       {showErasureModal && (

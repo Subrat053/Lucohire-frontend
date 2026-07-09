@@ -137,7 +137,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      {import.meta.env.DEV && <Agentation />}
+      {/* {import.meta.env.DEV && <Agentation />} */}
 
       {/* Animated PWA Install Prompt */}
       <PwaInstallPrompt deferredPrompt={deferredPrompt} setDeferredPrompt={setDeferredPrompt} />

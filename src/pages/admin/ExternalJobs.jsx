@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HiTrash, HiRefresh, HiExternalLink } from 'react-icons/hi';
+import { HiTrash, HiRefresh, HiExternalLink, HiDownload } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -9,6 +9,7 @@ const ExternalJobs = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ country: '', source: '', isActive: 'true', page: 1 });
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
+  const [uniqueCompaniesCount, setUniqueCompaniesCount] = useState(0);
   const [refreshingId, setRefreshingId] = useState(null);
 
   useEffect(() => {
@@ -20,6 +21,7 @@ const ExternalJobs = () => {
       const { data } = await adminAPI.getExternalJobs(filters);
       setJobs(data.jobs || []);
       setPagination(data.pagination || { page: 1, limit: 20, total: 0, pages: 1 });
+      setUniqueCompaniesCount(data.uniqueCompaniesCount || 0);
     } catch (err) {
       toast.error('Failed to load external jobs');
     } finally {
@@ -51,6 +53,30 @@ const ExternalJobs = () => {
     }
   };
 
+  const handleDownloadCompaniesCsv = async () => {
+    try {
+      toast.loading("Generating CSV...", { id: "csv" });
+      const response = await adminAPI.exportExternalCompaniesCsv();
+      
+      // Create a blob URL for the file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'ats_companies.csv');
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("CSV Downloaded Successfully!", { id: "csv" });
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to download CSV", { id: "csv" });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -64,15 +90,27 @@ const ExternalJobs = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Synced Job Postings</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1 flex flex-wrap gap-2 items-center">
             Monitor and manage all jobs fetched from external sources and synced ATS platforms. 
             {pagination?.total !== undefined && (
-              <span className="font-semibold text-indigo-600 ml-2 bg-indigo-50 px-2 py-0.5 rounded-full">
+              <span className="font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
                 Total Scraped: {pagination.total.toLocaleString()}
+              </span>
+            )}
+            {uniqueCompaniesCount > 0 && (
+              <span className="font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                Unique Companies: {uniqueCompaniesCount.toLocaleString()}
               </span>
             )}
           </p>
         </div>
+        <button
+          onClick={handleDownloadCompaniesCsv}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-indigo-700 transition shadow-sm flex items-center gap-2 text-sm"
+        >
+          <HiDownload className="w-5 h-5" />
+          Download Companies (CSV)
+        </button>
       </div>
 
       {/* Filters bar */}

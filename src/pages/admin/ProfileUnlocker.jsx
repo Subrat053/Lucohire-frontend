@@ -3,6 +3,8 @@ import { unlockProfileAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { HiLockOpen, HiMail, HiKey, HiArrowRight } from 'react-icons/hi';
 import { useAuth, getDashboardByRole } from '../../context/AuthContext';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { auth } from '../../config/firebase';
 
 const ProfileUnlocker = ({ restrictionType = null, initialEmail = '' }) => {
   const { saveUserSession } = useAuth();
@@ -12,6 +14,7 @@ const ProfileUnlocker = ({ restrictionType = null, initialEmail = '' }) => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [impersonateToken, setImpersonateToken] = useState(null);
+  const [confirmationResult, setConfirmationResult] = useState(null);
 
   React.useEffect(() => {
     if (initialEmail) setEmail(initialEmail);
@@ -20,17 +23,50 @@ const ProfileUnlocker = ({ restrictionType = null, initialEmail = '' }) => {
   // Edit Profile Form State
   const [editForm, setEditForm] = useState({ name: '', phone: '' });
 
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifierUnlock) {
+      window.recaptchaVerifierUnlock = new RecaptchaVerifier(
+        auth,
+        'unlock-recaptcha-container',
+        {
+          size: 'invisible',
+          callback: () => {},
+          'expired-callback': () => {
+            if (window.recaptchaVerifierUnlock) {
+              window.recaptchaVerifierUnlock.clear();
+              window.recaptchaVerifierUnlock = null;
+            }
+          },
+        }
+      );
+    }
+    return window.recaptchaVerifierUnlock;
+  };
+
   const handleSendOtp = async (e) => {
     e.preventDefault();
     if (!email) return toast.error('Please enter the registered email');
     
     setLoading(true);
     try {
-      await unlockProfileAPI.sendOtp({ email });
-      toast.success('OTP sent successfully to the user via admin@servicehub.com');
+      const { data } = await unlockProfileAPI.sendOtp({ email });
+      const phone = data.phone;
+      if (!phone) throw new Error("No phone number found for this user.");
+      
+      const cleanPhone = String(phone).replace(/\D/g, "");
+      let formattedPhone = cleanPhone;
+      if (cleanPhone.length === 10) formattedPhone = `+91${cleanPhone}`;
+      else if (!cleanPhone.startsWith('+')) formattedPhone = `+${cleanPhone}`;
+      
+      const verifier = setupRecaptcha();
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, verifier);
+      setConfirmationResult(confirmation);
+      
+      toast.success('OTP sent successfully to the user\'s registered mobile number via Firebase');
       setStep(2);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to send OTP');
+      console.error(error);
+      toast.error(error.response?.data?.message || error.message || 'Failed to send OTP');
     } finally {
       setLoading(false);
     }
@@ -39,10 +75,13 @@ const ProfileUnlocker = ({ restrictionType = null, initialEmail = '' }) => {
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (!otp) return toast.error('Please enter the OTP');
+    if (!confirmationResult) return toast.error("Verification session expired");
 
     setLoading(true);
     try {
-      const res = await unlockProfileAPI.verifyOtp({ email, otp });
+      const result = await confirmationResult.confirm(otp);
+      const firebaseToken = await result.user.getIdToken(true);
+      const res = await unlockProfileAPI.verifyOtp({ email, firebaseToken });
       toast.success('Profile unlocked successfully!');
       
       const userData = res.data.data;
@@ -93,7 +132,7 @@ const ProfileUnlocker = ({ restrictionType = null, initialEmail = '' }) => {
     toast.success(`Logged in as ${user.email}`);
     
     if (restrictionType === 'payment') {
-      window.location.href = '/provider/payout-settings';
+      window.location.href = '/provider/wallet';
     } else if (restrictionType === 'manager_support') {
       window.location.href = '/provider/profile';
     } else {
@@ -111,9 +150,11 @@ const ProfileUnlocker = ({ restrictionType = null, initialEmail = '' }) => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Profile Unlocker</h2>
           <p className="text-gray-500 mt-2 text-sm">
-            Unlock a user profile by sending an OTP to their registered email.
+            Unlock a user profile by sending a Firebase OTP to their registered mobile number.
           </p>
         </div>
+
+        <div id="unlock-recaptcha-container"></div>
 
         <div className="p-8">
           {step === 1 ? (
@@ -171,22 +212,32 @@ const ProfileUnlocker = ({ restrictionType = null, initialEmail = '' }) => {
                 </div>
               </div>
               
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3">
                 <button
                   type="button"
-                  onClick={() => setStep(1)}
+                  onClick={handleSendOtp}
                   disabled={loading}
-                  className="flex-1 py-3 px-4 border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none disabled:opacity-50 transition-colors"
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors text-right"
                 >
-                  Back
+                  Resend OTP
                 </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-[2] flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
-                >
-                  {loading ? 'Verifying...' : 'Unlock Profile'}
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    disabled={loading}
+                    className="flex-1 py-3 px-4 border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none disabled:opacity-50 transition-colors"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-[2] flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
+                  >
+                    {loading ? 'Verifying...' : 'Unlock Profile'}
+                  </button>
+                </div>
               </div>
             </form>
           ) : (

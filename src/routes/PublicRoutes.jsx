@@ -22,6 +22,8 @@ const ProviderSharedProfile = lazy(() => import("../pages/ProviderSharedProfile"
 const ClaimProfile = lazy(() => import("../pages/auth/ClaimProfile"));
 const GuestDiscovery = lazy(() => import("../pages/candidate/GuestDiscovery"));
 const LockedResults = lazy(() => import("../pages/candidate/LockedResults"));
+const RecruiterDiscovery = lazy(() => import("../pages/recruiter/RecruiterDiscovery"));
+const RecruiterLockedResults = lazy(() => import("../pages/recruiter/RecruiterLockedResults"));
 
 function MainLayout({ children }) {
   const location = useLocation();
@@ -90,6 +92,10 @@ export default function PublicRoutes() {
       {/* Guest Discovery & Match Flow */}
       <Route path="candidate-landing" element={wrap(<GuestDiscovery />)} />
       <Route path="unlock-matches" element={wrap(<LockedResults />)} />
+
+      {/* Recruiter Discovery Flow */}
+      <Route path="recruiter-discovery" element={wrap(<RecruiterDiscovery />)} />
+      <Route path="recruiter-locked" element={wrap(<RecruiterLockedResults />)} />
 
       {/* Protected Shared Pages */}
       <Route path="profile/:id" element={wrap(

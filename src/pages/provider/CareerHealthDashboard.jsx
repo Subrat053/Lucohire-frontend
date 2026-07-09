@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { 
-  HiLockClosed, HiTrendingUp, HiLightBulb, HiChartBar, HiCheckCircle, HiExclamationCircle, HiBriefcase 
+  HiLockClosed, HiTrendingUp, HiLightBulb, HiChartBar, HiCheckCircle, HiExclamationCircle, HiBriefcase, HiSparkles
 } from 'react-icons/hi';
-import { getCareerHealth, getAiUsage } from '../../services/providerAIService';
+import { getCareerHealth, getAiUsage, improveCareerHealth } from '../../services/providerAIService';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -17,6 +17,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
   const [isLocked, setIsLocked] = useState(false);
   const [activeTab, setActiveTab] = useState('employability');
   const [errorMessage, setErrorMessage] = useState(null);
+  const [improving, setImproving] = useState(false);
 
   const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
   const [usageLoading, setUsageLoading] = useState(true);
@@ -73,53 +74,25 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
     }
   };
 
-  const mockDeepData = useMemo(() => ({
-    employability_score: 85,
-    salary_growth_score: 78,
-    market_demand_score: 92,
-    future_readiness_score: 70,
-    ai_resistance_score: 65,
-    summary: "Your profile indicates a strong foundation in frontend engineering, but with strategic upskilling, you could easily transition into a Senior Full Stack role.",
-    top_strengths: [
-      "Excellent mastery of modern frontend frameworks like React and Vue.",
-      "Proven track record of improving application performance and load times.",
-      "Strong understanding of CI/CD pipelines and deployment strategies."
-    ],
-    top_weaknesses: [
-      "Limited exposure to backend database optimization (SQL tuning).",
-      "Missing verifiable portfolio links for recent projects.",
-    ],
-    next_best_actions: [
-      "Add 2-3 links to live projects or GitHub repositories.",
-      "Consider getting an AWS or Azure basic certification.",
-      "Expand your listed skills to include DevOps practices."
-    ],
-    employability_breakdown: {
-      core_skills_match: 88,
-      experience_relevance: 82,
-      resume_formatting: 85
-    },
-    salary_growth_breakdown: {
-      industry_benchmark: 75,
-      promotion_velocity: 80,
-      skill_scarcity: 79
-    },
-    market_demand_breakdown: {
-      job_openings_trend: 95,
-      remote_opportunities: 90,
-      industry_growth_rate: 91
-    },
-    future_readiness_breakdown: {
-      trend_alignment: 72,
-      continuous_learning: 68,
-      adaptability_indicators: 70
-    },
-    ai_resistance_breakdown: {
-      automation_risk_inverted: 60,
-      creative_thinking: 70,
-      strategic_complexity: 65
+  const handleImprove = async () => {
+    try {
+      setImproving(true);
+      const { data } = await improveCareerHealth({ fileHash, parsedData, improve: true });
+      if (data.success) {
+        setReport(data.data);
+        setIsLocked(false);
+        toast.success('AI Career Health updated with improved insights!');
+        fetchUsage();
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to generate improved insights.';
+      toast.error(msg);
+    } finally {
+      setImproving(false);
     }
-  }), []);
+  };
+
+
 
   const mockOverviewData = useMemo(() => ({
     career_health_score: 0,
@@ -127,8 +100,8 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
   }), []);
 
   const isEmptyState = (!report && !loading) || !!errorMessage;
-  const displayData = isLocked || isEmptyState ? { ...report, ...mockDeepData } : report;
-  const overviewData = isEmptyState ? mockOverviewData : report;
+  const displayData = report || {};
+  const overviewData = report || mockOverviewData;
 
   const categoryDetails = {
     employability: {
@@ -249,13 +222,32 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
   return (
     <div className="w-full mx-auto p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-          <HiLightBulb className="text-amber-400" /> AI Career Health
-        </h1>
-        <p className="text-sm text-gray-500 font-medium mt-1">Deep insights based on your resume and profile data.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
+            <HiLightBulb className="text-amber-400" /> AI Career Health
+          </h1>
+          <p className="text-sm text-gray-500 font-medium mt-1">Deep insights based on your resume and profile data.</p>
+        </div>
+        <div className="flex flex-col items-end">
+          <button
+            onClick={handleImprove}
+            disabled={improving || loading}
+            className="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-indigo-200"
+          >
+            <HiSparkles className={`w-5 h-5 ${improving ? 'animate-spin' : ''}`} />
+            <span>{improving ? 'Generating...' : 'Generate Improved Insights'}</span>
+          </button>
+          {!usageLoading && (() => {
+            const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
+            const used = aiUsage.usage['aiCareerAnalysis'] || 0;
+            if (limit === -1) return <span className="text-xs text-gray-400 mt-1">Unlimited uses</span>;
+            if (limit === 0) return <span className="text-xs text-red-500 mt-1">Not included in plan</span>;
+            const remaining = Math.max(0, limit - used);
+            return <span className={`text-xs mt-1 ${remaining === 0 ? 'text-red-500' : 'text-gray-400'}`}>{remaining} of {limit} uses remaining</span>;
+          })()}
+        </div>
       </div>
-
 
 
       {/* Usage Banner */}

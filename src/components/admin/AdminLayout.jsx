@@ -31,6 +31,7 @@ const navItems = [
   { labelKey: 'admin.navSkills', fallback: 'Skills', path: '/admin/skills',      icon: HiCollection },
   { labelKey: 'admin.navPlans', fallback: 'Plans', path: '/admin/plans',       icon: HiCurrencyRupee },
   { labelKey: 'admin.navPayments', fallback: 'Payments', path: '/admin/payments',    icon: HiCreditCard },
+  { labelKey: 'admin.paymentIssues', fallback: 'Payment Issues', path: '/admin/support-issues', icon: HiShieldExclamation, adminOnly: true },
   { labelKey: 'admin.payoutRequests', fallback: 'Payout Requests', path: '/admin/withdrawals', icon: HiCurrencyRupee, adminOnly: true },
   { labelKey: 'admin.commissionRules', fallback: 'Commission Rules', path: '/admin/commission-settings', icon: HiCog, adminOnly: true },
   { labelKey: 'admin.userSubscriptions', fallback: 'User Subscriptions', path: '/admin/provider-subscriptions', icon: HiDocumentText },

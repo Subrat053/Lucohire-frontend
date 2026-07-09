@@ -74,3 +74,33 @@ export function getIncomeOpportunities() {
     timeout: 60000,
   });
 }
+
+export function improveCareerGPS(payload) {
+  return API.post('/provider/ai/improve-career-gps', payload, {
+    timeout: 90000,
+  });
+}
+
+export function improveHiringBarriers(payload) {
+  return API.post('/provider/ai/improve-hiring-barriers', payload, {
+    timeout: 90000,
+  });
+}
+
+export function improveSkillGap(payload) {
+  return API.post('/provider/ai/improve-skill-gap', payload, {
+    timeout: 90000,
+  });
+}
+
+export function improveAICareerReport(payload) {
+  return API.post('/provider/ai/improve-career-report', payload, {
+    timeout: 90000,
+  });
+}
+
+export function improveCareerHealth(payload) {
+  return API.post('/provider/ai/improve-career-health', payload, {
+    timeout: 90000,
+  });
+}

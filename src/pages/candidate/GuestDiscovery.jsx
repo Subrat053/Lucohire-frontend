@@ -2,16 +2,23 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUploadCloud, FiShield, FiUpload, FiCheckCircle, FiLock } from 'react-icons/fi';
 import { BiBuildingHouse } from 'react-icons/bi';
+import { RefreshCw } from 'lucide-react';
+import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 const GuestDiscovery = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     fullName: '',
     emailId: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
     skills: '',
     experience: ''
   });
@@ -26,16 +33,60 @@ const GuestDiscovery = () => {
     setIsDragging(false);
   };
 
+  const parseResumeFile = async (droppedFile) => {
+    if (!droppedFile) return;
+    setFile(droppedFile);
+    setIsParsing(true);
+    toast.success('Parsing resume to pre-fill details...');
+
+    try {
+      const data = new FormData();
+      data.append('resume', droppedFile);
+
+      const response = await api.post('/jobs/guest-resume/parse', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (response.data?.success && response.data?.data) {
+        const parsed = response.data.data;
+        setFormData(prev => ({
+          ...prev,
+          fullName: parsed.fullName || prev.fullName,
+          emailId: parsed.email || prev.emailId,
+          phone: parsed.phone || prev.phone,
+          skills: parsed.skills?.length ? parsed.skills.join(', ') : prev.skills,
+          experience: parsed.experienceYears ? getExperienceCategory(parsed.experienceYears) : prev.experience
+        }));
+        toast.success('Resume parsed successfully! Please complete missing details.');
+      }
+    } catch (error) {
+      console.error('Resume Parse Error:', error);
+      toast.error('Failed to parse resume automatically. Please enter details manually.');
+    } finally {
+      setIsParsing(false);
+    }
+  };
+
+  const getExperienceCategory = (years) => {
+    const y = parseFloat(years);
+    if (isNaN(y)) return '';
+    if (y <= 1) return '0-1';
+    if (y <= 3) return '1-3';
+    if (y <= 5) return '3-5';
+    if (y <= 8) return '5-8';
+    return '8+';
+  };
+
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) setFile(droppedFile);
+    parseResumeFile(droppedFile);
   };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile) setFile(selectedFile);
+    parseResumeFile(selectedFile);
   };
 
   const handleInputChange = (e) => {
@@ -44,6 +95,25 @@ const GuestDiscovery = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validation
+    const { fullName, emailId, phone, password, confirmPassword, skills, experience } = formData;
+    if (!fullName || !emailId || !phone || !password || !confirmPassword || !skills || !experience) {
+      return toast.error('Please fill in all required fields.');
+    }
+
+    if (password.length < 6) {
+      return toast.error('Password must be at least 6 characters long.');
+    }
+
+    if (password !== confirmPassword) {
+      return toast.error('Passwords do not match.');
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailId)) {
+      return toast.error('Please enter a valid email address.');
+    }
+
     navigate('/unlock-matches', { state: { file, formData } });
   };
 
@@ -74,15 +144,25 @@ const GuestDiscovery = () => {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => !isParsing && fileInputRef.current?.click()}
             >
-              <FiUploadCloud className="text-blue-500 text-4xl mb-3" />
-              <p className="text-gray-700 font-medium">Drag & drop your resume here</p>
-              <p className="text-gray-400 text-sm mb-4">or</p>
-              <button className="px-6 py-2 border border-blue-600 text-blue-600 font-medium rounded-md hover:bg-blue-50 pointer-events-none">
-                Choose File
-              </button>
-              <p className="text-xs text-gray-400 mt-4">Supported formats: PDF, DOC, DOCX (Max 5MB)</p>
+              {isParsing ? (
+                <RefreshCw className="w-10 h-10 text-blue-500 mb-3 animate-spin" />
+              ) : (
+                <FiUploadCloud className="text-blue-500 text-4xl mb-3" />
+              )}
+              <p className="text-gray-700 font-medium">
+                {isParsing ? 'Extracting details...' : 'Drag & drop your resume here'}
+              </p>
+              {!isParsing && (
+                <>
+                  <p className="text-gray-400 text-sm mb-4">or</p>
+                  <button className="px-6 py-2 border border-blue-600 text-blue-600 font-medium rounded-md hover:bg-blue-50 pointer-events-none">
+                    Choose File
+                  </button>
+                  <p className="text-xs text-gray-400 mt-4">Supported formats: PDF, DOC, DOCX (Max 5MB)</p>
+                </>
+              )}
               <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -91,9 +171,9 @@ const GuestDiscovery = () => {
                 onChange={handleFileChange}
               />
             </div>
-            {file && (
+            {file && !isParsing && (
               <div className="mt-4 p-3 bg-green-50 text-green-700 border border-green-200 rounded-md flex items-center w-full">
-                <FiCheckCircle className="mr-2" /> {file.name}
+                <FiCheckCircle className="mr-2 shrink-0" /> <span className="truncate">{file.name}</span>
               </div>
             )}
           </div>
@@ -117,14 +197,14 @@ const GuestDiscovery = () => {
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Option 2: Fill Your Details Manually</h2>
             <p className="text-gray-500 max-w-xs">
-              Add your basic details to help us find the most relevant opportunities for you.
+              Complete your profile manually or review extracted details.
             </p>
           </div>
 
           <form className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Full Name *</label>
                 <input 
                   type="text" 
                   name="fullName"
@@ -135,7 +215,7 @@ const GuestDiscovery = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Email ID</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Email ID *</label>
                 <input 
                   type="email" 
                   name="emailId"
@@ -147,9 +227,46 @@ const GuestDiscovery = () => {
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Mobile Number (with country code) *</label>
+              <input 
+                type="text" 
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="+919876543210" 
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Skills (Smart Filter)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Password *</label>
+                <input 
+                  type="password" 
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Min 6 characters" 
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Confirm Password *</label>
+                <input 
+                  type="password" 
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  placeholder="Confirm password" 
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Skills (Smart Filter) *</label>
                 <input 
                   type="text" 
                   name="skills"
@@ -160,7 +277,7 @@ const GuestDiscovery = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Years of Experience</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Years of Experience *</label>
                 <select 
                   name="experience"
                   value={formData.experience}

@@ -56,12 +56,26 @@ const ProviderLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   
+  const impersonatorToken = localStorage.getItem('impersonatorToken');
+  const isImpersonating = !!impersonatorToken;
+  const impersonatorRole = localStorage.getItem('impersonatorRole') || 'admin';
   const impersonatorRestriction = localStorage.getItem('impersonatorRestriction');
+  
   const displayedNavItems = impersonatorRestriction === 'payment' 
-    ? navItems.filter(item => item.path === '/provider/payout-settings')
+    ? navItems.filter(item => ['/provider/payout-settings', '/provider/wallet', '/provider/my-plan'].includes(item.path))
     : impersonatorRestriction === 'manager_support'
       ? navItems.filter(item => item.path === '/provider/profile' || item.path === '/provider/job-for-me')
       : navItems;
+      
+  const handleRestoreSession = () => {
+    if (impersonatorToken) {
+      localStorage.setItem("authToken", impersonatorToken);
+      localStorage.removeItem("impersonatorToken");
+      localStorage.removeItem("impersonatorRole");
+      localStorage.removeItem("impersonatorRestriction");
+      window.location.href = impersonatorRole === 'manager' ? '/manager/dashboard' : '/admin/dashboard';
+    }
+  };
   
   const [planTag, setPlanTag] = useState({ loading: true, type: 'Free', days: 0 });
 
@@ -72,14 +86,27 @@ const ProviderLayout = ({ children }) => {
         const activePlan = data?.subscription || data;
         
         // If the user's plan is not free, mark as Paid and check expiry
-        if (activePlan && activePlan.status === 'active' && activePlan.planName?.toLowerCase() !== 'free') {
-          const endDate = activePlan.expiresAt || activePlan.endDate;
-          if (endDate) {
-            const diff = new Date(endDate).getTime() - new Date().getTime();
+        if (activePlan && (activePlan.subscriptionStatus === 'active' || activePlan.status === 'active') && activePlan.planSnapshot?.slug !== 'free' && activePlan.planName?.toLowerCase() !== 'free') {
+          const planName = activePlan.planSnapshot?.name || activePlan.planName || 'Paid';
+          const purchaseDate = activePlan.startDate || activePlan.createdAt;
+          // Calculate validation days: durationMonths * (plan duration usually 30) or fallback to 30
+          const validationDays = (activePlan.durationMonths || 1) * (activePlan.planSnapshot?.duration || 30);
+          
+          if (purchaseDate) {
+            const purchaseTime = new Date(purchaseDate).getTime();
+            const currentTime = new Date().getTime();
+            // Total validity in ms
+            const validityMs = validationDays * 24 * 60 * 60 * 1000;
+            const diff = (purchaseTime + validityMs) - currentTime;
             const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-            setPlanTag({ loading: false, type: 'Paid', days: days > 0 ? days : 0 });
+            if (days > 0) {
+              setPlanTag({ loading: false, type: planName, days });
+            } else {
+              // Plan expired, revert to Free visually
+              setPlanTag({ loading: false, type: 'Free', days: 0 });
+            }
           } else {
-            setPlanTag({ loading: false, type: 'Paid', days: 0 });
+            setPlanTag({ loading: false, type: 'Free', days: 0 });
           }
         } else {
           setPlanTag({ loading: false, type: 'Free', days: 0 });
@@ -196,38 +223,60 @@ const ProviderLayout = ({ children }) => {
     <div className="flex flex-col md:flex-row min-h-screen">
       <div className="flex flex-1">
         {/* Desktop Sidebar */}
-        <aside className={`hidden md:flex flex-col bg-white border-r border-gray-100 transition-all duration-300 shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)]
-          ${collapsed ? 'w-16' : 'w-56'}
-        `}>
-          <SidebarContent />
-          {/* Collapse toggle */}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="absolute -right-3 top-20 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition z-10"
-          >
-            {collapsed ? <HiChevronRight className="w-3 h-3 text-gray-500" /> : <HiChevronLeft className="w-3 h-3 text-gray-500" />}
-          </button>
-        </aside>
+        {(!isImpersonating || impersonatorRestriction === 'payment') && (
+          <aside className={`hidden md:flex flex-col bg-white border-r border-gray-100 transition-all duration-300 shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)]
+            ${collapsed ? 'w-16' : 'w-56'}
+          `}>
+            <SidebarContent />
+            {/* Collapse toggle */}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="absolute -right-3 top-20 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition z-10"
+            >
+              {collapsed ? <HiChevronRight className="w-3 h-3 text-gray-500" /> : <HiChevronLeft className="w-3 h-3 text-gray-500" />}
+            </button>
+          </aside>
+        )}
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Active Panel Identifier Header */}
-          <div className="bg-[#081B3A] text-white px-6 py-4 flex items-center justify-between shadow-xs select-none">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Provider Panel</span>
-              <span className="text-slate-500 text-xs">/</span>
-              <span className="text-sm font-extrabold text-blue-400 tracking-wide">
-                {(() => {
-                  const currentNav = navItems.find(item => location.pathname === item.path) || 
-                                     navItems.find(item => location.pathname.startsWith(item.path));
-                  return currentNav ? t(currentNav.label, currentNav.fallback) : 'Panel';
-                })()}
-              </span>
+          {isImpersonating && (
+            <div className="bg-amber-100 border-b border-amber-200 px-6 py-3 flex items-center justify-between text-amber-900 shadow-sm z-20">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">⚠️</span>
+                <div>
+                  <div className="font-bold text-sm">Restricted Support View</div>
+                  <div className="text-xs opacity-80">You are viewing {user?.email}'s profile data as a {impersonatorRole}. Navigation is restricted to relevant areas.</div>
+                </div>
+              </div>
+              <button 
+                onClick={handleRestoreSession}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition"
+              >
+                Exit & Return to {impersonatorRole === 'manager' ? 'Manager' : 'Admin'} Dashboard
+              </button>
             </div>
-            <div className="hidden sm:block text-xs font-bold text-slate-400">
-              Active Session
+          )}
+
+          {!isImpersonating && (
+            <div className="bg-[#081B3A] text-white px-6 py-4 flex items-center justify-between shadow-xs select-none">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Provider Panel</span>
+                <span className="text-slate-500 text-xs">/</span>
+                <span className="text-sm font-extrabold text-blue-400 tracking-wide">
+                  {(() => {
+                    const currentNav = navItems.find(item => location.pathname === item.path) || 
+                                       navItems.find(item => location.pathname.startsWith(item.path));
+                    return currentNav ? t(currentNav.label, currentNav.fallback) : 'Panel';
+                  })()}
+                </span>
+              </div>
+              <div className="hidden sm:block text-xs font-bold text-slate-400">
+                Active Session
+              </div>
             </div>
-          </div>
+          )}
 
           <main className="flex-1 overflow-auto p-0">
             {children}

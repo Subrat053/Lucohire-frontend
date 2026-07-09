@@ -222,7 +222,7 @@ export const providerAPI = {
     }),
   getHistory: () => API.get("/provider/history"),
   getJobs: (params) => API.get("/provider/jobs", { params }),
-  getJobAiInsights: (jobIds) => API.post("/provider/jobs/ai-insights", { jobIds }),
+  getJobAiInsights: (jobsData) => API.post("/provider/jobs/ai-insights", { jobsData }),
   getJobById: (jobId) => API.get(`/provider/jobs/${jobId}`),
   applyToJob: (jobId, data) => API.post(`/provider/jobs/${jobId}/apply`, data),
   getApplications: () => API.get("/provider/applications"),
@@ -516,6 +516,7 @@ export const adminAPI = {
 
   // External Jobs
   getExternalJobs: (params) => ADMIN_API.get("/external-jobs/admin/list", { params }),
+  exportExternalCompaniesCsv: () => ADMIN_API.get("/external-jobs/admin/companies/csv", { responseType: 'blob' }),
   updateExternalJob: (id, data) => ADMIN_API.put(`/external-jobs/admin/${id}`, data),
   deleteExternalJob: (id) => ADMIN_API.delete(`/external-jobs/admin/${id}`),
   refreshExternalJob: (id) => ADMIN_API.post(`/external-jobs/admin/${id}/refresh`),
@@ -715,6 +716,18 @@ export const adminWithdrawalAPI = {
   getCommissionSettings: () => API.get("/admin/payout-withdrawals/commission-settings"),
   updateCommissionSettings: (data) => API.put("/admin/payout-withdrawals/commission-settings", data),
   getBillingRuleHistory: () => API.get("/admin/payout-withdrawals/commission-settings/history"),
+};
+
+export const supportAPI = {
+  createTicket: (data) => AUTH_API.post("/support", data),
+  getAdminTickets: () => AUTH_API.get("/support/admin"),
+  resolveAdminTicket: (id) => AUTH_API.put(`/support/admin/${id}/resolve`),
+};
+
+export const unlockProfileAPI = {
+  sendOtp: (data) => AUTH_API.post("/unlock-profile/send-otp", data),
+  verifyOtp: (data) => AUTH_API.post("/unlock-profile/verify", data),
+  updateProfile: (id, data) => AUTH_API.put(`/unlock-profile/user/${id}`, data),
 };
 
 export default API;

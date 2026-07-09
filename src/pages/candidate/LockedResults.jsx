@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FiLock, FiCheckCircle, FiStar, FiTrendingUp, FiBriefcase, FiMail } from 'react-icons/fi';
+import { FiLock, FiCheckCircle, FiStar, FiTrendingUp, FiBriefcase, FiPhone } from 'react-icons/fi';
 import { BiBuildingHouse } from 'react-icons/bi';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-
-// ── Guest Email OTP Pattern ───────────────────────────────────────────────────
+import { auth } from '../../config/firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 
 const LockedResults = () => {
   const location = useLocation();
@@ -15,21 +15,19 @@ const LockedResults = () => {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otp, setOtp] = useState('');
   const [isVerified, setIsVerified] = useState(false);
-  const [emailState, setEmailState] = useState('');
-  const [step, setStep] = useState(1); // 1: Ask Email, 2: OTP
-  const [guestToken, setGuestToken] = useState(null);
+  const [phoneState, setPhoneState] = useState('');
+  const [step, setStep] = useState(1); // 1: Ask Phone, 2: OTP
   const [loading, setLoading] = useState(false);
   const [realScore, setRealScore] = useState(null);
   const [realJobs, setRealJobs] = useState([]);
   const { saveUserSession } = useAuth();
-
-  const otpRefs = useRef([]);
+  const [confirmationResult, setConfirmationResult] = useState(null);
 
   const { formData } = location.state || {};
 
   useEffect(() => {
-    if (formData?.emailId) {
-      setEmailState(formData.emailId);
+    if (formData?.phone) {
+      setPhoneState(formData.phone);
     }
   }, [formData]);
 
@@ -41,26 +39,53 @@ const LockedResults = () => {
     }
   };
 
-  const handleEmailSubmit = async (e) => {
+  useEffect(() => {
+    if (showOtpModal) {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-guest', {
+          size: 'invisible',
+          callback: () => {},
+        });
+        window.recaptchaVerifier.render().catch(console.error);
+      }
+    } else {
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
+    }
+  }, [showOtpModal]);
+
+  const handlePhoneSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
 
-    if (!emailState || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailState)) {
-      return toast.error('Please enter a valid email address');
+    if (!phoneState) {
+      return toast.error('Please enter a valid phone number');
     }
 
     setLoading(true);
 
     try {
-      const response = await api.post('/jobs/guest-otp/send', { email: emailState });
-      if (response.data?.success) {
-        setGuestToken(response.data.guestToken);
-        setStep(2);
-        toast.success('OTP sent successfully');
-        setTimeout(() => otpRefs.current[0]?.focus(), 200);
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-guest', { size: 'invisible' });
       }
+      const appVerifier = window.recaptchaVerifier;
+      const formattedPhone = phoneState.startsWith('+') 
+        ? '+' + phoneState.replace(/\D/g, '') 
+        : `+91${phoneState.replace(/\D/g, '')}`;
+      
+      const confResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+      setConfirmationResult(confResult);
+      setStep(2);
+      toast.success('OTP sent successfully');
     } catch (err) {
       console.error('Send OTP Error:', err);
-      toast.error(err.response?.data?.message || 'Failed to send OTP');
+      toast.error('Failed to send OTP. Try again or format with +CountryCode');
+      // Reset recaptcha on error
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
     } finally {
       setLoading(false);
     }
@@ -80,20 +105,25 @@ const LockedResults = () => {
       return toast.error('Enter 6-digit OTP');
     }
 
-    if (!guestToken) {
+    if (!confirmationResult) {
       return toast.error('Please send OTP first');
     }
 
     setLoading(true);
 
     try {
-      const verifyResponse = await api.post('/jobs/guest-otp/verify', {
-        guestToken,
-        otp,
+      // 1. Verify with Firebase
+      const result = await confirmationResult.confirm(otp);
+      const firebaseToken = await result.user.getIdToken();
+
+      // 2. Verify with our backend and create user
+      const verifyResponse = await api.post('/jobs/guest-firebase/verify', {
+        firebaseToken,
+        ...formData, // send password, name, email, skills, experience from GuestDiscovery
       });
 
       if (verifyResponse.data?.success) {
-        toast.success('Email verified successfully!');
+        toast.success('Phone verified successfully!');
         
         // Log the user in with the received token and user object
         if (verifyResponse.data.token && verifyResponse.data.user) {
@@ -108,9 +138,10 @@ const LockedResults = () => {
 
         // Fetch real personalized jobs
         try {
+          // Since we might have logged them in, it could use their auth token
+          // Or we can just use the guest-recommended endpoint with their skills
           const response = await api.post('/jobs/guest-recommended', {
             skills: formData?.skills || '',
-            emailId: emailState,
           });
 
           if (response.data?.success) {
@@ -125,14 +156,14 @@ const LockedResults = () => {
     } catch (err) {
       console.error('OTP Verify Error:', err);
       toast.error(
-        err.response?.data?.message || 'OTP verification failed'
+        err.response?.data?.message || err.message || 'OTP verification failed'
       );
     } finally {
       setLoading(false);
     }
   };
 
-  // Auto-verify when 6 digits entered (same as AuthPage)
+  // Auto-verify when 6 digits entered
   useEffect(() => {
     if (step === 2 && otp.length === 6) {
       handleVerifyOtp();
@@ -145,7 +176,7 @@ const LockedResults = () => {
       {/* Header */}
       <div className="w-full max-w-5xl flex justify-between items-center mb-6">
         <button onClick={() => navigate(-1)} className="text-indigo-600 font-medium hover:text-indigo-800 flex items-center">
-          &larr; Back to Home
+          &larr; Back to Discovery
         </button>
       </div>
 
@@ -154,7 +185,7 @@ const LockedResults = () => {
           <div className="flex items-center mb-4 md:mb-0">
             <FiLock className="text-3xl mr-4" />
             <div>
-              <h2 className="text-xl font-bold">Verify your email address to unlock your full analytics and matching jobs.</h2>
+              <h2 className="text-xl font-bold">Verify your mobile number to unlock your full analytics and matching jobs.</h2>
             </div>
           </div>
           <button 
@@ -268,6 +299,7 @@ const LockedResults = () => {
       {/* OTP Modal */}
       {showOtpModal && !isVerified && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div id="recaptcha-container-guest"></div>
           <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md relative animate-fade-in">
             <button 
               onClick={() => setShowOtpModal(false)}
@@ -284,18 +316,18 @@ const LockedResults = () => {
               {step === 1 ? (
                 <>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">Unlock Matching Jobs</h2>
-                  <p className="text-gray-500 mb-6">Please enter your email address to receive an OTP and view your jobs.</p>
+                  <p className="text-gray-500 mb-6">Confirm your mobile number to receive an OTP.</p>
                   
-                  <form onSubmit={handleEmailSubmit} className="w-full">
+                  <form onSubmit={handlePhoneSubmit} className="w-full">
                     <div className="mb-6 text-left relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <FiMail className="text-gray-400" />
+                        <FiPhone className="text-gray-400" />
                       </div>
                       <input 
-                        type="email"
-                        value={emailState}
-                        onChange={(e) => setEmailState(e.target.value)}
-                        placeholder="your@email.com"
+                        type="text"
+                        value={phoneState}
+                        onChange={(e) => setPhoneState(e.target.value)}
+                        placeholder="+919876543210"
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                         required
                       />
@@ -303,7 +335,7 @@ const LockedResults = () => {
                     
                     <button 
                       type="submit"
-                      disabled={loading || !emailState}
+                      disabled={loading || !phoneState}
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition shadow-md disabled:opacity-50 flex justify-center items-center"
                     >
                       {loading ? 'Sending...' : 'Send OTP'}
@@ -313,7 +345,7 @@ const LockedResults = () => {
               ) : (
                 <>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">Verify to Unlock</h2>
-                  <p className="text-gray-500 mb-6">Enter the OTP sent to <span className="font-semibold text-gray-800">{emailState}</span></p>
+                  <p className="text-gray-500 mb-6">Enter the OTP sent to <span className="font-semibold text-gray-800">{phoneState}</span></p>
                   
                   <div className="flex justify-center mb-6 w-full">
                     <input
@@ -333,7 +365,7 @@ const LockedResults = () => {
                     Didn&apos;t receive the code?{' '}
                     <button 
                       type="button"
-                      onClick={handleEmailSubmit} 
+                      onClick={handlePhoneSubmit} 
                       className="text-blue-600 font-semibold hover:underline"
                     >
                       Resend OTP
@@ -350,7 +382,8 @@ const LockedResults = () => {
                 </>
               )}
             </div>
-            {/* Modal padding div */}
+            
+            <div id="recaptcha-container-guest"></div>
           </div>
         </div>
       )}

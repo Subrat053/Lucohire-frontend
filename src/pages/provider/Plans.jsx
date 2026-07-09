@@ -108,6 +108,7 @@ const ProviderPlans = () => {
   const [skillsLoading, setSkillsLoading] = useState(false);
   const [finalizingPayment, setFinalizingPayment] = useState(false);
   const [usageSummary, setUsageSummary] = useState(null);
+  const [activePlanData, setActivePlanData] = useState(null);
 
   const returnTo = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -218,6 +219,7 @@ const ProviderPlans = () => {
         ]);
         setPlans(planList);
         setUsageSummary(usageMetrics);
+        setActivePlanData(myPlan);
 
         if (myPlan?.subscription?.planId) {
           const existing = planList.find((plan) => String(plan._id) === String(myPlan.subscription.planId));
@@ -386,7 +388,15 @@ const ProviderPlans = () => {
         isAutoSubscription,
       });
 
-      const { checkout, subscription } = response || {};
+      const { checkout, subscription, queueWarning } = response || {};
+
+      if (queueWarning) {
+        const confirmQueue = window.confirm(queueWarning + '\n\nDo you want to proceed to payment?');
+        if (!confirmQueue) {
+          setLoadingAction('');
+          return;
+        }
+      }
 
       if (checkout?.simulationMode) {
         // Simulation Flow
@@ -504,6 +514,43 @@ const ProviderPlans = () => {
             </div>
           ))}
         </div>
+
+        {/* Active Plan Display */}
+        {(() => {
+          if (!activePlanData || !activePlanData.subscription || activePlanData.subscription.subscriptionStatus !== 'active' || activePlanData.plan?.slug === 'free') return null;
+
+          const activePlan = activePlanData.subscription;
+          const planName = activePlan.planSnapshot?.name || 'Paid Plan';
+          const purchaseDate = activePlan.startDate || activePlan.createdAt;
+          const validationDays = (activePlan.durationMonths || 1) * (activePlan.planSnapshot?.duration || 30);
+          
+          let days = 0;
+          if (purchaseDate) {
+            const purchaseTime = new Date(purchaseDate).getTime();
+            const currentTime = new Date().getTime();
+            const validityMs = validationDays * 24 * 60 * 60 * 1000;
+            const diff = (purchaseTime + validityMs) - currentTime;
+            days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+          }
+          
+          if (days <= 0) return null;
+
+          return (
+            <div className="mb-10 max-w-2xl mx-auto bg-linear-to-r from-[#005BFF] to-[#8B5CF6] rounded-2xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xs font-semibold text-blue-100 uppercase tracking-wider mb-1">Current Active Plan</h2>
+                <div className="text-2xl font-bold flex items-center gap-2">
+                  <Crown className="w-6 h-6 text-yellow-300" />
+                  {planName}
+                </div>
+              </div>
+              <div className="bg-white/20 px-6 py-3 rounded-xl backdrop-blur-sm text-center min-w-[140px] border border-white/10 shadow-inner">
+                <div className="text-3xl font-extrabold">{days}</div>
+                <div className="text-[10px] font-bold text-blue-100 uppercase tracking-wider mt-0.5">Days Remaining</div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Duration Toggles */}
         <div className="flex justify-center mb-10 relative">
@@ -689,7 +736,7 @@ const ProviderPlans = () => {
       {showConfigModal && selectedPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-[#005BFF]/10 bg-gradient-to-r from-[#005BFF]/5 to-transparent flex justify-between items-center">
+            <div className="p-6 border-b border-[#005BFF]/10 bg-linear-to-r from-[#005BFF]/5 to-transparent flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-extrabold text-[#06133D]">Configure Plan</h2>
                 <p className="text-xs text-[#64748B] font-medium mt-1">Set your coverage and complete checkout</p>
@@ -782,7 +829,7 @@ const ProviderPlans = () => {
               </div>
 
               {/* Premium Order Summary */}
-              <div className="bg-gradient-to-br from-[#005BFF]/5 to-[#8B5CF6]/5 border border-[#005BFF]/10 p-5 rounded-2xl space-y-4">
+              <div className="bg-linear-to-br from-[#005BFF]/5 to-[#8B5CF6]/5 border border-[#005BFF]/10 p-5 rounded-2xl space-y-4">
                 <h3 className="text-sm font-extrabold text-[#06133D] uppercase tracking-wider mb-2 flex items-center gap-2">
                   <BadgeCheck className="w-5 h-5 text-[#005BFF]" />
                   Order Summary

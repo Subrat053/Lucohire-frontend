@@ -100,6 +100,17 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
   };
 
   const handleResumeUpload = async (e) => {
+    // Check limits first
+    const limit = aiUsage?.limits?.resumeImprovement;
+    const used = aiUsage?.usage?.resumeImprovement || 0;
+    const isUnlimited = limit === 99999 || limit === -1;
+    
+    if (limit !== undefined && limit !== null && !isUnlimited && (limit - used <= 0)) {
+      toast.error('Resume upload limit reached. Please upgrade your plan.');
+      setResumeError('Resume upload limit reached. Please upgrade your plan.');
+      return;
+    }
+
     const file = e.target.files?.[0];
     if (!file) return;
 

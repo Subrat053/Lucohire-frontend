@@ -41,6 +41,7 @@ const ProfileReviewDetail = lazy(() => import("../pages/admin/ProfileReviewDetai
 const ResumeApprovals = lazy(() => import("../pages/admin/ResumeApprovals"));
 const AdminPortfolioApprovals = lazy(() => import("../pages/admin/PortfolioApprovals"));
 const AdminEnquiries = lazy(() => import("../pages/admin/Enquiries"));
+const AdminSupportIssues = lazy(() => import("../pages/admin/AdminSupportIssues"));
 
 const ChangePassword = lazy(() => import("../pages/user/ChangePassword"));
 const AdminOtpLogs = lazy(() => import("../pages/admin/OtpLogs"));
@@ -119,6 +120,7 @@ export default function AdminRoutes() {
       <Route path="resume-approvals" element={wrap(<ResumeApprovals />)} />
       <Route path="portfolio-approvals" element={wrap(<AdminPortfolioApprovals />)} />
       <Route path="enquiries" element={wrap(<AdminEnquiries />)} />
+      <Route path="support-issues" element={wrap(<AdminSupportIssues />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />
       
       {/* Logs & Audit */}

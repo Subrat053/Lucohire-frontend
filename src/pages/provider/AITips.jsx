@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Sparkles, AlertCircle, ArrowRight, Briefcase, TrendingUp, Lightbulb, Target, CheckCircle2, Lock } from "lucide-react";
-import { getAICareerReport, getAiUsage } from "../../services/providerAIService";
+import { getAICareerReport, getAiUsage, improveAICareerReport } from "../../services/providerAIService";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import toast from "react-hot-toast";
 
@@ -139,14 +139,41 @@ export default function AITips() {
         const used = aiUsage.usage['aiCareerAnalysis'] || 0;
         return (limit !== -1 && (limit === 0 || used >= limit)) ? 'opacity-30 pointer-events-none' : '';
       })() ? 'opacity-30 pointer-events-none space-y-8' : 'space-y-8'}>
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 flex items-center gap-3">
-          <Sparkles className="w-8 h-8 text-indigo-500" />
-          AI Career Report
-        </h1>
-        <p className="text-gray-500 mt-2 text-lg">
-          Personalized tips and market analytics based on your unique profile.
-        </p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 flex items-center gap-3">
+            <Sparkles className="w-8 h-8 text-indigo-500" />
+            AI Career Report
+          </h1>
+          <p className="text-gray-500 mt-2 text-lg">
+            Personalized tips and market analytics based on your unique profile.
+          </p>
+        </div>
+        <div className="flex flex-col items-end">
+          <button
+            onClick={async () => {
+              try {
+                setLoading(true);
+                const fileHash = localStorage.getItem('lastResumeHash');
+                const { data } = await improveAICareerReport({ fileHash, improve: true });
+                if (data.success) {
+                  setReportData(data.data);
+                  toast.success("AI Career Report updated!");
+                  fetchUsage();
+                }
+              } catch (err) {
+                toast.error("Failed to improve insights");
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={loading}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-indigo-200"
+          >
+            <Sparkles className="w-5 h-5" />
+            <span>Generate Improved Insights</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

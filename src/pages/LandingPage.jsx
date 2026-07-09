@@ -286,7 +286,7 @@ export default function LandingPage() {
               ))}
             </div>
             <button 
-              onClick={() => navigate('/signup')}
+              onClick={() => navigate('/recruiter-discovery')}
               className="w-full py-3 bg-white border-2 border-green-500 text-green-600 hover:bg-green-50 rounded-xl font-bold flex justify-center items-center gap-2 transition text-sm"
             >
               Post Free Job <ArrowRight className="w-4 h-4" />

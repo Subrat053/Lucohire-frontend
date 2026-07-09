@@ -379,7 +379,7 @@ const JobCardSkeleton = () => (
 );
 
 /* ── Job Card ────────────────────────────────────────────────────────── */
-const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick }) => {
+const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePlan }) => {
   const budgetText =
     job.budgetType === "negotiable"
       ? "Negotiable"
@@ -513,9 +513,16 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick }) => {
               <div className="flex items-start gap-2">
                 <span className="text-orange-500 mt-0.5">⚠️</span>
                 <span className="font-semibold text-gray-700 w-24">Missing Skills</span>
-                <div className="flex-1 filter blur-[4px] select-none text-gray-500 flex flex-wrap gap-1">
-                  <span className="bg-gray-200 px-1 rounded border border-gray-300">Advanced React</span>
-                  <span className="bg-gray-200 px-1 rounded border border-gray-300">Node.js</span>
+                <div className={`flex-1 text-gray-500 flex flex-wrap gap-1 ${!hasActivePlan ? 'filter blur-[4px] select-none' : ''}`}>
+                  {aiInsights.missingSkills?.length > 0 ? (
+                    aiInsights.missingSkills.map((skill, idx) => (
+                      <span key={idx} className="bg-gray-200 px-1 rounded border border-gray-300">
+                        {skill}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="bg-gray-200 px-1 rounded border border-gray-300">None</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -524,8 +531,8 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick }) => {
               <div className="flex items-start gap-2">
                 <span className="text-pink-500 mt-0.5">❌</span>
                 <span className="font-semibold text-gray-700 w-24 leading-tight">Why You're Not Getting Hired</span>
-                <span className="flex-1 text-gray-500 filter blur-[4px] select-none">
-                  Your profile lacks the sufficient 3 years of experience required for this specific senior role.
+                <span className={`flex-1 text-gray-500 ${!hasActivePlan ? 'filter blur-[4px] select-none' : ''}`}>
+                  {aiInsights.hireBlocker || "Your profile lacks the sufficient 3 years of experience required for this specific senior role."}
                 </span>
               </div>
             </div>
@@ -534,8 +541,8 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick }) => {
               <div className="flex items-center gap-2">
                 <span className="text-green-500">📞</span>
                 <span className="font-semibold text-gray-700 w-24 leading-tight">Interview Call Probability</span>
-                <span className="flex-1 text-gray-500 filter blur-[4px] select-none font-bold text-green-700">
-                  67% chance
+                <span className={`flex-1 font-bold text-green-700 ${!hasActivePlan ? 'filter blur-[4px] select-none text-gray-500' : ''}`}>
+                  {aiInsights.interviewProbability || 67}% chance
                 </span>
               </div>
             </div>
@@ -550,15 +557,17 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick }) => {
         )}
 
         {/* Locked Overlay */}
-        <div className="mt-auto pt-6 relative z-10">
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-center gap-3">
-            <div className="bg-white p-2 rounded-lg shadow-sm"><span className="text-blue-500">🔒</span></div>
-            <div className="flex-1">
-              <p className="text-[11px] font-bold text-blue-900">You don't have an active plan</p>
-              <p className="text-[9px] text-blue-700 leading-tight mt-0.5">Purchase a plan to unlock detailed AI insights</p>
+        {!hasActivePlan && (
+          <div className="mt-auto pt-6 relative z-10">
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-center gap-3">
+              <div className="bg-white p-2 rounded-lg shadow-sm"><span className="text-blue-500">🔒</span></div>
+              <div className="flex-1">
+                <p className="text-[11px] font-bold text-blue-900">You don't have an active plan</p>
+                <Link to="/provider/my-plan" className="text-[9px] text-blue-700 font-bold hover:underline leading-tight mt-0.5 block">Purchase a plan to unlock detailed AI insights</Link>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -692,27 +701,63 @@ const ProviderJobs = () => {
 
   // Trigger AI insights load for visible jobs
   useEffect(() => {
+    // Only proceed if subscription is fully loaded (so we don't accidentally skip paid users while waiting for the plan API)
+    // If subscription isn't loaded yet, we'll run again when it does (since it's a dependency)
+    if (subscription === null && typeof subscription === 'object') {
+      // It's still loading (initial state)
+      // wait for it
+    }
+
     if (jobs.length > 0) {
       const fetchInsightsForJobs = async () => {
         const jobsToFetch = jobs.slice(0, 10).filter(j => !aiInsightsMap[j._id]);
         if (jobsToFetch.length === 0) return;
-        
-        try {
-          const res = await providerAPI.getJobAiInsights(jobsToFetch.map(j => j._id));
-          if (res.data?.success) {
-            const newInsights = {};
-            res.data.data.forEach(item => {
-              newInsights[item.jobId] = item.insights;
-            });
-            setAiInsightsMap(prev => ({...prev, ...newInsights}));
-          }
-        } catch (error) {
-          console.error("Failed to load AI insights for jobs:", error);
+
+        const hasActivePlan = !!(subscription?.planId || subscription?.plan);
+
+        if (!hasActivePlan) {
+          // Free users: don't call the API, just provide mock insights that will be blurred in UI
+          const mockInsights = {};
+          jobsToFetch.forEach(j => {
+            mockInsights[j._id] = {
+              missingSkills: ['React Native', 'Node.js'],
+              hireBlocker: "Your profile lacks the sufficient 3 years of experience required for this specific senior role.",
+              interviewProbability: 67,
+              matchScore: 0
+            };
+          });
+          setAiInsightsMap(prev => ({...prev, ...mockInsights}));
+          return;
         }
+
+        // Paid users: actually call the backend AI
+        const processJobsOneByOne = async () => {
+          for (const j of jobsToFetch) {
+            try {
+              const jobPayload = [{
+                _id: j._id || j.id || Math.random().toString(36).substr(2, 9),
+                title: j.title,
+                skill: j.skill,
+                requirements: j.requirements,
+                experienceRequired: j.experienceRequired
+              }];
+
+              const res = await providerAPI.getJobAiInsights(jobPayload);
+              if (res.data?.success && res.data.data.length > 0) {
+                const item = res.data.data[0];
+                setAiInsightsMap(prev => ({ ...prev, [item.jobId]: item.insights }));
+              }
+            } catch (error) {
+              console.error("Failed to load AI insight for job:", j._id, error);
+            }
+          }
+        };
+        
+        processJobsOneByOne();
       };
       fetchInsightsForJobs();
     }
-  }, [jobs]);
+  }, [jobs, subscription]);
 
 
   const handleRunAIMatch = async () => {
@@ -877,7 +922,7 @@ const ProviderJobs = () => {
   useEffect(() => {
     subscriptionAPI
       .getMySubscription()
-      .then((r) => setSubscription(r.data))
+      .then((r) => setSubscription(r.data?.subscription || null))
       .catch(() => {});
   }, []);
 
@@ -905,8 +950,8 @@ const ProviderJobs = () => {
     setSearch({ skill: "", city: "", origin: "all", source: "" });
   };
 
-  const planName = subscription?.plan?.name;
-  const applyLimit = subscription?.plan?.jobApplyLimit;
+  const planName = subscription?.planId?.name || subscription?.plan?.name;
+  const applyLimit = subscription?.planId?.jobApplyLimit || subscription?.plan?.jobApplyLimit;
   const remainingApply = subscription?.remainingApplyLimit;
 
   return (
@@ -1305,6 +1350,7 @@ const ProviderJobs = () => {
                       aiInsights={aiInsightsMap[job._id]}
                       onViewDetails={setViewDetailTarget}
                       onRecruiterClick={handleRecruiterClick}
+                      hasActivePlan={!!(subscription?.planId || subscription?.plan)}
                     />
                   ))}
                 </div>

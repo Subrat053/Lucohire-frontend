@@ -17,7 +17,9 @@ import {
   HiPlusCircle,
   HiPhone,
   HiLockClosed,
+  HiBookmark,
 } from "react-icons/hi";
+import { FiChevronDown } from "react-icons/fi";
 import { toOptimizedMediaUrl } from "../../utils/media";
 import NotificationBell from "./NotificationBell";
 import LanguageDropdown from "../LanguageDropdown";
@@ -201,20 +203,15 @@ const Navbar = () => {
     openRolePanel(nextRole);
   };
 
+  const isRecruiterPage = window.location.pathname.includes('/recruiter-discovery') || window.location.pathname.includes('/recruiter-locked');
+
   return (
     <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            {/* <div className="w-9 h-9 bg-linear-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">L</span>
-            </div> */}
-            {/* <span className="text-xl font-bold bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              ServiceHub
-            </span> */}
             <div className="w-9 h-9 rounded-md bg-[#081B3A] flex items-center justify-center">
-              {/* <Plus className="w-5 h-5 text-white" /> */}
               <span className="text-white font-bold text-lg scale-125">L</span>
             </div>
             <div className="leading-none">
@@ -227,33 +224,20 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-3 lg:gap-5">
-            <Link
-              to="/"
-              className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm"
-            >
+          <div className="hidden md:flex items-center gap-3 lg:gap-5 ml-auto">
+            <Link to="/" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
               {t("navbar.home")}
             </Link>
-            <Link
-              to="/candidate-landing"
-              className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm"
-            >
+            <Link to="/candidate-landing" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
               {t("navbar.findJobs", "Find Jobs")}
             </Link>
-            <Link
-              to="/search"
-              className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm"
-            >
+            <Link to="/search" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
               {t("navbar.findProviders")}
             </Link>
-            <Link
-              to="/signup?role=recruiter"
-              className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm"
-            >
+            <Link to="/signup?role=recruiter" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
               {t("navbar.hireMe", "Hire Me")}
             </Link>
-            {/* <Link to="/contact" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">{t('navbar.contactUs', 'Contact Us')}</Link> */}
+
 
             {/* <LanguageDropdown /> */}
 
@@ -331,7 +315,7 @@ const Navbar = () => {
                         className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         <HiCog className="text-gray-400" aria-hidden="true" />
-                        <span>{t("navbar.settings")}</span>
+                        <span>{activeRole === "recruiter" ? "Profile & Settings" : t("navbar.settings")}</span>
                       </Link>
                     )}
                     <button
@@ -345,53 +329,47 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
+            ) : location.state?.recruiterData ? (
+              <div className="relative flex items-center" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-gray-50 focus:outline-none transition-colors border border-transparent hover:border-gray-200"
+                >
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center border border-indigo-200">
+                    <span className="text-indigo-700 font-bold text-sm">
+                      {location.state.recruiterData.name?.charAt(0)?.toUpperCase() || 'R'}
+                    </span>
+                  </div>
+                  <span className="max-w-24 truncate text-sm font-medium text-gray-700">
+                    {location.state.recruiterData.name?.split(" ")[0]}
+                  </span>
+                </button>
+                {dropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-56 max-w-[calc(100vw-1rem)] bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-fade-in z-50">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="font-medium text-sm">{location.state.recruiterData.name}</p>
+                      <p className="text-xs text-gray-500">{location.state.recruiterData.email}</p>
+                      <span className="inline-block mt-1 px-2 py-0.5 bg-amber-50 text-amber-600 text-xs rounded-full font-medium">
+                        Verification Pending
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 font-medium"
+                    >
+                      <HiLockClosed className="text-indigo-400" aria-hidden="true" />
+                      <span>Unlock Profile</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
-              // <div className="flex items-center space-x-3">
-              //   <button onClick={() => navigate('/login')} className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition">
-              //     {t('navbar.login')}
-              //   </button>
-              //   <button onClick={() => navigate('/signup')} className="rounded-full bg-indigo-600 text-white px-4 py-2  text-sm font-medium hover:bg-indigo-700 transition shadow-sm">
-              //     {/* {t('navbar.signup')} */}
-              //     Start Earning
-              //   </button>
-              //   <button onClick={() => navigate('/signup')} className="rounded-full bg-indigo-600 text-white px-4 py-2  text-sm font-medium hover:bg-indigo-700 transition shadow-sm">
-              //     {/* {t('navbar.signup')} */}
-              //     Earn 40%
-              //   </button>
-              // </div>
+
               <div className="flex items-center gap-5">
-                {/* <button
-                  onClick={() => {
-                    if (window.location.pathname === "/") {
-                      document
-                        .getElementById("referral-section")
-                        ?.scrollIntoView({ behavior: "smooth" });
-                    } else {
-                      navigate("/#referral-section");
-                    }
-                  }}
-                  className="flex items-center gap-1 text-[13px] font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-all"
-                >
-                  <span className="text-[15px]">💰</span>
-                  <span>{t("navbar.earnFortyPercent", "Earn 40%")}</span>
-                </button> */}
-
-                {/* <button
-                  onClick={() => {
-                    if (window.location.pathname === "/") {
-                      document
-                        .getElementById("contest-section")
-                        ?.scrollIntoView({ behavior: "smooth" });
-                    } else {
-                      navigate("/#contest-section");
-                    }
-                  }}
-                  className="flex items-center gap-1 text-[13px] font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-all"
-                >
-                  <span className="text-[15px]">🏆</span>
-                  <span>{t("navbar.winOneLakh", "Win ₹1 Lakh")}</span>
-                </button> */}
-
                 <button
                   type="button"
                   onClick={() => navigate("/login")}
@@ -627,6 +605,36 @@ const Navbar = () => {
                 </div>
               )}
 
+              {/* Recruiter Options (Visible only when logged in as recruiter) */}
+              {isAuthenticated && activeRole === "recruiter" && (
+                <div className="space-y-1 pt-2 border-t border-gray-100">
+                  <p className="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                    Recruiter Panel
+                  </p>
+                  {[
+                    { label: "Dashboard", path: "/recruiter/dashboard", icon: HiTrendingUp },
+                    { label: "Post a Job", path: "/recruiter/post-job", icon: HiPlusCircle },
+                    { label: "Job Postings", path: "/recruiter/job-postings", icon: HiBriefcase },
+                    { label: "Find Providers", path: "/recruiter/find-providers", icon: HiUsers },
+                    { label: "Shortlisted", path: "/recruiter/shortlisted", icon: HiBookmark },
+                    { label: "Profile", path: "/recruiter/profile", icon: HiCog },
+                  ].map(({ label, path, icon: Icon }) => {
+                    const active = window.location.pathname === path;
+                    return (
+                      <Link
+                        key={path}
+                        to={path}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-amber-50 text-amber-700" : "text-gray-600 hover:bg-gray-50"}`}
+                      >
+                        <Icon className={`w-4 h-4 ${active ? "text-amber-600" : "text-gray-400"}`} />
+                        <span>{label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+
               {/* Language and Switch Actions */}
               <div className="space-y-2 pt-2 border-t border-gray-100">
                 <LanguageDropdown
@@ -650,6 +658,29 @@ const Navbar = () => {
                     >
                       <HiLogout className="w-5 h-5 text-red-400" aria-hidden="true" />
                       <span>{t("navbar.logout")}</span>
+                    </button>
+                  </div>
+                ) : location.state?.recruiterData ? (
+                  <div className="space-y-3 px-3">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center border border-indigo-200">
+                        <span className="text-indigo-700 font-bold text-lg">
+                          {location.state.recruiterData.name?.charAt(0)?.toUpperCase() || 'R'}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900 leading-tight text-sm">{location.state.recruiterData.name}</p>
+                        <p className="text-xs text-gray-500 leading-tight">{location.state.recruiterData.email}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileOpen(false);
+                      }}
+                      className="w-full rounded-xl bg-indigo-600 text-white px-4 py-3 text-sm font-bold shadow-md hover:bg-indigo-700 transition flex justify-center items-center gap-2"
+                    >
+                      <HiLockClosed className="w-4 h-4" /> Unlock Profile
                     </button>
                   </div>
                 ) : (

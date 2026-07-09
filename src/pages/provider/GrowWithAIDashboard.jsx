@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { 
   HiLockClosed, HiSparkles, HiBriefcase, HiTrendingUp, HiExclamationCircle, HiCheckCircle, HiArrowRight, HiDocumentSearch, HiOutlineDocumentSearch, HiCheck, HiOutlineExclamationCircle, HiExclamation
 } from 'react-icons/hi';
-import { getCareerGPS, getHiringBarriers, getSkillGap, getAtsOptimizer, getAiUsage } from '../../services/providerAIService';
+import { getCareerGPS, getHiringBarriers, getSkillGap, getAtsOptimizer, getAiUsage, improveCareerGPS, improveHiringBarriers, improveSkillGap } from '../../services/providerAIService';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -127,6 +127,61 @@ export default function GrowWithAIDashboard() {
               Data-driven insights to accelerate your career trajectory.
             </p>
           </div>
+        </div>
+
+        {/* Generate Improved Insights Button */}
+        <div className="flex flex-col items-end">
+          <button
+            onClick={async () => {
+              if (activeTab === 'gps') {
+                try {
+                  setGpsLoading(true);
+                  const { data } = await improveCareerGPS({ fileHash, parsedData, improve: true });
+                  if (data.success) {
+                    setGpsData(data.data);
+                    toast.success("Career GPS Insights updated!");
+                    fetchUsage(); // update limits
+                  }
+                } catch (err) {
+                  toast.error("Failed to improve insights");
+                } finally {
+                  setGpsLoading(false);
+                }
+              } else if (activeTab === 'barriers') {
+                try {
+                  setBarriersLoading(true);
+                  const { data } = await improveHiringBarriers({ fileHash, parsedData, improve: true });
+                  if (data.success) {
+                    setBarriersData(data.data);
+                    toast.success("Hiring Barriers updated!");
+                    fetchUsage(); // update limits
+                  }
+                } catch (err) {
+                  toast.error("Failed to improve insights");
+                } finally {
+                  setBarriersLoading(false);
+                }
+              }
+            }}
+            disabled={gpsLoading || barriersLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+          >
+            <HiSparkles className="w-5 h-5" />
+            <span>Generate Improved Insights</span>
+          </button>
+          {!usageLoading && (
+            <span className="text-xs text-slate-300 mt-2">
+              {activeTab === 'gps' ? 'Uses 1 Career GPS Limit' : 'Uses 1 Hiring Barriers Limit'}
+              {(() => {
+                const feature = activeTab === 'gps' ? 'careerGps' : 'whyNotHired';
+                const limit = aiUsage.limits[feature] || 0;
+                const used = aiUsage.usage[feature] || 0;
+                if (limit === -1) return ' (Unlimited)';
+                if (limit === 0) return ' (Not included)';
+                return ` (${Math.max(0, limit - used)} left)`;
+              })()}
+            </span>
+          )}
         </div>
       </div>
 

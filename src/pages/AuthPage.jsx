@@ -1141,7 +1141,13 @@ const AuthPage = () => {
       }));
 
       toast.success("OTP sent successfully");
-      setMode("phone-verify");
+      
+      // If we are coming from handleEmailRegister for a provider, use a specific mode
+      if (form.selectedRole === "provider" && (mode === "register" || mode === "provider-phone-verify")) {
+        setMode("provider-phone-verify");
+      } else {
+        setMode("phone-verify");
+      }
 
       setTimeout(() => otpRefs.current[0]?.focus(), 200);
     } catch (err) {
@@ -1171,28 +1177,54 @@ const AuthPage = () => {
       console.log("[PHONE FIREBASE VERIFIED]", result.user);
       const firebaseToken = await result.user.getIdToken(true);
 
-      const defaultRoles = selectedRoles.length ? selectedRoles : ["provider"];
-      const defaultActiveRole =
-        mode === "register"
-          ? activeRole || selectedRoles[0] || "provider"
-          : activeRole || preSelectedRole || undefined;
+      if (mode === "provider-phone-verify") {
+        const trimmedName = form.name.trim();
+        const trimmedEmail = form.email.trim().toLowerCase();
+        const trimmedPassword = form.password.trim();
+        
+        const rawPayload = {
+          name: trimmedName,
+          email: trimmedEmail,
+          phone: result.user.phoneNumber,
+          city: form.providerProfile.location,
+          password: trimmedPassword,
+          roles: ["provider"],
+          activeRole: "provider",
+          referralCode,
+          skills: form.providerProfile.skills,
+          experience: form.providerProfile.experience,
+          isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
+          whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : form.whatsappNumber,
+          firebaseToken,
+        };
+        const payload = sanitizePayload(rawPayload);
+        const { data } = await authAPI.registerEmail(payload);
+        console.log("[PROVIDER PHONE REGISTER RESPONSE]", data);
+        redirectAfterAuth(data);
+      } else {
+        const defaultRoles = selectedRoles.length ? selectedRoles : ["provider"];
+        const defaultActiveRole =
+          mode === "register" || mode === "phone-register"
+            ? activeRole || selectedRoles[0] || "provider"
+            : activeRole || preSelectedRole || undefined;
 
-      const payload = {
-        firebaseToken,
-        phone: result.user.phoneNumber,
-        name: form.name || undefined,
-        city: form.city || undefined,
-        roles: mode === "register" ? defaultRoles : undefined,
-        activeRole: defaultActiveRole,
-        role: defaultActiveRole,
-        referralCode,
-        isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
-        whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : form.whatsappNumber,
-      };
+        const payload = {
+          firebaseToken,
+          phone: result.user.phoneNumber,
+          name: form.name || undefined,
+          city: form.city || undefined,
+          roles: (mode === "register" || mode === "phone-register") ? defaultRoles : undefined,
+          activeRole: defaultActiveRole,
+          role: defaultActiveRole,
+          referralCode,
+          isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
+          whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : form.whatsappNumber,
+        };
 
-      const { data } = await authAPI.phoneLogin(payload);
-      console.log("[PHONE LOGIN RESPONSE]", data);
-      redirectAfterAuth(data?.data);
+        const { data } = await authAPI.phoneLogin(payload);
+        console.log("[PHONE LOGIN RESPONSE]", data);
+        redirectAfterAuth(data?.data);
+      }
     } catch (err) {
       console.error("Firebase OTP Verify Error:", err);
       toast.error(
@@ -1353,6 +1385,15 @@ const AuthPage = () => {
         isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
         whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : form.whatsappNumber,
       };
+
+      if (form.selectedRole === "provider") {
+        if (!form.phone) {
+          return toast.error("Mobile number is required for Provider registration.");
+        }
+        await handleFirebaseSendOtp();
+        return;
+      }
+
       const payload = sanitizePayload(rawPayload);
 
       const { data } = await authAPI.registerEmail(payload);
