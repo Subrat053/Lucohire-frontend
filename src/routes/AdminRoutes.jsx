@@ -20,6 +20,7 @@ const AdminUsers = lazy(() => import("../pages/admin/Users"));
 const AdminProviders = lazy(() => import("../pages/admin/Providers"));
 const AdminRecruiters = lazy(() => import("../pages/admin/Recruiters"));
 const AdminPlans = lazy(() => import("../pages/admin/Plans"));
+const AdminCustomPlanRequests = lazy(() => import("../pages/admin/CustomPlanRequests"));
 const AdminSettings = lazy(() => import("../pages/admin/Settings"));
 const AdminManagers = lazy(() => import("../pages/admin/Managers"));
 const AdminPayments = lazy(() => import("../pages/admin/Payments"));
@@ -98,6 +99,7 @@ export default function AdminRoutes() {
       <Route path="recruiter" element={wrap(<AdminRecruiters />)} />
       <Route path="recriters" element={wrap(<AdminRecruiters />)} />
       <Route path="plans" element={wrap(<AdminPlans />)} />
+      <Route path="custom-plans" element={wrap(<AdminCustomPlanRequests />)} />
       <Route path="settings" element={wrap(<AdminSettings />)} />
       <Route path="managers" element={wrap(<AdminManagers />)} />
       <Route path="payments" element={wrap(<AdminPayments />)} />

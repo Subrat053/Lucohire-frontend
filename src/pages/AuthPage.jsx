@@ -1206,7 +1206,7 @@ const AuthPage = () => {
         const defaultActiveRole =
           mode === "register" || mode === "phone-register"
             ? activeRole || selectedRoles[0] || "provider"
-            : activeRole || preSelectedRole || undefined;
+            : preSelectedRole || undefined;
 
         const payload = {
           firebaseToken,
@@ -1271,8 +1271,8 @@ const AuthPage = () => {
       const payload = sanitizePayload({
         email: trimmedEmail,
         password: trimmedPassword,
-        activeRole: activeRole || preSelectedRole || undefined,
-        role: activeRole || preSelectedRole || undefined,
+        activeRole: preSelectedRole || undefined,
+        role: preSelectedRole || undefined,
       });
       const { data } = await authAPI.loginEmail(payload);
 
@@ -1443,11 +1443,11 @@ const AuthPage = () => {
         activeRole:
           mode === "register"
             ? activeRole || selectedRoles[0]
-            : activeRole || preSelectedRole || undefined,
+            : preSelectedRole || undefined,
         role:
           mode === "register"
             ? activeRole || selectedRoles[0]
-            : activeRole || preSelectedRole || undefined,
+            : preSelectedRole || undefined,
         referralCode,
       });
 

@@ -21,6 +21,15 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
   const [phoneOtp, setPhoneOtp] = useState('');
   const [confirmationResult, setConfirmationResult] = useState(null);
 
+  const [localPhone, setLocalPhone] = useState(recruiterData?.phone || '');
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+
+  useEffect(() => {
+    if (recruiterData?.phone && !localPhone) {
+      setLocalPhone(recruiterData.phone);
+    }
+  }, [recruiterData]);
+
   useEffect(() => {
     if (isOpen) {
       if (!window.recaptchaVerifier) {
@@ -83,13 +92,14 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
         window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
       }
       const appVerifier = window.recaptchaVerifier;
-      const formattedPhone = recruiterData.phone.startsWith('+') 
-        ? '+' + recruiterData.phone.replace(/\D/g, '') 
-        : `+91${recruiterData.phone.replace(/\D/g, '')}`;
+      const formattedPhone = localPhone.startsWith('+') 
+        ? '+' + localPhone.replace(/\D/g, '') 
+        : `+91${localPhone.replace(/\D/g, '')}`;
       
       const confResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
       setConfirmationResult(confResult);
       setStep(4);
+      setIsEditingPhone(false);
       toast.success('OTP sent to phone');
     } catch (err) {
       console.error('Send Phone OTP Error:', err);
@@ -120,7 +130,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
         name: recruiterData.name,
         companyName: recruiterData.companyName,
         email: recruiterData.email,
-        phone: recruiterData.phone,
+        phone: localPhone,
         password: recruiterData.password,
         industry: recruiterData.industry
       };
@@ -212,12 +222,41 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                 <h4 className="font-semibold text-green-900">Email Verified</h4>
               </div>
             </div>
-            <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 flex items-start gap-3">
-              <FiSmartphone className="w-5 h-5 text-purple-600 mt-1" />
-              <div>
-                <h4 className="font-semibold text-purple-900">Verify Phone</h4>
-                <p className="text-sm text-purple-700">{recruiterData.phone}</p>
+            <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 flex items-start justify-between gap-3">
+              <div className="flex gap-3">
+                <FiSmartphone className="w-5 h-5 text-purple-600 mt-1" />
+                <div>
+                  <h4 className="font-semibold text-purple-900">Verify Phone</h4>
+                  {isEditingPhone ? (
+                    <input
+                      type="text"
+                      value={localPhone}
+                      onChange={(e) => setLocalPhone(e.target.value)}
+                      className="mt-1 w-full px-2 py-1 text-sm border rounded outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="+91..."
+                    />
+                  ) : (
+                    <p className="text-sm text-purple-700">{localPhone}</p>
+                  )}
+                </div>
               </div>
+              {!isEditingPhone ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditingPhone(true)}
+                  className="text-xs text-purple-600 font-semibold hover:underline"
+                >
+                  Edit
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsEditingPhone(false)}
+                  className="text-xs text-purple-600 font-semibold hover:underline"
+                >
+                  Done
+                </button>
+              )}
             </div>
             <button
               onClick={handleSendPhoneOtp}
@@ -234,7 +273,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
           <div className="space-y-4">
             <div className="text-center">
               <h4 className="font-semibold text-gray-900">Enter Phone Code</h4>
-              <p className="text-sm text-gray-500">Sent to {recruiterData.phone}</p>
+              <p className="text-sm text-gray-500">Sent to {localPhone}</p>
             </div>
             <input
               type="text"

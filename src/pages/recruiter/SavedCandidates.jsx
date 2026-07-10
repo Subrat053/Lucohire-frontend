@@ -1,437 +1,353 @@
-import { useEffect, useState } from 'react';
-import { recruiterAPI } from '../../services/api';
-import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
-    HiUser, HiBriefcase, HiLocationMarker, HiTrash, HiExternalLink,
-    HiPhone, HiMail, HiSearch, HiX, HiStar, HiShieldCheck,
-} from 'react-icons/hi';
+  FiSearch, FiFilter, FiBookmark, FiChevronDown, FiList, FiGrid,
+  FiMapPin, FiMessageSquare, FiStar, FiChevronUp, FiX,
+  FiMoreVertical, FiEye, FiArrowUpRight
+} from 'react-icons/fi';
+import { HiSparkles } from 'react-icons/hi2';
 
-// Normalize data from the Lead->provider populated user
-const normalizeSaved = (lead) => {
-    const provider = lead.provider || {};
-    return {
-        leadId: lead._id,
-        providerId: lead.provider?._id, 
-        providerProfileId: lead.providerProfileId || lead.provider?._id,
-        name: provider.name || 'Candidate',
-        email: provider.email || '',
-        phone: provider.phone || '',
-        avatar: provider.profilePhoto || provider.avatar || '',
-        savedAt: lead.createdAt,
-        source: lead.metadata?.source || 'ai_smart_search',
-        experience: lead.experience || 'N/A',
-        location: lead.location || 'Unknown',
-        isSaved: true,
-        isUnlocked: !!lead.isUnlocked,
-        jobPost: lead.jobPost || null
-    };
-};
+const Candidates = () => {
+  // --- MOCK DATA ---
+  const candidatesList = [
+    { 
+      id: 1, name: 'Ankit Singh', match: 95, premium: true, title: 'Senior React Developer', status: 'Serving Notice Period',
+      location: 'Bangalore, Karnataka', exp: '5.2 yrs', ctc: '₹18 LPA', notice: '30 Days',
+      skills: ['React', 'TypeScript', 'Next.js', 'Redux', 'Node.js', 'Tailwind CSS'], moreSkills: '+4',
+      pic: 'https://i.pravatar.cc/150?u=1'
+    },
+    { 
+      id: 2, name: 'Sneha Patil', match: 92, premium: true, title: 'React Developer', status: 'Serving Notice Period',
+      location: 'Bangalore, Karnataka', exp: '4.8 yrs', ctc: '₹16 LPA', notice: '15 Days',
+      skills: ['React', 'TypeScript', 'Redux', 'JavaScript', 'Node.js', 'Material UI'], moreSkills: '+3',
+      pic: 'https://i.pravatar.cc/150?u=2'
+    },
+    { 
+      id: 3, name: 'Vikram Kumar', match: 90, premium: true, title: 'Frontend Developer', status: 'Available',
+      location: 'Bangalore, Karnataka', exp: '6.1 yrs', ctc: '₹20 LPA', notice: '60 Days',
+      skills: ['React', 'Next.js', 'TypeScript', 'Redux', 'GraphQL', 'Jest'], moreSkills: '+5',
+      pic: 'https://i.pravatar.cc/150?u=3'
+    },
+    { 
+      id: 4, name: 'Neha Kapoor', match: 88, premium: true, title: 'React Developer', status: 'Serving Notice Period',
+      location: 'Bangalore, Karnataka', exp: '4.3 yrs', ctc: '₹15 LPA', notice: '30 Days',
+      skills: ['React', 'JavaScript', 'Redux', 'HTML', 'CSS', 'Bootstrap'], moreSkills: '+2',
+      pic: 'https://i.pravatar.cc/150?u=4'
+    },
+    { 
+      id: 5, name: 'Arjun Mehta', match: 86, premium: true, title: 'React Developer', status: 'Available',
+      location: 'Bangalore, Karnataka', exp: '5.0 yrs', ctc: '₹17 LPA', notice: '45 Days',
+      skills: ['React', 'TypeScript', 'Node.js', 'AWS', 'Next.js'], moreSkills: '+1',
+      pic: 'https://i.pravatar.cc/150?u=5'
+    }
+  ];
 
-export default function SavedCandidates() {
-    const navigate = useNavigate();
-    const [saved, setSaved] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [removingIds, setRemovingIds] = useState(new Set());
-    const [searchQuery, setSearchQuery] = useState('');
-    
-    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-    const [viewingCandidate, setViewingCandidate] = useState(null);
-    const [isUnlocking, setIsUnlocking] = useState(false);
+  const activeFilters = [
+    'Skills: React, TypeScript, Next.js',
+    'Experience: 4 - 8 years',
+    'Location: Bangalore',
+    'Current CTC: ₹10 - ₹25 LPA',
+    'Notice Period: 0 - 60 days',
+    'Employment Type: Full-time'
+  ];
 
-    const formatLocation = (loc) => {
-        if (!loc) return "Unknown";
-        if (typeof loc === 'string') return loc;
-        if (typeof loc === 'object') {
-            return loc.formattedAddress || loc.name || [loc.city, loc.state].filter(Boolean).join(', ') || "Unknown";
-        }
-        return "Unknown";
-    };
+  const topSkills = ['TypeScript', 'Next.js', 'Redux Toolkit', 'Tailwind CSS', 'Node.js'];
+  
+  const suggestedSearches = ['React Developer', 'Redux', 'TypeScript', 'Next.js'];
 
-    const fetchSaved = async () => {
-        try {
-            setLoading(true);
-            const { data } = await recruiterAPI.getSavedCandidates();
-            const candidates = Array.isArray(data?.candidates) ? data.candidates : [];
-            setSaved(candidates.map(normalizeSaved));
-        } catch (err) {
-            toast.error('Failed to load saved candidates.');
-        } finally {
-            setLoading(false);
-        }
-    };
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] pb-24 relative">
+      
+      {/* HEADER */}
+      <div className="bg-white border-b border-gray-100 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-20">
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-900">AI Talent Search</h1>
+          <p className="text-sm text-gray-500 mt-1">Find the right talent, faster with AI</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-indigo-700 transition flex items-center gap-2">
+            Ask Luco AI <HiSparkles className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
 
-    const handleRemove = async (candidate) => {
-        const id = candidate.leadId;
-        setRemovingIds((prev) => new Set(prev).add(id));
-        try {
-            await recruiterAPI.removeSavedCandidate(candidate.providerProfileId || id);
-            setSaved((prev) => prev.filter((c) => c.leadId !== id));
-            toast.success('Candidate removed from saved list.');
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to remove candidate.');
-        } finally {
-            setRemovingIds((prev) => {
-                const next = new Set(prev);
-                next.delete(id);
-                return next;
-            });
-        }
-    };
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        
+        {/* INTELLIGENT SEARCH AREA */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm space-y-4">
+          <div className="relative w-full">
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input 
+              type="text" 
+              placeholder="Search by skills, roles, companies or keywords..."
+              className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <kbd className="hidden sm:inline-block border border-gray-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-gray-400 bg-white">⌘K</kbd>
+            </div>
+          </div>
+          
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex-1 min-w-0 flex items-center gap-2 bg-indigo-50/50 border border-indigo-100 px-4 py-2.5 rounded-xl">
+              <HiSparkles className="text-indigo-600 w-5 h-5 shrink-0" />
+              <span className="text-sm font-bold text-gray-900 truncate">React Developer with 4+ years experience in Bangalore</span>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition">
+                <FiBookmark /> Save Search
+              </button>
+              <button className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition">
+                <FiSearch /> Search
+              </button>
+            </div>
+          </div>
 
-    const handleViewProfile = async (candidate) => {
-        try {
-            // providerProfileId is needed for the API
-            const profileId = candidate.providerProfileId || candidate.providerId;
-            setViewingCandidate({ ...candidate, loading: true });
-            setIsProfileModalOpen(true);
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-bold text-gray-500 mr-2">Suggested searches:</span>
+            {suggestedSearches.map(tag => (
+              <span key={tag} className="text-xs font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-200 transition">
+                {tag}
+              </span>
+            ))}
+            <span className="text-xs font-semibold text-gray-500 flex items-center gap-1 cursor-pointer hover:text-gray-700 ml-2">
+              More <FiChevronDown />
+            </span>
+          </div>
+        </div>
+        
+        {/* FILTERS ROW */}
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2 xl:pb-0 w-full xl:w-auto">
+            <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition shrink-0">
+              <FiFilter /> Filters <span className="bg-indigo-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">6</span>
+            </button>
+            <button className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition shrink-0">
+              Experience: 4-8 yrs <FiChevronDown />
+            </button>
+            <button className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition shrink-0">
+              Location: Bangalore <FiChevronDown />
+            </button>
+            <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition shrink-0">
+              Current CTC <FiChevronDown />
+            </button>
+            <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition shrink-0">
+              Notice Period <FiChevronDown />
+            </button>
+            <button className="text-sm font-bold text-indigo-600 hover:underline shrink-0 px-2">
+              More Filters
+            </button>
+          </div>
+          <button className="text-sm font-bold text-gray-500 hover:text-gray-700 shrink-0">
+            Clear All
+          </button>
+        </div>
+
+        {/* MAIN GRID */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          
+          {/* LEFT COLUMN: CANDIDATES LIST */}
+          <div className="xl:col-span-3 space-y-4">
             
-            const { data } = await recruiterAPI.viewProvider(profileId);
-            setViewingCandidate({
-                ...candidate,
-                ...data.provider,
-                contactInfo: data.contactInfo,
-                isUnlocked: data.isUnlocked,
-                reviews: data.reviews,
-                loading: false
-            });
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Failed to load candidate profile");
-            setIsProfileModalOpen(false);
-        }
-    };
-
-    const handleUnlockContact = async (candidateId) => {
-        try {
-            setIsUnlocking(true);
-            const { data } = await recruiterAPI.unlockContact(candidateId);
-            
-            if (data.contact) {
-                setViewingCandidate(prev => ({
-                    ...prev,
-                    contactInfo: data.contact,
-                    isUnlocked: true
-                }));
-                toast.success("Contact unlocked successfully!");
-            }
-        } catch (error) {
-            const msg = error.response?.data?.message || "Failed to unlock contact";
-            toast.error(msg);
-            if (msg.toLowerCase().includes('unlock') || msg.toLowerCase().includes('plan') || msg.toLowerCase().includes('credits') || msg.toLowerCase().includes('upgrade')) {
-                navigate('/recruiter/plans');
-            }
-        } finally {
-            setIsUnlocking(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchSaved();
-    }, []);
-
-    const filtered = saved.filter((c) =>
-        !searchQuery ||
-        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    return (
-        <div className="p-5 bg-[#F8FAFF] min-h-screen">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-[#081B3A]">Saved Candidates</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                        {loading ? 'Loading…' : `${saved.length} candidate${saved.length !== 1 ? 's' : ''} saved`}
-                    </p>
+            {/* List Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <h2 className="text-sm font-bold text-gray-900"><span className="text-lg font-extrabold mr-1">512</span> Candidates Found</h2>
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">&uarr; 24 New Today</span>
+                <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">18 Immediate Joiners</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-semibold text-gray-500">Sorted by Best Match <FiChevronDown className="inline" /></span>
+                <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1">
+                  <button className="p-1.5 rounded bg-indigo-50 text-indigo-600"><FiList className="w-4 h-4" /></button>
+                  <button className="p-1.5 rounded text-gray-400 hover:text-gray-600"><FiGrid className="w-4 h-4" /></button>
                 </div>
-
-                {/* Search */}
-                <div className="flex items-center gap-2 rounded-xl border border-[#E5EAF3] bg-white px-3 py-2 w-full sm:w-64">
-                    <HiSearch className="h-4 w-4 text-gray-400 shrink-0" />
-                    <input
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search by name or email…"
-                        className="w-full bg-transparent text-sm outline-none"
-                    />
-                </div>
+                <button className="flex items-center gap-2 bg-gray-100 text-gray-400 px-3 py-1.5 rounded-lg text-xs font-bold cursor-not-allowed">
+                  <div className="w-3 h-3 border border-gray-400 rounded-sm"></div> Compare (0/3)
+                </button>
+                <button className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50 transition">
+                  Best Match <FiChevronDown />
+                </button>
+              </div>
             </div>
 
-            {/* Content */}
-            {loading ? (
-                <div className="rounded-2xl border border-[#E5EAF3] bg-white p-10 text-center text-sm text-gray-400">
-                    Loading saved candidates…
-                </div>
-            ) : filtered.length === 0 ? (
-                <div className="rounded-2xl border border-[#E5EAF3] bg-white p-10 text-center">
-                    <HiUser className="mx-auto h-12 w-12 text-gray-200 mb-3" />
-                    <p className="font-semibold text-[#081B3A]">
-                        {searchQuery ? 'No results match your search.' : 'No saved candidates yet.'}
-                    </p>
-                    <p className="text-sm text-gray-400 mt-1">
-                        {!searchQuery && 'Use AI Smart Search on the Job Postings page to find and save candidates.'}
-                    </p>
-                    {!searchQuery && (
-                        <button
-                            onClick={() => navigate('/recruiter/job-postings')}
-                            className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white"
-                        >
-                            <HiSearch className="h-4 w-4" />
-                            Start AI Search
-                        </button>
-                    )}
-                </div>
-            ) : (
-                <div className="rounded-2xl border border-[#E5EAF3] bg-white overflow-hidden">
-                    {/* Table header */}
-                    <div className="grid grid-cols-[1.2fr_1fr_auto] sm:grid-cols-[2fr_1.5fr_1.2fr_0.8fr] items-center gap-4 border-b border-[#E5EAF3] px-4 py-3 text-xs font-bold uppercase text-gray-400 tracking-wide">
-                        <span>Candidate</span>
-                        <span>Saved For</span>
-                        <span className="hidden sm:block">Saved On</span>
-                        <span className="text-right">Actions</span>
-                    </div>
-
-                    {filtered.map((candidate) => (
-                        <div
-                            key={candidate.leadId}
-                            className="grid grid-cols-[1.2fr_1fr_auto] sm:grid-cols-[2fr_1.5fr_1.2fr_0.8fr] items-center gap-4 border-b border-[#F0F2F7] px-4 py-3 last:border-0 hover:bg-[#F7F9FF] transition"
-                        >
-                            {/* Candidate Info */}
-                            <div className="flex items-center gap-3 min-w-0">
-                                {candidate.avatar ? (
-                                    <img
-                                        src={candidate.avatar}
-                                        alt={candidate.name}
-                                        className="h-10 w-10 rounded-full object-cover border border-[#E5EAF3] shrink-0"
-                                    />
-                                ) : (
-                                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-700 shrink-0">
-                                        {candidate.name?.[0] || 'C'}
-                                    </div>
-                                )}
-                                <div 
-                                    className="min-w-0 cursor-pointer group"
-                                    onClick={() => handleViewProfile(candidate)}
-                                >
-                                    <p className="font-semibold text-[#081B3A] group-hover:text-[#0066FF] transition-colors truncate">{candidate.name}</p>
-                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
-                                        {candidate.isUnlocked || (candidate.email && candidate.phone) ? (
-                                            <>
-                                                {candidate.email && (
-                                                    <a
-                                                        href={`mailto:${candidate.email}`}
-                                                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#0066FF] transition truncate"
-                                                    >
-                                                        <HiMail className="h-3 w-3 shrink-0" />
-                                                        {candidate.email}
-                                                    </a>
-                                                )}
-                                                {candidate.phone && (
-                                                    <a
-                                                        href={`tel:${candidate.phone}`}
-                                                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#0066FF] transition"
-                                                    >
-                                                        <HiPhone className="h-3 w-3 shrink-0" />
-                                                        {candidate.phone}
-                                                    </a>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <span 
-                                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-400 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-full hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleViewProfile(candidate);
-                                                }}
-                                            >
-                                                🔒 Contact details locked · Click to unlock
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Saved For */}
-                            <div className="min-w-0">
-                                {candidate.jobPost?.title ? (
-                                    <div className="flex flex-col">
-                                        <span className="font-semibold text-gray-700 text-sm truncate">
-                                            {candidate.jobPost.title}
-                                        </span>
-                                        {candidate.jobPost.category && (
-                                            <span className="text-[10px] text-gray-400 font-medium uppercase mt-0.5">
-                                                {candidate.jobPost.category}
-                                            </span>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <span className="text-xs text-gray-400 italic">General Search</span>
-                                )}
-                            </div>
-
-                            {/* Saved On */}
-                            <span className="hidden sm:block text-xs text-gray-400">
-                                {candidate.savedAt
-                                    ? new Date(candidate.savedAt).toLocaleDateString()
-                                    : '—'}
+            {/* Candidates Cards */}
+            <div className="space-y-4">
+              {candidatesList.map(candidate => (
+                <div key={candidate.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-indigo-200 hover:shadow-md transition group">
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    
+                    {/* Main Info */}
+                    <div className="flex-1">
+                      <div className="flex items-start gap-4">
+                        <img src={candidate.pic} alt={candidate.name} className="w-16 h-16 rounded-xl object-cover" />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <h3 className="text-lg font-bold text-gray-900">{candidate.name}</h3>
+                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{candidate.match}% Match</span>
+                            {candidate.premium && <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">Premium</span>}
+                          </div>
+                          <div className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                            {candidate.title} <span className="text-gray-300">|</span> 
+                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${candidate.status === 'Available' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                              {candidate.status}
                             </span>
-
-                            {/* Actions */}
-                            <div className="flex items-center justify-end gap-2">
-                                <button
-                                    onClick={() => handleRemove(candidate)}
-                                    disabled={removingIds.has(candidate.leadId)}
-                                    title="Remove from saved"
-                                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-100 text-red-400 hover:bg-red-50 hover:text-red-600 transition disabled:opacity-40"
-                                >
-                                    {removingIds.has(candidate.leadId) ? (
-                                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-300 border-t-transparent" />
-                                    ) : (
-                                        <HiTrash className="h-4 w-4" />
-                                    )}
-                                </button>
-                            </div>
+                          </div>
+                          <div className="text-xs font-medium text-gray-500 flex items-center gap-1">
+                            <FiMapPin className="w-3.5 h-3.5" /> {candidate.location}
+                          </div>
                         </div>
-                    ))}
-                </div>
-            )}
-            {/* Candidate Profile Modal */}
-            {isProfileModalOpen && viewingCandidate && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-                    <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in fade-in zoom-in duration-200 text-left">
-                        {/* Header */}
-                        <div className="flex items-center justify-between border-b border-gray-100 p-6">
-                            <h3 className="text-xl font-bold text-[#081B3A]">Candidate Profile</h3>
-                            <button
-                                onClick={() => setIsProfileModalOpen(false)}
-                                className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-                            >
-                                <HiX className="h-6 w-6" />
-                            </button>
+                        
+                        {/* Quick Actions (Desktop) */}
+                        <div className="hidden lg:flex items-center gap-2">
+                          <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
+                            <FiMessageSquare className="w-5 h-5" />
+                          </button>
+                          <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
+                            <FiBookmark className="w-5 h-5" />
+                          </button>
                         </div>
+                      </div>
 
-                        {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-6">
-                            {viewingCandidate.loading ? (
-                                <div className="flex flex-col items-center justify-center py-20">
-                                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#0066FF] border-t-transparent"></div>
-                                    <p className="mt-4 text-gray-500">Loading profile details...</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-8">
-                                    {/* Profile Summary */}
-                                    <div className="flex items-start gap-6">
-                                        <div className="h-24 w-24 rounded-2xl bg-blue-100 flex items-center justify-center text-3xl font-bold text-blue-700 shadow-inner shrink-0">
-                                            {viewingCandidate.profilePhoto ? (
-                                                <img src={viewingCandidate.profilePhoto} alt="" className="h-full w-full rounded-2xl object-cover" />
-                                            ) : (
-                                                viewingCandidate.name?.[0] || "C"
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <h4 className="text-2xl font-bold text-[#081B3A] truncate">{viewingCandidate.name}</h4>
-                                                {viewingCandidate.isVerified && (
-                                                    <HiShieldCheck className="h-6 w-6 text-blue-500" title="Verified Provider" />
-                                                )}
-                                            </div>
-                                            <p className="text-lg text-gray-600 mt-1">{viewingCandidate.role || viewingCandidate.title}</p>
-                                            <div className="flex flex-wrap items-center gap-4 mt-3">
-                                                <div className="flex items-center gap-1.5 text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
-                                                    <HiBriefcase className="h-4 w-4 text-gray-400" />
-                                                    {viewingCandidate.experience} Experience
-                                                </div>
-                                                <div className="flex items-center gap-1.5 text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
-                                                    <HiLocationMarker className="h-4 w-4 text-gray-400" />
-                                                    {formatLocation(viewingCandidate.location)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Contact Section */}
-                                    <div className="rounded-2xl border border-blue-100 bg-blue-50/30 p-6">
-                                        <h5 className="font-bold text-[#081B3A] mb-4 flex items-center gap-2">
-                                            Contact Information
-                                        </h5>
-                                        {viewingCandidate.isUnlocked || (viewingCandidate.phone && viewingCandidate.email) ? (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-blue-600 shadow-sm">
-                                                        <HiPhone className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Phone</p>
-                                                        <p className="font-semibold text-gray-700">{viewingCandidate.phone || viewingCandidate.contactInfo?.phone}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-blue-600 shadow-sm">
-                                                        <HiMail className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Email</p>
-                                                        <p className="font-semibold text-gray-700">{viewingCandidate.email || viewingCandidate.contactInfo?.email}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="text-center py-4">
-                                                <p className="text-gray-600 mb-4">Contact details are locked. Use your plan credits to unlock.</p>
-                                                <button
-                                                    onClick={() => handleUnlockContact(viewingCandidate.providerProfileId || viewingCandidate.providerId)}
-                                                    disabled={isUnlocking}
-                                                    className="inline-flex items-center gap-2 rounded-xl bg-[#0066FF] px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-70"
-                                                >
-                                                    {isUnlocking ? (
-                                                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                                    ) : (
-                                                        "Unlock Contact Details"
-                                                    )}
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* About / Skills */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div>
-                                            <h5 className="font-bold text-[#081B3A] mb-3">About Candidate</h5>
-                                            <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-2xl border border-gray-100 whitespace-pre-line">
-                                                {viewingCandidate.description || viewingCandidate.shortBio || "No bio provided by candidate."}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <h5 className="font-bold text-[#081B3A] mb-3">Core Skills</h5>
-                                            <div className="flex flex-wrap gap-2">
-                                                {viewingCandidate.skills?.map((skill, idx) => (
-                                                    <span key={idx} className="rounded-xl bg-white border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm">
-                                                        {skill}
-                                                    </span>
-                                                ))}
-                                                {(!viewingCandidate.skills || viewingCandidate.skills.length === 0) && (
-                                                    <p className="text-sm text-gray-400 italic">No skills listed.</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                      {/* Stats Row */}
+                      <div className="flex items-center gap-8 mt-5 ml-20">
+                        <div>
+                          <div className="text-sm font-extrabold text-gray-900">{candidate.exp}</div>
+                          <div className="text-[11px] font-semibold text-gray-400">Experience</div>
                         </div>
-
-                        {/* Footer */}
-                        <div className="border-t border-gray-100 bg-gray-50 p-4 sm:p-6 flex justify-end gap-3 shrink-0">
-                            <button
-                                onClick={() => setIsProfileModalOpen(false)}
-                                className="w-full sm:w-auto rounded-xl border border-gray-200 bg-white px-6 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
-                            >
-                                Close
-                            </button>
+                        <div>
+                          <div className="text-sm font-extrabold text-gray-900">{candidate.ctc}</div>
+                          <div className="text-[11px] font-semibold text-gray-400">Current CTC</div>
                         </div>
+                        <div>
+                          <div className="text-sm font-extrabold text-gray-900">{candidate.notice}</div>
+                          <div className="text-[11px] font-semibold text-gray-400">Notice Period</div>
+                        </div>
+                      </div>
+
+                      {/* Skills Tags */}
+                      <div className="flex flex-wrap items-center gap-2 mt-5 ml-20">
+                        {candidate.skills.map(skill => (
+                          <span key={skill} className="text-[11px] font-bold text-gray-600 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-md">
+                            {skill}
+                          </span>
+                        ))}
+                        <span className="text-[11px] font-bold text-gray-400 px-1">
+                          {candidate.moreSkills}
+                        </span>
+                      </div>
                     </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="lg:w-48 flex flex-row lg:flex-col gap-2 justify-center lg:justify-start lg:border-l border-gray-100 lg:pl-6">
+                      <div className="hidden lg:flex justify-end mb-2">
+                        <button className="text-gray-400 hover:text-gray-600"><FiMoreVertical className="w-5 h-5" /></button>
+                      </div>
+                      <Link to={`/recruiter/candidates/${candidate.id}`} className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-200 text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-50 transition">
+                        <FiEye /> View Profile
+                      </Link>
+                      <button className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition">
+                        <FiStar /> Shortlist
+                      </button>
+                      <button className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition">
+                        <FiMessageSquare /> Contact
+                      </button>
+                    </div>
+
+                  </div>
                 </div>
-            )}
+              ))}
+            </div>
+            
+            {/* Pagination Placeholder */}
+            <div className="pt-4 flex items-center justify-center">
+              <button className="bg-white border border-gray-200 px-6 py-2 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition">
+                Load More Candidates
+              </button>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: ANALYTICS & ALERTS */}
+          <div className="xl:col-span-1 space-y-6">
+            
+            {/* Active Filters */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-gray-900">Active Filters <span className="text-gray-500 font-medium">({activeFilters.length})</span></h3>
+                <button className="text-[10px] font-bold text-indigo-600 hover:underline">Clear All</button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {activeFilters.map(filter => (
+                  <div key={filter} className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-gray-700">
+                    {filter}
+                    <button className="text-gray-400 hover:text-red-500"><FiX className="w-3 h-3" /></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Search Insights */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-sm font-bold text-gray-900">Search Insights</h3>
+                <button className="text-gray-400 hover:text-gray-600"><FiChevronUp className="w-4 h-4" /></button>
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <div className="text-xs font-bold text-gray-900 mb-1">Skills</div>
+                  <div className="text-[11px] text-gray-600">React Developers in Bangalore</div>
+                  <div className="text-[10px] text-gray-400">(4 - 8 yrs exp)</div>
+                </div>
+
+                <div>
+                  <div className="text-xs font-bold text-gray-900 mb-3">Top Skills in Demand</div>
+                  <div className="flex flex-wrap gap-2">
+                    {topSkills.map(skill => (
+                      <span key={skill} className="text-[11px] font-semibold text-gray-700 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-md">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-xs font-bold text-gray-900 mb-3">Top Companies Hiring</div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center font-bold text-yellow-600 border border-yellow-100 shadow-sm">F</div>
+                    <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center font-bold text-orange-600 border border-orange-100 shadow-sm">S</div>
+                    <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center font-bold text-indigo-600 border border-indigo-100 shadow-sm">M</div>
+                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center font-bold text-gray-900 border border-gray-200 shadow-sm">a</div>
+                  </div>
+                </div>
+
+                <button className="w-full bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-100 transition flex items-center justify-center gap-2">
+                  View Full Market Report <FiArrowUpRight />
+                </button>
+              </div>
+            </div>
+
+            {/* AI Search Tips */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-gray-900">AI Search Tips</h3>
+                <button className="text-gray-400 hover:text-gray-600"><FiChevronUp className="w-4 h-4" /></button>
+              </div>
+              
+              <p className="text-[11px] text-gray-600 leading-relaxed mb-3">
+                Try adding more skills like <span className="font-bold text-indigo-600 bg-indigo-50 px-1 rounded">Material UI</span>, <span className="font-bold text-indigo-600 bg-indigo-50 px-1 rounded">GraphQL</span>, <span className="font-bold text-indigo-600 bg-indigo-50 px-1 rounded">Jest</span> to get better matches.
+              </p>
+              
+              <button className="w-full bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-100 transition flex items-center justify-center gap-2">
+                <HiSparkles /> Ask AI to Improve Search &rarr;
+              </button>
+            </div>
+
+          </div>
         </div>
-    );
-}
+      </div>
+      
+    </div>
+  );
+};
+
+export default Candidates;

@@ -138,7 +138,7 @@ const RecruiterDiscovery = () => {
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
-                      placeholder="+1 234 567 8900"
+                      placeholder="+91 XXXXXXXXXX"
                     />
                   </div>
                 </div>

@@ -1,0 +1,501 @@
+import React, { useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import {
+  FiArrowLeft, FiChevronLeft, FiChevronRight, FiChevronDown, FiBookmark, FiShare2,
+  FiPhone, FiMessageCircle, FiMail, FiMoreHorizontal, FiEdit2, FiArrowUpRight,
+  FiCalendar, FiPhoneCall, FiStar, FiFileText, FiDownload, FiCheckCircle, FiPlus
+} from 'react-icons/fi';
+import { HiSparkles, HiOutlineLocationMarker, HiOutlineUser, HiOutlineGlobeAlt, HiOutlineBriefcase, HiOutlineExclamationCircle } from 'react-icons/hi';
+
+const CandidateDetails = () => {
+  const { id } = useParams();
+  const [activeTab, setActiveTab] = useState('Overview');
+  const [activeSidebarTab, setActiveSidebarTab] = useState('AI Insights');
+
+  const tabs = ['Overview', 'Experience', 'Skills', 'Resume', 'Education', 'Projects', 'Screening', 'Notes & Feedback', 'Activity'];
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] pb-24 relative">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+          
+          {/* MAIN CONTENT AREA */}
+          <div className="xl:col-span-8 space-y-6">
+            
+            {/* Top Nav */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <Link to="/recruiter/candidates" className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-gray-900 transition">
+            <FiArrowLeft /> Back to search
+          </Link>
+          <div className="flex items-center gap-3">
+            <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition">
+              <FiChevronLeft /> Previous
+            </button>
+            <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition">
+              Next <FiChevronRight />
+            </button>
+            <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold text-indigo-600 hover:bg-gray-50 transition ml-2">
+              More Actions <FiChevronDown />
+            </button>
+          </div>
+        </div>
+
+        {/* Profile Header Box */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 relative">
+
+          <div className="flex flex-col lg:flex-row justify-between gap-8">
+            <div className="flex items-start gap-6">
+              <img src="https://i.pravatar.cc/150?u=1" alt="Ankit Singh" className="w-24 h-24 rounded-2xl object-cover shadow-sm border border-gray-100" />
+              <div>
+                <div className="flex flex-wrap items-center gap-3 mb-2">
+                  <h1 className="text-2xl font-extrabold text-gray-900">Ankit Singh</h1>
+                  <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">95% Match</span>
+                  <span className="text-[11px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">Premium</span>
+                  
+                  {/* Bookmark & Share Buttons */}
+                  <div className="flex items-center gap-2 lg:ml-4">
+                    <button className="p-1.5 text-gray-400 hover:text-gray-600 transition"><FiBookmark className="w-5 h-5" /></button>
+                    <button className="p-1.5 text-gray-400 hover:text-gray-600 transition"><FiShare2 className="w-5 h-5" /></button>
+                  </div>
+                </div>
+                <div className="text-sm font-semibold text-gray-700 mb-1">Senior React Developer at Swiggy</div>
+                <div className="text-xs font-medium text-gray-500 flex items-center gap-1 mb-4">
+                  <HiOutlineLocationMarker className="w-4 h-4" /> Bangalore, Karnataka, India
+                </div>
+                <div className="flex items-center gap-2">
+                  <button className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-100 transition">
+                    <FiPhoneCall className="w-3.5 h-3.5" /> Contact
+                  </button>
+                  <button className="p-2 text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition">
+                    <FiMessageCircle className="w-4 h-4" />
+                  </button>
+                  <button className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition">
+                    <FiMail className="w-4 h-4" />
+                  </button>
+                  <button className="p-2 text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition">
+                    <FiMoreHorizontal className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+
+
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-6 lg:border-l border-gray-100 lg:pl-8">
+              <div>
+                <div className="text-[10px] font-bold text-gray-400 mb-1">Experience</div>
+                <div className="text-sm font-extrabold text-gray-900">5.2 yrs</div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold text-gray-400 mb-1">Current CTC</div>
+                <div className="text-sm font-extrabold text-gray-900">₹18 LPA</div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold text-gray-400 mb-1">Expected CTC</div>
+                <div className="text-sm font-extrabold text-gray-900">₹24 - 26 LPA</div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold text-gray-400 mb-1">Notice Period</div>
+                <div className="text-sm font-extrabold text-gray-900">30 Days</div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold text-gray-400 mb-1">Availability</div>
+                <div className="text-sm font-extrabold text-gray-900">Immediate</div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Tabs */}
+          <div className="flex items-center gap-6 mt-8 border-b border-gray-100 overflow-x-auto custom-scrollbar">
+            {tabs.map(tab => (
+              <button 
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`pb-4 text-sm font-bold whitespace-nowrap transition border-b-2 ${activeTab === tab ? 'text-indigo-600 border-indigo-600' : 'text-gray-500 border-transparent hover:text-gray-700'}`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* MAIN CONTENT GRID */}
+        <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6">
+          
+          {/* LEFT COLUMN (Wide) */}
+          <div className="2xl:col-span-2 space-y-6">
+            
+            {/* About */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <h3 className="text-sm font-bold text-gray-900 mb-3">About Ankit</h3>
+              <p className="text-xs text-gray-600 leading-relaxed mb-6">
+                Experienced React Developer with a strong background in building scalable web applications and excellent problem-solving skills. Passionate about creating user-friendly interfaces and optimizing performance.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                <div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineUser /> Age</div>
+                  <div className="text-xs font-bold text-gray-900">29 yrs</div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineGlobeAlt /> Languages</div>
+                  <div className="text-xs font-bold text-gray-900">English, Hindi</div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineLocationMarker /> Current Location</div>
+                  <div className="text-xs font-bold text-gray-900">Bangalore, India</div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><FiArrowUpRight /> Relocation</div>
+                  <div className="text-xs font-bold text-gray-900">Open to relocate</div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineBriefcase /> Employment Type</div>
+                  <div className="text-xs font-bold text-gray-900">Full-time</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Key Skills */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-gray-900">Key Skills</h3>
+                <button className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:underline">
+                  <FiEdit2 className="w-3.5 h-3.5" /> Edit
+                </button>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {['React', 'TypeScript', 'Next.js', 'Redux', 'Node.js', 'Tailwind CSS', 'JavaScript', 'HTML'].map(skill => (
+                  <span key={skill} className="text-xs font-bold text-gray-600 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-lg">
+                    {skill}
+                  </span>
+                ))}
+                <span className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-lg">
+                  +6
+                </span>
+              </div>
+            </div>
+
+            {/* Experience Summary */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <h3 className="text-sm font-bold text-gray-900 mb-6">Experience Summary</h3>
+              <div className="flex flex-col sm:flex-row gap-8">
+                <div className="sm:w-1/3 space-y-6">
+                  <div>
+                    <div className="text-xs font-bold text-gray-500 mb-1">Total Experience</div>
+                    <div className="text-sm font-extrabold text-gray-900">5.2 Years</div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-gray-500 mb-1">Relevant Experience</div>
+                    <div className="text-sm font-extrabold text-gray-900">4.6 Years</div>
+                  </div>
+                </div>
+                
+                <div className="sm:w-2/3 space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
+                  {/* Mock Timeline Items */}
+                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-orange-100 text-orange-600 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm font-bold text-xl z-10">
+                      S
+                    </div>
+                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-gray-100 shadow-sm bg-white">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
+                        <div className="font-bold text-gray-900 text-sm">Swiggy</div>
+                        <div className="text-[10px] font-bold text-gray-400">Jan 2022 - Present</div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs text-gray-600">Senior React Developer</div>
+                        <div className="text-[10px] font-bold text-gray-400">2.5 yrs</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-blue-100 text-blue-600 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm font-bold text-xl z-10">
+                      R
+                    </div>
+                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-gray-100 shadow-sm bg-white">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
+                        <div className="font-bold text-gray-900 text-sm">Razorpay</div>
+                        <div className="text-[10px] font-bold text-gray-400">Jul 2020 - Dec 2021</div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs text-gray-600">React Developer</div>
+                        <div className="text-[10px] font-bold text-gray-400">1.5 yrs</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-red-100 text-red-600 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm font-bold text-xl z-10">
+                      T
+                    </div>
+                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-gray-100 shadow-sm bg-white">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
+                        <div className="font-bold text-gray-900 text-sm">TechMahindra</div>
+                        <div className="text-[10px] font-bold text-gray-400">Aug 2019 - Jun 2020</div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs text-gray-600">Frontend Developer</div>
+                        <div className="text-[10px] font-bold text-gray-400">10 mos</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center pt-2">
+                    <button className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1 mx-auto">
+                      View Full Experience <FiArrowUpRight />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Education & Projects Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Education */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col">
+                <h3 className="text-sm font-bold text-gray-900 mb-4">Education</h3>
+                <div className="space-y-4 mb-4">
+                  <div>
+                    <div className="text-xs font-bold text-gray-900 mb-0.5">B.Tech in Computer Science</div>
+                    <div className="text-[10px] font-semibold text-gray-400 mb-1">2015 - 2019</div>
+                    <div className="text-[11px] text-gray-600">Visvesvaraya Technological University</div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-gray-900 mb-0.5">Class XII (CBSE)</div>
+                    <div className="text-[10px] font-semibold text-gray-400 mb-1">2014 - 2015</div>
+                    <div className="text-[11px] text-gray-600">Delhi Public School</div>
+                  </div>
+                </div>
+                <div className="mt-auto text-center pt-4 border-t border-gray-50">
+                  <button className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1 mx-auto">
+                    View All Education <FiArrowUpRight />
+                  </button>
+                </div>
+              </div>
+
+              {/* Projects */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col">
+                <h3 className="text-sm font-bold text-gray-900 mb-4">Projects (Top 2)</h3>
+                <div className="space-y-3 mb-4">
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="text-xs font-bold text-gray-900 mb-1">Swiggy Food Order Platform</div>
+                    <div className="text-[10px] text-gray-500 mb-2">React, Redux, Node.js</div>
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
+                      <FiStar className="w-3 h-3 fill-emerald-600" /> Featured
+                    </div>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="text-xs font-bold text-gray-900 mb-1">Swiggy Instamart Redesign</div>
+                    <div className="text-[10px] text-gray-500 mb-2">Next.js, Tailwind CSS</div>
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
+                      <FiStar className="w-3 h-3 fill-emerald-600" /> Featured
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-auto text-center pt-4 border-t border-gray-50">
+                  <button className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1 mx-auto">
+                    View All Projects <FiArrowUpRight />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* MIDDLE COLUMN (Actions & Fit) */}
+          <div className="2xl:col-span-1 space-y-6">
+            
+            {/* Quick Actions */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <h3 className="text-sm font-bold text-gray-900 mb-4">Quick Actions</h3>
+              <div className="space-y-3">
+                <button className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition">
+                  <FiCalendar /> Schedule Interview
+                </button>
+                <button className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition">
+                  <FiPhoneCall /> Contact Candidate
+                </button>
+                <button className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition">
+                  <FiStar /> Add to Shortlist
+                </button>
+                
+                {/* Mock Dropdown */}
+                <div className="pt-2 relative">
+                  <button className="w-full flex items-center justify-center gap-2 text-xs font-bold text-gray-600 hover:text-gray-900 transition">
+                    More Actions <FiChevronDown />
+                  </button>
+                  {/* Overlay mock
+                  <div className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-lg p-2 z-10">
+                    <button className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 rounded-lg"><FiShare2 /> Move to Talent Pool</button>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 rounded-lg"><FiMessageCircle /> Send Message</button>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 rounded-lg"><FiFileText /> Add Note</button>
+                    <div className="border-t border-gray-100 my-1"></div>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg"><FiX /> Reject Candidate</button>
+                  </div>
+                  */}
+                </div>
+              </div>
+            </div>
+
+            {/* Candidate Fit */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-sm font-bold text-gray-900">Candidate Fit</h3>
+              </div>
+              
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-full border-4 border-emerald-400 flex items-center justify-center text-lg font-extrabold text-emerald-600">
+                  95%
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-emerald-600 mb-1">Excellent Match</div>
+                  <div className="text-[10px] text-gray-500">High match with your job requirements.</div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h4 className="text-xs font-bold text-gray-900 mb-3">Top Matching Skills</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold"><FiCheckCircle className="text-emerald-500 w-3 h-3" /> React</div>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold"><FiCheckCircle className="text-emerald-500 w-3 h-3" /> TypeScript</div>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold"><FiCheckCircle className="text-emerald-500 w-3 h-3" /> Next.js</div>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold"><FiCheckCircle className="text-emerald-500 w-3 h-3" /> JavaScript</div>
+                </div>
+              </div>
+
+              <button className="w-full text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1">
+                AI Match Breakdown <FiArrowUpRight />
+              </button>
+            </div>
+
+            {/* AI Recommended Next Step */}
+            <div className="bg-indigo-50 rounded-2xl border border-indigo-100 shadow-sm p-6">
+              <h3 className="text-sm font-bold text-indigo-900 mb-3 flex items-center gap-2">
+                <HiSparkles className="text-indigo-600" /> AI Recommended Next Step
+              </h3>
+              <p className="text-xs text-indigo-800/80 leading-relaxed mb-4">
+                Ankit is a strong match for Senior React Developer roles. We recommend scheduling a technical interview.
+              </p>
+              <button className="w-full bg-white text-indigo-700 px-4 py-2.5 rounded-xl text-sm font-bold border border-indigo-200 shadow-sm hover:bg-indigo-50 transition flex items-center justify-center gap-2">
+                <HiSparkles /> Generate Interview Kit
+              </button>
+            </div>
+
+          </div>
+        </div>
+        </div>
+
+        {/* RIGHT COLUMN (AI Insights Sidebar) */}
+        <div className="xl:col-span-4 sticky top-6 h-[calc(100vh-3rem)]">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm h-full flex flex-col overflow-hidden">
+              <div className="flex border-b border-gray-100">
+                <button 
+                  onClick={() => setActiveSidebarTab('AI Insights')}
+                  className={`flex-1 py-4 text-xs font-bold transition border-b-2 ${activeSidebarTab === 'AI Insights' ? 'text-indigo-600 border-indigo-600' : 'text-gray-500 border-transparent hover:text-gray-700'}`}
+                >
+                  AI Insights
+                </button>
+                <button 
+                  onClick={() => setActiveSidebarTab('Activity')}
+                  className={`flex-1 py-4 text-xs font-bold transition border-b-2 ${activeSidebarTab === 'Activity' ? 'text-indigo-600 border-indigo-600' : 'text-gray-500 border-transparent hover:text-gray-700'}`}
+                >
+                  Activity
+                </button>
+              </div>
+
+              {activeSidebarTab === 'AI Insights' && (
+                <div className="p-6 space-y-8 flex-1 overflow-y-auto custom-scrollbar">
+                  
+                  {/* AI Summary */}
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-900 mb-3 flex items-center gap-2"><HiSparkles className="text-indigo-600" /> AI Summary</h4>
+                    <p className="text-[11px] text-gray-600 leading-relaxed mb-4">
+                      Ankit is a strong frontend engineer with expertise in modern React ecosystem. He has worked on high-scale products and shows consistent growth.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">Strong Technical Fit</span>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">Good Culture Fit</span>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">Immediate Joiner</span>
+                    </div>
+                  </div>
+
+                  {/* Strengths */}
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-900 mb-3">Strengths</h4>
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2 text-[11px] text-gray-700"><FiCheckCircle className="text-emerald-500 w-3.5 h-3.5 shrink-0 mt-0.5" /> Strong in React ecosystem</li>
+                      <li className="flex items-start gap-2 text-[11px] text-gray-700"><FiCheckCircle className="text-emerald-500 w-3.5 h-3.5 shrink-0 mt-0.5" /> Experience in scalable applications</li>
+                      <li className="flex items-start gap-2 text-[11px] text-gray-700"><FiCheckCircle className="text-emerald-500 w-3.5 h-3.5 shrink-0 mt-0.5" /> Quick learner and problem solver</li>
+                    </ul>
+                  </div>
+
+                  {/* Potential Concerns */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-xs font-bold text-gray-900">Potential Concerns</h4>
+                      <FiChevronDown className="text-gray-400" />
+                    </div>
+                    <div className="flex items-start gap-2 text-[11px] text-gray-700">
+                      <HiOutlineExclamationCircle className="text-orange-500 w-4 h-4 shrink-0" /> 
+                      <div>
+                        Higher salary expectation <br/>
+                        <span className="text-gray-500">(₹24 - 26 LPA)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Resume */}
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-900 mb-3">Resume</h4>
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-gray-50">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-red-100 text-red-600 p-2 rounded-lg">
+                          <FiFileText className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold text-gray-900">Ankit_Singh_Resume.pdf</div>
+                          <div className="text-[9px] text-gray-500">Last updated 2 days ago</div>
+                        </div>
+                      </div>
+                      <button className="text-gray-400 hover:text-gray-600"><FiDownload className="w-4 h-4" /></button>
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-xs font-bold text-gray-900">Notes</h4>
+                      <button className="text-[10px] font-bold text-indigo-600 flex items-center gap-1"><FiPlus /> Add Note</button>
+                    </div>
+                    <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                      <p className="text-[11px] text-gray-700 leading-relaxed mb-2">Good communication in initial call. Available for interview this week.</p>
+                      <div className="text-[9px] font-semibold text-gray-400">- Rahul Verma (Today, 10:30 AM)</div>
+                    </div>
+                  </div>
+
+                  {/* Tags */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-xs font-bold text-gray-900">Tags</h4>
+                      <button className="text-[10px] font-bold text-indigo-600 flex items-center gap-1"><FiPlus /> Add Tag</button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">React Developer</span>
+                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">Immediate Joiner</span>
+                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">High Potential</span>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CandidateDetails;

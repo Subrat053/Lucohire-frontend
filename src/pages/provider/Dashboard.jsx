@@ -162,11 +162,19 @@ const ProviderDashboard = () => {
   const stats = dashboard?.stats || {};
   const leads = dashboard?.leads || [];
   const profile = dashboard?.profile || {};
+  const subscription = dashboard?.subscription || null;
   const aiInsights = dashboard?.ai_insights || {};
   const isProfileEmpty = !profile.city && !profile.skills?.length;
   const planDisplayName = stats.isDefaultPlan
     ? 'Default Monthly Plan'
-    : (stats.planName || (stats.currentPlan === 'provider-free-default' ? 'Free' : stats.currentPlan) || 'Free');
+    : (subscription?.planName || stats.planName || (stats.currentPlan === 'provider-free-default' ? 'Free' : stats.currentPlan) || 'Free');
+
+  const getRemainingDays = () => {
+    if (!subscription?.endDate) return null;
+    const days = Math.ceil((new Date(subscription.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return days > 0 ? `${days} days left` : 'Expired';
+  };
+  const remainingText = getRemainingDays();
 
   // useEffect(() => {
   //   if (loading || hasAutoPrompted || !dashboard) return;
@@ -295,7 +303,12 @@ const ProviderDashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         {[
-          { label: t('provider.currentPlan', 'Current Plan'),      value: planDisplayName, icon: HiTrendingUp, color: 'bg-orange-50 text-orange-600' },
+          { label: t('provider.currentPlan', 'Current Plan'),      value: (
+            <div className="flex flex-col">
+              <span>{planDisplayName}</span>
+              {remainingText && <span className="text-[10px] font-normal opacity-80 mt-0.5">{remainingText}</span>}
+            </div>
+          ), icon: HiTrendingUp, color: 'bg-orange-50 text-orange-600' },
           { label: t('provider.profileViews', 'Profile Views'),     value: stats.profileViews     || 0, icon: HiEye,          color: 'bg-blue-50 text-blue-600'    },
           { label: t('provider.leadsReceived', 'Leads Received'),    value: stats.leadsReceived    || 0, icon: HiUsers,         color: 'bg-green-50 text-green-600'  },
           { label: t('provider.contactsUnlocked', 'Contacts Unlocked'), value: stats.contactsUnlocked || 0, icon: HiPhone,         color: 'bg-purple-50 text-purple-600' },

@@ -1,456 +1,418 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
-  HiBriefcase, HiEye, HiLockOpen, HiUsers,
-  HiSearch, HiPlus, HiChevronRight, HiTrendingUp,
-  HiClock, HiCheckCircle, HiExclamationCircle, HiDocumentText, HiTrash,
-} from 'react-icons/hi';
-import { FaBriefcase, FaUserTie, FaRocket } from 'react-icons/fa';
-import { recruiterAPI, searchAPI } from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-// import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
-import toast from 'react-hot-toast';
-import useTranslation from '../../hooks/useTranslation';
+  FiCalendar, FiUsers, FiCheckSquare, FiUserPlus,
+  FiMessageSquare, FiTrendingUp,
+  FiChevronDown, FiChevronRight, FiCheckCircle,
+  FiAlertCircle
+} from 'react-icons/fi';
+import { HiSparkles, HiBriefcase } from 'react-icons/hi2';
 
-const DASHBOARD_CACHE_TTL = 60 * 1000;
-const dashboardCache = {
-  data: null,
-  ts: 0,
-  inflight: null,
-};
-const recommendationsCache = {
-  data: null,
-  ts: 0,
-  inflight: null,
-};
+const Dashboard = () => {
+  const [prioritiesCollapsed, setPrioritiesCollapsed] = useState(false);
 
-/* ── Illustrations ──────────────────────────────────────────────────── */
-const HiringIllustration = () => (
-  <svg viewBox="0 0 220 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-36 h-28 drop-shadow-xl">
-    <rect x="20" y="50" width="130" height="90" rx="10" fill="white" fillOpacity="0.25"/>
-    <rect x="30" y="60" width="110" height="14" rx="4" fill="white" fillOpacity="0.5"/>
-    <rect x="30" y="80" width="80" height="8" rx="3" fill="white" fillOpacity="0.35"/>
-    <rect x="30" y="94" width="60" height="8" rx="3" fill="white" fillOpacity="0.25"/>
-    <rect x="30" y="108" width="40" height="6" rx="3" fill="white" fillOpacity="0.2"/>
-    <circle cx="170" cy="70" r="34" fill="white" fillOpacity="0.2" stroke="white" strokeOpacity="0.4" strokeWidth="2"/>
-    <circle cx="170" cy="58" r="14" fill="#fde68a"/>
-    <path d="M147 90 Q170 78 193 90 Q186 104 170 108 Q154 104 147 90Z" fill="#3b82f6" fillOpacity="0.7"/>
-    <path d="M158 70 L166 78 L182 62" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-const StatCard = ({ label, value, Icon, bg, color, trend }) => (
-  <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-all">
-    <div className="flex items-start justify-between">
-      <div className={`w-11 h-11 ${bg} rounded-xl flex items-center justify-center`}>
-        <Icon className={`w-5 h-5 ${color}`} />
-      </div>
-      {trend !== undefined && (
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${trend >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
-          {trend >= 0 ? '+' : ''}{trend}
-        </span>
-      )}
-    </div>
-    <p className="mt-3 text-2xl font-extrabold text-gray-900">{value}</p>
-    <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-  </div>
-);
-
-const RecruiterDashboard = () => {
-  const { t } = useTranslation();
-  const { user } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [dashboard, setDashboard] = useState(null);
-  const [loading, setLoading] = useState(true);
-  // const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
-  // const [popupReason, setPopupReason] = useState('');
-  // const [hasAutoPrompted, setHasAutoPrompted] = useState(false);
-  const [recommendations, setRecommendations] = useState([]);
-
-  const loadDashboard = useCallback(async (forceRefresh = false) => {
-    setLoading(true);
-    const now = Date.now();
-    const dashboardFresh =
-      !forceRefresh &&
-      dashboardCache.data &&
-      now - dashboardCache.ts < DASHBOARD_CACHE_TTL;
-    const recommendationsFresh =
-      !forceRefresh &&
-      recommendationsCache.data &&
-      now - recommendationsCache.ts < DASHBOARD_CACHE_TTL;
-
-    if (forceRefresh) {
-      dashboardCache.data = null;
-      dashboardCache.ts = 0;
-      dashboardCache.inflight = null;
-      recommendationsCache.data = null;
-      recommendationsCache.ts = 0;
-      recommendationsCache.inflight = null;
-    }
-
-    const dashboardPromise = dashboardFresh
-      ? Promise.resolve({ data: dashboardCache.data })
-      : (dashboardCache.inflight ||= recruiterAPI.getDashboard());
-
-    const recommendationsPromise = recommendationsFresh
-      ? Promise.resolve({ data: { recommendations: recommendationsCache.data } })
-      : (recommendationsCache.inflight ||= searchAPI.repeatRecommendations({ limit: 5 }));
-
-    try {
-      const [dashboardRes, recommendationsRes] = await Promise.all([
-        dashboardPromise,
-        recommendationsPromise,
-      ]);
-
-      const dashboardData = dashboardRes.data;
-      const recs = recommendationsRes.data?.recommendations || [];
-
-      dashboardCache.data = dashboardData;
-      dashboardCache.ts = Date.now();
-      recommendationsCache.data = recs;
-      recommendationsCache.ts = Date.now();
-
-      setDashboard(dashboardData);
-      setRecommendations(recs);
-    } catch {
-      toast.error(t('recruiter.failedLoadDashboard', 'Failed to load dashboard'));
-    } finally {
-      if (!dashboardFresh) dashboardCache.inflight = null;
-      if (!recommendationsFresh) recommendationsCache.inflight = null;
-      setLoading(false);
-    }
-  }, [t]);
-
-  useEffect(() => {
-    loadDashboard();
-  }, [loadDashboard]);
-
-  // useEffect(() => {
-  //   const params = new URLSearchParams(location.search);
-  //   const shouldOpenPopup = params.get('showSubscriptionPopup') === '1';
-  //   if (shouldOpenPopup) {
-  //     setShowSubscriptionPopup(true);
-  //     params.delete('showSubscriptionPopup');
-  //     const cleanedSearch = params.toString();
-  //     navigate(`${location.pathname}${cleanedSearch ? `?${cleanedSearch}` : ''}`, { replace: true });
-  //   }
-  // }, [location.pathname, location.search, navigate]);
-
-  const handleDeleteJob = async (id) => {
-    if (!window.confirm(t('recruiter.confirmDeleteJob', "Are you sure you want to delete this job posting?"))) return;
-
-    try {
-      await recruiterAPI.deleteJob(id);
-      toast.success(t('recruiter.jobDeleted', "Job posting deleted"));
-      setDashboard(prev => {
-        const next = {
-          ...prev,
-          jobs: prev.jobs.filter(j => j._id !== id),
-          stats: {
-            ...prev.stats,
-            totalJobsPosted: Math.max(0, (prev.stats.totalJobsPosted || 1) - 1)
-          }
-        };
-        dashboardCache.data = next;
-        dashboardCache.ts = Date.now();
-        return next;
-      });
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete job");
-    }
-  };
-
-  const stats = dashboard?.stats || {};
-  const jobs = dashboard?.jobs || [];
-  const recentUnlocks = dashboard?.recentUnlocks || [];
-  const profile = dashboard?.profile || {};
-  const isProfileEmpty = !profile.city && !profile.companyName;
-
-  // useEffect(() => {
-  //   if (loading || hasAutoPrompted || !dashboard) return;
-
-  //   const isFree = !stats.currentPlan || stats.currentPlan === 'free';
-  //   const isExpired =
-  //     stats.planStatus === 'expired' ||
-  //     (stats.planEndDate && new Date(stats.planEndDate).getTime() <= Date.now());
-  //   const postLeft = Number(stats.remainingPostLimit);
-  //   const unlockLeft = Number(stats.unlocksRemaining);
-  //   const postExhausted = Number.isFinite(postLeft) && postLeft <= 0;
-  //   const unlockExhausted = Number.isFinite(unlockLeft) && unlockLeft <= 0;
-  //   const isExhausted = postExhausted || unlockExhausted;
-
-  //   if (isFree || isExpired || isExhausted) {
-  //     let reason = 'You are on Free plan. Upgrade your subscription to unlock more functionality.';
-  //     if (isExpired) {
-  //       reason = 'Your subscription has ended. Upgrade now to continue premium functionality.';
-  //     } else if (isExhausted) {
-  //       reason = 'Your current plan quota is exhausted. Upgrade to continue using premium limits.';
-  //     }
-  //     setPopupReason(reason);
-  //     setShowSubscriptionPopup(true);
-  //     setHasAutoPrompted(true);
-  //   }
-  // }, [loading, hasAutoPrompted, dashboard, stats.currentPlan, stats.planStatus, stats.planEndDate, stats.remainingPostLimit, stats.unlocksRemaining]);
-
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><LoadingSpinner size="lg" text={t('common.loading', "Loading...")} /></div>;
-
-  const statCards = [
-    { label: t('recruiter.currentPlan', 'Current Plan'),          value: stats.currentPlan || 'Free', Icon: HiTrendingUp,    bg: 'bg-amber-50',  color: 'text-amber-600'  },
-    { label: t('recruiter.jobsPosted', 'Jobs Posted'),            value: stats.totalJobsPosted         || 0, Icon: HiBriefcase,     bg: 'bg-blue-50',   color: 'text-blue-600'   },
-    { label: t('recruiter.appsReceived', 'Applications Received'),  value: stats.totalApplicationsReceived|| 0, Icon: HiDocumentText,  bg: 'bg-teal-50',   color: 'text-teal-600'  },
-    { label: t('recruiter.unlockCredits', 'Unlock Credits Remaining'), value: stats.unlocksRemaining ?? 0, Icon: HiLockOpen, bg: 'bg-purple-50', color: 'text-purple-600' },
-    { label: t('recruiter.postLimitLeft', 'Postings Left (Month)'), value: stats.remainingPostLimit !== undefined ? (stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit) : '0', Icon: HiUsers, bg: 'bg-green-50', color: 'text-green-600' },
+  // --- MOCK DATA ---
+  const activeJobs = [
+    { id: 1, title: 'Senior React Developer', applicants: 147, interviews: 8, aiHealth: 91, tag: 'Featured', tagDesc: '10 days left', status: 'Active' },
+    { id: 2, title: 'UI/UX Designer', applicants: 98, interviews: 5, aiHealth: 87, tag: null, status: 'Active' },
+    { id: 3, title: 'Backend Developer', applicants: 112, interviews: 6, aiHealth: 90, tag: 'Urgent Hiring', tagDesc: '5 days left', status: 'Active' },
+    { id: 4, title: 'Product Manager', applicants: 67, interviews: 3, aiHealth: 65, tag: 'Featured', tagDesc: '3 days left', status: 'On Hold' },
+    { id: 5, title: 'DevOps Engineer', applicants: 81, interviews: 4, aiHealth: 88, tag: null, status: 'Active' },
   ];
 
+  const interviews = [
+    { id: 1, time: '10:00 AM', name: 'Ankit Singh', role: 'Senior React Developer', round: 'Technical Round' },
+    { id: 2, time: '11:30 AM', name: 'Sneha Patil', role: 'UI/UX Designer', round: 'HR Round' },
+    { id: 3, time: '02:00 PM', name: 'Vikram Kumar', role: 'Backend Developer', round: 'Technical Round' },
+    { id: 4, time: '03:30 PM', name: 'Neha Kapoor', role: 'Product Manager', round: 'HR Round' },
+    { id: 5, time: '04:30 PM', name: 'Arjun Mehta', role: 'DevOps Engineer', round: 'Managerial Round' },
+  ];
+
+  const notifications = [
+    { id: 1, text: 'Offer accepted by Neha Kapoor', time: '15m ago', color: 'bg-emerald-500' },
+    { id: 2, text: 'Interview rescheduled with Aman Rajput', time: '1h ago', color: 'bg-blue-500' },
+    { id: 3, text: 'New application for Senior React Developer', time: '2h ago', color: 'bg-orange-500' },
+    { id: 4, text: 'Rohit Sharma replied to your email', time: '3h ago', color: 'bg-purple-500' },
+    { id: 5, text: 'Your job UI/UX Designer is now live', time: '5h ago', color: 'bg-pink-500' },
+  ];
+
+  const followUps = [
+    { id: 1, count: 12, title: 'candidates awaiting your response', desc: 'Application received 2+ days ago', icon: <FiUserPlus className="w-5 h-5 text-purple-600" />, bg: 'bg-purple-50', btn: 'Respond' },
+    { id: 2, count: 7, title: 'WhatsApp replies pending', desc: 'From yesterday', icon: <FiMessageSquare className="w-5 h-5 text-emerald-600" />, bg: 'bg-emerald-50', btn: 'Reply' },
+    { id: 3, count: 3, title: 'interview feedback pending', desc: 'From interviews', icon: <FiCheckSquare className="w-5 h-5 text-orange-600" />, bg: 'bg-orange-50', btn: 'Provide Feedback' },
+  ];
+
+  // eslint-disable-next-line react/prop-types
+  const StatBox = ({ title, count, actionText, actionLink, icon: Icon, colorClass, bgClass }) => (
+    <div className="bg-white rounded-[2rem] border border-gray-100 p-5 shadow-sm flex flex-col hover:shadow-md transition h-full">
+      <div className="flex items-center gap-3 mb-3">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${bgClass}`}>
+          <Icon className={`w-5 h-5 ${colorClass}`} />
+        </div>
+        <span className="text-sm font-semibold text-gray-700">{title}</span>
+      </div>
+      <div className="text-3xl font-bold text-gray-900 mb-4">{count}</div>
+      <Link to={actionLink} className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 mt-auto">
+        {actionText} <FiChevronRight />
+      </Link>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen " style={{ background: 'linear-gradient(160deg,#f0f4ff 0%,#f8f9ff 60%,#fafafa 100%)' }}>
-      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        {/* ── onboarding banner for fresh accounts ─────────────────── */}
-        {isProfileEmpty && (
-          <div className="bg-linear-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 mb-6 text-white shadow-lg">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-extrabold mb-1">👋 {t('recruiter.onboardingTitle', "Welcome! Let's set up your recruiter profile")}</h2>
-                <p className="text-indigo-100 text-sm">{t('recruiter.onboardingDesc', "Add your company info and hiring needs to unlock full functionality.")}</p>
-              </div>
-              <Link to="/recruiter/profile"
-                className="shrink-0 bg-white text-indigo-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-indigo-50 transition shadow">
-                {t('recruiter.completeProfileBtn', "Complete Profile →")}
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Out of Credits / Upgrade Banner */}
-        {Number(stats.unlocksRemaining) <= 0 && (
-          <div className="bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl p-5 mb-6 text-white shadow-md">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-base font-bold flex items-center gap-1.5">
-                  <HiExclamationCircle className="w-5 h-5 animate-pulse shrink-0" />
-                  Profile Unlock Credits Exhausted
-                </h2>
-                <p className="text-orange-50 text-xs mt-1">
-                  You have 0 candidate profile unlocks left. Upgrade your plan or purchase a top-up pack to continue viewing applicants' full contact details!
-                </p>
-              </div>
-              <Link to="/recruiter/plans"
-                className="shrink-0 bg-white text-orange-700 font-bold px-4 py-2 rounded-xl text-xs hover:bg-orange-50 transition shadow-sm">
-                Get More Credits
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* ── Hero banner ───────────────────────────────────────────── */}
-        <div
-          className="rounded-3xl p-6 sm:p-8 mb-8 flex flex-col sm:flex-row items-center justify-between gap-6 overflow-hidden relative"
-          style={{ background: 'linear-gradient(135deg,#1d4ed8 0%,#4f46e5 60%,#7c3aed 100%)' }}
-        >
-          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-          <div className="relative z-10">
-            <p className="text-blue-200 text-sm font-medium mb-1">{t('common.welcomeBack', 'Welcome back')} 👋</p>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-              {user?.name?.split(' ')[0] || t('common.recruiter', 'Recruiter')}{t('recruiter.dashboardTitle', "'s Dashboard")}
-            </h1>
-            <p className="text-blue-100 text-sm mt-2">
-              {t('recruiter.planLabel', 'Plan')}: <span className="font-bold text-white capitalize">{stats.currentPlan || 'Free'}</span>
-              &nbsp;·&nbsp;
-              {stats.unlocksRemaining || 0} {t('recruiter.unlocksLeft', 'unlocks left')}
-            </p>
-            <div className="flex flex-wrap gap-3 mt-5">
-              <Link
-                to="/recruiter/find-providers"
-                className="inline-flex items-center gap-1.5 bg-white text-blue-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-blue-50 transition shadow-sm"
-              >
-                <HiSearch className="w-4 h-4" /> {t('recruiter.findProviders', 'Find Providers')}
-              </Link>
-              <button
-                type="button"
-                onClick={() => loadDashboard(true)}
-                disabled={loading}
-                className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition border border-white/30 disabled:opacity-60"
-              >
-                Refresh
-              </button>
-              <Link
-                to="/recruiter/post-job"
-                className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition border border-white/30"
-              >
-                <HiPlus className="w-4 h-4" /> {t('recruiter.postJob', 'Post a Job')}
-              </Link>
-            </div>
-          </div>
-          <div className="relative z-10 shrink-0">
-            <HiringIllustration />
-          </div>
-        </div>
-
-        {/* ── Stats ─────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          {statCards.map((s, i) => <StatCard key={i} {...s} />)}
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-6">
-
-          {/* ── Posted Jobs ─────────────────────────────────────────── */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-extrabold text-gray-900">{t('recruiter.postedJobs', 'Posted Jobs')}</h2>
-              <Link to="/recruiter/post-job" className="text-xs text-blue-600 font-semibold hover:underline flex items-center gap-0.5">
-                {t('recruiter.postNew', 'Post New')} <HiChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-            {jobs.length === 0 ? (
-              <div className="flex flex-col items-center py-12 text-center">
-                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-3">
-                  <FaBriefcase className="w-7 h-7 text-blue-400" />
-                </div>
-                <p className="text-gray-500 text-sm font-medium">{t('recruiter.noJobsPosted', 'No jobs posted yet')}</p>
-                <Link to="/recruiter/post-job" className="mt-3 text-sm text-blue-600 font-semibold hover:underline">
-                  {t('recruiter.postFirstJob', 'Post your first job →')}
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {jobs.slice(0, 5).map((job, i) => (
-                  <div key={i} className="group relative flex items-center justify-between p-3.5 bg-gray-50 rounded-xl hover:bg-blue-50/50 transition">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-                        <HiBriefcase className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{job.title}</p>
-                        <p className="text-xs text-gray-500">{job.skill} · {job.city}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                        job.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                      }`}>
-                        {job.status === 'active' ? <HiCheckCircle className="w-3 h-3" /> : <HiClock className="w-3 h-3" />}
-                        {job.status}
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleDeleteJob(job._id);
-                        }}
-                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                        title={t('common.delete', 'Delete')}
-                      >
-                        <HiTrash className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-              </div>
-            )}
-          </div>
-
-          {/* ── Sidebar ─────────────────────────────────────────────── */}
-          <div className="space-y-5">
-
-            {/* Plan card */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center">
-                  <HiTrendingUp className="w-4 h-4 text-indigo-600" />
-                </div>
-                <h3 className="font-extrabold text-gray-900">{t('recruiter.planDetails', 'Plan Details')}</h3>
-              </div>
-              <div className="space-y-2.5 text-sm">
-                {[
-                  { label: t('recruiter.currentPlanLabel', 'Current Plan'),       value: stats.currentPlan || 'Free' },
-                  { label: t('recruiter.unlockCredits', 'Unlock Credits'),     value: stats.unlocksRemaining || 0 },
-                  { label: t('recruiter.jobsPostedLabel', 'Jobs Posted'),        value: stats.totalJobsPosted || 0 },
-                  { label: t('recruiter.postsLeft', 'Posts Left (month)'), value: stats.remainingPostLimit !== undefined ? (stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit) : '—' },
-                  { label: t('recruiter.appsRecv', 'Applications Recv.'), value: stats.totalApplicationsReceived || 0 },
-                ].map((row, i) => (
-                  <div key={i} className="flex justify-between py-1 border-b border-gray-50 last:border-0">
-                    <span className="text-gray-500">{row.label}</span>
-                    <span className="font-semibold text-gray-900 capitalize">{row.value}</span>
-                  </div>
-                ))}
-              </div>
-              <Link
-                to={`/recruiter/plans?redirect=${encodeURIComponent('/recruiter/dashboard')}`}
-                className="mt-4 flex items-center justify-center gap-1.5 bg-blue-50 text-blue-700 font-bold py-2.5 rounded-xl text-sm hover:bg-blue-100 transition"
-              >
-                {t('recruiter.upgradePlanBtn', 'Upgrade Plan')} <HiChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-
-            {/* Recent unlocks */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
-              <h3 className="font-extrabold text-gray-900 mb-4">{t('recruiter.recentUnlocks', 'Recent Unlocks')}</h3>
-              {recentUnlocks.length === 0 ? (
-                <p className="text-xs text-gray-400 text-center py-4">{t('recruiter.noUnlocks', 'No unlocks yet')}</p>
-              ) : (
-                <div className="space-y-2.5">
-                  {recentUnlocks.slice(0, 4).map((u, i) => (
-                    <div key={i} className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 bg-purple-50 rounded-full flex items-center justify-center text-purple-700 font-bold text-xs shrink-0">
-                        {(u.provider?.name || 'P')[0].toUpperCase()}
-                      </div>
-                      <span className="text-sm text-gray-700 font-medium">{u.provider?.name || t('common.provider', 'Provider')}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {recommendations.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <h3 className="font-extrabold text-gray-900 mb-3">{t('recruiter.recommended', 'Recommended Providers')}</h3>
-                <div className="space-y-2">
-                  {recommendations.map((item) => (
-                    <div key={item.providerId} className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2">
-                      <p className="text-xs text-indigo-700">Provider ID: {item.providerId}</p>
-                      <p className="text-xs text-indigo-600">Repeat Score: {item.repeatScore}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Enterprise CTA */}
-            <div
-              className="rounded-2xl p-5 text-white relative overflow-hidden"
-              style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)' }}
-            >
-              <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-              <div className="relative z-10">
-                <FaRocket className="w-6 h-6 mb-2 text-yellow-300" />
-                <h3 className="font-extrabold mb-1">{t('recruiter.bulkHiring', 'Need bulk hiring?')}</h3>
-                <p className="text-xs text-indigo-100 mb-4">{t('recruiter.enterpriseDesc', 'Enterprise plan: unlimited search, contacts & dedicated support.')}</p>
-                <Link
-                  to={`/recruiter/plans?redirect=${encodeURIComponent('/recruiter/dashboard')}`}
-                  className="block text-center bg-white text-indigo-700 font-bold py-2 rounded-xl text-sm hover:bg-gray-50 transition"
-                >
-                  {t('recruiter.viewPlans', 'View Plans')}
-                </Link>
-              </div>
-            </div>
-
-          </div>
+    <div className="min-h-screen bg-[#F8FAFC] pb-24">
+      {/* HEADER SECTION */}
+      <div className="bg-white border-b border-gray-100 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-20">
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-900">Hiring Workspace</h1>
+          <p className="text-sm text-gray-500 mt-1">Here&apos;s your hiring workspace. Let&apos;s get things done!</p>
         </div>
       </div>
-{/* 
-      <SubscriptionPlansPopup
-        role="recruiter"
-        currentPlan={stats.currentPlan || 'free'}
-        open={showSubscriptionPopup}
-        onClose={() => setShowSubscriptionPopup(false)}
-        redirectTo="/recruiter/dashboard"
-        reason={popupReason}
-      /> */}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        
+        {/* 1. TOP METRICS (Full Width) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatBox 
+            title="My Active Jobs" count="24" 
+            actionText="View all jobs" actionLink="/recruiter/jobs"
+            icon={HiBriefcase} bgClass="bg-indigo-700" colorClass="text-white"
+          />
+          <StatBox 
+            title="Candidates to Review" count="12" 
+            actionText="Review now" actionLink="/recruiter/candidates"
+            icon={FiUsers} bgClass="bg-purple-700" colorClass="text-white"
+          />
+          <StatBox 
+            title="Interviews Today" count="5" 
+            actionText="View schedule" actionLink="/recruiter/interviews"
+            icon={FiCalendar} bgClass="bg-blue-700" colorClass="text-white"
+          />
+          <StatBox 
+            title="AI Tasks for You" count="7" 
+            actionText="See suggestions" actionLink="/recruiter/tasks"
+            icon={HiSparkles} bgClass="bg-emerald-700" colorClass="text-white"
+          />
+        </div>
+
+        {/* 2. NOTIFICATIONS (Just Below 4 Cards) */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-gray-900">Notifications</h2>
+            <Link to="/recruiter/notifications" className="text-sm font-semibold text-indigo-600 hover:underline">View all &rarr;</Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {notifications.map(n => (
+              <div key={n.id} className="flex items-start gap-3 p-3 rounded-xl border border-gray-50 hover:bg-gray-50 transition">
+                <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.color}`}></div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-semibold text-gray-800 break-words line-clamp-2">{n.text}</div>
+                  <div className="text-[10px] font-bold text-gray-400 mt-1">{n.time}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ROW A: Priorities & AI Suggestions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Today's Priorities */}
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-full flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b border-gray-50">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-gray-900">Today&apos;s Priorities</h2>
+                <FiAlertCircle className="w-4 h-4 text-gray-400" />
+              </div>
+              <div className="flex items-center gap-4 text-sm font-medium text-gray-600">
+                <button onClick={() => setPrioritiesCollapsed(!prioritiesCollapsed)} className="flex items-center gap-1 hover:text-indigo-600">
+                  {prioritiesCollapsed ? 'Expand' : 'Collapse'} {prioritiesCollapsed ? <FiChevronDown /> : <FiChevronRight className="-rotate-90" />}
+                </button>
+                <label className="flex items-center gap-2 cursor-pointer hidden sm:flex">
+                  <span className="text-gray-500">Remember my preference</span>
+                  <div className="relative inline-block w-8 h-4 bg-indigo-600 rounded-full">
+                    <div className="absolute right-1 top-0.5 w-3 h-3 bg-white rounded-full"></div>
+                  </div>
+                </label>
+              </div>
+            </div>
+            {!prioritiesCollapsed && (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-100 p-2 w-full">
+                  <div className="p-4 text-center flex flex-col items-center">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mb-2">
+                      <FiUserPlus className="text-emerald-600 w-5 h-5" />
+                    </div>
+                    <div className="text-sm text-gray-600 font-semibold mb-1">New Applications</div>
+                    <div className="text-2xl font-bold text-gray-900 mb-2">18</div>
+                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">View application list &rarr;</Link>
+                  </div>
+                  <div className="p-4 text-center flex flex-col items-center">
+                    <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mb-2">
+                      <FiCalendar className="text-blue-600 w-5 h-5" />
+                    </div>
+                    <div className="text-sm text-gray-600 font-semibold mb-1">Interviews</div>
+                    <div className="text-2xl font-bold text-gray-900 mb-2">5</div>
+                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">View schedule &rarr;</Link>
+                  </div>
+                  <div className="p-4 text-center flex flex-col items-center">
+                    <div className="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center mb-2">
+                      <FiCheckSquare className="text-orange-600 w-5 h-5" />
+                    </div>
+                    <div className="text-sm text-gray-600 font-semibold mb-1">Offers</div>
+                    <div className="text-2xl font-bold text-gray-900 mb-2">3</div>
+                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">View offers &rarr;</Link>
+                  </div>
+                  <div className="p-4 text-center flex flex-col items-center">
+                    <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center mb-2">
+                      <FiMessageSquare className="text-purple-600 w-5 h-5" />
+                    </div>
+                    <div className="text-sm text-gray-600 font-semibold mb-1">Follow-ups</div>
+                    <div className="text-2xl font-bold text-gray-900 mb-2">11</div>
+                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">Respond now &rarr;</Link>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* AI Suggestions */}
+          <div className="bg-gradient-to-b from-indigo-50/50 to-white rounded-2xl border border-indigo-100 shadow-sm p-5 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-gray-900">AI Suggestions</h2>
+                <FiAlertCircle className="w-4 h-4 text-gray-400" />
+              </div>
+              <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full">AI</span>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-center space-y-3 mb-4">
+              <div className="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between hover:border-indigo-200 hover:shadow-sm transition cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                    <FiUserPlus className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-gray-900 leading-tight">Contact 18 highly matching candidates</div>
+                    <div className="text-[10px] text-gray-500 mt-0.5">High chance of positive response</div>
+                  </div>
+                </div>
+                <FiChevronRight className="text-gray-400 group-hover:text-indigo-600 transition shrink-0" />
+              </div>
+              
+              <div className="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between hover:border-indigo-200 hover:shadow-sm transition cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                    <HiSparkles className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-gray-900 leading-tight">Increase salary range by ₹1.0 L</div>
+                    <div className="text-[10px] text-gray-500 mt-0.5">To get 35% more applicants</div>
+                  </div>
+                </div>
+                <FiChevronRight className="text-gray-400 group-hover:text-indigo-600 transition shrink-0" />
+              </div>
+            </div>
+            
+            <div className="text-center mt-auto pt-2">
+              <Link to="/recruiter/ai" className="text-sm font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1">
+                View AI Workspace &rarr;
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* ROW B: My Active Jobs & Today's Interviews */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* My Active Jobs Table */}
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col h-full overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">My Active Jobs</h2>
+              <Link to="/recruiter/jobs" className="text-sm font-semibold text-indigo-600 hover:underline">View all &rarr;</Link>
+            </div>
+            <div className="overflow-x-auto flex-1">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <th className="py-3 pr-2 whitespace-nowrap">Job Title</th>
+                    <th className="py-3 px-2 text-center whitespace-nowrap">Apps</th>
+                    <th className="py-3 px-2 text-center whitespace-nowrap">Intvs</th>
+                    <th className="py-3 px-2 text-center whitespace-nowrap">AI Health</th>
+                    <th className="py-3 px-2 whitespace-nowrap">Tags</th>
+                    <th className="py-3 pl-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {activeJobs.map(job => (
+                    <tr key={job.id} className="hover:bg-gray-50/50 transition">
+                      <td className="py-3 pr-2 font-bold text-gray-900 text-sm whitespace-nowrap">{job.title}</td>
+                      <td className="py-3 px-2 text-center font-semibold text-gray-700">{job.applicants}</td>
+                      <td className="py-3 px-2 text-center font-semibold text-gray-700">{job.interviews}</td>
+                      <td className="py-3 px-2 text-center">
+                        <div className="inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-emerald-400 text-emerald-600 text-[10px] font-bold relative mx-auto">
+                          {job.aiHealth}%
+                        </div>
+                      </td>
+                      <td className="py-3 px-2">
+                        {job.tag ? (
+                          <div className="flex flex-col">
+                            <span className={`text-[10px] font-bold whitespace-nowrap ${job.tag === 'Featured' ? 'text-indigo-600' : 'text-red-600'}`}>{job.tag}</span>
+                            <span className="text-[10px] text-gray-500 whitespace-nowrap">{job.tagDesc}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-300">-</span>
+                        )}
+                      </td>
+                      <td className="py-3 pl-2 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${job.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                          {job.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 pt-4 border-t border-gray-50 text-center shrink-0">
+              <Link to="/recruiter/jobs/new" className="text-sm font-bold text-indigo-600 flex items-center justify-center gap-1 hover:underline">
+                + Create New Job
+              </Link>
+            </div>
+          </div>
+
+          {/* Today's Interviews */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col h-full max-h-[450px]">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Today&apos;s Interviews</h2>
+              <Link to="/recruiter/interviews" className="text-sm font-semibold text-indigo-600 hover:underline">View all &rarr;</Link>
+            </div>
+            {/* Scrollable list */}
+            <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+              {interviews.map(inv => (
+                <div key={inv.id} className="flex items-center justify-between border border-gray-100 rounded-xl p-3 hover:border-indigo-100 transition group cursor-pointer">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-16 shrink-0 text-center">
+                      <span className="block text-[11px] sm:text-xs font-bold text-indigo-600 bg-indigo-50 py-1 px-1 sm:px-2 rounded">{inv.time}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-gray-900 text-xs sm:text-sm truncate">{inv.name}</div>
+                      <div className="text-[10px] sm:text-xs text-gray-500 font-medium truncate">{inv.role}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                    <span className="text-[10px] sm:text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded hidden min-[400px]:inline-block">
+                      {inv.round}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 pt-4 border-t border-gray-50 text-center shrink-0">
+              <Link to="/recruiter/calendar" className="text-sm font-bold text-indigo-600 hover:underline">
+                View Full Calendar &rarr;
+              </Link>
+            </div>
+          </div>
+
+        </div>
+
+        {/* ROW C: Hiring Snapshot & Follow-ups */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Hiring Snapshot */}
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 h-full flex flex-col">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-2">
+              <h2 className="text-lg font-bold text-gray-900">Hiring Snapshot <span className="text-sm font-medium text-gray-500">(This Week)</span></h2>
+              <Link to="/recruiter/reports" className="text-sm font-semibold text-indigo-600 hover:underline">View full report &rarr;</Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1">
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <div className="w-6 h-6 bg-emerald-50 rounded-full flex items-center justify-center">
+                    <FiUserPlus className="w-3 h-3 text-emerald-600" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-600">New Apps</span>
+                </div>
+                <div className="text-3xl font-extrabold text-gray-900">86</div>
+                <div className="text-xs font-bold text-emerald-600 mt-1 flex items-center gap-1">
+                  <FiTrendingUp /> 18%
+                </div>
+                <div className="text-[10px] text-gray-400 font-medium mt-1">vs last week</div>
+              </div>
+              <div className="flex flex-col justify-center border-l border-gray-50 pl-4">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center">
+                    <FiCalendar className="w-3 h-3 text-blue-600" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-600">Interviews</span>
+                </div>
+                <div className="text-3xl font-extrabold text-gray-900">23</div>
+                <div className="text-xs font-bold text-emerald-600 mt-1 flex items-center gap-1">
+                  <FiTrendingUp /> 12%
+                </div>
+                <div className="text-[10px] text-gray-400 font-medium mt-1">vs last week</div>
+              </div>
+              <div className="flex flex-col justify-center border-l border-gray-50 pl-4 hidden sm:flex">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <div className="w-6 h-6 bg-orange-50 rounded-full flex items-center justify-center">
+                    <FiCheckSquare className="w-3 h-3 text-orange-600" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-600">Offers</span>
+                </div>
+                <div className="text-3xl font-extrabold text-gray-900">4</div>
+                <div className="text-xs font-bold text-emerald-600 mt-1 flex items-center gap-1">
+                  <FiTrendingUp /> 33%
+                </div>
+                <div className="text-[10px] text-gray-400 font-medium mt-1">vs last week</div>
+              </div>
+              <div className="flex flex-col justify-center border-l border-gray-50 pl-4 hidden sm:flex">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <div className="w-6 h-6 bg-purple-50 rounded-full flex items-center justify-center">
+                    <FiCheckCircle className="w-3 h-3 text-purple-600" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-600">Hires</span>
+                </div>
+                <div className="text-3xl font-extrabold text-gray-900">2</div>
+                <div className="text-xs font-bold text-emerald-600 mt-1 flex items-center gap-1">
+                  <FiTrendingUp /> 100%
+                </div>
+                <div className="text-[10px] text-gray-400 font-medium mt-1">vs last week</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Follow-ups Pending */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Follow-ups Pending</h2>
+              <Link to="/recruiter/tasks" className="text-sm font-semibold text-indigo-600 hover:underline">View all &rarr;</Link>
+            </div>
+            <div className="flex-1 flex flex-col justify-center space-y-4">
+              {followUps.map(f => (
+                <div key={f.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0">
+                  <div className="flex items-start sm:items-center gap-3">
+                    <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center ${f.bg}`}>
+                      {f.icon}
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900"><span className="text-gray-900">{f.count}</span> {f.title}</div>
+                      <div className="text-xs text-gray-500">{f.desc}</div>
+                    </div>
+                  </div>
+                  <button className="w-full sm:w-auto shrink-0 px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition shadow-sm">
+                    {f.btn}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
   );
 };
 
-export default RecruiterDashboard;
+export default Dashboard;

@@ -85,28 +85,40 @@ const ProviderLayout = ({ children }) => {
         const data = await getCurrentSubscription();
         const activePlan = data?.subscription || data;
         
-        // If the user's plan is not free, mark as Paid and check expiry
-        if (activePlan && (activePlan.subscriptionStatus === 'active' || activePlan.status === 'active') && activePlan.planSnapshot?.slug !== 'free' && activePlan.planName?.toLowerCase() !== 'free') {
+        // API returns 'status' (not 'subscriptionStatus')
+        const planStatus = activePlan.subscriptionStatus || activePlan.status;
+        const isFreePlan = activePlan.planSnapshot?.slug === 'free' || activePlan.planName?.toLowerCase() === 'free' || !activePlan.planSnapshot;
+
+        if (activePlan && planStatus === 'active' && !isFreePlan) {
           const planName = activePlan.planSnapshot?.name || activePlan.planName || 'Paid';
-          const purchaseDate = activePlan.startDate || activePlan.createdAt;
-          // Calculate validation days: durationMonths * (plan duration usually 30) or fallback to 30
-          const validationDays = (activePlan.durationMonths || 1) * (activePlan.planSnapshot?.duration || 30);
           
-          if (purchaseDate) {
-            const purchaseTime = new Date(purchaseDate).getTime();
-            const currentTime = new Date().getTime();
-            // Total validity in ms
-            const validityMs = validationDays * 24 * 60 * 60 * 1000;
-            const diff = (purchaseTime + validityMs) - currentTime;
+          // API returns expiresAt directly OR we compute from startDate + durationMonths
+          const expiresAt = activePlan.expiresAt || activePlan.endDate;
+          
+          if (expiresAt) {
+            // Use expiresAt directly — most accurate
+            const diff = new Date(expiresAt).getTime() - new Date().getTime();
             const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
             if (days > 0) {
               setPlanTag({ loading: false, type: planName, days });
             } else {
-              // Plan expired, revert to Free visually
+              setPlanTag({ loading: false, type: 'Free', days: 0 });
+            }
+          } else if (activePlan.startDate || activePlan.createdAt) {
+            // Fallback: compute from startDate + durationMonths
+            const purchaseDate = activePlan.startDate || activePlan.createdAt;
+            const validationDays = (activePlan.durationMonths || 1) * (activePlan.planSnapshot?.duration || 30);
+            const purchaseTime = new Date(purchaseDate).getTime();
+            const validityMs = validationDays * 24 * 60 * 60 * 1000;
+            const diff = (purchaseTime + validityMs) - new Date().getTime();
+            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            if (days > 0) {
+              setPlanTag({ loading: false, type: planName, days });
+            } else {
               setPlanTag({ loading: false, type: 'Free', days: 0 });
             }
           } else {
-            setPlanTag({ loading: false, type: 'Free', days: 0 });
+            setPlanTag({ loading: false, type: planName, days: 0 });
           }
         } else {
           setPlanTag({ loading: false, type: 'Free', days: 0 });
