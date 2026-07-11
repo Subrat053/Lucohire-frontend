@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import API from '../../services/api';
+import API, { authAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { 
   FiUsers, FiCreditCard, FiFileText, FiLink, 
   FiBell, FiShield, FiHelpCircle, FiCamera, FiCheck, FiArrowRight,
   FiExternalLink, FiUploadCloud, FiMail, FiPhone, FiChevronDown,
-  FiChevronRight, FiMapPin, FiMoreVertical, FiPlus, FiClock
+  FiChevronRight, FiMapPin, FiMoreVertical, FiPlus, FiClock, FiLock
 } from 'react-icons/fi';
 import { HiSparkles, HiOfficeBuilding } from 'react-icons/hi';
 import LocationAutocomplete from '../../components/common/LocationAutocomplete';
@@ -20,6 +20,8 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [profileData, setProfileData] = useState({});
   const [stats, setStats] = useState({});
+  const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
+  const [changingPassword, setChangingPassword] = useState(false);
   const [formData, setFormData] = useState({
     companyName: '',
     industry: 'Information Technology',
@@ -132,6 +134,29 @@ export default function Settings() {
       toast.error(err.response?.data?.message || 'Failed to save settings');
     } finally {
       setSaving(false);
+    }
+  };
+  
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      return toast.error("Passwords do not match");
+    }
+    if (passwordData.newPassword.length < 6) {
+      return toast.error("Password must be at least 6 characters long");
+    }
+    setChangingPassword(true);
+    try {
+      await authAPI.changePassword({
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword
+      });
+      toast.success("Password changed successfully");
+      setPasswordData({ newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to change password");
+    } finally {
+      setChangingPassword(false);
     }
   };
   
@@ -365,6 +390,52 @@ export default function Settings() {
                 </div>
 
               </div>
+            </SCard>
+
+            {/* Change Password Card */}
+            <SCard className="p-6">
+              <div className="mb-6">
+                <h2 className="text-base font-bold text-gray-900 mb-1">Security Settings</h2>
+                <p className="text-[13px] text-gray-500 font-medium">Update your password to keep your account secure.</p>
+              </div>
+
+              <form onSubmit={handlePasswordChange} className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">New Password</label>
+                  <div className="relative">
+                    <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input 
+                      type="password" 
+                      value={passwordData.newPassword} 
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })} 
+                      placeholder="Enter new password"
+                      className="w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg pl-9 pr-3 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm" 
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Confirm Password</label>
+                  <div className="relative">
+                    <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input 
+                      type="password" 
+                      value={passwordData.confirmPassword} 
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} 
+                      placeholder="Confirm new password"
+                      className="w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg pl-9 pr-3 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm" 
+                    />
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <button 
+                    type="submit"
+                    disabled={changingPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                    className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed w-full sm:w-auto"
+                  >
+                    {changingPassword ? 'Updating...' : 'Update Password'}
+                  </button>
+                </div>
+              </form>
             </SCard>
           </div>
 
