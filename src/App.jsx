@@ -1,7 +1,6 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { Agentation } from "agentation";
 
 import ScrollToTop from "./components/common/ScrollToTop";
 import PageLoader from "./components/common/PageLoader";
@@ -11,6 +10,7 @@ import { useAuth } from "./context/AuthContext";
 
 // Lazy-loaded global modals/widgets
 const WhatsAppNumberModal = lazy(() => import("./components/common/WhatsAppNumberModal"));
+const Agentation = import.meta.env.DEV ? lazy(() => import("agentation").then(module => ({ default: module.Agentation }))) : () => null;
 const CookieConsent = lazy(() => import("./components/common/CookieConsent"));
 const AIChatWidget = lazy(() => import("./components/common/AIChatWidget"));
 
@@ -137,7 +137,11 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      {import.meta.env.DEV && <Agentation />}
+      {import.meta.env.DEV && (
+        <Suspense fallback={null}>
+          <Agentation />
+        </Suspense>
+      )}
 
       {/* Animated PWA Install Prompt */}
       <PwaInstallPrompt deferredPrompt={deferredPrompt} setDeferredPrompt={setDeferredPrompt} />

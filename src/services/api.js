@@ -216,6 +216,11 @@ export const providerAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
   deleteProfilePhoto: () => API.delete("/provider/profile/photo"),
+  uploadResume: (formData) =>
+    API.post("/provider/profile/resume", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  deleteResume: () => API.delete("/provider/profile/resume"),
   uploadDocument: (formData) =>
     API.post("/provider/profile/document", formData, {
       headers: { "Content-Type": "multipart/form-data" },
