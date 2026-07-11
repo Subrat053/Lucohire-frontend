@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { recruiterAPI } from '../../services/api';
+import toast from 'react-hot-toast';
 import {
   FiArrowLeft, FiChevronLeft, FiChevronRight, FiChevronDown, FiBookmark, FiShare2,
   FiPhone, FiMessageCircle, FiMail, FiMoreHorizontal, FiEdit2, FiArrowUpRight,
@@ -11,8 +13,55 @@ const CandidateDetails = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('Overview');
   const [activeSidebarTab, setActiveSidebarTab] = useState('AI Insights');
+  const [candidate, setCandidate] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      recruiterAPI.getProviderProfile(id)
+        .then(res => {
+          setCandidate(res.data.profile || res.data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error(err);
+          toast.error("Failed to fetch candidate details");
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
+  }, [id]);
 
   const tabs = ['Overview', 'Experience', 'Skills', 'Resume', 'Education', 'Projects', 'Screening', 'Notes & Feedback', 'Activity'];
+
+  if (loading) {
+     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  // Fallback to mock data if no candidate is found
+  const cData = candidate || {
+     profileName: "Ankit Singh",
+     designation: "Senior React Developer",
+     company: "Swiggy",
+     experience: "5.2 yrs",
+     city: "Bangalore",
+     state: "Karnataka",
+     previousExperience: [
+       { company: 'Swiggy', role: 'Senior React Developer', duration: 'Jan 2022 - Present', description: '2.5 yrs' },
+       { company: 'Razorpay', role: 'React Developer', duration: 'Jul 2020 - Dec 2021', description: '1.5 yrs' }
+     ],
+     education: [
+       { institution: 'IIT Delhi', degree: 'B.Tech Computer Science', year: '2015 - 2019' }
+     ],
+     skills: ['React', 'TypeScript', 'Next.js', 'Redux', 'Node.js', 'Tailwind CSS', 'JavaScript', 'HTML'],
+     jobType: ['Full-time'],
+     workMode: 'Hybrid',
+     relocationAvailable: true,
+     noticePeriod: '30 Days',
+     resumeUrl: '',
+     contactVisibility: 'both'
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 relative">
@@ -48,9 +97,9 @@ const CandidateDetails = () => {
               <img src="https://i.pravatar.cc/150?u=1" alt="Ankit Singh" className="w-24 h-24 rounded-2xl object-cover shadow-sm border border-gray-100" />
               <div>
                 <div className="flex flex-wrap items-center gap-3 mb-2">
-                  <h1 className="text-2xl font-extrabold text-gray-900">Ankit Singh</h1>
+                  <h1 className="text-2xl font-extrabold text-gray-900">{cData.profileName || cData.user?.name || "Ankit Singh"}</h1>
                   <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">95% Match</span>
-                  <span className="text-[11px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">Premium</span>
+                  <span className="text-[11px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">{cData.tier || 'Premium'}</span>
                   
                   {/* Bookmark & Share Buttons */}
                   <div className="flex items-center gap-2 lg:ml-4">
@@ -58,9 +107,9 @@ const CandidateDetails = () => {
                     <button className="p-1.5 text-gray-400 hover:text-gray-600 transition"><FiShare2 className="w-5 h-5" /></button>
                   </div>
                 </div>
-                <div className="text-sm font-semibold text-gray-700 mb-1">Senior React Developer at Swiggy</div>
+                <div className="text-sm font-semibold text-gray-700 mb-1">{cData.designation || "Senior React Developer"} {cData.company ? `at ${cData.company}` : ""}</div>
                 <div className="text-xs font-medium text-gray-500 flex items-center gap-1 mb-4">
-                  <HiOutlineLocationMarker className="w-4 h-4" /> Bangalore, Karnataka, India
+                  <HiOutlineLocationMarker className="w-4 h-4" /> {cData.city || "Bangalore"}, {cData.state || "Karnataka"}, India
                 </div>
                 <div className="flex items-center gap-2">
                   <button className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-100 transition">
@@ -84,19 +133,19 @@ const CandidateDetails = () => {
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-6 lg:border-l border-gray-100 lg:pl-8">
               <div>
                 <div className="text-[10px] font-bold text-gray-400 mb-1">Experience</div>
-                <div className="text-sm font-extrabold text-gray-900">5.2 yrs</div>
+                <div className="text-sm font-extrabold text-gray-900">{cData.experience || "5.2 yrs"}</div>
               </div>
               <div>
                 <div className="text-[10px] font-bold text-gray-400 mb-1">Current CTC</div>
-                <div className="text-sm font-extrabold text-gray-900">₹18 LPA</div>
+                <div className="text-sm font-extrabold text-gray-900">{cData.pricing ? `₹${cData.pricing}` : '₹18 LPA'}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-gray-400 mb-1">Expected CTC</div>
-                <div className="text-sm font-extrabold text-gray-900">₹24 - 26 LPA</div>
+                <div className="text-[10px] font-bold text-gray-400 mb-1">Contact Visibility</div>
+                <div className="text-sm font-extrabold text-gray-900">{cData.contactVisibility === 'none' ? 'Hidden' : 'Visible'}</div>
               </div>
               <div>
                 <div className="text-[10px] font-bold text-gray-400 mb-1">Notice Period</div>
-                <div className="text-sm font-extrabold text-gray-900">30 Days</div>
+                <div className="text-sm font-extrabold text-gray-900">{cData.noticePeriod || "30 Days"}</div>
               </div>
               <div>
                 <div className="text-[10px] font-bold text-gray-400 mb-1">Availability</div>
@@ -127,9 +176,9 @@ const CandidateDetails = () => {
             
             {/* About */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">About Ankit</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-3">About {cData.profileName?.split(' ')[0] || "Candidate"}</h3>
               <p className="text-xs text-gray-600 leading-relaxed mb-6">
-                Experienced React Developer with a strong background in building scalable web applications and excellent problem-solving skills. Passionate about creating user-friendly interfaces and optimizing performance.
+                {cData.description || "Experienced React Developer with a strong background in building scalable web applications and excellent problem-solving skills. Passionate about creating user-friendly interfaces and optimizing performance."}
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 <div>
@@ -138,19 +187,19 @@ const CandidateDetails = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineGlobeAlt /> Languages</div>
-                  <div className="text-xs font-bold text-gray-900">English, Hindi</div>
+                  <div className="text-xs font-bold text-gray-900">{cData.languages?.length > 0 ? cData.languages.join(', ') : "English, Hindi"}</div>
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineLocationMarker /> Current Location</div>
-                  <div className="text-xs font-bold text-gray-900">Bangalore, India</div>
+                  <div className="text-xs font-bold text-gray-900">{cData.city || "Bangalore"}, India</div>
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><FiArrowUpRight /> Relocation</div>
-                  <div className="text-xs font-bold text-gray-900">Open to relocate</div>
+                  <div className="text-xs font-bold text-gray-900">{cData.relocationAvailable ? "Open to relocate" : "No"}</div>
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineBriefcase /> Employment Type</div>
-                  <div className="text-xs font-bold text-gray-900">Full-time</div>
+                  <div className="text-xs font-bold text-gray-900">{cData.jobType?.length > 0 ? cData.jobType.join(', ') : "Full-time"} ({cData.workMode || "Hybrid"})</div>
                 </div>
               </div>
             </div>
@@ -164,14 +213,16 @@ const CandidateDetails = () => {
                 </button>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {['React', 'TypeScript', 'Next.js', 'Redux', 'Node.js', 'Tailwind CSS', 'JavaScript', 'HTML'].map(skill => (
+                {(cData.skills?.length > 0 ? cData.skills : ['React', 'TypeScript', 'Next.js', 'Redux', 'Node.js', 'Tailwind CSS', 'JavaScript', 'HTML']).slice(0, 8).map(skill => (
                   <span key={skill} className="text-xs font-bold text-gray-600 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-lg">
                     {skill}
                   </span>
                 ))}
-                <span className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-lg">
-                  +6
-                </span>
+                {cData.skills?.length > 8 && (
+                  <span className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-lg">
+                    +{cData.skills.length - 8}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -191,54 +242,34 @@ const CandidateDetails = () => {
                 </div>
                 
                 <div className="sm:w-2/3 space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
-                  {/* Mock Timeline Items */}
-                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-orange-100 text-orange-600 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm font-bold text-xl z-10">
-                      S
-                    </div>
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-gray-100 shadow-sm bg-white">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
-                        <div className="font-bold text-gray-900 text-sm">Swiggy</div>
-                        <div className="text-[10px] font-bold text-gray-400">Jan 2022 - Present</div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-xs text-gray-600">Senior React Developer</div>
-                        <div className="text-[10px] font-bold text-gray-400">2.5 yrs</div>
-                      </div>
-                    </div>
-                  </div>
+                  {cData.previousExperience?.map((exp, idx) => {
+                    const colors = [
+                      { bg: 'bg-orange-100', text: 'text-orange-600' },
+                      { bg: 'bg-blue-100', text: 'text-blue-600' },
+                      { bg: 'bg-red-100', text: 'text-red-600' },
+                      { bg: 'bg-emerald-100', text: 'text-emerald-600' }
+                    ];
+                    const color = colors[idx % colors.length];
+                    const initial = exp.company ? exp.company.charAt(0).toUpperCase() : 'C';
 
-                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-blue-100 text-blue-600 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm font-bold text-xl z-10">
-                      R
-                    </div>
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-gray-100 shadow-sm bg-white">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
-                        <div className="font-bold text-gray-900 text-sm">Razorpay</div>
-                        <div className="text-[10px] font-bold text-gray-400">Jul 2020 - Dec 2021</div>
+                    return (
+                      <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-white ${color.bg} ${color.text} shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm font-bold text-xl z-10`}>
+                          {initial}
+                        </div>
+                        <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-gray-100 shadow-sm bg-white">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
+                            <div className="font-bold text-gray-900 text-sm">{exp.company}</div>
+                            <div className="text-[10px] font-bold text-gray-400">{exp.duration}</div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="text-xs text-gray-600">{exp.role}</div>
+                            <div className="text-[10px] font-bold text-gray-400">{exp.description}</div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-xs text-gray-600">React Developer</div>
-                        <div className="text-[10px] font-bold text-gray-400">1.5 yrs</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-red-100 text-red-600 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm font-bold text-xl z-10">
-                      T
-                    </div>
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-gray-100 shadow-sm bg-white">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
-                        <div className="font-bold text-gray-900 text-sm">TechMahindra</div>
-                        <div className="text-[10px] font-bold text-gray-400">Aug 2019 - Jun 2020</div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-xs text-gray-600">Frontend Developer</div>
-                        <div className="text-[10px] font-bold text-gray-400">10 mos</div>
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })}
                   
                   <div className="text-center pt-2">
                     <button className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1 mx-auto">
@@ -252,20 +283,18 @@ const CandidateDetails = () => {
             {/* Education & Projects Layout */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* Education */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col">
                 <h3 className="text-sm font-bold text-gray-900 mb-4">Education</h3>
                 <div className="space-y-4 mb-4">
-                  <div>
-                    <div className="text-xs font-bold text-gray-900 mb-0.5">B.Tech in Computer Science</div>
-                    <div className="text-[10px] font-semibold text-gray-400 mb-1">2015 - 2019</div>
-                    <div className="text-[11px] text-gray-600">Visvesvaraya Technological University</div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-gray-900 mb-0.5">Class XII (CBSE)</div>
-                    <div className="text-[10px] font-semibold text-gray-400 mb-1">2014 - 2015</div>
-                    <div className="text-[11px] text-gray-600">Delhi Public School</div>
-                  </div>
+                  {cData.education?.length > 0 ? cData.education.map((edu, idx) => (
+                    <div key={idx}>
+                      <div className="text-xs font-bold text-gray-900 mb-0.5">{edu.degree}</div>
+                      <div className="text-[10px] font-semibold text-gray-400 mb-1">{edu.year || 'N/A'}</div>
+                      <div className="text-[11px] text-gray-600">{edu.institution}</div>
+                    </div>
+                  )) : (
+                    <div className="text-[11px] text-gray-500 italic">No education details provided</div>
+                  )}
                 </div>
                 <div className="mt-auto text-center pt-4 border-t border-gray-50">
                   <button className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1 mx-auto">
@@ -448,18 +477,24 @@ const CandidateDetails = () => {
                   {/* Resume */}
                   <div>
                     <h4 className="text-xs font-bold text-gray-900 mb-3">Resume</h4>
-                    <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-red-100 text-red-600 p-2 rounded-lg">
-                          <FiFileText className="w-4 h-4" />
+                    {cData.resumeUrl ? (
+                      <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-gray-50">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-red-100 text-red-600 p-2 rounded-lg">
+                            <FiFileText className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-gray-900">{(cData.profileName?.replace(/\s+/g, '_') || "Candidate") + "_Resume"}</div>
+                            <div className="text-[9px] text-gray-500">Available</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="text-xs font-bold text-gray-900">Ankit_Singh_Resume.pdf</div>
-                          <div className="text-[9px] text-gray-500">Last updated 2 days ago</div>
-                        </div>
+                        <a href={cData.resumeUrl} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-gray-600">
+                          <FiDownload className="w-4 h-4" />
+                        </a>
                       </div>
-                      <button className="text-gray-400 hover:text-gray-600"><FiDownload className="w-4 h-4" /></button>
-                    </div>
+                    ) : (
+                      <div className="text-[11px] text-gray-500 italic">No resume uploaded</div>
+                    )}
                   </div>
 
                   {/* Notes */}
