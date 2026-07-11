@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-import { HiStar, HiLocationMarker, HiBadgeCheck, HiPhone, HiMail, HiExternalLink, HiBriefcase, HiTranslate, HiCurrencyRupee, HiEye, HiCheckCircle, HiCalendar } from 'react-icons/hi';
+import { HiStar, HiLocationMarker, HiBadgeCheck, HiPhone, HiMail, HiExternalLink, HiBriefcase, HiTranslate, HiCurrencyRupee, HiEye, HiCheckCircle, HiCalendar, HiLockClosed, HiOutlinePencil, HiOutlineDocumentText } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { recruiterAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -28,8 +28,8 @@ const ProviderPublicProfile = () => {
   const [contactUnlocked, setContactUnlocked] = useState(false);
   const [contactInfo, setContactInfo] = useState(null);
   const [unlocking, setUnlocking] = useState(false);
-  const [showReviews, setShowReviews] = useState(false);
-  const reviewsRef = useRef(null);
+  
+  const [activeTab, setActiveTab] = useState('about'); // 'about' or 'reviews'
 
   const getFallbackProviderPayload = (providerId) => {
     const dummyProvider = findProviderById(DUMMY_PROVIDERS, providerId);
@@ -74,22 +74,6 @@ const ProviderPublicProfile = () => {
   useEffect(() => {
     fetchProfile();
   }, [id]);
-
-  useEffect(() => {
-    if (!reviewsRef.current || showReviews) return undefined;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setShowReviews(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '200px' },
-    );
-
-    observer.observe(reviewsRef.current);
-    return () => observer.disconnect();
-  }, [showReviews]);
 
   // Check unlock status when authenticated recruiter visits
   useEffect(() => {
@@ -162,17 +146,17 @@ const ProviderPublicProfile = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><LoadingSpinner size="lg" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#F4F7FC]"><LoadingSpinner size="lg" /></div>;
   
   if (!profile) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-      <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full text-center border border-gray-100">
-        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-4xl">🕵️</span>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F7FC] p-4">
+      <div className="bg-white p-8 rounded-2xl shadow-sm max-w-md w-full text-center border border-[#E5E9F2]">
+        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
+          <span className="text-4xl text-gray-400">🕵️</span>
         </div>
-        <h2 className="text-2xl font-extrabold text-gray-900 mb-2">{t('common.providerNotFound', 'Provider not found')}</h2>
-        <p className="text-gray-500 mb-6">The profile you are looking for does not exist or has been removed.</p>
-        <button onClick={() => navigate('/search')} className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition w-full">
+        <h2 className="text-xl font-bold text-[#1E293B] mb-2">{t('common.providerNotFound', 'Provider not found')}</h2>
+        <p className="text-[#64748B] mb-6 text-sm">The profile you are looking for does not exist or has been removed.</p>
+        <button onClick={() => navigate('/search')} className="bg-[#1E293B] text-white px-6 py-2.5 rounded-xl font-medium hover:bg-slate-800 transition w-full shadow-sm text-sm">
           Go back to Search
         </button>
       </div>
@@ -186,8 +170,13 @@ const ProviderPublicProfile = () => {
   const userName = profile.user?.name || 'Service Provider';
   const firstName = (userName || '').split(' ')[0] || 'Provider';
 
+  const approvedLinks = (profile.portfolioLinks || []).filter(link => {
+    if (typeof link === 'string') return true;
+    return link.status === 'approved';
+  });
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-20">
+    <div className="min-h-screen bg-[#F4F7FC] pb-24 pt-8 px-4 sm:px-6 lg:px-8 font-sans">
       <Seo
         title={seoTitle}
         description={seoDescription}
@@ -195,305 +184,294 @@ const ProviderPublicProfile = () => {
         image={seoImage}
       />
       
-      {/* Hero Banner Section */}
-      <div className="relative w-full h-[280px] lg:h-[320px] bg-indigo-900 overflow-hidden">
-        {/* Abstract Background Patterns */}
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-900"></div>
-        <div className="absolute top-0 left-0 w-full h-full opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-10">
+      <div className="max-w-[1200px] mx-auto">
         
-        {/* Header Card */}
-        <div className="bg-white rounded-[2rem] shadow-xl p-6 sm:p-8 border border-white/40 backdrop-blur-xl mb-8 relative">
-          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-            
-            {/* Avatar */}
-            <div className="relative">
-              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full p-2 bg-white shadow-2xl -mt-16 sm:-mt-20 border-4 border-white/50 backdrop-blur-md relative z-20">
-                {profile.photo || profile.profilePhoto ? (
-                  <img
-                    src={toOptimizedMediaUrl(profile.photo || profile.profilePhoto, { width: 300, height: 300, crop: 'fill', dpr: 'auto' })}
-                    alt={userName}
-                    className="w-full h-full object-cover rounded-full bg-gray-50"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                    <span className="text-5xl font-black text-white">{userName[0]}</span>
-                  </div>
-                )}
-              </div>
-              {profile.isVerified && (
-                <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-white rounded-full p-1 shadow-lg z-30" title="Verified">
-                  <HiBadgeCheck className="w-8 h-8 text-blue-500" />
-                </div>
-              )}
-            </div>
-
-            {/* Title Info */}
-            <div className="flex-1 text-center md:text-left mt-2 md:mt-0">
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-2">{userName}</h1>
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm font-medium text-gray-600 mb-4">
-                <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full"><HiLocationMarker className="w-4 h-4 text-rose-500" /> {profile.city || 'Location N/A'}</span>
-                <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full"><HiStar className="w-4 h-4 text-amber-400" /> <strong className="text-gray-900">{profile.rating || '0.0'}</strong> ({profile.totalReviews || 0} reviews)</span>
-                {profile.tier && <span className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full capitalize"><HiCheckCircle className="w-4 h-4"/> {profile.tier.replace('-', ' ')}</span>}
-              </div>
-              
-              {/* Top Skills Summary */}
-              {profile.skills?.length > 0 && (
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                  {profile.skills.slice(0, 4).map((skill, i) => (
-                    <span key={i} className="px-4 py-1.5 bg-slate-900 text-white rounded-full text-xs font-semibold tracking-wide">{skill}</span>
-                  ))}
-                  {profile.skills.length > 4 && (
-                    <span className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">+{profile.skills.length - 4}</span>
-                  )}
-                </div>
-              )}
-            </div>
-            
-            {/* Call to Action Quick */}
-            <div className="hidden lg:flex flex-col gap-3 w-64">
-              <button onClick={() => {
-                document.getElementById('contact-card')?.scrollIntoView({ behavior: 'smooth' });
-              }} className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-2">
-                <HiPhone className="w-5 h-5" />
-                Contact {firstName}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid lg:grid-cols-12 gap-8">
+        {/* TOP ROW: 3 Columns on Desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           
-          {/* Main Content Area */}
-          <div className="lg:col-span-8 space-y-8">
-            
-            {/* About Section */}
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-4">
-                <span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><HiCheckCircle /></span>
-                About {firstName}
-              </h2>
-              <div className="prose prose-indigo max-w-none text-gray-600 leading-relaxed">
-                <p>{profile.description || `${firstName} is a professional ${profile.category || 'service provider'} based in ${profile.city || 'their city'}. They have a track record of providing excellent service and ensuring customer satisfaction.`}</p>
-              </div>
-            </div>
-
-            {/* Services & Expertise */}
-            {profile.services?.length > 0 && (
-              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
-                  <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center"><HiBriefcase /></span>
-                  Services Offered
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {profile.services.map((service, i) => (
-                    <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/50 transition-colors">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
-                      <span className="font-medium text-gray-800">{service}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Portfolio Links */}
-            {(() => {
-              const approvedLinks = (profile.portfolioLinks || []).filter(link => {
-                if (typeof link === 'string') return true;
-                return link.status === 'approved';
-              });
-              
-              if (approvedLinks.length === 0) return null;
-
-              return (
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
-                    <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><HiExternalLink /></span>
-                    Portfolio & Work
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {approvedLinks.map((link, i) => {
-                      const platformName = typeof link === 'string' ? 'Link' : link.platform;
-                      const linkUrl = typeof link === 'string' ? link : link.url;
-                      return (
-                        <SafeExternalLink key={i} href={linkUrl} className="group flex flex-col p-5 rounded-2xl border border-gray-100 hover:border-blue-300 hover:shadow-md transition-all bg-white">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-bold text-gray-900 capitalize">{platformName}</span>
-                            <HiExternalLink className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                          </div>
-                          <span className="text-sm text-gray-500 truncate">{linkUrl}</span>
-                        </SafeExternalLink>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Reviews Section */}
-            <div ref={reviewsRef} className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
-                <span className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center"><HiStar /></span>
-                Client Reviews
-              </h2>
-              {showReviews ? (
-                <Suspense fallback={<div className="py-10"><LoadingSpinner /></div>}>
-                  <ReviewSection
-                    revieweeId={profile.user?._id}
-                    initialReviews={(reviews || []).map((review) => ({
-                      ...review,
-                      reviewerId: review.reviewerId || review.recruiter,
-                    }))}
-                    initialSummary={{
-                      avgRating: profile.rating || 0,
-                      totalReviews: profile.totalReviews || reviews.length || 0,
-                    }}
-                  />
-                </Suspense>
+          {/* Card 1: Avatar & Contact */}
+          <div className="bg-white rounded-[1.25rem] shadow-sm border border-[#E5E9F2] p-8 flex flex-col items-center text-center">
+            <div className="w-[120px] h-[120px] rounded-full mb-6 shadow-sm border border-gray-100 overflow-hidden relative bg-gray-50">
+              {profile.photo || profile.profilePhoto ? (
+                <img
+                  src={toOptimizedMediaUrl(profile.photo || profile.profilePhoto, { width: 240, height: 240, crop: 'fill', dpr: 'auto' })}
+                  alt={userName}
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                <div className="h-32 flex items-center justify-center text-gray-400">Loading reviews...</div>
+                <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                  <span className="text-4xl font-bold text-slate-400">{userName[0]}</span>
+                </div>
               )}
             </div>
-
-          </div>
-
-          {/* Sidebar Area */}
-          <div className="lg:col-span-4 space-y-6">
             
-            {/* Quick Details Card */}
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-              <h3 className="font-bold text-gray-900 mb-5">Profile Summary</h3>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between py-3 border-b border-gray-50">
-                  <div className="flex items-center gap-3 text-gray-500"><HiCalendar className="w-5 h-5 text-indigo-400"/> Experience</div>
-                  <div className="font-semibold text-gray-900">{profile.experience || 'N/A'}</div>
-                </div>
-                
-                <div className="flex items-center justify-between py-3 border-b border-gray-50">
-                  <div className="flex items-center gap-3 text-gray-500"><HiTranslate className="w-5 h-5 text-indigo-400"/> Languages</div>
-                  <div className="font-semibold text-gray-900">{(profile.languages || []).join(', ') || 'English, Hindi'}</div>
-                </div>
+            <h1 className="text-[22px] font-bold text-[#1E293B] leading-tight mb-2 flex items-center gap-2">
+              {userName}
+              {profile.isVerified && <HiBadgeCheck className="w-5 h-5 text-blue-500 shrink-0" title="Verified" />}
+            </h1>
+            <p className="text-sm font-medium text-[#64748B] mb-6 px-4">
+              {profile.category || (Array.isArray(profile.skills) ? profile.skills[0] : 'Professional')}
+            </p>
 
-                <div className="flex items-center justify-between py-3 border-b border-gray-50">
-                  <div className="flex items-center gap-3 text-gray-500"><HiCurrencyRupee className="w-5 h-5 text-indigo-400"/> Pricing</div>
-                  <div className="text-right">
-                    {profile.pricing ? (
-                      <span className="font-bold text-emerald-600">
-                        ₹{profile.pricing}
-                        <span className="text-sm text-gray-500 font-medium">{profile.pricingType ? `/${profile.pricingType}` : ''}</span>
-                      </span>
-                    ) : (
-                      <span className="text-sm font-semibold text-gray-400">Upon Request</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between py-3">
-                  <div className="flex items-center gap-3 text-gray-500"><HiEye className="w-5 h-5 text-indigo-400"/> Profile Views</div>
-                  <div className="font-semibold text-gray-900 bg-gray-100 px-3 py-1 rounded-lg">{profile.profileViews || 0}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Card (Sticky) */}
-            <div id="contact-card" className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-3xl shadow-xl border border-indigo-800 p-6 sticky top-24 overflow-hidden relative">
-              <div className="absolute -right-10 -top-10 w-32 h-32 bg-white opacity-5 rounded-full blur-2xl"></div>
-              
-              <h3 className="font-extrabold text-white text-xl mb-1">Contact {firstName}</h3>
-              <p className="text-indigo-200 text-sm mb-6">Get in touch to discuss your requirements</p>
-
+            {/* Contact Details (Blue links) */}
+            <div className="w-full mt-auto space-y-3">
               {profile.isDummy && (
-                <div className="bg-amber-500/20 border border-amber-500/50 text-amber-200 rounded-xl px-4 py-3 mb-4 text-sm font-medium backdrop-blur-sm">
-                  Contact is unavailable for demo providers.
+                <div className="text-[12px] font-medium text-amber-600 bg-amber-50 px-3 py-2 rounded-lg mb-2">
+                  Demo profile contact hidden.
                 </div>
               )}
 
               {contactUnlocked && contactInfo ? (
-                <div className="space-y-3">
+                <>
                   {(contactInfo.phone || contactInfo.whatsappNumber) && (
-                    <a href={`tel:${contactInfo.phone || contactInfo.whatsappNumber}`}
-                      className="w-full flex items-center justify-center space-x-2 bg-white text-indigo-900 py-3.5 rounded-2xl font-bold shadow-lg hover:bg-gray-50 transition active:scale-95">
-                      <HiPhone className="w-5 h-5 text-indigo-600" />
-                      <span>{contactInfo.phone || contactInfo.whatsappNumber}</span>
+                    <a href={`tel:${contactInfo.phone || contactInfo.whatsappNumber}`} className="text-[#3B82F6] font-medium text-[15px] hover:underline block break-all">
+                      {contactInfo.phone || contactInfo.whatsappNumber}
                     </a>
                   )}
-                  
-                  <button 
-                    disabled={profile.whatsappAlerts === false}
-                    onClick={() => {
-                      if (profile.whatsappAlerts === false) return;
-                      navigate('/contact', { state: { subject: `Enquiry for ${userName}`, providerId: profile.user?._id } });
-                    }}
-                    className={`w-full flex items-center justify-center space-x-2 py-3.5 rounded-2xl font-bold shadow-lg transition
-                      ${profile.whatsappAlerts === false 
-                        ? "bg-slate-200 text-slate-400 opacity-60 cursor-not-allowed select-none pointer-events-none" 
-                        : "bg-[#25D366] text-white hover:bg-[#20bd5a] active:scale-95"
-                      }`}
-                  >
-                    <FaWhatsapp className="w-5 h-5" />
-                    <span>WhatsApp Message</span>
-                  </button>
-
                   {contactInfo.email && (
-                    <a href={`mailto:${contactInfo.email}`}
-                      className="w-full flex items-center justify-center space-x-2 bg-indigo-800 text-white border border-indigo-700 py-3.5 rounded-2xl font-bold hover:bg-indigo-700 transition active:scale-95">
-                      <HiMail className="w-5 h-5 text-indigo-300" />
-                      <span>{contactInfo.email}</span>
+                    <a href={`mailto:${contactInfo.email}`} className="text-[#3B82F6] font-medium text-[15px] hover:underline block break-all">
+                      {contactInfo.email}
                     </a>
                   )}
-                </div>
+                  <a 
+                    href={profile.whatsappAlerts === false ? undefined : `https://wa.me/${(contactInfo.whatsappNumber || contactInfo.phone || '').replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`mt-4 w-full border border-[#E5E9F2] text-[#1E293B] py-2 rounded-lg text-sm font-semibold flex justify-center items-center gap-2 ${profile.whatsappAlerts === false ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-50'}`}
+                    onClick={(e) => {
+                      if (profile.whatsappAlerts === false) e.preventDefault();
+                    }}
+                  >
+                    <FaWhatsapp className="text-[#25D366] w-4 h-4"/> WhatsApp
+                  </a>
+                </>
               ) : (
-                <div className="space-y-3 mb-5">
-                  <div className="bg-black/20 rounded-2xl p-4 text-center border border-white/10 backdrop-blur-sm mb-2">
-                    <p className="text-sm text-indigo-100 leading-relaxed font-medium">
-                      {profile.isDummy
-                        ? 'Demo provider contact is intentionally hidden.'
-                        : 'Contact information is protected. Unlock to view full details.'}
-                    </p>
-                  </div>
-
-                  {profile.phone && (
-                    <button onClick={handleUnlock} disabled={unlocking || profile.isDummy} className="w-full flex items-center justify-center space-x-2 bg-white/10 text-white py-3.5 rounded-2xl font-bold border border-white/20 backdrop-blur-md hover:bg-white/20 transition group">
-                      <HiPhone className="w-5 h-5 text-indigo-300" />
-                      <span className="opacity-90">{profile.phone}</span>
-                      <span className="ml-2 text-xs bg-indigo-500/50 px-2 py-0.5 rounded text-indigo-100 flex items-center gap-1"><div className="text-[10px]">🔒</div> Unlock</span>
-                    </button>
-                  )}
-
-                  {profile.email && (
-                    <button onClick={handleUnlock} disabled={unlocking || profile.isDummy} className="w-full flex items-center justify-center space-x-2 bg-indigo-800/50 text-indigo-200 border border-indigo-700/50 py-3.5 rounded-2xl font-bold backdrop-blur-md hover:bg-indigo-800/70 transition group">
-                      <HiMail className="w-5 h-5 text-indigo-400" />
-                      <span className="opacity-90">{profile.email}</span>
-                      <span className="ml-2 text-xs bg-indigo-600/50 px-2 py-0.5 rounded text-indigo-200 flex items-center gap-1"><div className="text-[10px]">🔒</div> Unlock</span>
-                    </button>
-                  )}
-
-                  {profile.hasResume && (
-                    <button onClick={handleUnlock} disabled={unlocking || profile.isDummy} className="w-full flex items-center justify-center space-x-2 bg-emerald-900/40 text-emerald-200 border border-emerald-700/50 py-3.5 rounded-2xl font-bold backdrop-blur-md hover:bg-emerald-900/60 transition group">
-                      <span className="text-lg">📄</span>
-                      <span className="opacity-90 blur-[1px]">Download Resume.pdf</span>
-                      <span className="ml-2 text-xs bg-emerald-600/50 px-2 py-0.5 rounded text-emerald-100 flex items-center gap-1"><div className="text-[10px]">🔒</div> Unlock</span>
-                    </button>
-                  )}
-                
-                <button onClick={handleUnlock} disabled={unlocking || profile.isDummy}
-                    className="w-full bg-white text-indigo-900 py-4 rounded-2xl font-extrabold shadow-xl hover:bg-indigo-50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group">
-                    {unlocking ? (
-                      <><span className="w-5 h-5 border-3 border-indigo-900 border-t-transparent rounded-full animate-spin" /> Unlocking...</>
-                    ) : profile.isDummy ? 'Unavailable' : (
-                      <>Unlock Full Contact <HiExternalLink className="w-5 h-5 text-indigo-500 group-hover:translate-x-1 transition-transform"/></>
-                    )}
+                <>
+                  {profile.phone && <div className="text-[#3B82F6] font-medium text-[15px] blur-[4px] select-none">+1 (555) 000-0000</div>}
+                  {profile.email && <div className="text-[#3B82F6] font-medium text-[15px] blur-[4px] select-none">contact@example.com</div>}
+                  <button 
+                    onClick={handleUnlock} 
+                    disabled={unlocking || profile.isDummy}
+                    className="mt-4 w-full bg-[#1E293B] text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-800 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {unlocking ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/> : <HiLockClosed className="w-4 h-4 text-slate-300"/>}
+                    Unlock Contact
                   </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Card 2: General Information */}
+          <div className="bg-white rounded-[1.25rem] shadow-sm border border-[#E5E9F2] p-6 lg:p-8">
+            <h2 className="text-[17px] font-semibold text-[#1E293B] flex items-center gap-2 mb-6">
+              General information
+              <div className="w-5 h-5 rounded-full bg-[#EFF6FF] flex items-center justify-center text-[#3B82F6]">
+                <HiOutlinePencil className="w-3 h-3" />
+              </div>
+            </h2>
+            
+            <div className="space-y-0">
+              <div className="grid grid-cols-[120px_1fr] py-3.5 border-b border-[#F1F5F9]">
+                <span className="text-[13px] text-[#64748B] font-medium">Location</span>
+                <span className="text-[14px] text-[#1E293B] font-medium text-right">{profile.city || 'N/A'}</span>
+              </div>
+              <div className="grid grid-cols-[120px_1fr] py-3.5 border-b border-[#F1F5F9]">
+                <span className="text-[13px] text-[#64748B] font-medium">Experience</span>
+                <span className="text-[14px] text-[#1E293B] font-medium text-right">{profile.experience || 'N/A'}</span>
+              </div>
+              <div className="grid grid-cols-[120px_1fr] py-3.5 border-b border-[#F1F5F9]">
+                <span className="text-[13px] text-[#64748B] font-medium">Languages</span>
+                <span className="text-[14px] text-[#1E293B] font-medium text-right">{(profile.languages || []).join(', ') || 'English'}</span>
+              </div>
+              <div className="grid grid-cols-[120px_1fr] py-3.5 border-b border-[#F1F5F9]">
+                <span className="text-[13px] text-[#64748B] font-medium">Pricing</span>
+                <span className="text-[14px] text-[#1E293B] font-medium text-right">
+                  {profile.pricing ? `₹${profile.pricing}${profile.pricingType ? `/${profile.pricingType}` : ''}` : 'Upon Request'}
+                </span>
+              </div>
+              <div className="grid grid-cols-[120px_1fr] py-3.5">
+                <span className="text-[13px] text-[#64748B] font-medium">Profile Views</span>
+                <span className="text-[14px] text-[#1E293B] font-medium text-right">{profile.profileViews || 0}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Anamnesis -> Core Expertise & Services */}
+          <div className="bg-white rounded-[1.25rem] shadow-sm border border-[#E5E9F2] p-6 lg:p-8">
+            <h2 className="text-[17px] font-semibold text-[#1E293B] flex items-center gap-2 mb-6">
+              Expertise & Services
+              <div className="w-5 h-5 rounded-full bg-[#EFF6FF] flex items-center justify-center text-[#3B82F6]">
+                <HiOutlinePencil className="w-3 h-3" />
+              </div>
+            </h2>
+            
+            <div className="space-y-0">
+              <div className="grid grid-cols-[100px_1fr] py-3.5 border-b border-[#F1F5F9]">
+                <span className="text-[13px] text-[#64748B] font-medium">Skills</span>
+                <span className="text-[14px] text-[#1E293B] font-medium text-right">
+                  {(profile.skills || []).length > 0 ? profile.skills.join(', ') : 'Not specified'}
+                </span>
+              </div>
+              <div className="grid grid-cols-[100px_1fr] py-3.5 border-b border-[#F1F5F9]">
+                <span className="text-[13px] text-[#64748B] font-medium">Services</span>
+                <span className="text-[14px] text-[#1E293B] font-medium text-right">
+                  {(profile.services || []).length > 0 ? profile.services.join(', ') : 'Not specified'}
+                </span>
+              </div>
+              <div className="grid grid-cols-[100px_1fr] py-3.5 border-b border-[#F1F5F9]">
+                <span className="text-[13px] text-[#64748B] font-medium">Rating</span>
+                <span className="text-[14px] text-[#1E293B] font-medium text-right flex items-center justify-end gap-1">
+                  {profile.rating || '0.0'} <HiStar className="w-4 h-4 text-amber-400 -mt-0.5"/>
+                </span>
+              </div>
+              {profile.tier && (
+                <div className="grid grid-cols-[100px_1fr] py-3.5">
+                  <span className="text-[13px] text-[#64748B] font-medium">Tier</span>
+                  <span className="text-[14px] text-[#1E293B] font-medium text-right capitalize">
+                    {profile.tier.replace('-', ' ')}
+                  </span>
                 </div>
               )}
             </div>
+          </div>
+
+        </div>
+
+        {/* BOTTOM ROW: Left (Tabs+Lists), Right (Files) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Main Area (Tabs) */}
+          <div className="lg:col-span-2 bg-white rounded-[1.25rem] shadow-sm border border-[#E5E9F2] p-6 lg:p-8 h-fit">
+            {/* Custom Tabs */}
+            <div className="flex gap-8 border-b border-[#E5E9F2] mb-6">
+              <button 
+                onClick={() => setActiveTab('about')}
+                className={`pb-3 text-[15px] font-bold transition-colors ${activeTab === 'about' ? 'text-[#3B82F6] border-b-[3px] border-[#3B82F6]' : 'text-[#94A3B8] hover:text-[#64748B]'}`}
+              >
+                About Provider
+              </button>
+              <button 
+                onClick={() => setActiveTab('reviews')}
+                className={`pb-3 text-[15px] font-bold transition-colors ${activeTab === 'reviews' ? 'text-[#3B82F6] border-b-[3px] border-[#3B82F6]' : 'text-[#94A3B8] hover:text-[#64748B]'}`}
+              >
+                Client Reviews ({profile.totalReviews || reviews.length || 0})
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            <div className="mt-6">
+              {activeTab === 'about' && (
+                <div className="text-[14px] text-[#475569] leading-relaxed max-w-3xl whitespace-pre-wrap">
+                  {profile.description || `${firstName} is a professional ${profile.category || 'service provider'} based in ${profile.city || 'their city'}. They have a track record of providing excellent service and ensuring customer satisfaction.`}
+                </div>
+              )}
+
+              {activeTab === 'reviews' && (
+                <div className="space-y-4">
+                  {reviews && reviews.length > 0 ? (
+                    reviews.map((rev, i) => {
+                      // Alternate border colors for visual style
+                      const borderColors = ['border-l-[#A855F7]', 'border-l-[#14B8A6]', 'border-l-[#3B82F6]', 'border-l-[#F59E0B]'];
+                      const bgColors = ['bg-[#F9F5FF]', 'bg-[#F0FDFA]', 'bg-[#EFF6FF]', 'bg-[#FFFBEB]'];
+                      const cIndex = i % borderColors.length;
+                      
+                      return (
+                        <div key={i} className={`flex flex-col sm:flex-row gap-4 sm:items-center p-4 rounded-r-xl border-l-4 ${borderColors[cIndex]} ${bgColors[cIndex]}`}>
+                          <div className="flex-1">
+                            <div className="text-[12px] text-[#64748B] mb-1">
+                              {new Date(rev.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </div>
+                            <div className="font-semibold text-[#1E293B] text-[15px]">{rev.reviewerName || 'Client'}</div>
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="text-[12px] text-[#64748B] mb-1">Rating</div>
+                            <div className="flex items-center text-amber-500">
+                              {[...Array(5)].map((_, j) => (
+                                <HiStar key={j} className={`w-4 h-4 ${j < rev.rating ? 'text-amber-500' : 'text-amber-200'}`} />
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 sm:text-right">
+                            <div className="text-[12px] text-[#64748B] mb-1">Feedback</div>
+                            <div className="text-[14px] text-[#1E293B] font-medium truncate max-w-[200px] sm:ml-auto" title={rev.comment}>
+                              {rev.comment || 'Great service'}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="text-center py-10 text-[#94A3B8] text-sm">No reviews found.</div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Area (Files/Links) */}
+          <div className="lg:col-span-1 space-y-6">
             
+            <div className="bg-white rounded-[1.25rem] shadow-sm border border-[#E5E9F2] p-6 lg:p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-[17px] font-semibold text-[#1E293B]">Portfolio & Links</h2>
+                {approvedLinks.length > 0 && (
+                  <button className="text-[11px] font-bold text-[#3B82F6] border border-[#BFDBFE] px-3 py-1 rounded-full uppercase tracking-wider hover:bg-[#EFF6FF] transition">
+                    Open All
+                  </button>
+                )}
+              </div>
+
+              {approvedLinks.length > 0 ? (
+                <div className="space-y-4">
+                  {approvedLinks.map((link, i) => {
+                    const platformName = typeof link === 'string' ? 'Web Link' : link.platform;
+                    const linkUrl = typeof link === 'string' ? link : link.url;
+                    return (
+                      <SafeExternalLink key={i} href={linkUrl} className="flex items-center gap-3 p-2 hover:bg-[#F8FAFC] rounded-lg transition group">
+                        <div className="w-8 h-8 rounded bg-[#EFF6FF] text-[#3B82F6] flex items-center justify-center shrink-0">
+                          <HiOutlineDocumentText className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[14px] font-semibold text-[#1E293B] capitalize truncate">{platformName}</div>
+                        </div>
+                        <div className="text-[12px] text-[#94A3B8] group-hover:text-[#3B82F6] flex items-center gap-1 transition">
+                          Link <HiExternalLink className="w-3 h-3"/>
+                        </div>
+                      </SafeExternalLink>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-[13px] text-[#94A3B8] py-4">No portfolio links added.</div>
+              )}
+            </div>
+            
+            {/* Optional Notes Section if needed */}
+            {profile.resumeUrl && profile.hasResume && (
+              <div className="bg-white rounded-[1.25rem] shadow-sm border border-[#E5E9F2] p-6 lg:p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-[17px] font-semibold text-[#1E293B]">Resume</h2>
+                  <button onClick={handleUnlock} disabled={unlocking || profile.isDummy || contactUnlocked} className="text-[11px] font-bold text-[#3B82F6] border border-[#BFDBFE] px-3 py-1 rounded-full uppercase tracking-wider hover:bg-[#EFF6FF] transition disabled:opacity-50">
+                    DOWNLOAD
+                  </button>
+                </div>
+                <div className="flex items-center gap-3 p-2">
+                  <div className="w-8 h-8 rounded bg-[#F3F4F6] text-[#64748B] flex items-center justify-center shrink-0">
+                    <HiOutlineDocumentText className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[14px] font-semibold text-[#1E293B] truncate">Resume.pdf</div>
+                  </div>
+                  <div className="text-[12px] text-[#94A3B8]">
+                    {contactUnlocked ? 'Available' : 'Locked'}
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
       </div>

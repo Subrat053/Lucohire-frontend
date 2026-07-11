@@ -15,7 +15,7 @@ const SCard = ({ children, className = '' }) => (
 );
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState('Company Profile');
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profileData, setProfileData] = useState({});
@@ -155,16 +155,7 @@ export default function Settings() {
     }
   };
 
-  const tabs = [
-    { name: 'Company Profile', icon: <HiOfficeBuilding /> },
-    { name: 'Team Management', icon: <FiUsers /> },
-    { name: 'Subscription & Credits', icon: <FiCreditCard /> },
-    { name: 'Billing & Invoices', icon: <FiFileText /> },
-    { name: 'Integrations', icon: <FiLink /> },
-    { name: 'Notifications', icon: <FiBell /> },
-    { name: 'Security', icon: <FiShield /> },
-    { name: 'Support', icon: <FiHelpCircle /> },
-  ];
+
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -186,30 +177,11 @@ export default function Settings() {
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
-          
-          {/* Tabs */}
-          <div className="flex gap-6 mt-6 overflow-x-auto whitespace-nowrap custom-scrollbar pb-0.5">
-            {tabs.map(tab => (
-              <button 
-                key={tab.name}
-                onClick={() => setActiveTab(tab.name)}
-                className={`pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${
-                  activeTab === tab.name 
-                    ? 'border-indigo-600 text-indigo-600' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <span className={activeTab === tab.name ? 'text-indigo-600' : 'text-gray-400'}>{tab.icon}</span>
-                {tab.name}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeTab === 'Company Profile' ? (
           <div className="flex flex-col 2xl:flex-row gap-6">
             
             {/* Left Column (Forms) */}
@@ -501,17 +473,6 @@ export default function Settings() {
           </div>
           
           </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-            <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-6">
-              <HiSparkles className="w-10 h-10" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{activeTab}</h2>
-            <p className="text-gray-500 max-w-md">
-              We are working hard to bring you the {activeTab} features. Stay tuned for upcoming updates!
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

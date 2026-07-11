@@ -280,7 +280,7 @@ const RecruiterPlans = () => {
                                 <span className="text-2xl font-black text-slate-900">₹0</span>
                               ) : (
                                 <>
-                                  <span className="text-2xl font-black text-slate-900">{plan.currencySymbol || '₹'}{plan.price}</span>
+                                  <span className="text-2xl font-black text-slate-900">₹{plan.price.toLocaleString('en-IN')}</span>
                                   <span className="text-[11px] text-slate-500 font-bold mb-1">/month</span>
                                 </>
                               )}
@@ -512,17 +512,12 @@ const RecruiterPlans = () => {
                 <div className="divide-y divide-slate-100 bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-500 font-medium">Base Plan Amount</span>
-                    <span className="font-bold text-slate-800">{breakdownData.currencySymbol || '₹'}{breakdownData.baseAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-xs pt-3">
-                    <span className="text-slate-500 font-medium">{breakdownData.taxName || 'GST/Taxes'} ({breakdownData.taxPercent}%)</span>
-                    <span className="font-bold text-slate-800">{breakdownData.currencySymbol || '₹'}{breakdownData.taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <span className="font-bold text-slate-800">₹{breakdownData.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-200">
                     <span className="text-gray-900 font-extrabold">Final Payable Total</span>
-                    <span className="text-lg font-black text-indigo-600">{breakdownData.currencySymbol || '₹'}{breakdownData.finalPayableAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <span className="text-lg font-black text-indigo-600">₹{breakdownData.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
 

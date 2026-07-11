@@ -259,6 +259,7 @@ export const recruiterAPI = {
   runAIEvaluation: (jobId) => API.post(`/recruiter/talent-pool/jobs/${jobId}/evaluate`),
   postJob: (data) => API.post("/recruiter/jobs", data),
   getJobs: () => API.get("/recruiter/jobs"),
+  getJobById: (id) => API.get(`/recruiter/jobs/${id}`),
   getJobApplications: (jobId) => API.get(`/recruiter/jobs/${jobId}/applications`),
   getMatches: (jobId) => API.get(`/recruiter/jobs/${jobId}/matches`), // Module 2 UI
   updateApplicationStatus: (applicationId, data) =>
@@ -303,6 +304,7 @@ export const recruiterAPI = {
   getApplicationDetails: (applicationId) => API.get(`/recruiter/applications/${applicationId}`),
   getSignedResumeUrl: (candidateId) => API.post(`/candidates/${candidateId}/resume-url`),
   getSkillGap: (data) => API.post("/recruiter/ai/skill-gap", data),
+  getProfileRating: (providerId) => API.post("/recruiter/ai/profile-rating", { providerId }),
   // ==================================================================
 };
 

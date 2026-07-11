@@ -44,18 +44,23 @@ const GuestDiscovery = () => {
       data.append('resume', droppedFile);
 
       const response = await api.post('/jobs/guest-resume/parse', data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 90000
       });
 
       if (response.data?.success && response.data?.data) {
-        const parsed = response.data.data;
+        // pipelineResult.data wraps the actual payload in another 'data' property
+        const resultWrapper = response.data.data;
+        const parsed = resultWrapper.data || resultWrapper;
+        
+        console.log("Parsed Resume Data:", parsed);
         setFormData(prev => ({
           ...prev,
           fullName: parsed.fullName || prev.fullName,
-          emailId: parsed.email || prev.emailId,
-          phone: parsed.phone || prev.phone,
+          emailId: parsed.email || parsed.emailId || prev.emailId,
+          phone: parsed.contactNumber || parsed.phone || prev.phone,
           skills: parsed.skills?.length ? parsed.skills.join(', ') : prev.skills,
-          experience: parsed.experienceYears ? getExperienceCategory(parsed.experienceYears) : prev.experience
+          experience: (parsed.experienceYears !== null && parsed.experienceYears !== undefined) ? getExperienceCategory(parsed.experienceYears) : prev.experience
         }));
         toast.success('Resume parsed successfully! Please complete missing details.');
       }

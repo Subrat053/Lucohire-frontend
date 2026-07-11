@@ -28,10 +28,8 @@ const STATUS_BADGE = {
 };
 
 const TABS = [
-  { key: 'all',       label: 'All Profiles',          roleFilter: 'all' },
-  { key: 'partner',   label: 'Partners / Agents',     roleFilter: 'partner' },
-  { key: 'recruiter', label: 'Recruiters',             roleFilter: 'recruiter' },
-  { key: 'provider',  label: 'Providers', roleFilter: 'provider' },
+  { key: 'provider',  label: 'Candidate Assets', roleFilter: 'provider' },
+  { key: 'recruiter', label: 'Recruiter Assets', roleFilter: 'recruiter' },
 ];
 
 /* ── Stats Card ─────────────────────────────────────────────────── */
@@ -95,7 +93,7 @@ export default function ProfileApprovals() {
   const [stats, setStats]         = useState({});
   const [loading, setLoading]     = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('provider');
   const [page, setPage]           = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -277,8 +275,8 @@ export default function ProfileApprovals() {
 
         {/* ── Page Header ─────────────────────────────────────── */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Profile Approvals</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Review, approve, and manage all user profiles</p>
+          <h1 className="text-2xl font-bold text-gray-900">Asset Approvals</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Review, approve, and manage user photos, resumes, and links</p>
         </div>
 
         {/* ── Tabs ─────────────────────────────────────────────── */}
@@ -431,13 +429,15 @@ export default function ProfileApprovals() {
                         : <Square className="w-4 h-4" />}
                     </button>
                   </th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Profile</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{activeTab === 'recruiter' ? 'Recruiter' : 'Candidate'}</th>
+                  {activeTab === 'recruiter' && <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Company</th>}
+                  {activeTab === 'provider' && <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Skills</th>}
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</th>
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered</th>
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Completion</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Photo</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Resume</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{activeTab === 'recruiter' ? 'Company Logo / Photo' : 'Photo'}</th>
+                  {activeTab === 'provider' && <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Resume</th>}
+                  {activeTab === 'provider' && <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Links</th>}
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
@@ -508,23 +508,18 @@ export default function ProfileApprovals() {
                           </div>
                         </td>
 
-                        {/* Type */}
-                        <td className="px-4 py-3.5">
-                          <div className="flex flex-wrap gap-1">
-                            {Array.isArray(u.roles) ? Array.from(new Set(u.roles)).map(r => (
-                              <span key={r} className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md border capitalize ${ROLE_BADGE[r] || ROLE_BADGE.user}`}>
-                                {getRoleLabel(r)}
-                              </span>
-                            )) : (
-                              <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-lg border capitalize ${ROLE_BADGE[u.primaryRole] || ROLE_BADGE.user}`}>
-                                {getRoleLabel(u.primaryRole)}
-                              </span>
-                            )}
-                          </div>
-                          {u.skills?.length > 0 && (
-                            <p className="text-xs text-gray-400 mt-1 truncate max-w-[100px]">{u.skills.join(', ')}</p>
-                          )}
-                        </td>
+                        {/* Type / Company */}
+                        {activeTab === 'recruiter' ? (
+                          <td className="px-4 py-3.5">
+                            <p className="text-sm font-semibold text-gray-900 truncate max-w-[160px]">{u.companyName || '—'}</p>
+                          </td>
+                        ) : (
+                          <td className="px-4 py-3.5">
+                            {u.skills?.length > 0 ? (
+                              <p className="text-xs text-gray-600 truncate max-w-[160px]">{u.skills.join(', ')}</p>
+                            ) : <span className="text-xs text-gray-300">—</span>}
+                          </td>
+                        )}
 
                         {/* Location */}
                         <td className="px-4 py-3.5">
@@ -563,11 +558,18 @@ export default function ProfileApprovals() {
                         </td>
 
                         {/* Resume status */}
-                        <td className="px-4 py-3.5">
-                          {u.primaryRole === 'provider'
-                            ? <StatusChip status={u.resumeStatus} label={u.resumeStatus === 'not_submitted' ? 'None' : u.resumeStatus} />
-                            : <span className="text-xs text-gray-300">N/A</span>}
-                        </td>
+                        {activeTab === 'provider' && (
+                          <td className="px-4 py-3.5">
+                            <StatusChip status={u.resumeStatus} label={u.resumeStatus === 'not_submitted' ? 'None' : u.resumeStatus} />
+                          </td>
+                        )}
+                        
+                        {/* Links status */}
+                        {activeTab === 'provider' && (
+                          <td className="px-4 py-3.5">
+                            <StatusChip status={u.linksStatus || 'none'} label={u.linksStatus === 'not_submitted' ? 'None' : (u.linksStatus || 'none')} />
+                          </td>
+                        )}
 
                         {/* Actions */}
                         <td className="px-4 py-3.5">

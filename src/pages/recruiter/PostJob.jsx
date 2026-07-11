@@ -62,6 +62,9 @@ const PostJob = () => {
     title: '', skill: '', city: '', budgetMin: '', budgetMax: '',
     budgetType: 'negotiable', description: '', requirements: '',
     location: null,
+    workMode: 'onsite',
+    requiredSkillLevel: 'semi-skilled',
+    urgency: 'normal'
   });
 
   const set = (field) => (e) => setForm({ ...form, [field]: e.target.value });
@@ -202,7 +205,7 @@ const PostJob = () => {
         budgetMax: form.budgetMax ? parseInt(form.budgetMax) : 0,
         aiGenerated: aiMeta ? { status: aiMeta.status, model: aiMeta.model || '' } : null,
         requirements: form.requirements
-          ? form.requirements.split(',').map((r) => r.trim()).filter(Boolean)
+          ? form.requirements.split('\n').map((r) => r.trim()).filter(Boolean)
           : [],
       };
       const { data } = await recruiterAPI.postJob(payload);
@@ -301,18 +304,13 @@ const PostJob = () => {
             )}
           </div>
 
-          <div className="flex items-center justify-between text-xs font-semibold text-gray-500">
-            <span className={`px-2 py-1 rounded-full ${step === 1 ? 'bg-blue-50 text-blue-700' : 'bg-gray-100'}`}>{t('recruiter.stepOne', 'Step 1: Job Details')}</span>
-            <span className={`px-2 py-1 rounded-full ${step === 2 ? 'bg-blue-50 text-blue-700' : 'bg-gray-100'}`}>{t('recruiter.stepTwo', 'Step 2: Budget & Description')}</span>
-          </div>
-
           {stepError && (
             <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {stepError}
             </div>
           )}
 
-          {step === 1 && (
+          <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* ── Job Details ─────────────────────────────────────────── */}
               <SectionCard icon={HiBriefcase} iconColor="text-blue-500" title={t('recruiter.jobDetails', 'Job Details')}>
@@ -345,6 +343,34 @@ const PostJob = () => {
                         onSelect={(item) => setForm({ ...form, city: item?.name || form.city, location: item })}
                         placeholder={t('common.cityPlaceholder', 'e.g. Delhi')}
                       />
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    <div>
+                      <Label text={t('common.workMode', 'Work Mode')} />
+                      <select name="workMode" value={form.workMode} onChange={set('workMode')} className={inputCls}>
+                        <option value="onsite">Onsite</option>
+                        <option value="remote">Remote</option>
+                        <option value="hybrid">Hybrid</option>
+                        <option value="travel">Travel</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label text={t('common.skillLevel', 'Skill Level')} />
+                      <select name="requiredSkillLevel" value={form.requiredSkillLevel} onChange={set('requiredSkillLevel')} className={inputCls}>
+                        <option value="unskilled">Unskilled</option>
+                        <option value="semi-skilled">Semi-skilled</option>
+                        <option value="skilled">Skilled</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label text={t('common.urgency', 'Urgency')} />
+                      <select name="urgency" value={form.urgency} onChange={set('urgency')} className={inputCls}>
+                        <option value="low">Low</option>
+                        <option value="normal">Normal</option>
+                        <option value="high">High</option>
+                        <option value="immediate">Immediate</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -394,9 +420,7 @@ const PostJob = () => {
                 </div>
               </SectionCard>
             </div>
-          )}
 
-          {step === 2 && (
             <SectionCard icon={HiDocumentText} iconColor="text-purple-500" title={t('common.descAndReq', 'Description & Requirements')}>
               <div className="space-y-4">
                 <div>
@@ -411,22 +435,23 @@ const PostJob = () => {
                   />
                 </div>
                 <div>
-                  <Label text={t('recruiter.reqComma', 'Requirements (comma separated)')} />
-                  <input
+                  <Label text={t('recruiter.reqList', 'Requirements (one per line)')} />
+                  <textarea
                     name="requirements"
                     value={form.requirements}
                     onChange={set('requirements')}
-                    placeholder={t('recruiter.reqPlaceholder', 'e.g. Valid license, 3+ years experience, Must have own tools')}
-                    className={inputCls}
+                    placeholder={t('recruiter.reqPlaceholder', 'e.g.\nValid license\n3+ years experience\nMust have own tools')}
+                    rows={4}
+                    className={`${inputCls} resize-none`}
                   />
-                  <p className="text-xs text-gray-400 mt-1">{t('recruiter.reqHint', 'Separate multiple requirements with commas')}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('recruiter.reqHint', 'Enter each requirement on a new line')}</p>
                 </div>
               </div>
             </SectionCard>
-          )}
+          </div>
 
           {/* ── Submit ──────────────────────────────────────────────── */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-4">
             <button
               type="button"
               onClick={() => navigate('/recruiter/dashboard')}
@@ -434,33 +459,14 @@ const PostJob = () => {
             >
               {t('common.cancel', 'Cancel')}
             </button>
-            {step === 1 ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm shadow-md"
-              >
-                {t('common.next', 'Next')}
-              </button>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="flex-1 border-2 border-blue-200 text-blue-700 py-3 rounded-xl font-semibold hover:bg-blue-50 transition text-sm"
-                >
-                  {t('common.back', 'Back')}
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition disabled:opacity-50 flex items-center justify-center gap-2 text-sm shadow-md"
-                >
-                  <FaBullhorn className="w-4 h-4" />
-                  {loading ? t('common.posting', 'Posting…') : t('recruiter.postAndNotify', 'Post Job & Notify Providers')}
-                </button>
-              </>
-            )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm shadow-md disabled:opacity-70"
+            >
+              <HiSave className="w-5 h-5" />
+              {loading ? t('common.posting', 'Posting…') : t('recruiter.postJobNow', 'Post Job Now')}
+            </button>
           </div>
         </form>
       </div>
