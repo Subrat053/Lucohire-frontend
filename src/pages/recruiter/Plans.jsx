@@ -1,76 +1,57 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { HiCheckCircle, HiLightningBolt, HiArrowLeft } from 'react-icons/hi';
-import { FaRocket, FaCrown, FaStar, FaBuilding } from 'react-icons/fa';
+import { HiCheck, HiOutlineLightningBolt, HiX } from 'react-icons/hi';
+import { FaRegClock, FaChartLine, FaWallet, FaShieldAlt, FaHeadset, FaRocket, FaSearch } from 'react-icons/fa';
 import { paymentAPI, recruiterAPI } from '../../services/api';
 import useStripePayment from '../../hooks/useStripePayment';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { useLocale } from '../../context/LocaleContext';
 
-/* ── Plan icon chooser ──────────────────────────────────────────────── */
-const PLAN_ICONS = {
-  starter: { Icon: FaStar, from: '#3b82f6', to: '#6366f1' },
-  basic: { Icon: FaStar, from: '#3b82f6', to: '#6366f1' },
-  business: { Icon: FaCrown, from: '#8b5cf6', to: '#ec4899' },
-  enterprise: { Icon: FaBuilding, from: '#f59e0b', to: '#ef4444' },
-  default: { Icon: FaRocket, from: '#6366f1', to: '#8b5cf6' }
-};
-const PLAN_RANK = { free: 0, starter: 1, basic: 1, business: 2, pro: 2, enterprise: 3, featured: 3 };
-const PLAN_THEME = {
+const PLAN_THEME_BY_SLUG = {
   free: {
-    card: 'border-slate-300 bg-slate-50/80',
-    badge: 'bg-slate-700 text-white',
-    button: 'bg-slate-700 text-white hover:bg-slate-800',
-    check: 'text-slate-600',
-    tag: 'FREE',
+    tag: 'FREE', sub: 'For new recruiters', button: 'Get Started',
+    buttonClass: 'border-2 border-green-600 text-green-700 hover:bg-green-50 bg-white',
+    cardClass: 'border border-slate-200', bestFor: 'First-time recruiters',
+    tagClass: 'text-green-600',
+    highlight: false
   },
-  starter: {
-    card: 'border-blue-300 bg-blue-50/80',
-    badge: 'bg-blue-600 text-white',
-    button: 'bg-blue-600 text-white hover:bg-blue-700',
-    check: 'text-blue-600',
-    tag: 'STARTER',
+  'ai-starter': {
+    tag: 'AI STARTER', sub: 'For startups & small teams', button: 'Choose Plan',
+    buttonClass: 'bg-[#4a24ba] text-white hover:bg-[#381a91]',
+    cardClass: 'border-2 border-[#4a24ba] shadow-xl shadow-indigo-100/50 relative z-10', bestFor: 'Startups\nHire up to 10 positions/month',
+    highlight: true, badge: 'Most Popular', featureBadge: 'Save 40+ hours/month', featureBadgeClass: 'bg-indigo-50 text-indigo-700',
+    tagClass: 'text-[#4a24ba]'
   },
-  business: {
-    card: 'border-emerald-300 bg-emerald-50/80',
-    badge: 'bg-emerald-600 text-white',
-    button: 'bg-emerald-600 text-white hover:bg-emerald-700',
-    check: 'text-emerald-600',
-    tag: 'BUSINESS',
+  'ai-growth': {
+    tag: 'AI GROWTH', sub: 'For growing companies', button: 'Choose Plan',
+    buttonClass: 'bg-[#4a24ba] text-white hover:bg-[#381a91]',
+    cardClass: 'border border-slate-200', bestFor: 'SMBs\nHire up to 50 positions/month',
+    highlight: false, featureBadge: 'Save 120+ hours/month', featureBadgeClass: 'bg-indigo-50 text-indigo-700',
+    tagClass: 'text-[#4a24ba]'
+  },
+  'ai-business': {
+    tag: 'AI BUSINESS', sub: 'For agencies & teams', button: 'Choose Plan',
+    buttonClass: 'bg-[#ea580c] text-white hover:bg-[#c2410c]',
+    cardClass: 'border border-slate-200', bestFor: 'Agencies & Large Teams\nUnlimited hiring',
+    highlight: false, featureBadge: 'Save 300+ hours/month', featureBadgeClass: 'bg-orange-50 text-orange-600',
+    tagClass: 'text-[#ea580c]'
   },
   enterprise: {
-    card: 'border-amber-300 bg-amber-50/80',
-    badge: 'bg-amber-600 text-white',
-    button: 'bg-amber-600 text-white hover:bg-amber-700',
-    check: 'text-amber-600',
-    tag: 'ENTERPRISE',
+    tag: 'ENTERPRISE', sub: 'For large enterprises', button: 'Contact Sales',
+    buttonClass: 'bg-slate-900 text-white hover:bg-black',
+    cardClass: 'border border-slate-200', bestFor: 'Large Enterprises &\nRecruitment Firms',
+    highlight: false, isCustom: true,
+    tagClass: 'text-slate-900'
   },
 };
-const PLAN_THEME_BY_SLUG = {
-  free: PLAN_THEME.free,
-  starter: PLAN_THEME.starter,
-  basic: PLAN_THEME.starter,
-  business: PLAN_THEME.business,
-  pro: PLAN_THEME.business,
-  enterprise: PLAN_THEME.enterprise,
-  featured: PLAN_THEME.enterprise,
+
+const DEFAULT_THEME = {
+  tag: 'PLAN', sub: 'For professionals', button: 'Choose Plan',
+  buttonClass: 'bg-indigo-700 text-white hover:bg-indigo-800',
+  topBorder: 'border-t-indigo-700', bestFor: 'Growing teams',
+  highlight: false
 };
-const PERIOD_LABELS = { 30: 'Monthly', 90: '3 Monthly', 180: 'Semi Annually', 365: 'Annually' };
-const PERIOD_ORDER = ['Monthly', '3 Monthly', 'Semi Annually', 'Annually'];
-const PlansIllustration = () => (
-  <svg viewBox="0 0 200 140" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-36 h-28 drop-shadow-xl">
-    {[40, 70, 100].map((x, i) => (
-      <g key={i}>
-        <rect x={x} y={50 - i * 14} width="36" height={70 + i * 14} rx="6" fill="white" fillOpacity={0.15 + i * 0.1} />
-        <rect x={x + 6} y={60 - i * 14} width="24" height="6" rx="2" fill="white" fillOpacity="0.6" />
-        <rect x={x + 6} y={73 - i * 14} width="18" height="4" rx="2" fill="white" fillOpacity="0.4" />
-      </g>
-    ))}
-    <circle cx="166" cy="38" r="20" fill="#fbbf24" fillOpacity="0.8" />
-    <path d="M157 38 L163 44 L175 32" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
 
 const RecruiterPlans = () => {
   const [plans, setPlans] = useState([]);
@@ -81,99 +62,31 @@ const RecruiterPlans = () => {
   const { initiatePayment, loading: paymentLoading } = useStripePayment();
   const { formatPrice } = useLocale();
 
-  // Custom Plan States
-  const [showCustomModal, setShowCustomModal] = useState(false);
-  const [customCredits, setCustomCredits] = useState(10);
-  const [customDuration, setCustomDuration] = useState(30);
-  const [customPrice, setCustomPrice] = useState(0);
-
-  // Payment Breakdown States
   const [showBreakdownModal, setShowBreakdownModal] = useState(false);
   const [breakdownData, setBreakdownData] = useState(null);
   const [pendingPurchasePlanId, setPendingPurchasePlanId] = useState(null);
-  const [isPendingCustom, setIsPendingCustom] = useState(false);
 
-  const handlePurchaseClick = async (planId, isCustom = false) => {
-    let targetPrice = 0;
-    if (isCustom) {
-      targetPrice = customPrice;
-    } else {
-      const plan = plans.find(p => p._id === planId);
-      targetPrice = plan ? plan.price : 0;
-    }
+  const [showCustomPlanModal, setShowCustomPlanModal] = useState(false);
+  const [customPlanDuration, setCustomPlanDuration] = useState(1);
+  const [customPlanFeatures, setCustomPlanFeatures] = useState([]);
+  const [customPlanNotes, setCustomPlanNotes] = useState('');
 
-    try {
-      setLoading(true);
-      const { data } = await paymentAPI.calculateBreakdown({
-        amount: targetPrice,
-        context: 'subscription'
-      });
+  const [roiHires, setRoiHires] = useState(500);
+  const manualCostPerHire = 8000;
+  
+  const manualTotal = roiHires * manualCostPerHire;
+  const lucohireTotal = Math.floor(manualTotal * 0.25); 
+  const savings = manualTotal - lucohireTotal;
 
-      if (data?.success) {
-        setBreakdownData(data.data);
-        setPendingPurchasePlanId(planId);
-        setIsPendingCustom(isCustom);
-        setShowBreakdownModal(true);
-      } else {
-        toast.error('Failed to compute secure payment breakdown.');
-      }
-    } catch (err) {
-      toast.error('Unable to fetch transaction cost breakdown. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const confirmPurchase = () => {
-    setShowBreakdownModal(false);
-    handlePurchase(pendingPurchasePlanId, isPendingCustom);
-  };
-  const location = useLocation();
   const navigate = useNavigate();
-  const searchParams = new URLSearchParams(location.search);
-  const requestedRedirect = searchParams.get('redirect');
-  const redirectPath = requestedRedirect && requestedRedirect.startsWith('/')
-    ? requestedRedirect
-    : '/recruiter/dashboard';
+  const location = useLocation();
 
   useEffect(() => { fetchPlans(); }, []);
-
-  useEffect(() => {
-    const handlePaymentRedirect = async () => {
-      const params = new URLSearchParams(location.search);
-      const status = params.get('payment');
-      const sessionId = params.get('session_id');
-
-      if (status === 'success') {
-        if (!sessionId) {
-          toast.error('Missing payment session information.');
-          navigate('/recruiter/plans', { replace: true });
-          return;
-        }
-
-        try {
-          await paymentAPI.verifyPayment({ sessionId });
-          toast.success('Plan activated successfully!');
-          navigate(redirectPath, { replace: true });
-        } catch (error) {
-          toast.error(error?.response?.data?.message || 'Payment verification failed.');
-        } finally {
-          fetchPlans();
-        }
-      } else if (status === 'cancelled') {
-        toast.error('Payment was cancelled.');
-        navigate('/recruiter/plans', { replace: true });
-      }
-    };
-
-    handlePaymentRedirect();
-  }, [location.search, navigate, redirectPath]);
 
   const fetchPlans = async () => {
     try {
       const { data } = await recruiterAPI.getPlans();
-      setPlans(data);
-      // Also fetch current plan from dashboard/profile
+      setPlans(data || []);
       const dashboard = await recruiterAPI.getDashboard();
       setCurrentPlan(dashboard.data?.stats?.currentPlan || 'free');
     } catch {
@@ -183,299 +96,412 @@ const RecruiterPlans = () => {
     }
   };
 
-  const handlePurchase = (planId, isCustom = false) => {
-    if (isCustom) {
-      initiatePayment({
-        planId: 'custom',
-        customConfig: {
-          name: 'Custom Recruiter Plan',
-          unlockCredits: customCredits,
-          duration: customDuration,
-          price: customPrice,
-        },
-        onSuccess: () => {
-          setActivePlanId(null);
-          setShowCustomModal(false);
-          fetchPlans();
-        },
-        onFailure: () => setActivePlanId(null),
-      });
+  const handlePurchaseClick = async (planId) => {
+    const plan = plans.find(p => p._id === planId);
+    if (!plan) return;
+    
+    const baseSlug = plan.slug?.toLowerCase().replace('-yearly', '');
+    const theme = PLAN_THEME_BY_SLUG[baseSlug] || DEFAULT_THEME;
+    if (theme.isCustom) {
+      setShowCustomPlanModal(true);
       return;
     }
 
-    setActivePlanId(planId);
+    try {
+      setLoading(true);
+      const { data } = await paymentAPI.calculateBreakdown({
+        amount: plan.price,
+        context: 'subscription'
+      });
+      if (data?.success) {
+        setBreakdownData(data.data);
+        setPendingPurchasePlanId(planId);
+        setShowBreakdownModal(true);
+      } else {
+        toast.error('Failed to compute secure payment breakdown.');
+      }
+    } catch (err) {
+      toast.error('Unable to fetch transaction cost breakdown.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmPurchase = () => {
+    setShowBreakdownModal(false);
+    setActivePlanId(pendingPurchasePlanId);
     initiatePayment({
-      planId,
+      planId: pendingPurchasePlanId,
       onSuccess: () => { setActivePlanId(null); fetchPlans(); },
       onFailure: () => setActivePlanId(null),
     });
   };
 
-  useEffect(() => {
-    // Basic pricing logic for custom plans
-    // e.g., 50 INR per credit + base price based on duration
-    const pricePerCredit = 50;
-    const durationMultiplier = customDuration === 30 ? 1 : customDuration === 90 ? 2.5 : customDuration === 180 ? 4.5 : 8;
-    const basePrice = 500 * durationMultiplier;
-    setCustomPrice(Math.round(basePrice + (customCredits * pricePerCredit)));
-  }, [customCredits, customDuration]);
+  const submitCustomPlanRequest = async () => {
+    if (customPlanDuration < 1) {
+      toast.error('Duration must be at least 1 month');
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await recruiterAPI.createCustomPlanRequest({
+        durationMonths: customPlanDuration,
+        selectedFeatures: customPlanFeatures,
+        notes: customPlanNotes
+      });
+      if (res.data?.success) {
+        toast.success('Custom plan request submitted! Our team will contact you shortly.');
+        setShowCustomPlanModal(false);
+        setCustomPlanDuration(1);
+        setCustomPlanFeatures([]);
+        setCustomPlanNotes('');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to submit request');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(() => {
-    if (!plans.length) return;
-    const periodMap = {};
-    plans.forEach((p) => {
-      const label = PERIOD_LABELS[p.duration] || `${p.duration}d`;
-      if (!periodMap[label]) periodMap[label] = [];
-      periodMap[label].push(p);
-    });
-    const availablePeriods = PERIOD_ORDER.filter((p) => periodMap[p]);
-    const defaultPeriod = availablePeriods.includes('Monthly') ? 'Monthly' : availablePeriods[0];
-    if (defaultPeriod) setActivePeriod(defaultPeriod);
-  }, [plans]);
-
-  const periodMap = {};
-  plans.forEach((p) => {
-    const label = PERIOD_LABELS[p.duration] || `${p.duration}d`;
-    if (!periodMap[label]) periodMap[label] = [];
-    periodMap[label].push(p);
+  const plansByDuration = { Monthly: [], Yearly: [] };
+  plans.forEach(p => {
+    if (p.duration >= 365) plansByDuration.Yearly.push(p);
+    else plansByDuration.Monthly.push(p);
   });
-  const availablePeriods = PERIOD_ORDER.filter((p) => periodMap[p]);
-  const displayedPlans = (periodMap[activePeriod] || []).slice().sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
-  const normalizedCurrentPlan = String(currentPlan || 'free').toLowerCase();
-  const currentPlanMeta = plans.find((p) => String(p.slug || '').toLowerCase() === normalizedCurrentPlan);
-  const currentPlanSortOrder = Number(currentPlanMeta?.sortOrder ?? PLAN_RANK[normalizedCurrentPlan] ?? 0);
+  const displayedPlans = plansByDuration[activePeriod]?.length ? plansByDuration[activePeriod] : plans;
+  
+  const sortOrder = { 'free': 1, 'starter': 2, 'growth': 3, 'business': 4, 'enterprise': 5 };
+  displayedPlans.sort((a,b) => (sortOrder[a.slug] || 99) - (sortOrder[b.slug] || 99));
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-3xl shadow-lg p-8">
-        <button onClick={() => navigate(-1)} className="mb-6 flex items-center gap-2 text-blue-600 hover:underline">
-          <HiArrowLeft className="w-5 h-5" /> Back
-        </button>
-        <div className="flex flex-col items-center mb-8">
-          {/* <PlansIllustration /> */}
-          <h1 className="text-3xl font-extrabold text-gray-900 mt-4 mb-2">Choose Your Plan</h1>
-          <p className="text-gray-500 text-center max-w-xl">
-            Unlock premium features and connect with top talent. Upgrade your plan to get the most out of ServiceHub!
-          </p>
-        </div>
-        {availablePeriods.length > 1 && (
-          <div className="flex justify-center mb-6">
-            <div className="inline-flex bg-gray-100 rounded-full p-1 shadow-sm border border-gray-200 gap-1">
-              {availablePeriods.map((period) => (
-                <button
-                  key={period}
-                  type="button"
-                  onClick={() => setActivePeriod(period)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${activePeriod === period ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-blue-600'
-                    }`}
-                >
-                  {period}
-                </button>
+    <div className="min-h-screen bg-gray-50 pb-20">
+      <div className="bg-white border-b border-gray-200 py-3 px-6 hidden md:flex items-center justify-between text-xs font-bold text-slate-600">
+        <div className="flex items-center gap-2"><HiCheck className="text-green-500 text-lg"/> Free Job Posting Forever</div>
+        <div className="flex items-center gap-2"><FaWallet className="text-indigo-500"/> 14 Days Money Back Guarantee</div>
+        <div className="flex items-center gap-2"><FaRegClock className="text-orange-500"/> Cancel Anytime No Questions Asked</div>
+        <div className="flex items-center gap-2"><FaShieldAlt className="text-green-600"/> 100% Secure Payments</div>
+        <div className="flex items-center gap-2"><FaHeadset className="text-blue-500"/> 24/7 Priority Support</div>
+      </div>
+
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+        <div className="flex flex-col lg:flex-row justify-between gap-12 mb-16">
+          <div className="max-w-xl">
+            <h1 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight mb-4 tracking-tight">
+              Hire Faster. <br />Let <span className="text-indigo-600">AI</span> Do the Hard Work.
+            </h1>
+            <p className="text-slate-500 text-lg mb-8 font-medium">
+              The AI-Powered Recruitment Platform for Startups, Teams, Agencies & Enterprises.
+            </p>
+            <ul className="space-y-4">
+              {['Post Jobs for Free Forever', 'Unlimited Candidate Search', 'AI Screening & Smart Shortlisting', 'Automate Outreach & Follow-ups', 'Make Data-Driven Hiring Decisions'].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 text-slate-700 font-bold">
+                  <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                    <HiCheck className="w-4 h-4"/>
+                  </div>
+                  {item}
+                </li>
               ))}
+            </ul>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <div className="flex gap-4">
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col items-center justify-center w-40">
+                <FaRegClock className="text-indigo-500 text-3xl mb-3" />
+                <div className="text-3xl font-black text-slate-900">92%</div>
+                <div className="text-xs text-slate-500 font-bold">Time Saved</div>
+              </div>
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col items-center justify-center w-40">
+                <FaChartLine className="text-indigo-500 text-3xl mb-3" />
+                <div className="text-3xl font-black text-slate-900">5X</div>
+                <div className="text-xs text-slate-500 font-bold text-center">More Qualified<br/>Applicants</div>
+              </div>
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col items-center justify-center w-40">
+                <FaWallet className="text-indigo-500 text-3xl mb-3" />
+                <div className="text-3xl font-black text-slate-900">80%</div>
+                <div className="text-xs text-slate-500 font-bold">Lower Hiring Cost</div>
+              </div>
+            </div>
+            <div className="self-end text-right mt-4">
+              <div className="text-xs font-bold text-slate-600">Trusted by<br/><span className="text-slate-900 font-black">10,000+</span><br/>Recruiters & Companies</div>
             </div>
           </div>
-        )}
-        {loading ? (
-          <LoadingSpinner />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {displayedPlans.map((plan) => {
-              const theme = PLAN_THEME_BY_SLUG[String(plan.slug || '').toLowerCase()] || PLAN_THEME.starter;
-              const meta = PLAN_ICONS[plan.slug] || PLAN_ICONS.default;
-              const Icon = meta.Icon;
-              const isPaying = paymentLoading && activePlanId === plan._id;
-              const isActive = currentPlan === plan.slug;
-              const isLowerPlan = currentPlanSortOrder > 0 && Number(plan.sortOrder || 0) < currentPlanSortOrder;
-              const isUpgradeDisabled = isActive || isLowerPlan;
-              return (
-                <div
-                  key={plan._id}
-                  className={`relative rounded-3xl border-2 p-7 flex flex-col transition-all hover:shadow-xl ${isActive
-                    ? 'border-green-400 ring-2 ring-green-200 bg-green-50/30'
-                    : theme.card
-                    }`}
+        </div>
+
+        {loading ? <LoadingSpinner /> : (
+          <>
+            <div className="flex justify-center items-center gap-2 mb-10 relative">
+              <div className="bg-white border border-slate-200 p-1 rounded-full inline-flex font-bold text-sm shadow-sm relative">
+                <button 
+                  onClick={() => setActivePeriod('Monthly')}
+                  className={`px-6 py-2.5 rounded-full transition-all ${activePeriod === 'Monthly' ? 'bg-[#4a24ba] text-white shadow-md' : 'text-slate-900 hover:bg-slate-50'}`}
                 >
-                  {isActive && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs font-extrabold px-4 py-1 rounded-full shadow-md whitespace-nowrap">
-                      CURRENT PLAN
-                    </div>
-                  )}
-                  {!isActive && (
-                    <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 text-white text-xs font-extrabold px-4 py-1 rounded-full shadow-md whitespace-nowrap ${theme.badge}`}>
-                      {theme.tag}
-                    </div>
-                  )}
-
-                  {/* Plan icon */}
-                  <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 shadow-sm"
-                    style={{ background: `linear-gradient(135deg,${meta.from},${meta.to})` }}
-                  >
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
-
-                  <h3 className="text-xl font-extrabold text-gray-900">{plan.name}</h3>
-
-                  {/* Price */}
-                  <div className="mt-3 mb-6 flex flex-col gap-0.5">
-                    <div className="flex items-baseline">
-                      <span className="text-4xl font-extrabold text-gray-900">
-                        {plan.currencySymbol || '₹'}{Number(plan.price || 0).toLocaleString()}
-                      </span>
-                      <span className="text-gray-400 text-sm ml-1.5">/ {PERIOD_LABELS[plan.duration] || `${plan.duration}d`}</span>
-                    </div>
-                    <span className="text-[10px] text-gray-500 font-semibold mt-1">
-                      {plan.isTaxInclusive ? `${plan.taxName || 'Tax'} Inclusive` : `+ ${plan.taxName || 'GST'} (${plan.gstPercent || 18}%)`}
-                    </span>
-                  </div>
-
-                  {/* Features */}
-                  <ul className="space-y-3 flex-1 mb-7">
-                    {(plan.features || []).map((f, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-sm">
-                        <HiCheckCircle className={`w-5 h-5 shrink-0 mt-0.5 ${theme.check}`} />
-                        <span className="text-gray-600">{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* CTA */}
-                  <button
-                    onClick={() => !isUpgradeDisabled && handlePurchaseClick(plan._id, false)}
-                    disabled={isPaying || isUpgradeDisabled}
-                    className={`w-full py-3 rounded-xl font-bold text-sm transition shadow-sm disabled:opacity-50 ${isActive
-                      ? 'bg-green-100 text-green-700'
-                      : isLowerPlan
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : `${theme.button}`
-                      }`}
-                  >
-                    {isPaying ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <span className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                        Processing…
-                      </span>
-                    ) : isActive ? (
-                      'Current Plan'
-                    ) : isLowerPlan ? (
-                      'Lower Plan Disabled'
-                    ) : (
-                      <span className="flex items-center justify-center gap-1.5">
-                        <HiLightningBolt className="w-4 h-4" /> Get Started
-                      </span>
-                    )}
-                  </button>
-                </div>
-              );
-            })}
-
-            {/* Customize Plan Card */}
-            <div className="relative rounded-3xl border-2 border-dashed border-gray-300 p-7 flex flex-col transition-all hover:border-blue-400 hover:bg-blue-50/20">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 bg-gradient-to-br from-gray-400 to-gray-600 shadow-sm">
-                <HiLightningBolt className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-xl font-extrabold text-gray-900">Customize Your Plan</h3>
-              <p className="text-sm text-gray-500 mt-2 mb-6">Build a plan that fits your exact needs. Choose credits and duration.</p>
-              <div className="mt-auto">
-                <button
-                  onClick={() => setShowCustomModal(true)}
-                  className="w-full py-3 rounded-xl font-bold text-sm transition shadow-sm bg-gray-800 text-white hover:bg-gray-900"
+                  Billed Monthly
+                </button>
+                <button 
+                  onClick={() => setActivePeriod('Yearly')}
+                  className={`px-6 py-2.5 rounded-full transition-all ${activePeriod === 'Yearly' ? 'bg-[#4a24ba] text-white shadow-md' : 'text-slate-900 hover:bg-slate-50'}`}
                 >
-                  Configure Now
+                  Billed Yearly
                 </button>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Custom Plan Modal */}
-        {showCustomModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-              <div className="p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Customize Your Plan</h2>
-
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Number of Contact Unlocks
-                    </label>
-                    <input
-                      type="range"
-                      min="5"
-                      max="200"
-                      step="5"
-                      value={customCredits}
-                      onChange={(e) => setCustomCredits(parseInt(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                    />
-                    <div className="flex justify-between mt-2 text-sm font-bold text-blue-600">
-                      <span>{customCredits} Unlocks</span>
-                      <span>{formatPrice(customCredits * 50)}</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Plan Duration
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[30, 90, 180, 365].map(d => (
-                        <button
-                          key={d}
-                          onClick={() => setCustomDuration(d)}
-                          className={`py-2 px-4 rounded-xl border-2 transition text-sm font-bold ${customDuration === d
-                              ? 'border-blue-600 bg-blue-50 text-blue-600'
-                              : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
-                            }`}
-                        >
-                          {PERIOD_LABELS[d] || `${d} Days`}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-500 text-sm">Estimated Total</span>
-                      <span className="text-2xl font-extrabold text-gray-900">{formatPrice(customPrice)}</span>
-                    </div>
-                    <p className="text-xs text-gray-400">Tax and local conversions will be applied at checkout.</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 mt-8">
-                  <button
-                    onClick={() => setShowCustomModal(false)}
-                    className="flex-1 py-3 rounded-xl font-bold text-sm text-gray-500 hover:bg-gray-100 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => handlePurchaseClick('custom', true)}
-                    disabled={paymentLoading}
-                    className="flex-1 py-3 rounded-xl font-bold text-sm bg-blue-600 text-white hover:bg-blue-700 transition shadow-lg shadow-blue-200 disabled:opacity-50"
-                  >
-                    {paymentLoading ? 'Processing...' : 'Purchase Now'}
-                  </button>
-                </div>
+              <div className="text-green-600 text-[10px] font-bold flex items-center gap-1">
+                Save up to 20% <HiOutlineLightningBolt className="w-4 h-4 text-green-500" />
               </div>
             </div>
-          </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-20">
+              {displayedPlans.map(plan => {
+                const baseSlug = plan.slug?.toLowerCase().replace('-yearly', '');
+                const theme = PLAN_THEME_BY_SLUG[baseSlug] || DEFAULT_THEME;
+                const isCurrent = currentPlan === plan.slug;
+                
+                return (
+                  <div key={plan._id} className={`bg-white rounded-3xl flex flex-col relative transition-transform hover:-translate-y-1 ${theme.cardClass || 'border border-slate-200'}`}>
+                    {theme.badge && (
+                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#4a24ba] text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap shadow-sm">
+                        {theme.badge}
+                      </div>
+                    )}
+                    <div className="p-4 lg:p-5 flex flex-col flex-1">
+                      <div className="text-center mb-4">
+                        <h3 className={`text-sm font-black uppercase tracking-widest mb-1 ${theme.tagClass || 'text-slate-900'}`}>{theme.tag}</h3>
+                        <p className="text-[10px] text-slate-500 font-bold">
+                          {theme.sub}</p>
+                      </div>
+                      
+                      <div className="text-center mb-5 h-12 flex items-end justify-center">
+                        {theme.isCustom ? (
+                          <div className="text-2xl font-black text-slate-900 mb-1">Custom</div>
+                        ) : (
+                          <div>
+                            <div className="flex justify-center items-end gap-1 mb-1">
+                              {plan.price === 0 ? (
+                                <span className="text-2xl font-black text-slate-900">₹0</span>
+                              ) : (
+                                <>
+                                  <span className="text-2xl font-black text-slate-900">₹{plan.price.toLocaleString('en-IN')}</span>
+                                  <span className="text-[11px] text-slate-500 font-bold mb-1">/month</span>
+                                </>
+                              )}
+                            </div>
+                            <div className="text-[10px] font-bold text-slate-400">
+                              {plan.price === 0 ? 'Forever Free' : `Billed ${activePeriod.toLowerCase()}`}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <button 
+                        onClick={() => !isCurrent && handlePurchaseClick(plan._id)}
+                        disabled={isCurrent || paymentLoading}
+                        className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all mb-5 ${isCurrent ? 'bg-green-100 text-green-700' : theme.buttonClass}`}
+                      >
+                        {isCurrent ? 'Current Plan' : theme.button}
+                      </button>
+
+                      <div className="text-center mb-5">
+                        <p className="text-[9px] text-slate-500 font-bold mb-1">Best for:</p>
+                        <p className="text-[10px] text-slate-800 font-black whitespace-pre-line leading-tight">{theme.bestFor}</p>
+                      </div>
+
+                      {theme.featureBadge && (
+                        <div className="bg-indigo-50 text-indigo-700 text-[9px] font-black rounded-lg py-1 px-1.5 text-center mb-5 border border-indigo-100 flex items-center justify-center gap-1">
+                          <FaRegClock/> {theme.featureBadge}
+                        </div>
+                      )}
+
+                      <ul className="space-y-2 mt-auto">
+                        {(plan.features || []).slice(0,4).map((f, i) => (
+                          <li key={i} className="flex items-start gap-1.5 text-[10px] font-bold text-slate-600 leading-tight">
+                            <HiCheck className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                      
+                      <div className="mt-6 text-center text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer">
+                        View all features &rarr;
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
         
-        {/* Bottom note */}
-        <p className="text-center text-xs text-gray-400 mt-8">
-          Free plan includes 2 contact unlocks per month. Secure payment powered by Stripe.
-        </p>
-        {/* Payment Breakdown Modal */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-20">
+          <div className="bg-[#1e1b4b] rounded-3xl p-8 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-6 opacity-20"><FaRocket className="text-6xl"/></div>
+            <h3 className="text-2xl font-black mb-2">Why Upgrade?</h3>
+            <p className="text-indigo-200 text-sm font-medium mb-8">Unlock powerful AI features and save more time.</p>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-sm font-bold border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3"><FaRocket className="text-indigo-400"/> AI Hiring Copilot</div>
+                <div className="text-[10px] text-indigo-300">Unlock in Starter</div>
+              </div>
+              <div className="flex items-center justify-between text-sm font-bold border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3"><FaSearch className="text-indigo-400"/> Hidden Talent Access</div>
+                <div className="text-[10px] text-indigo-300">Unlock in Growth</div>
+              </div>
+              <div className="flex items-center justify-between text-sm font-bold border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3"><HiCheck className="text-indigo-400"/> Smart Shortlisting</div>
+                <div className="text-[10px] text-indigo-300">Unlock in Growth</div>
+              </div>
+              <div className="flex items-center justify-between text-sm font-bold border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3"><FaChartLine className="text-indigo-400"/> Salary Intelligence</div>
+                <div className="text-[10px] text-indigo-300">Unlock in Business</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="lg:col-span-2 bg-[#0f172a] rounded-3xl p-8 text-white">
+            <h3 className="text-2xl font-black mb-2">Calculate Your ROI</h3>
+            <p className="text-slate-400 text-sm font-medium mb-10">See how much you can save with Lucohire AI</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div>
+                <label className="block text-sm font-bold mb-4">How many hires do you make per year?</label>
+                <div className="flex justify-between items-end mb-4">
+                  <div className="text-4xl font-black">{roiHires}</div>
+                  <div className="text-xs text-slate-400 font-bold">Hires / Year</div>
+                </div>
+                <input 
+                  type="range" min="10" max="2000" step="10" 
+                  value={roiHires} onChange={e => setRoiHires(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 mb-8"
+                />
+                <div className="flex justify-between items-center text-sm font-bold bg-slate-800 p-4 rounded-xl">
+                  <span>Average cost per hire (manual)</span>
+                  <span>₹{manualCostPerHire.toLocaleString()}</span>
+                </div>
+                <p className="text-[10px] text-slate-500 mt-2">*Calculation is based on industry average and may vary.</p>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="bg-slate-800 p-5 rounded-2xl flex justify-between items-center">
+                  <div>
+                    <div className="text-xs text-slate-400 font-bold mb-1">Manual Hiring Cost</div>
+                    <div className="text-2xl font-black">₹{manualTotal.toLocaleString()}</div>
+                    <div className="text-[10px] text-slate-500 font-bold">Per Year</div>
+                  </div>
+                </div>
+                <div className="bg-indigo-900/40 border border-indigo-500/30 p-5 rounded-2xl flex justify-between items-center">
+                  <div>
+                    <div className="text-xs text-indigo-300 font-bold mb-1">With Lucohire</div>
+                    <div className="text-2xl font-black text-white">₹{lucohireTotal.toLocaleString()}</div>
+                    <div className="text-[10px] text-indigo-400 font-bold">Per Year</div>
+                  </div>
+                </div>
+                
+                <div className="bg-[#022c22] border border-[#059669] p-5 rounded-2xl mt-4">
+                  <div className="text-xs text-emerald-400 font-bold mb-1">You Save</div>
+                  <div className="text-3xl font-black text-emerald-400 mb-4">₹{savings.toLocaleString()}</div>
+                  <div className="inline-block bg-emerald-500/20 text-emerald-400 text-xs font-black px-3 py-1.5 rounded-lg border border-emerald-500/30">
+                    75% Cost Reduction
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Compare All Features Section */}
+        <div className="bg-white rounded-3xl p-8 lg:p-12 shadow-sm border border-slate-200 mb-20 overflow-x-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-black text-slate-900 mb-4">Compare All Features</h2>
+            <p className="text-slate-500 font-medium">Everything you need to make the right choice.</p>
+          </div>
+          
+          <table className="w-full text-left min-w-[800px]">
+            <thead>
+              <tr className="border-b-2 border-slate-200">
+                <th className="py-4 px-6 w-1/3 text-slate-400 font-black text-xs uppercase tracking-wider">Features</th>
+                {['FREE', 'STARTER', 'GROWTH', 'BUSINESS', 'ENTERPRISE'].map((tier, i) => (
+                  <th key={i} className="py-4 px-6 text-center">
+                    <span className="text-slate-900 font-black text-sm">{tier}</span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {/* Category 1 */}
+              <tr>
+                <td colSpan="6" className="py-6 px-6 bg-slate-50 text-indigo-700 font-black text-sm rounded-t-xl">
+                  Candidate Access & Engagement
+                </td>
+              </tr>
+              {[
+                ['Job Postings', '1', '10', '50', 'Unlimited', 'Custom'],
+                ['Talent Pool Access', 'Limited', 'Full', 'Full', 'Full', 'Full'],
+                ['Direct Messaging', '-', '100/mo', '500/mo', 'Unlimited', 'Custom'],
+                ['Automated Follow-ups', '-', '-', 'Yes', 'Yes', 'Yes'],
+              ].map((row, i) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="py-4 px-6 text-sm font-bold text-slate-700">{row[0]}</td>
+                  {row.slice(1).map((val, j) => (
+                    <td key={j} className="py-4 px-6 text-center text-sm font-bold text-slate-600">
+                      {val === 'Yes' ? <HiCheck className="text-green-500 w-5 h-5 mx-auto"/> : val === '-' ? <span className="text-slate-300">-</span> : val}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+
+              {/* Category 2 */}
+              <tr>
+                <td colSpan="6" className="py-6 px-6 bg-slate-50 text-indigo-700 font-black text-sm">
+                  AI Hiring & Intelligence
+                </td>
+              </tr>
+              {[
+                ['AI Resume Screening', '-', 'Yes', 'Yes', 'Yes', 'Yes'],
+                ['Smart Match Score', '-', 'Yes', 'Yes', 'Yes', 'Yes'],
+                ['Skill Gap Analysis', '-', '-', 'Yes', 'Yes', 'Yes'],
+                ['Salary Insights', '-', '-', '-', 'Yes', 'Yes'],
+                ['Predictive Hiring Models', '-', '-', '-', '-', 'Yes'],
+              ].map((row, i) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="py-4 px-6 text-sm font-bold text-slate-700">{row[0]}</td>
+                  {row.slice(1).map((val, j) => (
+                    <td key={j} className="py-4 px-6 text-center text-sm font-bold text-slate-600">
+                      {val === 'Yes' ? <HiCheck className="text-green-500 w-5 h-5 mx-auto"/> : val === '-' ? <span className="text-slate-300">-</span> : val}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+              
+              {/* Category 3 */}
+              <tr>
+                <td colSpan="6" className="py-6 px-6 bg-slate-50 text-indigo-700 font-black text-sm">
+                  Support & Branding
+                </td>
+              </tr>
+              {[
+                ['Company Career Page', 'Basic', 'Custom', 'Custom', 'Premium', 'White-label'],
+                ['Support Level', 'Email', 'Priority Email', '24/7 Chat', 'Dedicated AM', 'Dedicated Team'],
+              ].map((row, i) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="py-4 px-6 text-sm font-bold text-slate-700">{row[0]}</td>
+                  {row.slice(1).map((val, j) => (
+                    <td key={j} className="py-4 px-6 text-center text-sm font-bold text-slate-600">
+                      {val === 'Yes' ? <HiCheck className="text-green-500 w-5 h-5 mx-auto"/> : val === '-' ? <span className="text-slate-300">-</span> : val}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
         {showBreakdownModal && breakdownData && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
             <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 border border-slate-100">
               <div className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <HiLightningBolt className="w-5 h-5" />
+                    <HiOutlineLightningBolt className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">Secure Order Invoice</h3>
@@ -486,39 +512,18 @@ const RecruiterPlans = () => {
                 <div className="divide-y divide-slate-100 bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-500 font-medium">Base Plan Amount</span>
-                    <span className="font-bold text-slate-800">{breakdownData.currencySymbol || '₹'}{breakdownData.baseAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-xs pt-3">
-                    <span className="text-slate-500 font-medium">{breakdownData.taxName || 'GST/Taxes'} ({breakdownData.taxPercent}%)</span>
-                    <span className="font-bold text-slate-800">{breakdownData.currencySymbol || '₹'}{breakdownData.taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-xs pt-3 text-[10px] text-slate-400 font-medium">
-                    <span>Includes {breakdownData.platformCommissionPercent}% platform commission internally.</span>
+                    <span className="font-bold text-slate-800">₹{breakdownData.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-200">
                     <span className="text-gray-900 font-extrabold">Final Payable Total</span>
-                    <span className="text-lg font-black text-indigo-600">{breakdownData.currencySymbol || '₹'}{breakdownData.finalPayableAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <span className="text-lg font-black text-indigo-600">₹{breakdownData.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
 
                 <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={() => {
-                      setShowBreakdownModal(false);
-                      setBreakdownData(null);
-                    }}
-                    className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={confirmPurchase}
-                    disabled={paymentLoading}
-                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-600/15"
-                  >
+                  <button onClick={() => setShowBreakdownModal(false)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Cancel</button>
+                  <button onClick={confirmPurchase} disabled={paymentLoading} className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-600/15">
                     {paymentLoading ? 'Processing...' : 'Proceed to Checkout'}
                   </button>
                 </div>
@@ -526,9 +531,79 @@ const RecruiterPlans = () => {
             </div>
           </div>
         )}
+
+        {showCustomPlanModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+            <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200 border border-slate-100 my-8">
+              <div className="p-6 md:p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900">Request Custom Plan</h3>
+                    <p className="text-xs text-slate-500 font-medium mt-1">Tell us your requirements and our team will get in touch.</p>
+                  </div>
+                  <button onClick={() => setShowCustomPlanModal(false)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 text-slate-500">
+                    <HiX className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-2">Desired Duration (Months)</label>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      value={customPlanDuration} 
+                      onChange={(e) => setCustomPlanDuration(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-hidden"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-2">Features Needed</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {['Custom solutions', 'Dedicated support', 'SLA & security', 'Unlimited hiring', 'Custom integrations', 'Data export'].map((feature) => (
+                        <label key={feature} className="flex items-center gap-2 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={customPlanFeatures.includes(feature)}
+                            onChange={(e) => {
+                              if (e.target.checked) setCustomPlanFeatures([...customPlanFeatures, feature]);
+                              else setCustomPlanFeatures(customPlanFeatures.filter(f => f !== feature));
+                            }}
+                            className="w-4 h-4 text-blue-600 rounded-md border-slate-300 focus:ring-blue-500"
+                          />
+                          <span className="text-xs font-medium text-slate-700">{feature}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-2">Additional Notes</label>
+                    <textarea 
+                      value={customPlanNotes}
+                      onChange={(e) => setCustomPlanNotes(e.target.value)}
+                      rows={3}
+                      placeholder="Any specific requirements..."
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-hidden"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-8">
+                  <button onClick={() => setShowCustomPlanModal(false)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition">Cancel</button>
+                  <button onClick={submitCustomPlanRequest} disabled={loading} className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition shadow-lg shadow-blue-600/20 disabled:opacity-70">
+                    {loading ? 'Submitting...' : 'Submit Request'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
-}
+};
 
 export default RecruiterPlans;

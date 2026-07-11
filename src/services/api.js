@@ -253,8 +253,18 @@ export const recruiterAPI = {
   unlockContact: (providerId) => API.post(`/recruiter/unlock/${providerId}`),
   checkUnlockStatus: (providerId) =>
     API.get(`/recruiter/unlock-status/${providerId}`),
+  createCustomPlanRequest: (data) => API.post("/recruiter/custom-plan-request", data),
+  getTasks: () => API.get("/recruiter/tasks"),
+  createTask: (data) => API.post("/recruiter/tasks", data),
+  updateTask: (id, data) => API.put(`/recruiter/tasks/${id}`, data),
+  deleteTask: (id) => API.delete(`/recruiter/tasks/${id}`),
+  getOutreachCampaigns: () => API.get("/recruiter/outreach/campaigns"),
+  runOutreachCampaign: (jobId) => API.post(`/recruiter/outreach/campaigns/${jobId}/run`),
+  getTalentPoolJobs: () => API.get("/recruiter/talent-pool/jobs"),
+  runAIEvaluation: (jobId) => API.post(`/recruiter/talent-pool/jobs/${jobId}/evaluate`),
   postJob: (data) => API.post("/recruiter/jobs", data),
   getJobs: () => API.get("/recruiter/jobs"),
+  getJobById: (id) => API.get(`/recruiter/jobs/${id}`),
   getJobApplications: (jobId) => API.get(`/recruiter/jobs/${jobId}/applications`),
   getMatches: (jobId) => API.get(`/recruiter/jobs/${jobId}/matches`), // Module 2 UI
   updateApplicationStatus: (applicationId, data) =>
@@ -299,6 +309,7 @@ export const recruiterAPI = {
   getApplicationDetails: (applicationId) => API.get(`/recruiter/applications/${applicationId}`),
   getSignedResumeUrl: (candidateId) => API.post(`/candidates/${candidateId}/resume-url`),
   getSkillGap: (data) => API.post("/recruiter/ai/skill-gap", data),
+  getProfileRating: (providerId) => API.post("/recruiter/ai/profile-rating", { providerId }),
   // ==================================================================
 };
 
@@ -315,6 +326,8 @@ export const adminAPI = {
   getDashboard: () => ADMIN_API.get("/admin/dashboard"),
   getHealthMetrics: () => ADMIN_API.get("/admin/health/metrics"),
   getDashboardStats: (params) => ADMIN_API.get("/admin/partners/dashboard/stats", { params }),
+  getCustomPlanRequests: () => ADMIN_API.get("/admin/custom-plans"),
+  updateCustomPlanRequestStatus: (id, status) => ADMIN_API.patch(`/admin/custom-plans/${id}/status`, { status }),
   getUsers: (params) => ADMIN_API.get("/admin/users", { params }),
   uploadProviders: (formData) => ADMIN_API.post("/admin/providers/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" },

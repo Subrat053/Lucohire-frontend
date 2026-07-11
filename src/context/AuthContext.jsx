@@ -41,16 +41,7 @@ export const AuthProvider = ({ children }) => {
         ? [rawUser.role]
         : [];
 
-    let activeRole = rawUser.activeRole || rawUser.activePanel || rawUser.role;
-
-    if (!activeRole || !roles.includes(activeRole)) {
-      if (roles.includes("admin")) activeRole = "admin";
-      else if (roles.includes("manager")) activeRole = "manager";
-      else if (roles.includes("partner")) activeRole = "partner";
-      else if (rawUser.roleIntent === "recruiter" && roles.includes("recruiter")) activeRole = "recruiter";
-      else if (rawUser.roleIntent === "provider" && roles.includes("provider")) activeRole = "provider";
-      else activeRole = roles[0] || null;
-    }
+    let activeRole = rawUser.activeRole || rawUser.activePanel || rawUser.role || roles[0] || null;
 
     const panelAccess = {
       provider: { enabled: true, source: "free_plan", ...(rawUser.panelAccess?.provider || {}) },
@@ -65,7 +56,7 @@ export const AuthProvider = ({ children }) => {
       role: activeRole,
       panelAccess,
       approvalStatus: rawUser.approvalStatus || "approved",
-      roleIntent: rawUser.roleIntent || (roles.includes("provider") && roles.includes("recruiter") ? "both" : roles[0] || "provider"),
+      roleIntent: roles[0] || "provider",
       activePanel: rawUser.activePanel || activeRole || null,
       isAuthenticated: true,
     };
@@ -330,43 +321,6 @@ export const AuthProvider = ({ children }) => {
     return { ...authData, user: normalizedUser || authData.user };
   }, [saveUserSession]);
 
-  const switchRole = useCallback(async (nextRole) => {
-    const { data } = await authAPI.switchRole({ role: nextRole });
-    const nextToken =
-      data?.data?.token ||
-      data?.token ||
-      localStorage.getItem("authToken");
-
-    if (nextToken) {
-      localStorage.setItem("authToken", nextToken);
-    }
-
-    const freshUser = await refreshUser();
-
-    return { user: freshUser, profile };
-  }, [refreshUser, profile]);
-
-  const switchPanel = useCallback(async (nextPanel) => {
-    const { data } = await authAPI.switchPanel({ panel: nextPanel });
-
-    if (data?.needsProfileCompletion) {
-      return { needsProfileCompletion: true, role: nextPanel };
-    }
-
-    const nextToken =
-      data?.data?.token ||
-      data?.token ||
-      localStorage.getItem("authToken");
-
-    if (nextToken) {
-      localStorage.setItem("authToken", nextToken);
-    }
-
-    const freshUser = await refreshUser();
-
-    return { user: freshUser, profile };
-  }, [refreshUser, profile]);
-
   const role = user?.activeRole || user?.role || null;
   const isAuthenticated = Boolean(user && localStorage.getItem("authToken"));
 
@@ -382,8 +336,6 @@ export const AuthProvider = ({ children }) => {
     logout,
     refreshUser,
     fetchUser: refreshUser,
-    switchRole,
-    switchPanel,
     saveUserSession,
     setProfile,
     showWhatsAppPrompt,

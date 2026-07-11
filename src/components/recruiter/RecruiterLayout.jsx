@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   HiTrendingUp,
@@ -18,42 +18,34 @@ import {
   HiBell,
   HiLockClosed,
   HiPlusCircle,
+  HiHome,
+  HiCollection,
+  HiChatAlt,
+  HiCalendar,
+  HiClipboardCheck,
+  HiChartBar,
+  HiLightningBolt,
 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../common/NotificationBell';
 import LanguageDropdown from '../LanguageDropdown';
 import useTranslation from '../../hooks/useTranslation';
+import { recruiterAPI } from '../../services/api';
 
-// const navItems = [
-//   { label: 'Dashboard', path: '/recruiter/dashboard', icon: HiTrendingUp },
-//   { label: 'Job Postings', path: '/recruiter/job-postings', icon: HiBriefcase },
-//   { label: 'Interested Candidates', path: '/recruiter/applications', icon: HiUsers },
-//   { label: 'AI Smart Search', path: '/recruiter/find-providers', icon: HiSparkles, badge: 'New' },
-//   // { label: 'Shortlisted Candidates', path: '/recruiter/history', icon: HiBookmark, badge: '28' },
-//   // { label: 'Saved Candidates', path: '/recruiter/history', icon: HiBookmark, badge: '42' },
-//   { label: 'Search History', path: '/recruiter/history', icon: HiSearch },
-//   { label: 'Plans & Billing', path: '/recruiter/plans', icon: HiCurrencyRupee },
-//   // { label: 'Transactions', path: '/recruiter/plans', icon: HiCurrencyRupee },
-//   // { label: 'Company Profile', path: '/recruiter/profile', icon: HiDocumentText },
-//   { label: 'Settings', path: '/recruiter/profile', icon: HiCog },
-// ];
-
+// NEW TABS (from image)
 const navItems = [
-  { label: 'Dashboard', fallback: 'Dashboard', path: '/recruiter/dashboard', icon: HiTrendingUp },
-  // { label: 'Job Postings', path: '/recruiter/post-job', icon: HiBriefcase },
-  { label: 'Job Postings', fallback: 'Job Postings', path: '/recruiter/job-postings', icon: HiBriefcase },
-  { label: 'Interested Candidates', fallback: 'Interested Candidates', path: '/recruiter/interested-candidates', icon: HiUsers },
-  { label: 'Recruiter Copilot', fallback: 'Recruiter Copilot', path: '/recruiter/copilot', icon: HiSparkles, badge: 'AI' },
-  { label: 'AI Smart Search', fallback: 'AI Smart Search', path: '/recruiter/ai-smart-search', icon: HiSparkles, badge: 'New' },
-  // { label: 'Shortlisted Candidates', fallback: 'Shortlisted Candidates', path: '/recruiter/shortlisted-candidates', icon: HiBookmark },
-  { label: 'Saved Candidates', fallback: 'Saved Candidates', path: '/recruiter/saved-candidates', icon: HiBookmark },
-  { label: 'Search History', fallback: 'Search History', path: '/recruiter/search-history', icon: HiSearch },
-  { label: 'Plans & Billing', fallback: 'Plans & Billing', path: '/recruiter/plans-billing', icon: HiCurrencyRupee },
-  { label: 'Transactions', fallback: 'Transactions', path: '/recruiter/transactions', icon: HiCurrencyRupee },
-  { label: 'Refer & Earn', fallback: 'Refer & Earn', path: '/recruiter/referrals', icon: HiPlusCircle },
-  { label: 'Company Profile', fallback: 'Company Profile', path: '/recruiter/company-profile', icon: HiDocumentText },
-  { label: 'Change Password', fallback: 'Change Password', path: '/recruiter/change-password', icon: HiLockClosed },
+  { label: 'Dashboard', fallback: 'Dashboard', path: '/recruiter/dashboard', icon: HiHome },
+  { label: 'Jobs', fallback: 'Jobs', path: '/recruiter/jobs', icon: HiBriefcase },
+  { label: 'Candidates', fallback: 'Candidates', path: '/recruiter/candidates', icon: HiUsers },
+  { label: 'Talent Pool', fallback: 'Talent Pool', path: '/recruiter/talent-pool', icon: HiCollection },
+  { label: 'Outreach', fallback: 'Outreach', path: '/recruiter/outreach', icon: HiChatAlt },
+  { label: 'Tasks', fallback: 'Tasks', path: '/recruiter/tasks', icon: HiClipboardCheck },
+  { label: 'Reports', fallback: 'Reports', path: '/recruiter/reports', icon: HiChartBar },
+  { label: 'AI Copilot', fallback: 'AI Copilot', path: '/recruiter/ai', icon: HiSparkles },
+  { label: 'Plans & Billing', fallback: 'Plans & Billing', path: '/recruiter/plans', icon: HiCurrencyRupee },
+  { label: 'Settings', fallback: 'Settings', path: '/recruiter/settings', icon: HiCog },
 ];
+
 const RecruiterLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
@@ -61,6 +53,21 @@ const RecruiterLayout = ({ children }) => {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState('free');
+
+  useEffect(() => {
+    const fetchPlan = async () => {
+      try {
+        const { data } = await recruiterAPI.getDashboard();
+        if (data?.stats?.currentPlan) {
+          setCurrentPlan(data.stats.currentPlan);
+        }
+      } catch (err) {
+        console.error('Failed to fetch plan:', err);
+      }
+    };
+    fetchPlan();
+  }, []);
 
   const handleLogout = () => { logout(); };
 
@@ -70,14 +77,20 @@ const RecruiterLayout = ({ children }) => {
         <div className="w-8 h-8 bg-[#0066FF] rounded-lg flex items-center justify-center shrink-0">
           <HiBriefcase className="text-white w-4 h-4" />
         </div>
-        {!collapsed && <span className="font-bold text-[#081B3A] text-sm">Recruiter Panel</span>}
+        {!collapsed && (
+          <div className="flex flex-col">
+            <span className="font-bold text-[#081B3A] text-sm leading-tight">Recruiter Panel</span>
+            <span className="text-[10px] font-black text-[#0066FF] uppercase tracking-wider mt-0.5">{currentPlan.replace('-yearly', '')} PLAN</span>
+          </div>
+        )}
       </div>
 
       {/* <div className="px-2 py-3 border-b border-gray-100">
         <LanguageDropdown mobile={collapsed} />
       </div> */}
 
-      <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+      <nav className="flex-1 py-4 px-2 overflow-y-auto flex flex-col">
+        <div className="space-y-1 flex-1">
         {navItems.map(({ label, fallback, path, icon: Icon, badge }) => {
           // const active = location.pathname === path;
           const active = location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -105,20 +118,46 @@ const RecruiterLayout = ({ children }) => {
             </Link>
           );
         })}
-      </nav>
-
-      {/* {!collapsed && (
-        <div className="mx-3 mb-4 rounded-2xl border border-[#E5EAF3] bg-[#F8FAFF] p-4">
-          <p className="text-xs font-semibold text-[#081B3A]">{t('recruiter.upgradeTitle', 'Upgrade Your Plan')}</p>
-          <p className="text-[11px] text-gray-500 mt-1">{t('recruiter.upgradeSubtitle', 'Unlock more candidate contacts and downloads.')}</p>
-          <button
-            onClick={() => navigate('/recruiter/plans')}
-            className="mt-3 w-full rounded-xl bg-[#0066FF] text-white text-xs font-semibold py-2"
-          >
-            {t('recruiter.viewPlans', 'View Plans')}
-          </button>
         </div>
-      )} */}
+
+        {/* Subscription Usage Widget */}
+        {!collapsed && (
+          <div className="mt-8 mb-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm mx-1 shrink-0">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-bold text-gray-900">Subscription Usage</p>
+              <HiChevronRight className="w-3 h-3 text-gray-400" />
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <HiSparkles className="w-3 h-3 text-yellow-500" />
+                  <span className="text-[10px] font-semibold text-gray-600">Featured Job Credits</span>
+                </div>
+                <div className="text-sm font-bold text-gray-900 mb-1">12 <span className="text-gray-400 font-medium">/ 20</span></div>
+                <div className="w-full bg-gray-100 rounded-full h-1.5">
+                  <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: '60%' }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <HiLightningBolt className="w-3 h-3 text-orange-500" />
+                  <span className="text-[10px] font-semibold text-gray-600">Urgent Hiring Slots</span>
+                </div>
+                <div className="text-sm font-bold text-gray-900 mb-1">5 <span className="text-gray-400 font-medium">/ 10</span></div>
+                <div className="w-full bg-gray-100 rounded-full h-1.5">
+                  <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: '50%' }}></div>
+                </div>
+              </div>
+            </div>
+
+            <button className="mt-4 w-full rounded-xl border border-indigo-100 bg-white text-indigo-600 hover:bg-indigo-50 text-xs font-bold py-2 transition">
+              Manage Subscription
+            </button>
+          </div>
+        )}
+      </nav>
 
       <div className="shrink-0 px-2 pb-4 border-t border-gray-100 pt-3">
         <button

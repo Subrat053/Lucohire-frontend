@@ -20,6 +20,7 @@ const AdminUsers = lazy(() => import("../pages/admin/Users"));
 const AdminProviders = lazy(() => import("../pages/admin/Providers"));
 const AdminRecruiters = lazy(() => import("../pages/admin/Recruiters"));
 const AdminPlans = lazy(() => import("../pages/admin/Plans"));
+const AdminCustomPlanRequests = lazy(() => import("../pages/admin/CustomPlanRequests"));
 const AdminSettings = lazy(() => import("../pages/admin/Settings"));
 const AdminManagers = lazy(() => import("../pages/admin/Managers"));
 const AdminPayments = lazy(() => import("../pages/admin/Payments"));
@@ -36,7 +37,7 @@ const AdminWhatsApp = lazy(() => import("../pages/admin/WhatsApp"));
 const AdminCurrency = lazy(() => import("../pages/admin/Currency"));
 const AdminCountries = lazy(() => import("../pages/admin/Countries"));
 const AdminAIOps = lazy(() => import("../pages/admin/AIControlCenter"));
-const ProfileApprovals = lazy(() => import("../pages/admin/ProfileApprovals"));
+const AssetApprovals = lazy(() => import("../pages/admin/AssetApprovals"));
 const ProfileReviewDetail = lazy(() => import("../pages/admin/ProfileReviewDetail"));
 const ResumeApprovals = lazy(() => import("../pages/admin/ResumeApprovals"));
 const AdminPortfolioApprovals = lazy(() => import("../pages/admin/PortfolioApprovals"));
@@ -98,6 +99,7 @@ export default function AdminRoutes() {
       <Route path="recruiter" element={wrap(<AdminRecruiters />)} />
       <Route path="recriters" element={wrap(<AdminRecruiters />)} />
       <Route path="plans" element={wrap(<AdminPlans />)} />
+      <Route path="custom-plans" element={wrap(<AdminCustomPlanRequests />)} />
       <Route path="settings" element={wrap(<AdminSettings />)} />
       <Route path="managers" element={wrap(<AdminManagers />)} />
       <Route path="payments" element={wrap(<AdminPayments />)} />
@@ -114,8 +116,8 @@ export default function AdminRoutes() {
       <Route path="currency" element={wrap(<AdminCurrency />)} />
       <Route path="countries" element={wrap(<AdminCountries />)} />
       <Route path="ai" element={wrap(<AdminAIOps />)} />
-      <Route path="profile-photo-approvals" element={wrap(<ProfileApprovals />)} />
-      <Route path="profile-approvals" element={wrap(<ProfileApprovals />)} />
+      <Route path="profile-photo-approvals" element={wrap(<AssetApprovals />)} />
+      <Route path="profile-approvals" element={wrap(<AssetApprovals />)} />
       <Route path="profile-approval/:userId" element={wrap(<ProfileReviewDetail />)} />
       <Route path="resume-approvals" element={wrap(<ResumeApprovals />)} />
       <Route path="portfolio-approvals" element={wrap(<AdminPortfolioApprovals />)} />

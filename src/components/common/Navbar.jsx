@@ -26,18 +26,11 @@ import LanguageDropdown from "../LanguageDropdown";
 import useTranslation from "../../hooks/useTranslation";
 import toast from "react-hot-toast";
 
-import RoleCompletionModal from "./RoleCompletionModal";
-
 const Navbar = () => {
-  const { user, isAuthenticated, logout, switchPanel, refreshUser } = useAuth();
+  const { user, isAuthenticated, logout, refreshUser } = useAuth();
   const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [switchingRole, setSwitchingRole] = useState(false);
-  const [completionModal, setCompletionModal] = useState({
-    open: false,
-    role: null,
-  });
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
   const dropdownRef = useRef(null);
@@ -75,15 +68,6 @@ const Navbar = () => {
   };
   const navigate = useNavigate();
   const activeRole = user?.activeRole || user?.role;
-  const roleList = Array.isArray(user?.roles) ? user.roles : [];
-  const isAdminLike =
-    activeRole === "admin" ||
-    activeRole === "manager" ||
-    roleList.includes("admin") ||
-    roleList.includes("manager");
-  const canSwitchRoles = isAuthenticated && user && !isAdminLike;
-  const nextRole = activeRole === "provider" ? "recruiter" : "provider";
-  const nextRoleLabel = nextRole === "recruiter" ? "Recruiter" : "Provider";
 
   const handleLogout = () => {
     logout();
@@ -107,101 +91,6 @@ const Navbar = () => {
     }
   };
 
-  const openRolePanel = async (targetRole) => {
-    if (!canSwitchRoles || switchingRole) return;
-    if (targetRole !== "provider" && targetRole !== "recruiter") return;
-
-    const targetPath =
-      targetRole === "provider"
-        ? "/provider/dashboard"
-        : "/recruiter/job-postings";
-
-    if (activeRole === targetRole) {
-      navigate(targetPath, { replace: true });
-      setDropdownOpen(false);
-      setMobileOpen(false);
-      return;
-    }
-
-    setSwitchingRole(true);
-
-    try {
-      const response = await switchPanel(targetRole);
-
-      if (response?.needsProfileCompletion) {
-        setCompletionModal({ open: true, role: targetRole });
-        setDropdownOpen(false);
-        setMobileOpen(false);
-        return;
-      }
-
-      navigate(targetPath, { replace: true });
-      setDropdownOpen(false);
-      setMobileOpen(false);
-    } catch (error) {
-      console.error(error);
-      toast.error(
-        error?.response?.data?.message ||
-          "Panel switch failed. Please try again.",
-      );
-    } finally {
-      setSwitchingRole(false);
-    }
-  };
-
-  const handleCompletion = async (updatedUser) => {
-    await refreshUser();
-    const targetPath =
-      completionModal.role === "provider"
-        ? "/provider/dashboard"
-        : "/recruiter/job-postings";
-    navigate(targetPath, { replace: true });
-  };
-
-  const getRoleButtonLabel = (role) => {
-    if (role === "provider") {
-      return activeRole === "provider"
-        ? t("navbar.currentProvider", "Current: Provider")
-        : t("navbar.switchToProviderPanel", "Switch to Provider Panel");
-    }
-    return activeRole === "recruiter"
-      ? t("navbar.currentRecruiter", "Current: Recruiter")
-      : t("navbar.switchToRecruiterPanel", "Switch to Recruiter Panel");
-  };
-
-  const PanelSwitchButtons = ({ mobile = false }) => (
-    <div
-      className={
-        mobile ? "flex flex-col gap-2 py-2" : "flex items-center gap-2"
-      }
-    >
-      <button
-        type="button"
-        onClick={() => openRolePanel("recruiter")}
-        disabled={switchingRole}
-        className={`rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm disabled:opacity-60 ${activeRole === "recruiter" ? "border-amber-400 bg-amber-500 text-white" : "border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-200"}`}
-      >
-        {switchingRole && activeRole !== "recruiter"
-          ? t("navbar.openingPanel")
-          : getRoleButtonLabel("recruiter")}
-      </button>
-      <button
-        type="button"
-        onClick={() => openRolePanel("provider")}
-        disabled={switchingRole}
-        className={`rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm disabled:opacity-60 ${activeRole === "provider" ? "border-emerald-400 bg-emerald-500 text-white" : "border-emerald-300 bg-emerald-100 text-emerald-900 hover:bg-emerald-200"}`}
-      >
-        {switchingRole && activeRole !== "provider"
-          ? t("navbar.openingPanel")
-          : getRoleButtonLabel("provider")}
-      </button>
-    </div>
-  );
-
-  const handleQuickToggle = () => {
-    if (!canSwitchRoles || switchingRole) return;
-    openRolePanel(nextRole);
-  };
 
   const isRecruiterPage = window.location.pathname.includes('/recruiter-discovery') || window.location.pathname.includes('/recruiter-locked');
 
@@ -241,7 +130,7 @@ const Navbar = () => {
 
             {/* <LanguageDropdown /> */}
 
-            {canSwitchRoles && <PanelSwitchButtons />}
+            {/* <LanguageDropdown /> */}
             {isAuthenticated ? (
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -397,26 +286,7 @@ const Navbar = () => {
           {/* Mobile controls */}
           <div className="md:hidden flex items-center gap-2">
             <NotificationBell />
-            {canSwitchRoles && (
-              <button
-                type="button"
-                onClick={handleQuickToggle}
-                disabled={switchingRole}
-                className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold shadow-sm disabled:opacity-60 ${nextRole === "recruiter" ? "border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-200" : "border-emerald-300 bg-emerald-100 text-emerald-900 hover:bg-emerald-200"}`}
-              >
-                {switchingRole
-                  ? t("navbar.openingPanel")
-                  : nextRole === "recruiter"
-                    ? t(
-                        "navbar.switchToRecruiterPanel",
-                        "Switch to Recruiter Panel",
-                      )
-                    : t(
-                        "navbar.switchToProviderPanel",
-                        "Switch to Provider Panel",
-                      )}
-              </button>
-            )}
+            {/* Quick toggle removed */}
             <button
               type="button"
               name="hamburger"
@@ -641,7 +511,7 @@ const Navbar = () => {
                   mobile
                   onChangeComplete={() => setMobileOpen(false)}
                 />
-                {canSwitchRoles && <PanelSwitchButtons mobile />}
+                {/* Role Switch logic removed */}
               </div>
 
               {/* Auth and CTA section */}
@@ -714,12 +584,6 @@ const Navbar = () => {
           </aside>
         </div>
       </div>
-      <RoleCompletionModal
-        isOpen={completionModal.open}
-        role={completionModal.role}
-        onClose={() => setCompletionModal({ open: false, role: null })}
-        onComplete={handleCompletion}
-      />
     </nav>
   );
 };
