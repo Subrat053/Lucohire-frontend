@@ -6,31 +6,23 @@ const SCard = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
 );
 
-const stages = [
-  { label: 'Applications', value: 2842, pct: 100, prev: 2418, color: '#6366f1', bg: 'bg-indigo-600' },
-  { label: 'Screening',    value: 1156, pct: 41,  prev: 980,  color: '#3b82f6', bg: 'bg-blue-500'   },
-  { label: 'Interviews',   value: 312,  pct: 11,  prev: 278,  color: '#10b981', bg: 'bg-emerald-500'},
-  { label: 'Offers',       value: 42,   pct: 1.5, prev: 35,   color: '#f59e0b', bg: 'bg-orange-500' },
-  { label: 'Hires',        value: 28,   pct: 1,   prev: 22,   color: '#059669', bg: 'bg-emerald-700'},
-];
-
-const weeklyData = [
-  { week: 'Week 1', apps: 840, screen: 345, interviews: 90, offers: 12, hires: 8 },
-  { week: 'Week 2', apps: 720, screen: 290, interviews: 78, offers: 10, hires: 6 },
-  { week: 'Week 3', apps: 680, screen: 310, interviews: 85, offers: 11, hires: 8 },
-  { week: 'Week 4', apps: 602, screen: 211, interviews: 59, offers: 9,  hires: 6 },
-];
-
-const conversionRates = [
-  { from: 'Application → Screening', rate: '40.7%', change: '+2.3%', up: true  },
-  { from: 'Screening → Interview',   rate: '27.0%', change: '+1.1%', up: true  },
-  { from: 'Interview → Offer',       rate: '13.5%', change: '-0.5%', up: false },
-  { from: 'Offer → Hire',            rate: '66.7%', change: '+4.2%', up: true  },
-  { from: 'Application → Hire',      rate: '0.99%', change: '+0.2%', up: true  },
-];
-
 export default function HiringFunnelPage() {
   const [period, setPeriod] = useState('This Month');
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    import('../../services/api').then(({ recruiterAPI }) => {
+      recruiterAPI.getHiringFunnel()
+        .then(res => setData(res.data.data))
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    });
+  }, [period]);
+
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading funnel data...</div>;
+
+  const { stages, weeklyData, conversionRates } = data;
 
   return (
     <div className="space-y-6">

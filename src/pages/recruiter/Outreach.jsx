@@ -11,6 +11,9 @@ const Outreach = () => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [runningCampaign, setRunningCampaign] = useState(false);
+  const [previewData, setPreviewData] = useState(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [messageTemplate, setMessageTemplate] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -36,7 +39,7 @@ const Outreach = () => {
     if (!selectedJob) return;
     try {
       setRunningCampaign(true);
-      const res = await recruiterAPI.runOutreachCampaign(selectedJob._id);
+      const res = await recruiterAPI.runOutreachCampaign(selectedJob._id, { messageTemplate });
       toast.success('Campaign started successfully!');
       
       // Update UI
@@ -49,9 +52,21 @@ const Outreach = () => {
     }
   };
 
-  const openModal = (job) => {
+  const openModal = async (job) => {
     setSelectedJob(job);
+    setPreviewData(null);
+    setMessageTemplate(`Hi [Candidate Name],\n\nWe saw your profile on Lucohire and noticed you have great experience with ${job.skill || 'these skills'}. We are currently hiring for a ${job.title} and think you'd be a great fit.\n\nTake a look at the job post below and let us know if you're interested!\n\nBest,\n[Recruiter Name]`);
     setIsModalOpen(true);
+    
+    try {
+      setLoadingPreview(true);
+      const res = await recruiterAPI.getOutreachPreview(job._id);
+      setPreviewData(res.data);
+    } catch (error) {
+      toast.error('Failed to load candidate preview');
+    } finally {
+      setLoadingPreview(false);
+    }
   };
 
   const getJobCampaignCount = (jobId) => {
@@ -96,7 +111,7 @@ const Outreach = () => {
                       <div className="flex justify-between items-start mb-4">
                         <div>
                           <h3 className="font-bold text-gray-900 line-clamp-1">{job.title}</h3>
-                          <p className="text-xs font-medium text-gray-500 mt-1">{job.location} • {job.workMode}</p>
+                          <p className="text-xs font-medium text-gray-500 mt-1">{typeof job.location === 'object' ? (job.location?.city || job.location?.name || job.location?.formattedAddress) : job.location} • {job.workMode}</p>
                         </div>
                         <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
                           {job.skill ? 1 : 0} Skill
@@ -171,52 +186,104 @@ const Outreach = () => {
       {/* CONFIRMATION MODAL */}
       {isModalOpen && selectedJob && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex justify-center items-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all animate-fade-in-up">
-            <div className="bg-indigo-600 p-6 text-white text-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <HiSparkles className="w-8 h-8 text-white" />
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden transform transition-all animate-fade-in-up">
+            <div className="bg-indigo-600 p-6 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <HiSparkles className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold">Outreach Campaign</h2>
+                  <p className="text-indigo-100 text-xs">For: {selectedJob.title}</p>
+                </div>
               </div>
-              <h2 className="text-xl font-bold">Run Outreach Campaign</h2>
-              <p className="text-indigo-100 text-sm mt-1">For: {selectedJob.title}</p>
             </div>
             
-            <div className="p-6">
-              <p className="text-gray-600 text-sm text-center mb-6 leading-relaxed">
-                We will identify all candidates whose skills match the requirements for this job and send them a highly personalized email inviting them to view the job post and apply.
-              </p>
-
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 mb-6">
-                <div className="flex justify-between items-center text-sm mb-2">
-                  <span className="font-semibold text-gray-700">Required Skill</span>
-                  <span className="font-bold text-indigo-600">{selectedJob.skill ? 1 : 0}</span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {selectedJob.skill && (
-                    <span className="bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold">{selectedJob.skill}</span>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Left Side: Preview */}
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center justify-between">
+                  Candidate Matches
+                  {previewData && (
+                    <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-xs">
+                      {previewData.totalMatchCount} Found
+                    </span>
                   )}
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => setIsModalOpen(false)}
-                  disabled={runningCampaign}
-                  className="flex-1 px-4 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleRunCampaign}
-                  disabled={runningCampaign}
-                  className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition flex items-center justify-center gap-2"
-                >
-                  {runningCampaign ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                </h3>
+                
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 h-64 overflow-y-auto custom-scrollbar">
+                  {loadingPreview ? (
+                    <div className="flex justify-center items-center h-full">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                    </div>
+                  ) : previewData?.previewCandidates?.length > 0 ? (
+                    <div className="space-y-3">
+                      {previewData.previewCandidates.map(c => (
+                        <div key={c._id} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                          <img src={c.avatar || `https://ui-avatars.com/api/?name=${c.name}&background=e0e7ff&color=4f46e5`} alt={c.name} className="w-8 h-8 rounded-full" />
+                          <div>
+                            <p className="text-xs font-bold text-gray-900">{c.name}</p>
+                            <p className="text-[10px] text-gray-500 line-clamp-1">{c.role}</p>
+                          </div>
+                        </div>
+                      ))}
+                      {previewData.totalMatchCount > 5 && (
+                        <div className="text-center pt-2">
+                          <p className="text-xs font-medium text-gray-500">And {previewData.totalMatchCount - 5} more candidates...</p>
+                        </div>
+                      )}
+                    </div>
                   ) : (
-                    <><FiSend className="w-4 h-4" /> Start Campaign</>
+                    <div className="flex flex-col justify-center items-center h-full text-center">
+                      <FiUsers className="w-8 h-8 text-gray-300 mb-2" />
+                      <p className="text-xs text-gray-500 font-medium">No candidates match the required skill for this job.</p>
+                    </div>
                   )}
-                </button>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-xs">
+                   <span className="font-semibold text-gray-700">Required Skill:</span>
+                   {selectedJob.skill && (
+                     <span className="bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded font-bold">{selectedJob.skill}</span>
+                   )}
+                </div>
               </div>
+
+              {/* Right Side: Message Editor */}
+              <div className="flex flex-col">
+                <h3 className="text-sm font-bold text-gray-900 mb-3">Email Template</h3>
+                <textarea
+                  className="flex-1 w-full bg-white border border-gray-200 rounded-xl p-3 text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none custom-scrollbar"
+                  value={messageTemplate}
+                  onChange={(e) => setMessageTemplate(e.target.value)}
+                  placeholder="Type your outreach message here..."
+                />
+                <p className="text-[10px] text-gray-400 mt-2 leading-tight">
+                  Variables like <code className="bg-gray-100 px-1 py-0.5 rounded">[Candidate Name]</code> and <code className="bg-gray-100 px-1 py-0.5 rounded">[Recruiter Name]</code> will be auto-filled by the engine.
+                </p>
+              </div>
+
+            </div>
+
+            <div className="p-4 bg-gray-50 border-t border-gray-100 flex gap-3 justify-end">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                disabled={runningCampaign}
+                className="px-5 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200 rounded-lg transition"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleRunCampaign}
+                disabled={runningCampaign || loadingPreview || !previewData?.totalMatchCount}
+                className="px-5 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {runningCampaign ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <><FiSend className="w-4 h-4" /> Start Campaign</>
+                )}
+              </button>
             </div>
           </div>
         </div>

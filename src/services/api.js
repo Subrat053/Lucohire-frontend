@@ -236,11 +236,21 @@ export const providerAPI = {
 
 // Recruiter APIs
 export const recruiterAPI = {
+  getReportsOverview: () => API.get("/recruiter/reports/overview-metrics"),
+  getHiringFunnel: () => API.get("/recruiter/reports/funnel"),
+  getJobPerformance: () => API.get("/recruiter/reports/job-performance"),
+  getSourceAnalytics: () => API.get("/recruiter/reports/source-analytics"),
+  getOutreachAnalytics: () => API.get("/recruiter/reports/outreach-analytics"),
+  getAiInsights: () => API.get("/recruiter/reports/ai-insights"),
+  getCustomExportsData: () => API.get("/recruiter/reports/custom-exports"),
   getDashboard: () => API.get("/recruiter/dashboard"),
   updateProfile: (data) => API.put("/recruiter/profile", data),
   generateJobDescription: (data) =>
     API.post("/recruiter/ai/job-description", data),
   generateJD: (data) => API.post("/recruiter/ai/generate-jd", data),
+  workspaceChat: (data) => API.post("/recruiter/ai/workspace/chat", data),
+  getWorkspaceConversations: () => API.get("/recruiter/ai/workspace/conversations"),
+  getWorkspaceConversation: (id) => API.get(`/recruiter/ai/workspace/conversations/${id}`),
   publicSearch: (params) => API.get("/recruiter/public-search", { params }),
   search: (params) => API.get("/recruiter/search", { params }),
   viewProvider: (id) => API.get(`/recruiter/view-provider/${id}`),
@@ -254,7 +264,8 @@ export const recruiterAPI = {
   updateTask: (id, data) => API.put(`/recruiter/tasks/${id}`, data),
   deleteTask: (id) => API.delete(`/recruiter/tasks/${id}`),
   getOutreachCampaigns: () => API.get("/recruiter/outreach/campaigns"),
-  runOutreachCampaign: (jobId) => API.post(`/recruiter/outreach/campaigns/${jobId}/run`),
+  getOutreachPreview: (jobId) => API.get(`/recruiter/outreach/campaigns/${jobId}/preview`),
+  runOutreachCampaign: (jobId, data) => API.post(`/recruiter/outreach/campaigns/${jobId}/run`, data),
   getTalentPoolJobs: () => API.get("/recruiter/talent-pool/jobs"),
   runAIEvaluation: (jobId) => API.post(`/recruiter/talent-pool/jobs/${jobId}/evaluate`),
   postJob: (data) => API.post("/recruiter/jobs", data),

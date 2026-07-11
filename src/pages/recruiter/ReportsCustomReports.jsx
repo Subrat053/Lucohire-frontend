@@ -6,40 +6,38 @@ const SCard = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
 );
 
-const savedReports = [
-  { name: 'Q2 Hiring Overview',         type: 'PDF',   created: '15 May 2026',  tags: ['Hiring','Q2'],         downloads: 12, sharedWith: 3 },
-  { name: 'LinkedIn Source Deep Dive',   type: 'Excel', created: '10 May 2026',  tags: ['Source','LinkedIn'],   downloads: 8,  sharedWith: 2 },
-  { name: 'Recruiter KPI Monthly',       type: 'PDF',   created: '1 May 2026',   tags: ['Recruiter','Monthly'], downloads: 6,  sharedWith: 5 },
-  { name: 'Outreach Campaign Results',   type: 'Excel', created: '28 Apr 2026',  tags: ['Outreach'],            downloads: 4,  sharedWith: 1 },
-  { name: 'Time-to-Hire Trend Q1–Q2',   type: 'PDF',   created: '20 Apr 2026',  tags: ['Hiring','Trend'],      downloads: 9,  sharedWith: 4 },
-];
-
-const templates = [
-  { icon: '📊', name: 'Monthly Hiring Summary',  desc: 'Hires, time, cost, funnel overview'   },
-  { icon: '🎯', name: 'Source ROI Report',        desc: 'Cost per hire by source, quality'     },
-
-  { icon: '📬', name: 'Outreach Performance',     desc: 'Campaign metrics across channels'     },
-  { icon: '🤖', name: 'AI Insights Summary',      desc: 'Skills demand, salary, market trends' },
-  { icon: '📅', name: 'Weekly Pipeline Report',   desc: 'Candidate pipeline status by week'    },
-];
-
-const metrics = [
-  { id: 'hires',       label: 'Total Hires'          },
-  { id: 'funnel',      label: 'Hiring Funnel'         },
-  { id: 'sources',     label: 'Source Performance'    },
-
-  { id: 'time',        label: 'Time to Hire'          },
-  { id: 'cost',        label: 'Cost per Hire'         },
-  { id: 'outreach',    label: 'Outreach Analytics'    },
-  { id: 'interviews',  label: 'Interview Analytics'   },
-  { id: 'ai',          label: 'AI Insights & Trends'  },
-];
-
 export default function CustomReportsPage() {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
   const [selectedMetrics, setSelectedMetrics] = useState(['hires', 'funnel', 'sources']);
   const [reportName, setReportName] = useState('');
   const [format, setFormat] = useState('PDF');
   const [showBuilder, setShowBuilder] = useState(false);
+
+  React.useEffect(() => {
+    import('../../services/api').then(({ recruiterAPI }) => {
+      recruiterAPI.getCustomExportsData()
+        .then(res => setData(res.data.data))
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    });
+  }, []);
+
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading reports...</div>;
+
+  const { savedReports, templates } = data;
+  const metrics = [
+    { id: 'hires',       label: 'Total Hires'          },
+    { id: 'funnel',      label: 'Hiring Funnel'         },
+    { id: 'sources',     label: 'Source Performance'    },
+    { id: 'time',        label: 'Time to Hire'          },
+    { id: 'cost',        label: 'Cost per Hire'         },
+    { id: 'outreach',    label: 'Outreach Analytics'    },
+    { id: 'interviews',  label: 'Interview Analytics'   },
+    { id: 'ai',          label: 'AI Insights & Trends'  },
+  ];
+
+
 
   const toggleMetric = (id) => {
     setSelectedMetrics(prev =>

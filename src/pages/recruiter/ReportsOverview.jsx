@@ -5,6 +5,7 @@ import {
   FiArrowUpRight, FiArrowDownRight, FiChevronDown, FiPlus, FiChevronRight, FiFileText, FiDownload, FiArrowRight
 } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const SCard = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
@@ -24,57 +25,35 @@ const ViewBtn = ({ label, to }) => (
   </Link>
 );
 
-const topMetrics = [
-  { label: 'Total Jobs',         value: '48',      trend: '+14%', up: true,  icon: <FiBriefcase />, bg: 'bg-indigo-50', ic: 'text-indigo-600' },
-  { label: 'Total Applications', value: '2,842',   trend: '+18%', up: true,  icon: <FiMail />,      bg: 'bg-blue-50',   ic: 'text-blue-600'   },
-  { label: 'Interviews',         value: '312',     trend: '+12%', up: true,  icon: <FiUsers />,     bg: 'bg-emerald-50',ic: 'text-emerald-600'},
-  { label: 'Offers Extended',    value: '42',      trend: '+20%', up: true,  icon: <FiCheckCircle />,bg: 'bg-orange-50', ic: 'text-orange-600' },
-  { label: 'Hires Made',         value: '28',      trend: '+27%', up: true,  icon: <FiBriefcase />, bg: 'bg-purple-50', ic: 'text-purple-600' },
-  { label: 'Avg. Time to Hire',  value: '21 Days', trend: '-8%',  up: true,  icon: <FiClock />,     bg: 'bg-sky-50',    ic: 'text-sky-600'    },
-  { label: 'Cost per Hire',      value: '₹12,540', trend: '-6%',  up: true,  icon: <FiDollarSign />,bg: 'bg-teal-50',   ic: 'text-teal-600'   },
-  { label: 'AI Hiring Score',    value: '87/100',  trend: '+11%', up: true,  icon: <HiSparkles />,  bg: 'bg-violet-50', ic: 'text-violet-600' },
-];
-
-const funnelStages = [
-  { label: 'Applications', value: '2,842', pct: '100', w: 100, color: 'bg-indigo-600' },
-  { label: 'Screening',    value: '1,156', pct: '41',  w: 70,  color: 'bg-blue-500'   },
-  { label: 'Interviews',   value: '312',   pct: '11',  w: 45,  color: 'bg-emerald-500'},
-  { label: 'Offers',       value: '42',    pct: '1.5', w: 20,  color: 'bg-orange-500' },
-  { label: 'Hires',        value: '28',    pct: '1',   w: 12,  color: 'bg-emerald-700'},
-];
-
-const sourceLegend = [
-  { color: 'bg-indigo-500',  label: 'LinkedIn',             val: '912', pct: '32' },
-  { color: 'bg-purple-500',  label: 'Lucohire Career Page', val: '683', pct: '24' },
-  { color: 'bg-emerald-500', label: 'Employee Referral',    val: '540', pct: '19' },
-  { color: 'bg-orange-500',  label: 'Naukri',               val: '356', pct: '13' },
-  { color: 'bg-blue-500',    label: 'Indeed',               val: '198', pct: '7'  },
-  { color: 'bg-slate-300',   label: 'Others',               val: '153', pct: '5'  },
-];
-
-
-
-const jobPerf = [
-  { dot: 'bg-indigo-600', label: 'Featured Jobs',      jobs: 12, apps: '1,248', hires: 14, ratio: '1.17' },
-  { dot: 'bg-orange-500', label: 'Urgent Hiring Jobs', jobs: 8,  apps: '864',   hires: 10, ratio: '1.25' },
-  { dot: 'bg-blue-500',   label: 'Normal Jobs',        jobs: 28, apps: '730',   hires: 4,  ratio: '0.14' },
-];
-
-const interviewLegend = [
-  { color: 'bg-indigo-500',  label: 'Phone Screen',    val: '162', pct: '52' },
-  { color: 'bg-emerald-500', label: 'Technical Round', val: '98',  pct: '31' },
-  { color: 'bg-orange-500',  label: 'HR Round',        val: '38',  pct: '12' },
-  { color: 'bg-slate-300',   label: 'Others',          val: '14',  pct: '5'  },
-];
-
-const aiTrends = [
-  { bg: 'bg-indigo-50',  ic: 'text-indigo-600',  icon: <FiBriefcase />, title: 'Top In-Demand Skills',  sub: 'React.js, Node.js, TypeScript, AWS, Python', to: '/recruiter/reports/ai-insights' },
-  { bg: 'bg-blue-50',    ic: 'text-blue-600',    icon: <FiDollarSign />,title: 'Salary Benchmark',       sub: 'React Developer avg. salary ₹12.6 LPA',       to: '/recruiter/reports/ai-insights' },
-  { bg: 'bg-purple-50',  ic: 'text-purple-600',  icon: <HiSparkles />,  title: 'Hiring Trend',          sub: 'React roles increased by 24% this month',      to: '/recruiter/reports/ai-insights' },
-  { bg: 'bg-emerald-50', ic: 'text-emerald-600', icon: <FiUsers />,     title: 'Market Insights',       sub: 'High demand for Full Stack Developers',         to: '/recruiter/reports/ai-insights' },
-];
+const iconMap = {
+  FiBriefcase: <FiBriefcase />,
+  FiMail: <FiMail />,
+  FiUsers: <FiUsers />,
+  FiCheckCircle: <FiCheckCircle />,
+  FiClock: <FiClock />,
+  FiDollarSign: <FiDollarSign />,
+  HiSparkles: <HiSparkles />,
+};
 
 export default function ReportsOverview() {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    import('../../services/api').then(({ recruiterAPI }) => {
+      recruiterAPI.getReportsOverview()
+        .then(res => setData(res.data.data))
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    });
+  }, []);
+
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading dashboard data...</div>;
+
+  const topMetrics = data.topMetrics.map(m => ({ ...m, icon: iconMap[m.icon] }));
+  const { funnelStages, sourceLegend, jobPerf, interviewLegend, aiTrends, applicationsTrend, timeToHireTrend } = data;
+  const aiTrendsMapped = aiTrends.map(t => ({ ...t, icon: iconMap[t.icon] }));
+
   return (
     <div className="space-y-6">
       {/* KPI row */}
@@ -119,51 +98,51 @@ export default function ReportsOverview() {
 
         {/* Applications Trend */}
         <SCard className="p-5 xl:col-span-3">
-          <CardHdr title="Applications Trend" action="Daily" />
-          <div className="relative" style={{ paddingBottom: '65%' }}>
-            <div className="absolute inset-0 flex">
-              <div className="flex flex-col justify-between text-[10px] text-gray-400 font-semibold pr-2 py-1 shrink-0">
-                {['1.2k','900','600','300','0'].map(l => <span key={l}>{l}</span>)}
-              </div>
-              <div className="flex-1 relative">
-                <svg viewBox="0 0 100 60" preserveAspectRatio="none" className="w-full h-full">
-                  <defs>
-                    <linearGradient id="appGradOV" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  {[12,24,36,48].map(y => <line key={y} x1="0" y1={y} x2="100" y2={y} stroke="#f3f4f6" strokeWidth="0.5" />)}
-                  <path d="M0,52 C15,38 25,30 35,32 C45,34 55,20 65,22 C75,24 88,12 100,6 L100,60 L0,60Z" fill="url(#appGradOV)" />
-                  <path d="M0,52 C15,38 25,30 35,32 C45,34 55,20 65,22 C75,24 88,12 100,6" fill="none" stroke="#6366f1" strokeWidth="1.5" strokeLinecap="round" />
-                  <circle cx="65" cy="22" r="2.5" fill="#6366f1" stroke="white" strokeWidth="1" />
-                </svg>
-                <div className="flex justify-between text-[10px] text-gray-400 font-semibold mt-1">
-                  {['20 Apr','27 Apr','4 May','11 May','18 May'].map(l => <span key={l}>{l}</span>)}
-                </div>
-              </div>
-            </div>
+          <CardHdr title="Applications Trend" action="30 Days" />
+          <div className="h-[200px] w-full mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={applicationsTrend} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="appGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af', fontWeight: 600 }} dy={10} minTickGap={20} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af', fontWeight: 600 }} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  labelStyle={{ fontSize: '12px', fontWeight: 'bold', color: '#374151', marginBottom: '4px' }}
+                  itemStyle={{ fontSize: '12px', fontWeight: '600' }}
+                />
+                <Area type="monotone" dataKey="apps" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#appGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </SCard>
 
         {/* Time to Hire Trend */}
         <SCard className="p-5 xl:col-span-3">
-          <CardHdr title="Time to Hire Trend" action="This Month" />
-          <div className="relative" style={{ paddingBottom: '65%' }}>
-            <div className="absolute inset-0 flex">
-              <div className="flex flex-col justify-between text-[10px] text-gray-400 font-semibold pr-2 py-1 shrink-0">
-                {['40','30','20','10','0'].map(l => <span key={l}>{l}</span>)}
-              </div>
-              <div className="flex-1 relative">
-                <svg viewBox="0 0 100 60" preserveAspectRatio="none" className="w-full h-full">
-                  {[12,24,36,48].map(y => <line key={y} x1="0" y1={y} x2="100" y2={y} stroke="#f3f4f6" strokeWidth="0.5" />)}
-                  <path d="M0,30 C12,42 22,34 32,26 C42,18 52,30 62,36 C72,42 85,34 100,32" fill="none" stroke="#a855f7" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-                <div className="flex justify-between text-[10px] text-gray-400 font-semibold mt-1">
-                  {['20 Apr','27 Apr','4 May','11 May','18 May'].map(l => <span key={l}>{l}</span>)}
-                </div>
-              </div>
-            </div>
+          <CardHdr title="Time to Hire Trend" action="Weekly" />
+          <div className="h-[200px] w-full mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={timeToHireTrend} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="timeGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af', fontWeight: 600 }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af', fontWeight: 600 }} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  labelStyle={{ fontSize: '12px', fontWeight: 'bold', color: '#374151', marginBottom: '4px' }}
+                  itemStyle={{ fontSize: '12px', fontWeight: '600' }}
+                />
+                <Area type="monotone" dataKey="days" stroke="#a855f7" strokeWidth={2} fillOpacity={1} fill="url(#timeGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </SCard>
 
@@ -331,7 +310,7 @@ export default function ReportsOverview() {
         <SCard className="p-5 flex flex-col">
           <CardHdr title="AI Insights & Trends" />
           <div className="space-y-3 flex-1">
-            {aiTrends.map((item, i) => (
+            {aiTrendsMapped.map((item, i) => (
               <Link key={i} to={item.to} className={`flex items-center justify-between gap-3 p-3 rounded-xl border border-transparent bg-gray-50/50 hover:bg-indigo-50 hover:border-indigo-100 cursor-pointer group transition`}>
                 <div className="flex items-start gap-3 min-w-0">
                   <div className={`${item.bg} ${item.ic} p-2 rounded-xl shrink-0`}>{item.icon}</div>

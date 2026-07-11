@@ -87,7 +87,7 @@ const TalentPool = () => {
                     <div>
                       <h2 className="text-xl font-bold text-gray-900">{job.title}</h2>
                       <div className="flex items-center gap-4 mt-2">
-                        <span className="text-sm text-gray-500">{job.location || 'Remote'}</span>
+                        <span className="text-sm text-gray-500">{typeof job.location === 'object' ? (job.location?.city || job.location?.name || job.location?.formattedAddress || 'Remote') : (job.location || 'Remote')}</span>
                         <span className="text-sm font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
                           {job.candidates?.length || 0} Total Applicants
                         </span>

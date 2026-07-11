@@ -6,83 +6,38 @@ const SCard = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
 );
 
-const insightCategories = [
-  {
-    id: 'skills',
-    icon: <FiBriefcase className="w-5 h-5" />,
-    bg: 'bg-indigo-50', ic: 'text-indigo-600',
-    title: 'Top In-Demand Skills',
-    desc: 'Skills with highest demand vs. supply gap this month',
-    items: [
-      { skill: 'React.js / Next.js', demand: 92, supply: 48, gap: '+44', trend: 'High' },
-      { skill: 'Node.js / Express',  demand: 86, supply: 55, gap: '+31', trend: 'High' },
-      { skill: 'TypeScript',         demand: 80, supply: 62, gap: '+18', trend: 'Rising' },
-      { skill: 'AWS / Cloud',        demand: 78, supply: 40, gap: '+38', trend: 'High' },
-      { skill: 'Python / ML',        demand: 74, supply: 52, gap: '+22', trend: 'Rising' },
-      { skill: 'DevOps / K8s',       demand: 70, supply: 35, gap: '+35', trend: 'High' },
-    ],
-  },
-  {
-    id: 'salary',
-    icon: <FiDollarSign className="w-5 h-5" />,
-    bg: 'bg-blue-50', ic: 'text-blue-600',
-    title: 'Salary Benchmark',
-    desc: 'Market salary ranges by role',
-    items: [
-      { skill: 'Senior React Developer',  demand: null, supply: null, gap: '₹18–28 LPA', trend: '₹22 avg' },
-      { skill: 'Product Manager',         demand: null, supply: null, gap: '₹20–35 LPA', trend: '₹26 avg' },
-      { skill: 'DevOps Engineer',         demand: null, supply: null, gap: '₹15–25 LPA', trend: '₹19 avg' },
-      { skill: 'UX Designer',             demand: null, supply: null, gap: '₹12–20 LPA', trend: '₹15 avg' },
-      { skill: 'Data Analyst',            demand: null, supply: null, gap: '₹8–15 LPA',  trend: '₹11 avg' },
-      { skill: 'Backend Developer',       demand: null, supply: null, gap: '₹14–24 LPA', trend: '₹18 avg' },
-    ],
-  },
-  {
-    id: 'hiring',
-    icon: <FiTrendingUp className="w-5 h-5" />,
-    bg: 'bg-purple-50', ic: 'text-purple-600',
-    title: 'Hiring Trends',
-    desc: 'Month-over-month hiring volume changes by role',
-    items: [
-      { skill: 'React Developers',      demand: 78, supply: 45, gap: '+24%', trend: '↑ Rising'  },
-      { skill: 'Full Stack Developers', demand: 72, supply: 52, gap: '+18%', trend: '↑ Rising'  },
-      { skill: 'DevOps Engineers',      demand: 68, supply: 38, gap: '+31%', trend: '↑ Hot'     },
-      { skill: 'Data Scientists',       demand: 65, supply: 60, gap: '+8%',  trend: '→ Stable'  },
-      { skill: 'UI Designers',          demand: 55, supply: 48, gap: '-5%',  trend: '↓ Cooling' },
-      { skill: 'Sales Executives',      demand: 50, supply: 55, gap: '-12%', trend: '↓ Cooling' },
-    ],
-  },
-  {
-    id: 'market',
-    icon: <FiUsers className="w-5 h-5" />,
-    bg: 'bg-emerald-50', ic: 'text-emerald-600',
-    title: 'Market Insights',
-    desc: 'Broad market signals and talent availability',
-    items: [
-      { skill: 'Full Stack Developers',  demand: 88, supply: 42, gap: 'High demand', trend: '↑ Growing' },
-      { skill: 'Cloud Architects',       demand: 82, supply: 30, gap: 'Critical gap', trend: '↑ Hot'    },
-      { skill: 'ML Engineers',           demand: 76, supply: 38, gap: 'High demand', trend: '↑ Hot'     },
-      { skill: 'Cybersecurity Analysts', demand: 70, supply: 28, gap: 'Critical gap', trend: '↑ Hot'    },
-      { skill: 'Content Marketers',      demand: 45, supply: 65, gap: 'Oversupplied', trend: '→ Stable' },
-      { skill: 'HR Generalists',         demand: 40, supply: 58, gap: 'Oversupplied', trend: '↓ Cooling'},
-    ],
-  },
-];
+const iconMap = {
+  FiBriefcase: <FiBriefcase className="w-5 h-5" />,
+  FiDollarSign: <FiDollarSign className="w-5 h-5" />,
+  FiTrendingUp: <FiTrendingUp className="w-5 h-5" />,
+  FiUsers: <FiUsers className="w-5 h-5" />
+};
 
 export default function AIInsightsPage() {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
   const [activeCategory, setActiveCategory] = useState('skills');
-  const activeData = insightCategories.find(c => c.id === activeCategory);
+
+  React.useEffect(() => {
+    import('../../services/api').then(({ recruiterAPI }) => {
+      recruiterAPI.getAiInsights()
+        .then(res => setData(res.data.data))
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    });
+  }, []);
+
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading AI Insights...</div>;
+
+  const { insightCategories, kpis } = data;
+  const mappedCategories = insightCategories.map(c => ({ ...c, icon: iconMap[c.icon] }));
+  const activeData = mappedCategories.find(c => c.id === activeCategory);
 
   return (
     <div className="space-y-6">
       {/* KPI Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'AI Score',           value: '87/100', sub: '+11% this month',  color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: 'Time-to-Hire Saved', value: '3.2 Days', sub: 'AI shortlisting', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Best Match Rate',    value: '94%',    sub: 'AI vs manual: 71%',color: 'text-purple-600', bg: 'bg-purple-50' },
-          { label: 'Insights Generated', value: '42',     sub: 'This month',        color: 'text-blue-600',   bg: 'bg-blue-50'   },
-        ].map((k, i) => (
+        {kpis.map((k, i) => (
           <SCard key={i} className="p-4">
             <div className={`text-2xl font-extrabold mb-1 ${k.color}`}>{k.value}</div>
             <div className="text-xs font-bold text-gray-900 mb-0.5">{k.label}</div>
@@ -95,7 +50,7 @@ export default function AIInsightsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar category list */}
         <div className="space-y-3">
-          {insightCategories.map((cat) => (
+          {mappedCategories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
