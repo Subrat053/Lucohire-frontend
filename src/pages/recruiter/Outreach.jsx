@@ -23,7 +23,7 @@ const Outreach = () => {
         recruiterAPI.getJobs(),
         recruiterAPI.getOutreachCampaigns()
       ]);
-      setJobs(jobsRes.data?.data || []); // Accessing data array from standard response
+      setJobs(jobsRes.data || []);
       setCampaigns(campaignsRes.data || []);
     } catch (err) {
       toast.error('Failed to load outreach data');
@@ -99,7 +99,7 @@ const Outreach = () => {
                           <p className="text-xs font-medium text-gray-500 mt-1">{job.location} • {job.workMode}</p>
                         </div>
                         <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
-                          {job.skills?.length || 0} Skills
+                          {job.skill ? 1 : 0} Skill
                         </span>
                       </div>
                       
@@ -187,15 +187,12 @@ const Outreach = () => {
 
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 mb-6">
                 <div className="flex justify-between items-center text-sm mb-2">
-                  <span className="font-semibold text-gray-700">Required Skills</span>
-                  <span className="font-bold text-indigo-600">{selectedJob.skills?.length || 0}</span>
+                  <span className="font-semibold text-gray-700">Required Skill</span>
+                  <span className="font-bold text-indigo-600">{selectedJob.skill ? 1 : 0}</span>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  {selectedJob.skills?.slice(0, 4).map(s => (
-                    <span key={s} className="bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold">{s}</span>
-                  ))}
-                  {selectedJob.skills?.length > 4 && (
-                    <span className="bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold">+{selectedJob.skills.length - 4} more</span>
+                  {selectedJob.skill && (
+                    <span className="bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold">{selectedJob.skill}</span>
                   )}
                 </div>
               </div>

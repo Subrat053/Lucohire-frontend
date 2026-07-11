@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiMoreHorizontal, FiCalendar, FiMessageSquare, FiPaperclip, FiSearch, FiFilter, FiX } from 'react-icons/fi';
+import { FiPlus, FiCalendar, FiMessageSquare, FiPaperclip, FiSearch, FiX, FiBriefcase, FiList } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
 import { DndContext, closestCorners, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
 import { useDroppable } from '@dnd-kit/core';
@@ -20,7 +20,7 @@ const PriorityBadge = ({ priority }) => {
   );
 };
 
-const TaskCard = ({ task, isOverlay }) => {
+const TaskCard = ({ task, isOverlay, jobs }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task._id || task.id,
     data: task
@@ -32,11 +32,12 @@ const TaskCard = ({ task, isOverlay }) => {
     opacity: isDragging ? 0.5 : 1
   } : undefined;
 
-  // Extract initials if not provided
   const getInitials = (name) => {
     if (!name) return '??';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
+
+  const associatedJob = jobs.find(j => j._id === task.jobId);
 
   return (
     <div 
@@ -59,13 +60,20 @@ const TaskCard = ({ task, isOverlay }) => {
 
       <h4 className="text-sm font-bold text-gray-900 leading-snug">{task.title}</h4>
 
-      {(task.candidateName || task.candidateRole) && (
+      {(task.candidateName || associatedJob) && (
         <div className="flex items-center gap-2 mt-1">
-          <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-black shrink-0">
-            {getInitials(task.candidateName)}
-          </div>
+          {task.candidateName && (
+            <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-black shrink-0">
+              {getInitials(task.candidateName)}
+            </div>
+          )}
           <div className="text-xs font-medium text-gray-600 truncate">
-            {task.candidateName || 'Unknown'} <span className="text-gray-400 font-normal">for</span> {task.candidateRole || 'Role'}
+            {task.candidateName ? `${task.candidateName} ` : ''}
+            {associatedJob && (
+              <>
+                <span className="text-gray-400 font-normal">for</span> <span className="font-semibold text-gray-700">{associatedJob.title}</span>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -92,7 +100,7 @@ const TaskCard = ({ task, isOverlay }) => {
   );
 };
 
-const Column = ({ title, count, colorClass, status, tasks }) => {
+const Column = ({ title, count, colorClass, status, tasks, jobs }) => {
   const { isOver, setNodeRef } = useDroppable({
     id: status,
   });
@@ -111,7 +119,7 @@ const Column = ({ title, count, colorClass, status, tasks }) => {
       </div>
       <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar pb-10">
         {tasks.map(task => (
-          <TaskCard key={task._id || task.id} task={task} />
+          <TaskCard key={task._id || task.id} task={task} jobs={jobs} />
         ))}
         {tasks.length === 0 && (
           <div className="text-center p-6 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-sm font-medium">
@@ -125,12 +133,16 @@ const Column = ({ title, count, colorClass, status, tasks }) => {
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [selectedJob, setSelectedJob] = useState('All');
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  
   const [formData, setFormData] = useState({
     title: '',
     candidateName: '',
-    candidateRole: '',
+    jobId: '',
     priority: 'Medium',
     dueDate: ''
   });
@@ -144,16 +156,20 @@ const Tasks = () => {
   );
 
   useEffect(() => {
-    fetchTasks();
+    fetchData();
   }, []);
 
-  const fetchTasks = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await recruiterAPI.getTasks();
-      setTasks(res.data);
+      const [tasksRes, jobsRes] = await Promise.all([
+        recruiterAPI.getTasks(),
+        recruiterAPI.getJobPostings()
+      ]);
+      setTasks(tasksRes.data || []);
+      setJobs(jobsRes.data.jobs || []);
     } catch (err) {
-      toast.error('Failed to load tasks');
+      toast.error('Failed to load tasks and jobs');
     } finally {
       setLoading(false);
     }
@@ -168,7 +184,6 @@ const Tasks = () => {
     const task = tasks.find(t => (t._id || t.id) === taskId);
 
     if (task && task.status !== newStatus) {
-      // Optimistic update
       setTasks(tasks.map(t => (t._id || t.id) === taskId ? { ...t, status: newStatus } : t));
       
       try {
@@ -176,9 +191,20 @@ const Tasks = () => {
         toast.success(`Task moved to ${newStatus}`);
       } catch (err) {
         toast.error('Failed to move task');
-        fetchTasks(); // Revert on failure
+        fetchData();
       }
     }
+  };
+
+  const openNewTaskModal = () => {
+    setFormData({ 
+      title: '', 
+      candidateName: '', 
+      jobId: selectedJob !== 'All' && selectedJob !== 'General' ? selectedJob : '', 
+      priority: 'Medium', 
+      dueDate: '' 
+    });
+    setIsModalOpen(true);
   };
 
   const handleCreateTask = async (e) => {
@@ -192,37 +218,52 @@ const Tasks = () => {
       });
       setTasks([...tasks, res.data]);
       setIsModalOpen(false);
-      setFormData({ title: '', candidateName: '', candidateRole: '', priority: 'Medium', dueDate: '' });
       toast.success('Task created successfully!');
     } catch (err) {
       toast.error('Failed to create task');
     }
   };
 
-  const todoTasks = tasks.filter(t => t.status === 'todo');
-  const inProgressTasks = tasks.filter(t => t.status === 'in-progress');
-  const doneTasks = tasks.filter(t => t.status === 'done');
+  // Filter logic
+  let filteredTasks = tasks.filter(t => {
+    if (selectedJob === 'All') return true;
+    if (selectedJob === 'General') return !t.jobId;
+    return t.jobId === selectedJob;
+  });
+
+  if (searchQuery) {
+    filteredTasks = filteredTasks.filter(t => 
+      t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      (t.candidateName || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+
+  const todoTasks = filteredTasks.filter(t => t.status === 'todo');
+  const inProgressTasks = filteredTasks.filter(t => t.status === 'in-progress');
+  const doneTasks = filteredTasks.filter(t => t.status === 'done');
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24">
+    <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans">
       {/* HEADER SECTION */}
       <div className="bg-white border-b border-gray-100 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-20">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900">Task Workspace</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your hiring workflow with drag and drop.</p>
+          <p className="text-sm text-gray-500 mt-1">Manage your hiring workflow by job role.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search tasks..." 
               className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition w-full md:w-64"
             />
           </div>
           <button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm shadow-indigo-200 hover:bg-indigo-700 transition flex items-center gap-2 whitespace-nowrap"
+            onClick={openNewTaskModal}
+            className="bg-[#1E293B] text-white px-5 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-800 transition flex items-center gap-2 whitespace-nowrap"
           >
             <FiPlus className="w-4 h-4" /> New Task
           </button>
@@ -234,21 +275,79 @@ const Tasks = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
         </div>
       ) : (
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 h-[calc(100vh-140px)]">
-          <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-              <Column title="To Do" count={todoTasks.length} colorClass="bg-gray-400" status="todo" tasks={todoTasks} />
-              <Column title="In Progress" count={inProgressTasks.length} colorClass="bg-indigo-500" status="in-progress" tasks={inProgressTasks} />
-              <Column title="Done" count={doneTasks.length} colorClass="bg-emerald-500" status="done" tasks={doneTasks} />
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-140px)] flex flex-col md:flex-row gap-6">
+          
+          {/* LEFT SIDEBAR: Job Selector */}
+          <div className="w-full md:w-64 shrink-0 bg-white border border-gray-200 rounded-2xl flex flex-col overflow-hidden h-fit md:h-full">
+            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                <FiBriefcase className="text-indigo-500" /> Filter by Job
+              </h3>
             </div>
-          </DndContext>
+            <div className="flex-1 overflow-y-auto p-2 space-y-1">
+              <button 
+                onClick={() => setSelectedJob('All')}
+                className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-between ${selectedJob === 'All' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
+              >
+                <div className="flex items-center gap-2"><FiList className="w-4 h-4" /> All Tasks</div>
+                <span className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full">{tasks.length}</span>
+              </button>
+              
+              <button 
+                onClick={() => setSelectedJob('General')}
+                className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-between ${selectedJob === 'General' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
+              >
+                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-gray-200"></div> General</div>
+                <span className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full">
+                  {tasks.filter(t => !t.jobId).length}
+                </span>
+              </button>
+
+              <div className="my-2 border-t border-gray-100"></div>
+              
+              {jobs.map(job => {
+                const count = tasks.filter(t => t.jobId === job._id).length;
+                return (
+                  <button 
+                    key={job._id}
+                    onClick={() => setSelectedJob(job._id)}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-between ${selectedJob === job._id ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                  >
+                    <div className="truncate pr-2">{job.title}</div>
+                    <span className={`${selectedJob === job._id ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'} text-[10px] px-2 py-0.5 rounded-full shrink-0`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* MAIN KANBAN BOARD */}
+          <div className="flex-1 h-full min-w-0">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-800">
+                {selectedJob === 'All' ? 'All Tasks' : selectedJob === 'General' ? 'General Tasks' : `${jobs.find(j => j._id === selectedJob)?.title || 'Job'} Pipeline`}
+              </h2>
+              <span className="text-sm font-medium text-gray-500">{filteredTasks.length} total tasks</span>
+            </div>
+            
+            <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100%-40px)]">
+                <Column title="To Do" count={todoTasks.length} colorClass="bg-gray-400" status="todo" tasks={todoTasks} jobs={jobs} />
+                <Column title="In Progress" count={inProgressTasks.length} colorClass="bg-indigo-500" status="in-progress" tasks={inProgressTasks} jobs={jobs} />
+                <Column title="Done" count={doneTasks.length} colorClass="bg-emerald-500" status="done" tasks={doneTasks} jobs={jobs} />
+              </div>
+            </DndContext>
+          </div>
+
         </div>
       )}
 
       {/* NEW TASK MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex justify-center items-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all animate-fade-in-up">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
             <div className="flex justify-between items-center p-5 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-900">Create New Task</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
@@ -276,13 +375,16 @@ const Tasks = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Role</label>
-                  <input 
-                    type="text" 
-                    value={formData.candidateRole} onChange={e => setFormData({...formData, candidateRole: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-hidden"
-                    placeholder="React Dev"
-                  />
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Job</label>
+                  <select 
+                    value={formData.jobId} onChange={e => setFormData({...formData, jobId: e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-hidden bg-white"
+                  >
+                    <option value="">General (No Job)</option>
+                    {jobs.map(j => (
+                      <option key={j._id} value={j._id}>{j.title}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
