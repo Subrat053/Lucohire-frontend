@@ -136,6 +136,21 @@ const ProviderDashboard = () => {
     return () => { cancelled = true; };
   }, []);
 
+  const handleWhatsappCheckout = async () => {
+    try {
+      toast.loading('Redirecting to checkout...', { id: 'whatsapp-checkout' });
+      const { data } = await providerAPI.checkoutWhatsappPlan();
+      if (data?.checkout?.url) {
+        window.location.href = data.checkout.url;
+      } else {
+        toast.error('Could not get checkout URL', { id: 'whatsapp-checkout' });
+      }
+    } catch (err) {
+      console.error('WhatsApp Checkout error:', err);
+      toast.error(err.response?.data?.message || 'Failed to initiate checkout', { id: 'whatsapp-checkout' });
+    }
+  };
+
   const profile = dashboard?.profile || {};
   const stats = dashboard?.stats || {};
   const isProfileEmpty = !profile.city && !profile.skills?.length;
@@ -535,13 +550,15 @@ const ProviderDashboard = () => {
 
       {/* Floating Action WhatsApp */}
       <div className="fixed bottom-6 right-6 z-50">
-        <button className="bg-white hover:bg-gray-50 text-gray-900 rounded-full pl-2 pr-5 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-3 transition transform hover:scale-105 border border-gray-100 group">
+        <button 
+          onClick={handleWhatsappCheckout}
+          className="bg-white hover:bg-gray-50 text-gray-900 rounded-full pl-2 pr-5 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-3 transition transform hover:scale-105 border border-gray-100 group">
           <div className="w-12 h-12 bg-[#25D366] rounded-full flex items-center justify-center shadow-inner group-hover:bg-[#20bd5a] transition-colors">
             <FaWhatsapp className="w-7 h-7 text-white" />
           </div>
           <div className="text-left hidden sm:block">
             <div className="text-sm font-extrabold leading-tight text-gray-900">Earn Extra Income</div>
-            <div className="text-[11px] font-medium text-gray-500 mt-0.5">Nearby freelance work <br/> <span className="font-bold text-gray-700">₹1/day</span></div>
+            <div className="text-[11px] font-medium text-gray-500 mt-0.5">Nearby freelance work <br/> <span className="font-bold text-gray-700">₹30/month</span></div>
           </div>
           <ArrowRight className="w-5 h-5 ml-1 text-gray-400 group-hover:text-gray-700 transition-colors hidden sm:block" />
         </button>

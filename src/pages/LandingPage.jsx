@@ -88,6 +88,7 @@ export default function LandingPage() {
   const [talentSearch, setTalentSearch] = useState('');
   const [activeTab, setActiveTab] = useState('candidates');
   const [liveJobsList, setLiveJobsList] = useState([]);
+  const [topTalent, setTopTalent] = useState([]);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const carouselRef = useRef(null);
 
@@ -116,7 +117,20 @@ export default function LandingPage() {
         setIsLoadingJobs(false);
       }
     };
+    
+    const fetchTopTalent = async () => {
+      try {
+        const { data } = await providerAPI.getTopTalent({ limit: 10 });
+        if (data?.success && data?.data) {
+          setTopTalent(data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching top talent:', err);
+      }
+    };
+
     fetchLiveJobs();
+    fetchTopTalent();
   }, [user, profile]);
 
   const handleJobSearch = (e) => {
@@ -298,7 +312,6 @@ export default function LandingPage() {
       )}
 
       {/* 4. Live Jobs Banner */}
-      {user?.activeRole !== 'recruiter' && (
       <div className="w-full bg-[#0a1930] py-6 sm:py-8 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-5 text-white">
@@ -344,11 +357,9 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
-      )}
 
       {/* 5. Top Talent Available for Hourly Work */}
-      {user?.activeRole !== 'provider' && (
-        <div className="bg-white py-12 sm:py-16 w-full">
+      <div className="bg-white py-12 sm:py-16 w-full">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">
               Top Talent Available for <span className="text-blue-600">Hourly Work</span>
@@ -383,7 +394,7 @@ export default function LandingPage() {
             {/* Candidate Cards Carousel */}
             <div className="relative">
               {/* Left Arrow */}
-              <button 
+<button 
                 onClick={() => scrollCarousel('left')}
                 className="absolute -left-3 sm:-left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition"
               >
@@ -391,8 +402,8 @@ export default function LandingPage() {
               </button>
 
               <div ref={carouselRef} className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar scroll-smooth px-1">
-                {TOP_TALENT.map(candidate => (
-                  <div key={candidate.id} className="min-w-[240px] sm:min-w-[260px] bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex-shrink-0 flex flex-col">
+                {topTalent.map(candidate => (
+                  <div key={candidate._id} className="min-w-[240px] sm:min-w-[260px] bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex-shrink-0 flex flex-col">
                     
                     {/* Availability Badge */}
                     <div className="flex items-center gap-1.5 mb-3">
@@ -402,16 +413,20 @@ export default function LandingPage() {
 
                     {/* Profile Header */}
                     <div className="flex items-start gap-3 mb-3">
-                      <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-base sm:text-lg font-bold flex-shrink-0 ${candidate.avatarBg}`}>
-                        {candidate.initials}
-                      </div>
+                      {candidate.profilePhoto ? (
+                        <img src={candidate.profilePhoto} alt={candidate.profileName} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex-shrink-0 object-cover" />
+                      ) : (
+                        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-base sm:text-lg font-bold flex-shrink-0 ${candidate.avatarBg || 'bg-blue-100 text-blue-700'}`}>
+                          {candidate.profileName?.substring(0, 2).toUpperCase() || 'UN'}
+                        </div>
+                      )}
                       <div className="min-w-0">
-                        <h3 className="font-bold text-sm sm:text-[15px] text-gray-900 truncate">{candidate.name}</h3>
-                        <p className="text-xs text-gray-500">{candidate.role} · {candidate.exp}</p>
+                        <h3 className="font-bold text-sm sm:text-[15px] text-gray-900 truncate">{candidate.profileName}</h3>
+                        <p className="text-xs text-gray-500">{candidate.primaryRole || 'Freelancer'} · {candidate.experienceYears || 0} years</p>
                         <div className="flex items-center gap-1 mt-1">
                           <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                          <span className="text-xs font-semibold text-gray-800">{candidate.rating}</span>
-                          <span className="text-[10px] text-gray-400">({candidate.reviews} reviews)</span>
+                          <span className="text-xs font-semibold text-gray-800">{candidate.rating || 5.0}</span>
+                          <span className="text-[10px] text-gray-400">({candidate.reviewCount || 0} reviews)</span>
                         </div>
                       </div>
                     </div>
@@ -419,12 +434,12 @@ export default function LandingPage() {
                     {/* Location Badge */}
                     <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
                       <MapPin className="w-3 h-3" />
-                      <span>{candidate.badges[0]}</span>
+                      <span>{candidate.city || 'Remote'}</span>
                     </div>
 
                     {/* Skill Tags */}
                     <div className="flex flex-wrap gap-1.5 mb-4">
-                      {candidate.tags.map((tag, idx) => (
+                      {candidate.skills?.slice(0, 3).map((tag, idx) => (
                         <span key={idx} className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-medium">
                           {tag}
                         </span>
@@ -434,16 +449,30 @@ export default function LandingPage() {
                     {/* Rate */}
                     <div className="mt-auto">
                       <div className="font-bold text-lg text-gray-900 mb-3">
-                        {candidate.rate}<span className="text-xs font-normal text-gray-400">/hr</span>
+                        ₹{candidate.hourlyRate || 'Negotiable'}<span className="text-xs font-normal text-gray-400">/hr</span>
                       </div>
 
                       {/* WhatsApp + Call Now Buttons */}
                       <div className="flex gap-2">
-                        <button className="flex-1 py-2 rounded-lg border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors text-xs flex items-center justify-center gap-1.5">
+                        <button 
+                          onClick={() => {
+                            if (candidate.user?.whatsappNumber) {
+                              window.open(`https://wa.me/${candidate.user.whatsappNumber}`, '_blank');
+                            }
+                          }}
+                          className="flex-1 py-2 rounded-lg border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors text-xs flex items-center justify-center gap-1.5"
+                        >
                           <MessageCircle className="w-3.5 h-3.5" />
                           WhatsApp
                         </button>
-                        <button className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors text-xs flex items-center justify-center gap-1.5">
+                        <button 
+                          onClick={() => {
+                            if (candidate.user?.whatsappNumber) {
+                              window.open(`tel:${candidate.user.whatsappNumber}`);
+                            }
+                          }}
+                          className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors text-xs flex items-center justify-center gap-1.5"
+                        >
                           <Phone className="w-3.5 h-3.5" />
                           Call Now
                         </button>
@@ -452,6 +481,18 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
+
+              {/* View All Button */}
+              {topTalent.length > 0 && (
+                <div className="mt-8 flex justify-center">
+                  <button 
+                    onClick={() => navigate('/top-talent')}
+                    className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-bold py-2.5 px-6 rounded-full shadow-sm text-sm transition-all flex items-center gap-2"
+                  >
+                    View All Talent <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
 
               {/* Right Arrow */}
               <button 
@@ -470,7 +511,6 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-      )}
 
       {/* 6. Why Choose Lucohire? */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">

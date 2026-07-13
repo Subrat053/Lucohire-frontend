@@ -207,6 +207,7 @@ export const providerAPI = {
   getPlans: () => API.get("/provider/plans"),
   getCurrentSubscription: () => API.get("/provider/subscription/current"),
   purchasePlan: (data) => API.post("/provider/plans/purchase", data),
+  checkoutWhatsappPlan: () => API.post("/provider/plan/whatsapp-checkout"),
   getLeads: () => API.get("/provider/leads"),
   updateLead: (id, data) => API.put(`/provider/leads/${id}`, data),
   getPublicProfile: (id) => API.get(`/provider/public/${id}`),
@@ -238,6 +239,7 @@ export const providerAPI = {
   toggleSaveJob: (data) => API.post("/candidate-matching/save", data),
   trackApplyClick: (jobId) =>
     API.post(`/candidate-matching/${jobId}/apply-click`),
+  getTopTalent: (params) => API.get("/provider/top-talent", { params }),
 };
 
 // Recruiter APIs

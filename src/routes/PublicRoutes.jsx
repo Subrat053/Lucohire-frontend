@@ -5,6 +5,7 @@ import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
 
 const LandingPage = lazy(() => import("../pages/LandingPage"));
+const TopTalentPage = lazy(() => import("../pages/TopTalentPage"));
 const SearchPage = lazy(() => import("../pages/SearchPage"));
 const ProviderPublicProfile = lazy(() => import("../pages/ProviderPublicProfile"));
 const FaqPage = lazy(() => import("../pages/Faq"));
@@ -27,7 +28,7 @@ const RecruiterLockedResults = lazy(() => import("../pages/recruiter/RecruiterLo
 
 function MainLayout({ children }) {
   const location = useLocation();
-  const publicPaths = ["/", "/search", "/faq", "/terms", "/privacy", "/refund-policy", "/renewal-policy", "/pricing", "/contact", "/about"];
+  const publicPaths = ["/", "/search", "/faq", "/terms", "/privacy", "/refund-policy", "/renewal-policy", "/pricing", "/contact", "/about", "/top-talent"];
   const privateProviderPaths = [
     "/provider/dashboard",
     "/provider/profile",
@@ -74,6 +75,7 @@ export default function PublicRoutes() {
     <Routes>
       {/* Public Pages with Navbar/Footer */}
       <Route path="" element={wrap(<LandingPage />)} />
+      <Route path="top-talent" element={wrap(<TopTalentPage />)} />
       <Route path="search" element={wrap(<SearchPage />)} />
       <Route path="external-match" element={wrap(<ExternalMatch />)} />
       <Route path="p/:id" element={wrap(<ProviderPublicProfile />)} />

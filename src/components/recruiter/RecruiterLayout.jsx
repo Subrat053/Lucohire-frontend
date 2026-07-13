@@ -54,13 +54,15 @@ const RecruiterLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [currentPlan, setCurrentPlan] = useState('free');
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     const fetchPlan = async () => {
       try {
         const { data } = await recruiterAPI.getDashboard();
-        if (data?.stats?.currentPlan) {
-          setCurrentPlan(data.stats.currentPlan);
+        if (data?.stats) {
+          if (data.stats.currentPlan) setCurrentPlan(data.stats.currentPlan);
+          setStats(data.stats);
         }
       } catch (err) {
         console.error('Failed to fetch plan:', err);
@@ -121,7 +123,7 @@ const RecruiterLayout = ({ children }) => {
         </div>
 
         {/* Subscription Usage Widget */}
-        {!collapsed && (
+        {(!collapsed && stats) && (
           <div className="mt-8 mb-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm mx-1 shrink-0">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-bold text-gray-900">Subscription Usage</p>
@@ -131,30 +133,37 @@ const RecruiterLayout = ({ children }) => {
             <div className="space-y-3">
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
-                  <HiSparkles className="w-3 h-3 text-yellow-500" />
-                  <span className="text-[10px] font-semibold text-gray-600">Featured Job Credits</span>
+                  <HiBriefcase className="w-3 h-3 text-blue-500" />
+                  <span className="text-[10px] font-semibold text-gray-600">Job Postings</span>
                 </div>
-                <div className="text-sm font-bold text-gray-900 mb-1">12 <span className="text-gray-400 font-medium">/ 20</span></div>
-                <div className="w-full bg-gray-100 rounded-full h-1.5">
-                  <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: '60%' }}></div>
+                <div className="text-sm font-bold text-gray-900 mb-1">
+                  {stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit}
+                  {stats.remainingPostLimit !== 'unlimited' && <span className="text-gray-400 font-medium"> left</span>}
                 </div>
+                {stats.remainingPostLimit !== 'unlimited' && (
+                  <div className="w-full bg-gray-100 rounded-full h-1.5">
+                    <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${Math.min(100, Math.max(0, (stats.remainingPostLimit / Math.max(1, (stats.remainingPostLimit + (stats.totalJobsPosted || 0)))) * 100))}%` }}></div>
+                  </div>
+                )}
               </div>
               
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
-                  <HiLightningBolt className="w-3 h-3 text-orange-500" />
-                  <span className="text-[10px] font-semibold text-gray-600">Urgent Hiring Slots</span>
+                  <HiUsers className="w-3 h-3 text-green-500" />
+                  <span className="text-[10px] font-semibold text-gray-600">Candidate Unlocks</span>
                 </div>
-                <div className="text-sm font-bold text-gray-900 mb-1">5 <span className="text-gray-400 font-medium">/ 10</span></div>
+                <div className="text-sm font-bold text-gray-900 mb-1">
+                  {stats.unlocksRemaining} <span className="text-gray-400 font-medium"> left</span>
+                </div>
                 <div className="w-full bg-gray-100 rounded-full h-1.5">
-                  <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: '50%' }}></div>
+                  <div className="bg-green-600 h-1.5 rounded-full" style={{ width: `${stats.unlocksRemaining > 0 ? 100 : 0}%` }}></div>
                 </div>
               </div>
             </div>
 
-            <button className="mt-4 w-full rounded-xl border border-indigo-100 bg-white text-indigo-600 hover:bg-indigo-50 text-xs font-bold py-2 transition">
+            <Link to="/recruiter/plans" className="mt-4 w-full rounded-xl border border-indigo-100 bg-white text-indigo-600 hover:bg-indigo-50 text-xs font-bold py-2 transition flex justify-center items-center">
               Manage Subscription
-            </button>
+            </Link>
           </div>
         )}
       </nav>
