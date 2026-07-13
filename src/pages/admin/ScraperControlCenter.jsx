@@ -1,21 +1,23 @@
 import { useState } from 'react';
-import { HiBriefcase, HiLink, HiLightningBolt } from 'react-icons/hi';
-import LiveScraper from './LiveScraper';
+import { HiLightningBolt, HiDatabase, HiCog } from 'react-icons/hi';
 import LiveTester from './LiveTester';
+import BulkCrawlerPanel from './components/BulkCrawlerPanel';
+import NightlyEngineSettings from './components/NightlyEngineSettings';
 
 const ScraperControlCenter = () => {
-  const [activeTab, setActiveTab] = useState('live-tester');
+  const [activeTab, setActiveTab] = useState('single');
 
   const tabs = [
-    { id: 'live-tester', label: 'Single Scraper', icon: HiLightningBolt },
-    { id: 'bulk-scraper', label: 'Bulk Scraper', icon: HiBriefcase },
+    { id: 'single', label: 'Single Scraper', icon: HiLightningBolt },
+    { id: 'bulk', label: 'Bulk Mapping & Upload', icon: HiDatabase },
+    { id: 'engine', label: 'Nightly Engine Settings', icon: HiCog },
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       <div className="mb-6 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Scrapers & Crawlers</h1>
-        <nav className="-mb-px flex space-x-6 overflow-x-auto">
+        <nav className="-mb-px flex space-x-8 overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -35,9 +37,10 @@ const ScraperControlCenter = () => {
         </nav>
       </div>
 
-      <div className="mt-4 pipeline-child-wrapper">
-        {activeTab === 'live-tester' && <LiveTester />}
-        {activeTab === 'bulk-scraper' && <LiveScraper />}
+      <div className="mt-6 w-full">
+        {activeTab === 'single' && <LiveTester />}
+        {activeTab === 'bulk' && <BulkCrawlerPanel />}
+        {activeTab === 'engine' && <NightlyEngineSettings />}
       </div>
     </div>
   );

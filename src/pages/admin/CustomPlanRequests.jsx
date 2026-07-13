@@ -36,7 +36,7 @@ const CustomPlanRequests = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'pending': return <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded-full">Pending</span>;
-      case 'contacted': return <span className="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">Contacted</span>;
+      case 'contacted': return <span className="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">Contacted</span>;
       case 'resolved': return <span className="px-2.5 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Resolved</span>;
       case 'closed': return <span className="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-bold rounded-full">Closed</span>;
       default: return null;
@@ -52,7 +52,7 @@ const CustomPlanRequests = () => {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <div className="p-8 max-w-[1600px] mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-black text-slate-900">Custom Plan Requests</h1>

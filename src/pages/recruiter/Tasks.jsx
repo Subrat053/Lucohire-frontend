@@ -164,10 +164,10 @@ const Tasks = () => {
       setLoading(true);
       const [tasksRes, jobsRes] = await Promise.all([
         recruiterAPI.getTasks(),
-        recruiterAPI.getJobPostings()
+        recruiterAPI.getJobs()
       ]);
       setTasks(tasksRes.data || []);
-      setJobs(jobsRes.data.jobs || []);
+      setJobs(jobsRes.data || []);
     } catch (err) {
       toast.error('Failed to load tasks and jobs');
     } finally {
@@ -212,10 +212,12 @@ const Tasks = () => {
     if (!formData.title) return toast.error('Title is required');
 
     try {
-      const res = await recruiterAPI.createTask({
-        ...formData,
-        status: 'todo'
-      });
+      const payload = { ...formData, status: 'todo' };
+      if (!payload.jobId) {
+        delete payload.jobId;
+      }
+      
+      const res = await recruiterAPI.createTask(payload);
       setTasks([...tasks, res.data]);
       setIsModalOpen(false);
       toast.success('Task created successfully!');

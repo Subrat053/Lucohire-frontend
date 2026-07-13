@@ -57,13 +57,13 @@ const ManagerBankAccounts = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Partner Bank Accounts</h1>
         <p className="text-sm text-gray-500 mt-1">Review and verify bank details submitted by partners.</p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <form onSubmit={handleSearch} className="relative max-w-md flex-1">
             <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />

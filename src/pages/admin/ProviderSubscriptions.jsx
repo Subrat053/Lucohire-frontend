@@ -59,7 +59,7 @@ const DEFAULT_FILTERS = {
 const Badge = ({ children, variant = 'gray', size = 'sm' }) => {
   const styles = {
     gray:     'bg-gray-100 text-gray-600 border-gray-200',
-    blue:     'bg-blue-50 text-blue-700 border-blue-100',
+    blue:     'bg-indigo-50 text-indigo-700 border-indigo-100',
     indigo:   'bg-indigo-50 text-indigo-700 border-indigo-100',
     purple:   'bg-purple-50 text-purple-700 border-purple-100',
     green:    'bg-emerald-50 text-emerald-700 border-emerald-100',
@@ -509,7 +509,7 @@ const ProviderSubscriptions = () => {
       )}
 
       {/* ── Filter Bar ── */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-4">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-4">
         {/* Row 1 */}
         <div className="flex flex-wrap gap-3 items-center">
           {/* Search */}
@@ -673,7 +673,7 @@ const ProviderSubscriptions = () => {
       )}
 
       {/* ── Table ── */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden shadow-xs">
         {loading ? (
           <div className="p-20 flex justify-center"><LoadingSpinner size="lg" /></div>
         ) : subscriptions.length === 0 ? (

@@ -259,7 +259,7 @@ const AdminSettings = () => {
       {activeTab === 'general' && (() => {
         const generalSettings = settings.filter(s => !s.key.startsWith('ai.'));
         return (
-          <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
             {generalSettings.length === 0 ? (
               <div className="p-16 text-center text-gray-400">
                 <HiCog className="w-10 h-10 mx-auto mb-3 opacity-30" />
@@ -294,7 +294,7 @@ const AdminSettings = () => {
                               onChange={(e) => handleToggleChange(setting, e.target.checked)}
                               className="sr-only peer" 
                             />
-                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
+                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600" />
                           </label>
                         </div>
                       ) : (
@@ -306,10 +306,10 @@ const AdminSettings = () => {
                               const val = typeof setting.value === 'number' ? Number(e.target.value) : e.target.value;
                               setEditValues(v => ({ ...v, [setting._id]: val }));
                             }}
-                            className="w-36 sm:w-44 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                            className="w-36 sm:w-44 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                           />
                           <button onClick={() => handleSaveSetting(setting)}
-                            className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm font-medium shrink-0">
+                            className="flex items-center gap-1 px-3 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition text-sm font-medium shrink-0">
                             <HiSave className="w-4 h-4" />
                             <span className="hidden sm:inline">Save</span>
                           </button>
@@ -328,7 +328,7 @@ const AdminSettings = () => {
       {activeTab === 'ai-ops' && (() => {
         const aiSettings = settings.filter(s => s.key.startsWith('ai.'));
         return (
-          <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
             {aiSettings.length === 0 ? (
               <div className="p-16 text-center text-gray-400">
                 <HiDatabase className="w-10 h-10 mx-auto mb-3 opacity-30" />
@@ -363,7 +363,7 @@ const AdminSettings = () => {
                               onChange={(e) => handleToggleChange(setting, e.target.checked)}
                               className="sr-only peer" 
                             />
-                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
+                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600" />
                           </label>
                         </div>
                       ) : (
@@ -375,10 +375,10 @@ const AdminSettings = () => {
                               const val = typeof setting.value === 'number' ? Number(e.target.value) : e.target.value;
                               setEditValues(v => ({ ...v, [setting._id]: val }));
                             }}
-                            className="w-36 sm:w-44 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                            className="w-36 sm:w-44 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                           />
                           <button onClick={() => handleSaveSetting(setting)}
-                            className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm font-medium shrink-0">
+                            className="flex items-center gap-1 px-3 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition text-sm font-medium shrink-0">
                             <HiSave className="w-4 h-4" />
                             <span className="hidden sm:inline">Save</span>
                           </button>
@@ -397,9 +397,9 @@ const AdminSettings = () => {
       {activeTab === 'cloudinary' && (
         <div className="space-y-6">
           {/* Info banner */}
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
-            <HiCloud className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-700">
+          <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex gap-3">
+            <HiCloud className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+            <div className="text-sm text-indigo-700">
               <p className="font-semibold mb-0.5">Cloudinary — Media Storage</p>
               <p>All user profile photos, provider avatars, and documents are stored on Cloudinary. Get your credentials from{' '}
                 <a href="https://cloudinary.com/console" target="_blank" rel="noopener noreferrer" className="underline font-medium">cloudinary.com/console</a>.
@@ -407,9 +407,9 @@ const AdminSettings = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-              <HiCloud className="w-5 h-5 text-blue-500" />
+              <HiCloud className="w-5 h-5 text-indigo-500" />
               <h2 className="text-base font-bold text-gray-900">Cloudinary Configuration</h2>
             </div>
 
@@ -427,7 +427,7 @@ const AdminSettings = () => {
                     value={cloudinary.cloudinary_cloud_name}
                     onChange={e => setCloudinary(c => ({ ...c, cloudinary_cloud_name: e.target.value }))}
                     placeholder="e.g. my-app-cloud"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none font-mono text-sm"
                   />
                   <p className="text-xs text-gray-400 mt-1">Found on your Cloudinary Dashboard home page</p>
                 </div>
@@ -442,7 +442,7 @@ const AdminSettings = () => {
                     value={cloudinary.cloudinary_api_key}
                     onChange={e => setCloudinary(c => ({ ...c, cloudinary_api_key: e.target.value }))}
                     placeholder="e.g. 123456789012345"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none font-mono text-sm"
                   />
                   <p className="text-xs text-gray-400 mt-1">Dashboard → Settings → API Keys</p>
                 </div>
@@ -458,7 +458,7 @@ const AdminSettings = () => {
                       value={cloudinary.cloudinary_api_secret}
                       onChange={e => setCloudinary(c => ({ ...c, cloudinary_api_secret: e.target.value }))}
                       placeholder="••••••••••••••••••••••••"
-                      className="w-full px-4 py-2.5 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono text-sm"
+                      className="w-full px-4 py-2.5 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none font-mono text-sm"
                     />
                     <button type="button" onClick={() => setShowSecret(s => !s)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -478,7 +478,7 @@ const AdminSettings = () => {
                 </div>
 
                 <button onClick={handleSaveCloudinary} disabled={savingCloudinary}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium disabled:opacity-50">
+                  className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium disabled:opacity-50">
                   <HiSave className="w-5 h-5" />
                   {savingCloudinary ? 'Saving...' : 'Save Cloudinary Settings'}
                 </button>
@@ -490,7 +490,7 @@ const AdminSettings = () => {
 
       {/* ── Admin Profile ── */}
       {activeTab === 'profile' && (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
             <HiPhotograph className="w-5 h-5 text-indigo-500" />
             <h2 className="text-base font-bold text-gray-900">Admin Profile Photo</h2>
@@ -544,7 +544,7 @@ const AdminSettings = () => {
             { key: 'privacy', label: 'Privacy Policy', value: privacyContent, set: setPrivacyContent, hint: 'Shown on the public /privacy page.' },
             { key: 'about', label: 'About Us', value: aboutContent, set: setAboutContent, hint: 'Markdown supported. Shown on the public /about page.' },
           ].map(({ key, label, value, set, hint }) => (
-            <div key={key} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div key={key} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <HiDocumentText className="w-5 h-5 text-gray-400" />
@@ -553,7 +553,7 @@ const AdminSettings = () => {
                 <button
                   onClick={() => handleSaveContent(key, value)}
                   disabled={savingContent === key}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm font-medium disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition text-sm font-medium disabled:opacity-50"
                 >
                   <HiSave className="w-4 h-4" />
                   {savingContent === key ? 'Saving...' : 'Save'}
@@ -565,7 +565,7 @@ const AdminSettings = () => {
                   onChange={e => set(e.target.value)}
                   rows={10}
                   placeholder={`Enter ${label.toLowerCase()}...`}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm font-mono resize-y"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm font-mono resize-y"
                 />
                 <p className="text-xs text-gray-400 mt-1.5">{hint}</p>
               </div>
@@ -576,7 +576,7 @@ const AdminSettings = () => {
 
       {/* ── Rotation Pools ── */}
       {activeTab === 'rotation' && (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <HiChip className="w-5 h-5 text-purple-500" />
@@ -616,7 +616,7 @@ const AdminSettings = () => {
                       <td className="py-3 px-4 font-medium text-gray-900">{pool.skill}</td>
                       <td className="py-3 px-4 text-gray-600">{pool.city}</td>
                       <td className="py-3 px-4">
-                        <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold">
+                        <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-semibold">
                           {pool.providers?.length || 0}
                         </span>
                       </td>

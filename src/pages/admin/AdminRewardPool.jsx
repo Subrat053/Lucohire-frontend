@@ -63,7 +63,7 @@ const AdminRewardPool = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50/50 min-h-screen">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50/50 min-h-screen">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Reward Pool Management</h1>
@@ -80,7 +80,7 @@ const AdminRewardPool = () => {
         )}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           {loading ? (
             <div className="p-12 flex justify-center">
@@ -134,7 +134,7 @@ const AdminRewardPool = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 rounded-md text-xs font-semibold ${
                           reward.status === 'paid' ? 'bg-emerald-50 text-emerald-700' : 
-                          reward.status === 'approved' ? 'bg-blue-50 text-blue-700' : 
+                          reward.status === 'approved' ? 'bg-indigo-50 text-indigo-700' : 
                           reward.status === 'rejected' ? 'bg-red-50 text-red-700' : 
                           'bg-amber-50 text-amber-700'
                         }`}>

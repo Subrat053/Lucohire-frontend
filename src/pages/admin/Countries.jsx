@@ -486,7 +486,7 @@ const AdminCountries = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Country Control Engine</h1>
@@ -494,14 +494,14 @@ const AdminCountries = () => {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium shadow-md shadow-blue-500/10"
+          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium shadow-md shadow-blue-500/10"
         >
           <HiPlus className="w-5 h-5" /> Add Country Config
         </button>
       </div>
 
       {/* Checklist Banner */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-sm overflow-hidden mb-6">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50">
@@ -519,7 +519,7 @@ const AdminCountries = () => {
               {countries.map((country) => (
                 <tr key={country._id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap font-semibold text-gray-900">
-                    {country.countryName} <span className="font-mono text-xs text-blue-600 font-bold ml-1">{country.countryCode}</span>
+                    {country.countryName} <span className="font-mono text-xs text-indigo-600 font-bold ml-1">{country.countryCode}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-gray-600">{country.currency} ({country.currencySymbol})</td>
                   <td className="px-6 py-4 whitespace-nowrap text-gray-500 font-mono text-xs">{country.timezone || 'Not Set'}</td>
@@ -529,7 +529,7 @@ const AdminCountries = () => {
                         country.validationStatus === 'active'
                           ? 'bg-green-50 text-green-700'
                           : country.validationStatus === 'draft'
-                            ? 'bg-blue-50 text-blue-700'
+                            ? 'bg-indigo-50 text-indigo-700'
                             : 'bg-yellow-50 text-yellow-700'
                       }`}
                     >
@@ -580,7 +580,7 @@ const AdminCountries = () => {
                       )}
                       <button
                         onClick={() => openEdit(country)}
-                        className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                        className="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition"
                         title="Edit Config"
                       >
                         <HiPencil className="w-4 h-4" />
@@ -639,7 +639,7 @@ const AdminCountries = () => {
                   type="button"
                   onClick={() => setActiveTab(tab)}
                   className={`px-4 py-3 font-semibold capitalize border-b-2 transition-all ${
-                    activeTab === tab ? 'border-blue-600 text-blue-600 bg-white' : 'border-transparent text-gray-500 hover:text-gray-900'
+                    activeTab === tab ? 'border-indigo-600 text-indigo-600 bg-white' : 'border-transparent text-gray-500 hover:text-gray-900'
                   }`}
                 >
                   {tab}
@@ -658,7 +658,7 @@ const AdminCountries = () => {
                         value={form.countryName}
                         onChange={(e) => setForm(f => ({ ...f, countryName: e.target.value }))}
                         placeholder="e.g. India"
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                       />
                     </div>
                     <div>
@@ -669,7 +669,7 @@ const AdminCountries = () => {
                         value={form.countryCode}
                         onChange={(e) => setForm(f => ({ ...f, countryCode: e.target.value.toUpperCase() }))}
                         placeholder="e.g. IN"
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm font-mono uppercase"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-mono uppercase"
                       />
                     </div>
                   </div>
@@ -683,7 +683,7 @@ const AdminCountries = () => {
                         value={form.currency}
                         onChange={(e) => setForm(f => ({ ...f, currency: e.target.value.toUpperCase() }))}
                         placeholder="e.g. INR"
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm font-mono uppercase"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-mono uppercase"
                       />
                     </div>
                     <div>
@@ -693,7 +693,7 @@ const AdminCountries = () => {
                         value={form.currencySymbol}
                         onChange={(e) => setForm(f => ({ ...f, currencySymbol: e.target.value }))}
                         placeholder="e.g. ₹"
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                       />
                     </div>
                   </div>
@@ -704,7 +704,7 @@ const AdminCountries = () => {
                       <select
                         value={form.phoneCode}
                         onChange={(e) => setForm(f => ({ ...f, phoneCode: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white"
                       >
                         <option value="">Select Dialing Code...</option>
                         {ALL_COUNTRIES_DIAL_CODES.map((item, idx) => (
@@ -719,7 +719,7 @@ const AdminCountries = () => {
                       <select
                         value={form.timezone}
                         onChange={(e) => setForm(f => ({ ...f, timezone: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white"
                       >
                         <option value="">Select Timezone...</option>
                         {ALL_TIMEZONES.map(item => (
@@ -735,7 +735,7 @@ const AdminCountries = () => {
                       <input
                         value={form.defaultLanguage}
                         onChange={(e) => setForm(f => ({ ...f, defaultLanguage: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                       />
                     </div>
                     <div>
@@ -743,7 +743,7 @@ const AdminCountries = () => {
                       <select
                         value={form.salaryFormat.type}
                         onChange={(e) => setForm(f => ({ ...f, salaryFormat: { ...f.salaryFormat, type: e.target.value } }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white"
                       >
                         <option value="monthly">Monthly</option>
                         <option value="yearly">Yearly</option>
@@ -759,7 +759,7 @@ const AdminCountries = () => {
                         value={categoriesText}
                         onChange={(e) => setCategoriesText(e.target.value)}
                         placeholder="IT & Software, Marketing, Sales"
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                       />
                     </div>
                     <div>
@@ -768,7 +768,7 @@ const AdminCountries = () => {
                         value={skillsText}
                         onChange={(e) => setSkillsText(e.target.value)}
                         placeholder="react, javascript, python"
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                       />
                     </div>
                   </div>
@@ -786,7 +786,7 @@ const AdminCountries = () => {
                             type="checkbox"
                             checked={form.supportedJobSources.includes(src)}
                             onChange={() => toggleMultiSelect('supportedJobSources', src)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-200"
+                            className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-200"
                           />
                           {src}
                         </label>
@@ -803,7 +803,7 @@ const AdminCountries = () => {
                             type="checkbox"
                             checked={form.supportedAtsSources.includes(src)}
                             onChange={() => toggleMultiSelect('supportedAtsSources', src)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-200"
+                            className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-200"
                           />
                           {src}
                         </label>
@@ -820,7 +820,7 @@ const AdminCountries = () => {
                             type="checkbox"
                             checked={form.jobTypes.includes(type)}
                             onChange={() => toggleMultiSelect('jobTypes', type)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-200"
+                            className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-200"
                           />
                           {type.replace('_', ' ')}
                         </label>
@@ -838,7 +838,7 @@ const AdminCountries = () => {
                         type="checkbox"
                         checked={form.pricingRules.providerPlansEnabled}
                         onChange={(e) => setForm(f => ({ ...f, pricingRules: { ...f.pricingRules, providerPlansEnabled: e.target.checked } }))}
-                        className="w-4 h-4 text-blue-600 rounded"
+                        className="w-4 h-4 text-indigo-600 rounded"
                       />
                       Enable Provider Plans
                     </label>
@@ -847,7 +847,7 @@ const AdminCountries = () => {
                         type="checkbox"
                         checked={form.pricingRules.recruiterPlansEnabled}
                         onChange={(e) => setForm(f => ({ ...f, pricingRules: { ...f.pricingRules, recruiterPlansEnabled: e.target.checked } }))}
-                        className="w-4 h-4 text-blue-600 rounded"
+                        className="w-4 h-4 text-indigo-600 rounded"
                       />
                       Enable Recruiter Plans
                     </label>
@@ -859,7 +859,7 @@ const AdminCountries = () => {
                       <input
                         value={form.pricingRules.defaultCurrency}
                         onChange={(e) => setForm(f => ({ ...f, pricingRules: { ...f.pricingRules, defaultCurrency: e.target.value.toUpperCase() } }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm uppercase"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm uppercase"
                       />
                     </div>
                     <div>
@@ -867,7 +867,7 @@ const AdminCountries = () => {
                       <input
                         value={form.pricingRules.taxName}
                         onChange={(e) => setForm(f => ({ ...f, pricingRules: { ...f.pricingRules, taxName: e.target.value } }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                       />
                     </div>
                     <div>
@@ -878,7 +878,7 @@ const AdminCountries = () => {
                         step="0.01"
                         value={form.pricingRules.taxPercentage}
                         onChange={(e) => setForm(f => ({ ...f, pricingRules: { ...f.pricingRules, taxPercentage: e.target.value } }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                       />
                     </div>
                   </div>
@@ -895,7 +895,7 @@ const AdminCountries = () => {
                           type="checkbox"
                           checked={form.seoRules.generateCountryPages}
                           onChange={(e) => setForm(f => ({ ...f, seoRules: { ...f.seoRules, generateCountryPages: e.target.checked } }))}
-                          className="w-4 h-4 text-blue-600 rounded"
+                          className="w-4 h-4 text-indigo-600 rounded"
                         />
                         Generate Country Pages
                       </label>
@@ -904,7 +904,7 @@ const AdminCountries = () => {
                           type="checkbox"
                           checked={form.seoRules.generateCityPages}
                           onChange={(e) => setForm(f => ({ ...f, seoRules: { ...f.seoRules, generateCityPages: e.target.checked } }))}
-                          className="w-4 h-4 text-blue-600 rounded"
+                          className="w-4 h-4 text-indigo-600 rounded"
                         />
                         Generate City Pages
                       </label>
@@ -913,7 +913,7 @@ const AdminCountries = () => {
                           type="checkbox"
                           checked={form.seoRules.generateSkillPages}
                           onChange={(e) => setForm(f => ({ ...f, seoRules: { ...f.seoRules, generateSkillPages: e.target.checked } }))}
-                          className="w-4 h-4 text-blue-600 rounded"
+                          className="w-4 h-4 text-indigo-600 rounded"
                         />
                         Generate Skill Pages
                       </label>
@@ -922,7 +922,7 @@ const AdminCountries = () => {
                           type="checkbox"
                           checked={form.seoRules.generateCategoryPages}
                           onChange={(e) => setForm(f => ({ ...f, seoRules: { ...f.seoRules, generateCategoryPages: e.target.checked } }))}
-                          className="w-4 h-4 text-blue-600 rounded"
+                          className="w-4 h-4 text-indigo-600 rounded"
                         />
                         Generate Category Pages
                       </label>
@@ -936,7 +936,7 @@ const AdminCountries = () => {
                       min="1"
                       value={form.seoRules.minimumJobsForSeoPage}
                       onChange={(e) => setForm(f => ({ ...f, seoRules: { ...f.seoRules, minimumJobsForSeoPage: e.target.value } }))}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                     />
                   </div>
 
@@ -949,7 +949,7 @@ const AdminCountries = () => {
                             type="checkbox"
                             checked={form.notificationRules[notif]}
                             onChange={(e) => setForm(f => ({ ...f, notificationRules: { ...f.notificationRules, [notif]: e.target.checked } }))}
-                            className="w-4 h-4 text-blue-600 rounded"
+                            className="w-4 h-4 text-indigo-600 rounded"
                           />
                           {notif.replace('Enabled', '').replace(/([A-Z])/g, ' $1')}
                         </label>
@@ -976,7 +976,7 @@ const AdminCountries = () => {
                       type="checkbox"
                       checked={form.syncRules.dailySyncEnabled}
                       onChange={(e) => setForm(f => ({ ...f, syncRules: { ...f.syncRules, dailySyncEnabled: e.target.checked } }))}
-                      className="w-4 h-4 text-blue-600 rounded"
+                      className="w-4 h-4 text-indigo-600 rounded"
                     />
                     Enable Nightly Auto Job Sync
                   </label>
@@ -989,7 +989,7 @@ const AdminCountries = () => {
                         min="1"
                         value={form.syncRules.syncFrequencyHours}
                         onChange={(e) => setForm(f => ({ ...f, syncRules: { ...f.syncRules, syncFrequencyHours: e.target.value } }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                       />
                     </div>
                     <div>
@@ -999,7 +999,7 @@ const AdminCountries = () => {
                         min="1"
                         value={form.syncRules.inactiveJobRetentionDays}
                         onChange={(e) => setForm(f => ({ ...f, syncRules: { ...f.syncRules, inactiveJobRetentionDays: e.target.value } }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                       />
                     </div>
                   </div>
@@ -1012,7 +1012,7 @@ const AdminCountries = () => {
                         min="10"
                         value={form.syncRules.maxJobsPerSource}
                         onChange={(e) => setForm(f => ({ ...f, syncRules: { ...f.syncRules, maxJobsPerSource: e.target.value } }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                       />
                     </div>
                     <div>
@@ -1022,7 +1022,7 @@ const AdminCountries = () => {
                         min="1"
                         value={form.syncRules.maxPagesPerSource}
                         onChange={(e) => setForm(f => ({ ...f, syncRules: { ...f.syncRules, maxPagesPerSource: e.target.value } }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                       />
                     </div>
                   </div>
@@ -1039,7 +1039,7 @@ const AdminCountries = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium text-sm shadow-md"
+                  className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium text-sm shadow-md"
                 >
                   {editingCountry ? 'Save Parameters' : 'Create Configuration'}
                 </button>

@@ -6,39 +6,35 @@ const SCard = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
 );
 
-const channels = [
-  { icon: <FiMail className="w-5 h-5" />, bg: 'bg-blue-50', ic: 'text-blue-600', name: 'Email', sent: 1856, open: '47%', reply: '22%', click: '14%', bounce: '2.1%', upOpen: true, upReply: true },
-  { icon: <FiMessageCircle className="w-5 h-5" />, bg: 'bg-blue-50', ic: 'text-indigo-600', name: 'LinkedIn', sent: 612, open: '62%', reply: '18%', click: '28%', bounce: '0%', upOpen: true, upReply: false },
-  { icon: <FiSmartphone className="w-5 h-5" />, bg: 'bg-emerald-50', ic: 'text-emerald-600', name: 'WhatsApp', sent: 396, open: '78%', reply: '34%', click: '—', bounce: '0%', upOpen: true, upReply: true },
-];
-
-const campaignData = [
-  { name: 'React Dev - Outreach Wave 1',   channel: 'Email',    sent: 280, opens: '52%', replies: '25%', hires: 3, status: 'Completed' },
-  { name: 'Product Manager Pool',           channel: 'LinkedIn', sent: 180, opens: '68%', replies: '22%', hires: 2, status: 'Active'    },
-  { name: 'DevOps Urgent Reach',            channel: 'WhatsApp', sent: 140, opens: '84%', replies: '38%', hires: 2, status: 'Active'    },
-  { name: 'Passive Candidate Nurture',      channel: 'Email',    sent: 620, opens: '41%', replies: '18%', hires: 1, status: 'Active'    },
-  { name: 'UX Designer Outreach',           channel: 'LinkedIn', sent: 110, opens: '71%', replies: '15%', hires: 1, status: 'Completed' },
-  { name: 'Sales Team Expansion',           channel: 'WhatsApp', sent: 96,  opens: '76%', replies: '30%', hires: 0, status: 'Paused'    },
-];
-
-const weeklyStats = [
-  { week: 'Week 1', emailSent: 520, linkedinSent: 180, whatsapp: 110, responses: 68 },
-  { week: 'Week 2', emailSent: 480, linkedinSent: 165, whatsapp: 96,  responses: 72 },
-  { week: 'Week 3', emailSent: 445, linkedinSent: 142, whatsapp: 112, responses: 65 },
-  { week: 'Week 4', emailSent: 411, linkedinSent: 125, whatsapp: 78,  responses: 58 },
-];
+const iconMap = {
+  FiMail: <FiMail className="w-5 h-5" />,
+  FiMessageCircle: <FiMessageCircle className="w-5 h-5" />,
+  FiSmartphone: <FiSmartphone className="w-5 h-5" />,
+};
 
 export default function OutreachAnalyticsPage() {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    import('../../services/api').then(({ recruiterAPI }) => {
+      recruiterAPI.getOutreachAnalytics()
+        .then(res => setData(res.data.data))
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    });
+  }, []);
+
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading outreach data...</div>;
+
+  const { channels, campaignData, weeklyStats, kpis } = data;
+  const mappedChannels = channels.map(c => ({ ...c, icon: iconMap[c.icon] }));
+
   return (
     <div className="space-y-6">
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Outreach Messages', value: '2,864', trend: '+22%', up: true  },
-          { label: 'Overall Reply Rate',       value: '24%',   trend: '+3.2%',up: true  },
-          { label: 'Hires from Outreach',      value: '9',     trend: '+2 vs last', up: true },
-          { label: 'Avg. Response Time',       value: '4.2 hrs', trend: '-1.1 hrs', up: true },
-        ].map((k, i) => (
+        {kpis.map((k, i) => (
           <SCard key={i} className="p-4">
             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">{k.label}</div>
             <div className="text-xl font-extrabold text-gray-900 mb-1">{k.value}</div>
@@ -51,7 +47,7 @@ export default function OutreachAnalyticsPage() {
 
       {/* Channel Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {channels.map((c, i) => (
+        {mappedChannels.map((c, i) => (
           <SCard key={i} className="p-5">
             <div className="flex items-center gap-3 mb-5">
               <div className={`${c.bg} ${c.ic} p-2.5 rounded-xl`}>{c.icon}</div>

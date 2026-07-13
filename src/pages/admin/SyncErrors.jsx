@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { HiShieldCheck, HiExclamation, HiRefresh } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { ShieldAlert, ShieldCheck, RefreshCw, AlertTriangle, Building, Terminal } from 'lucide-react';
 
 const SyncErrors = () => {
   const [errorsData, setErrorsData] = useState({ failedLogs: [], failedCompanies: [], failedSources: [] });
@@ -29,7 +29,7 @@ const SyncErrors = () => {
     try {
       await adminAPI.retrySyncLog(id);
       toast.success('Retry sync job successfully enqueued!');
-      setTimeout(fetchErrors, 2500); // refresh list
+      setTimeout(fetchErrors, 2500);
     } catch (err) {
       toast.error('Failed to retry sync');
     } finally {
@@ -39,7 +39,7 @@ const SyncErrors = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-[60vh] flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -48,81 +48,133 @@ const SyncErrors = () => {
   const hasIssues = errorsData.failedLogs.length > 0 || errorsData.failedCompanies.length > 0 || errorsData.failedSources.length > 0;
 
   return (
-    <div className="py-2">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Ingestion Error Center</h1>
-          <p className="text-sm text-gray-500 mt-1">Audit failed job/ATS syncs, verify error details, and re-trigger sync operations.</p>
+    <div className="bg-[#F8FAFC] min-h-screen pb-12">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-[22px] font-black text-[#0F172A] tracking-tight">Ingestion Error Center</h1>
+            <p className="text-[13px] font-medium text-gray-500 mt-0.5">
+              Audit failed jobs, verify connection error details, and re-trigger sync operations.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className={`px-4 py-2 border rounded-lg text-xs font-bold shadow-sm flex items-center gap-2 ${
+              hasIssues ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+            }`}>
+              {hasIssues ? <ShieldAlert className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
+              {hasIssues ? 'Action Required' : 'All Systems Operational'}
+            </div>
+          </div>
         </div>
-      </div>
 
-      {!hasIssues ? (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center flex flex-col items-center justify-center">
-          <HiShieldCheck className="w-16 h-16 text-green-500 mb-3" />
-          <h3 className="text-lg font-bold text-gray-900">All Systems Operational</h3>
-          <p className="text-sm text-gray-500 mt-1">No API credentials failures or company connector alerts detected.</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Failed API Logs */}
-          {errorsData.failedLogs.length > 0 && (
-            <div className="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden">
-              <div className="bg-red-50/50 px-6 py-4 border-b border-red-100 flex items-center gap-2">
-                <HiExclamation className="w-5 h-5 text-red-600" />
-                <h2 className="text-sm font-bold text-red-900 uppercase tracking-wider">Failed API Runs</h2>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {errorsData.failedLogs.map((log) => (
-                  <div key={log._id} className="p-6 flex flex-col md:flex-row md:items-center md:justify-between hover:bg-gray-50/50 transition">
-                    <div>
-                      <div className="flex items-center gap-2.5 mb-1.5">
-                        <span className="font-bold text-gray-900 capitalize">{log.source} ({log.countryCode})</span>
-                        <span className="text-xs text-gray-400">{new Date(log.startedAt).toLocaleString()}</span>
+        {!hasIssues ? (
+          <div className="bg-white rounded-xl shadow-sm border border-emerald-100 p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+            <div className="w-20 h-20 rounded-full bg-emerald-50 border-8 border-white shadow-sm flex items-center justify-center mb-6">
+              <ShieldCheck className="w-8 h-8 text-emerald-500" />
+            </div>
+            <h3 className="text-xl font-black text-gray-900 mb-2">No Errors Detected</h3>
+            <p className="text-sm font-medium text-gray-500 max-w-md">
+              All API credentials and company connectors are operating perfectly. The ingestion pipeline is fully healthy.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            
+            {/* Failed API Logs */}
+            {errorsData.failedLogs.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-red-100 overflow-hidden">
+                <div className="bg-red-50/50 px-6 py-4 border-b border-red-100 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black text-red-900">Failed API Runs</h2>
+                    <p className="text-[11px] font-bold text-red-500 mt-0.5">Pipeline execution failures</p>
+                  </div>
+                </div>
+                
+                <div className="divide-y divide-gray-50">
+                  {errorsData.failedLogs.map((log) => (
+                    <div key={log._id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-gray-50/50 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-sm font-black text-gray-900 capitalize">{log.source}</span>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{log.countryCode || 'Global'}</span>
+                          <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                          <span className="text-[11px] font-bold text-gray-500">{new Date(log.startedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div className="bg-gray-900 rounded-lg p-3 border border-gray-800">
+                          <div className="flex items-center gap-2 text-gray-400 mb-1">
+                            <Terminal className="w-3.5 h-3.5" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Error Trace</span>
+                          </div>
+                          <p className="text-xs font-mono text-red-400 leading-relaxed line-clamp-3">
+                            {log.errorMessage || 'Unknown connection timeout or parse failure.'}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-xs font-semibold text-red-600 font-mono bg-red-50 p-2 rounded-lg border border-red-100 mt-1">
-                        {log.errorMessage || 'No error message provided'}
-                      </p>
+                      <div className="shrink-0 flex items-center">
+                        <button
+                          onClick={() => handleRetry(log._id)}
+                          disabled={retryingId === log._id}
+                          className="px-4 py-2.5 bg-white border border-gray-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 text-gray-700 text-xs font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          {retryingId === log._id ? <LoadingSpinner size="sm" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                          Retry Execution
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => handleRetry(log._id)}
-                      disabled={retryingId === log._id}
-                      className="mt-4 md:mt-0 flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl transition font-semibold text-xs disabled:opacity-50"
-                    >
-                      {retryingId === log._id ? <LoadingSpinner size="sm" /> : <HiRefresh className="w-4.5 h-4.5" />}
-                      Retry
-                    </button>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Failed Company Sources */}
-          {errorsData.failedCompanies.length > 0 && (
-            <div className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
-              <div className="bg-orange-50/50 px-6 py-4 border-b border-orange-100 flex items-center gap-2">
-                <HiExclamation className="w-5 h-5 text-orange-600" />
-                <h2 className="text-sm font-bold text-orange-950 uppercase tracking-wider">Failed ATS Company Synces</h2>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {errorsData.failedCompanies.map((c) => (
-                  <div key={c._id} className="p-6 hover:bg-gray-50/50 transition">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-gray-900">{c.companyName} ({c.countryCode})</span>
-                      <span className="text-xs text-orange-600 font-semibold bg-orange-50 px-2 py-0.5 rounded-full">
-                        Failed {c.failureCount} times
-                      </span>
-                    </div>
-                    <p className="text-xs font-semibold text-orange-800 font-mono bg-orange-50/50 p-2.5 rounded-lg border border-orange-100">
-                      <strong>Last Error:</strong> {c.lastError || 'Unknown connection timeout'}
-                    </p>
+            {/* Failed Company Sources */}
+            {errorsData.failedCompanies.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-amber-100 overflow-hidden">
+                <div className="bg-amber-50/50 px-6 py-4 border-b border-amber-100 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                    <Building className="w-4 h-4 text-amber-600" />
                   </div>
-                ))}
+                  <div>
+                    <h2 className="text-sm font-black text-amber-900">Failed ATS Company Syncs</h2>
+                    <p className="text-[11px] font-bold text-amber-600 mt-0.5">Individual company board failures</p>
+                  </div>
+                </div>
+                
+                <div className="divide-y divide-gray-50">
+                  {errorsData.failedCompanies.map((c) => (
+                    <div key={c._id} className="p-6 hover:bg-gray-50/50 transition-colors">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-black text-gray-900">{c.companyName}</span>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{c.countryCode || 'Global'}</span>
+                        </div>
+                        <span className="text-[10px] font-black text-red-600 bg-red-50 border border-red-100 px-2 py-1 rounded tracking-wider uppercase">
+                          Failed {c.failureCount} times
+                        </span>
+                      </div>
+                      <div className="bg-amber-50/50 rounded-lg p-3 border border-amber-100">
+                        <div className="flex items-center gap-2 text-amber-700 mb-1">
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider">Last Recorded Error</span>
+                        </div>
+                        <p className="text-xs font-mono text-amber-900 leading-relaxed">
+                          {c.lastError || 'Unknown connection timeout'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+
+          </div>
+        )}
+
+      </div>
     </div>
   );
 };

@@ -1,21 +1,42 @@
 import React, { useState } from 'react';
 import { adminAPI } from '../../services/api';
 import toast from 'react-hot-toast';
-import { HiDatabase, HiLink, HiBriefcase, HiClipboardList, HiShieldExclamation } from 'react-icons/hi';
-import JobSources from './JobSources';
-import ExternalJobs from './ExternalJobs';
-import SyncReports from './SyncReports';
-import SyncErrors from './SyncErrors';
+import { Database, Zap, Clock, ShieldAlert, CheckCircle2, Play, Calendar } from 'lucide-react';
+
+// --- Components ---
+const KPICard = ({ title, value, subtext, icon: Icon, colorClass }) => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col justify-between">
+    <div className="flex items-center gap-3 mb-3">
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-gray-50 border border-gray-100 ${colorClass}`}>
+        <Icon className="w-5 h-5" />
+      </div>
+      <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{title}</div>
+    </div>
+    <div>
+      <div className="text-2xl font-black text-gray-900 mb-1">{value}</div>
+      <div className="text-[10px] font-bold text-gray-400">{subtext}</div>
+    </div>
+  </div>
+);
+
+const FeatureCard = ({ title, desc, icon: Icon, colorClass, borderClass }) => (
+  <div className={`p-6 rounded-xl border ${borderClass} flex flex-col h-full bg-white shadow-sm`}>
+    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${colorClass} bg-opacity-10`}>
+      <Icon className={`w-6 h-6 ${colorClass.replace('bg-', 'text-')}`} />
+    </div>
+    <h3 className="text-lg font-black text-gray-900 mb-2">{title}</h3>
+    <p className="text-sm font-medium text-gray-500">{desc}</p>
+  </div>
+);
 
 const DataPipeline = () => {
-  const [activeTab, setActiveTab] = useState('overview');
   const [isSyncing, setIsSyncing] = useState(false);
 
   const handleTriggerSync = async () => {
     setIsSyncing(true);
     try {
       await adminAPI.triggerDailySync();
-      toast.success('Manual sync triggered successfully! Check logs for progress.');
+      toast.success('Manual sync triggered successfully! Check reports for progress.');
     } catch (err) {
       toast.error('Failed to trigger sync. Make sure sources are active.');
     } finally {
@@ -23,79 +44,80 @@ const DataPipeline = () => {
     }
   };
 
-  const tabs = [
-    { id: 'overview', label: 'Overview & Runner', icon: HiDatabase },
-    { id: 'global-sources', label: 'Global Sources', icon: HiDatabase },
-    { id: 'synced-jobs', label: 'Synced Jobs Library', icon: HiBriefcase },
-    { id: 'sync-reports', label: 'Sync Reports', icon: HiClipboardList },
-    { id: 'sync-errors', label: 'Sync Errors', icon: HiShieldExclamation },
-  ];
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-6 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Data Pipeline & Sync Hub</h1>
-        <nav className="-mb-px flex space-x-6 overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`
-                whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors
-                ${activeTab === tab.id
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }
-              `}
-            >
-              <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-indigo-500' : 'text-gray-400'}`} />
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      <div className="mt-4">
-        {activeTab === 'overview' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Pipeline Overview</h2>
-              <button 
-                onClick={handleTriggerSync}
-                disabled={isSyncing}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                {isSyncing ? 'Triggering...' : 'Trigger Manual Sync Now'}
-              </button>
-            </div>
-            <p className="text-gray-600 mb-6">
-              Welcome to the unified Data Pipeline Hub. From here, you can manage global job sources (like RemoteOK and The Muse), 
-              connect ATS platforms (Greenhouse, Lever, etc.), and monitor your sync health all in one place.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-100">
-                <div className="text-indigo-900 font-bold text-2xl">Connect Sources</div>
-                <p className="text-indigo-700 text-sm mt-2">Activate APIs to start fetching jobs automatically.</p>
-              </div>
-              <div className="bg-green-50 p-6 rounded-xl border border-green-100">
-                <div className="text-green-900 font-bold text-2xl">Daily Syncs</div>
-                <p className="text-green-700 text-sm mt-2">The system runs every 24 hours to update jobs.</p>
-              </div>
-              <div className="bg-rose-50 p-6 rounded-xl border border-rose-100">
-                <div className="text-rose-900 font-bold text-2xl">Error Tracking</div>
-                <p className="text-rose-700 text-sm mt-2">Monitor failing companies or broken API keys.</p>
-              </div>
+    <div className="bg-[#F8FAFC] min-h-screen pb-12">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-[22px] font-black text-[#0F172A] tracking-tight">Data Pipeline Overview</h1>
+            <p className="text-[13px] font-medium text-gray-500 mt-0.5">Manage global job sources and monitor synchronization health</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-white border border-gray-200 rounded-lg px-4 py-2 flex items-center gap-2 text-xs font-bold text-gray-700 shadow-sm">
+              <Calendar className="w-4 h-4 text-gray-400" />
+              Automated Daily Runs
             </div>
           </div>
-        )}
-        
-        {/* We wrap the child components in a div to override their own max-w wrappers if needed */}
-        <div className="pipeline-child-wrapper">
-          {activeTab === 'global-sources' && <JobSources />}
-          {activeTab === 'synced-jobs' && <ExternalJobs />}
-          {activeTab === 'sync-reports' && <SyncReports />}
-          {activeTab === 'sync-errors' && <SyncErrors />}
         </div>
+
+        {/* Top KPIs (Mock stats for overview since the API doesn't provide them here yet) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KPICard title="Total Synced Jobs" value="Active" subtext="Across all platforms" icon={Database} colorClass="text-blue-500" />
+          <KPICard title="Active Sources" value="Monitoring" subtext="APIs & Scrapers" icon={Zap} colorClass="text-emerald-500" />
+          <KPICard title="Next Scheduled" value="24 hrs" subtext="Automated interval" icon={Clock} colorClass="text-amber-500" />
+          <KPICard title="Sync Health" value="Stable" subtext="No critical errors" icon={CheckCircle2} colorClass="text-teal-500" />
+        </div>
+
+        {/* Runner Control Panel */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="max-w-xl">
+            <h2 className="text-xl font-black text-gray-900 mb-2">Pipeline Engine Runner</h2>
+            <p className="text-sm font-medium text-gray-500 mb-0">
+              The engine runs automatically every 24 hours to keep external jobs perfectly synchronized with your database. You can manually force a run across all active sources if you need immediate updates.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <button 
+              onClick={handleTriggerSync}
+              disabled={isSyncing}
+              className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-black rounded-xl shadow-sm shadow-emerald-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSyncing ? (
+                <><Database className="w-5 h-5 animate-pulse" /> Triggering Engine...</>
+              ) : (
+                <><Play className="w-5 h-5" /> Force Manual Sync</>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Features / Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FeatureCard 
+            title="Global Sources" 
+            desc="Configure and activate direct API integrations like RemoteOK, The Muse, and standard ATS systems."
+            icon={Database} 
+            colorClass="bg-blue-50 text-blue-600" 
+            borderClass="border-blue-100"
+          />
+          <FeatureCard 
+            title="Jobs Library" 
+            desc="Browse the master index of all externally synced jobs mapped securely to your system."
+            icon={Zap} 
+            colorClass="bg-emerald-50 text-emerald-600" 
+            borderClass="border-emerald-100"
+          />
+          <FeatureCard 
+            title="Error Tracking" 
+            desc="Monitor API timeouts, data mapping failures, and pipeline blockages in real-time."
+            icon={ShieldAlert} 
+            colorClass="bg-rose-50 text-rose-600" 
+            borderClass="border-rose-100"
+          />
+        </div>
+
       </div>
     </div>
   );

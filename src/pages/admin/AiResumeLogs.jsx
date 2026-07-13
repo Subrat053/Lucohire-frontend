@@ -10,7 +10,7 @@ import { Sparkles, RefreshCw, Loader2, AlertTriangle, Search, CheckCircle2, XCir
 const STATUS_CONFIG = {
   completed: { cls: 'bg-green-50 text-green-700', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
   failed: { cls: 'bg-red-50 text-red-700', icon: <XCircle className="w-3.5 h-3.5" /> },
-  processing: { cls: 'bg-blue-50 text-blue-700', icon: <Loader2 className="w-3.5 h-3.5 animate-spin" /> },
+  processing: { cls: 'bg-indigo-50 text-indigo-700', icon: <Loader2 className="w-3.5 h-3.5 animate-spin" /> },
   pending: { cls: 'bg-gray-100 text-gray-500', icon: <Clock className="w-3.5 h-3.5" /> },
 };
 
@@ -83,7 +83,7 @@ export default function AiResumeLogs() {
       ) : logs.length === 0 ? (
         <div className="text-center py-16 text-gray-400">No AI resume parse records found.</div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const TopPartnersTable = ({ partners = [] }) => {
   return (
-    <div className="bg-white rounded-3xl border border-[#EAE7F2] p-6 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm h-full">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="font-extrabold text-gray-900 text-base">Top 5 Performing Partners</h3>

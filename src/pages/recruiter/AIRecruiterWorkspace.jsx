@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FiSearch, FiFileText, FiUsers, FiMail, FiHelpCircle, FiCode, 
   FiZap, FiDollarSign, FiTrendingUp, FiBarChart2, FiMessageSquare, 
-  FiClock, FiArrowRight, FiPlus, FiChevronRight
+  FiClock, FiArrowRight, FiPlus, FiChevronRight, FiSend, FiLoader, FiUser, FiArrowLeft
 } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
 import { FaRobot } from 'react-icons/fa';
+import { recruiterAPI } from '../../services/api';
+import toast from 'react-hot-toast';
+import ReactMarkdown from 'react-markdown';
 
 const SCard = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
@@ -13,6 +16,90 @@ const SCard = ({ children, className = '' }) => (
 
 export default function AIRecruiterWorkspace() {
   const [chatInput, setChatInput] = useState('');
+  const [isChatting, setIsChatting] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [conversations, setConversations] = useState([]);
+  const [activeConversationId, setActiveConversationId] = useState(null);
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    fetchConversations();
+  }, []);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  const fetchConversations = async () => {
+    try {
+      const res = await recruiterAPI.getWorkspaceConversations();
+      if (res.data.success) {
+        setConversations(res.data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch conversations:', error);
+    }
+  };
+
+  const loadConversation = async (id) => {
+    try {
+      setLoading(true);
+      const res = await recruiterAPI.getWorkspaceConversation(id);
+      if (res.data.success) {
+        setMessages(res.data.data.messages);
+        setActiveConversationId(res.data.data._id);
+        setIsChatting(true);
+      }
+    } catch (error) {
+      toast.error('Failed to load conversation');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startNewChat = () => {
+    setIsChatting(false);
+    setMessages([]);
+    setActiveConversationId(null);
+    setChatInput('');
+  };
+
+  const handleSend = async (overridePrompt = null) => {
+    const text = overridePrompt || chatInput;
+    if (!text.trim()) return;
+
+    if (!isChatting) setIsChatting(true);
+    setChatInput('');
+
+    const newMsgs = [...messages, { role: 'user', content: text }];
+    setMessages(newMsgs);
+    setLoading(true);
+
+    try {
+      const res = await recruiterAPI.workspaceChat({
+        message: text,
+        conversationId: activeConversationId
+      });
+
+      if (res.data.success) {
+        setMessages([...newMsgs, { role: 'assistant', content: res.data.data.message }]);
+        setActiveConversationId(res.data.data.conversationId);
+        fetchConversations();
+      }
+    } catch (error) {
+      toast.error('AI request failed');
+      setMessages(newMsgs); // revert or keep as is
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleActionClick = (actionLabel) => {
+    handleSend(`I need help with: ${actionLabel}`);
+  };
 
   const quickActions = [
     { icon: <HiSparkles />, label: 'Find candidates' },
@@ -74,14 +161,6 @@ export default function AIRecruiterWorkspace() {
     { icon: <FiTrendingUp />, icColor: 'text-purple-600', title: 'Hiring Trends', desc: 'Discover latest hiring trends' },
   ];
 
-  const recentConversations = [
-    { title: 'React developers in Bangalore', desc: 'Looking for 4+ years experience...', time: '10:30 AM' },
-    { title: 'Frontend developer with Next.js', desc: 'Find candidates with Next.js and...', time: 'Yesterday' },
-    { title: 'Senior UI/UX designers', desc: 'Looking for senior designers with...', time: 'Yesterday' },
-    { title: 'DevOps engineer in Mumbai', desc: 'Find DevOps engineers with AWS...', time: '2 days ago' },
-    { title: 'Full stack developer salary', desc: 'Market salary insights for full...', time: '3 days ago' },
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -94,7 +173,7 @@ export default function AIRecruiterWorkspace() {
             </h1>
             <p className="text-sm text-gray-500 mt-1">How can Luco AI help you hire better today?</p>
           </div>
-          <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-sm">
+          <button onClick={startNewChat} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-sm">
             <FiPlus /> New Chat
           </button>
         </div>
@@ -102,9 +181,11 @@ export default function AIRecruiterWorkspace() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
           
           {/* Main Left Column */}
-          <div className="xl:col-span-8 2xl:col-span-9 space-y-10">
+          <div className="xl:col-span-8 2xl:col-span-9">
             
-            {/* Hero Search Box - Original Theme & Mobile Optimized */}
+            {!isChatting ? (
+              <div className="space-y-10">
+                {/* Hero Search Box - Original Theme & Mobile Optimized */}
             <div className="bg-gradient-to-r from-indigo-50 via-[#F3E8FF] to-purple-50 rounded-2xl p-6 sm:p-10 relative overflow-hidden flex flex-col md:flex-row items-center min-h-[280px]">
               
               <div className="relative z-10 w-full md:w-[60%] lg:w-[65%] flex flex-col pt-2 md:pt-0">
@@ -116,17 +197,18 @@ export default function AIRecruiterWorkspace() {
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                     placeholder='Ask anything... e.g. "Find React developers with 4+ yrs"'
                     className="flex-1 bg-transparent border-none px-4 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none min-w-0"
                   />
-                  <button className="w-9 h-9 bg-purple-100 hover:bg-purple-200 text-purple-600 rounded-lg flex items-center justify-center transition shrink-0 ml-2">
+                  <button onClick={() => handleSend()} className="w-9 h-9 bg-purple-100 hover:bg-purple-200 text-purple-600 rounded-lg flex items-center justify-center transition shrink-0 ml-2">
                     <FiArrowRight className="w-4 h-4 font-bold" />
                   </button>
                 </div>
 
                 <div className="flex flex-wrap gap-2 sm:gap-3 justify-center md:justify-start">
                   {quickActions.map((action, idx) => (
-                    <button key={idx} className="flex items-center gap-1.5 bg-white text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:shadow-md transition">
+                    <button key={idx} onClick={() => handleActionClick(action.label)} className="flex items-center gap-1.5 bg-white text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:shadow-md transition">
                       <span className="text-purple-600">{action.icon}</span>
                       <span className="whitespace-nowrap">{action.label}</span>
                     </button>
@@ -151,7 +233,7 @@ export default function AIRecruiterWorkspace() {
               <h3 className="text-xl font-extrabold text-gray-900 mb-6">What would you like to do today?</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                 {actionCards.map((card, idx) => (
-                  <SCard key={idx} className="p-5 flex flex-col hover:border-indigo-200 transition group cursor-pointer">
+                  <SCard key={idx} className="p-5 flex flex-col hover:border-indigo-200 transition group cursor-pointer" onClick={() => handleActionClick(card.title)}>
                     <div className="flex items-start justify-between mb-4">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.icBg} ${card.icColor}`}>
                         <span className="text-lg">{card.icon}</span>
@@ -194,7 +276,92 @@ export default function AIRecruiterWorkspace() {
                 </button>
               </div>
             </div>
+            </div>
+            ) : (
+              <SCard className="flex flex-col h-[calc(100vh-200px)] border-gray-200 shadow-sm overflow-hidden bg-white">
+                <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                  <div className="flex items-center gap-3">
+                    <button onClick={startNewChat} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-200 text-gray-500 transition">
+                      <FiArrowLeft />
+                    </button>
+                    <div>
+                      <h2 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                        Luco AI Assistant <HiSparkles className="text-purple-600 w-3 h-3" />
+                      </h2>
+                      <p className="text-[10px] font-semibold text-gray-500">Always here to help you hire</p>
+                    </div>
+                  </div>
+                </div>
 
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-gray-50/30">
+                  {messages.length === 0 && !loading && (
+                    <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
+                      <FaRobot className="w-12 h-12 text-gray-300 mb-3" />
+                      <p className="text-sm font-medium text-gray-500">Start typing to begin...</p>
+                    </div>
+                  )}
+                  {messages.map((msg, i) => (
+                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} max-w-full`}>
+                      <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-indigo-100 text-indigo-600' : 'bg-purple-600 text-white shadow-md'}`}>
+                          {msg.role === 'user' ? <FiUser className="w-4 h-4" /> : <FaRobot className="w-4 h-4" />}
+                        </div>
+                        <div className={`px-4 py-3 rounded-2xl text-[13px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white border border-gray-100 text-gray-800 rounded-tl-sm'}`}>
+                          {msg.role === 'user' ? msg.content : (
+                            <div className="prose prose-sm prose-p:my-1 prose-headings:my-2 prose-ul:my-1 max-w-none text-gray-800">
+                              <ReactMarkdown>{msg.content}</ReactMarkdown>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {loading && (
+                    <div className="flex justify-start">
+                      <div className="flex gap-3">
+                        <div className="w-8 h-8 rounded-full bg-purple-600 text-white shadow-md flex items-center justify-center shrink-0">
+                          <FaRobot className="w-4 h-4" />
+                        </div>
+                        <div className="px-5 py-3.5 rounded-2xl rounded-tl-sm bg-white border border-gray-100 flex items-center gap-1.5 shadow-sm">
+                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce"></span>
+                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce delay-75"></span>
+                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce delay-150"></span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                <div className="p-4 bg-white border-t border-gray-100">
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-1.5 flex items-end focus-within:ring-2 focus-within:ring-indigo-200 focus-within:border-indigo-400 transition shadow-inner">
+                    <textarea
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
+                      placeholder="Reply to Luco AI..."
+                      className="flex-1 bg-transparent border-none px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none resize-none min-h-[44px] max-h-[120px]"
+                      rows={1}
+                    />
+                    <button 
+                      onClick={() => handleSend()}
+                      disabled={loading || !chatInput.trim()}
+                      className="w-10 h-10 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg flex items-center justify-center transition shrink-0 ml-2 shadow-sm mb-0.5"
+                    >
+                      {loading ? <FiLoader className="w-4 h-4 animate-spin" /> : <FiSend className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <div className="text-[10px] text-center font-medium text-gray-400 mt-2">
+                    AI can make mistakes. Verify important information.
+                  </div>
+                </div>
+              </SCard>
+            )}
           </div>
 
           {/* Right Sidebar */}
@@ -207,20 +374,26 @@ export default function AIRecruiterWorkspace() {
                 <button className="text-xs font-bold text-indigo-600 flex items-center gap-1">View all <FiArrowRight /></button>
               </div>
               <div className="space-y-4">
-                {recentConversations.map((conv, idx) => (
-                  <div key={idx} className="flex gap-3 group cursor-pointer">
-                    <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 mt-0.5">
-                      <FiMessageSquare className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-0.5">
-                        <h4 className="text-xs font-bold text-gray-900 truncate group-hover:text-indigo-600 transition">{conv.title}</h4>
-                        <span className="text-[10px] font-semibold text-gray-400 shrink-0">{conv.time}</span>
+                {conversations.length === 0 ? (
+                  <div className="text-xs text-gray-500 text-center py-4">No recent conversations</div>
+                ) : (
+                  conversations.map((conv, idx) => (
+                    <div key={idx} onClick={() => loadConversation(conv._id)} className="flex gap-3 group cursor-pointer">
+                      <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 mt-0.5">
+                        <FiMessageSquare className="w-3.5 h-3.5" />
                       </div>
-                      <p className="text-[11px] font-medium text-gray-500 truncate">{conv.desc}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-0.5">
+                          <h4 className="text-xs font-bold text-gray-900 truncate group-hover:text-indigo-600 transition">{conv.title}</h4>
+                          <span className="text-[10px] font-semibold text-gray-400 shrink-0">
+                            {new Date(conv.time).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-[11px] font-medium text-gray-500 truncate">{conv.desc}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </SCard>
 

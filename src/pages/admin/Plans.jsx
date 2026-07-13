@@ -429,10 +429,10 @@ const AdminPlans = () => {
   const recruiterPlans = plans.filter(p => p.type === 'recruiter');
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Plan Management</h1>
-        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium">
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium">
           <HiPlus className="w-5 h-5" /> New Plan
         </button>
       </div>
@@ -450,12 +450,12 @@ const AdminPlans = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Plan Name</label>
                   <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" />
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                   <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm">
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm">
                     <option value="provider">Provider</option>
                     <option value="recruiter">Recruiter</option>
                   </select>
@@ -471,7 +471,7 @@ const AdminPlans = () => {
                     value={form.price}
                     onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
                     disabled={['starter', 'business', 'enterprise'].includes(form.slug) && Number(form.duration) !== 30}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" />
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
                   {['starter', 'business', 'enterprise'].includes(form.slug) && Number(form.duration) !== 30 && (
                     <p className="text-xs text-gray-500 mt-1">Auto-calculated from monthly base price using configured discounts.</p>
                   )}
@@ -480,7 +480,7 @@ const AdminPlans = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Billing Category</label>
                   <select value={form.duration} onChange={e => setForm(f => ({ ...f, duration: Number(e.target.value) }))}
                     disabled={['starter', 'business', 'enterprise'].includes(form.slug)}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm">
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm">
                     {DURATION_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>{option.label}</option>
                     ))}
@@ -500,7 +500,7 @@ const AdminPlans = () => {
                       name: tier ? tier.label : f.name,
                     }));
                   }}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm"
                 >
                   <option value="">Select plan tier</option>
                   {['Main', 'Legacy'].map(group => (
@@ -539,7 +539,7 @@ const AdminPlans = () => {
                           }}
                           className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition flex items-center gap-1 ${
                             isSelected
-                              ? 'bg-blue-50 text-blue-700 border-blue-300'
+                              ? 'bg-indigo-50 text-indigo-700 border-blue-300'
                               : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
                           }`}
                         >
@@ -587,7 +587,7 @@ const AdminPlans = () => {
                         ]
                       }));
                     }}
-                    className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold transition flex items-center gap-1"
+                    className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-xs font-bold transition flex items-center gap-1"
                   >
                     <HiPlus className="w-4 h-4" /> Add Country Pricing
                   </button>
@@ -638,7 +638,7 @@ const AdminPlans = () => {
                                   });
                                 }
                               }}
-                              className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:ring-1 focus:ring-blue-500 outline-none font-semibold text-gray-800"
+                              className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:ring-1 focus:ring-indigo-500 outline-none font-semibold text-gray-800"
                             >
                               {countriesList.map(c => (
                                 <option key={c.countryCode} value={c.countryCode}>{c.countryName} ({c.countryCode})</option>
@@ -661,7 +661,7 @@ const AdminPlans = () => {
                                     return { ...f, countryPricing: next };
                                   });
                                 }}
-                                className="w-1/2 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none uppercase font-mono"
+                                className="w-1/2 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none uppercase font-mono"
                               />
                               <input
                                 type="text"
@@ -675,7 +675,7 @@ const AdminPlans = () => {
                                     return { ...f, countryPricing: next };
                                   });
                                 }}
-                                className="w-1/2 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none"
+                                className="w-1/2 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none"
                               />
                             </div>
                           </div>
@@ -699,7 +699,7 @@ const AdminPlans = () => {
                                     return { ...f, countryPricing: next };
                                   });
                                 }}
-                                className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none"
+                                className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none"
                               />
                             </div>
                           </div>
@@ -720,7 +720,7 @@ const AdminPlans = () => {
                                     return { ...f, countryPricing: next };
                                   });
                                 }}
-                                className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none"
+                                className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none"
                               />
                             </div>
                           </div>
@@ -742,7 +742,7 @@ const AdminPlans = () => {
                                     return { ...f, countryPricing: next };
                                   });
                                 }}
-                                className="w-1/2 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none"
+                                className="w-1/2 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none"
                               />
                               <input
                                 type="number"
@@ -756,7 +756,7 @@ const AdminPlans = () => {
                                     return { ...f, countryPricing: next };
                                   });
                                 }}
-                                className="w-1/2 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none"
+                                className="w-1/2 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none"
                               />
                             </div>
                           </div>
@@ -774,7 +774,7 @@ const AdminPlans = () => {
                                     return { ...f, countryPricing: next };
                                   });
                                 }}
-                                className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                className="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                               />
                               <span className="text-[11px] font-medium text-gray-700">Tax Inclusive</span>
                             </label>
@@ -791,7 +791,7 @@ const AdminPlans = () => {
                                     return { ...f, countryPricing: next };
                                   });
                                 }}
-                                className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                className="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                               />
                               <span className="text-[11px] font-medium text-gray-700">Active</span>
                             </label>
@@ -809,12 +809,12 @@ const AdminPlans = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Max Skills</label>
                       <input type="number" min="1" value={form.maxSkills} onChange={e => setForm(f => ({ ...f, maxSkills: Number(e.target.value) }))}
-                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" />
+                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Boost Weight</label>
                       <input type="number" min="1" value={form.boostWeight} onChange={e => setForm(f => ({ ...f, boostWeight: Number(e.target.value) }))}
-                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" />
+                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
                     </div>
                   </div>
                   
@@ -856,7 +856,7 @@ const AdminPlans = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Unlock Credits</label>
                   <input type="number" min="0" value={form.unlockCredits} onChange={e => setForm(f => ({ ...f, unlockCredits: Number(e.target.value) }))}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" />
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
                 </div>
               )}
               <div>
@@ -864,29 +864,29 @@ const AdminPlans = () => {
                 {form.features.map((f, i) => (
                   <div key={i} className="flex gap-2 mb-2">
                     <input value={f} onChange={e => updateFeature(i, e.target.value)} placeholder={`Feature ${i + 1}`}
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" />
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
                     {form.features.length > 1 && (
                       <button type="button" onClick={() => removeFeature(i)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><HiTrash className="w-4 h-4" /></button>
                     )}
                   </div>
                 ))}
-                <button type="button" onClick={addFeature} className="text-sm text-blue-600 hover:text-blue-700 font-medium">+ Add Feature</button>
+                <button type="button" onClick={addFeature} className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">+ Add Feature</button>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
                   <span className="text-sm font-medium text-gray-700">Active Status</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={form.showOnLandingPage} onChange={e => setForm(f => ({ ...f, showOnLandingPage: e.target.checked }))}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
                   <span className="text-sm font-medium text-gray-700">Show on Landing Page</span>
                 </label>
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowForm(false)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition font-medium text-sm text-gray-750">Cancel</button>
-                <button type="submit" className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium text-sm">
+                <button type="submit" className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium text-sm">
                   {editingPlan ? 'Update Plan' : 'Create Plan'}
                 </button>
               </div>
@@ -904,9 +904,9 @@ const AdminPlans = () => {
         return (
           <>
             {landingPlans.length > 0 && (
-              <div className="mb-10 bg-blue-50/30 p-6 rounded-3xl border border-blue-100">
+              <div className="mb-10 bg-indigo-50/30 p-6 rounded-3xl border border-indigo-100">
                 <div className="flex items-center gap-2 mb-4">
-                  <HiStar className="w-5 h-5 text-blue-600" />
+                  <HiStar className="w-5 h-5 text-indigo-600" />
                   <h2 className="text-lg font-bold text-gray-900">Landing Page Featured Plans</h2>
                 </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -981,15 +981,15 @@ const AdminPlans = () => {
 };
 
 const PlanCard = ({ plan, formatPrice, openEdit, handleDelete, isLanding }) => (
-  <div className={`bg-white rounded-2xl border-2 p-5 relative transition-all hover:shadow-md flex flex-col justify-between ${plan.isActive ? (isLanding ? 'border-blue-200 shadow-sm' : 'border-gray-100') : 'border-red-200 opacity-60'}`}>
+  <div className={`bg-white rounded-2xl border-2 p-5 relative transition-all hover:shadow-md flex flex-col justify-between ${plan.isActive ? (isLanding ? 'border-indigo-200 shadow-sm' : 'border-gray-100') : 'border-red-200 opacity-60'}`}>
     <div>
-      {isLanding && <span className="absolute -top-2.5 left-4 px-2 py-0.5 bg-blue-600 text-white text-[10px] rounded-full font-bold uppercase tracking-wider">On Landing Page</span>}
+      {isLanding && <span className="absolute -top-2.5 left-4 px-2 py-0.5 bg-indigo-600 text-white text-[10px] rounded-full font-bold uppercase tracking-wider">On Landing Page</span>}
       {!plan.isActive && <span className="absolute top-3 right-3 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">Inactive</span>}
       <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
       <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-0.5">{plan.type} • {plan.slug}</p>
       
       {/* Default Base Price */}
-      <p className="text-3xl font-bold text-blue-600 mt-2">
+      <p className="text-3xl font-bold text-indigo-600 mt-2">
         {formatPrice(plan.price, plan.priceAED, plan.priceUSD)}
         <span className="text-sm text-gray-400 font-normal">/{DURATION_LABEL_BY_VALUE[plan.duration] || `${plan.duration}d`}</span>
       </p>
@@ -999,7 +999,7 @@ const PlanCard = ({ plan, formatPrice, openEdit, handleDelete, isLanding }) => (
         <div className="mt-3 bg-gray-50 rounded-xl p-3 border border-gray-100 text-xs space-y-1.5">
           <div className="flex justify-between items-center border-b border-gray-200/60 pb-1">
             <span className="font-bold text-gray-700">Country Pricing</span>
-            <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-bold">
+            <span className="text-[10px] bg-indigo-100 text-blue-800 px-2 py-0.5 rounded-full font-bold">
               {plan.countryPricing.filter(cp => cp.isActive).length} Active
             </span>
           </div>
@@ -1042,7 +1042,7 @@ const PlanCard = ({ plan, formatPrice, openEdit, handleDelete, isLanding }) => (
     </div>
 
     <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
-      <button onClick={() => openEdit(plan)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition text-sm font-medium">
+      <button onClick={() => openEdit(plan)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 transition text-sm font-medium">
         <HiPencil className="w-4 h-4" /> Edit
       </button>
       <button onClick={() => handleDelete(plan)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition text-sm font-medium">

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
-import { HiUserGroup, HiOutlineMail, HiOutlineChat, HiCheckCircle, HiSearch, HiDatabase, HiSave } from 'react-icons/hi';
+import { Users, Mail, MessageSquare, CheckCircle2, Search, Database, Save, Activity, Settings2, ShieldAlert, FileText, Target, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function StagingCandidates() {
@@ -23,7 +23,11 @@ export default function StagingCandidates() {
       const { data } = await adminAPI.getSettings();
       const list = Array.isArray(data) ? data : data.settings || [];
       const vals = {};
-      list.forEach(s => { vals[s._id] = s.value; if (s.key === 'apify_naukri_cookie') vals.apify_naukri_cookie = s.value; if (s.key === 'daily_scraper_limit') vals.daily_scraper_limit = s.value; });
+      list.forEach(s => { 
+        vals[s._id] = s.value; 
+        if (s.key === 'apify_naukri_cookie') vals.apify_naukri_cookie = s.value; 
+        if (s.key === 'daily_scraper_limit') vals.daily_scraper_limit = s.value; 
+      });
       setEditValues(vals);
     } catch {
       toast.error('Failed to load settings');
@@ -70,94 +74,70 @@ export default function StagingCandidates() {
   };
 
   return (
-    <div className="py-2">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <HiUserGroup className="w-6 h-6 text-indigo-500" />
-            Staging Candidates Pipeline
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Review scraped candidates before morning outreach.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 mt-4 md:mt-0">
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPagination(prev => ({ ...prev, page: 1 }));
-            }}
-            className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="all">All Statuses</option>
-            <option value="staged">Staged (Pending Outreach)</option>
-            <option value="outreach_sent">Outreach Sent</option>
-            <option value="claimed">Claimed (Active User)</option>
-          </select>
-          <select
-            value={leadStatusFilter}
-            onChange={(e) => {
-              setLeadStatusFilter(e.target.value);
-              setPagination(prev => ({ ...prev, page: 1 }));
-            }}
-            className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="all">All Lead Tiers</option>
-            <option value="Verified Active Candidate">Verified Active Candidate</option>
-            <option value="Active Signal Lead">Active Signal Lead</option>
-            <option value="Raw Lead">Raw Lead</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Scraper Engine Config Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-        <div className="border-b border-gray-100 p-6 flex justify-between items-center bg-gray-50/50">
+    <div className="bg-[#F8FAFC] min-h-screen pb-12">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <HiDatabase className="w-5 h-5 text-indigo-500" />
-              Scraper Engine Configuration
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">Manage Apify integration and automated scraping limits</p>
+            <h1 className="text-[22px] font-black text-[#0F172A] tracking-tight">Scraped Candidates</h1>
+            <p className="text-[13px] font-medium text-gray-500 mt-0.5">
+              Review and stage candidate leads before automated morning outreach.
+            </p>
           </div>
-          <button
-            onClick={() => {
-              const sCookie = editValues.apify_naukri_cookie || '';
-              const sLimit = editValues.daily_scraper_limit || '500';
-              handleSaveSetting({ key: 'apify_naukri_cookie', category: 'scraper', value: sCookie, description: 'Naukri Session Cookie' });
-              handleSaveSetting({ key: 'daily_scraper_limit', category: 'scraper', value: sLimit, description: 'Daily max scrape limit' });
-            }}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition flex items-center gap-2"
-          >
-            <HiSave className="w-4 h-4" /> Save Config
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="px-4 py-2 border border-indigo-200 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold shadow-sm flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              {pagination.total.toLocaleString()} Candidates Queued
+            </div>
+          </div>
         </div>
 
-        <div className="p-6 space-y-6">
-          <div className="space-y-4 max-w-2xl">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Naukri Session Cookie</label>
-              <div className="relative">
-                <textarea
-                  rows={2}
-                  value={editValues.apify_naukri_cookie || ''}
-                  onChange={(e) => setEditValues({ ...editValues, apify_naukri_cookie: e.target.value })}
-                  placeholder="Paste the full session cookie string here..."
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition text-sm font-mono"
-                />
+        {/* Scraper Engine Config Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-50 bg-gray-50/50 p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                <Settings2 className="w-5 h-5 text-indigo-600" />
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                This cookie is required for Apify to authenticate and scrape private candidate data securely.
+              <div>
+                <h2 className="text-sm font-black text-gray-900">Scraper Engine Configuration</h2>
+                <p className="text-[11px] font-bold text-gray-500">Manage Apify integration and daily budget limits</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                const sCookie = editValues.apify_naukri_cookie || '';
+                const sLimit = editValues.daily_scraper_limit || '500';
+                handleSaveSetting({ key: 'apify_naukri_cookie', category: 'scraper', value: sCookie, description: 'Naukri Session Cookie' });
+                handleSaveSetting({ key: 'daily_scraper_limit', category: 'scraper', value: sLimit, description: 'Daily max scrape limit' });
+              }}
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-black shadow-sm transition-all flex items-center gap-2 shrink-0"
+            >
+              <Save className="w-3.5 h-3.5" /> Save Config
+            </button>
+          </div>
+
+          <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <label className="block text-[11px] font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Naukri Session Cookie</label>
+              <textarea
+                rows={2}
+                value={editValues.apify_naukri_cookie || ''}
+                onChange={(e) => setEditValues({ ...editValues, apify_naukri_cookie: e.target.value })}
+                placeholder="Paste the full session cookie string here..."
+                className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition text-xs font-mono outline-none shadow-inner"
+              />
+              <p className="text-[10px] font-bold text-gray-400 mt-2 flex items-center gap-1.5">
+                <ShieldAlert className="w-3 h-3 text-amber-500" /> Required for Apify to authenticate and scrape private candidate data securely.
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-[11px] font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
                 Daily Scraping Limit (Budget Control)
               </label>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 bg-gray-50/50 p-4 rounded-lg border border-gray-100">
                 <input
                   type="range"
                   min="10"
@@ -165,156 +145,216 @@ export default function StagingCandidates() {
                   step="10"
                   value={editValues.daily_scraper_limit || 500}
                   onChange={(e) => setEditValues({ ...editValues, daily_scraper_limit: e.target.value })}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  className="w-full h-1.5 bg-indigo-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                 />
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0 bg-white border border-gray-200 px-3 py-1.5 rounded-md shadow-sm">
                   <input
                     type="number"
                     value={editValues.daily_scraper_limit || 500}
                     onChange={(e) => setEditValues({ ...editValues, daily_scraper_limit: e.target.value })}
-                    className="w-24 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition text-sm text-center font-bold"
+                    className="w-14 text-sm text-center font-black text-indigo-700 bg-transparent outline-none"
                   />
-                  <span className="text-sm text-gray-500 font-medium">profiles/day</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">profiles/day</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {loading && candidates.length === 0 ? (
-        <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>
-      ) : (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50/80 border-b border-gray-200">
-                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Candidate</th>
-                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Source Query</th>
-                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Email Toggle</th>
-                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">WA Toggle</th>
-                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Outreach Status</th>
-                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Lead Status</th>
-                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
-                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Scraped</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {candidates.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="p-8 text-center text-gray-500">
-                      No candidates found matching criteria.
-                    </td>
-                  </tr>
-                ) : (
-                  candidates.map((cand) => (
-                    <tr key={cand._id} className="hover:bg-gray-50/50 transition">
-                      <td className="p-4">
-                        <div className="font-medium text-gray-900">{cand.name}</div>
-                        <div className="text-xs text-gray-500">{cand.jobTitle}</div>
-                        <div className="text-xs text-gray-400 mt-0.5">{cand.email} • {cand.phone}</div>
-                      </td>
-                      <td className="p-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                          {cand.sourceQuery}
-                        </span>
-                      </td>
-                      <td className="p-4 text-center">
-                        <button
-                          onClick={() => toggleChannel(cand._id, 'email', cand.emailToggle)}
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                            cand.emailToggle ? 'bg-indigo-600' : 'bg-gray-200'
-                          }`}
-                        >
-                          <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                            cand.emailToggle ? 'translate-x-4.5' : 'translate-x-1'
-                          }`} />
-                        </button>
-                        {cand.emailSentAt && <div className="text-[10px] text-green-600 mt-1">Sent</div>}
-                      </td>
-                      <td className="p-4 text-center">
-                        <button
-                          onClick={() => toggleChannel(cand._id, 'whatsapp', cand.whatsappToggle)}
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                            cand.whatsappToggle ? 'bg-green-500' : 'bg-gray-200'
-                          }`}
-                        >
-                          <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                            cand.whatsappToggle ? 'translate-x-4.5' : 'translate-x-1'
-                          }`} />
-                        </button>
-                        {cand.whatsappSentAt && <div className="text-[10px] text-green-600 mt-1">Sent</div>}
-                      </td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          cand.status === 'staged' ? 'bg-yellow-100 text-yellow-800' :
-                          cand.status === 'outreach_sent' ? 'bg-blue-100 text-blue-800' :
-                          cand.status === 'claimed' ? 'bg-green-100 text-green-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {cand.status.replace('_', ' ')}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          cand.leadStatus === 'Verified Active Candidate' ? 'bg-green-100 text-green-800' :
-                          cand.leadStatus === 'Active Signal Lead' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {cand.leadStatus || 'Raw Lead'}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-gray-900">{cand.activeScore || 0}</span>
-                          <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full rounded-full ${
-                                (cand.activeScore || 0) >= 100 ? 'bg-green-500' :
-                                (cand.activeScore || 0) >= 31 ? 'bg-yellow-500' : 'bg-gray-400'
-                              }`} 
-                              style={{ width: `${Math.min(100, cand.activeScore || 0)}%` }} 
-                            />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4 text-xs text-gray-500 whitespace-nowrap">
-                        {formatDistanceToNow(new Date(cand.createdAt), { addSuffix: true })}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+        {/* Main Layout */}
+        <div className="flex flex-col gap-6">
           
-          {/* Pagination */}
-          {pagination.pages > 1 && (
-            <div className="p-4 border-t border-gray-200 flex items-center justify-between">
-              <span className="text-sm text-gray-500">
-                Showing page {pagination.page} of {pagination.pages}
-              </span>
-              <div className="flex gap-2">
-                <button
-                  disabled={pagination.page === 1}
-                  onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))}
-                  className="px-3 py-1 bg-white border border-gray-300 rounded text-sm disabled:opacity-50"
+          {/* Horizontal Filters Bar */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex items-center gap-2 pr-4 sm:border-r border-gray-100">
+                <Filter className="w-4 h-4 text-indigo-500" />
+                <span className="text-sm font-black text-gray-900">Filters</span>
+              </div>
+              
+              <div className="flex-1 flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-full sm:w-auto">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => {
+                      setStatusFilter(e.target.value);
+                      setPagination(prev => ({ ...prev, page: 1 }));
+                    }}
+                    className="w-full text-xs font-bold text-gray-700 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="staged">Staged (Pending Outreach)</option>
+                    <option value="outreach_sent">Outreach Sent</option>
+                    <option value="claimed">Claimed (Active User)</option>
+                  </select>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <select
+                    value={leadStatusFilter}
+                    onChange={(e) => {
+                      setLeadStatusFilter(e.target.value);
+                      setPagination(prev => ({ ...prev, page: 1 }));
+                    }}
+                    className="w-full text-xs font-bold text-gray-700 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all"
+                  >
+                    <option value="all">All Lead Tiers</option>
+                    <option value="Verified Active Candidate">Verified Active Candidate</option>
+                    <option value="Active Signal Lead">Active Signal Lead</option>
+                    <option value="Raw Lead">Raw Lead</option>
+                  </select>
+                </div>
+                <div className="w-full sm:w-auto sm:ml-auto">
+                  <button 
+                    onClick={() => {
+                      setStatusFilter('all');
+                      setLeadStatusFilter('all');
+                      setPagination(prev => ({ ...prev, page: 1 }));
+                    }}
+                    className="w-full sm:w-auto text-[11px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 px-4 py-2.5 rounded-lg"
+                  >
+                    Reset All
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Table Container */}
+          <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+            
+            <div className="overflow-x-auto custom-scrollbar relative min-h-[400px]">
+              {loading && candidates.length === 0 ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10">
+                  <LoadingSpinner />
+                </div>
+              ) : (
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-white">
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Candidate</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Source Query</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400 text-center">Outreach Channels</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Outreach Status</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Lead Status</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Score / Time</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {candidates.map((c) => (
+                      <tr key={c._id} className="hover:bg-gray-50/50 transition-colors group">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 flex items-center justify-center shrink-0 shadow-sm">
+                              <Users className="w-4 h-4 text-indigo-600" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-black text-gray-900 truncate max-w-[200px]" title={c.name}>{c.name}</div>
+                              <div className="text-[11px] font-bold text-gray-500 mt-0.5">{c.email || 'No Email'}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-[10px] font-black uppercase text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-lg tracking-wider w-max">
+                            {c.metadata?.sourceQuery || 'Generic Scrape'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-4">
+                            <button
+                              onClick={() => toggleChannel(c._id, 'email', c.emailToggle)}
+                              className={`flex flex-col items-center gap-1 transition-all ${c.emailToggle ? 'text-indigo-600 hover:text-indigo-700' : 'text-gray-300 hover:text-gray-400'}`}
+                              title="Toggle Email Outreach"
+                            >
+                              <div className={`p-1.5 rounded-full border ${c.emailToggle ? 'bg-indigo-50 border-indigo-200' : 'bg-gray-50 border-gray-200'}`}>
+                                <Mail className="w-4 h-4" />
+                              </div>
+                            </button>
+                            <button
+                              onClick={() => toggleChannel(c._id, 'whatsapp', c.whatsappToggle)}
+                              className={`flex flex-col items-center gap-1 transition-all ${c.whatsappToggle ? 'text-emerald-600 hover:text-emerald-700' : 'text-gray-300 hover:text-gray-400'}`}
+                              title="Toggle WhatsApp Outreach"
+                            >
+                              <div className={`p-1.5 rounded-full border ${c.whatsappToggle ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'}`}>
+                                <MessageSquare className="w-4 h-4" />
+                              </div>
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border flex items-center gap-1.5 w-max ${
+                            c.status === 'claimed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            c.status === 'outreach_sent' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                            'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}>
+                            <CheckCircle2 className="w-3 h-3" />
+                            {c.status.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider border w-max block ${
+                            c.leadStatus === 'Verified Active Candidate' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            c.leadStatus === 'Active Signal Lead' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                            'bg-gray-50 text-gray-600 border-gray-200'
+                          }`}>
+                            {c.leadStatus}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Target className="w-3.5 h-3.5 text-gray-400" />
+                            <span className="text-xs font-black text-gray-800">{c.score || 0} pts</span>
+                          </div>
+                          <div className="text-[10px] font-bold text-gray-400 flex items-center gap-1.5">
+                            <FileText className="w-3 h-3" /> {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {candidates.length === 0 && !loading && (
+                      <tr>
+                        <td colSpan="6" className="px-6 py-16 text-center">
+                          <div className="flex flex-col items-center justify-center text-gray-400">
+                            <Search className="w-12 h-12 mb-4 text-gray-300" />
+                            <p className="text-sm font-bold text-gray-900 mb-1">No staged candidates found</p>
+                            <p className="text-xs font-medium">Try adjusting your filters.</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Pagination Footer */}
+            <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+              <div className="text-xs font-medium text-gray-500">
+                Showing <span className="font-bold text-gray-900">{candidates.length > 0 ? 1 : 0}</span> to <span className="font-bold text-gray-900">{candidates.length}</span> of {pagination.total.toLocaleString()} candidates
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  disabled={pagination.page <= 1}
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                  className="w-8 h-8 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-50 shadow-sm"
                 >
-                  Previous
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
-                <button
-                  disabled={pagination.page === pagination.pages}
-                  onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))}
-                  className="px-3 py-1 bg-white border border-gray-300 rounded text-sm disabled:opacity-50"
+                <button className="px-4 h-8 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-700 text-xs font-black shadow-sm">
+                  Page {pagination.page} of {pagination.pages}
+                </button>
+                <button 
+                  disabled={pagination.page >= pagination.pages}
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                  className="w-8 h-8 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-50 shadow-sm"
                 >
-                  Next
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
-          )}
+
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

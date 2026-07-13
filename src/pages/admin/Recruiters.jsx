@@ -1,80 +1,251 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { HiSearch, HiCheckCircle, HiXCircle, HiEye, HiTrash } from 'react-icons/hi';
+import React, { useState, useEffect } from 'react';
+import { 
+  Users, UserPlus, ShieldCheck, Hourglass, Ban, 
+  Search, Filter, Download, MoreVertical, Eye, X, 
+  MapPin, Calendar, Briefcase, ChevronLeft, ChevronRight, CheckCircle2, PauseCircle, Trash2
+} from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { adminAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
-import AIReputationBadge from '../../components/ai/AIReputationBadge';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
-const AdminRecruiters = () => {
-  const navigate = useNavigate();
+const statusColors = {
+  Verified: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  Pending: 'bg-amber-50 text-amber-700 border-amber-200',
+  Rejected: 'bg-red-50 text-red-700 border-red-200',
+  Suspended: 'bg-purple-50 text-purple-700 border-purple-200',
+};
+
+// --- Helper Functions ---
+const getInitials = (name) => {
+  if (!name) return '?';
+  return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const formatTime = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+};
+
+const calcTrend = (current, previous) => {
+  if (previous === 0) return current > 0 ? '+100%' : '0%';
+  const diff = ((current - previous) / previous) * 100;
+  return (diff > 0 ? '+' : '') + diff.toFixed(1) + '%';
+};
+
+// --- Components ---
+
+const KPICard = ({ title, value, subtext, icon: Icon, colorClass, trend, trendUp }) => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col justify-between">
+    <div className="flex items-center gap-3 mb-3">
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-gray-50 border border-gray-100 ${colorClass}`}>
+        <Icon className="w-5 h-5" />
+      </div>
+      <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{title}</div>
+    </div>
+    <div>
+      <div className="text-2xl font-black text-gray-900 mb-1">{value?.toLocaleString() || 0}</div>
+      <div className="flex items-center text-[10px] font-bold">
+        {trend && (
+          <span className={`mr-1 ${trendUp ? 'text-emerald-500' : 'text-red-500'}`}>
+            {trendUp ? '↑' : '↓'} {trend.replace('+', '')}
+          </span>
+        )}
+        <span className="text-gray-400">{subtext}</span>
+      </div>
+    </div>
+  </div>
+);
+
+const RecruiterDetailPanel = ({ recruiter, onClose, onDelete }) => {
+  const [activeTab, setActiveTab] = useState('Overview');
+  const user = recruiter.user || {};
+  const isApproved = recruiter.isApproved;
+  const status = isApproved ? 'Verified' : 'Pending';
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 md:p-8">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        
+        {/* Header Tabs */}
+        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-gray-50/50">
+          <div className="flex gap-6 overflow-x-auto custom-scrollbar">
+            {['Overview', 'Company Details'].map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`whitespace-nowrap text-sm font-bold pb-4 -mb-4 border-b-2 transition-all ${
+                  activeTab === tab ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6 bg-white flex flex-col md:flex-row gap-8">
+          
+          {/* Left Column (Profile Summary) */}
+          <div className="w-full md:w-64 shrink-0 space-y-6">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-24 h-24 rounded-full bg-teal-50 border-4 border-white shadow-sm flex items-center justify-center text-3xl font-black text-teal-600 mb-4 overflow-hidden relative">
+                {recruiter.photo ? (
+                  <img src={recruiter.photo} alt={user.name} className="w-full h-full object-cover" />
+                ) : getInitials(user.name)}
+                {isApproved && (
+                  <div className="absolute bottom-0 right-0 bg-emerald-500 text-white rounded-full p-1 border-2 border-white">
+                    <CheckCircle2 className="w-3 h-3" />
+                  </div>
+                )}
+              </div>
+              <h2 className="text-lg font-black text-gray-900">{user.name || 'Unknown'}</h2>
+              <p className="text-xs font-bold text-gray-400 mb-2">{recruiter.companyName || 'Unknown Company'}</p>
+              
+              <div className="flex flex-col gap-1.5 text-xs font-medium text-gray-500 mt-2">
+                <a href={`mailto:${user.email}`} className="text-blue-500 hover:underline">{user.email}</a>
+                <span>{user.phone || 'No phone'}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 text-xs font-medium text-gray-500 justify-center">
+               <span className="text-sm">🇮🇳</span> {recruiter.city || 'Unknown'}, {user.country || 'India'}
+            </div>
+
+            <div className="flex items-center justify-center gap-4 text-xs font-bold text-gray-500">
+               <a href="#" className="flex items-center gap-1 hover:text-emerald-500"><Briefcase className="w-3.5 h-3.5" /> Website</a>
+               <a href="#" className="flex items-center gap-1 hover:text-emerald-500"><Calendar className="w-3.5 h-3.5" /> Joined {formatDate(user.createdAt)}</a>
+            </div>
+          </div>
+
+          {/* Right Column (Details) */}
+          <div className="flex-1 border-l border-gray-100 pl-0 md:pl-8">
+            {activeTab === 'Overview' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                {/* Company Information */}
+                <div>
+                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-4">Company Information</h3>
+                  <div className="space-y-4 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400 font-medium">Company Name</span>
+                      <span className="font-bold text-gray-800">{recruiter.companyName || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400 font-medium">Website</span>
+                      <a href="#" className="font-bold text-emerald-600 hover:underline">{recruiter.website || 'Not specified'}</a>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400 font-medium">Company Size</span>
+                      <span className="font-bold text-gray-800">{recruiter.companySize || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400 font-medium">Industry</span>
+                      <span className="font-bold text-gray-800">{recruiter.industry || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400 font-medium">Headquarters</span>
+                      <span className="font-bold text-gray-800">{recruiter.city || 'Unknown'}, {user.country || 'India'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Status */}
+                <div>
+                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-4">Account Status</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2 text-gray-600 font-medium">
+                        <ShieldCheck className="w-4 h-4 text-gray-400" />
+                        Verification
+                      </div>
+                      <span className={`font-bold text-xs flex items-center gap-1 ${isApproved ? 'text-emerald-500' : 'text-amber-500'}`}>
+                        {isApproved ? <><CheckCircle2 className="w-3 h-3"/> Verified</> : 'Pending'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-500">Overall Status</span>
+                    <span className={`text-xs font-black uppercase ${isApproved ? 'text-emerald-500' : 'text-amber-500'}`}>
+                      {status}
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+            )}
+            
+            {activeTab !== 'Overview' && (
+              <div className="h-full min-h-[300px] flex items-center justify-center text-gray-400 font-medium">
+                {activeTab} view coming soon.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="border-t border-gray-100 bg-gray-50/50 p-4 flex items-center justify-end gap-3 shrink-0">
+          <button 
+            onClick={() => { onDelete(recruiter._id, user.name); onClose(); }}
+            className="px-4 py-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" /> Delete Account
+          </button>
+          <button className="px-3 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-1">
+            More <ChevronRight className="w-4 h-4 rotate-90" />
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+
+// --- Main Component ---
+export default function AdminRecruiters() {
   const [recruiters, setRecruiters] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [activeTableTab, setActiveTableTab] = useState('All');
+  
   const [selectedRecruiter, setSelectedRecruiter] = useState(null);
 
-  useEffect(() => { fetchRecruiters(); }, [statusFilter]);
+  useEffect(() => { 
+    fetchRecruiters(); 
+  }, [statusFilter, activeTableTab]);
 
   const fetchRecruiters = async () => {
     try {
       setLoading(true);
-      const params = { search };
+      const params = { search, limit: 100 };
+      
+      if (activeTableTab === 'Verified') params.approved = true;
+      if (activeTableTab === 'Pending') params.approved = false;
       if (statusFilter === 'approved') params.approved = true;
-      else if (statusFilter === 'pending' || statusFilter === 'rejected') params.approved = false;
+      else if (statusFilter === 'pending') params.approved = false;
+
       const { data } = await adminAPI.getRecruiters(params);
       setRecruiters(data.recruiters || []);
+      if (data.stats) {
+        setStats(data.stats);
+      }
     } catch (err) {
-      const status = err?.response?.status;
-
-      // Fallback: if recruiter profile route is unavailable, show recruiter users at least.
-      if (status === 404) {
-        try {
-          const fallbackParams = {
-            role: 'recruiter',
-            page: 1,
-            limit: 200,
-            search,
-          };
-          const { data } = await adminAPI.getUsers(fallbackParams);
-          const mapped = (data?.users || []).map((u) => ({
-            _id: u._id,
-            user: {
-              _id: u._id,
-              name: u.name,
-              email: u.email,
-              phone: u.phone,
-            },
-            companyName: 'N/A',
-            companyType: 'N/A',
-            city: 'N/A',
-            state: 'N/A',
-            currentPlan: 'N/A',
-            isApproved: true,
-            isFallbackUser: true,
-          }));
-          setRecruiters(mapped);
-          toast('Loaded recruiter users via fallback source');
-          return;
-        } catch (_) {
-          // Continue to generic handling below
-        }
-      }
-
-      if (status === 401) {
-        toast.error('Session expired. Please login again.');
-        navigate('/login', { replace: true });
-        return;
-      }
-
-      if (status === 403) {
-        toast.error('Admin access required to view recruiters.');
-        navigate('/', { replace: true });
-        return;
-      }
-
-      console.error('fetchRecruiters error:', err);
-      toast.error(err?.response?.data?.message || 'Failed to load recruiters');
+      toast.error('Failed to load recruiters');
     } finally {
       setLoading(false);
     }
@@ -85,214 +256,317 @@ const AdminRecruiters = () => {
     fetchRecruiters();
   };
 
-  // console.log("SELECTED RECRUITER:", recruiter);
-  // console.log("recruiter._id:", recruiter?._id);
-  // console.log("recruiter.user:", recruiter?.user);
-  // console.log("recruiter.user._id:", recruiter?.user?._id);
-
-  const getUserIdForApproval = (item) => {
-    if (item?.user && typeof item.user === "object" && item.user._id) {
-      return item.user._id;
-    }
-
-    if (item?.user && typeof item.user === "string") {
-      return item.user;
-    }
-
-    // Only use item._id if this is fallback user data, not profile data
-    if (item?.isFallbackUser && item?._id) {
-      return item._id;
-    }
-
-    return null;
-  };
-
-  const handleApprove = async (recruiter, approve) => {
-    const userId = getUserIdForApproval(recruiter);
-
-    console.log("APPROVAL PAYLOAD:", {
-      itemId: recruiter?._id,
-      user: recruiter?.user,
-      finalUserId: userId,
-    });
-
-    if (!userId) {
-      toast.error("User ID missing. Cannot approve.");
-      return;
-    }
-
-    try {
-      if (approve) {
-        await adminAPI.approveUser(userId);
-        toast.success("User approved for both panels");
-      } else {
-        await adminAPI.rejectUser(userId, "Rejected by admin");
-        toast.success("User rejected");
-      }
-
-      fetchRecruiters();
-      setSelectedRecruiter(null);
-    } catch (err) {
-      console.error("Approval error:", err.response?.data || err);
-      toast.error(err.response?.data?.message || "Action failed");
-    }
-  };
-
   const handleDelete = async (id, name) => {
-    if (!confirm(`Are you sure you want to delete recruiter "${name}"?\n\nThis will permanently delete:\n- Recruiter profile\n- Job posts\n- Leads\n- Reviews\n- User account\n\nThis action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to delete recruiter "${name}"?\n\nThis will permanently delete everything associated with this recruiter.`)) {
       return;
     }
-
     try {
       await adminAPI.deleteRecruiter(id);
       toast.success('Recruiter deleted successfully');
       fetchRecruiters();
-      setSelectedRecruiter(null);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to delete recruiter');
     }
   };
 
+  // --- Process Stats ---
+  const totals = stats?.totals || { total: 0, newThisWeek: 0, newLastWeek: 0, verified: 0, pending: 0, rejected: 0, suspended: 0 };
+  const trendNew = calcTrend(totals.newThisWeek, totals.newLastWeek);
+  
+  const summaryData = [
+    { name: 'Verified', value: totals.verified, color: '#10B981' },
+    { name: 'Pending', value: totals.pending, color: '#F59E0B' },
+    { name: 'Rejected', value: totals.rejected, color: '#EF4444' },
+    { name: 'Suspended', value: totals.suspended, color: '#8B5CF6' },
+  ].filter(d => d.value > 0);
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Recruiter Management</h1>
+    <div className="bg-[#F8FAFC] min-h-screen pb-12">
+      {selectedRecruiter && (
+        <RecruiterDetailPanel 
+          recruiter={selectedRecruiter} 
+          onClose={() => setSelectedRecruiter(null)}
+          onDelete={handleDelete}
+        />
+      )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-6 flex flex-col sm:flex-row gap-4">
-        <form onSubmit={handleSearch} className="flex-1 flex gap-2">
-          <div className="relative flex-1">
-            <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search recruiter, company, city..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-[22px] font-black text-[#0F172A] tracking-tight">All Recruiters</h1>
+            <p className="text-[13px] font-medium text-gray-500 mt-0.5">View and manage all recruiter profiles</p>
           </div>
-          <button type="submit" className="px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium">Search</button>
-        </form>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">All Status</option>
-          <option value="pending">Pending Approval</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-        </select>
-      </div>
-
-      <div className="flex gap-6">
-        <div className="flex-1">
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            {loading ? (
-              <div className="p-16 flex justify-center"><LoadingSpinner /></div>
-            ) : recruiters.length === 0 ? (
-              <div className="p-16 text-center text-gray-500">No recruiters found</div>
-            ) : (
-              <div className="divide-y divide-gray-50">
-                {recruiters.map((r) => (
-                  <div key={r._id} className={`p-4 flex items-center justify-between hover:bg-gray-50 transition cursor-pointer ${selectedRecruiter?._id === r._id ? 'bg-blue-50' : ''}`} onClick={() => setSelectedRecruiter(r)}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-linear-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        {(r.user?.name || r.companyName || '?').charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{r.user?.name || 'Unknown'}</p>
-                        <p className="text-sm text-gray-500">{r.companyName || 'Individual'} · {r.city || 'N/A'}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${r.isApproved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                        }`}>{r.isApproved ? 'Approved' : 'Pending'}</span>
-                      <HiEye className="w-5 h-5 text-gray-400" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="bg-white border border-gray-200 rounded-lg px-4 py-2 flex items-center gap-2 text-xs font-bold text-gray-700 shadow-sm">
+              <Calendar className="w-4 h-4 text-gray-400" />
+              Real-Time Directory
+            </div>
           </div>
         </div>
 
-        {selectedRecruiter && (
-          <div className="w-96 bg-white rounded-2xl border border-gray-100 p-6 h-fit sticky top-24">
-            <div className="text-center mb-4">
-              <div className="w-16 h-16 bg-linear-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-3">
-                {(selectedRecruiter.user?.name || '?').charAt(0).toUpperCase()}
-              </div>
-              <h3 className="text-lg font-bold text-gray-900">{selectedRecruiter.user?.name}</h3>
-              <p className="text-sm text-gray-500">{selectedRecruiter.companyName || 'Individual recruiter'}</p>
-            </div>
+        {/* Top KPIs */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KPICard title="Total Recruiters" value={totals.total} subtext="All time" icon={Users} colorClass="text-teal-500" />
+          <KPICard title="Verified" value={totals.verified} subtext="Active recruiters" icon={ShieldCheck} colorClass="text-emerald-500" />
+          <KPICard title="New Recruiters" value={totals.newThisWeek} subtext="This week" icon={UserPlus} colorClass="text-blue-500" trend={trendNew} trendUp={!trendNew.includes('-')} />
+          <KPICard title="Suspended" value={totals.suspended} subtext="Inactive" icon={PauseCircle} colorClass="text-purple-500" />
+        </div>
 
-            {selectedRecruiter.user && selectedRecruiter.user._id && (
-              <div className="mb-6">
-                <AIReputationBadge recruiterId={selectedRecruiter.user._id} />
-              </div>
-            )}
-
-            <div className="space-y-3 text-sm mb-6">
-              <div className="flex justify-between"><span className="text-gray-500">Company</span><span className="font-medium">{selectedRecruiter.companyName || 'N/A'}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Type</span><span className="font-medium capitalize">{selectedRecruiter.companyType || 'N/A'}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">City</span><span className="font-medium">{selectedRecruiter.city || 'N/A'}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">State</span><span className="font-medium">{selectedRecruiter.state || 'N/A'}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Plan</span><span className="font-medium">{selectedRecruiter.currentPlan || 'free'}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Approved</span>
-                <span className={`font-medium ${selectedRecruiter.isApproved ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {selectedRecruiter.isApproved ? 'Yes' : 'No'}
-                </span>
-              </div>
-              <div className="flex justify-between"><span className="text-gray-500">Reviewed By</span><span className="font-medium">{selectedRecruiter.approvedBy?.name || 'Not reviewed'}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Decision</span><span className="font-medium capitalize">{selectedRecruiter.approvalAction || (selectedRecruiter.isApproved ? 'approved' : 'pending')}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Reviewed At</span><span className="font-medium">{selectedRecruiter.approvedAt ? new Date(selectedRecruiter.approvedAt).toLocaleString() : 'N/A'}</span></div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                {!selectedRecruiter.isApproved && (
+        {/* Main Layout */}
+        <div className="flex flex-col xl:flex-row gap-6 items-start">
+          
+          {/* Left Pane (Table) */}
+          <div className="flex-1 w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+            
+            {/* Table Tabs */}
+            <div className="flex items-center gap-6 px-6 pt-4 border-b border-gray-100 overflow-x-auto custom-scrollbar">
+              {[
+                `All Recruiters (${totals.total.toLocaleString()})`,
+                `Verified (${totals.verified.toLocaleString()})`, 
+                `Pending (${totals.pending.toLocaleString()})`
+              ].map(tab => {
+                const label = tab.split(' ')[0] === 'All' ? 'All' : tab.split(' ')[0];
+                const active = activeTableTab === label;
+                return (
                   <button
-                    disabled={selectedRecruiter.isFallbackUser}
-                    onClick={() => handleApprove(selectedRecruiter, true)}
-                    className={`flex-1 flex items-center justify-center gap-1 px-4 py-2.5 rounded-xl transition font-medium ${selectedRecruiter.isFallbackUser
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-green-600 text-white hover:bg-green-700'
-                      }`}
-                  >
-                    <HiCheckCircle className="w-5 h-5" /> Approve
-                  </button>
-                )}
-                <button
-                  disabled={selectedRecruiter.isFallbackUser}
-                  onClick={() => handleApprove(selectedRecruiter, false)}
-                  className={`flex-1 flex items-center justify-center gap-1 px-4 py-2.5 rounded-xl transition font-medium ${selectedRecruiter.isFallbackUser
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-red-50 text-red-700 hover:bg-red-100'
+                    key={tab}
+                    onClick={() => setActiveTableTab(label)}
+                    className={`whitespace-nowrap text-xs font-bold pb-3 border-b-2 transition-all ${
+                      active ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-gray-500 hover:text-gray-800'
                     }`}
-                >
-                  <HiXCircle className="w-5 h-5" /> Reject
+                  >
+                    {tab}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Table Search & Export Bar */}
+            <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-gray-50 bg-gray-50/30">
+              <form onSubmit={handleSearch} className="relative w-full sm:max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by name, email, company or mobile..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                />
+              </form>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2">
+                  <Filter className="w-3.5 h-3.5" /> Filters
+                </button>
+                <button className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2">
+                  <Download className="w-3.5 h-3.5" /> Export
                 </button>
               </div>
-              <button
-                disabled={selectedRecruiter.isFallbackUser}
-                onClick={() => handleDelete(selectedRecruiter._id, selectedRecruiter.user?.name || 'this recruiter')}
-                className={`w-full flex items-center justify-center gap-1 px-4 py-2.5 rounded-xl transition font-medium ${selectedRecruiter.isFallbackUser
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-red-600 text-white hover:bg-red-700'
-                  }`}
-              >
-                <HiTrash className="w-5 h-5" /> Delete Recruiter
-              </button>
-              {selectedRecruiter.isFallbackUser && (
-                <p className="text-xs text-gray-500">
-                  Fallback data view: approve/delete actions require recruiter profile route.
-                </p>
+            </div>
+
+            {/* Table Data */}
+            <div className="overflow-x-auto custom-scrollbar flex-1 relative min-h-[400px]">
+              {loading ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10">
+                  <LoadingSpinner />
+                </div>
+              ) : (
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-white">
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400 w-10">
+                        <input type="checkbox" className="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500" />
+                      </th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Recruiter</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Company</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Email / Mobile</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Source</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Status</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {recruiters.map((recruiter) => {
+                      const user = recruiter.user || {};
+                      const isApproved = recruiter.isApproved;
+                      let status = isApproved ? 'Verified' : 'Pending';
+                      if (user.approvalStatus === 'rejected') status = 'Rejected';
+                      if (user.approvalStatus === 'blocked' || user.approvalStatus === 'suspended') status = 'Suspended';
+
+                      const badgeClass = statusColors[status] || statusColors.Pending;
+                      const source = user.provider || 'Organic';
+
+                      return (
+                        <tr key={recruiter._id} className="hover:bg-gray-50/50 transition-colors group">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <input type="checkbox" className="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500 opacity-50 group-hover:opacity-100 transition-opacity" />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600 font-bold text-xs overflow-hidden shrink-0">
+                                {recruiter.photo ? <img src={recruiter.photo} alt="" className="w-full h-full object-cover"/> : getInitials(user.name)}
+                              </div>
+                              <div className="text-sm font-bold text-gray-900">{user.name || 'Unknown'}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-xs font-bold text-gray-700">{recruiter.companyName || 'Not specified'}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-xs font-medium text-gray-600 truncate max-w-[150px]" title={user.email}>{user.email}</div>
+                            <div className="text-[10px] font-medium text-gray-400">{user.phone || 'No phone'}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="text-xs font-bold text-blue-600 capitalize bg-blue-50 px-2 py-0.5 rounded">{source}</span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${badgeClass}`}>
+                              {status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button 
+                                onClick={() => setSelectedRecruiter(recruiter)}
+                                className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-emerald-600 hover:border-emerald-200 transition-colors"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => handleDelete(recruiter._id, user.name)}
+                                className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {recruiters.length === 0 && !loading && (
+                      <tr>
+                        <td colSpan="7" className="px-6 py-12 text-center text-gray-500 text-sm font-medium">
+                          No recruiters found matching criteria.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               )}
             </div>
+
+            {/* Pagination Footer */}
+            <div className="p-4 border-t border-gray-100 bg-white flex items-center justify-between">
+              <div className="text-xs font-medium text-gray-500">
+                Showing <span className="font-bold text-gray-900">{recruiters.length > 0 ? 1 : 0}</span> to <span className="font-bold text-gray-900">{recruiters.length}</span> of {totals.total.toLocaleString()} recruiters
+              </div>
+              <div className="flex items-center gap-2">
+                <button className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 text-xs font-bold">1</button>
+                <button className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
           </div>
-        )}
+
+          {/* Right Sidebar */}
+          <div className="w-full xl:w-[320px] shrink-0 flex flex-col gap-6">
+            
+            {/* Filters */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-black text-gray-900">Filters</h3>
+                <button className="text-[11px] font-bold text-emerald-600 hover:underline">Clear All</button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1.5">Status</label>
+                  <select 
+                    value={statusFilter} 
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500"
+                  >
+                    <option value="">All Status</option>
+                    <option value="approved">Verified</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1.5">Source</label>
+                  <select className="w-full text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500">
+                    <option>All Sources</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1.5">Country</label>
+                  <select className="w-full text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500">
+                    <option>All Countries</option>
+                  </select>
+                </div>
+                <button className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all mt-2">
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+
+            {/* Verification Summary Donut */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-black text-gray-900">Account Distribution</h3>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-32 h-32 shrink-0 relative">
+                  {summaryData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={summaryData}
+                          innerRadius={35}
+                          outerRadius={55}
+                          paddingAngle={2}
+                          dataKey="value"
+                        >
+                          {summaryData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="w-full h-full bg-gray-50 rounded-full flex items-center justify-center border-4 border-gray-100">
+                      <span className="text-xs font-bold text-gray-400">N/A</span>
+                    </div>
+                  )}
+                  {summaryData.length > 0 && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">Total</span>
+                      <span className="text-sm font-black text-gray-900">{totals.total}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 space-y-2">
+                  {summaryData.map((d, i) => (
+                    <div key={i} className="flex items-center justify-between text-xs font-bold">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }}></div>
+                        <span className="text-gray-600">{d.name}</span>
+                      </div>
+                      <span className="text-gray-900">{d.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
     </div>
   );
-};
-
-export default AdminRecruiters;
+}

@@ -141,7 +141,7 @@ const AdminPayments = () => {
       )}
 
       {/* Razorpay Configuration Card */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <HiShieldCheck className="w-5 h-5 text-green-500" />
@@ -254,7 +254,7 @@ const AdminPayments = () => {
       </div>
 
       {/* Payment Transactions */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
           <div>
             <h2 className="text-lg font-bold text-gray-900">Payment Transactions</h2>
@@ -310,7 +310,7 @@ const AdminPayments = () => {
                           p.status === 'completed' ? 'bg-green-100 text-green-700' :
                           p.status === 'failed' ? 'bg-red-100 text-red-700' :
                           p.status === 'created' ? 'bg-yellow-100 text-yellow-700' :
-                          p.status === 'refunded' ? 'bg-blue-100 text-blue-700' :
+                          p.status === 'refunded' ? 'bg-indigo-100 text-indigo-700' :
                           'bg-gray-100 text-gray-600'
                         }`}>
                           {p.status === 'completed' && <HiCheckCircle className="w-3 h-3" />}

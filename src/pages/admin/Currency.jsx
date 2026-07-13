@@ -43,7 +43,7 @@ const AdminCurrency = () => {
         <h1 className="text-2xl font-bold text-gray-900">Currency & Localization</h1>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <h2 className="text-lg font-bold text-gray-900 mb-4">Currency Settings</h2>
 
         <div className="grid sm:grid-cols-2 gap-4 mb-6">

@@ -58,7 +58,7 @@ const PartnerReferrals = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50/50 min-h-screen">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50/50 min-h-screen">
       <div className="mb-8">
         <Link 
           to="/admin/partners" 
@@ -91,7 +91,7 @@ const PartnerReferrals = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <form onSubmit={handleSearch} className="relative max-w-md flex-1">
             <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -155,7 +155,7 @@ const PartnerReferrals = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           {member.role === 'provider' ? (
-                            <HiBriefcase className="w-4 h-4 text-blue-500" />
+                            <HiBriefcase className="w-4 h-4 text-indigo-500" />
                           ) : (
                             <HiUser className="w-4 h-4 text-purple-500" />
                           )}

@@ -64,7 +64,7 @@ const AdminCommissions = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       <div className="mb-8">
         <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
           <span className="p-1.5 rounded-lg bg-green-50 text-green-600">
@@ -179,7 +179,7 @@ const AdminCommissions = () => {
                   <tr key={r._id} className="hover:bg-slate-50">
                     <td className="py-4 px-6">
                       <p className="font-bold text-gray-900">{r.referrerId?.name || 'Unknown'}</p>
-                      <span className="text-[10px] uppercase font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{r.referrerType}</span>
+                      <span className="text-[10px] uppercase font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{r.referrerType}</span>
                     </td>
                     <td className="py-4 px-6">
                       <p className="font-bold text-gray-900">{r.referredUserId?.name || 'Unknown'}</p>

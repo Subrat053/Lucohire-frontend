@@ -4,7 +4,7 @@ const RewardPoolCard = ({ pool = { total: 100000, distributed: 0, remaining: 100
   const percentage = Math.round((pool.distributed / pool.total) * 100) || 0;
 
   return (
-    <div className="bg-gradient-to-br from-[#F8F7FB] to-white rounded-3xl border border-[#EAE7F2] p-6 shadow-sm relative overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm relative overflow-hidden h-full">
       
       <div className="relative z-10">
         <div className="flex items-center gap-3 mb-4">

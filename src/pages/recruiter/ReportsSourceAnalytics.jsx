@@ -6,34 +6,28 @@ const SCard = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
 );
 
-const sources = [
-  { color: '#6366f1', bg: 'bg-indigo-500',  label: 'LinkedIn',             total: 912, hires: 9,  cost: '₹8,200', quality: 92, pct: 32 },
-  { color: '#a855f7', bg: 'bg-purple-500',  label: 'Lucohire Career Page', total: 683, hires: 8,  cost: '₹2,100', quality: 88, pct: 24 },
-  { color: '#10b981', bg: 'bg-emerald-500', label: 'Employee Referral',    total: 540, hires: 7,  cost: '₹3,500', quality: 95, pct: 19 },
-  { color: '#f59e0b', bg: 'bg-orange-500',  label: 'Naukri',               total: 356, hires: 3,  cost: '₹12,400',quality: 72, pct: 13 },
-  { color: '#3b82f6', bg: 'bg-blue-500',    label: 'Indeed',               total: 198, hires: 1,  cost: '₹14,200',quality: 68, pct: 7  },
-  { color: '#94a3b8', bg: 'bg-slate-400',   label: 'Others',               total: 153, hires: 0,  cost: '—',      quality: 61, pct: 5  },
-];
-
-const monthlyTrend = [
-  { month: 'Jan', linkedin: 720, lucohire: 580, referral: 440 },
-  { month: 'Feb', linkedin: 790, lucohire: 610, referral: 420 },
-  { month: 'Mar', linkedin: 850, lucohire: 650, referral: 510 },
-  { month: 'Apr', linkedin: 880, lucohire: 670, referral: 520 },
-  { month: 'May', linkedin: 912, lucohire: 683, referral: 540 },
-];
-
 export default function SourceAnalyticsPage() {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    import('../../services/api').then(({ recruiterAPI }) => {
+      recruiterAPI.getSourceAnalytics()
+        .then(res => setData(res.data.data))
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    });
+  }, []);
+
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading source data...</div>;
+
+  const { sources, monthlyTrend, kpis } = data;
+
   return (
     <div className="space-y-6">
       {/* KPI Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Applications', value: '2,842', trend: '+18%', up: true },
-          { label: 'Top Source',         value: 'LinkedIn', trend: '32% share', up: true },
-          { label: 'Best Quality Source',value: 'Referral', trend: '95% quality score', up: true },
-          { label: 'Lowest Cost/Hire',   value: '₹2,100',  trend: 'Lucohire Career', up: true },
-        ].map((k, i) => (
+        {kpis.map((k, i) => (
           <SCard key={i} className="p-4">
             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">{k.label}</div>
             <div className="text-xl font-extrabold text-gray-900 mb-1">{k.value}</div>
@@ -53,7 +47,7 @@ export default function SourceAnalyticsPage() {
               style={{ background: 'conic-gradient(#6366f1 0% 32%,#a855f7 32% 56%,#10b981 56% 75%,#f59e0b 75% 88%,#3b82f6 88% 95%,#94a3b8 95% 100%)' }}>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-32 h-32 bg-white rounded-full flex flex-col items-center justify-center">
-                  <div className="text-2xl font-extrabold text-gray-900">2,842</div>
+                  <div className="text-2xl font-extrabold text-gray-900">{kpis[0].value}</div>
                   <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-center">Total Applications</div>
                 </div>
               </div>

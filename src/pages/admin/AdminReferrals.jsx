@@ -59,13 +59,13 @@ const AdminReferrals = () => {
   const hasActiveFilters = roleFilter || rewardFilter;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50/50 min-h-screen">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50/50 min-h-screen">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">All Referrals</h1>
         <p className="text-sm text-gray-500 mt-1">Track all referred users across the platform</p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="relative max-w-md flex-1">
             <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -163,7 +163,7 @@ const AdminReferrals = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 rounded-md text-xs font-semibold ${
-                          ref.referredRole === 'provider' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'
+                          ref.referredRole === 'provider' ? 'bg-indigo-50 text-indigo-700' : 'bg-orange-50 text-orange-700'
                         }`}>
                           {ref.referredRole || 'Unknown'}
                         </span>

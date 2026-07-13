@@ -6,34 +6,28 @@ const SCard = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
 );
 
-const jobs = [
-  { type: 'Featured', dot: 'bg-indigo-600', label: 'Senior React Developer',   dept: 'Engineering',   jobs: 3, apps: 420, hires: 4, ratio: 1.33, daysOpen: 18, status: 'Active'   },
-  { type: 'Featured', dot: 'bg-indigo-600', label: 'Product Manager',           dept: 'Product',       jobs: 2, apps: 380, hires: 4, ratio: 2.00, daysOpen: 22, status: 'Active'   },
-  { type: 'Urgent',   dot: 'bg-orange-500', label: 'DevOps Engineer',           dept: 'Engineering',   jobs: 3, apps: 310, hires: 4, ratio: 1.33, daysOpen: 12, status: 'Active'   },
-  { type: 'Urgent',   dot: 'bg-orange-500', label: 'UX Designer',               dept: 'Design',        jobs: 2, apps: 280, hires: 4, ratio: 2.00, daysOpen: 14, status: 'Active'   },
-  { type: 'Normal',   dot: 'bg-blue-500',   label: 'Backend Developer (Node)',   dept: 'Engineering',   jobs: 5, apps: 240, hires: 2, ratio: 0.40, daysOpen: 30, status: 'Active'   },
-  { type: 'Normal',   dot: 'bg-blue-500',   label: 'Sales Executive',            dept: 'Sales',         jobs: 6, apps: 210, hires: 1, ratio: 0.17, daysOpen: 35, status: 'Active'   },
-  { type: 'Normal',   dot: 'bg-blue-500',   label: 'Content Marketing Specialist',dept: 'Marketing',   jobs: 4, apps: 180, hires: 1, ratio: 0.25, daysOpen: 28, status: 'Paused'   },
-  { type: 'Normal',   dot: 'bg-blue-500',   label: 'Data Analyst',               dept: 'Analytics',    jobs: 4, apps: 100, hires: 0, ratio: 0.00, daysOpen: 45, status: 'Closed'   },
-];
-
-const jobTypeStats = [
-  { dot: 'bg-indigo-600', type: 'Featured Jobs', count: 12, apps: '1,248', hires: 14, ratio: '1.17', avg_cost: '₹9,200'  },
-  { dot: 'bg-orange-500', type: 'Urgent Jobs',   count: 8,  apps: '864',   hires: 10, ratio: '1.25', avg_cost: '₹11,800' },
-  { dot: 'bg-blue-500',   type: 'Normal Jobs',   count: 28, apps: '730',   hires: 4,  ratio: '0.14', avg_cost: '₹14,200' },
-];
-
 export default function JobPerformancePage() {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    import('../../services/api').then(({ recruiterAPI }) => {
+      recruiterAPI.getJobPerformance()
+        .then(res => setData(res.data.data))
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    });
+  }, []);
+
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading performance data...</div>;
+
+  const { jobs, jobTypeStats, kpis } = data;
+
   return (
     <div className="space-y-6">
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Jobs Posted',  value: '48',   sub: '+14% vs last month' },
-          { label: 'Total Applications', value: '2,842',sub: '+18% vs last month' },
-          { label: 'Total Hires',        value: '28',   sub: '+27% vs last month' },
-          { label: 'Avg. Time to Fill',  value: '26 d', sub: '-5 days vs last month' },
-        ].map((k, i) => (
+        {kpis.map((k, i) => (
           <SCard key={i} className="p-4">
             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">{k.label}</div>
             <div className="text-2xl font-extrabold text-gray-900 mb-1">{k.value}</div>
@@ -120,8 +114,8 @@ export default function JobPerformancePage() {
                   <td className="py-3.5 text-center text-xs font-semibold text-gray-700">{j.apps}</td>
                   <td className="py-3.5 text-center text-xs font-bold text-gray-900">{j.hires}</td>
                   <td className="py-3.5 text-center">
-                    <span className={`text-xs font-bold ${j.ratio >= 1 ? 'text-emerald-600' : j.ratio > 0 ? 'text-orange-500' : 'text-gray-400'}`}>
-                      {j.ratio.toFixed(2)}
+                    <span className={`text-xs font-bold ${Number(j.ratio) >= 1 ? 'text-emerald-600' : Number(j.ratio) > 0 ? 'text-orange-500' : 'text-gray-400'}`}>
+                      {Number(j.ratio).toFixed(2)}
                     </span>
                   </td>
                   <td className="py-3.5 text-center text-xs font-semibold text-gray-700">{j.daysOpen}d</td>

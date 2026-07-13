@@ -66,7 +66,7 @@ const UserDetailModal = ({ userId, onClose }) => {
                 <h3 className="text-xl font-bold text-gray-900">{detail.user?.name}</h3>
                 <p className="text-sm text-gray-500">{detail.user?.email} {detail.user?.phone && `· ${detail.user.phone}`}</p>
                 <div className="flex gap-2 mt-1">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${userRole === 'provider' ? 'bg-green-100 text-green-700' : userRole === 'recruiter' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{userRole}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${userRole === 'provider' ? 'bg-green-100 text-green-700' : userRole === 'recruiter' ? 'bg-indigo-100 text-indigo-700' : 'bg-purple-100 text-purple-700'}`}>{userRole}</span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${detail.user?.isBlocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{detail.user?.isBlocked ? 'Blocked' : 'Active'}</span>
                 </div>
               </div>
@@ -272,7 +272,7 @@ const UserDetailModal = ({ userId, onClose }) => {
                 <div className="space-y-2">
                   {detail.history.slice(0, 10).map((h, i) => (
                     <div key={i} className="flex items-center gap-3 text-sm p-2 bg-gray-50 rounded-lg">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${h.type === 'contact_unlock' ? 'bg-green-100 text-green-700' : h.type === 'profile_view' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${h.type === 'contact_unlock' ? 'bg-green-100 text-green-700' : h.type === 'profile_view' ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700'}`}>
                         {h.type?.replace('_', ' ')}
                       </span>
                       <span className="text-gray-500">{new Date(h.createdAt).toLocaleString()}</span>
@@ -447,25 +447,15 @@ const AdminUsers = () => {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
 
-        {/* Temporary Testing UI */}
-        <div className="flex items-center gap-3 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
-          <a href="/seed_providers.csv" download className="text-xs font-bold text-indigo-600 flex items-center hover:underline">
-            <HiDownload className="w-4 h-4 mr-1" /> Download Template
-          </a>
-          <label className="cursor-pointer bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center hover:bg-indigo-700 transition">
-            <HiUpload className="w-4 h-4 mr-1" />
-            Upload Providers CSV
-            <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
-          </label>
-        </div>
+
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-6 flex flex-col sm:flex-row gap-4">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-col sm:flex-row gap-4">
         <form onSubmit={handleSearch} className="flex-1 flex gap-2">
           <div className="relative flex-1">
             <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -474,17 +464,17 @@ const AdminUsers = () => {
               placeholder="Search by name or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
-          <button type="submit" className="px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium">
+          <button type="submit" className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium">
             Search
           </button>
         </form>
         <select
           value={roleFilter}
           onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-          className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500"
         >
           <option value="">All Roles</option>
           <option value="provider">Providers</option>
@@ -494,7 +484,7 @@ const AdminUsers = () => {
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500"
         >
           <option value="">All Status</option>
           <option value="pending">Pending</option>
@@ -504,7 +494,7 @@ const AdminUsers = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-16 flex justify-center">
             <LoadingSpinner />
@@ -553,7 +543,7 @@ const AdminUsers = () => {
                         <td className="py-3 px-4 text-gray-500">{user.email || user.phone || '-'}</td>
                         <td className="py-3 px-4">
                           <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${userRole === 'provider' ? 'bg-green-100 text-green-700' :
-                            userRole === 'recruiter' ? 'bg-blue-100 text-blue-700' :
+                            userRole === 'recruiter' ? 'bg-indigo-100 text-indigo-700' :
                               'bg-purple-100 text-purple-700'
                             }`}>{userRole}</span>
                         </td>
@@ -566,7 +556,7 @@ const AdminUsers = () => {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => setSelectedUserId(user._id)}
-                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition"
                             >
                               <HiEye className="w-4 h-4" /> View
                             </button>
