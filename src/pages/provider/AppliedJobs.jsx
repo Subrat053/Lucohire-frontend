@@ -14,9 +14,10 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const TABS = [
   { id: 'all', label: 'All Applications' },
-  { id: 'review', label: 'In Review' },
-  { id: 'interview', label: 'Interview' },
-  { id: 'offered', label: 'Offered' },
+  { id: 'review', label: 'Reviewed' },
+  { id: 'contacted', label: 'Contacted' },
+  { id: 'shortlisted', label: 'Shortlisted' },
+  { id: 'hired', label: 'Hired' },
   { id: 'rejected', label: 'Rejected' }
 ];
 
@@ -24,8 +25,9 @@ const mapStatusToTab = (status) => {
   const s = (status || '').toLowerCase();
   if (['pending', 'applied'].includes(s)) return 'all'; 
   if (['reviewed', 'screening'].includes(s)) return 'review';
-  if (['contacted', 'shortlisted', 'interview'].includes(s)) return 'interview';
-  if (['hired', 'offered'].includes(s)) return 'offered';
+  if (['contacted', 'interview'].includes(s)) return 'contacted';
+  if (['shortlisted'].includes(s)) return 'shortlisted';
+  if (['hired', 'offered'].includes(s)) return 'hired';
   if (['rejected'].includes(s)) return 'rejected';
   return 'all';
 };
@@ -33,13 +35,14 @@ const mapStatusToTab = (status) => {
 const getStatusIndex = (status) => {
   const s = (status || '').toLowerCase();
   if (['rejected'].includes(s)) return -1;
-  if (['hired', 'offered'].includes(s)) return 4;
-  if (['contacted', 'shortlisted', 'interview'].includes(s)) return 3;
+  if (['hired', 'offered'].includes(s)) return 5;
+  if (['shortlisted'].includes(s)) return 4;
+  if (['contacted', 'interview'].includes(s)) return 3;
   if (['reviewed', 'screening'].includes(s)) return 2;
   return 1; // default to applied
 };
 
-const STEPS = ['Applied', 'Screening', 'Interview', 'Offered'];
+const STEPS = ['Applied', 'Reviewed', 'Contacted', 'Shortlisted', 'Hired'];
 
 export default function AppliedJobs() {
   const [activeTab, setActiveTab] = useState('all');
@@ -67,7 +70,7 @@ export default function AppliedJobs() {
   }, [apps, activeTab, search]);
 
   const counts = useMemo(() => {
-    const c = { all: apps.length, review: 0, interview: 0, offered: 0, rejected: 0 };
+    const c = { all: apps.length, review: 0, contacted: 0, shortlisted: 0, hired: 0, rejected: 0 };
     apps.forEach(app => {
       const tab = mapStatusToTab(app.status);
       if (tab !== 'all' && c[tab] !== undefined) c[tab]++;
@@ -198,29 +201,34 @@ export default function AppliedJobs() {
                             </span>
                             <p className="text-xs text-slate-600 font-medium">
                               {isRejected ? 'This application was not successful.' : 
-                               statusIndex === 4 ? 'Congratulations! You have an offer.' :
-                               statusIndex === 3 ? 'Great! You are invited for an interview.' :
+                               statusIndex === 5 ? 'Congratulations! You are hired.' :
+                               statusIndex === 4 ? 'Great! You have been shortlisted.' :
+                               statusIndex === 3 ? 'You have been contacted by the recruiter.' :
+                               statusIndex === 2 ? 'Your application has been reviewed.' :
                                'Your application is under review.'}
                             </p>
                           </div>
                           
                           {/* Stepper */}
-                          <div className="relative">
-                            <div className="absolute top-2 left-3 right-3 h-0.5 bg-slate-100 -z-10"></div>
-                            {/* Active Line */}
-                            {!isRejected && (
-                              <div className="absolute top-2 left-3 h-0.5 bg-emerald-500 -z-10 transition-all duration-500" 
-                                   style={{ width: `${((statusIndex - 1) / (STEPS.length - 1)) * 100}%` }}></div>
-                            )}
-                            <div className="flex justify-between items-center text-xs font-semibold">
+                          <div className="relative mt-2">
+                            <div className="flex w-full items-start text-[10px] sm:text-xs font-semibold">
                               {STEPS.map((step, idx) => {
                                 const stepNum = idx + 1;
                                 const isCompleted = !isRejected && statusIndex >= stepNum;
                                 const isCurrent = !isRejected && statusIndex === stepNum;
-                                const isFailed = isRejected && statusIndex === -1 && idx === 0; // Show X on first step or current step
+                                const isFailed = isRejected && statusIndex === -1 && idx === 0;
                                 
                                 return (
-                                  <div key={step} className="flex flex-col items-center gap-2">
+                                  <div key={step} className="flex-1 flex flex-col items-center gap-2 relative">
+                                    {/* Line connecting to previous step */}
+                                    {idx !== 0 && (
+                                      <div className={`absolute top-2 left-0 w-1/2 h-0.5 -z-10 ${statusIndex >= stepNum ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
+                                    )}
+                                    {/* Line connecting to next step */}
+                                    {idx !== STEPS.length - 1 && (
+                                      <div className={`absolute top-2 right-0 w-1/2 h-0.5 -z-10 ${statusIndex > stepNum ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
+                                    )}
+                                    
                                     <div className={`w-4 h-4 rounded-full flex items-center justify-center border-2 ${
                                       isFailed ? 'bg-white border-red-500' :
                                       isCompleted ? 'bg-emerald-500 border-emerald-500' : 
@@ -230,7 +238,7 @@ export default function AppliedJobs() {
                                       {isCompleted && <HiCheckCircle className="w-4 h-4 text-white shrink-0" />}
                                       {isFailed && <HiX className="w-3 h-3 text-red-500 shrink-0" />}
                                     </div>
-                                    <span className={`${isCurrent || isCompleted ? 'text-emerald-800' : isFailed ? 'text-red-600' : 'text-slate-400'}`}>
+                                    <span className={`text-center ${isCurrent || isCompleted ? 'text-emerald-800' : isFailed ? 'text-red-600' : 'text-slate-400'}`}>
                                       {step}
                                     </span>
                                   </div>
@@ -240,46 +248,31 @@ export default function AppliedJobs() {
                           </div>
                         </div>
 
-                        {/* AI Match Area */}
+                        {/* Job Snapshot Area */}
                         <div className="flex gap-6 mt-auto text-sm bg-slate-50 p-3 rounded-lg border border-slate-100">
                           {isRejected ? (
                             <div className="flex-1">
                               <span className="text-xs text-slate-500 font-medium block mb-1">Feedback</span>
                               <span className="font-semibold text-slate-800">Not a match for this role.</span>
                             </div>
-                          ) : statusIndex === 4 ? (
-                            <>
-                              <div className="flex-1">
-                                <span className="text-xs text-slate-500 font-medium block mb-1">AI Match Score</span>
-                                <span className="font-semibold text-slate-800 flex items-center gap-2">
-                                  {aiChance}% <span className="text-xs text-emerald-600">{aiLabel}</span>
-                                </span>
-                              </div>
-                              <div className="flex-1">
-                                <span className="text-xs text-slate-500 font-medium block mb-1">Offered Salary</span>
-                                <span className="font-semibold text-slate-800">₹{job.budgetMin?.toLocaleString() || '16'} - {job.budgetMax?.toLocaleString() || '20'} LPA</span>
-                              </div>
-                            </>
                           ) : (
                             <>
                               <div className="flex-1">
-                                <span className="text-xs text-slate-500 font-medium block mb-1">AI Interview Chance</span>
+                                <span className="text-xs text-slate-500 font-medium block mb-1">Offered Salary</span>
                                 <span className="font-semibold text-slate-800 flex items-center gap-2">
-                                  {aiChance}% <span className="text-xs text-emerald-600">{aiLabel}</span>
+                                  {job.budgetMin && job.budgetMax 
+                                    ? `₹${job.budgetMin.toLocaleString()} - ${job.budgetMax.toLocaleString()}` 
+                                    : 'Not Disclosed'}
+                                  {job.budgetType && <span className="text-[10px] text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded capitalize">{job.budgetType}</span>}
                                 </span>
                               </div>
                               <div className="flex-1">
                                 <span className="text-xs text-slate-500 font-medium block mb-1">
-                                  {statusIndex === 3 ? 'Next Step' : 'Expected Response'}
+                                  {statusIndex === 5 ? 'Status' : statusIndex >= 3 ? 'Next Step' : 'Expected Response'}
                                 </span>
                                 <span className="font-semibold text-slate-800 block text-xs">
-                                  {statusIndex === 3 ? 'Technical Interview' : '3-7 days'}
+                                  {statusIndex === 5 ? 'Hired' : statusIndex >= 3 ? 'Awaiting Recruiter' : '3-7 days'}
                                 </span>
-                                {statusIndex === 3 && (
-                                  <span className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
-                                    <HiOutlineCalendar className="w-3 h-3" /> Scheduled on {new Date(Date.now() + 86400000*3).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                  </span>
-                                )}
                               </div>
                             </>
                           )}
@@ -293,15 +286,15 @@ export default function AppliedJobs() {
                         </button>
                         
                         <div className="flex flex-col gap-3 w-full">
-                          <button className="w-full py-1.5 px-4 text-xs font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition shadow-sm text-center">
+                          <Link to={`/job/${job._id}`} target="_blank" className="w-full block py-1.5 px-4 text-xs font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition shadow-sm text-center">
                             View Job
-                          </button>
-                          <Link to="/provider/job-for-me" className="w-full text-right text-xs font-semibold text-emerald-600 hover:text-emerald-800 flex items-center justify-end gap-1">
-                            Application Details <HiOutlineExternalLink className="w-3.5 h-3.5" />
                           </Link>
-                          <button className="w-full py-2 px-3 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg hover:bg-emerald-100 transition shadow-sm flex items-center justify-center gap-1.5 mt-2">
-                            <FaWhatsapp className="w-4 h-4 text-emerald-500" /> WhatsApp Updates
-                          </button>
+                          {job.recruiter && (
+                            <button onClick={() => window.location.href = `mailto:${job.recruiter.email}`} className="w-full text-right text-xs font-semibold text-emerald-600 hover:text-emerald-800 flex items-center justify-end gap-1">
+                              Contact Recruiter <HiOutlineExternalLink className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
                         </div>
                       </div>
 
@@ -328,128 +321,6 @@ export default function AppliedJobs() {
 
         </div>
 
-        {/* Right Sidebar Widgets */}
-        <div className="w-full xl:w-80 shrink-0 space-y-6">
-          
-          {/* AI Application Overview */}
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-900">AI Application Overview</h3>
-              <div className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded flex items-center justify-center font-bold text-[10px]">
-                AI
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 shrink-0">
-                <CircularProgressbar 
-                  value={82} 
-                  text="82%"
-                  styles={buildStyles({
-                    textSize: '24px',
-                    pathColor: '#059669',
-                    textColor: '#059669',
-                    trailColor: '#ecfdf5',
-                  })}
-                />
-              </div>
-              <div>
-                <h4 className="font-bold text-emerald-700 text-sm">Excellent Progress</h4>
-                <p className="text-xs text-slate-500 leading-tight mt-0.5">You're doing great! Keep applying to increase your chances.</p>
-              </div>
-            </div>
-
-            <ul className="space-y-3 text-xs font-semibold text-slate-600 mb-6">
-              <li className="flex justify-between items-center">
-                <span className="flex items-center gap-2"><HiCheckCircle className="text-emerald-500" /> Applications in review</span>
-                <span className="text-emerald-600 font-bold">{counts.review}</span>
-              </li>
-              <li className="flex justify-between items-center">
-                <span className="flex items-center gap-2"><HiCheckCircle className="text-emerald-500" /> Interviews scheduled</span>
-                <span className="text-emerald-600 font-bold">{counts.interview}</span>
-              </li>
-              <li className="flex justify-between items-center">
-                <span className="flex items-center gap-2"><HiCheckCircle className="text-emerald-500" /> Offers received</span>
-                <span className="text-emerald-600 font-bold">{counts.offered}</span>
-              </li>
-              <li className="flex justify-between items-center">
-                <span className="flex items-center gap-2"><HiCheckCircle className="text-emerald-500" /> Rejections</span>
-                <span className="text-emerald-600 font-bold">{counts.rejected}</span>
-              </li>
-            </ul>
-
-            <button className="w-full py-2 text-xs font-bold text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition text-center">
-              View Full Analysis &rarr;
-            </button>
-          </div>
-
-          {/* WhatsApp Alert Box */}
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-                <FaWhatsapp className="text-emerald-600 w-3.5 h-3.5" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-sm">Stay Updated on WhatsApp</h3>
-            </div>
-            <p className="text-xs text-slate-500 mb-4">Get real-time updates about your applications, interviews & job alerts.</p>
-            <ul className="space-y-2 mb-5 text-[11px] text-slate-600 font-medium">
-              <li className="flex items-center gap-2"><HiCheckCircle className="text-emerald-500 w-3 h-3" /> Application status updates</li>
-              <li className="flex items-center gap-2"><HiCheckCircle className="text-emerald-500 w-3 h-3" /> Interview reminders</li>
-              <li className="flex items-center gap-2"><HiCheckCircle className="text-emerald-500 w-3 h-3" /> New job matches</li>
-            </ul>
-            <button className="w-full py-2 text-xs font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition shadow-sm flex justify-center items-center gap-2">
-              Enable WhatsApp Updates <FaWhatsapp className="w-4 h-4 text-emerald-500" />
-            </button>
-          </div>
-
-          {/* Earn Extra Income Box */}
-          <div className="bg-[#0f3d35] rounded-xl text-white p-5 shadow-sm relative overflow-hidden">
-            <div className="flex items-center gap-2 mb-2">
-              <HiOutlineSparkles className="text-amber-400 w-5 h-5" />
-              <h3 className="font-bold text-base">Earn Extra Income</h3>
-              <span className="bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-sm">New</span>
-            </div>
-            <p className="text-xs text-emerald-100 mb-4 font-medium">Get nearby freelance projects</p>
-            <ul className="space-y-1.5 mb-5 text-xs text-emerald-50 font-medium">
-              <li className="flex items-center gap-2"><HiCheckCircle className="text-emerald-300 w-3 h-3" /> Weekend Projects</li>
-              <li className="flex items-center gap-2"><HiCheckCircle className="text-emerald-300 w-3 h-3" /> Part-Time Work</li>
-              <li className="flex items-center gap-2"><HiCheckCircle className="text-emerald-300 w-3 h-3" /> Instant Payments</li>
-            </ul>
-            <div className="bg-white rounded-lg p-3 text-slate-800 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition z-10 relative">
-              <div>
-                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Just ₹1/day</div>
-                <div className="text-sm font-bold text-slate-900">Enable Freelance Alerts</div>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                <FaWhatsapp className="text-emerald-600 w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-center text-[10px] text-emerald-200 mt-2 relative z-10">
-              Cancel anytime
-            </div>
-            {/* Background design */}
-            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-emerald-600 rounded-full opacity-20 blur-xl pointer-events-none"></div>
-          </div>
-
-          {/* Need Help Box */}
-          <div className="bg-slate-50 rounded-xl border border-slate-200 p-5 flex items-center justify-between">
-            <div className="pr-4">
-              <h3 className="font-bold text-slate-900 text-sm mb-1">Need Help?</h3>
-              <p className="text-[10px] text-slate-500 mb-1">Chat with us on WhatsApp</p>
-              <p className="text-[10px] text-slate-500 mb-3">We're here to help you 9 AM - 9 PM</p>
-              <button className="py-1.5 px-3 text-[11px] font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition shadow-sm flex items-center gap-1.5">
-                Chat Now on WhatsApp <FaWhatsapp className="w-3.5 h-3.5 text-emerald-500" />
-              </button>
-            </div>
-            <div className="shrink-0 w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center overflow-hidden">
-               {/* Illustration placeholder */}
-               <div className="w-full h-full bg-slate-300 flex items-center justify-center">
-                 <HiOutlineChat className="w-8 h-8 text-slate-500" />
-               </div>
-            </div>
-          </div>
-
-        </div>
       </div>
     </div>
   );

@@ -26,6 +26,7 @@ import ClientResumeGenerator from "../../components/provider/ClientResumeGenerat
 import SkillGapReportModal from "../../components/provider/SkillGapReportModal";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from "../../config/firebase";
+import ResumeGenerator from "./ResumeGenerator";
 import {
   User as UserIcon,
   Phone as PhoneIcon,
@@ -59,6 +60,7 @@ import {
   ChevronDown,
   Check,
   Briefcase,
+  Book,
   Zap,
   Star,
   Mail,
@@ -482,6 +484,7 @@ const ProviderProfile = () => {
     noticePeriod: "",
     previousExperience: [],
     education: [],
+    projects: [],
     contactVisibility: "both",
     resumeUrl: "",
     pricingReason: "",
@@ -490,6 +493,32 @@ const ProviderProfile = () => {
 
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [parsedResumeData, setParsedResumeData] = useState(null);
+
+  const confirmParsedData = () => {
+    if (!parsedResumeData) return;
+    const pd = parsedResumeData;
+    setForm(prev => ({
+      ...prev,
+      resumeUrl: pd.resumeUrl || prev.resumeUrl,
+      profileName: pd.fullName || prev.profileName,
+      name: pd.fullName || prev.name,
+      description: pd.bio || prev.description,
+      skills: pd.skills?.length > 0 ? pd.skills : prev.skills,
+      experience: pd.experienceYears || prev.experience,
+      city: pd.city || prev.city,
+      pricing: pd.pricing || prev.pricing,
+      pricingType: pd.pricingType || prev.pricingType,
+      pricingReason: pd.pricingReason || prev.pricingReason,
+      languages: pd.languages?.length > 0 ? pd.languages : prev.languages,
+      education: pd.education?.length > 0 ? pd.education : prev.education,
+      previousExperience: pd.previousWork?.length > 0 ? pd.previousWork : prev.previousExperience,
+      projects: pd.projects?.length > 0 ? pd.projects : prev.projects
+    }));
+    setParsedResumeData(null);
+    setActiveTab("Personal");
+    toast.success("Details auto-filled! Please review and click 'Save Profile'.");
+  };
   const [firebaseToken, setFirebaseToken] = useState("");
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [verifyingPhone, setVerifyingPhone] = useState("");
@@ -1690,7 +1719,7 @@ const ProviderProfile = () => {
                 onClick={handleShareProfile}
                 className="py-2.5 px-6 bg-white text-emerald-700 border border-emerald-600 rounded-lg text-sm font-bold hover:bg-emerald-50 transition flex items-center justify-center gap-2"
               >
-                <Eye className="w-4 h-4" /> Preview Profile
+                <Eye className="w-4 h-4" /> Share Profile
               </button>
               <button
                 type="submit"
@@ -1706,7 +1735,7 @@ const ProviderProfile = () => {
           {/* Tab Navigation */}
           <div className="border-b border-slate-200 mb-8 overflow-x-auto hide-scrollbar">
             <div className="flex gap-10 min-w-max">
-              {["Personal", "Details", "Education", "Resume", "Preferences", "Privacy"].map((tab) => (
+              {["Personal", "Details", "Education", "Portfolio", "Resume", "Generate Resume", "Preferences", "Privacy"].map((tab) => (
                 <button
                   key={tab}
                   type="button"
@@ -1727,8 +1756,8 @@ const ProviderProfile = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Main Content (Left, span 8) */}
-            <div className="lg:col-span-8 space-y-6">
+            {/* Main Content */}
+            <div className={`space-y-6 ${activeTab === "Generate Resume" ? "lg:col-span-12" : "lg:col-span-8"}`}>
               {activeTab === "Personal" && (
                 <>
                   {/* Basic Information Card */}
@@ -1878,6 +1907,21 @@ const ProviderProfile = () => {
                             />
                           </div>
                         </div>
+                        {profileData?.whatsappFreelancePlanActive && (
+                          <div>
+                            <label className="block text-[13px] font-bold text-slate-700 mb-1.5">Hourly Rate (₹)</label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-[11px] font-bold text-slate-400 text-[13px]">₹</span>
+                              <input
+                                type="text"
+                                value={form.pricing || ""}
+                                onChange={(e) => setForm({ ...form, pricing: e.target.value, pricingType: 'hourly' })}
+                                placeholder="500"
+                                className="w-full pl-7 pr-4 py-2.5 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-700 placeholder:text-slate-400"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2186,6 +2230,41 @@ const ProviderProfile = () => {
                      </div>
                   </div>
 
+                  {/* Projects Section (Moved to Details) */}
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
+                     <div className="flex items-center gap-2 mb-4">
+                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">Projects</h3>
+                     </div>
+                     <p className="text-[13px] text-slate-500 mb-4">Add your notable technical or design projects and choose if they are visible for all.</p>
+                     
+                     <div className="space-y-4">
+                       {form.projects?.map((proj, i) => (
+                         <div key={i} className="border border-slate-200 rounded-xl p-4 relative bg-slate-50">
+                           <button type="button" onClick={() => setForm({ ...form, projects: form.projects.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
+                           <div className="grid grid-cols-2 gap-4">
+                             <div className="col-span-2">
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Project Name</label>
+                               <input type="text" value={proj.name || ''} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].name = e.target.value; setForm({ ...form, projects: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. E-Commerce Dashboard" />
+                             </div>
+                             <div className="col-span-2">
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Live Link (Optional)</label>
+                               <input type="text" value={proj.link || ''} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].link = e.target.value; setForm({ ...form, projects: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. https://github.com/... or https://..." />
+                             </div>
+                             <div className="col-span-2">
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Description</label>
+                               <textarea value={proj.description || ''} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].description = e.target.value; setForm({ ...form, projects: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 resize-none h-20" placeholder="Briefly describe what you built, technologies used, and your role." />
+                             </div>
+                             <div className="col-span-2 flex items-center gap-2">
+                               <input type="checkbox" id={`visibleForAll-${i}`} checked={proj.visibleForAll !== false} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].visibleForAll = e.target.checked; setForm({ ...form, projects: nx }); }} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500" />
+                               <label htmlFor={`visibleForAll-${i}`} className="text-[13px] font-medium text-slate-700">Make this project visible for all recruiters and viewers</label>
+                             </div>
+                           </div>
+                         </div>
+                       ))}
+                       <button type="button" onClick={() => setForm({ ...form, projects: [...(form.projects || []), { name: '', link: '', description: '', visibleForAll: true }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">+ Add Project</button>
+                     </div>
+                  </div>
+
                 </div>
               )}
 
@@ -2228,6 +2307,49 @@ const ProviderProfile = () => {
                 </div>
               )}
 
+              {activeTab === "Portfolio" && (
+                <div className="space-y-6">
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
+                     <div className="flex items-center gap-2 mb-4">
+                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">Portfolio Links</h3>
+                     </div>
+                     <p className="text-[13px] text-slate-500 mb-4">Add your portfolio links (e.g. GitHub, Behance, Dribbble). They will be reviewed by our team.</p>
+                     
+                     <div className="space-y-4">
+                       {form.portfolioLinks?.map((link, i) => (
+                         <div key={i} className="border border-slate-200 rounded-xl p-4 relative">
+                           <button type="button" onClick={() => setForm({ ...form, portfolioLinks: form.portfolioLinks.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
+                           
+                           {link.status && link.status !== 'pending' && (
+                             <div className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 inline-block rounded mb-3 ${link.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                               {link.status === 'approved' ? 'Approved' : 'Rejected'}
+                               {link.status === 'rejected' && link.rejectionReason && ` - ${link.rejectionReason}`}
+                             </div>
+                           )}
+                           {(!link.status || link.status === 'pending') && (
+                             <div className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 inline-block rounded mb-3 bg-amber-100 text-amber-700">Pending Approval</div>
+                           )}
+
+                           <div className="grid grid-cols-2 gap-4">
+                             <div className="col-span-2 md:col-span-1">
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Platform</label>
+                               <input type="text" value={link.platform || ''} onChange={(e) => { const nx = [...(form.portfolioLinks || [])]; nx[i].platform = e.target.value; setForm({ ...form, portfolioLinks: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. GitHub, Behance" />
+                             </div>
+                             <div className="col-span-2 md:col-span-1">
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">URL</label>
+                               <input type="text" value={link.url || ''} onChange={(e) => { const nx = [...(form.portfolioLinks || [])]; nx[i].url = e.target.value; setForm({ ...form, portfolioLinks: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="https://..." />
+                             </div>
+                           </div>
+                         </div>
+                       ))}
+                       <button type="button" onClick={() => setForm({ ...form, portfolioLinks: [...(form.portfolioLinks || []), { platform: '', url: '', status: 'pending' }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">+ Add Portfolio Link</button>
+                     </div>
+                  </div>
+                </div>
+              )}
+
+
+
               {activeTab === "Resume" && (
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                   <div className="flex items-center gap-2 mb-4">
@@ -2257,9 +2379,9 @@ const ProviderProfile = () => {
                             localStorage.setItem('lastResumeHash', data.fileHash);
                           }
                           
-                          setForm({ ...form, resumeUrl: data.data?.resumeUrl });
-                          toast.success("Resume parsed successfully! AI features are now updated.", { id: toastId });
-                          if (typeof fetchProfile === 'function') fetchProfile();
+                          const pd = data.data || {};
+                          setParsedResumeData(pd);
+                          toast.success("Resume parsed successfully! Please review the details.", { id: toastId, duration: 3000 });
                         } catch (err) {
                           toast.error(err?.response?.data?.message || "Resume parsing failed", { id: toastId });
                         }
@@ -2289,6 +2411,10 @@ const ProviderProfile = () => {
                     </div>
                   )}
                 </div>
+              )}
+
+              {activeTab === "Generate Resume" && (
+                <ResumeGenerator profileData={form} />
               )}
 
               {activeTab === "Preferences" && (
@@ -2392,7 +2518,7 @@ const ProviderProfile = () => {
                 </div>
               )}
 
-              {activeTab !== "Personal" && activeTab !== "Details" && activeTab !== "Education" && activeTab !== "Resume" && activeTab !== "Preferences" && (
+              {activeTab !== "Personal" && activeTab !== "Details" && activeTab !== "Education" && activeTab !== "Projects" && activeTab !== "Resume" && activeTab !== "Preferences" && activeTab !== "Generate Resume" && (
                 <div className="bg-white rounded-2xl p-10 shadow-sm border border-slate-100 min-h-[500px] flex items-center justify-center">
                   <div className="text-center flex flex-col items-center">
                     <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
@@ -2406,96 +2532,100 @@ const ProviderProfile = () => {
             </div>
 
             {/* Right Sidebar (span 4) */}
-            <div className="lg:col-span-4 space-y-6">
-              
-              {/* Profile Strength */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                <h3 className="font-extrabold text-slate-800 text-base tracking-tight mb-5">Profile Strength</h3>
+            {activeTab !== "Generate Resume" && (
+              <div className="lg:col-span-4 space-y-6">
                 
-                <div className="flex items-center gap-5 mb-7">
-                  <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
-                    <svg className="w-full h-full transform -rotate-90">
-                      <circle
-                        cx="40"
-                        cy="40"
-                        r="34"
-                        className="text-slate-100"
-                        strokeWidth="6"
-                        stroke="currentColor"
-                        fill="transparent"
-                      />
-                      <circle
-                        cx="40"
-                        cy="40"
-                        r="34"
-                        className="text-[#047857] transition-all duration-1000 ease-out"
-                        strokeWidth="6"
-                        strokeDasharray={2 * Math.PI * 34}
-                        strokeDashoffset={2 * Math.PI * 34 - ((profileData?.profileCompletion || 0) / 100) * (2 * Math.PI * 34)}
-                        strokeLinecap="round"
-                        stroke="currentColor"
-                        fill="transparent"
-                      />
-                    </svg>
-                    <div className="absolute flex flex-col items-center justify-center mt-1">
-                      <span className="font-black text-slate-800 text-[18px] leading-none">{profileData?.profileCompletion || 0}%</span>
-                      <span className="text-[10px] font-bold text-[#047857] uppercase mt-0.5 tracking-wider">Good</span>
-                    </div>
-                  </div>
-                  <p className="text-[13px] text-slate-600 font-medium leading-relaxed flex-1">
-                    Almost there! Complete the remaining sections to unlock better opportunities.
-                  </p>
-                </div>
-
-                <div className="space-y-4 text-[13px] mb-8">
-                  {[
-                    { label: "Basic Information", done: profileData?.profileCompletionDetails?.basicInformation ?? false },
-                    { label: "Work Experience", done: profileData?.profileCompletionDetails?.workExperience ?? false },
-                    { label: "Skills", done: profileData?.profileCompletionDetails?.skills ?? false },
-                    { label: "Education", done: profileData?.profileCompletionDetails?.education ?? false },
-                    { label: "Resume", done: profileData?.profileCompletionDetails?.resume ?? false },
-                    { label: "Preferences", done: profileData?.profileCompletionDetails?.preferences ?? false },
-                    { label: "Career Goals", done: profileData?.profileCompletionDetails?.careerGoals ?? false },
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between group cursor-default">
-                      <div className="flex items-center gap-3">
-                        {item.done ? (
-                          <div className="bg-emerald-100 rounded-full p-0.5 text-emerald-600">
-                             <Check className="w-3.5 h-3.5 stroke-[3]" />
-                          </div>
-                        ) : (
-                          <div className="w-4.5 h-4.5 border-2 border-slate-200 rounded-full bg-white group-hover:border-slate-300 transition-colors" />
-                        )}
-                        <span className={item.done ? "text-slate-800 font-medium" : "text-slate-500 font-medium"}>{item.label}</span>
+                {/* Profile Strength */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                  <h3 className="font-extrabold text-slate-800 text-base tracking-tight mb-5">Profile Strength</h3>
+                  
+                  <div className="flex items-center gap-5 mb-7">
+                    <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
+                      <svg className="w-full h-full transform -rotate-90">
+                        <circle
+                          cx="40"
+                          cy="40"
+                          r="34"
+                          className="text-slate-100"
+                          strokeWidth="6"
+                          stroke="currentColor"
+                          fill="transparent"
+                        />
+                        <circle
+                          cx="40"
+                          cy="40"
+                          r="34"
+                          className="text-[#047857] transition-all duration-1000 ease-out"
+                          strokeWidth="6"
+                          strokeDasharray={2 * Math.PI * 34}
+                          strokeDashoffset={2 * Math.PI * 34 - ((profileData?.profileCompletion || 0) / 100) * (2 * Math.PI * 34)}
+                          strokeLinecap="round"
+                          stroke="currentColor"
+                          fill="transparent"
+                        />
+                      </svg>
+                      <div className="absolute flex flex-col items-center justify-center mt-1">
+                        <span className="font-black text-slate-800 text-[18px] leading-none">{profileData?.profileCompletion || 0}%</span>
+                        <span className="text-[10px] font-bold text-[#047857] uppercase mt-0.5 tracking-wider">Good</span>
                       </div>
                     </div>
-                  ))}
+                    <p className="text-[13px] text-slate-600 font-medium leading-relaxed flex-1">
+                      Almost there! Complete the remaining sections to unlock better opportunities.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4 text-[13px] mb-8">
+                    {[
+                      { label: "Basic Information", done: profileData?.profileCompletionDetails?.basicInformation },
+                      { label: "Work Experience", done: profileData?.profileCompletionDetails?.workExperience },
+                      { label: "Skills", done: profileData?.profileCompletionDetails?.skills },
+                      { label: "Education", done: profileData?.profileCompletionDetails?.education },
+                      { label: "Projects", done: profileData?.profileCompletionDetails?.projects },
+                      { label: "Resume", done: profileData?.profileCompletionDetails?.resume },
+                      { label: "Preferences", done: profileData?.profileCompletionDetails?.preferences },
+                      { label: "Career Goals", done: profileData?.profileCompletionDetails?.careerGoals },
+                    ]
+                    .filter(item => item.done !== 'notApplicable')
+                    .map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between group cursor-default">
+                        <div className="flex items-center gap-3">
+                          {item.done ? (
+                            <div className="bg-emerald-100 rounded-full p-0.5 text-emerald-600">
+                               <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            </div>
+                          ) : (
+                            <div className="w-4.5 h-4.5 border-2 border-slate-200 rounded-full bg-white group-hover:border-slate-300 transition-colors" />
+                          )}
+                          <span className={item.done ? "text-slate-800 font-medium" : "text-slate-500 font-medium"}>{item.label}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button type="button" className="w-full py-2.5 bg-white text-emerald-700 border border-emerald-200 rounded-lg text-sm font-bold hover:bg-emerald-50 transition flex items-center justify-center gap-2">
+                     <TrendingUp className="w-4 h-4" /> Improve Profile
+                  </button>
                 </div>
 
-                <button type="button" className="w-full py-2.5 bg-white text-emerald-700 border border-emerald-200 rounded-lg text-sm font-bold hover:bg-emerald-50 transition flex items-center justify-center gap-2">
-                   <TrendingUp className="w-4 h-4" /> Improve Profile
-                </button>
-              </div>
-
-              {/* AI Tip Card */}
-              <div className="bg-emerald-50/70 rounded-2xl p-6 border border-emerald-100 shadow-sm relative overflow-hidden">
-                 <div className="flex items-center gap-2 mb-3 relative z-10">
-                   <Sparkles className="w-5 h-5 text-emerald-600" />
-                   <h3 className="font-bold text-emerald-900 text-[15px]">AI Tip</h3>
-                 </div>
-                 <p className="text-[13px] text-emerald-800 font-medium mb-4 relative z-10 leading-relaxed pr-2">
-                   Profiles with complete information get 3X more profile views and better matches.
-                 </p>
-                 
-                 <div className="bg-white/80 p-4 rounded-xl border border-emerald-100 relative z-10">
-                   <p className="text-[12px] font-bold text-emerald-900 mb-1">Tip to improve your profile</p>
-                   <p className="text-[12px] text-emerald-700/80 mb-4 leading-relaxed font-medium">
-                     Add your portfolio link to increase your chances of getting noticed by recruiters.
+                {/* AI Tip Card */}
+                <div className="bg-emerald-50/70 rounded-2xl p-6 border border-emerald-100 shadow-sm relative overflow-hidden">
+                   <div className="flex items-center gap-2 mb-3 relative z-10">
+                     <Sparkles className="w-5 h-5 text-emerald-600" />
+                     <h3 className="font-bold text-emerald-900 text-[15px]">AI Tip</h3>
+                   </div>
+                   <p className="text-[13px] text-emerald-800 font-medium mb-4 relative z-10 leading-relaxed pr-2">
+                     Profiles with complete information get 3X more profile views and better matches.
                    </p>
-                   <button type="button" className="bg-white px-4 py-2 rounded-lg text-emerald-700 text-[12px] font-bold border border-emerald-200 hover:bg-emerald-50 transition flex items-center justify-center w-max gap-2 shadow-sm">
-                     Add Portfolio Link <Link2 className="w-3.5 h-3.5" />
-                   </button>
-                 </div>
+                   
+                   <div className="bg-white/80 p-4 rounded-xl border border-emerald-100 relative z-10">
+                     <p className="text-[12px] font-bold text-emerald-900 mb-1">Tip to improve your profile</p>
+                     <p className="text-[12px] text-emerald-700/80 mb-4 leading-relaxed font-medium">
+                       Add your portfolio link to increase your chances of getting noticed by recruiters.
+                     </p>
+                     <button type="button" className="bg-white px-4 py-2 rounded-lg text-emerald-700 text-[12px] font-bold border border-emerald-200 hover:bg-emerald-50 transition flex items-center justify-center w-max gap-2 shadow-sm">
+                       Add Portfolio Link <Link2 className="w-3.5 h-3.5" />
+                     </button>
+                   </div>
               </div>
 
               {/* Quick Actions */}
@@ -2532,8 +2662,8 @@ const ProviderProfile = () => {
                    </button>
                  </div>
               </div>
-              
             </div>
+            )}
           </div>
         </form>
       </div>
@@ -2896,6 +3026,138 @@ const ProviderProfile = () => {
                 className="absolute inset-0 w-full h-full border-0"
                 title="Resume Preview"
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Parsed Resume Data Review Modal */}
+      {parsedResumeData && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl flex flex-col max-h-[85vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between shrink-0">
+              <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-indigo-500" />
+                Review Parsed Details
+              </h3>
+              <button onClick={() => setParsedResumeData(null)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 bg-slate-50/50">
+              <div className="space-y-6">
+                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                  <h4 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><UserIcon className="w-4 h-4 text-slate-400" />Personal Info</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</p>
+                      <input 
+                        type="text" 
+                        value={parsedResumeData.fullName || ''} 
+                        onChange={(e) => setParsedResumeData({...parsedResumeData, fullName: e.target.value})}
+                        className="w-full px-3 py-2 text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                        placeholder="Not found"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">City</p>
+                      <input 
+                        type="text" 
+                        value={parsedResumeData.city || ''} 
+                        onChange={(e) => setParsedResumeData({...parsedResumeData, city: e.target.value})}
+                        className="w-full px-3 py-2 text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                        placeholder="Not found"
+                      />
+                    </div>
+                    <div className="col-span-1 md:col-span-2">
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Bio / Summary</p>
+                      <textarea 
+                        value={parsedResumeData.bio || ''} 
+                        onChange={(e) => setParsedResumeData({...parsedResumeData, bio: e.target.value})}
+                        className="w-full px-3 py-2 text-sm text-slate-700 leading-relaxed border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all min-h-[80px] resize-y"
+                        placeholder="Not found"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                  <h4 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><Briefcase className="w-4 h-4 text-slate-400" />Professional Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Experience</p>
+                      <input 
+                        type="text" 
+                        value={parsedResumeData.experienceYears || ''} 
+                        onChange={(e) => setParsedResumeData({...parsedResumeData, experienceYears: e.target.value})}
+                        className="w-full px-3 py-2 text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                        placeholder="Not found"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Suggested Pricing</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-emerald-600 font-bold">₹</span>
+                        <input 
+                          type="number" 
+                          value={parsedResumeData.pricing || ''} 
+                          onChange={(e) => setParsedResumeData({...parsedResumeData, pricing: e.target.value})}
+                          className="w-full px-3 py-2 text-sm font-semibold text-emerald-700 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                    <div className="col-span-1 md:col-span-2">
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center justify-between">
+                        Skills
+                        <span className="text-xs font-normal text-slate-400 normal-case">(comma separated)</span>
+                      </p>
+                      <input
+                        type="text"
+                        value={(parsedResumeData.skills || []).join(', ')}
+                        onChange={(e) => setParsedResumeData({...parsedResumeData, skills: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+                        className="w-full px-3 py-2 text-sm font-semibold text-indigo-700 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                        placeholder="Skill 1, Skill 2"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                  <h4 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><Book className="w-4 h-4 text-slate-400" />Experience & Education</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Previous Work</p>
+                      {parsedResumeData.previousWork?.length > 0 ? parsedResumeData.previousWork.map((w, i) => (
+                        <div key={i} className="mb-3 last:mb-0 border border-slate-100 p-2 rounded-lg relative">
+                          <input type="text" value={w.designation} onChange={e => { const nw = [...parsedResumeData.previousWork]; nw[i].designation = e.target.value; setParsedResumeData({...parsedResumeData, previousWork: nw}); }} className="w-full text-sm font-bold text-slate-800 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-1" placeholder="Designation" />
+                          <input type="text" value={w.company} onChange={e => { const nw = [...parsedResumeData.previousWork]; nw[i].company = e.target.value; setParsedResumeData({...parsedResumeData, previousWork: nw}); }} className="w-full text-[13px] text-slate-500 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400" placeholder="Company" />
+                        </div>
+                      )) : <p className="text-sm text-slate-400 italic">Not found</p>}
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Education</p>
+                      {parsedResumeData.education?.length > 0 ? parsedResumeData.education.map((e, i) => (
+                        <div key={i} className="mb-3 last:mb-0 border border-slate-100 p-2 rounded-lg relative">
+                          <input type="text" value={e.degree} onChange={ev => { const ne = [...parsedResumeData.education]; ne[i].degree = ev.target.value; setParsedResumeData({...parsedResumeData, education: ne}); }} className="w-full text-sm font-bold text-slate-800 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-1" placeholder="Degree" />
+                          <input type="text" value={e.institution} onChange={ev => { const ne = [...parsedResumeData.education]; ne[i].institution = ev.target.value; setParsedResumeData({...parsedResumeData, education: ne}); }} className="w-full text-[13px] text-slate-500 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400" placeholder="Institution" />
+                        </div>
+                      )) : <p className="text-sm text-slate-400 italic">Not found</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-5 border-t border-slate-100 flex justify-end gap-3 shrink-0 bg-white">
+              <button onClick={() => setParsedResumeData(null)} className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">
+                Cancel
+              </button>
+              <button onClick={confirmParsedData} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-colors shadow-sm flex items-center gap-2">
+                <Check className="w-4 h-4" />
+                Confirm & Auto-fill Profile
+              </button>
             </div>
           </div>
         </div>

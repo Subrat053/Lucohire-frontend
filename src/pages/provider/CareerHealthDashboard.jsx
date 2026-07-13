@@ -9,17 +9,13 @@ import {
 import { 
   BiTrophy, BiBriefcase, BiLineChart, BiMessageRoundedDots 
 } from 'react-icons/bi';
-import { 
-  MdOutlineWorkOutline, MdOutlineMenuBook, MdOutlineMonitor, MdOutlineHandshake, MdOutlineLocationOn
-} from 'react-icons/md';
+import { MdOutlineWorkOutline, MdOutlineMenuBook, MdOutlineMonitor, MdOutlineHandshake, MdOutlineLocationOn } from 'react-icons/md';
 import { getCareerHealth, getAiUsage, improveCareerHealth } from '../../services/providerAIService';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
-import html2pdf from 'html2pdf.js/dist/html2pdf.bundle.min.js';
-
 export default function CareerHealthDashboard({ tab = 'overview' }) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -103,32 +99,156 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
       return;
     }
     
-    const element = document.getElementById('report-content');
-    if (!element) return;
-    
-    toast.loading("Generating PDF...", { id: "pdf-toast" });
+    toast.loading("Generating Custom PDF Report...", { id: "pdf-toast" });
     
     try {
-      // Dynamically import to bypass Vite bundling issues
-      const html2pdfModule = await import('html2pdf.js');
-      const html2pdf = html2pdfModule.default ? html2pdfModule.default : html2pdfModule;
+      const { jsPDF } = await import('jspdf');
       
-      const opt = {
-        margin:       [0.2, 0.2, 0.2, 0.2],
-        filename:     `Career_Health_Report_${new Date().toISOString().split('T')[0]}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-      };
-      
-      html2pdf().set(opt).from(element).save().then(() => {
-        toast.dismiss("pdf-toast");
-        toast.success("PDF Report downloaded successfully!");
-      }).catch(err => {
-        console.error("PDF Error inside promise:", err);
-        toast.dismiss("pdf-toast");
-        toast.error(`Failed: ${err.message || String(err)}`);
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'a4'
       });
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 40;
+      let cursorY = margin;
+
+      const addWrappedText = (text, x, y, maxWidth, lineHeight = 14) => {
+        if (!text) return 0;
+        const lines = doc.splitTextToSize(String(text), maxWidth);
+        doc.text(lines, x, y);
+        return lines.length * lineHeight;
+      };
+
+      // Header background
+      doc.setFillColor(5, 150, 105); // Emerald-600
+      doc.rect(0, 0, pageWidth, 100, 'F');
+      
+      // Header text
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.setFont("helvetica", "bold");
+      doc.text("Lucohire Career Health Report", margin, 50);
+      
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, 75);
+      
+      cursorY = 140;
+      
+      // Section: Overview
+      doc.setTextColor(30, 41, 59); // Slate-800
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text("1. Executive Summary", margin, cursorY);
+      cursorY += 25;
+      
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(71, 85, 105); // Slate-600
+      const summaryText = report.summary || "No summary available.";
+      cursorY += addWrappedText(summaryText, margin, cursorY, pageWidth - margin * 2);
+      
+      cursorY += 20;
+
+      // Section: Core Metrics
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text("2. Career Metrics", margin, cursorY);
+      cursorY += 25;
+      
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      const metrics = [
+        `Overall Career Health: ${report.career_health_score || report.employability_score || 0}/100`,
+        `Market Demand Score: ${report.market_demand_score || 0}/100`,
+        `Expected Salary Range: ${report.expected_salary_range || 'N/A'}`,
+        `Target Role: ${report.target_role || 'Not specified'}`
+      ];
+      
+      metrics.forEach(m => {
+        doc.circle(margin + 5, cursorY - 4, 3, 'F');
+        doc.text(m, margin + 15, cursorY);
+        cursorY += 20;
+      });
+      
+      cursorY += 20;
+
+      const checkPageBreak = (neededSpace) => {
+        if (cursorY + neededSpace > pageHeight - 50) {
+          doc.addPage();
+          cursorY = margin;
+        }
+      };
+
+      // Section: Strengths & Weaknesses
+      if (report.top_strengths?.length > 0) {
+        checkPageBreak(100);
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.text("3. Key Strengths", margin, cursorY);
+        cursorY += 25;
+        
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        report.top_strengths.forEach(s => {
+          checkPageBreak(25);
+          doc.circle(margin + 5, cursorY - 4, 3, 'F');
+          cursorY += addWrappedText(s.skill || s.title || s.name || s, margin + 15, cursorY, pageWidth - margin * 2 - 15);
+        });
+        cursorY += 20;
+      }
+      
+      if (report.top_weaknesses?.length > 0) {
+        checkPageBreak(100);
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.text("4. Areas for Improvement", margin, cursorY);
+        cursorY += 25;
+        
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        report.top_weaknesses.forEach(w => {
+          checkPageBreak(25);
+          doc.circle(margin + 5, cursorY - 4, 3, 'F');
+          cursorY += addWrappedText(w.skill || w.title || w.name || w, margin + 15, cursorY, pageWidth - margin * 2 - 15);
+        });
+        cursorY += 20;
+      }
+
+      // Section: AI Recommendation
+      if (report.ai_tip) {
+         checkPageBreak(100);
+         doc.setFillColor(241, 245, 249); // slate-100
+         doc.rect(margin, cursorY, pageWidth - margin * 2, 80, 'F');
+         cursorY += 20;
+         doc.setTextColor(30, 41, 59);
+         doc.setFontSize(14);
+         doc.setFont("helvetica", "bold");
+         doc.text("AI Recommendation", margin + 15, cursorY);
+         cursorY += 20;
+         
+         doc.setFontSize(11);
+         doc.setFont("helvetica", "italic");
+         cursorY += addWrappedText(report.ai_tip, margin + 15, cursorY, pageWidth - margin * 2 - 30);
+      }
+      
+      // Footer
+      const totalPages = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(10);
+        doc.setTextColor(148, 163, 184); // slate-400
+        doc.text(`Page ${i} of ${totalPages} - Lucohire Confidential`, pageWidth / 2, pageHeight - 20, { align: 'center' });
+      }
+      
+      doc.save(`Career_Health_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast.dismiss("pdf-toast");
+      toast.success("Custom PDF Report generated successfully!");
     } catch (err) {
       console.error("PDF Error:", err);
       toast.dismiss("pdf-toast");

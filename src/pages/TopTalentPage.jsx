@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { providerAPI } from '../services/api';
 import { MapPin, Star, MessageCircle, Phone, ArrowLeft } from 'lucide-react';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
+import Navbar from '../components/common/Navbar';
+import Footer from '../components/common/Footer';
 
 export default function TopTalentPage() {
   const navigate = useNavigate();

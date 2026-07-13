@@ -1,14 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { providerAPI } from '../../services/api';
 import { getIncomeOpportunities } from '../../services/providerAIService';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import useTranslation from '../../hooks/useTranslation';
+import { confirmPaymentSuccess } from '../../services/providerPlanService';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { 
-  Briefcase, ArrowRight, Lock, RefreshCcw, Eye, FileText, CheckCircle2 
+  Briefcase, ArrowRight, Lock, RefreshCcw, Eye, FileText, CheckCircle2, Sparkles
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 
@@ -28,6 +29,8 @@ const ProviderDashboard = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const paymentHandledRef = useRef(false);
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [topJobs, setTopJobs] = useState([]);
@@ -140,6 +143,36 @@ const ProviderDashboard = () => {
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (paymentHandledRef.current) return;
+
+    if (params.get('success') === 'true' && params.get('sub_id')) {
+      const subId = params.get('sub_id');
+      const sessionId = params.get('session_id');
+
+      const finalizePayment = async () => {
+        paymentHandledRef.current = true;
+        try {
+          await confirmPaymentSuccess({
+            subscriptionId: subId,
+            paymentId: sessionId,
+            orderId: 'stripe_session',
+          });
+          toast.success('Payment confirmed! Your WhatsApp plan is now active.');
+          // Remove query params
+          navigate('/provider/dashboard', { replace: true });
+          // Reload dashboard stats
+          loadDashboard(true);
+        } catch (err) {
+          toast.error('Failed to confirm payment status.');
+        }
+      };
+
+      finalizePayment();
+    }
+  }, [location.search, navigate, loadDashboard]);
+
   const handleWhatsappCheckout = async () => {
     try {
       toast.loading('Redirecting to checkout...', { id: 'whatsapp-checkout' });
@@ -157,6 +190,11 @@ const ProviderDashboard = () => {
 
   const profile = dashboard?.profile || {};
   const stats = dashboard?.stats || {};
+  const hasPremiumInsights = dashboard?.subscription && !dashboard.subscription.isDefault;
+  const waEndDate = dashboard?.subscription?.whatsappPlanEndDate;
+  const waDaysLeft = waEndDate 
+    ? Math.max(0, Math.ceil((new Date(waEndDate) - new Date()) / (1000 * 60 * 60 * 24)))
+    : 0;
   const isProfileEmpty = !profile.city && !profile.skills?.length;
   const profileCompletion = stats.profileCompletion || 60; // Mock default if missing
   const activeJobsCount = topJobsCount || 0;
@@ -284,34 +322,63 @@ const ProviderDashboard = () => {
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 Your AI Insights 
-                <span className="px-2 py-0.5 text-[10px] font-bold bg-gray-100 text-gray-500 rounded-full">Premium</span>
-                <Lock className="w-3.5 h-3.5 text-gray-400" />
+                {!hasPremiumInsights && (
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-gray-100 text-gray-500 rounded-full">Premium</span>
+                )}
+                {!hasPremiumInsights && <Lock className="w-3.5 h-3.5 text-gray-400" />}
               </h2>
-              <Link to="/provider/plans" className="text-sm text-teal-700 hover:underline flex items-center gap-1.5 font-bold">
-                <Lock className="w-3.5 h-3.5" /> Unlock all insights with AI Pro
-              </Link>
+              {!hasPremiumInsights ? (
+                <Link to="/provider/plans" className="text-sm text-teal-700 hover:underline flex items-center gap-1.5 font-bold">
+                  <Lock className="w-3.5 h-3.5" /> Unlock all insights with AI Pro
+                </Link>
+              ) : (
+                <span className="text-sm text-teal-700 font-bold flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" /> Unlocked
+                </span>
+              )}
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
-              {['ATS Score', 'Skill Gap', 'Interview Readiness', 'Career Roadmap', 'Salary Insights'].map((insight, idx) => (
-                <div key={idx} className="min-w-[150px] h-[130px] bg-gray-50/50 border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 relative group overflow-hidden cursor-pointer hover:border-teal-200 transition-colors">
-                  <div className="absolute inset-0 bg-white/30 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center pt-2">
-                    <div className={`w-11 h-11 rounded-full flex items-center justify-center shadow-sm mb-3 ${
-                      idx === 0 ? 'bg-teal-50 text-teal-600 border border-teal-100' :
-                      idx === 1 ? 'bg-rose-50 text-rose-600 border border-rose-100' :
-                      idx === 2 ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' :
-                      idx === 3 ? 'bg-blue-50 text-blue-600 border border-blue-100' :
-                      'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                    }`}>
-                      <Lock className="w-5 h-5" />
+            
+            {!hasPremiumInsights ? (
+              <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
+                {['ATS Score', 'Skill Gap', 'Interview Readiness', 'Career Roadmap', 'Salary Insights'].map((insight, idx) => (
+                  <div key={idx} className="min-w-[150px] h-[130px] bg-gray-50/50 border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 relative group overflow-hidden cursor-pointer hover:border-teal-200 transition-colors">
+                    <div className="absolute inset-0 bg-white/30 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center pt-2">
+                      <div className={`w-11 h-11 rounded-full flex items-center justify-center shadow-sm mb-3 ${
+                        idx === 0 ? 'bg-teal-50 text-teal-600 border border-teal-100' :
+                        idx === 1 ? 'bg-rose-50 text-rose-600 border border-rose-100' :
+                        idx === 2 ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' :
+                        idx === 3 ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                        'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                      }`}>
+                        <Lock className="w-5 h-5" />
+                      </div>
+                    </div>
+                    <div className="text-xs font-bold text-gray-400 text-center z-0">{insight}</div>
+                    <div className="absolute bottom-4 text-[11px] font-bold text-teal-700 z-20">
+                      View Sample
                     </div>
                   </div>
-                  <div className="text-xs font-bold text-gray-400 text-center z-0">{insight}</div>
-                  <div className="absolute bottom-4 text-[11px] font-bold text-teal-700 z-20">
-                    View Sample
-                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {dashboard?.ai_insights?.summary && (
+                  <p className="text-sm text-gray-700 bg-teal-50 p-3 rounded-xl border border-teal-100 mb-2">
+                    {dashboard.ai_insights.summary}
+                  </p>
+                )}
+                <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
+                  {(dashboard?.ai_insights?.tips?.length > 0 ? dashboard.ai_insights.tips : ['Improve your ATS score by adding more keywords', 'Add more skills to your profile', 'Prepare for technical interviews']).map((tip, idx) => (
+                    <div key={idx} className="min-w-[200px] max-w-[250px] h-[130px] bg-white border border-teal-100 rounded-2xl p-4 flex flex-col justify-center gap-2 relative group hover:border-teal-300 hover:shadow-md transition-all cursor-pointer">
+                      <div className="w-8 h-8 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mb-1 shrink-0">
+                        <Sparkles className="w-4 h-4" />
+                      </div>
+                      <div className="text-xs font-medium text-gray-800 line-clamp-3 leading-relaxed">{tip}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Top Matching Jobs */}
@@ -404,42 +471,57 @@ const ProviderDashboard = () => {
         <div className="space-y-6">
           
           {/* Freelance Alerts Premium Card */}
-          <div className="bg-[#0f766e] rounded-3xl p-6 text-white relative overflow-hidden shadow-lg border border-teal-800">
+          <div className={`rounded-3xl p-6 text-white relative overflow-hidden shadow-lg border ${profile.whatsappFreelancePlanActive ? 'bg-teal-700 border-teal-600' : 'bg-[#0f766e] border-teal-800'}`}>
             {/* Decorative background element */}
             <div className="absolute -right-12 -top-12 w-48 h-48 bg-teal-500 rounded-full opacity-30 blur-3xl pointer-events-none"></div>
             
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-5">
-                <div className="w-7 h-7 rounded-full bg-orange-400 flex items-center justify-center border-2 border-[#0f766e] shadow-sm z-10">
-                  <span className="text-[10px] font-bold">💰</span>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center shadow-sm z-10 ${profile.whatsappFreelancePlanActive ? 'bg-white text-teal-600' : 'bg-orange-400 border-2 border-[#0f766e]'}`}>
+                  {profile.whatsappFreelancePlanActive ? <CheckCircle2 className="w-4 h-4" /> : <span className="text-[10px] font-bold">💰</span>}
                 </div>
-                <span className="font-bold text-sm tracking-tight">LucoHire Freelance Alerts</span>
-                <span className="bg-orange-400 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase ml-1">New</span>
+                <span className="font-bold text-sm tracking-tight">{profile.whatsappFreelancePlanActive ? 'Active Plan' : 'LucoHire Freelance Alerts'}</span>
+                {!profile.whatsappFreelancePlanActive && <span className="bg-orange-400 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase ml-1">New</span>}
               </div>
               
-              <h2 className="text-2xl font-extrabold mb-2 tracking-tight">Earn Extra Income</h2>
+              <h2 className="text-2xl font-extrabold mb-2 tracking-tight">{profile.whatsappFreelancePlanActive ? 'WhatsApp Alerts Enabled' : 'Earn Extra Income'}</h2>
               <p className="text-teal-50 text-[13px] mb-6 leading-relaxed font-medium">
-                Get verified freelance work delivered instantly on WhatsApp.
+                {profile.whatsappFreelancePlanActive 
+                  ? 'You are now receiving verified freelance work instantly on your WhatsApp.' 
+                  : 'Get verified freelance work delivered instantly on WhatsApp.'}
               </p>
               
-              <ul className="space-y-3 mb-8 text-[13px] text-white font-medium">
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" /> Weekend Projects</li>
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" /> Part-Time Work</li>
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" /> Nearby Opportunities</li>
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" /> Verified Clients Only</li>
-              </ul>
-
-              <div className="flex justify-between items-end mb-4 bg-teal-800/30 p-3 rounded-2xl border border-teal-600/30">
-                <div>
-                  <div className="text-sm font-extrabold">Just ₹1/day</div>
+              {profile.whatsappFreelancePlanActive ? (
+                <div className="w-full bg-teal-800/50 text-teal-50 font-bold py-3.5 rounded-xl flex flex-col items-center justify-center gap-1 border border-teal-600 shadow-inner">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-teal-300" /> Receiving Daily Alerts
+                  </div>
+                  {waDaysLeft > 0 && <span className="text-xs font-normal text-teal-200">({waDaysLeft} days remaining)</span>}
                 </div>
-                <div className="text-[11px] text-teal-100 font-medium">Only ₹30/month</div>
-              </div>
+              ) : (
+                <>
+                  <ul className="space-y-3 mb-8 text-[13px] text-white font-medium">
+                    <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" /> Weekend Projects</li>
+                    <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" /> Part-Time Work</li>
+                    <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" /> Nearby Opportunities</li>
+                    <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" /> Verified Clients Only</li>
+                  </ul>
 
-              <button className="w-full bg-white text-teal-900 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-teal-50 transition shadow-md">
-                Enable Alerts <div className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
-              </button>
-              <div className="text-center text-[10px] text-teal-200 mt-3 font-medium">Cancel anytime</div>
+                  <div className="flex justify-between items-end mb-4 bg-teal-800/30 p-3 rounded-2xl border border-teal-600/30">
+                    <div>
+                      <div className="text-sm font-extrabold">Just ₹1/day</div>
+                    </div>
+                    <div className="text-[11px] text-teal-100 font-medium">Only ₹30/month</div>
+                  </div>
+
+                  <button 
+                    onClick={handleWhatsappCheckout}
+                    className="w-full bg-white text-teal-900 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-teal-50 transition shadow-md">
+                    Enable Alerts <div className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
+                  </button>
+                  <div className="text-center text-[10px] text-teal-200 mt-3 font-medium">Cancel anytime</div>
+                </>
+              )}
             </div>
           </div>
 
@@ -463,7 +545,7 @@ const ProviderDashboard = () => {
               </div>
               
               <div className="w-20 h-20 bg-gray-50 rounded-full border-4 border-white shadow-sm flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-blue-100/50 opacity-50 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:8px_8px]"></div>
+                <div className="absolute inset-0 bg-blue-100/50 opacity-50 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] bg-size-[8px_8px]"></div>
                 {/* Map path SVG mock */}
                 <svg className="w-10 h-10 text-teal-600 absolute drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 {/* Map route line mock */}
@@ -532,20 +614,22 @@ const ProviderDashboard = () => {
       </div>
 
       {/* Floating Action WhatsApp */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <button 
-          onClick={handleWhatsappCheckout}
-          className="bg-white hover:bg-gray-50 text-gray-900 rounded-full pl-2 pr-5 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-3 transition transform hover:scale-105 border border-gray-100 group">
-          <div className="w-12 h-12 bg-[#25D366] rounded-full flex items-center justify-center shadow-inner group-hover:bg-[#20bd5a] transition-colors">
-            <FaWhatsapp className="w-7 h-7 text-white" />
-          </div>
-          <div className="text-left hidden sm:block">
-            <div className="text-sm font-extrabold leading-tight text-gray-900">Earn Extra Income</div>
-            <div className="text-[11px] font-medium text-gray-500 mt-0.5">Nearby freelance work <br/> <span className="font-bold text-gray-700">₹30/month</span></div>
-          </div>
-          <ArrowRight className="w-5 h-5 ml-1 text-gray-400 group-hover:text-gray-700 transition-colors hidden sm:block" />
-        </button>
-      </div>
+      {!profile.whatsappFreelancePlanActive && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <button 
+            onClick={handleWhatsappCheckout}
+            className="bg-white hover:bg-gray-50 text-gray-900 rounded-full pl-2 pr-5 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-3 transition transform hover:scale-105 border border-gray-100 group">
+            <div className="w-12 h-12 bg-[#25D366] rounded-full flex items-center justify-center shadow-inner group-hover:bg-[#20bd5a] transition-colors">
+              <FaWhatsapp className="w-7 h-7 text-white" />
+            </div>
+            <div className="text-left hidden sm:block">
+              <div className="text-sm font-extrabold leading-tight text-gray-900">Earn Extra Income</div>
+              <div className="text-[11px] font-medium text-gray-500 mt-0.5">Nearby freelance work <br/> <span className="font-bold text-gray-700">₹30/month</span></div>
+            </div>
+            <ArrowRight className="w-5 h-5 ml-1 text-gray-400 group-hover:text-gray-700 transition-colors hidden sm:block" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

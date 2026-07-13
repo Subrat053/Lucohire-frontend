@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { 
   FiMapPin, FiClock, FiCalendar, FiExternalLink, FiMoreHorizontal, 
   FiSearch, FiFilter, FiChevronDown, FiFileText, FiMessageSquare, 
-  FiLoader, FiChevronRight, FiCheckCircle, FiEye, FiUsers, FiTrendingUp, FiBarChart2
+  FiLoader, FiChevronRight, FiCheckCircle, FiEye, FiUsers, FiTrendingUp, FiBarChart2, FiUser
 } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
 import { useParams, Link } from 'react-router-dom';
 import { recruiterAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow, format } from 'date-fns';
+import CandidateProfileModal from '../../components/recruiter/CandidateProfileModal';
 
 const SCard = ({ children, className = '' }) => (
   <div className={`bg-white rounded-xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
@@ -16,7 +17,7 @@ const SCard = ({ children, className = '' }) => (
 
 // Map backend statuses to Kanban columns
 const STATUS_COLUMNS = [
-  { id: 'applied', title: 'Applied', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100' },
+  { id: 'pending', title: 'Applied', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100' },
   { id: 'reviewed', title: 'Reviewed', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100' },
   { id: 'contacted', title: 'Contacted', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-100' },
   { id: 'shortlisted', title: 'Shortlisted', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-100' },
@@ -33,6 +34,7 @@ export default function JobDetails() {
   const [loading, setLoading] = useState(true);
   const [draggedAppId, setDraggedAppId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -46,7 +48,8 @@ export default function JobDetails() {
         recruiterAPI.getJobApplications(jobId)
       ]);
       setJob(jobRes.data);
-      setApplications(appsRes.data.applications || []);
+      // The backend returns an array directly, so appsRes.data IS the array
+      setApplications(Array.isArray(appsRes.data) ? appsRes.data : (appsRes.data.applications || []));
     } catch (err) {
       console.error(err);
       toast.error('Failed to load job details');
@@ -249,10 +252,10 @@ export default function JobDetails() {
                       
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
-                          <button className="w-6 h-6 flex items-center justify-center rounded border border-gray-100 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition">
-                            <FiFileText className="w-3 h-3" />
+                          <button onClick={() => setSelectedCandidate(cand)} className="w-6 h-6 flex items-center justify-center rounded border border-gray-100 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition" title="View Profile">
+                            <FiUser className="w-3 h-3" />
                           </button>
-                          <button className="w-6 h-6 flex items-center justify-center rounded border border-gray-100 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition">
+                          <button onClick={() => window.location.href = `mailto:${cand.provider?.email}`} className="w-6 h-6 flex items-center justify-center rounded border border-gray-100 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition" title="Contact">
                             <FiMessageSquare className="w-3 h-3" />
                           </button>
                         </div>
@@ -455,6 +458,13 @@ export default function JobDetails() {
           </div>
         )}
       </div>
+      
+      <CandidateProfileModal
+        isOpen={!!selectedCandidate}
+        onClose={() => setSelectedCandidate(null)}
+        candidateProfile={selectedCandidate?.provider}
+        candidateUser={selectedCandidate?.provider}
+      />
     </div>
   );
 }

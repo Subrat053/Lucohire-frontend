@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { FiUsers, FiAward, FiChevronDown, FiChevronUp, FiLoader } from 'react-icons/fi';
+import { FiUsers, FiAward, FiChevronDown, FiChevronUp, FiLoader, FiUser, FiMapPin, FiBriefcase } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
 import { recruiterAPI } from '../../services/api';
 import toast from 'react-hot-toast';
+import CandidateProfileModal from '../../components/recruiter/CandidateProfileModal';
 
 const TalentPool = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedJobId, setExpandedJobId] = useState(null);
   const [runningAI, setRunningAI] = useState(null);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -95,7 +97,7 @@ const TalentPool = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                      {hasCandidates && !hasEvaluations && (
+                      {job.candidates?.length > topCandidates.length && (
                         <button 
                           onClick={(e) => handleRunAI(job._id, e)}
                           disabled={runningAI === job._id}
@@ -122,58 +124,129 @@ const TalentPool = () => {
                         <div className="text-center py-8 text-gray-500 text-sm font-medium">
                           No candidates have applied for this job yet.
                         </div>
-                      ) : !hasEvaluations ? (
-                        <div className="text-center py-8 text-gray-500 text-sm font-medium">
-                          Click "Run AI Analysis" to evaluate and rank these applicants.
-                        </div>
                       ) : (
                         <div>
                           <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2 mb-6">
-                            <FiAward className="text-amber-500 w-5 h-5" /> Top {topCandidates.length} Candidates
+                            <FiUsers className="text-indigo-500 w-5 h-5" /> {job.candidates.length} Candidates
                           </h3>
                           
                           <div className="grid grid-cols-1 gap-4">
-                            {topCandidates.map((evaluation, index) => {
-                              const candidate = evaluation.candidateId?.user;
-                              if (!candidate) return null;
+                            {job.candidates.map((candidateInfo, index) => {
+                              const providerProfile = candidateInfo.providerProfile;
+                              if (!providerProfile) return null;
+                              const candidateUser = providerProfile.user;
+                              if (!candidateUser) return null;
+                              
+                              // Check if there is an AI evaluation for this candidate
+                              const evaluation = topCandidates.find(e => e.candidateId?._id === providerProfile._id);
 
                               return (
-                                <div key={evaluation._id} className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col md:flex-row gap-6 shadow-sm hover:shadow-md transition">
+                                <div key={providerProfile._id} className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col md:flex-row gap-6 shadow-sm hover:shadow-md transition">
                                   
                                   {/* Left: Candidate Info & Score */}
                                   <div className="flex flex-col md:w-1/4 border-b md:border-b-0 md:border-r border-gray-100 pb-4 md:pb-0 md:pr-6 shrink-0">
                                     <div className="flex items-center gap-4 mb-4">
-                                      <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg">
-                                        {candidate.name?.charAt(0) || '?'}
-                                      </div>
+                                      {candidateUser.profilePhoto ? (
+                                        <img src={candidateUser.profilePhoto} alt={candidateUser.name} className="w-12 h-12 rounded-full object-cover" />
+                                      ) : (
+                                        <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg">
+                                          {candidateUser.name?.charAt(0) || '?'}
+                                        </div>
+                                      )}
                                       <div>
-                                        <h4 className="font-bold text-gray-900">{candidate.name || 'Candidate'}</h4>
-                                        <span className="text-xs text-gray-500">Rank #{index + 1}</span>
+                                        <h4 className="font-bold text-gray-900">{candidateUser.name || 'Candidate'}</h4>
+                                        <span className="text-xs text-gray-500">{providerProfile.designation || 'Candidate'}</span>
                                       </div>
                                     </div>
                                     
                                     <div className="mt-auto">
                                       <div className="text-xs text-gray-500 font-semibold mb-1 uppercase tracking-wider">AI Match Score</div>
-                                      <div className="flex items-end gap-1">
-                                        <span className="text-3xl font-black text-emerald-600 leading-none">{evaluation.score}</span>
-                                        <span className="text-sm font-bold text-gray-400 mb-1">/100</span>
-                                      </div>
+                                      {evaluation ? (
+                                        <div className="flex items-end gap-1">
+                                          <span className="text-3xl font-black text-emerald-600 leading-none">{evaluation.score}</span>
+                                          <span className="text-sm font-bold text-gray-400 mb-1">/100</span>
+                                        </div>
+                                      ) : (
+                                        <div className="text-sm font-bold text-amber-500">Pending Analysis</div>
+                                      )}
                                     </div>
                                   </div>
 
-                                  {/* Right: AI Reasoning */}
-                                  <div className="flex-1">
+                                  {/* Right: AI Reasoning & Profile Details */}
+                                  <div className="flex-1 flex flex-col">
                                     <div className="flex items-center gap-2 mb-2">
                                       <HiSparkles className="text-indigo-500 w-4 h-4" />
                                       <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">AI Reasoning</span>
                                     </div>
-                                    <p className="text-gray-700 text-sm leading-relaxed">
-                                      {evaluation.reasoning}
-                                    </p>
+                                    {evaluation ? (
+                                      <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                                        {evaluation.reasoning}
+                                      </p>
+                                    ) : (
+                                      <p className="text-gray-400 text-sm italic mb-4">
+                                        Run AI Analysis to see how well this candidate matches your job requirements.
+                                      </p>
+                                    )}
+
+                                    {/* Candidate Profile Details */}
+                                    <div className="mt-2 pt-4 border-t border-gray-100 flex-1">
+                                      <h5 className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider flex items-center gap-2">
+                                        <FiUser className="text-indigo-500 w-4 h-4" /> Complete Profile
+                                      </h5>
+                                      
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                        {/* Skills */}
+                                        {providerProfile.skills && providerProfile.skills.length > 0 && (
+                                          <div>
+                                            <div className="text-[10px] font-bold text-gray-500 uppercase mb-1.5">Top Skills</div>
+                                            <div className="flex flex-wrap gap-1.5">
+                                              {providerProfile.skills.slice(0, 5).map((skill, i) => (
+                                                <span key={i} className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold border border-indigo-100">
+                                                  {skill}
+                                                </span>
+                                              ))}
+                                              {providerProfile.skills.length > 5 && (
+                                                <span className="bg-gray-50 text-gray-500 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-100">
+                                                  +{providerProfile.skills.length - 5}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        )}
+                                        
+                                        {/* Experience & Location */}
+                                        <div className="space-y-3">
+                                          {providerProfile.experience && (
+                                            <div>
+                                              <div className="text-[10px] font-bold text-gray-500 uppercase mb-0.5 flex items-center gap-1"><FiBriefcase className="w-3 h-3"/> Total Experience</div>
+                                              <div className="text-xs font-medium text-gray-900">{providerProfile.experience}</div>
+                                            </div>
+                                          )}
+                                          {(providerProfile.city || candidateUser.city) && (
+                                            <div>
+                                              <div className="text-[10px] font-bold text-gray-500 uppercase mb-0.5 flex items-center gap-1"><FiMapPin className="w-3 h-3"/> Location</div>
+                                              <div className="text-xs font-medium text-gray-900">{providerProfile.city || candidateUser.city}</div>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* Recent Work Experience */}
+                                        {providerProfile.previousExperience && providerProfile.previousExperience.length > 0 && (
+                                          <div className="md:col-span-2">
+                                            <div className="text-[10px] font-bold text-gray-500 uppercase mb-1.5">Recent Experience</div>
+                                            {providerProfile.previousExperience.slice(0, 2).map((exp, i) => (
+                                              <div key={i} className="mb-2 last:mb-0">
+                                                <div className="text-xs font-bold text-gray-900">{exp.role} <span className="font-normal text-gray-500">at</span> {exp.company}</div>
+                                                {exp.duration && <div className="text-[10px] text-gray-500">{exp.duration}</div>}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
                                     
-                                    <div className="mt-4 flex gap-3">
-                                      <button className="text-indigo-600 text-xs font-bold hover:underline">View Full Profile</button>
-                                      <button className="text-gray-500 text-xs font-bold hover:underline">Download Resume</button>
+                                    <div className="mt-4 pt-4 border-t border-gray-50 flex gap-3">
+                                      <button onClick={() => setSelectedCandidate(candidateInfo)} className="text-indigo-600 text-xs font-bold hover:underline">View Full Profile & Resume</button>
                                     </div>
                                   </div>
 
@@ -191,6 +264,13 @@ const TalentPool = () => {
           </div>
         )}
       </div>
+
+      <CandidateProfileModal
+        isOpen={!!selectedCandidate}
+        onClose={() => setSelectedCandidate(null)}
+        candidateProfile={selectedCandidate?.providerProfile}
+        candidateUser={selectedCandidate?.providerProfile?.user}
+      />
     </div>
   );
 };

@@ -10,39 +10,6 @@ import {
 } from 'lucide-react';
 
 
-// Mock Data for Top Talent - matching the image exactly
-const TOP_TALENT = [
-  { 
-    id: 1, initials: 'KR', name: 'KL Rahul', role: 'Bookkeeping', exp: '3 years',
-    rating: 5.0, reviews: 56, badges: ['Noida'], tags: ['Bookkeeping', 'Excel', 'Litmus'],
-    rate: '₹500', hasWhatsApp: true, avatarBg: 'bg-blue-100 text-blue-700',
-    available: true
-  },
-  { 
-    id: 2, initials: 'MJ', name: 'Manoj Joshi', role: 'Bookkeeping', exp: '5 years',
-    rating: 4.8, reviews: 201, badges: ['Noida'], tags: ['Bookkeeping', 'Excel', 'Litmus'],
-    rate: '₹500', hasWhatsApp: false, avatarBg: 'bg-amber-100 text-amber-700',
-    available: true
-  },
-  { 
-    id: 3, initials: 'AS', name: 'Amit Singh', role: 'Bookkeeping', exp: '4 years',
-    rating: 5.0, reviews: 50, badges: ['Noida'], tags: ['Bookkeeping', 'Excel', 'Litmus'],
-    rate: '₹500', hasWhatsApp: true, avatarBg: 'bg-green-100 text-green-700',
-    available: true
-  },
-  { 
-    id: 4, initials: 'PG', name: 'Priya Gupta', role: 'Bookkeeping', exp: '5 years',
-    rating: 5.0, reviews: 60, badges: ['Noida'], tags: ['Bookkeeping', 'Excel', 'Litmus'],
-    rate: '₹500', hasWhatsApp: false, avatarBg: 'bg-purple-100 text-purple-700',
-    available: true
-  },
-  { 
-    id: 5, initials: 'RS', name: 'Ravi Sharma', role: 'Bookkeeping', exp: '5 years',
-    rating: 5.0, reviews: 50, badges: ['Noida'], tags: ['Bookkeeping', 'Excel', 'Litmus'],
-    rate: '₹500', hasWhatsApp: true, avatarBg: 'bg-rose-100 text-rose-700',
-    available: true
-  },
-];
 
 // Company logo component for Live Jobs
 const CompanyLogo = ({ company, className = '' }) => {
@@ -158,6 +125,8 @@ export default function LandingPage() {
       });
     }
   };
+
+  const displayTalent = topTalent;
 
   return (
     <div className="w-full bg-white font-sans text-gray-900 overflow-hidden">
@@ -402,7 +371,7 @@ export default function LandingPage() {
               </button>
 
               <div ref={carouselRef} className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar scroll-smooth px-1">
-                {topTalent.map(candidate => (
+                {displayTalent.map(candidate => (
                   <div key={candidate._id} className="min-w-[240px] sm:min-w-[260px] bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex-shrink-0 flex flex-col">
                     
                     {/* Availability Badge */}
@@ -452,30 +421,42 @@ export default function LandingPage() {
                         ₹{candidate.hourlyRate || 'Negotiable'}<span className="text-xs font-normal text-gray-400">/hr</span>
                       </div>
 
-                      {/* WhatsApp + Call Now Buttons */}
+                      {/* Action Buttons */}
                       <div className="flex gap-2">
-                        <button 
-                          onClick={() => {
-                            if (candidate.user?.whatsappNumber) {
-                              window.open(`https://wa.me/${candidate.user.whatsappNumber}`, '_blank');
-                            }
-                          }}
-                          className="flex-1 py-2 rounded-lg border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors text-xs flex items-center justify-center gap-1.5"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                          WhatsApp
-                        </button>
-                        <button 
-                          onClick={() => {
-                            if (candidate.user?.whatsappNumber) {
-                              window.open(`tel:${candidate.user.whatsappNumber}`);
-                            }
-                          }}
-                          className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors text-xs flex items-center justify-center gap-1.5"
-                        >
-                          <Phone className="w-3.5 h-3.5" />
-                          Call Now
-                        </button>
+                        {candidate.hasWhatsApp ? (
+                          <>
+                            <button 
+                              onClick={() => {
+                                if (candidate.user?.whatsappNumber) {
+                                  window.open(`https://wa.me/${candidate.user.whatsappNumber}`, '_blank');
+                                }
+                              }}
+                              className="flex-1 py-2 rounded-lg border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors text-xs flex items-center justify-center gap-1.5"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                              WhatsApp
+                            </button>
+                            <button 
+                              onClick={() => {
+                                if (candidate.user?.whatsappNumber) {
+                                  window.open(`tel:${candidate.user.whatsappNumber}`);
+                                }
+                              }}
+                              className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors text-xs flex items-center justify-center gap-1.5"
+                            >
+                              <Phone className="w-3.5 h-3.5" />
+                              Call Now
+                            </button>
+                          </>
+                        ) : (
+                          <button 
+                            onClick={() => navigate(`/search?query=${encodeURIComponent(candidate.primaryRole || '')}`)}
+                            className="flex-1 py-2 rounded-lg bg-gray-100 text-gray-600 font-semibold hover:bg-gray-200 transition-colors text-xs flex items-center justify-center gap-1.5"
+                          >
+                            <ArrowRight className="w-3.5 h-3.5" />
+                            View Profile
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -483,7 +464,7 @@ export default function LandingPage() {
               </div>
 
               {/* View All Button */}
-              {topTalent.length > 0 && (
+              {displayTalent.length > 0 && (
                 <div className="mt-8 flex justify-center">
                   <button 
                     onClick={() => navigate('/top-talent')}
@@ -505,7 +486,7 @@ export default function LandingPage() {
 
             {/* Carousel dots */}
             <div className="flex justify-center mt-4 gap-1.5">
-              {TOP_TALENT.map((_, i) => (
+              {displayTalent.map((_, i) => (
                 <div key={i} className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
               ))}
             </div>
