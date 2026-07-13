@@ -208,10 +208,10 @@ const Support = () => {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full">
         
         {/* Chat Header */}
-        <div className="p-5 border-b border-gray-100 bg-linear-to-r from-indigo-50 to-white shrink-0">
+        <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-white shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
                 <HiSparkles className="w-6 h-6" />
               </div>
               <div>
@@ -245,7 +245,7 @@ const Support = () => {
                 
                 {/* Avatar */}
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mb-1 ${
-                  msg.sender === 'user' ? 'bg-indigo-600' : 'bg-gray-200'
+                  msg.sender === 'user' ? 'bg-emerald-600' : 'bg-gray-200'
                 }`}>
                   {msg.sender === 'user' ? (
                     <span className="text-white text-xs font-bold">{user?.name?.charAt(0) || 'U'}</span>
@@ -257,7 +257,7 @@ const Support = () => {
                 {/* Message Bubble */}
                 <div className={`px-4 py-3 rounded-2xl ${
                   msg.sender === 'user' 
-                    ? 'bg-indigo-600 text-white rounded-br-none' 
+                    ? 'bg-emerald-600 text-white rounded-br-none' 
                     : msg.isSolution 
                       ? 'bg-emerald-50 border border-emerald-100 text-emerald-900 rounded-bl-none shadow-sm' 
                       : 'bg-white border border-gray-100 text-gray-800 rounded-bl-none shadow-sm'
@@ -293,9 +293,9 @@ const Support = () => {
           <div className="flex w-full justify-start ml-10">
             {step === 'SELECT_TYPE' && (
               <div className="flex flex-wrap gap-2 mt-2">
-                <button onClick={() => handleTypeSelection('profile')} className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium hover:bg-indigo-100 transition-colors border border-indigo-100">Profile Issue</button>
-                <button onClick={() => handleTypeSelection('job')} className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium hover:bg-indigo-100 transition-colors border border-indigo-100">Job Issue</button>
-                <button onClick={() => handleTypeSelection('payment')} className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium hover:bg-indigo-100 transition-colors border border-indigo-100">Payment Issue</button>
+                <button onClick={() => handleTypeSelection('profile')} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-100 transition-colors border border-emerald-100">Profile Issue</button>
+                <button onClick={() => handleTypeSelection('job')} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-100 transition-colors border border-emerald-100">Job Issue</button>
+                <button onClick={() => handleTypeSelection('payment')} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-100 transition-colors border border-emerald-100">Payment Issue</button>
               </div>
             )}
             
@@ -305,7 +305,7 @@ const Support = () => {
                   <button 
                     key={issue.id} 
                     onClick={() => handlePredefinedSelection(issue)}
-                    className="w-full text-left px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-colors shadow-sm"
+                    className="w-full text-left px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-colors shadow-sm"
                   >
                     {issue.title}
                   </button>
@@ -342,12 +342,12 @@ const Support = () => {
               onChange={(e) => setInputValue(e.target.value)}
               disabled={step !== 'TYPE_ISSUE'}
               placeholder={step === 'TYPE_ISSUE' ? "Type your issue here..." : "Please select an option above..."}
-              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-hidden disabled:bg-gray-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-hidden disabled:bg-gray-50 disabled:cursor-not-allowed"
             />
             <button
               type="submit"
               disabled={!inputValue.trim() || step !== 'TYPE_ISSUE'}
-              className="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white rounded-xl flex items-center justify-center shrink-0 transition-colors"
+              className="w-12 h-12 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white rounded-xl flex items-center justify-center shrink-0 transition-colors"
             >
               <HiPaperAirplane className="w-5 h-5 rotate-90" />
             </button>

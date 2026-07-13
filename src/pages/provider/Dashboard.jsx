@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 
-const DASHBOARD_CACHE_TTL = 60 * 1000;
+const DASHBOARD_CACHE_TTL = 0; // Disable cache so count updates immediately
 const dashboardCache = {
   data: null,
   ts: 0,
@@ -31,6 +31,7 @@ const ProviderDashboard = () => {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [topJobs, setTopJobs] = useState([]);
+  const [topJobsCount, setTopJobsCount] = useState(0);
 
   // AI-08: Income Opportunities
   const [incomeLoading, setIncomeLoading] = useState(true);
@@ -61,7 +62,8 @@ const ProviderDashboard = () => {
       setDashboard(dashboardCache.data);
     }
     if (matchesCache.data) {
-      setTopJobs(matchesCache.data);
+      setTopJobs(matchesCache.data.data);
+      setTopJobsCount(matchesCache.data.totalCount || matchesCache.data.data?.length || 0);
     }
 
     if (dashboardFresh && matchesFresh) {
@@ -78,8 +80,8 @@ const ProviderDashboard = () => {
       : (dashboardCache.inflight ||= providerAPI.getDashboard());
 
     const matchesPromise = matchesFresh
-      ? Promise.resolve({ data: { success: true, data: matchesCache.data } })
-      : (matchesCache.inflight ||= providerAPI.getMatches().catch(() => ({ data: { data: [] } })));
+      ? Promise.resolve({ data: { success: true, data: matchesCache.data.data, totalCount: matchesCache.data.totalCount } })
+      : (matchesCache.inflight ||= providerAPI.getMatches().catch(() => ({ data: { data: [], totalCount: 0 } })));
 
     try {
       const [dashboardRes, matchesRes] = await Promise.all([
@@ -89,15 +91,17 @@ const ProviderDashboard = () => {
 
       const dashboardData = dashboardRes.data;
       const matchesData = matchesRes.data?.data || [];
+      const matchesTotalCount = matchesRes.data?.totalCount || matchesData.length;
 
       dashboardCache.data = dashboardData;
       dashboardCache.ts = Date.now();
-      matchesCache.data = matchesData;
+      matchesCache.data = { data: matchesData, totalCount: matchesTotalCount };
       matchesCache.ts = Date.now();
 
       setDashboard(dashboardData);
       if (matchesRes.data?.success) {
         setTopJobs(matchesData);
+        setTopJobsCount(matchesTotalCount);
       }
     } catch (err) {
       if (err.response?.status !== 404) {
@@ -140,9 +144,9 @@ const ProviderDashboard = () => {
   const stats = dashboard?.stats || {};
   const isProfileEmpty = !profile.city && !profile.skills?.length;
   const profileCompletion = stats.profileCompletion || 60; // Mock default if missing
-  const activeJobsCount = stats.availableJobs || 147;
-  const freelanceCount = 23; // Mocked to match design
-  const resumeScore = 78; // Mocked to match design
+  const activeJobsCount = topJobsCount || 0;
+  const freelanceCount = 0;
+  const resumeScore = stats.resumeScore || 0;
 
   if (loading) return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
@@ -217,7 +221,13 @@ const ProviderDashboard = () => {
               <div>
                 <span className="text-sm font-semibold text-gray-700">Resume Score</span>
                 <div className="text-3xl font-bold text-gray-900 mt-2 mb-1">{resumeScore}<span className="text-sm text-gray-400 font-semibold">/100</span></div>
-                <div className="text-[11px] text-teal-700 font-semibold bg-teal-50 px-2 py-0.5 rounded inline-block mt-1">Good - Needs Improvement</div>
+                <div className={`text-[11px] font-semibold px-2 py-0.5 rounded inline-block mt-1 ${
+                  resumeScore >= 80 ? 'text-green-700 bg-green-50' :
+                  resumeScore >= 60 ? 'text-teal-700 bg-teal-50' :
+                  'text-orange-700 bg-orange-50'
+                }`}>
+                  {resumeScore >= 80 ? 'Excellent' : resumeScore >= 60 ? 'Good - Needs Improvement' : 'Needs Improvement'}
+                </div>
               </div>
               <div className="w-16 h-16 shrink-0 relative">
                 <CircularProgressbar 
@@ -294,103 +304,76 @@ const ProviderDashboard = () => {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-3">
                 Top Matching Jobs for You
-                <span className="text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-100 px-2 py-1 rounded-full flex items-center gap-1">
-                  <RefreshCcw className="w-3 h-3" /> Refreshed just now
-                </span>
+                <button onClick={() => loadDashboard(true)} className="text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-100 px-2 py-1 rounded-full flex items-center gap-1 hover:bg-teal-100 transition-colors">
+                    <RefreshCcw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} /> {loading ? 'Refreshing...' : 'Refresh Matches'}
+                </button>
               </h2>
               <Link to="/provider/job-for-me" className="text-sm font-bold text-teal-700 hover:underline flex items-center gap-1">
                 View All Jobs <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
             
-            <div className="space-y-4">
-              {[
-                {
-                  role: 'UI/UX Designer',
-                  company: 'Google',
-                  location: 'Bengaluru, Karnataka',
-                  mode: 'Remote',
-                  salary: '₹12 - 18 LPA',
-                  tags: ['Figma', 'UI Design', 'Prototyping', '+3'],
-                  match: 92,
-                  matchText: 'Excellent Match',
-                  logo: 'G',
-                  color: 'bg-white',
-                  text: 'text-red-500',
-                  iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg'
-                },
-                {
-                  role: 'Product Designer',
-                  company: 'Microsoft',
-                  location: 'Hyderabad, Telangana',
-                  mode: 'Hybrid',
-                  salary: '₹10 - 16 LPA',
-                  tags: ['Product Design', 'User Research', 'Wireframing', '+2'],
-                  match: 89,
-                  matchText: 'Great Match',
-                  logo: 'M',
-                  color: 'bg-white',
-                  text: 'text-blue-500',
-                  iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg'
-                },
-                {
-                  role: 'UX Designer',
-                  company: 'TCS',
-                  location: 'Pune, Maharashtra',
-                  mode: 'On-site',
-                  salary: '₹6 - 10 LPA',
-                  tags: ['UX Design', 'Information Architecture', '+2'],
-                  match: 84,
-                  matchText: 'Good Match',
-                  logo: 'tcs',
-                  color: 'bg-white',
-                  text: 'text-purple-600',
-                  textLogo: true
-                }
-              ].map((job, idx) => (
-                <div key={idx} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-md transition-shadow">
-                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                    <div className="flex gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shadow-sm border border-gray-100 ${job.color} ${job.text}`}>
-                        {job.iconUrl ? <img src={job.iconUrl} alt={job.company} className="w-7 h-7" /> : (job.textLogo ? <span className="text-rose-500 italic tracking-tighter">tcs</span> : job.logo)}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-base">{job.role}</h3>
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1.5 font-medium">
-                          <span className="text-blue-600 flex items-center gap-1">{job.company} <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /></span>
-                          <span className="text-gray-300">•</span>
-                          <span>{job.location}</span>
-                          <span className="text-gray-300 hidden sm:inline">•</span>
-                          <span className="text-gray-600">{job.mode}</span>
+              <div className="space-y-4">
+                {topJobs.length > 0 ? topJobs.slice(0, 3).map((job, idx) => {
+                  const role = job.title || 'Professional';
+                  const company = job.company || 'Company';
+                  const location = job.city || job.location?.city || 'Remote';
+                  const mode = job.workMode || 'Flexible';
+                  const salary = job.budgetMin ? `₹${job.budgetMin} - ${job.budgetMax} ${job.budgetType === 'yearly' ? 'LPA' : '/mo'}` : 'Not specified';
+                  const tags = job.skills || [];
+                  const displayedTags = tags.slice(0, 3);
+                  const extraTags = tags.length > 3 ? tags.length - 3 : 0;
+                  
+                  return (
+                    <div key={job._id || idx} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-md transition-shadow">
+                      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                        <div className="flex gap-4">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shadow-sm border border-gray-100 bg-gray-50 text-gray-700`}>
+                            {company.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <Link to="/provider/job-for-me" className="font-bold text-gray-900 text-base hover:text-teal-600 transition-colors">{role}</Link>
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1.5 font-medium">
+                              <span className="text-blue-600 flex items-center gap-1">{company} <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /></span>
+                              <span className="text-gray-300">•</span>
+                              <span>{location}</span>
+                              <span className="text-gray-300 hidden sm:inline">•</span>
+                              <span className="text-gray-600">{mode}</span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 mt-3">
+                              <span className="font-bold text-gray-700 text-sm">{salary}</span>
+                              <div className="flex gap-1.5">
+                                {displayedTags.map((tag, i) => (
+                                  <span key={i} className="bg-gray-50 text-gray-500 border border-gray-100 px-2.5 py-1 rounded-md text-[10px] font-bold">{tag}</span>
+                                ))}
+                                {extraTags > 0 && <span className="bg-gray-50 text-gray-500 border border-gray-100 px-2.5 py-1 rounded-md text-[10px] font-bold">+{extraTags}</span>}
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-3 mt-3">
-                          <span className="font-bold text-gray-700 text-sm">{job.salary}</span>
-                          <div className="flex gap-1.5">
-                            {job.tags.map(tag => (
-                              <span key={tag} className="bg-gray-50 text-gray-500 border border-gray-100 px-2.5 py-1 rounded-md text-[10px] font-bold">{tag}</span>
-                            ))}
+                        
+                        <div className="flex sm:flex-col items-center sm:items-end justify-between h-full space-y-0 sm:space-y-4 w-full sm:w-auto mt-2 sm:mt-0">
+                          <div className="text-left sm:text-right">
+                            <div className="text-teal-700 font-extrabold text-sm">95% Match</div>
+                            <div className="text-teal-600/70 text-[11px] font-bold mt-0.5">Great Match</div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button className="text-gray-300 hover:text-gray-500 transition-colors">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                            </button>
+                            <Link to="/provider/job-for-me" className="bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm inline-block text-center">
+                              View Job
+                            </Link>
                           </div>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between h-full space-y-0 sm:space-y-4 w-full sm:w-auto mt-2 sm:mt-0">
-                      <div className="text-left sm:text-right">
-                        <div className="text-teal-700 font-extrabold text-sm">{job.match}% Match</div>
-                        <div className="text-teal-600/70 text-[11px] font-bold mt-0.5">{job.matchText}</div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <button className="text-gray-300 hover:text-gray-500 transition-colors">
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                        </button>
-                        <button className="bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm">
-                          View Job
-                        </button>
-                      </div>
-                    </div>
+                  );
+                }) : (
+                  <div className="p-8 text-center bg-gray-50 rounded-xl border border-gray-100 border-dashed">
+                    <p className="text-gray-500 text-sm font-medium">No matching jobs found right now.</p>
                   </div>
-                </div>
-              ))}
+                  )}
               
               <div className="text-center pt-2 pb-6">
                 <Link to="/provider/job-for-me" className="text-teal-700 font-bold text-sm hover:underline flex items-center justify-center gap-1.5">

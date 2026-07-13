@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail, HiLockClosed, HiPlusCircle, HiCreditCard, HiUserAdd, HiSparkles
+  HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail, HiLockClosed, HiPlusCircle, HiCreditCard, HiUserAdd, HiSparkles, HiClipboardList
 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../common/NotificationBell';
 import LanguageDropdown from '../LanguageDropdown';
 import useTranslation from '../../hooks/useTranslation';
 import { getCurrentSubscription } from '../../services/providerPlanService';
+import AICoachModal from './AICoachModal';
 
 const navItems = [
   { label: 'Dashboard', fallback: 'Dashboard', path: '/provider/dashboard',      icon: HiTrendingUp },
   { label: 'Profile', fallback: 'Profile', path: '/provider/profile',        icon: HiCog },
   { 
-    label: 'AI Report', 
-    fallback: 'AI Report', 
+    label: 'Career Health', 
+    fallback: 'Career Health', 
     path: '/provider/career-health',
     icon: HiTrendingUp,
   },
@@ -31,6 +32,7 @@ const navItems = [
     icon: HiSparkles,
   },
   { label: 'Jobs for Me', fallback: 'Jobs for Me', path: '/provider/job-for-me',icon: HiBriefcase },
+  { label: 'Applied Jobs', fallback: 'Applied Jobs', path: '/provider/applied-jobs', icon: HiClipboardList },
   { label: 'My Plan', fallback: 'My Plan', path: '/provider/my-plan',          icon: HiPhone },
   { label: 'Refer & Earn', fallback: 'Refer & Earn', path: '/provider/referrals', icon: HiPlusCircle },
   { label: 'Add Member', fallback: 'Add Member', path: '/provider/add-member', icon: HiUserAdd },
@@ -64,7 +66,7 @@ const ProviderLayout = ({ children }) => {
   const displayedNavItems = impersonatorRestriction === 'payment' 
     ? navItems.filter(item => ['/provider/payout-settings', '/provider/wallet', '/provider/my-plan'].includes(item.path))
     : impersonatorRestriction === 'manager_support'
-      ? navItems.filter(item => item.path === '/provider/profile' || item.path === '/provider/job-for-me')
+      ? navItems.filter(item => item.path === '/provider/profile' || item.path === '/provider/job-for-me' || item.path === '/provider/applied-jobs')
       : navItems;
       
   const handleRestoreSession = () => {
@@ -136,7 +138,7 @@ const ProviderLayout = ({ children }) => {
     <div className="flex flex-col h-full">
       {/* Brand */}
       <div className={`flex items-center px-4 py-5 border-b border-gray-100 ${collapsed ? 'justify-center' : 'space-x-3'}`}>
-        <div className="w-8 h-8 bg-linear-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
+        <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shrink-0">
           <HiTrendingUp className="text-white w-4 h-4" />
         </div>
         {!collapsed && (
@@ -170,7 +172,7 @@ const ProviderLayout = ({ children }) => {
                   title={collapsed ? label : undefined}
                   className={`flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all group
                     ${active && !subItems
-                      ? 'bg-indigo-600 text-white shadow-sm'
+                      ? 'bg-emerald-600 text-white shadow-sm'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }
                     ${collapsed ? 'justify-center' : 'space-x-3'}
@@ -201,7 +203,7 @@ const ProviderLayout = ({ children }) => {
                         to={sub.path}
                         onClick={onNavClick}
                         className={`text-xs px-3 py-2 rounded-md font-medium transition-colors ${
-                          subActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                          subActive ? 'bg-emerald-100 text-emerald-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                         }`}
                       >
                         {t(sub.label, sub.fallback)}
@@ -272,11 +274,11 @@ const ProviderLayout = ({ children }) => {
           )}
 
           {!isImpersonating && (
-            <div className="bg-[#081B3A] text-white px-6 py-4 flex items-center justify-between shadow-xs select-none">
+            <div className="bg-emerald-950 text-white px-6 py-4 flex items-center justify-between shadow-xs select-none">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Provider Panel</span>
                 <span className="text-slate-500 text-xs">/</span>
-                <span className="text-sm font-extrabold text-blue-400 tracking-wide">
+                <span className="text-sm font-extrabold text-teal-400 tracking-wide">
                   {(() => {
                     const currentNav = navItems.find(item => location.pathname === item.path) || 
                                        navItems.find(item => location.pathname.startsWith(item.path));
@@ -293,6 +295,7 @@ const ProviderLayout = ({ children }) => {
           <main className="flex-1 overflow-auto p-0">
             {children}
           </main>
+          <AICoachModal role="provider" />
         </div>
       </div>
     </div>

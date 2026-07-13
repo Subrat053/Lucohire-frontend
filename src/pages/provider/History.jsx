@@ -5,10 +5,10 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 
 const typeConfig = {
-  profile_view: { label: 'Profile View', icon: HiEye, color: 'bg-blue-100 text-blue-600' },
+  profile_view: { label: 'Profile View', icon: HiEye, color: 'bg-teal-100 text-teal-600' },
   search: { label: 'Search Appearance', icon: HiSearch, color: 'bg-amber-100 text-amber-600' },
   contact_unlock: { label: 'Contact Unlocked', icon: HiLockOpen, color: 'bg-green-100 text-green-600' },
-  job_match: { label: 'Job Match', icon: HiClock, color: 'bg-purple-100 text-purple-600' },
+  job_match: { label: 'Job Match', icon: HiClock, color: 'bg-teal-100 text-teal-600' },
 };
 
 const ProviderHistory = () => {
@@ -38,7 +38,7 @@ const ProviderHistory = () => {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Activity History</h1>
         <select value={filter} onChange={(e) => setFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-400">
+          className="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-teal-400">
           <option value="">All Activity</option>
           <option value="profile_view">Profile Views</option>
           <option value="contact_unlock">Contact Unlocks</option>

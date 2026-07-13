@@ -72,8 +72,8 @@ const ChangePassword = () => {
   return (
     <div className="max-w-2xl mx-auto py-8 px-4 lg:mt-9">
       <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-         <div className="bg-[#081028] p-8 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/20 rounded-full blur-3xl -mr-16 -mt-16" />
+         <div className="bg-emerald-950 p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl -mr-16 -mt-16" />
           <div className="relative z-10">
             <h2 className="text-2xl font-black">Change Password</h2>
             <p className="text-slate-400 text-sm mt-1">Update your account security settings</p>
@@ -88,7 +88,7 @@ const ChangePassword = () => {
             </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                <HiLockClosed className="h-5 w-5 text-slate-400 group-focus-within:text-violet-600 transition-colors" />
+                <HiLockClosed className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
               </div>
               <input
                 name="newPassword"
@@ -96,13 +96,13 @@ const ChangePassword = () => {
                 required
                 value={formData.newPassword}
                 onChange={handleChange}
-                className="block w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-violet-100 focus:border-violet-500 transition-all outline-none font-medium text-slate-900"
+                className="block w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none font-medium text-slate-900"
                 placeholder="Enter new password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-violet-600"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-emerald-600"
               >
                 {showPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
               </button>
@@ -134,7 +134,7 @@ const ChangePassword = () => {
             </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                <HiLockClosed className="h-5 w-5 text-slate-400 group-focus-within:text-violet-600 transition-colors" />
+                <HiLockClosed className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
               </div>
               <input
                 name="confirmPassword"
@@ -142,7 +142,7 @@ const ChangePassword = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="block w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-violet-100 focus:border-violet-500 transition-all outline-none font-medium text-slate-900"
+                className="block w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none font-medium text-slate-900"
                 placeholder="Confirm new password"
               />
             </div>
@@ -152,7 +152,7 @@ const ChangePassword = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-16 bg-linear-to-r from-violet-600 to-indigo-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-violet-200 hover:shadow-violet-300 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full h-16 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-emerald-200 hover:shadow-emerald-300 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
               {loading ? (
                 <div className="w-6 h-6 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />

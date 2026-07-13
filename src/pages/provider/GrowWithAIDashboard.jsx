@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { 
-  HiLockClosed, HiSparkles, HiBriefcase, HiTrendingUp, HiExclamationCircle, HiCheckCircle, HiArrowRight, HiDocumentSearch, HiOutlineDocumentSearch, HiCheck, HiOutlineExclamationCircle, HiExclamation
-} from 'react-icons/hi';
+  Lock, Sparkles, Briefcase, TrendingUp, AlertCircle, CheckCircle2, ArrowRight, FileSearch, Search, Check, Info, Bot, MapPin, Heart, ChevronRight, Bookmark
+} from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { getCareerGPS, getHiringBarriers, getSkillGap, getAtsOptimizer, getAiUsage, improveCareerGPS, improveHiringBarriers, improveSkillGap } from '../../services/providerAIService';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 
 export default function GrowWithAIDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [activeTab, setActiveTab] = useState('gps'); // 'gps' or 'barriers'
+  const [activeTab, setActiveTab] = useState('gps'); // 'gps' or 'barriers' or 'skillgap' or 'ats'
   
   const [gpsLoading, setGpsLoading] = useState(true);
   const [gpsData, setGpsData] = useState(null);
@@ -58,7 +61,6 @@ export default function GrowWithAIDashboard() {
       
       const { data } = await getCareerGPS({ fileHash, parsedData });
       if (data.success) {
-        console.log("=== GPS Data from OpenAI ===", data.data);
         setGpsData(data.data);
         setGpsLocked(false);
         if (fileHash) localStorage.setItem('lastResumeHash', fileHash);
@@ -81,7 +83,6 @@ export default function GrowWithAIDashboard() {
       
       const { data } = await getHiringBarriers({ fileHash, parsedData });
       if (data.success) {
-        console.log("=== Hiring Barriers from OpenAI ===", data.data);
         setBarriersData(data.data);
         setBarriersLocked(false);
       }
@@ -94,21 +95,16 @@ export default function GrowWithAIDashboard() {
 
   if (errorMessage) {
     return (
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-xs">
-          <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <HiSparkles className="w-10 h-10 text-indigo-500" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Grow with AI</h2>
-          <p className="text-gray-500 mb-8 max-w-md mx-auto">
-            {errorMessage}
-          </p>
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center mt-10">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-red-800 mb-2">Grow with AI</h2>
+          <p className="text-red-600 mb-6 max-w-md mx-auto">{errorMessage}</p>
           <Link
             to="/provider/profile"
-            className="inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+            className="inline-flex items-center px-6 py-3 bg-[#0f766e] hover:bg-teal-800 text-white font-bold rounded-xl transition-colors gap-2"
           >
-            <span>Go to Profile</span>
-            <HiArrowRight className="w-5 h-5" />
+            Go to Profile <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
       </div>
@@ -116,136 +112,13 @@ export default function GrowWithAIDashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#081B3A] p-8 rounded-3xl text-white shadow-xl">
-        <div className="flex items-center space-x-5">
-          <HiSparkles className="w-10 h-10 text-blue-400" />
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Grow with AI</h1>
-            <p className="text-slate-400 mt-1 text-sm md:text-base font-medium">
-              Data-driven insights to accelerate your career trajectory.
-            </p>
-          </div>
-        </div>
-
-        {/* Generate Improved Insights Button */}
-        <div className="flex flex-col items-end">
-          <button
-            onClick={async () => {
-              if (activeTab === 'gps') {
-                try {
-                  setGpsLoading(true);
-                  const { data } = await improveCareerGPS({ fileHash, parsedData, improve: true });
-                  if (data.success) {
-                    setGpsData(data.data);
-                    toast.success("Career GPS Insights updated!");
-                    fetchUsage(); // update limits
-                  }
-                } catch (err) {
-                  toast.error("Failed to improve insights");
-                } finally {
-                  setGpsLoading(false);
-                }
-              } else if (activeTab === 'barriers') {
-                try {
-                  setBarriersLoading(true);
-                  const { data } = await improveHiringBarriers({ fileHash, parsedData, improve: true });
-                  if (data.success) {
-                    setBarriersData(data.data);
-                    toast.success("Hiring Barriers updated!");
-                    fetchUsage(); // update limits
-                  }
-                } catch (err) {
-                  toast.error("Failed to improve insights");
-                } finally {
-                  setBarriersLoading(false);
-                }
-              }
-            }}
-            disabled={gpsLoading || barriersLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
-          >
-            <HiSparkles className="w-5 h-5" />
-            <span>Generate Improved Insights</span>
-          </button>
-          {!usageLoading && (
-            <span className="text-xs text-slate-300 mt-2">
-              {activeTab === 'gps' ? 'Uses 1 Career GPS Limit' : 'Uses 1 Hiring Barriers Limit'}
-              {(() => {
-                const feature = activeTab === 'gps' ? 'careerGps' : 'whyNotHired';
-                const limit = aiUsage.limits[feature] || 0;
-                const used = aiUsage.usage[feature] || 0;
-                if (limit === -1) return ' (Unlimited)';
-                if (limit === 0) return ' (Not included)';
-                return ` (${Math.max(0, limit - used)} left)`;
-              })()}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex space-x-4 border-b border-gray-200">
-        <button
-          onClick={() => setActiveTab('gps')}
-          className={`pb-4 px-2 font-medium text-sm border-b-2 transition-colors ${
-            activeTab === 'gps' 
-              ? 'border-indigo-600 text-indigo-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <div className="flex items-center space-x-2">
-            <HiTrendingUp className="w-5 h-5" />
-            <span>AI Career GPS</span>
-          </div>
-        </button>
-        <button
-          onClick={() => setActiveTab('barriers')}
-          className={`pb-4 px-2 font-medium text-sm border-b-2 transition-colors ${
-            activeTab === 'barriers' 
-              ? 'border-indigo-600 text-indigo-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <div className="flex items-center space-x-2">
-            <HiExclamationCircle className="w-5 h-5" />
-            <span>Why Am I Not Getting Hired?</span>
-          </div>
-        </button>
-        <button
-          onClick={() => setActiveTab('skillgap')}
-          className={`pb-4 px-2 font-medium text-sm border-b-2 transition-colors ${
-            activeTab === 'skillgap' 
-              ? 'border-indigo-600 text-indigo-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <div className="flex items-center space-x-2">
-            <HiDocumentSearch className="w-5 h-5" />
-            <span>Test Skill Gap Report</span>
-          </div>
-        </button>
-        <button
-          onClick={() => setActiveTab('ats')}
-          className={`pb-4 px-2 font-medium text-sm border-b-2 transition-colors ${
-            activeTab === 'ats' 
-              ? 'border-indigo-600 text-indigo-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <div className="flex items-center space-x-2">
-            <HiOutlineDocumentSearch className="w-5 h-5" />
-            <span>ATS Optimizer</span>
-          </div>
-        </button>
-      </div>
-
+    <div className="w-full p-4 md:p-6 lg:p-8 space-y-8 pb-20 relative">
+      
       {/* Usage Banner */}
       {!usageLoading && (
-        <div className="bg-indigo-50/50 border-b border-indigo-100 px-6 py-3 flex items-center justify-between">
+        <div className="bg-indigo-50/50 border border-indigo-100 px-6 py-3 rounded-2xl flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <HiSparkles className="w-4 h-4 text-indigo-600" />
+            <Sparkles className="w-4 h-4 text-indigo-600" />
             <span className="text-sm font-medium text-indigo-900">
               {activeTab === 'gps' && 'Career GPS Limit: '}
               {activeTab === 'barriers' && 'Why Not Hired Limit: '}
@@ -257,9 +130,9 @@ export default function GrowWithAIDashboard() {
                 const key = map[activeTab];
                 const limit = aiUsage.limits[key] || 0;
                 const used = aiUsage.usage[key] || 0;
-                if (limit === -1) return <span className="font-bold text-indigo-700">Unlimited</span>;
-                if (limit === 0) return <span className="font-bold text-red-600">Not included in plan</span>;
-                return <span className="font-bold text-indigo-700">{Math.max(0, limit - used)} / {limit} requests remaining</span>;
+                if (limit === -1) return <span className="font-bold text-indigo-700 ml-1">Unlimited</span>;
+                if (limit === 0) return <span className="font-bold text-red-600 ml-1">Not included in plan</span>;
+                return <span className="font-bold text-indigo-700 ml-1">{Math.max(0, limit - used)} / {limit} requests remaining</span>;
               })()}
             </span>
           </div>
@@ -269,213 +142,338 @@ export default function GrowWithAIDashboard() {
         </div>
       )}
 
-      {/* Tab Content */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden relative">
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         
-        {/* UI Block Overlay */}
-        {!usageLoading && (() => {
-          const map = { gps: 'careerGps', barriers: 'whyNotHired', skillgap: 'skillGapReport', ats: 'atsScore' };
-          const key = map[activeTab];
-          const limit = aiUsage.limits[key] || 0;
-          const used = aiUsage.usage[key] || 0;
+        {/* Left Main Content */}
+        <div className="lg:col-span-3 space-y-6">
           
-          if (limit !== -1 && (limit === 0 || used >= limit)) {
-            return (
-              <div className="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
-                  <HiLockClosed className="w-8 h-8" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {limit === 0 ? 'Feature Not Available' : 'Usage Limit Reached'}
-                </h3>
-                <p className="text-gray-500 max-w-md mb-6">
-                  {limit === 0 
-                    ? "Your current plan does not include access to this AI feature. Upgrade your plan to unlock."
-                    : `You have used all ${limit} requests for this feature in the current billing cycle.`}
-                </p>
-                <Link to="/provider/plans" className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
-                  Upgrade Plan
-                </Link>
-              </div>
-            );
-          }
-          return null;
-        })()}
+          {/* Header Section */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                Grow with AI <span className="bg-teal-50 text-teal-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-teal-100">Pro</span>
+              </h1>
+              <p className="text-sm text-gray-500 mt-1 font-medium">Data-driven insights to accelerate your career trajectory.</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={async () => {
+                  if (activeTab === 'gps') {
+                    try {
+                      setGpsLoading(true);
+                      const { data } = await improveCareerGPS({ fileHash, parsedData, improve: true });
+                      if (data.success) {
+                        setGpsData(data.data);
+                        toast.success("Career GPS Insights updated!");
+                        fetchUsage();
+                      }
+                    } catch (err) {
+                      toast.error("Failed to improve insights");
+                    } finally {
+                      setGpsLoading(false);
+                    }
+                  } else if (activeTab === 'barriers') {
+                    try {
+                      setBarriersLoading(true);
+                      const { data } = await improveHiringBarriers({ fileHash, parsedData, improve: true });
+                      if (data.success) {
+                        setBarriersData(data.data);
+                        toast.success("Hiring Barriers updated!");
+                        fetchUsage();
+                      }
+                    } catch (err) {
+                      toast.error("Failed to improve insights");
+                    } finally {
+                      setBarriersLoading(false);
+                    }
+                  }
+                }}
+                disabled={(activeTab === 'gps' && gpsLoading) || (activeTab === 'barriers' && barriersLoading) || activeTab === 'skillgap' || activeTab === 'ats'}
+                className={`bg-[#0f766e] hover:bg-teal-800 text-white px-4 py-2.5 rounded-xl text-[13px] font-bold flex items-center gap-2 shadow-sm transition ${(activeTab === 'skillgap' || activeTab === 'ats') ? 'hidden' : ''} disabled:opacity-50`}
+              >
+                <Sparkles className="w-4 h-4" /> Refresh Insights
+              </button>
+            </div>
+          </div>
 
-        <div className={!usageLoading && (() => {
-          const map = { gps: 'careerGps', barriers: 'whyNotHired', skillgap: 'skillGapReport', ats: 'atsScore' };
-          const key = map[activeTab];
-          const limit = aiUsage.limits[key] || 0;
-          const used = aiUsage.usage[key] || 0;
-          return (limit !== -1 && (limit === 0 || used >= limit)) ? 'opacity-30 pointer-events-none' : '';
-        })() ? 'opacity-30 pointer-events-none' : ''}>
-          {activeTab === 'gps' && (
-            <CareerGPSPanel 
-              loading={gpsLoading} 
-              data={gpsData} 
-              isLocked={gpsLocked} 
-            />
-          )}
-          
-          {activeTab === 'barriers' && (
-            <HiringBarriersPanel 
-              loading={barriersLoading} 
-              data={barriersData} 
-              isLocked={barriersLocked} 
-              gpsData={gpsData}
-            />
-          )}
+          {/* Tabs */}
+          <div className="flex space-x-6 border-b border-gray-100 overflow-x-auto scrollbar-hide pb-0.5">
+            {[
+              { id: 'gps', icon: TrendingUp, label: 'AI Career GPS' },
+              { id: 'barriers', icon: AlertCircle, label: 'Why Am I Not Getting Hired?' },
+              { id: 'skillgap', icon: FileSearch, label: 'Skill Gap Report' },
+              { id: 'ats', icon: Search, label: 'ATS Optimizer' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-3 px-1 text-[13px] font-bold border-b-2 transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+                  activeTab === tab.id 
+                    ? 'border-[#0f766e] text-[#0f766e]' 
+                    : 'border-transparent text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" /> {tab.label}
+              </button>
+            ))}
+          </div>
 
-          {activeTab === 'skillgap' && (
-            <SkillGapPanel 
-              fileHash={fileHash}
-              parsedData={parsedData}
-            />
-          )}
+          {/* Locked State Overlay Logic */}
+          <div className="relative bg-white rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)] min-h-[400px]">
+            {!usageLoading && (() => {
+              const map = { gps: 'careerGps', barriers: 'whyNotHired', skillgap: 'skillGapReport', ats: 'atsScore' };
+              const key = map[activeTab];
+              const limit = aiUsage.limits[key] || 0;
+              const used = aiUsage.usage[key] || 0;
+              
+              if (limit !== -1 && (limit === 0 || used >= limit)) {
+                return (
+                  <div className="absolute inset-0 z-40 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center rounded-2xl">
+                    <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                      <Lock className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {limit === 0 ? 'Feature Not Available' : 'Usage Limit Reached'}
+                    </h3>
+                    <p className="text-gray-500 max-w-md mb-6 font-medium">
+                      {limit === 0 
+                        ? "Your current plan does not include access to this feature. Upgrade to unlock."
+                        : `You have used all ${limit} requests for this feature in the current billing cycle.`}
+                    </p>
+                    <Link to="/provider/plans" className="px-6 py-3 bg-[#0f766e] text-white font-bold rounded-xl hover:bg-teal-800 transition shadow-sm">
+                      Upgrade Plan
+                    </Link>
+                  </div>
+                );
+              }
+              return null;
+            })()}
 
-          {activeTab === 'ats' && (
-            <AtsOptimizerPanel 
-              fileHash={fileHash}
-              parsedData={parsedData}
-            />
-          )}
+            <div className={!usageLoading && (() => {
+              const map = { gps: 'careerGps', barriers: 'whyNotHired', skillgap: 'skillGapReport', ats: 'atsScore' };
+              const key = map[activeTab];
+              const limit = aiUsage.limits[key] || 0;
+              const used = aiUsage.usage[key] || 0;
+              return (limit !== -1 && (limit === 0 || used >= limit)) ? 'opacity-30 pointer-events-none' : '';
+            })() ? 'opacity-30 pointer-events-none' : ''}>
+              
+              {activeTab === 'gps' && <CareerGPSPanel loading={gpsLoading} data={gpsData} isLocked={gpsLocked} />}
+              {activeTab === 'barriers' && <HiringBarriersPanel loading={barriersLoading} data={barriersData} isLocked={barriersLocked} gpsData={gpsData} />}
+              {activeTab === 'skillgap' && <SkillGapPanel fileHash={fileHash} parsedData={parsedData} />}
+              {activeTab === 'ats' && <AtsOptimizerPanel fileHash={fileHash} parsedData={parsedData} />}
+              
+            </div>
+          </div>
         </div>
+
+        {/* Right Sidebar - Identical to AITips */}
+        <div className="lg:col-span-1 space-y-6">
+          
+          {/* AI Summary */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="w-5 h-5 text-[#0f766e]" />
+              <h3 className="font-bold text-gray-900 text-[14px]">AI Summary</h3>
+            </div>
+            <p className="text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">Here's what AI thinks about your job search progress.</p>
+            
+            <ul className="space-y-3.5 mb-6">
+              <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" /> Your profile is well optimized
+              </li>
+              <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" /> You have strong skills for your roles
+              </li>
+              <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" /> Keep applying consistently
+              </li>
+              <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" /> Improve these skills to get more interviews
+              </li>
+            </ul>
+            <button className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-600 hover:bg-gray-50 transition flex justify-center items-center gap-1.5">
+              View Full AI Analysis <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* AI Coach */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Bot className="w-5 h-5 text-gray-700" />
+                <h3 className="font-bold text-gray-900 text-[14px]">AI Coach</h3>
+              </div>
+              <span className="bg-indigo-50 text-indigo-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-indigo-100">Premium</span>
+            </div>
+            <p className="text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">Get personalized guidance to move ahead in your career.</p>
+            
+            <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl rounded-tr-sm mb-5 relative ml-6">
+              <p className="text-[11px] text-gray-700 leading-relaxed font-medium">Hi! I analyzed your profile and applications. Would you like me to suggest some ways to improve your chances?</p>
+              <div className="absolute -left-8 top-0 w-8 h-8 bg-[#0f766e] shadow-sm rounded-full flex items-center justify-center">
+                <Bot className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            
+            <button onClick={() => window.dispatchEvent(new CustomEvent('open-ai-coach'))} className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-[#0f766e] hover:bg-gray-50 transition flex justify-center items-center gap-1.5 cursor-pointer">
+              Chat with AI Coach <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* WhatsApp AI Alerts */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative overflow-hidden group">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-6 h-6 rounded-full bg-[#25D366] flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
+              <h3 className="font-bold text-gray-900 text-[14px]">WhatsApp AI Alerts</h3>
+            </div>
+            <p className="text-[11px] text-gray-500 mb-4 font-medium">Stay updated on the go!</p>
+            
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" /> New job matches</li>
+              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" /> Application status updates</li>
+              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" /> Interview reminders</li>
+              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" /> Salary drops & more</li>
+            </ul>
+            
+            <button className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition flex justify-center items-center gap-2">
+              Enable WhatsApp Alerts <FaWhatsapp className="w-4 h-4 text-[#25D366]" />
+            </button>
+          </div>
+
+          {/* Earn Extra Income */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 bg-orange-50 border border-orange-100 rounded-lg flex items-center justify-center text-[10px]">💰</div>
+              <h3 className="font-bold text-gray-900 text-[14px]">Earn Extra Income</h3>
+              <span className="bg-orange-50 text-orange-600 border border-orange-100 text-[9px] font-bold px-1.5 py-0.5 rounded-full">New</span>
+            </div>
+            
+            <div className="flex items-center justify-between gap-2 mb-5 mt-4">
+              <p className="text-[11px] text-gray-600 leading-relaxed max-w-[130px] font-medium">Discover freelance projects matching your skills.</p>
+              <div className="w-10 h-10 bg-[#0f766e]/10 rounded-xl flex items-center justify-center border border-[#0f766e]/20">
+                <Briefcase className="w-5 h-5 text-[#0f766e]" />
+              </div>
+            </div>
+
+            <button className="w-full py-2.5 border border-[#0f766e]/20 bg-[#0f766e]/5 rounded-xl text-[11px] font-bold text-[#0f766e] hover:bg-[#0f766e]/10 transition flex justify-center items-center gap-1.5 shadow-sm">
+              Explore Freelance Jobs <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   );
 }
 
+// -------------------------------------------------------------------------
+// SUB-PANELS
+// -------------------------------------------------------------------------
+
 function CareerGPSPanel({ loading, data, isLocked }) {
   if (loading) {
     return (
-      <div className="p-12 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-        <p className="mt-4 text-gray-500">Calculating your optimal career trajectory...</p>
+      <div className="flex flex-col items-center justify-center py-20 min-h-[40vh]">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0f766e] mb-4"></div>
+        <p className="text-[13px] font-bold text-gray-500">Calculating your optimal career trajectory...</p>
       </div>
     );
   }
-
-  if (!data) return null;
+  if (!data) return <div className="p-10 text-center text-gray-500 text-[13px] font-medium">No GPS data available. Refresh insights.</div>;
 
   return (
-    <div className="relative">
-      {/* Content */}
-      <div className="p-8 space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Current Role</p>
-            <h3 className="text-xl font-bold text-slate-900">{data.current_role || 'Not Specified'}</h3>
+    <div className="relative p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100 flex flex-col justify-center">
+          <p className="text-[11px] font-bold text-gray-500 mb-1">CURRENT ROLE</p>
+          <h3 className="text-[18px] font-black text-gray-900">{data.current_role || 'Not Specified'}</h3>
+        </div>
+        <div className="bg-teal-50/50 p-5 rounded-2xl border border-teal-100 flex flex-col justify-center">
+          <p className="text-[11px] font-bold text-teal-700 mb-1">RECOMMENDED NEXT ROLE</p>
+          <h3 className="text-[18px] font-black text-[#0f766e]">{data.recommended_next_role}</h3>
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <h4 className="text-[14px] font-bold text-gray-900 mb-2">Reasoning Summary</h4>
+        <p className="text-[12px] text-gray-600 leading-relaxed font-medium">{data.reasoning_summary}</p>
+      </div>
+
+      <div className={isLocked ? "blur-md pointer-events-none opacity-50 select-none" : ""}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <h4 className="text-[13px] font-bold text-gray-900 mb-3 flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-green-600" /> Required Skills
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {(data.required_skills || ['React', 'System Design']).map((skill, i) => (
+                <span key={i} className="px-2.5 py-1.5 bg-gray-50 border border-gray-100 text-gray-700 rounded-lg text-[11px] font-bold">
+                  {skill}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
-            <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-2">Recommended Next Role</p>
-            <h3 className="text-xl font-bold text-indigo-900">{data.recommended_next_role}</h3>
+          <div>
+            <h4 className="text-[13px] font-bold text-gray-900 mb-3 flex items-center gap-1.5">
+              <AlertCircle className="w-4 h-4 text-orange-500" /> Missing Skills to Acquire
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {(data.missing_skills || ['AWS', 'GraphQL']).map((skill, i) => (
+                <span key={i} className="px-2.5 py-1.5 bg-orange-50 border border-orange-100 text-orange-700 rounded-lg text-[11px] font-bold">
+                  {skill}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs">
-          <h4 className="text-lg font-bold text-gray-900 mb-4">Reasoning Summary</h4>
-          <p className="text-gray-600 leading-relaxed">{data.reasoning_summary}</p>
-        </div>
-
-        {/* Locked Content Area */}
-        <div className="relative">
-          <div className={isLocked ? "blur-md pointer-events-none opacity-50 select-none" : ""}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
-                <div>
-                  <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <HiCheckCircle className="text-green-500" />
-                    Required Skills
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {(data.required_skills || ['React', 'Node.js', 'System Design']).map((skill, i) => (
-                      <span key={i} className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
-                        {skill}
-                      </span>
-                    ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="md:col-span-2">
+            <h4 className="text-[14px] font-bold text-gray-900 mb-4">Step-by-Step Learning Path</h4>
+            <div className="space-y-3">
+              {(data.learning_path || [{ step: 'Step 1', description: 'Sample' }]).map((path, i) => (
+                <div key={i} className="flex gap-3 p-4 rounded-xl border border-gray-100 bg-white shadow-sm">
+                  <div className="w-6 h-6 rounded-md bg-teal-50 text-teal-700 flex items-center justify-center text-[11px] font-black shrink-0 mt-0.5 border border-teal-100">
+                    {i + 1}
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-[12px] text-gray-900">{path.step}</h5>
+                    <p className="text-gray-500 text-[11px] mt-1 font-medium">{path.description}</p>
                   </div>
                 </div>
-
-                <div>
-                  <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <HiExclamationCircle className="text-amber-500" />
-                    Missing Skills to Acquire
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {(data.missing_skills || ['AWS', 'GraphQL']).map((skill, i) => (
-                      <span key={i} className="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg text-sm font-medium">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-bold text-gray-900 mb-4">Learning Path</h4>
-                  <div className="space-y-4">
-                    {(data.learning_path || [{ step: 'Step 1', description: 'Sample' }]).map((path, i) => (
-                      <div key={i} className="flex gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50">
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold shrink-0">
-                          {i + 1}
-                        </div>
-                        <div>
-                          <h5 className="font-bold text-gray-900">{path.step}</h5>
-                          <p className="text-gray-600 text-sm mt-1">{path.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100">
-                  <p className="text-sm font-semibold text-emerald-700 uppercase tracking-wider mb-2">Salary Growth Potential</p>
-                  <h3 className="text-4xl font-black text-emerald-600">+{data.salary_growth_potential_percent || 45}%</h3>
-                  <p className="text-emerald-600 text-sm mt-2 font-medium">Estimated increase upon transition</p>
-                </div>
-                
-                <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-                  <p className="text-sm font-semibold text-blue-700 uppercase tracking-wider mb-2">Timeline</p>
-                  <h3 className="text-3xl font-bold text-blue-900">{data.estimated_timeline_months || 6} Months</h3>
-                  <p className="text-blue-600 text-sm mt-2 font-medium">Estimated time to upskill</p>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-3">Alternative Roles</h4>
-                  <ul className="space-y-2">
-                    {(data.alternative_roles || ['Role A', 'Role B']).map((role, i) => (
-                      <li key={i} className="flex items-center gap-2 text-gray-600 text-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
-                        {role}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-
-          {/* Blur Overlay */}
-          {isLocked && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
-              <div className="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-2xl border border-gray-100 text-center max-w-md mx-auto">
-                <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3">
-                  <HiLockClosed className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Unlock Full GPS Plan</h3>
-                <p className="text-gray-600 mb-6 text-sm">
-                  Upgrade your plan to see the exact skills you're missing, your personalized learning path, and salary growth potential.
-                </p>
-                <Link
-                  to="/provider/plans"
-                  className="w-full inline-flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  View Upgrade Plans
-                </Link>
-              </div>
+          <div className="space-y-4">
+            <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
+              <p className="text-[10px] font-bold text-emerald-700 mb-1">SALARY POTENTIAL</p>
+              <h3 className="text-3xl font-black text-emerald-600">
+                {data.salary_growth_potential_percent 
+                  ? `+${String(data.salary_growth_potential_percent).replace('%', '')}%` 
+                  : 'N/A'}
+              </h3>
+              <p className="text-emerald-700/80 text-[10px] mt-1 font-medium">Estimated increase</p>
             </div>
-          )}
+            <div className="bg-indigo-50/50 p-5 rounded-2xl border border-indigo-100">
+              <p className="text-[10px] font-bold text-indigo-700 mb-1">ESTIMATED TIMELINE</p>
+              <h3 className="text-3xl font-black text-indigo-700">
+                {data.estimated_timeline_months 
+                  ? `${String(data.estimated_timeline_months).replace(/mo|months/i, '').trim()} mo` 
+                  : 'N/A'}
+              </h3>
+              <p className="text-indigo-700/80 text-[10px] mt-1 font-medium">To reach readiness</p>
+            </div>
+            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
+              <h4 className="text-[12px] font-bold text-gray-900 mb-3">Alternative Roles</h4>
+              <ul className="space-y-2">
+                {(data.alternative_roles || ['Role A']).map((role, i) => (
+                  <li key={i} className="flex items-center gap-1.5 text-[11px] font-bold text-gray-600">
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-400" /> {role}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -485,150 +483,113 @@ function CareerGPSPanel({ loading, data, isLocked }) {
 function HiringBarriersPanel({ loading, data, isLocked, gpsData }) {
   if (loading) {
     return (
-      <div className="p-12 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
-        <p className="mt-4 text-gray-500">Analyzing your hiring barriers...</p>
+      <div className="flex flex-col items-center justify-center py-20 min-h-[40vh]">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0f766e] mb-4"></div>
+        <p className="text-[13px] font-bold text-gray-500">Analyzing your hiring barriers...</p>
       </div>
     );
   }
-
-  if (!data) return null;
+  if (!data) return <div className="p-10 text-center text-gray-500 text-[13px] font-medium">No barrier data available. Refresh insights.</div>;
 
   return (
-    <div className="relative">
-      <div className="p-8 space-y-8">
-        
-        {/* Score Card */}
-        <div className="flex flex-col md:flex-row gap-8 items-center bg-slate-50 p-8 rounded-3xl border border-slate-100">
-          <div className="relative w-32 h-32 flex shrink-0 items-center justify-center">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-              <path
-                className="text-gray-200"
-                strokeWidth="3"
-                stroke="currentColor"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-              <path
-                className={`${data.hiring_barrier_score > 60 ? 'text-red-500' : data.hiring_barrier_score > 30 ? 'text-amber-500' : 'text-green-500'}`}
-                strokeDasharray={`${data.hiring_barrier_score}, 100`}
-                strokeWidth="3"
-                strokeLinecap="round"
-                stroke="currentColor"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-            </svg>
-            <div className="absolute flex flex-col items-center justify-center">
-              <span className="text-3xl font-black text-gray-900">{data.hiring_barrier_score}</span>
-              <span className="text-xs font-bold text-gray-400 uppercase">Score</span>
-            </div>
+    <div className="relative p-6">
+      
+      {/* Score Card */}
+      <div className="flex flex-col md:flex-row gap-6 items-center bg-gray-50/50 p-6 rounded-2xl border border-gray-100 mb-8">
+        <div className="w-[84px] h-[84px] shrink-0 relative">
+          <CircularProgressbar 
+            value={data.hiring_barrier_score || 0} 
+            strokeWidth={10} 
+            styles={buildStyles({ 
+              pathColor: data.hiring_barrier_score > 60 ? '#ef4444' : data.hiring_barrier_score > 30 ? '#f59e0b' : '#10b981', 
+              trailColor: '#f1f5f9' 
+            })}
+          />
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-2xl font-black text-gray-900 leading-none">{data.hiring_barrier_score}</span>
           </div>
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Hiring Barrier Score</h3>
-            <p className="text-gray-600">
-              A lower score is better. Your score indicates {data.hiring_barrier_score > 60 ? 'significant' : data.hiring_barrier_score > 30 ? 'moderate' : 'few'} barriers to getting hired based on your current resume presentation and skills.
-            </p>
+        </div>
+        <div>
+          <h3 className="text-[16px] font-bold text-gray-900 mb-1">Hiring Barrier Score</h3>
+          <p className="text-[12px] text-gray-600 font-medium leading-relaxed">
+            A lower score is better. Your score indicates <span className="font-bold text-gray-800">{data.hiring_barrier_score > 60 ? 'significant' : data.hiring_barrier_score > 30 ? 'moderate' : 'few'}</span> barriers to getting hired based on your current presentation and skills.
+          </p>
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <h4 className="text-[14px] font-bold text-gray-900 mb-3">Top Reason You Aren't Getting Hired</h4>
+        <div className="bg-red-50/50 border border-red-100 p-4 rounded-xl text-red-800 text-[13px] font-bold flex items-start gap-3">
+           <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+           {data.top_reasons?.[0] || "Needs more data."}
+        </div>
+      </div>
+
+      <div className={isLocked ? "blur-md pointer-events-none opacity-50 select-none" : ""}>
+        
+        {data.top_reasons?.length > 1 && (
+          <div className="mb-8">
+            <h4 className="text-[13px] font-bold text-gray-900 mb-3">Other Major Reasons</h4>
+            <ul className="space-y-2.5">
+              {data.top_reasons.slice(1).map((reason, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-gray-600 text-[12px] font-medium">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div>
+                  <span>{reason}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+            <h5 className="font-bold text-[13px] text-gray-900 mb-3 flex items-center gap-2">
+              <Briefcase className="text-blue-500 w-4 h-4" /> Resume Issues
+            </h5>
+            <ul className="space-y-2.5 text-[11px] text-gray-600 font-medium">
+              {(data.resume_issues || ['Issue 1']).map((issue, i) => (
+                <li key={i} className="flex items-start gap-2"><Check className="w-3 h-3 text-blue-400 mt-0.5 shrink-0"/> {issue}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+            <h5 className="font-bold text-[13px] text-gray-900 mb-3 flex items-center gap-2">
+              <CheckCircle2 className="text-amber-500 w-4 h-4" /> Skill Issues
+            </h5>
+            <ul className="space-y-2.5 text-[11px] text-gray-600 font-medium">
+              {((gpsData?.missing_skills?.length > 0 ? gpsData.missing_skills : data.skill_issues) || ['No major issues']).map((issue, i) => (
+                <li key={i} className="flex items-start gap-2"><Check className="w-3 h-3 text-amber-400 mt-0.5 shrink-0"/> {issue}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+            <h5 className="font-bold text-[13px] text-gray-900 mb-3 flex items-center gap-2">
+              <TrendingUp className="text-emerald-500 w-4 h-4" /> Salary/Location
+            </h5>
+            <ul className="space-y-2.5 text-[11px] text-gray-600 font-medium">
+              {(data.salary_or_location_issues || ['Issue 1']).map((issue, i) => (
+                <li key={i} className="flex items-start gap-2"><Check className="w-3 h-3 text-emerald-400 mt-0.5 shrink-0"/> {issue}</li>
+              ))}
+            </ul>
           </div>
         </div>
 
         <div>
-          <h4 className="text-lg font-bold text-gray-900 mb-4">Top Reason You Aren't Getting Hired</h4>
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl text-red-900 font-medium">
-            {data.top_reasons && data.top_reasons[0] ? data.top_reasons[0] : "Needs more data."}
+          <h4 className="text-[14px] font-bold text-gray-900 mb-4">Immediate Action Plan</h4>
+          <div className="space-y-3">
+            {(data.immediate_action_plan || [{ action: 'Update resume', priority: 'High' }]).map((plan, i) => (
+              <div key={i} className="flex items-center justify-between bg-white border border-gray-100 shadow-sm p-4 rounded-xl">
+                <span className="font-bold text-gray-700 text-[12px]">{plan.action}</span>
+                <span className={`px-2 py-1 text-[10px] font-bold rounded-md ${
+                  plan.priority === 'High' ? 'bg-red-50 text-red-600 border border-red-100' :
+                  plan.priority === 'Medium' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                  'bg-green-50 text-green-600 border border-green-100'
+                }`}>
+                  {plan.priority} Priority
+                </span>
+              </div>
+            ))}
           </div>
-        </div>
-
-        {/* Locked Content Area */}
-        <div className="relative">
-          <div className={isLocked ? "blur-md pointer-events-none opacity-50 select-none" : ""}>
-            
-            {data.top_reasons && data.top_reasons.length > 1 && (
-              <div className="mb-8">
-                <h4 className="font-bold text-gray-900 mb-3">Other Major Reasons</h4>
-                <ul className="space-y-2">
-                  {(data.top_reasons.slice(1) || ['Reason 2', 'Reason 3']).map((reason, i) => (
-                    <li key={i} className="flex items-start gap-2 text-gray-700">
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0"></div>
-                      <span>{reason}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white border border-gray-200 p-5 rounded-2xl shadow-xs">
-                <h5 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <HiBriefcase className="text-blue-500" /> Resume Issues
-                </h5>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  {(data.resume_issues || ['Issue 1']).map((issue, i) => (
-                    <li key={i}>• {issue}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="bg-white border border-gray-200 p-5 rounded-2xl shadow-xs">
-                <h5 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <HiCheckCircle className="text-amber-500" /> Skill Issues
-                </h5>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  {((gpsData?.missing_skills?.length > 0 ? gpsData.missing_skills : data.skill_issues) || ['No major skill issues detected']).map((issue, i) => (
-                    <li key={i}>• {issue}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="bg-white border border-gray-200 p-5 rounded-2xl shadow-xs">
-                <h5 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <HiTrendingUp className="text-emerald-500" /> Salary/Location
-                </h5>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  {(data.salary_or_location_issues || ['Issue 1']).map((issue, i) => (
-                    <li key={i}>• {issue}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold text-gray-900 mb-4">Immediate Action Plan</h4>
-              <div className="space-y-3">
-                {(data.immediate_action_plan || [{ action: 'Update resume', priority: 'High' }]).map((plan, i) => (
-                  <div key={i} className="flex items-center justify-between bg-gray-50 border border-gray-100 p-4 rounded-xl">
-                    <span className="font-medium text-gray-800">{plan.action}</span>
-                    <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${
-                      plan.priority === 'High' ? 'bg-red-100 text-red-700' :
-                      plan.priority === 'Medium' ? 'bg-amber-100 text-amber-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
-                      {plan.priority} Priority
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Blur Overlay */}
-          {isLocked && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
-              <div className="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-2xl border border-gray-100 text-center max-w-md mx-auto">
-                <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3">
-                  <HiLockClosed className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Unlock Full Analysis</h3>
-                <p className="text-gray-600 mb-6 text-sm">
-                  Upgrade your plan to see your detailed resume/skill issues and get a prioritized immediate action plan to get hired.
-                </p>
-                <Link
-                  to="/provider/plans"
-                  className="w-full inline-flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  View Upgrade Plans
-                </Link>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -646,7 +607,6 @@ function SkillGapPanel({ fileHash, parsedData }) {
       setLoading(true);
       const res = await getSkillGap({ fileHash, parsedData, jobDescription: jd });
       if (res.data.success) {
-        console.log("=== Skill Gap Data from OpenAI ===", res.data.data);
         setData(res.data.data);
       }
     } catch (error) {
@@ -657,149 +617,106 @@ function SkillGapPanel({ fileHash, parsedData }) {
   };
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-6 space-y-8">
       {/* Input area */}
-      <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-        <h3 className="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
-          <HiDocumentSearch className="text-indigo-600 w-6 h-6" />
+      <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+        <h3 className="text-[15px] font-bold text-gray-900 mb-2 flex items-center gap-2">
+          <FileSearch className="text-[#0f766e] w-5 h-5" />
           Test AI Skill Gap Analysis
         </h3>
-        <p className="text-gray-500 mb-4 text-sm">
-          Paste a Job Description here. The AI will analyze your resume against the JD and generate a detailed Skill Gap Report exactly as recruiters will see it.
+        <p className="text-gray-500 mb-5 text-[12px] font-medium">
+          Paste a Job Description here to see how your resume holds up against it.
         </p>
         <textarea
           value={jd}
           onChange={(e) => setJd(e.target.value)}
-          className="w-full h-40 p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+          className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0f766e] focus:border-[#0f766e] text-[12px] outline-none transition shadow-inner font-medium text-gray-700"
           placeholder="Paste Job Description here..."
         />
         <button
           onClick={handleAnalyze}
           disabled={loading || !jd.trim()}
-          className="mt-4 inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-4 bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-[12px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
         >
           {loading ? (
-            <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              <span>Analyzing Skill Gap...</span>
-            </>
+            <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> Analyzing...</>
           ) : (
-            <>
-              <HiSparkles className="w-5 h-5" />
-              <span>Generate Skill Gap Report</span>
-            </>
+            <><Sparkles className="w-4 h-4" /> Generate Skill Gap Report</>
           )}
         </button>
       </div>
 
       {/* Results */}
       {data && (
-        <div className="relative">
-          <div className="p-6 md:p-8 space-y-8 border border-gray-200 rounded-3xl shadow-xs">
-            
-            {/* Score Card */}
-            <div className="flex flex-col md:flex-row gap-8 items-center bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
-              <div className="relative w-24 h-24 flex shrink-0 items-center justify-center">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    className="text-white"
-                    strokeWidth="3"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path
-                    className={`${data.job_match_score > 75 ? 'text-green-500' : data.job_match_score > 50 ? 'text-amber-500' : 'text-red-500'}`}
-                    strokeDasharray={`${data.job_match_score}, 100`}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-2xl font-black text-indigo-900">{data.job_match_score}%</span>
-                </div>
+        <div className="animate-fadeIn space-y-8">
+          
+          <div className="flex flex-col md:flex-row gap-6 items-center bg-teal-50/30 p-6 rounded-2xl border border-teal-100">
+            <div className="w-[84px] h-[84px] shrink-0 relative">
+              <CircularProgressbar 
+                value={data.job_match_score || 0} 
+                strokeWidth={10} 
+                styles={buildStyles({ 
+                  pathColor: data.job_match_score > 75 ? '#0f766e' : data.job_match_score > 50 ? '#f59e0b' : '#ef4444', 
+                  trailColor: '#e2e8f0' 
+                })}
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-2xl font-black text-gray-900 leading-none">{data.job_match_score}%</span>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-indigo-900 mb-1">Job Match Score</h3>
-                <p className="text-indigo-700 text-sm">
-                  Based on your resume, you are a {data.job_match_score}% match for this job description.
-                </p>
+            </div>
+            <div>
+              <h3 className="text-[15px] font-bold text-gray-900 mb-1">Job Match Score</h3>
+              <p className="text-gray-600 text-[12px] font-medium">
+                Based on your resume, you are a <span className="font-bold text-gray-800">{data.job_match_score}% match</span> for this job description.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+              <h4 className="text-[13px] font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <CheckCircle2 className="text-green-600 w-4 h-4" /> Matched Skills
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {(data.matched_skills || []).map((skill, i) => (
+                  <span key={i} className="px-2.5 py-1 bg-green-50 text-green-700 border border-green-100 rounded-md text-[11px] font-bold">
+                    {skill}
+                  </span>
+                ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Matched Skills */}
-              <div>
-                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <HiCheckCircle className="text-green-500" />
-                  Matched Skills
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {(data.matched_skills || []).map((skill, i) => (
-                    <span key={i} className="px-3 py-1.5 bg-green-50 text-green-700 border border-green-100 rounded-lg text-sm font-medium">
-                      {skill}
-                    </span>
-                  ))}
-                  {(!data.matched_skills || data.matched_skills.length === 0) && (
-                    <p className="text-sm text-gray-500">No matched skills found.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Missing Critical */}
-              <div>
-                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <HiExclamationCircle className="text-red-500" />
-                  Missing Critical Skills
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {(data.missing_critical_skills || []).map((skill, i) => (
-                    <span key={i} className="px-3 py-1.5 bg-red-50 text-red-700 border border-red-100 rounded-lg text-sm font-medium">
-                      {skill}
-                    </span>
-                  ))}
-                  {(!data.missing_critical_skills || data.missing_critical_skills.length === 0) && (
-                    <span className="px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-sm font-medium">None!</span>
-                  )}
-                </div>
-
-                {/* Missing Optional */}
-                {data.missing_optional_skills && data.missing_optional_skills.length > 0 && (
-                  <div className="mt-4">
-                    <h5 className="text-sm font-bold text-gray-700 mb-2">Missing Nice-to-Have Skills</h5>
-                    <div className="flex flex-wrap gap-2">
-                      {data.missing_optional_skills.map((skill, i) => (
-                        <span key={i} className="px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-100 rounded-lg text-sm font-medium">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+            <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+              <h4 className="text-[13px] font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <AlertCircle className="text-red-500 w-4 h-4" /> Missing Critical Skills
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {(data.missing_critical_skills || []).map((skill, i) => (
+                  <span key={i} className="px-2.5 py-1 bg-red-50 text-red-700 border border-red-100 rounded-md text-[11px] font-bold">
+                    {skill}
+                  </span>
+                ))}
+                {(!data.missing_critical_skills || data.missing_critical_skills.length === 0) && (
+                  <span className="px-2.5 py-1 bg-green-50 text-green-700 border border-green-100 rounded-md text-[11px] font-bold">None!</span>
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Fastest Hire Path */}
-            <div className="bg-gradient-to-br from-indigo-900 to-[#081B3A] p-6 rounded-2xl text-white mt-8 shadow-lg">
-              <div className="flex items-center gap-3 mb-4">
-                <HiSparkles className="text-yellow-400 w-6 h-6" />
-                <h4 className="text-lg font-bold text-white">Fastest Hire Path</h4>
-              </div>
-              <p className="text-indigo-100 leading-relaxed text-sm md:text-base">
-                {data.fastest_hire_path || "No clear path identified."}
-              </p>
-              
-              <div className="mt-6 pt-6 border-t border-indigo-800/50 flex items-center justify-between">
-                <span className="text-indigo-200 text-sm font-medium">Estimated time to be hire-ready:</span>
-                <span className="px-4 py-1.5 bg-indigo-800 text-white rounded-lg font-bold text-sm">
-                  {data.hire_ready_after || "Unknown"}
-                </span>
-              </div>
+          <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="text-indigo-600 w-5 h-5" />
+              <h4 className="text-[14px] font-bold text-gray-900">Fastest Hire Path</h4>
             </div>
-
+            <p className="text-gray-700 leading-relaxed text-[12px] font-medium mb-4">
+              {data.fastest_hire_path || "No clear path identified."}
+            </p>
+            <div className="pt-4 border-t border-indigo-100 flex items-center justify-between">
+              <span className="text-gray-500 text-[11px] font-bold">Estimated time to be hire-ready:</span>
+              <span className="px-3 py-1 bg-white border border-indigo-100 text-indigo-700 rounded-lg font-black text-[11px]">
+                {data.hire_ready_after || "Unknown"}
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -818,9 +735,7 @@ function AtsOptimizerPanel({ fileHash, parsedData }) {
       setLoading(true);
       const res = await getAtsOptimizer({ fileHash, parsedData, jobDescription: jd });
       if (res.success || res.data) {
-        const payload = res.data || res;
-        console.log("=== ATS Optimizer Data from OpenAI ===", payload.data);
-        setData(payload.data);
+        setData(res.data.data || res.data);
       }
     } catch (error) {
       console.error("Failed to fetch ATS Optimizer data:", error);
@@ -831,171 +746,137 @@ function AtsOptimizerPanel({ fileHash, parsedData }) {
   };
 
   return (
-    <div className="p-8 space-y-8">
-      {/* Input area */}
-      <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-        <h3 className="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
-          <HiOutlineDocumentSearch className="text-indigo-600 w-6 h-6" />
+    <div className="p-6 space-y-8">
+      <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+        <h3 className="text-[15px] font-bold text-gray-900 mb-2 flex items-center gap-2">
+          <Search className="text-[#0f766e] w-5 h-5" />
           ATS Resume Optimizer
         </h3>
-        <p className="text-gray-500 mb-4 text-sm">
-          Paste the target Job Description to see how an ATS (Applicant Tracking System) evaluates your resume. We will suggest actionable improvements to boost your score without adding fake experience.
+        <p className="text-gray-500 mb-5 text-[12px] font-medium">
+          Paste the target Job Description to see how an ATS evaluates your resume. We will suggest actionable improvements.
         </p>
         <textarea
           value={jd}
           onChange={(e) => setJd(e.target.value)}
-          className="w-full h-40 p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+          className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0f766e] focus:border-[#0f766e] text-[12px] outline-none transition shadow-inner font-medium text-gray-700"
           placeholder="Paste Target Job Description here..."
         />
         <button
           onClick={handleOptimize}
           disabled={loading || !jd.trim()}
-          className="mt-4 inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-4 bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-[12px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
         >
           {loading ? (
-            <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              <span>Optimizing Resume...</span>
-            </>
+            <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> Optimizing...</>
           ) : (
-            <>
-              <HiSparkles className="w-5 h-5" />
-              <span>Optimize for ATS</span>
-            </>
+            <><Sparkles className="w-4 h-4" /> Optimize for ATS</>
           )}
         </button>
       </div>
 
-      {/* Results Area */}
       {data && (
-        <div className="space-y-8 animate-fadeIn">
-          {/* Warnings */}
-          {data.warnings && data.warnings.length > 0 && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <HiExclamation className="h-5 w-5 text-red-500" />
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-bold text-red-800">AI Integrity Warnings</h3>
-                  <div className="mt-2 text-sm text-red-700">
-                    <ul className="list-disc pl-5 space-y-1">
-                      {data.warnings.map((warning, i) => (
-                        <li key={i}>{warning}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+        <div className="animate-fadeIn space-y-8">
+          
+          {data.warnings?.length > 0 && (
+            <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-[13px] font-bold text-red-800 mb-1">AI Integrity Warnings</h3>
+                <ul className="text-[11px] text-red-700 font-medium space-y-1">
+                  {data.warnings.map((w, i) => <li key={i}>• {w}</li>)}
+                </ul>
               </div>
             </div>
           )}
 
-          {/* Scores */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-gray-50 border border-gray-200 p-6 rounded-2xl flex items-center gap-6 shadow-sm">
-              <div className="relative w-20 h-20 flex shrink-0 items-center justify-center">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path className="text-gray-200" strokeWidth="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  <path className={`${data.ats_score_before > 75 ? 'text-green-500' : data.ats_score_before > 50 ? 'text-amber-500' : 'text-red-500'}`} strokeDasharray={`${data.ats_score_before}, 100`} strokeWidth="4" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-xl font-bold text-gray-700">{data.ats_score_before}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white border border-gray-100 p-5 rounded-2xl flex items-center gap-5 shadow-sm">
+              <div className="w-[64px] h-[64px] shrink-0 relative">
+                <CircularProgressbar 
+                  value={data.ats_score_before || 0} strokeWidth={8} 
+                  styles={buildStyles({ pathColor: '#64748b', trailColor: '#f1f5f9' })}
+                />
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-[18px] font-black text-gray-700">{data.ats_score_before}</span>
                 </div>
               </div>
               <div>
-                <h4 className="font-bold text-gray-900 mb-1">Original ATS Score</h4>
-                <p className="text-sm text-gray-500">Your resume's current match percentage.</p>
+                <h4 className="font-bold text-[13px] text-gray-900 mb-1">Original ATS Score</h4>
+                <p className="text-[11px] font-medium text-gray-500">Your current match percentage.</p>
               </div>
             </div>
 
-            <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-2xl flex items-center gap-6 shadow-sm">
-              <div className="relative w-20 h-20 flex shrink-0 items-center justify-center">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path className="text-indigo-200" strokeWidth="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  <path className="text-indigo-600" strokeDasharray={`${data.ats_score_after}, 100`} strokeWidth="4" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-xl font-bold text-indigo-700">{data.ats_score_after}</span>
+            <div className="bg-teal-50/50 border border-teal-100 p-5 rounded-2xl flex items-center gap-5 shadow-sm">
+              <div className="w-[64px] h-[64px] shrink-0 relative">
+                <CircularProgressbar 
+                  value={data.ats_score_after || 0} strokeWidth={8} 
+                  styles={buildStyles({ pathColor: '#0f766e', trailColor: '#ccfbf1' })}
+                />
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-[18px] font-black text-[#0f766e]">{data.ats_score_after}</span>
                 </div>
               </div>
               <div>
-                <h4 className="font-bold text-indigo-900 mb-1">Potential ATS Score</h4>
-                <p className="text-sm text-indigo-700">Your score after applying these improvements.</p>
+                <h4 className="font-bold text-[13px] text-gray-900 mb-1">Potential ATS Score</h4>
+                <p className="text-[11px] font-medium text-teal-700">Score after applying improvements.</p>
               </div>
             </div>
           </div>
 
-          {/* Keywords */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white border border-rose-100 p-6 rounded-2xl shadow-sm">
-              <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <HiOutlineExclamationCircle className="text-rose-500 w-5 h-5" />
-                Missing Keywords
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+              <h4 className="font-bold text-[13px] text-gray-900 mb-3 flex items-center gap-2">
+                <AlertCircle className="text-orange-500 w-4 h-4" /> Missing Keywords
               </h4>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {(data.missing_keywords || []).map((keyword, i) => (
-                  <span key={i} className="px-2.5 py-1 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-xs font-semibold">
+                  <span key={i} className="px-2 py-1 bg-orange-50 border border-orange-100 text-orange-700 rounded-md text-[10px] font-bold">
                     {keyword}
                   </span>
                 ))}
-                {(!data.missing_keywords || data.missing_keywords.length === 0) && (
-                  <span className="text-sm text-gray-500 italic">No missing keywords found.</span>
-                )}
               </div>
             </div>
 
-            <div className="bg-white border border-emerald-100 p-6 rounded-2xl shadow-sm">
-              <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <HiCheck className="text-emerald-500 w-5 h-5" />
-                Recommended Keywords to Add
+            <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+              <h4 className="font-bold text-[13px] text-gray-900 mb-3 flex items-center gap-2">
+                <CheckCircle2 className="text-green-500 w-4 h-4" /> Recommended to Add
               </h4>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {(data.added_keywords || []).map((keyword, i) => (
-                  <span key={i} className="px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-semibold">
+                  <span key={i} className="px-2 py-1 bg-green-50 border border-green-100 text-green-700 rounded-md text-[10px] font-bold">
                     + {keyword}
                   </span>
                 ))}
-                {(!data.added_keywords || data.added_keywords.length === 0) && (
-                  <span className="text-sm text-gray-500 italic">No new keywords suggested.</span>
-                )}
               </div>
             </div>
           </div>
 
-          {/* Summary & Experience Improvements */}
-          <div className="space-y-6">
-            <div className="bg-gradient-to-br from-indigo-900 to-[#081B3A] p-6 rounded-2xl text-white shadow-lg">
-              <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <HiSparkles className="text-yellow-400 w-5 h-5" />
-                Optimized Resume Summary
+          <div className="space-y-4">
+            <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 shadow-sm">
+              <h4 className="text-[14px] font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <Sparkles className="text-indigo-600 w-4 h-4" /> Optimized Resume Summary
               </h4>
-              <p className="text-indigo-100 leading-relaxed text-sm">
+              <p className="text-indigo-900 leading-relaxed text-[12px] font-medium">
                 {data.improved_summary || "No summary improvements suggested."}
               </p>
             </div>
 
-            <div className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
-              <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <HiBriefcase className="text-indigo-500 w-5 h-5" />
-                Improved Experience Bullets
+            <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
+              <h4 className="text-[14px] font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Briefcase className="text-[#0f766e] w-4 h-4" /> Improved Experience Bullets
               </h4>
-              <ul className="space-y-4">
+              <ul className="space-y-3">
                 {(data.improved_experience_bullets || []).map((bullet, i) => (
-                  <li key={i} className="flex gap-3 text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <HiCheckCircle className="text-indigo-500 w-5 h-5 shrink-0 mt-0.5" />
+                  <li key={i} className="flex gap-3 text-[12px] text-gray-700 bg-gray-50/50 p-3 rounded-xl border border-gray-100 font-medium leading-relaxed">
+                    <CheckCircle2 className="text-[#0f766e] w-4 h-4 shrink-0 mt-0.5" />
                     <span dangerouslySetInnerHTML={{ __html: bullet.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                   </li>
                 ))}
-                {(!data.improved_experience_bullets || data.improved_experience_bullets.length === 0) && (
-                  <p className="text-sm text-gray-500 italic">No bullet point improvements suggested.</p>
-                )}
               </ul>
             </div>
           </div>
-
         </div>
       )}
     </div>
   );
 }
-

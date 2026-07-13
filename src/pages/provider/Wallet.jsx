@@ -312,11 +312,11 @@ const Wallet = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Top Banner and Quick Actions */}
-      <div className="relative overflow-hidden bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 mb-8 text-white shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent"></div>
+      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 rounded-3xl p-8 mb-8 text-white shadow-xl">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent"></div>
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold mb-3">
               <HiOutlineSparkles className="w-3.5 h-3.5" />
               {t('wallet.liveStatus', 'Wallet & Balance')}
             </div>
@@ -328,7 +328,7 @@ const Wallet = () => {
           <div className="flex flex-wrap gap-3">
             <Link 
               to="/provider/payout-settings" 
-              className="px-5 py-3 bg-[#081B3A] text-white hover:bg-[#0E2854] rounded-2xl text-xs font-extrabold tracking-wide uppercase transition-all flex items-center gap-2"
+              className="px-5 py-3 bg-emerald-950 text-white hover:bg-emerald-900 rounded-2xl text-xs font-extrabold tracking-wide uppercase transition-all flex items-center gap-2"
             >
               <HiCog className="w-4 h-4 text-slate-400" />
               {t('wallet.managePayouts', 'Payout Methods')}
@@ -343,7 +343,7 @@ const Wallet = () => {
               }}
               className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-extrabold tracking-wide uppercase shadow-lg shadow-emerald-600/15 hover:shadow-emerald-600/25 transition-all flex items-center gap-2"
             >
-              <HiCurrencyRupee className="w-5 h-5 text-indigo-200" />
+              <HiCurrencyRupee className="w-5 h-5 text-emerald-200" />
               {t('wallet.withdrawBtn', 'Withdraw Money')}
             </button>
           </div>
@@ -353,19 +353,19 @@ const Wallet = () => {
       {/* Wallet Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-6 mb-8">
         {[
-          { label: t('wallet.totalEarnings', 'Total Earnings'), value: wallet?.totalEarnings || 0, color: 'from-blue-600 to-indigo-600', icon: HiArrowUp, desc: t('wallet.totalEarnedDesc', 'Provider earnings credited') },
+          { label: t('wallet.totalEarnings', 'Total Earnings'), value: wallet?.totalEarnings || 0, color: 'from-teal-600 to-emerald-600', icon: HiArrowUp, desc: t('wallet.totalEarnedDesc', 'Provider earnings credited') },
           { label: t('wallet.availableBalance', 'Available Balance'), value: wallet?.availableBalance || 0, color: 'from-emerald-600 to-teal-600', icon: HiCheckCircle, desc: t('wallet.availDesc', 'Ready to withdraw instantly') },
           { label: t('wallet.pendingBalance', 'Pending Balance'), value: wallet?.pendingBalance || 0, color: 'from-amber-600 to-orange-600', icon: HiClock, desc: t('wallet.pendingDesc', 'Locked in withdrawal process') },
           { label: t('wallet.withdrawnAmount', 'Withdrawn Amount'), value: wallet?.withdrawnAmount || 0, color: 'from-slate-600 to-slate-800', icon: HiArrowDown, desc: t('wallet.withdrawnDesc', 'Successfully paid out') },
           { label: t('wallet.feesDeducted', 'Commission Paid'), value: wallet?.commissionDeducted || 0, color: 'from-rose-600 to-red-700', icon: HiExclamationCircle, desc: t('wallet.feeDesc', 'Platform commission share') },
-          { label: t('wallet.referralBalance', 'Referral Balance'), value: wallet?.referralBalance || 0, color: 'from-purple-600 to-violet-600', icon: HiPlusCircle, desc: t('wallet.referralDesc', 'Earnings from referral commission') },
+          { label: t('wallet.referralBalance', 'Referral Balance'), value: wallet?.referralBalance || 0, color: 'from-teal-600 to-emerald-600', icon: HiPlusCircle, desc: t('wallet.referralDesc', 'Earnings from referral commission') },
           { label: t('wallet.cashbackBalance', 'Promo Cashback'), value: wallet?.cashbackBalance || 0, color: 'from-teal-500 to-emerald-500', icon: HiOutlineSparkles, desc: t('wallet.cashbackDesc', 'Verified signup cashback reward') }
         ].map((card, idx) => (
           <div key={idx} className="relative overflow-hidden bg-white border border-slate-100 rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all group flex flex-col justify-between h-full">
             <div>
               <div className="flex justify-between items-start mb-3">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{card.label}</span>
-                <div className={`w-8 h-8 rounded-lg bg-linear-to-br ${card.color} text-white flex items-center justify-center shrink-0`}>
+                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${card.color} text-white flex items-center justify-center shrink-0`}>
                   <card.icon className="w-4 h-4" />
                 </div>
               </div>
@@ -382,7 +382,7 @@ const Wallet = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl font-bold text-slate-950 flex items-center gap-2">
-                <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600"><HiDocumentReport className="w-5 h-5" /></span>
+                <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600"><HiDocumentReport className="w-5 h-5" /></span>
                 {t('wallet.transactionsHeader', 'Transaction Ledger')}
               </h2>
               <p className="text-xs text-slate-400 mt-1">{t('wallet.transactionsDesc', 'List of all system updates, earning splits, and withdrawal processing logs')}</p>
@@ -412,7 +412,7 @@ const Wallet = () => {
                       </td>
                       <td className="py-4 px-2">
                         <span className={`px-2 py-0.5 rounded-md font-bold uppercase tracking-wider text-[9px] ${
-                          txn.type === 'earning' || txn.type === 'provider_task_earning' ? 'bg-indigo-50 text-indigo-700' :
+                          txn.type === 'earning' || txn.type === 'provider_task_earning' ? 'bg-emerald-50 text-emerald-700' :
                           txn.type === 'withdrawal' || txn.type === 'withdrawal_request' ? 'bg-orange-50 text-orange-700' :
                           txn.type === 'commission' || txn.type === 'platform_commission' || txn.type === 'user_referral_commission' || txn.type === 'partner_referral_commission' ? 'bg-red-50 text-red-700' :
                           txn.type === 'signup_cashback' ? 'bg-emerald-50 text-emerald-700' :
@@ -461,8 +461,8 @@ const Wallet = () => {
         {/* Dynamic withdrawal limits card */}
         <div className="space-y-6">
           <div className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-lg">
-            <h3 className="text-lg font-bold mb-3 flex items-center gap-2 text-indigo-400">
-              <HiInformationCircle className="w-5 h-5 text-indigo-400" />
+            <h3 className="text-lg font-bold mb-3 flex items-center gap-2 text-emerald-400">
+              <HiInformationCircle className="w-5 h-5 text-emerald-400" />
               {t('wallet.rulesHeader', 'Withdrawal Rules')}
             </h3>
             <div className="space-y-4 text-xs">
@@ -496,7 +496,7 @@ const Wallet = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 animate-scaleUp">
             <h3 className="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
-              <span className="p-1 rounded bg-indigo-50 text-indigo-600">
+              <span className="p-1 rounded bg-emerald-50 text-emerald-600">
                 <HiCurrencyRupee className="w-5 h-5" />
               </span>
               {withdrawalStep === 'details' ? t('wallet.withdrawalRequest', 'Submit Withdrawal') : t('wallet.otpVerification', 'Enter Security Code')}
@@ -532,7 +532,7 @@ const Wallet = () => {
                           setAmount(sanitized);
                         }}
                         placeholder={`e.g. ${config.minWithdrawalAmount}`}
-                        className="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-base font-bold focus:outline-hidden focus:border-indigo-500 transition"
+                        className="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-base font-bold focus:outline-hidden focus:border-emerald-500 transition"
                       />
                     </div>
                     <div className="flex justify-between items-center mt-1 text-[10px]">
@@ -540,7 +540,7 @@ const Wallet = () => {
                       <button 
                         type="button" 
                         onClick={() => setAmount(String(wallet?.availableBalance))}
-                        className="text-indigo-600 hover:underline font-bold"
+                        className="text-emerald-600 hover:underline font-bold"
                       >
                         {t('wallet.maxBtn', 'Withdraw Maximum')}
                       </button>
@@ -553,7 +553,7 @@ const Wallet = () => {
                       required
                       value={selectedPayoutMethodId}
                       onChange={e => setSelectedPayoutMethodId(e.target.value)}
-                      className="w-full px-3 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:outline-hidden focus:border-indigo-500 transition"
+                      className="w-full px-3 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:outline-hidden focus:border-emerald-500 transition"
                     >
                       <option value="" disabled>{t('wallet.selectOne', 'Choose saved payout method')}</option>
                       {payoutMethods.map(m => (
@@ -565,8 +565,8 @@ const Wallet = () => {
                   </div>
 
                   {defaultMethod && (
-                    <div className="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100 text-xs space-y-1">
-                      <p className="font-bold text-indigo-900 uppercase tracking-wide text-[9px] mb-1">{t('wallet.methodPreview', 'Payout Destination Summary')}</p>
+                    <div className="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-100 text-xs space-y-1">
+                      <p className="font-bold text-emerald-900 uppercase tracking-wide text-[9px] mb-1">{t('wallet.methodPreview', 'Payout Destination Summary')}</p>
                       {defaultMethod.type === 'bank' && (
                         <>
                           <p className="font-bold text-slate-800">{defaultMethod.bankDetails?.accountHolderName}</p>
@@ -619,7 +619,7 @@ const Wallet = () => {
                         onChange={(e) => handleOtpBox(idx, e)}
                         onKeyDown={(e) => handleOtpKey(idx, e)}
                         disabled={submittingWithdraw}
-                        className="w-10 h-12 text-center text-xl font-bold border border-slate-200 rounded-xl outline-hidden transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 bg-slate-50 focus:bg-white disabled:opacity-50"
+                        className="w-10 h-12 text-center text-xl font-bold border border-slate-200 rounded-xl outline-hidden transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 bg-slate-50 focus:bg-white disabled:opacity-50"
                       />
                     ))}
                   </div>
@@ -634,7 +634,7 @@ const Wallet = () => {
                         type="button"
                         onClick={handleSendOtp}
                         disabled={sendingOtp}
-                        className="text-indigo-600 hover:underline font-bold"
+                        className="text-emerald-600 hover:underline font-bold"
                       >
                         {t('wallet.resendCode', 'Resend Verification Code')}
                       </button>
