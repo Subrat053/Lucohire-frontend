@@ -51,7 +51,11 @@ const AdminCandidateUnlockLogs = lazy(() => import("../pages/admin/CandidateUnlo
 const AdminResumeAccessLogs = lazy(() => import("../pages/admin/ResumeAccessLogs"));
 const HealthDashboard = lazy(() => import("../pages/admin/HealthDashboard"));
 const BulkOutreach = lazy(() => import("../components/admin/BulkOutreach"));
+const ImportCandidates = lazy(() => import("../pages/admin/ImportCandidates"));
+const ImportRecruiters = lazy(() => import("../pages/admin/ImportRecruiters"));
 const DataPipeline = lazy(() => import("../pages/admin/DataPipeline"));
+const ScrapedDataVault = lazy(() => import("../pages/admin/ScrapedDataVault"));
+const RecruiterApprovals = lazy(() => import("../pages/admin/RecruiterApprovals"));
 
 // Synced Jobs & ATS Sync Module
 const JobSources = lazy(() => import("../pages/admin/JobSources"));
@@ -60,8 +64,10 @@ const ExternalJobs = lazy(() => import("../pages/admin/ExternalJobs"));
 const SyncReports = lazy(() => import("../pages/admin/SyncReports"));
 const SyncErrors = lazy(() => import("../pages/admin/SyncErrors"));
 const RecruiterLeads = lazy(() => import("../pages/admin/RecruiterLeads"));
-const ScrapedDataVault = lazy(() => import("../pages/admin/ScrapedDataVault"));
-const ScraperControlCenter = lazy(() => import("../pages/admin/ScraperControlCenter"));
+const LiveTester = lazy(() => import("../pages/admin/LiveTester"));
+const BulkCrawlerPanel = lazy(() => import("../pages/admin/components/BulkCrawlerPanel"));
+const NightlyEngineSettings = lazy(() => import("../pages/admin/components/NightlyEngineSettings"));
+const StagingCandidates = lazy(() => import("../pages/admin/StagingCandidates"));
 
 function AdminLayoutWrapper({ children }) {
   return (
@@ -132,19 +138,31 @@ export default function AdminRoutes() {
       <Route path="resume-access-logs" element={wrap(<AdminResumeAccessLogs />)} />
       
       {/* Ingestion & ATS Sync Engine Control */}
-      <Route path="job-sources" element={wrap(<JobSources />)} />
+      <Route path="data-pipeline/sources" element={wrap(<JobSources />)} />
+      <Route path="data-pipeline/jobs" element={wrap(<ExternalJobs />)} />
+      <Route path="data-pipeline/reports" element={wrap(<SyncReports />)} />
+      <Route path="data-pipeline/errors" element={wrap(<SyncErrors />)} />
+      
       <Route path="company-sources" element={wrap(<CompanySources />)} />
-      <Route path="external-jobs" element={wrap(<ExternalJobs />)} />
-      <Route path="sync-reports" element={wrap(<SyncReports />)} />
-      <Route path="sync-errors" element={wrap(<SyncErrors />)} />
       <Route path="recruiter-leads" element={wrap(<RecruiterLeads />)} />
 
       {/* Engine Control */}
       <Route path="health" element={wrap(<HealthDashboard />)} />
       <Route path="outreach" element={wrap(<BulkOutreach />)} />
+      <Route path="import-candidates" element={wrap(<ImportCandidates />)} />
+      <Route path="import-recruiters" element={wrap(<ImportRecruiters />)} />
+      <Route path="recruiter-approvals" element={wrap(<RecruiterApprovals />)} />
       <Route path="data-pipeline" element={wrap(<DataPipeline />)} />
-      <Route path="scraped-vault" element={wrap(<ScrapedDataVault />)} />
-      <Route path="crawlers" element={wrap(<ScraperControlCenter />)} />
+      <Route path="scraped-vault/jobs" element={wrap(<ExternalJobs />)} />
+      <Route path="scraped-vault/candidates" element={wrap(<StagingCandidates />)} />
+      <Route path="scraped-vault/recruiters" element={wrap(<RecruiterLeads />)} />
+      
+      {/* Crawlers & Scrapers sub-routes */}
+      <Route path="crawlers/single" element={wrap(<div className="p-8 max-w-7xl mx-auto"><LiveTester /></div>)} />
+      <Route path="crawlers/bulk" element={wrap(<div className="p-8 max-w-7xl mx-auto"><BulkCrawlerPanel /></div>)} />
+      <Route path="crawlers/engine" element={wrap(<div className="p-8 max-w-7xl mx-auto"><NightlyEngineSettings /></div>)} />
+      <Route path="crawlers/jobs" element={wrap(<ExternalJobs defaultFilters={{ source: 'crawler' }} />)} />
+      <Route path="crawlers" element={<Navigate to="/admin/crawlers/bulk" replace />} />
 
       <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
     </Routes>

@@ -78,7 +78,7 @@ export default function CandidateUnlockLogs() {
       ) : logs.length === 0 ? (
         <div className="text-center py-16 text-gray-400">No unlock records found.</div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">

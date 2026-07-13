@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { HiCheck, HiPause, HiPlay, HiRefresh, HiShieldExclamation, HiShieldCheck } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { ShieldCheck, ShieldAlert, Zap, Server, Activity, Pause, Play, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 const JobSources = () => {
   const [sources, setSources] = useState([]);
@@ -76,117 +76,127 @@ const JobSources = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-[60vh] flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
+  const getTypeStyle = (type) => {
+    if (type === 'ats') return 'bg-blue-50 text-blue-700 border-blue-200';
+    if (type === 'remote') return 'bg-purple-50 text-purple-700 border-purple-200';
+    return 'bg-amber-50 text-amber-700 border-amber-200';
+  };
+
   return (
-    <div className="py-2">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Job Ingestion Sources</h1>
-          <p className="text-sm text-gray-500 mt-1">Configure and monitor Greenhouse, Lever, Ashby ATS, and global aggregator API connections.</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sources.map((src) => (
-          <div key={src._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-lg font-bold text-gray-900 capitalize">{src.sourceName}</span>
-                <span
-                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${
-                    src.sourceType === 'ats' 
-                      ? 'bg-blue-50 text-blue-700' 
-                      : src.sourceType === 'remote' 
-                        ? 'bg-purple-50 text-purple-700' 
-                        : 'bg-orange-50 text-orange-700'
-                  }`}
-                >
-                  {src.sourceType}
-                </span>
-              </div>
-
-              <div className="space-y-2.5 text-sm text-gray-600 mb-6">
-                <div className="flex justify-between">
-                  <span>Connection Status</span>
-                  <span className={`font-semibold capitalize flex items-center gap-1 ${
-                    src.status === 'active' 
-                      ? 'text-green-600' 
-                      : src.status === 'paused' 
-                        ? 'text-yellow-600' 
-                        : 'text-red-600'
-                  }`}>
-                    {src.status === 'active' ? <HiShieldCheck className="w-4 h-4" /> : <HiShieldExclamation className="w-4 h-4" />}
-                    {src.status}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Supported Countries</span>
-                  <span className="font-mono text-xs font-bold text-blue-600">{src.supportedCountries.join(', ') || 'Global'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Sync Frequency</span>
-                  <span className="font-semibold text-gray-800">{src.syncRules?.frequencyHours || 24} hours</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Rate Limit Delay</span>
-                  <span className="font-semibold text-gray-800">{src.rateLimit?.delayMs || 1000} ms</span>
-                </div>
-                {src.lastSyncAt && (
-                  <div className="flex justify-between text-xs text-gray-400 pt-1 border-t border-gray-50">
-                    <span>Last Synced</span>
-                    <span>{new Date(src.lastSyncAt).toLocaleString()}</span>
-                  </div>
-                )}
-                {src.lastError && (
-                  <div className="text-xs text-red-500 bg-red-50/50 p-2 rounded-lg mt-2 border border-red-50">
-                    <strong>Error:</strong> {src.lastError}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-50 text-xs">
-              <button
-                onClick={() => handleTest(src._id)}
-                disabled={testingId === src._id}
-                className="flex items-center justify-center gap-1.5 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl transition font-semibold disabled:opacity-50"
-              >
-                {testingId === src._id ? <LoadingSpinner size="sm" /> : <HiCheck className="w-4 h-4" />}
-                Test API
-              </button>
-              <button
-                onClick={() => handleSync(src._id)}
-                disabled={syncingId === src._id || !src.isActive}
-                className="flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition font-semibold disabled:opacity-50"
-              >
-                {syncingId === src._id ? <LoadingSpinner size="sm" /> : <HiRefresh className="w-4 h-4" />}
-                Sync Now
-              </button>
-              <div className="col-span-2 mt-1">
-                {src.isActive ? (
-                  <button
-                    onClick={() => handlePause(src._id)}
-                    className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-xl transition font-semibold"
-                  >
-                    <HiPause className="w-4 h-4" /> Pause Ingestion
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleResume(src._id)}
-                    className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl transition font-semibold"
-                  >
-                    <HiPlay className="w-4 h-4" /> Activate Ingestion
-                  </button>
-                )}
-              </div>
+    <div className="bg-[#F8FAFC] min-h-screen pb-12">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-[22px] font-black text-[#0F172A] tracking-tight">Global Ingestion Sources</h1>
+            <p className="text-[13px] font-medium text-gray-500 mt-0.5">Configure and monitor API connections for external job boards and ATS platforms</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-white border border-gray-200 rounded-lg px-4 py-2 flex items-center gap-2 text-xs font-bold text-gray-700 shadow-sm">
+              <Server className="w-4 h-4 text-emerald-500" />
+              {sources.filter(s => s.status === 'active').length} Active Sources
             </div>
           </div>
-        ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {sources.map((src) => (
+            <div key={src._id} className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow duration-200 overflow-hidden group">
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
+                      <Zap className={`w-5 h-5 ${src.status === 'active' ? 'text-emerald-500' : 'text-gray-400'}`} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-gray-900 capitalize leading-tight">{src.sourceName}</h3>
+                      <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getTypeStyle(src.sourceType)}`}>
+                        {src.sourceType}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${src.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : src.status === 'paused' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                    {src.status === 'active' ? <CheckCircle2 className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
+                    <span className="capitalize">{src.status}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-gray-400 uppercase tracking-wider">Frequency</span>
+                    <span className="font-black text-gray-800">{src.syncRules?.frequencyHours || 24} hours</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-gray-400 uppercase tracking-wider">Regions</span>
+                    <span className="font-bold text-blue-600 font-mono truncate max-w-[150px] text-right">{src.supportedCountries.join(', ') || 'Global'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-gray-400 uppercase tracking-wider">Rate Limit</span>
+                    <span className="font-black text-gray-800">{src.rateLimit?.delayMs || 1000} ms</span>
+                  </div>
+                </div>
+
+                {src.lastSyncAt && (
+                  <div className="pt-4 border-t border-gray-50 flex items-center justify-between text-xs">
+                    <span className="font-bold text-gray-400 flex items-center gap-1.5"><Activity className="w-3.5 h-3.5" /> Last Sync</span>
+                    <span className="font-bold text-gray-600">{new Date(src.lastSyncAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                )}
+                
+                {src.lastError && (
+                  <div className="mt-3 p-3 bg-red-50 border border-red-100 rounded-lg flex gap-2 items-start">
+                    <ShieldAlert className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                    <p className="text-[11px] font-medium text-red-700 line-clamp-2">{src.lastError}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-gray-50/50 border-t border-gray-100 p-3 grid grid-cols-2 gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <button
+                  onClick={() => handleTest(src._id)}
+                  disabled={testingId === src._id}
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                >
+                  {testingId === src._id ? <LoadingSpinner size="sm" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                  Test API
+                </button>
+                <button
+                  onClick={() => handleSync(src._id)}
+                  disabled={syncingId === src._id || !src.isActive}
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-50 border border-blue-100 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                >
+                  {syncingId === src._id ? <LoadingSpinner size="sm" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                  Sync Now
+                </button>
+                <div className="col-span-2">
+                  {src.isActive ? (
+                    <button
+                      onClick={() => handlePause(src._id)}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-white border border-amber-200 hover:bg-amber-50 text-amber-700 rounded-lg text-xs font-bold transition-all"
+                    >
+                      <Pause className="w-3.5 h-3.5" /> Pause Ingestion
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleResume(src._id)}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold transition-all"
+                    >
+                      <Play className="w-3.5 h-3.5" /> Activate Source
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
       </div>
     </div>
   );

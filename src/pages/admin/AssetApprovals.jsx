@@ -29,7 +29,6 @@ const STATUS_BADGE = {
 
 const TABS = [
   { key: 'provider',  label: 'Candidate Assets', roleFilter: 'provider' },
-  { key: 'recruiter', label: 'Recruiter Assets', roleFilter: 'recruiter' },
 ];
 
 /* ── Stats Card ─────────────────────────────────────────────────── */

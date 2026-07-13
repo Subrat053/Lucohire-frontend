@@ -13,9 +13,9 @@ const EarningsSourceChart = ({ data = [] }) => {
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className="bg-white rounded-3xl border border-[#EAE7F2] p-6 shadow-sm flex flex-col">
+    <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm flex flex-col h-full">
       <div className="mb-4">
-        <h3 className="font-extrabold text-gray-900 text-base">Earnings by Source</h3>
+        <h3 className="text-sm font-bold text-gray-900">Earnings Source</h3>
         <p className="text-[11px] text-gray-500 mt-0.5">Current month breakdown</p>
       </div>
 

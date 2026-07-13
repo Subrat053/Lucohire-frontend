@@ -63,7 +63,7 @@ const AdminWhatsApp = () => {
       </div>
 
       {/* Settings Card */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-8">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
         <h2 className="text-lg font-bold text-gray-900 mb-4">Meta WhatsApp Business API</h2>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
@@ -94,7 +94,7 @@ const AdminWhatsApp = () => {
       </div>
 
       {/* Logs */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-900">WhatsApp Message Logs</h2>
           <button onClick={() => fetchLogs(logPage)} className="flex items-center gap-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition text-sm font-medium">

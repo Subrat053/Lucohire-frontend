@@ -20,9 +20,9 @@ const PlanSummary = ({ plans = {} }) => {
   const total = Object.values(defaultPlans).reduce((a, b) => a + (Number(b) || 0), 0) || 1;
 
   return (
-    <div className="bg-white rounded-3xl border border-[#EAE7F2] p-6 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm h-full">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-extrabold text-gray-900 text-sm">Plan Summary</h3>
+        <h3 className="text-sm font-bold text-gray-900">Subscription Overview</h3>
         <span className="text-[10px] text-gray-500">{total.toLocaleString('en-IN')} total</span>
       </div>
       

@@ -45,13 +45,13 @@ const AdminTerms = () => {
         <h1 className="text-2xl font-bold text-gray-900">Terms & Conditions Editor</h1>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">Content (HTML Supported)</label>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           rows={20}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono text-sm resize-y"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none font-mono text-sm resize-y"
           placeholder="Enter terms & conditions content here..."
         />
         
@@ -59,7 +59,7 @@ const AdminTerms = () => {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition disabled:opacity-50"
           >
             <HiSave className="w-5 h-5" />
             {saving ? 'Saving...' : 'Save Terms'}
@@ -69,7 +69,7 @@ const AdminTerms = () => {
             href="/terms"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-gray-500 hover:text-blue-600 underline"
+            className="text-sm text-gray-500 hover:text-indigo-600 underline"
           >
             Preview Public Page →
           </a>

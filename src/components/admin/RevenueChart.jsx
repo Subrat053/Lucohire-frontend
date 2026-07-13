@@ -1,93 +1,78 @@
 import { useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const RevenueChart = ({ data = [], onPeriodChange }) => {
+  const [period, setPeriod] = useState('last7');
 
-const RevenueChart = ({ data = [] }) => {
-  const [period, setPeriod] = useState('monthly');
+  const handlePeriodChange = (p) => {
+    setPeriod(p);
+    if (onPeriodChange) onPeriodChange(p);
+  };
 
-  const chartData = data.map((item) => ({
-    name: MONTHS[(item.month || 1) - 1] || 'N/A',
-    revenue: item.revenue || 0,
-    count: item.count || 0,
-  }));
-
-  // If no data, show placeholder
-  if (chartData.length === 0) {
-    for (let i = 0; i < 12; i++) {
-      chartData.push({ name: MONTHS[i], revenue: 0, count: 0 });
-    }
-  }
-
-  const formatCurrency = (val) => `₹${(val / 1000).toFixed(0)}K`;
+  const formatYAxis = (val) => `${(val / 1000).toFixed(0)}K`;
 
   return (
-    <div className="bg-white rounded-3xl border border-[#EAE7F2] p-6 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm h-full">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="font-extrabold text-gray-900 text-base">Revenue Trend</h3>
-          <p className="text-[11px] text-gray-500 mt-0.5">Platform earnings over time (in lakhs ₹)</p>
+          <h3 className="text-sm font-bold text-gray-900">Platform Overview</h3>
         </div>
-        <div className="flex gap-1 bg-white border border-[#EAE7F2] rounded-full p-1 shadow-sm">
-          {['monthly', 'quarterly', 'yearly'].map((p) => (
+        <div className="flex gap-2">
+          {[{ label: '7 Days', val: 'last7' }, { label: '30 Days', val: 'last30' }, { label: '90 Days', val: 'last90' }].map((p) => (
             <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all ${
-                period === p
-                  ? 'bg-gray-100 text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-900'
+              key={p.val}
+              onClick={() => handlePeriodChange(p.val)}
+              className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all border ${
+                period === p.val
+                  ? 'border-gray-200 text-gray-900 shadow-sm'
+                  : 'border-transparent text-gray-400 hover:text-gray-900'
               }`}
             >
-              {p.charAt(0).toUpperCase() + p.slice(1)}
+              {p.label}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="h-64">
+      <div className="h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <defs>
-              <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#7C3AED" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="#7C3AED" stopOpacity={0.02} />
-              </linearGradient>
-            </defs>
+          <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
             <XAxis
               dataKey="name"
-              tick={{ fill: '#9CA3AF', fontSize: 11 }}
+              tick={{ fill: '#9CA3AF', fontSize: 10 }}
               axisLine={false}
               tickLine={false}
+              dy={10}
             />
             <YAxis
-              tickFormatter={formatCurrency}
-              tick={{ fill: '#9CA3AF', fontSize: 11 }}
+              tickFormatter={formatYAxis}
+              tick={{ fill: '#9CA3AF', fontSize: 10 }}
               axisLine={false}
               tickLine={false}
-              width={50}
+              width={60}
             />
             <Tooltip
               contentStyle={{
-                borderRadius: '12px',
+                borderRadius: '8px',
                 border: '1px solid #e5e7eb',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                fontSize: '12px',
+                fontSize: '11px',
               }}
-              formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Revenue']}
             />
-            <Area
-              type="monotone"
-              dataKey="revenue"
-              stroke="#7C3AED"
-              strokeWidth={2.5}
-              fill="url(#revenueGradient)"
-              dot={false}
-              activeDot={{ r: 5, fill: '#7C3AED', stroke: '#fff', strokeWidth: 2 }}
-            />
-          </AreaChart>
+            <Line type="monotone" dataKey="candidates" stroke="#10B981" strokeWidth={2} dot={{ r: 3, fill: '#10B981', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+            <Line type="monotone" dataKey="recruiters" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 3, fill: '#8B5CF6', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+            <Line type="monotone" dataKey="jobs" stroke="#3B82F6" strokeWidth={2} dot={{ r: 3, fill: '#3B82F6', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+            <Line type="monotone" dataKey="apps" stroke="#F97316" strokeWidth={2} dot={{ r: 3, fill: '#F97316', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+          </LineChart>
         </ResponsiveContainer>
+      </div>
+
+      <div className="flex items-center justify-center gap-6 mt-4">
+        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500"></div><span className="text-[10px] text-gray-500 font-medium">New Candidates</span></div>
+        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-purple-500"></div><span className="text-[10px] text-gray-500 font-medium">New Recruiters</span></div>
+        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500"></div><span className="text-[10px] text-gray-500 font-medium">New Jobs</span></div>
+        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-orange-500"></div><span className="text-[10px] text-gray-500 font-medium">Applications</span></div>
       </div>
     </div>
   );

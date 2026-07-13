@@ -1,9 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  "/api";
+  import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "/api";
 const AUTH_BASE_URL =
   import.meta.env.VITE_AUTH_BASE_URL ||
   import.meta.env.VITE_AUTH_URL ||
@@ -22,7 +20,9 @@ const dispatchSessionExpired = () => {
       detail: { message: "Your session has expired. Please login again." },
     }),
   );
-  setTimeout(() => { _sessionExpiredFired = false; }, 2000);
+  setTimeout(() => {
+    _sessionExpiredFired = false;
+  }, 2000);
 };
 const ADMIN_BASE_URL =
   import.meta.env.VITE_ADMIN_API_BASE_URL ||
@@ -81,8 +81,6 @@ const ADMIN_API = axios.create({
   timeout: 90000,
   withCredentials: true,
 });
-
-
 
 export { API, AUTH_API, ADMIN_API };
 
@@ -200,7 +198,8 @@ export const providerAPI = {
   aiSuggestProfile: (data) => API.post("/provider/profile/ai-suggest", data),
   buildAIProfile: (data) => API.post("/provider/ai/build-profile", data),
   extractProfileData: (data) => API.post("/provider/ai/extract-profile", data), // Module 1 UI
-  providerBuilderSuggestion: (data) => API.post("/ai/provider-builder-suggestion", data),
+  providerBuilderSuggestion: (data) =>
+    API.post("/ai/provider-builder-suggestion", data),
   getPricingSuggestion: (params) =>
     API.get("/provider/ai/pricing-suggestion", { params }),
   getDashboard: () => API.get("/provider/dashboard"),
@@ -227,7 +226,8 @@ export const providerAPI = {
     }),
   getHistory: () => API.get("/provider/history"),
   getJobs: (params) => API.get("/provider/jobs", { params }),
-  getJobAiInsights: (jobsData) => API.post("/provider/jobs/ai-insights", { jobsData }),
+  getJobAiInsights: (jobsData) =>
+    API.post("/provider/jobs/ai-insights", { jobsData }),
   getJobById: (jobId) => API.get(`/provider/jobs/${jobId}`),
   applyToJob: (jobId, data) => API.post(`/provider/jobs/${jobId}/apply`, data),
   getApplications: () => API.get("/provider/applications"),
@@ -236,7 +236,8 @@ export const providerAPI = {
   getRecommendations: () => API.get("/candidate-matching/recommendations"),
   getSavedJobs: () => API.get("/candidate-matching/saved"),
   toggleSaveJob: (data) => API.post("/candidate-matching/save", data),
-  trackApplyClick: (jobId) => API.post(`/candidate-matching/${jobId}/apply-click`),
+  trackApplyClick: (jobId) =>
+    API.post(`/candidate-matching/${jobId}/apply-click`),
 };
 
 // Recruiter APIs
@@ -254,8 +255,10 @@ export const recruiterAPI = {
     API.post("/recruiter/ai/job-description", data),
   generateJD: (data) => API.post("/recruiter/ai/generate-jd", data),
   workspaceChat: (data) => API.post("/recruiter/ai/workspace/chat", data),
-  getWorkspaceConversations: () => API.get("/recruiter/ai/workspace/conversations"),
-  getWorkspaceConversation: (id) => API.get(`/recruiter/ai/workspace/conversations/${id}`),
+  getWorkspaceConversations: () =>
+    API.get("/recruiter/ai/workspace/conversations"),
+  getWorkspaceConversation: (id) =>
+    API.get(`/recruiter/ai/workspace/conversations/${id}`),
   publicSearch: (params) => API.get("/recruiter/public-search", { params }),
   search: (params) => API.get("/recruiter/search", { params }),
   viewProvider: (id) => API.get(`/recruiter/view-provider/${id}`),
@@ -263,20 +266,25 @@ export const recruiterAPI = {
   unlockContact: (providerId) => API.post(`/recruiter/unlock/${providerId}`),
   checkUnlockStatus: (providerId) =>
     API.get(`/recruiter/unlock-status/${providerId}`),
-  createCustomPlanRequest: (data) => API.post("/recruiter/custom-plan-request", data),
+  createCustomPlanRequest: (data) =>
+    API.post("/recruiter/custom-plan-request", data),
   getTasks: () => API.get("/recruiter/tasks"),
   createTask: (data) => API.post("/recruiter/tasks", data),
   updateTask: (id, data) => API.put(`/recruiter/tasks/${id}`, data),
   deleteTask: (id) => API.delete(`/recruiter/tasks/${id}`),
   getOutreachCampaigns: () => API.get("/recruiter/outreach/campaigns"),
-  getOutreachPreview: (jobId) => API.get(`/recruiter/outreach/campaigns/${jobId}/preview`),
-  runOutreachCampaign: (jobId, data) => API.post(`/recruiter/outreach/campaigns/${jobId}/run`, data),
+  getOutreachPreview: (jobId) =>
+    API.get(`/recruiter/outreach/campaigns/${jobId}/preview`),
+  runOutreachCampaign: (jobId, data) =>
+    API.post(`/recruiter/outreach/campaigns/${jobId}/run`, data),
   getTalentPoolJobs: () => API.get("/recruiter/talent-pool/jobs"),
-  runAIEvaluation: (jobId) => API.post(`/recruiter/talent-pool/jobs/${jobId}/evaluate`),
+  runAIEvaluation: (jobId) =>
+    API.post(`/recruiter/talent-pool/jobs/${jobId}/evaluate`),
   postJob: (data) => API.post("/recruiter/jobs", data),
   getJobs: () => API.get("/recruiter/jobs"),
   getJobById: (id) => API.get(`/recruiter/jobs/${id}`),
-  getJobApplications: (jobId) => API.get(`/recruiter/jobs/${jobId}/applications`),
+  getJobApplications: (jobId) =>
+    API.get(`/recruiter/jobs/${jobId}/applications`),
   getMatches: (jobId) => API.get(`/recruiter/jobs/${jobId}/matches`), // Module 2 UI
   updateApplicationStatus: (applicationId, data) =>
     API.patch(`/recruiter/applications/${applicationId}/status`, data),
@@ -309,21 +317,27 @@ export const recruiterAPI = {
     API.post("/recruiter/plans/purchase", { planId }),
   updateJob: (id, data) => API.patch(`/recruiter/jobs/${id}`, data),
   deleteJob: (id) => API.delete(`/recruiter/jobs/${id}`),
-  updateApplicationStatus: (id, data) => API.patch(`/recruiter/applications/${id}`, data),
+  updateApplicationStatus: (id, data) =>
+    API.patch(`/recruiter/applications/${id}`, data),
   deleteApplication: (id) => API.delete(`/recruiter/applications/${id}`),
   // Saved candidates
-  getSavedCandidates: () => API.get('/recruiter/saved-candidates'),
-  saveCandidate: (data) => API.post('/recruiter/saved-candidates', data),
-  removeSavedCandidate: (providerProfileId) => API.delete(`/recruiter/saved-candidates/${providerProfileId}`),
-  unlockProvider: (providerId, data) => API.post(`/recruiter/provider/${providerId}/unlock`, data),
-  getProviderProfile: (providerId) => API.get(`/recruiter/provider/${providerId}/profile`),
-  getApplicationDetails: (applicationId) => API.get(`/recruiter/applications/${applicationId}`),
-  getSignedResumeUrl: (candidateId) => API.post(`/candidates/${candidateId}/resume-url`),
+  getSavedCandidates: () => API.get("/recruiter/saved-candidates"),
+  saveCandidate: (data) => API.post("/recruiter/saved-candidates", data),
+  removeSavedCandidate: (providerProfileId) =>
+    API.delete(`/recruiter/saved-candidates/${providerProfileId}`),
+  unlockProvider: (providerId, data) =>
+    API.post(`/recruiter/provider/${providerId}/unlock`, data),
+  getProviderProfile: (providerId) =>
+    API.get(`/recruiter/provider/${providerId}/profile`),
+  getApplicationDetails: (applicationId) =>
+    API.get(`/recruiter/applications/${applicationId}`),
+  getSignedResumeUrl: (candidateId) =>
+    API.post(`/candidates/${candidateId}/resume-url`),
   getSkillGap: (data) => API.post("/recruiter/ai/skill-gap", data),
-  getProfileRating: (providerId) => API.post("/recruiter/ai/profile-rating", { providerId }),
+  getProfileRating: (providerId) =>
+    API.post("/recruiter/ai/profile-rating", { providerId }),
   // ==================================================================
 };
-
 
 // Skills / Categories APIs (public - no auth needed)
 export const categoriesAPI = {
@@ -336,13 +350,20 @@ export const adminAPI = {
   getMe: () => ADMIN_API.get("/admin/me"),
   getDashboard: () => ADMIN_API.get("/admin/dashboard"),
   getHealthMetrics: () => ADMIN_API.get("/admin/health/metrics"),
-  getDashboardStats: (params) => ADMIN_API.get("/admin/partners/dashboard/stats", { params }),
+  getDashboardStats: (params) =>
+    ADMIN_API.get("/admin/partners/dashboard/stats", { params }),
   getCustomPlanRequests: () => ADMIN_API.get("/admin/custom-plans"),
-  updateCustomPlanRequestStatus: (id, status) => ADMIN_API.patch(`/admin/custom-plans/${id}/status`, { status }),
+  updateCustomPlanRequestStatus: (id, status) =>
+    ADMIN_API.patch(`/admin/custom-plans/${id}/status`, { status }),
   getUsers: (params) => ADMIN_API.get("/admin/users", { params }),
-  uploadProviders: (formData) => ADMIN_API.post("/admin/providers/upload", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  }),
+  uploadProviders: (formData) =>
+    ADMIN_API.post("/admin/providers/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  uploadRecruiters: (formData) =>
+    ADMIN_API.post("/admin/recruiters/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
   getUserDetail: (id) => ADMIN_API.get(`/admin/users/${id}`),
   getManagers: () => ADMIN_API.get("/admin/managers"),
   createManager: (data) => ADMIN_API.post("/admin/managers", data),
@@ -351,15 +372,23 @@ export const adminAPI = {
   createPartner: (data) => ADMIN_API.post("/admin/partners", data),
   getPartnerDetails: (id) => ADMIN_API.get(`/admin/partners/${id}`),
   updatePartner: (id, data) => ADMIN_API.patch(`/admin/partners/${id}`, data),
-  updatePartnerStatus: (id, data) => ADMIN_API.patch(`/admin/partners/${id}/status`, data),
-  updatePartnerCommissionRate: (id, data) => ADMIN_API.patch(`/admin/partners/${id}/commission-rate`, data),
-  getPartnerRewardSettings: () => ADMIN_API.get("/admin/partners/settings/rewards"),
-  updatePartnerRewardSettings: (data) => ADMIN_API.put("/admin/partners/settings/rewards", data),
-  getPartnerReferrals: (id, params) => ADMIN_API.get(`/admin/partners/${id}/referrals`, { params }),
-  getReferralWithdrawals: (params) => ADMIN_API.get("/admin/referral-withdrawals", { params }),
-  updateReferralWithdrawalStatus: (id, data) => ADMIN_API.put(`/admin/referral-withdrawals/${id}/status`, data),
+  updatePartnerStatus: (id, data) =>
+    ADMIN_API.patch(`/admin/partners/${id}/status`, data),
+  updatePartnerCommissionRate: (id, data) =>
+    ADMIN_API.patch(`/admin/partners/${id}/commission-rate`, data),
+  getPartnerRewardSettings: () =>
+    ADMIN_API.get("/admin/partners/settings/rewards"),
+  updatePartnerRewardSettings: (data) =>
+    ADMIN_API.put("/admin/partners/settings/rewards", data),
+  getPartnerReferrals: (id, params) =>
+    ADMIN_API.get(`/admin/partners/${id}/referrals`, { params }),
+  getReferralWithdrawals: (params) =>
+    ADMIN_API.get("/admin/referral-withdrawals", { params }),
+  updateReferralWithdrawalStatus: (id, data) =>
+    ADMIN_API.put(`/admin/referral-withdrawals/${id}/status`, data),
   deletePartner: (id) => ADMIN_API.delete(`/admin/partners/${id}`),
-  getApprovalLogs: (params) => ADMIN_API.get("/admin/approval-logs", { params }),
+  getApprovalLogs: (params) =>
+    ADMIN_API.get("/admin/approval-logs", { params }),
   approveUser: (userId) => ADMIN_API.patch(`/admin/users/${userId}/approve`),
   rejectUser: (userId, reason = "") =>
     ADMIN_API.patch(`/admin/users/${userId}/reject`, { reason }),
@@ -401,22 +430,35 @@ export const adminAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
   getProfilePhoto: () => ADMIN_API.get("/admin/profile/photo"),
-  getProfilePhotoApprovals: (params) => ADMIN_API.get("/admin/profile-approvals", { params }),
-  getPortfolioApprovals: (params) => ADMIN_API.get("/admin/portfolio-approvals", { params }),
-  approvePortfolioLink: (profileId, linkId) => ADMIN_API.patch(`/admin/portfolio-approvals/${profileId}/${linkId}/approve`),
-  rejectPortfolioLink: (profileId, linkId, reason) => ADMIN_API.patch(`/admin/portfolio-approvals/${profileId}/${linkId}/reject`, { reason }),
+  getProfilePhotoApprovals: (params) =>
+    ADMIN_API.get("/admin/profile-approvals", { params }),
+  getPortfolioApprovals: (params) =>
+    ADMIN_API.get("/admin/portfolio-approvals", { params }),
+  approvePortfolioLink: (profileId, linkId) =>
+    ADMIN_API.patch(
+      `/admin/portfolio-approvals/${profileId}/${linkId}/approve`,
+    ),
+  rejectPortfolioLink: (profileId, linkId, reason) =>
+    ADMIN_API.patch(
+      `/admin/portfolio-approvals/${profileId}/${linkId}/reject`,
+      { reason },
+    ),
 
-  getProfileApprovalStats: () => ADMIN_API.get("/admin/profile-approvals/stats"),
+  getProfileApprovalStats: () =>
+    ADMIN_API.get("/admin/profile-approvals/stats"),
 
   approveProfilePhoto: (userId, role) =>
     ADMIN_API.patch(`/admin/profile-approvals/${role}/${userId}/approve`),
 
   rejectProfilePhoto: (userId, role, reason = "") =>
-    ADMIN_API.patch(`/admin/profile-approvals/${role}/${userId}/reject`, { reason }),
-    
+    ADMIN_API.patch(`/admin/profile-approvals/${role}/${userId}/reject`, {
+      reason,
+    }),
+
   getResumeApprovalStats: () => ADMIN_API.get("/admin/resume-approvals/stats"),
 
-  getResumeApprovals: (params) => ADMIN_API.get("/admin/resume-approvals", { params }),
+  getResumeApprovals: (params) =>
+    ADMIN_API.get("/admin/resume-approvals", { params }),
 
   approveResume: (userId) =>
     ADMIN_API.patch(`/admin/resume-approvals/${userId}/approve`),
@@ -425,23 +467,50 @@ export const adminAPI = {
     ADMIN_API.patch(`/admin/resume-approvals/${userId}/reject`, { reason }),
 
   // ── Profile Review System (complete overhaul) ──────────────────────────
-  getProfileReviews: (params) => ADMIN_API.get("/admin/profile-reviews", { params }),
+  getProfileReviews: (params) =>
+    ADMIN_API.get("/admin/profile-reviews", { params }),
   getProfileReviewStats: () => ADMIN_API.get("/admin/profile-reviews/stats"),
-  getDistinctLocations: (params) => ADMIN_API.get("/admin/profile-reviews/distinct-locations", { params }),
-  getProfileReviewDetail: (userId) => ADMIN_API.get(`/admin/profile-reviews/${userId}`),
+  getDistinctLocations: (params) =>
+    ADMIN_API.get("/admin/profile-reviews/distinct-locations", { params }),
+  getProfileReviewDetail: (userId) =>
+    ADMIN_API.get(`/admin/profile-reviews/${userId}`),
   approveProfileSection: (userId, sectionKey) =>
-    ADMIN_API.patch(`/admin/profile-reviews/${userId}/sections/${sectionKey}/approve`),
+    ADMIN_API.patch(
+      `/admin/profile-reviews/${userId}/sections/${sectionKey}/approve`,
+    ),
   rejectProfileSection: (userId, sectionKey, reason = "") =>
-    ADMIN_API.patch(`/admin/profile-reviews/${userId}/sections/${sectionKey}/reject`, { reason }),
+    ADMIN_API.patch(
+      `/admin/profile-reviews/${userId}/sections/${sectionKey}/reject`,
+      { reason },
+    ),
   addSectionRemark: (userId, sectionKey, remark) =>
-    ADMIN_API.post(`/admin/profile-reviews/${userId}/sections/${sectionKey}/remark`, { remark }),
+    ADMIN_API.post(
+      `/admin/profile-reviews/${userId}/sections/${sectionKey}/remark`,
+      { remark },
+    ),
   sendProfileCorrectionEmail: (userId, data) =>
     ADMIN_API.post(`/admin/profile-reviews/${userId}/notify`, data),
-  bulkProfileAction: (data) => ADMIN_API.post("/admin/profile-reviews/bulk", data),
+  bulkProfileAction: (data) =>
+    ADMIN_API.post("/admin/profile-reviews/bulk", data),
 
   // Registry Companies (Type 3)
-  getRegistryCompanies: (params) => ADMIN_API.get('/admin/registry-companies', { params }),
-  syncRegistryCompany: (id) => ADMIN_API.post(`/admin/registry-companies/${id}/sync`),
+  getRegistryCompanies: (params) =>
+    ADMIN_API.get("/admin/registry-companies", { params }),
+  syncRegistryCompany: (id) =>
+    ADMIN_API.post(`/admin/registry-companies/${id}/sync`),
+
+  // Crawlers
+  getCrawlerSettings: () => ADMIN_API.get("/admin/crawlers/settings"),
+  updateCrawlerSettings: (data) =>
+    ADMIN_API.put("/admin/crawlers/settings", data),
+  bulkUploadCrawlers: (data) =>
+    ADMIN_API.post("/admin/crawlers/bulk-upload", data),
+  getMappedCompanies: (params) =>
+    ADMIN_API.get("/admin/crawlers/mapped-companies", { params }),
+  exportCrawlerCompaniesCsv: () =>
+    ADMIN_API.get("/admin/crawlers/mapped-companies/csv", {
+      responseType: "blob",
+    }),
 
   getContent: (type) => ADMIN_API.get(`/admin/content/${type}`),
   updateContent: (type, value) =>
@@ -455,7 +524,8 @@ export const adminAPI = {
   getCloudinarySettings: () => ADMIN_API.get("/admin/cloudinary-settings"),
   updateCloudinarySettings: (data) =>
     ADMIN_API.put("/admin/cloudinary-settings", data),
-  getWhatsappLogs: (params) => ADMIN_API.get("/admin/whatsapp-logs", { params }),
+  getWhatsappLogs: (params) =>
+    ADMIN_API.get("/admin/whatsapp-logs", { params }),
   getWhatsappSettings: () => ADMIN_API.get("/admin/whatsapp-settings"),
   updateWhatsappSettings: (data) =>
     ADMIN_API.put("/admin/whatsapp-settings", data),
@@ -474,24 +544,18 @@ export const adminAPI = {
   removeSkillFromCategory: (id, skillId) =>
     ADMIN_API.delete(`/admin/skills/${id}/skills/${skillId}`),
   getAIMatchWeights: () => API.get("/admin/ai/match-weights"),
-  updateAIMatchWeights: (data) =>
-    API.put("/admin/ai/match-weights", data),
+  updateAIMatchWeights: (data) => API.put("/admin/ai/match-weights", data),
   getAITrustWeights: () => API.get("/admin/ai/trust-weights"),
-  updateAITrustWeights: (data) =>
-    API.put("/admin/ai/trust-weights", data),
+  updateAITrustWeights: (data) => API.put("/admin/ai/trust-weights", data),
   getPromptTemplates: () => API.get("/admin/ai/prompt-templates"),
-  createPromptTemplate: (data) =>
-    API.post("/admin/ai/prompt-templates", data),
+  createPromptTemplate: (data) => API.post("/admin/ai/prompt-templates", data),
   updatePromptTemplate: (id, data) =>
     API.put(`/admin/ai/prompt-templates/${id}`, data),
-  getSkillSynonyms: (params) =>
-    API.get("/admin/ai/skill-synonyms", { params }),
-  createSkillSynonym: (data) =>
-    API.post("/admin/ai/skill-synonyms", data),
+  getSkillSynonyms: (params) => API.get("/admin/ai/skill-synonyms", { params }),
+  createSkillSynonym: (data) => API.post("/admin/ai/skill-synonyms", data),
   updateSkillSynonym: (id, data) =>
     API.put(`/admin/ai/skill-synonyms/${id}`, data),
-  deleteSkillSynonym: (id) =>
-    API.delete(`/admin/ai/skill-synonyms/${id}`),
+  deleteSkillSynonym: (id) => API.delete(`/admin/ai/skill-synonyms/${id}`),
   getFraudQueue: () => API.get("/admin/ai/fraud-queue"),
   getOcrReviewQueue: () => API.get("/admin/ai/ocr-review-queue"),
   updateOcrReviewDecision: (id, data) =>
@@ -500,8 +564,10 @@ export const adminAPI = {
   getAIUsageLogs: (params) => API.get("/admin/ai/usage-logs", { params }),
   getDemandSnapshots: () => API.get("/admin/ai/demand-snapshots"),
   getAIFeatureSettings: () => API.get("/admin/ai/feature-settings"),
-  updateAIFeatureSettings: (data) => API.put("/admin/ai/feature-settings", data),
-  getAiAnalysisResults: (params) => API.get("/admin/ai/analysis-results", { params }),
+  updateAIFeatureSettings: (data) =>
+    API.put("/admin/ai/feature-settings", data),
+  getAiAnalysisResults: (params) =>
+    API.get("/admin/ai/analysis-results", { params }),
   rerunAiAnalysis: (data) => API.post("/admin/ai/analysis-results/rerun", data),
   // =================================================================
 
@@ -515,40 +581,58 @@ export const adminAPI = {
   approveRecruiter: (userId) => API.patch(`/admin/users/${userId}/approve`),
   getAllReferrals: () => ADMIN_API.get("/admin/referrals"),
   getRewards: (params) => ADMIN_API.get("/admin/partners/rewards", { params }),
-  updateRewardStatus: (id, data) => ADMIN_API.patch(`/admin/partners/rewards/${id}/status`, data),
-  markRewardsPaid: (data) => ADMIN_API.post("/admin/partners/rewards/mark-paid", data),
+  updateRewardStatus: (id, data) =>
+    ADMIN_API.patch(`/admin/partners/rewards/${id}/status`, data),
+  markRewardsPaid: (data) =>
+    ADMIN_API.post("/admin/partners/rewards/mark-paid", data),
   getCountries: () => ADMIN_API.get("/admin/countries"),
   createCountryConfig: (data) => ADMIN_API.post("/admin/countries", data),
-  updateCountryConfig: (id, data) => ADMIN_API.put(`/admin/countries/${id}`, data),
+  updateCountryConfig: (id, data) =>
+    ADMIN_API.put(`/admin/countries/${id}`, data),
   deleteCountryConfig: (id) => ADMIN_API.delete(`/admin/countries/${id}`),
-  validateCountryConfig: (id) => ADMIN_API.post(`/admin/countries/${id}/validate`),
-  activateCountryConfig: (id) => ADMIN_API.post(`/admin/countries/${id}/activate`),
-  deactivateCountryConfig: (id) => ADMIN_API.post(`/admin/countries/${id}/deactivate`),
+  validateCountryConfig: (id) =>
+    ADMIN_API.post(`/admin/countries/${id}/validate`),
+  activateCountryConfig: (id) =>
+    ADMIN_API.post(`/admin/countries/${id}/activate`),
+  deactivateCountryConfig: (id) =>
+    ADMIN_API.post(`/admin/countries/${id}/deactivate`),
 
   // External Job Sources
   getJobSources: () => ADMIN_API.get("/admin/job-sources"),
   createJobSource: (data) => ADMIN_API.post("/admin/job-sources", data),
-  updateJobSource: (id, data) => ADMIN_API.put(`/admin/job-sources/${id}`, data),
+  updateJobSource: (id, data) =>
+    ADMIN_API.put(`/admin/job-sources/${id}`, data),
   testJobSource: (id) => ADMIN_API.post(`/admin/job-sources/${id}/test`),
   syncJobSource: (id) => ADMIN_API.post(`/admin/job-sources/${id}/sync`),
   pauseJobSource: (id) => ADMIN_API.post(`/admin/job-sources/${id}/pause`),
   resumeJobSource: (id) => ADMIN_API.post(`/admin/job-sources/${id}/resume`),
 
   // Company Sources
-  getCompanySources: (params) => ADMIN_API.get("/admin/company-sources", { params }),
+  getCompanySources: (params) =>
+    ADMIN_API.get("/admin/company-sources", { params }),
   createCompanySource: (data) => ADMIN_API.post("/admin/company-sources", data),
-  updateCompanySource: (id, data) => ADMIN_API.put(`/admin/company-sources/${id}`, data),
+  updateCompanySource: (id, data) =>
+    ADMIN_API.put(`/admin/company-sources/${id}`, data),
   deleteCompanySource: (id) => ADMIN_API.delete(`/admin/company-sources/${id}`),
-  importCompanySources: (data) => ADMIN_API.post("/admin/company-sources/import", data),
-  triggerDiscovery: (data) => ADMIN_API.post("/admin/company-sources/discover", data),
-  liveTestCrawler: (data) => ADMIN_API.post("/admin/company-sources/live-test", data),
+  importCompanySources: (data) =>
+    ADMIN_API.post("/admin/company-sources/import", data),
+  triggerDiscovery: (data) =>
+    ADMIN_API.post("/admin/company-sources/discover", data),
+  liveTestCrawler: (data) =>
+    ADMIN_API.post("/admin/company-sources/live-test", data),
 
   // External Jobs
-  getExternalJobs: (params) => ADMIN_API.get("/external-jobs/admin/list", { params }),
-  exportExternalCompaniesCsv: () => ADMIN_API.get("/external-jobs/admin/companies/csv", { responseType: 'blob' }),
-  updateExternalJob: (id, data) => ADMIN_API.put(`/external-jobs/admin/${id}`, data),
+  getExternalJobs: (params) =>
+    ADMIN_API.get("/external-jobs/admin/list", { params }),
+  exportExternalCompaniesCsv: () =>
+    ADMIN_API.get("/external-jobs/admin/companies/csv", {
+      responseType: "blob",
+    }),
+  updateExternalJob: (id, data) =>
+    ADMIN_API.put(`/external-jobs/admin/${id}`, data),
   deleteExternalJob: (id) => ADMIN_API.delete(`/external-jobs/admin/${id}`),
-  refreshExternalJob: (id) => ADMIN_API.post(`/external-jobs/admin/${id}/refresh`),
+  refreshExternalJob: (id) =>
+    ADMIN_API.post(`/external-jobs/admin/${id}/refresh`),
 
   // Sync logs & controls
   getSyncReports: (params) => ADMIN_API.get("/admin/sync/reports", { params }),
@@ -557,16 +641,24 @@ export const adminAPI = {
   triggerDailySync: () => ADMIN_API.post("/admin/sync/run"),
 
   // Recruiter Leads
-  getRecruiterLeads: (params) => ADMIN_API.get("/admin/recruiter-leads", { params }),
+  getRecruiterLeads: (params) =>
+    ADMIN_API.get("/admin/recruiter-leads", { params }),
   getManualOutreachLeads: () => ADMIN_API.get("/admin/recruiter-leads/manual"),
-  uploadRecruiterLeadsCsv: (formData) => ADMIN_API.post("/admin/recruiter-leads/upload-csv", formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  scrapeManualLeads: (data) => ADMIN_API.post('/admin/recruiter-leads/scrape-manual', data),
-  updateRecruiterLead: (id, data) => ADMIN_API.put(`/admin/recruiter-leads/${id}`, data),
+  uploadRecruiterLeadsCsv: (formData) =>
+    ADMIN_API.post("/admin/recruiter-leads/upload-csv", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  scrapeManualLeads: (data) =>
+    ADMIN_API.post("/admin/recruiter-leads/scrape-manual", data),
+  updateRecruiterLead: (id, data) =>
+    ADMIN_API.put(`/admin/recruiter-leads/${id}`, data),
   deleteRecruiterLead: (id) => ADMIN_API.delete(`/admin/recruiter-leads/${id}`),
 
   // Scraper Staging Candidates
-  getStagingCandidates: (params) => ADMIN_API.get("/admin/staging-candidates", { params }),
-  updateStagingCandidateToggle: (id, type, value) => ADMIN_API.put(`/admin/staging-candidates/${id}/toggle`, { type, value }),
+  getStagingCandidates: (params) =>
+    ADMIN_API.get("/admin/staging-candidates", { params }),
+  updateStagingCandidateToggle: (id, type, value) =>
+    ADMIN_API.put(`/admin/staging-candidates/${id}/toggle`, { type, value }),
 
   // =================================================================
 };
@@ -584,8 +676,10 @@ export const searchAPI = {
 
 export const aiAPI = {
   health: () => API.get("/ai/health"),
-  getJobExpiryPrediction: (jobId) => API.get(`/jobs/${jobId}/expiry-prediction`),
-  getRecruiterReputation: (recruiterId) => API.get(`/recruiter/${recruiterId}/reputation`),
+  getJobExpiryPrediction: (jobId) =>
+    API.get(`/jobs/${jobId}/expiry-prediction`),
+  getRecruiterReputation: (recruiterId) =>
+    API.get(`/recruiter/${recruiterId}/reputation`),
 
   profileBuild: (data) => API.post("/ai/profile/build", data),
   profileImprove: (data) => API.post("/ai/profile/improve", data),
@@ -694,25 +788,26 @@ export const localeAPI = {
 };
 
 export const translationAPI = {
-  translateText: (data) => API.post('/translate/text', data),
-  translateBatch: (data) => API.post('/translate/batch', data),
+  translateText: (data) => API.post("/translate/text", data),
+  translateBatch: (data) => API.post("/translate/batch", data),
 };
 
 export const locationAPI = {
   autocomplete: (query) => API.post("/location/autocomplete", { query }),
   nearby: (lat, lon) => API.post("/location/nearby", { lat, lon }),
-  searchPlaces: (query, options = {}) => API.get("/location/search", { params: { query, ...options } }),
+  searchPlaces: (query, options = {}) =>
+    API.get("/location/search", { params: { query, ...options } }),
   getPlaceDetails: (placeId) => API.get(`/location/details/${placeId}`),
 };
 
-
 export const enquiryAPI = {
-  create: (data) => API.post('/enquiry', data),
-  getAll: () => API.get('/enquiry'),
+  create: (data) => API.post("/enquiry", data),
+  getAll: () => API.get("/enquiry"),
 };
 
 export const profileShareAPI = {
-  generateToken: (candidateId, data) => API.post(`/profile-share/${candidateId}`, data),
+  generateToken: (candidateId, data) =>
+    API.post(`/profile-share/${candidateId}`, data),
   getSharedProfile: (token) => API.get(`/profile-share/view/${token}`),
 };
 
@@ -720,31 +815,43 @@ export const referralAPI = {
   getMyStats: () => API.get("/referrals/my-stats"),
   updatePaymentMethods: (data) => API.post("/referrals/payment-methods", data),
   requestWithdrawal: (data) => API.post("/referrals/withdraw", data),
-  createUserReferral: (data) => API.post("/referrals/invite", data)
+  createUserReferral: (data) => API.post("/referrals/invite", data),
 };
 
 export const providerWalletAPI = {
   getWallet: () => API.get("/provider/wallet"),
-  sendOtpForPayout: (data) => API.post("/provider/wallet/payout-methods/send-otp", data),
+  sendOtpForPayout: (data) =>
+    API.post("/provider/wallet/payout-methods/send-otp", data),
   savePayoutMethod: (data) => API.post("/provider/wallet/payout-methods", data),
-  uploadQrCode: (formData) => API.post("/provider/wallet/payout-methods/upload-qr", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  }),
-  setDefaultPayoutMethod: (id) => API.put(`/provider/wallet/payout-methods/${id}/default`),
-  deletePayoutMethod: (id) => API.delete(`/provider/wallet/payout-methods/${id}`),
+  uploadQrCode: (formData) =>
+    API.post("/provider/wallet/payout-methods/upload-qr", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  setDefaultPayoutMethod: (id) =>
+    API.put(`/provider/wallet/payout-methods/${id}/default`),
+  deletePayoutMethod: (id) =>
+    API.delete(`/provider/wallet/payout-methods/${id}`),
   requestWithdrawal: (data) => API.post("/provider/wallet/withdraw", data),
-  initiatePhoneChange: (data) => API.post("/provider/wallet/phone-change/initiate", data),
-  verifyOldPhoneOTP: (data) => API.post("/provider/wallet/phone-change/verify-old", data),
-  verifyNewPhoneOTP: (data) => API.post("/provider/wallet/phone-change/verify-new", data),
-  raiseConcernLostPhone: (data) => API.post("/provider/wallet/phone-change/raise-concern", data),
+  initiatePhoneChange: (data) =>
+    API.post("/provider/wallet/phone-change/initiate", data),
+  verifyOldPhoneOTP: (data) =>
+    API.post("/provider/wallet/phone-change/verify-old", data),
+  verifyNewPhoneOTP: (data) =>
+    API.post("/provider/wallet/phone-change/verify-new", data),
+  raiseConcernLostPhone: (data) =>
+    API.post("/provider/wallet/phone-change/raise-concern", data),
 };
 
 export const adminWithdrawalAPI = {
   getAll: (params) => API.get("/admin/payout-withdrawals", { params }),
-  updateStatus: (id, data) => API.put(`/admin/payout-withdrawals/${id}/status`, data),
-  getCommissionSettings: () => API.get("/admin/payout-withdrawals/commission-settings"),
-  updateCommissionSettings: (data) => API.put("/admin/payout-withdrawals/commission-settings", data),
-  getBillingRuleHistory: () => API.get("/admin/payout-withdrawals/commission-settings/history"),
+  updateStatus: (id, data) =>
+    API.put(`/admin/payout-withdrawals/${id}/status`, data),
+  getCommissionSettings: () =>
+    API.get("/admin/payout-withdrawals/commission-settings"),
+  updateCommissionSettings: (data) =>
+    API.put("/admin/payout-withdrawals/commission-settings", data),
+  getBillingRuleHistory: () =>
+    API.get("/admin/payout-withdrawals/commission-settings/history"),
 };
 
 export const supportAPI = {
@@ -760,4 +867,3 @@ export const unlockProfileAPI = {
 };
 
 export default API;
-

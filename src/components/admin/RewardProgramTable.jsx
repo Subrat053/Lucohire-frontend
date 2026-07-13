@@ -8,7 +8,7 @@ const RewardProgramTable = ({ topPartners = [] }) => {
   const displayData = topPartners.slice(0, 5);
 
   return (
-    <div className="bg-white rounded-3xl border border-[#EAE7F2] p-6 shadow-sm mt-6">
+    <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm mt-6 h-full">
       <div className="bg-gradient-to-r from-[#F8F7FB] to-white rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-[#7C3AED] flex items-center justify-center text-white shrink-0 mt-1">

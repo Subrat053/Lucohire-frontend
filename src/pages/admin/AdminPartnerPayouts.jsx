@@ -52,7 +52,7 @@ const AdminPartnerPayouts = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Partner Payout Requests</h1>
@@ -74,7 +74,7 @@ const AdminPartnerPayouts = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           {loading ? (
             <div className="p-12 flex justify-center"><LoadingSpinner size="md" /></div>
