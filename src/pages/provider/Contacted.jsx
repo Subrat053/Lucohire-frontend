@@ -10,9 +10,9 @@ import { useLocale } from '../../context/LocaleContext';
 
 const STATUS_BADGES = {
   pending:     { bg: 'bg-yellow-50 border-yellow-200 text-yellow-700', label: 'Pending Review' },
-  reviewed:    { bg: 'bg-blue-50 border-blue-200 text-blue-700',       label: 'Reviewed' },
+  reviewed:    { bg: 'bg-teal-50 border-teal-200 text-teal-700',       label: 'Reviewed' },
   contacted:   { bg: 'bg-amber-50 border-amber-200 text-amber-700',   label: '✓ Contacted You!' },
-  shortlisted:{ bg: 'bg-indigo-50 border-indigo-200 text-indigo-700', label: 'Shortlisted' },
+  shortlisted:{ bg: 'bg-emerald-50 border-emerald-200 text-emerald-700', label: 'Shortlisted' },
   rejected:    { bg: 'bg-red-50 border-red-200 text-red-700',          label: 'Not Selected' },
   hired:       { bg: 'bg-emerald-50 border-emerald-200 text-emerald-700', label: '✓✓ Hired!' },
 };
@@ -27,11 +27,11 @@ const ContactedCard = ({ application }) => {
   return (
     <div className={`relative rounded-2xl border transition-all duration-300 overflow-hidden ${
       isContacted
-        ? 'bg-blue-50/40 border-blue-200 shadow-sm shadow-blue-100/50'
+        ? 'bg-teal-50/40 border-teal-200 shadow-sm shadow-teal-100/50'
         : 'bg-white border-gray-100 hover:border-gray-200'
     }`}>
       {isContacted && (
-        <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1 rounded-bl-xl text-[10px] font-black uppercase tracking-wider">
+        <div className="absolute top-0 right-0 bg-gradient-to-r from-teal-600 to-emerald-600 text-white px-4 py-1 rounded-bl-xl text-[10px] font-black uppercase tracking-wider">
           💬 Contacted
         </div>
       )}
@@ -71,7 +71,7 @@ const ContactedCard = ({ application }) => {
         <div className="grid sm:grid-cols-2 gap-3">
           {recruiter?.email && (
             <a href={`mailto:${recruiter.email}`}
-              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all text-xs font-bold border border-blue-200"
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-teal-50 text-teal-600 hover:bg-teal-100 transition-all text-xs font-bold border border-teal-200"
             >
               <HiMail className="w-4 h-4" /> Send Email
             </a>
@@ -91,8 +91,8 @@ const ContactedCard = ({ application }) => {
           Applied {new Date(application.appliedAt || application.createdAt).toLocaleDateString()}
           {isContacted && (
             <>
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-300" />
-              <span className="text-blue-600">Contacted recently</span>
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-teal-300" />
+              <span className="text-teal-600">Contacted recently</span>
             </>
           )}
         </div>
@@ -136,8 +136,8 @@ const ProviderContacted = () => {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-[#081B3A] mb-2">
-            Recruiter <span className="text-blue-600 drop-shadow-sm">Messages</span>
+          <h1 className="text-3xl font-extrabold text-emerald-950 mb-2">
+            Recruiter <span className="text-teal-600 drop-shadow-sm">Messages</span>
           </h1>
           <p className="text-gray-500 text-sm">See who has reached out to you about your applications</p>
         </div>
@@ -145,7 +145,7 @@ const ProviderContacted = () => {
         {/* Quick Stats */}
         <div className="grid sm:grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-2xl p-5 text-center shadow-xs border border-gray-100">
-            <p className="text-3xl font-black text-[#081B3A]">{applications.length}</p>
+            <p className="text-3xl font-black text-emerald-950">{applications.length}</p>
             <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">Total Applications</p>
           </div>
           <div className="bg-white rounded-2xl p-5 text-center shadow-xs border border-gray-100">
@@ -171,8 +171,8 @@ const ProviderContacted = () => {
                 onClick={() => setFilterType(tab.id)}
                 className={`px-4 py-2.5 rounded-xl transition text-xs font-extrabold uppercase tracking-wider ${
                   filterType === tab.id
-                    ? 'bg-[#081B3A] text-white shadow-xs border-0'
-                    : 'text-gray-600 hover:text-[#081B3A] hover:bg-gray-55'
+                    ? 'bg-emerald-950 text-white shadow-xs border-0'
+                    : 'text-gray-600 hover:text-emerald-950 hover:bg-gray-55'
                 }`}
               >
                 {tab.label}

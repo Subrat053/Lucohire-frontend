@@ -410,11 +410,11 @@ const PayoutSettings = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Premium Header Banner */}
-      <div className="relative overflow-hidden bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 mb-8 text-white shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent"></div>
+      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 rounded-3xl p-8 mb-8 text-white shadow-xl">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent"></div>
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold mb-3">
               <HiOutlineSparkles className="w-3.5 h-3.5" />
               {t('payout.badge', 'Withdrawal Center')}
             </div>
@@ -437,7 +437,7 @@ const PayoutSettings = () => {
         {/* Left Side: Payout Form */}
         <div className="md:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
           <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600"><HiCreditCard className="w-5 h-5" /></span>
+            <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600"><HiCreditCard className="w-5 h-5" /></span>
             {editingId ? t('payout.editHeader', 'Edit Payment Method') : t('payout.addHeader', 'Add Payment Method')}
           </h2>
 
@@ -477,7 +477,7 @@ const PayoutSettings = () => {
                       value={bankDetails.bankName}
                       onChange={e => setBankDetails({ ...bankDetails, bankName: e.target.value })}
                       placeholder="e.g. HDFC Bank"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 transition"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition"
                     />
                   </div>
                   <div>
@@ -488,7 +488,7 @@ const PayoutSettings = () => {
                       value={bankDetails.accountHolderName}
                       onChange={e => setBankDetails({ ...bankDetails, accountHolderName: e.target.value })}
                       placeholder="Name as in Bank"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 transition"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition"
                     />
                   </div>
                 </div>
@@ -500,7 +500,7 @@ const PayoutSettings = () => {
                     value={bankDetails.accountNumber}
                     onChange={e => setBankDetails({ ...bankDetails, accountNumber: e.target.value })}
                     placeholder={editingId ? '••••••••••••' : 'Enter complete account number'}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 transition font-mono"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition font-mono"
                   />
                   {editingId && <p className="text-xs text-amber-500 mt-1">{t('payout.editBankHint', 'Leave or enter new value to overwrite')}</p>}
                 </div>
@@ -512,7 +512,7 @@ const PayoutSettings = () => {
                     value={bankDetails.ifscCode}
                     onChange={e => setBankDetails({ ...bankDetails, ifscCode: e.target.value.toUpperCase() })}
                     placeholder="e.g. HDFC0001234"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 transition font-mono uppercase"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition font-mono uppercase"
                   />
                 </div>
               </div>
@@ -528,7 +528,7 @@ const PayoutSettings = () => {
                     value={upiId}
                     onChange={e => setUpiId(e.target.value)}
                     placeholder="e.g. name@upi"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 transition font-mono"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition font-mono"
                   />
                 </div>
               </div>
@@ -538,7 +538,7 @@ const PayoutSettings = () => {
               <div className="space-y-4 animate-fadeIn">
                 <div>
                   <label className="block text-xs font-bold text-slate-600 uppercase mb-1.5">{t('payout.qrFile', 'Upload QR Code Image')}</label>
-                  <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-indigo-500 transition relative">
+                  <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-emerald-500 transition relative">
                     <input
                       type="file"
                       accept="image/*"
@@ -551,7 +551,7 @@ const PayoutSettings = () => {
                     {qrPreview ? (
                       <div className="flex flex-col items-center">
                         <img src={qrPreview} alt="QR Code Preview" className="w-32 h-32 object-contain rounded-lg border bg-white mb-2" />
-                        <span className="text-xs text-indigo-600 font-semibold">{t('payout.replaceQr', 'Click to replace image')}</span>
+                        <span className="text-xs text-emerald-600 font-semibold">{t('payout.replaceQr', 'Click to replace image')}</span>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center">
@@ -569,7 +569,7 @@ const PayoutSettings = () => {
                     value={qrProviderName}
                     onChange={e => setQrProviderName(e.target.value)}
                     placeholder="e.g. GPay, PhonePe, Paytm"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 transition"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition"
                   />
                 </div>
               </div>
@@ -582,7 +582,7 @@ const PayoutSettings = () => {
                 id="isDefault"
                 checked={isDefault}
                 onChange={e => setIsDefault(e.target.checked)}
-                className="w-4.5 h-4.5 border-slate-300 text-indigo-600 rounded focus:ring-indigo-500"
+                className="w-4.5 h-4.5 border-slate-300 text-emerald-600 rounded focus:ring-emerald-500"
               />
               <label htmlFor="isDefault" className="text-xs font-semibold text-slate-600 select-none">
                 {t('payout.makeDefault', 'Set as default payout method')}
@@ -601,7 +601,7 @@ const PayoutSettings = () => {
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
                     placeholder="e.g. 9876543210"
-                    className="w-full sm:flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 transition disabled:bg-slate-100 disabled:text-slate-500 font-semibold"
+                    className="w-full sm:flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition disabled:bg-slate-100 disabled:text-slate-500 font-semibold"
                   />
                   <button
                     type="submit"
@@ -613,7 +613,7 @@ const PayoutSettings = () => {
                   </button>
                 </div>
                 {!user?.phone && (
-                  <p className="text-xs text-indigo-500 mt-1.5 flex items-center gap-1.5">
+                  <p className="text-xs text-emerald-500 mt-1.5 flex items-center gap-1.5">
                     <HiLockClosed className="w-3.5 h-3.5" />
                     {t('payout.phoneUpdateAlert', 'Ensure this matches your phone to verify successfully')}
                   </p>
@@ -638,7 +638,7 @@ const PayoutSettings = () => {
           {/* Mobile Verification Settings Card */}
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
             <h3 className="text-lg font-bold text-slate-900 mb-1.5 flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+              <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
                 <HiShieldCheck className="w-5 h-5" />
               </span>
               {t('payout.phoneSettingsTitle', 'Security Settings')}
@@ -676,14 +676,14 @@ const PayoutSettings = () => {
                     value={newPhone}
                     onChange={e => setNewPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     placeholder="Enter 10 digits"
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 transition font-semibold"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition font-semibold"
                   />
                 </div>
               </div>
               <button
                 type="submit"
                 disabled={initiatingPhoneChange}
-                className="w-full py-3 bg-[#081B3A] hover:bg-[#0E2854] text-white rounded-xl text-xs font-extrabold tracking-wide uppercase transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-emerald-950 hover:bg-emerald-900 text-white rounded-xl text-xs font-extrabold tracking-wide uppercase transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {initiatingPhoneChange ? t('payout.updatingStatus', 'Initiating...') : t('payout.changePhoneBtn', 'Update Mobile Number')}
               </button>
@@ -692,7 +692,7 @@ const PayoutSettings = () => {
 
           <div className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-lg">
             <h3 className="text-lg font-bold mb-1.5 flex items-center gap-2">
-              <HiShieldCheck className="w-5 h-5 text-indigo-400" />
+              <HiShieldCheck className="w-5 h-5 text-emerald-400" />
               {t('payout.savedHeader', 'Payout Destinations')}
             </h3>
             <p className="text-xs text-slate-400 mb-6">{t('payout.savedCountDesc', 'Manage default options for automated withdrawal approvals')}</p>
@@ -704,13 +704,13 @@ const PayoutSettings = () => {
                     key={method._id}
                     className={`p-4 rounded-2xl border transition-all ${
                       method.isDefault
-                        ? 'bg-indigo-950/40 border-indigo-500/40 text-slate-100 shadow-xs'
+                        ? 'bg-emerald-950/40 border-emerald-500/40 text-slate-100 shadow-xs'
                         : 'bg-white/5 border-white/5 text-slate-300 hover:border-white/10'
                     }`}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-2">
-                        {method.type === 'bank' && <HiCreditCard className="w-5 h-5 text-indigo-400" />}
+                        {method.type === 'bank' && <HiCreditCard className="w-5 h-5 text-emerald-400" />}
                         {method.type === 'upi' && <HiShieldCheck className="w-5 h-5 text-teal-400" />}
                         {method.type === 'qr' && <HiQrCode className="w-5 h-5 text-amber-400" />}
                         <span className="font-bold text-xs uppercase tracking-wide">
@@ -732,7 +732,7 @@ const PayoutSettings = () => {
                         <button
                           type="button"
                           onClick={() => handleEditClick(method)}
-                          className="p-1 hover:bg-white/10 rounded text-slate-400 hover:text-indigo-400 transition"
+                          className="p-1 hover:bg-white/10 rounded text-slate-400 hover:text-emerald-400 transition"
                           title={t('common.edit', 'Edit')}
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -755,7 +755,7 @@ const PayoutSettings = () => {
                         <>
                           <p className="font-semibold text-slate-100 font-sans">{method.bankDetails?.accountHolderName}</p>
                           <p>{method.bankDetails?.bankName}</p>
-                          <p className="text-indigo-200">{method.bankDetails?.accountNumber}</p>
+                          <p className="text-emerald-200">{method.bankDetails?.accountNumber}</p>
                           <p className="text-slate-400">IFSC: {method.bankDetails?.ifscCode}</p>
                         </>
                       )}
@@ -774,7 +774,7 @@ const PayoutSettings = () => {
                     </div>
 
                     {method.isDefault && (
-                      <div className="mt-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-[10px] font-bold tracking-wider uppercase font-sans">
+                      <div className="mt-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold tracking-wider uppercase font-sans">
                         <HiCheckCircle className="w-3.5 h-3.5" />
                         {t('payout.defaultBadge', 'Default')}
                       </div>
@@ -796,7 +796,7 @@ const PayoutSettings = () => {
       {showOtpModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 text-center animate-scaleUp">
-            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <HiShieldCheck className="w-7 h-7" />
             </div>
             
@@ -812,7 +812,7 @@ const PayoutSettings = () => {
                 value={otp}
                 onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
                 placeholder="0 0 0 0 0 0"
-                className="w-full text-center px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xl font-extrabold font-mono tracking-[0.6em] focus:outline-hidden focus:border-indigo-500 focus:bg-white transition"
+                className="w-full text-center px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xl font-extrabold font-mono tracking-[0.6em] focus:outline-hidden focus:border-emerald-500 focus:bg-white transition"
               />
 
               <div className="flex gap-3 pt-2">
@@ -836,7 +836,7 @@ const PayoutSettings = () => {
               <button
                 type="button"
                 onClick={handleSendOtp}
-                className="inline-block text-xs font-bold text-indigo-600 hover:underline mt-2"
+                className="inline-block text-xs font-bold text-emerald-600 hover:underline mt-2"
               >
                 {t('payout.resend', 'Resend Code')}
               </button>
@@ -873,7 +873,7 @@ const PayoutSettings = () => {
                       value={concernMessage}
                       onChange={e => setConcernMessage(e.target.value)}
                       placeholder="Explain your case here, e.g. 'I lost my old phone SIM card and want to update to my new number: 9876543210'"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 focus:bg-white transition"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 focus:bg-white transition"
                     />
                   </div>
 
@@ -897,7 +897,7 @@ const PayoutSettings = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2">
                   <HiShieldCheck className="w-7 h-7" />
                 </div>
                 
@@ -932,7 +932,7 @@ const PayoutSettings = () => {
                     value={phoneOtp}
                     onChange={e => setPhoneOtp(e.target.value.replace(/\D/g, ''))}
                     placeholder="0 0 0 0 0 0"
-                    className="w-full text-center px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xl font-extrabold font-mono tracking-[0.6em] focus:outline-hidden focus:border-indigo-500 focus:bg-white transition"
+                    className="w-full text-center px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xl font-extrabold font-mono tracking-[0.6em] focus:outline-hidden focus:border-emerald-500 focus:bg-white transition"
                   />
 
                   {phoneStep === 'verify_old' && (
@@ -969,7 +969,7 @@ const PayoutSettings = () => {
                   <button
                     type="button"
                     onClick={handleInitiatePhoneChange}
-                    className="inline-block text-xs font-bold text-indigo-600 hover:underline mt-2"
+                    className="inline-block text-xs font-bold text-emerald-600 hover:underline mt-2"
                   >
                     {t('payout.resend', 'Resend Code')}
                   </button>

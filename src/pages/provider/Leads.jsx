@@ -35,8 +35,8 @@ const ProviderLeads = () => {
 
   const statusColors = {
     new: 'bg-green-100 text-green-700',
-    viewed: 'bg-blue-100 text-blue-700',
-    contacted: 'bg-purple-100 text-purple-700',
+    viewed: 'bg-teal-100 text-teal-700',
+    contacted: 'bg-teal-100 text-teal-700',
     hired: 'bg-emerald-100 text-emerald-700',
     rejected: 'bg-red-100 text-red-700',
   };
@@ -57,7 +57,7 @@ const ProviderLeads = () => {
                   </div>
                   <p className="text-sm text-gray-500 capitalize">{lead.type?.replace(/_/g, ' ')}</p>
                   {lead.jobPost && (
-                    <div className="flex items-center space-x-1 mt-1 text-sm text-indigo-600">
+                    <div className="flex items-center space-x-1 mt-1 text-sm text-emerald-600">
                       <HiBriefcase className="w-4 h-4" />
                       <span>{lead.jobPost.title} - {lead.jobPost.city}</span>
                     </div>
@@ -71,7 +71,7 @@ const ProviderLeads = () => {
                     </a>
                   )}
                   {lead.isUnlocked && lead.recruiter?.email && (
-                    <a href={`mailto:${lead.recruiter.email}`} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
+                    <a href={`mailto:${lead.recruiter.email}`} className="p-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100">
                       <HiMail className="w-5 h-5" />
                     </a>
                   )}
@@ -92,8 +92,8 @@ const ProviderLeads = () => {
         </div>
       ) : (
         <div className="text-center py-16">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50">
-            <HiBriefcase className="h-8 w-8 text-indigo-500" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50">
+            <HiBriefcase className="h-8 w-8 text-emerald-500" />
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">No leads yet</h3>
           <p className="text-gray-500">Complete your profile and upgrade your plan to receive leads.</p>

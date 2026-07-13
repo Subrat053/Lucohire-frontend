@@ -205,7 +205,7 @@ const ReferralManagement = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-600"></div>
       </div>
     );
   }
@@ -224,7 +224,7 @@ const ReferralManagement = () => {
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center space-x-4">
-          <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
+          <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
             <Users size={24} />
           </div>
           <div>
@@ -252,7 +252,7 @@ const ReferralManagement = () => {
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center space-x-4">
-          <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
+          <div className="p-3 bg-teal-50 rounded-xl text-teal-600">
             <TrendingUp size={24} />
           </div>
           <div>
@@ -267,12 +267,12 @@ const ReferralManagement = () => {
       </div>
 
       {/* Referral Link Card */}
-      <div className="bg-linear-to-r from-indigo-600 to-violet-700 rounded-3xl p-8 text-white mb-12 relative overflow-hidden shadow-xl">
+      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-3xl p-8 text-white mb-12 relative overflow-hidden shadow-xl">
         <div className="relative z-10">
           <h2 className="text-2xl font-bold mb-4 flex items-center">
             <Share2 className="mr-2" /> Share your link
           </h2>
-          <p className="text-indigo-100 mb-8 max-w-md">
+          <p className="text-emerald-100 mb-8 max-w-md">
             Earn {stats?.commissionRate || 40}% commission when your referred friends subscribe to any of
             our plans for the first time.
           </p>
@@ -296,7 +296,7 @@ const ReferralManagement = () => {
             </div>
           </div>
 
-          <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between text-sm text-indigo-100 border-t border-white/20 pt-6">
+          <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between text-sm text-emerald-100 border-t border-white/20 pt-6">
             <div className="flex items-center mb-4 sm:mb-0">
               <span className="mr-2">Your Code:</span>
               <span className="font-bold bg-white/20 px-3 py-1 rounded-lg border border-white/30 tracking-widest">
@@ -308,7 +308,7 @@ const ReferralManagement = () => {
 
         {/* Decorative elements */}
         <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-[-10%] left-[-5%] w-48 h-48 bg-indigo-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-[-10%] left-[-5%] w-48 h-48 bg-emerald-400/20 rounded-full blur-3xl"></div>
       </div>
 
       <div id="recaptcha-container"></div>
@@ -317,7 +317,7 @@ const ReferralManagement = () => {
       {!isProvider && (
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-12">
           <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-            <CreditCard className="mr-2 text-indigo-600" /> Withdrawal Settings
+            <CreditCard className="mr-2 text-emerald-600" /> Withdrawal Settings
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -330,13 +330,13 @@ const ReferralManagement = () => {
               <div className="flex bg-gray-100 p-1 rounded-xl w-fit">
                 <button
                   onClick={() => setPayoutMethod("bank")}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${payoutMethod === "bank" ? "bg-white shadow text-indigo-600" : "text-gray-600 hover:text-gray-900"}`}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${payoutMethod === "bank" ? "bg-white shadow text-emerald-600" : "text-gray-600 hover:text-gray-900"}`}
                 >
                   Bank
                 </button>
                 <button
                   onClick={() => setPayoutMethod("upi")}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${payoutMethod === "upi" ? "bg-white shadow text-indigo-600" : "text-gray-600 hover:text-gray-900"}`}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${payoutMethod === "upi" ? "bg-white shadow text-emerald-600" : "text-gray-600 hover:text-gray-900"}`}
                 >
                   UPI
                 </button>
@@ -354,7 +354,7 @@ const ReferralManagement = () => {
                         accountHolderName: e.target.value,
                       }))
                     }
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50 focus:bg-white transition"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-gray-50 focus:bg-white transition"
                   />
                   <input
                     type="text"
@@ -366,7 +366,7 @@ const ReferralManagement = () => {
                         accountNumber: e.target.value,
                       }))
                     }
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50 focus:bg-white transition"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-gray-50 focus:bg-white transition"
                   />
                 </>
               )}
@@ -379,7 +379,7 @@ const ReferralManagement = () => {
                   onChange={(e) =>
                     setBankDetails((d) => ({ ...d, upiId: e.target.value }))
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50 focus:bg-white transition"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-gray-50 focus:bg-white transition"
                 />
               )}
 
@@ -417,7 +417,7 @@ const ReferralManagement = () => {
                     const sanitized = val.replace(/\D/g, '');
                     setWithdrawAmount(sanitized);
                   }}
-                  className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50 focus:bg-white transition"
+                  className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-gray-50 focus:bg-white transition"
                 />
               </div>
               <p className="text-xs text-gray-500 text-right">
@@ -425,13 +425,13 @@ const ReferralManagement = () => {
               </p>
 
               {/* OTP Verification Block */}
-              <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+              <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
                 <div className="flex items-start mb-3">
                   <ShieldCheck
-                    className="text-indigo-600 mr-2 shrink-0"
+                    className="text-emerald-600 mr-2 shrink-0"
                     size={20}
                   />
-                  <p className="text-xs text-indigo-900 leading-relaxed">
+                  <p className="text-xs text-emerald-900 leading-relaxed">
                     For your security, withdrawals require a one-time password
                     sent to your registered mobile number:{" "}
                     <strong>{stats?.user?.phone || "Not set"}</strong>
@@ -442,7 +442,7 @@ const ReferralManagement = () => {
                   <button
                     onClick={sendOtp}
                     disabled={processing}
-                    className="w-full py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-70"
+                    className="w-full py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition disabled:opacity-70"
                   >
                     Send OTP via SMS
                   </button>
@@ -456,12 +456,12 @@ const ReferralManagement = () => {
                       maxLength={6}
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-indigo-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="flex-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-emerald-500"
                     />
                     <button
                       onClick={verifyOtp}
                       disabled={processing}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-70"
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition disabled:opacity-70"
                     >
                       Verify
                     </button>
@@ -479,7 +479,7 @@ const ReferralManagement = () => {
               <button
                 onClick={submitWithdrawal}
                 disabled={processing || !isPhoneVerified || !withdrawAmount}
-                className="w-full py-3 bg-linear-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-violet-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg flex justify-center items-center"
+                className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-bold hover:from-emerald-700 hover:to-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg flex justify-center items-center"
               >
                 Submit Withdrawal Request
               </button>
@@ -493,7 +493,7 @@ const ReferralManagement = () => {
           <h3 className="text-lg font-bold text-gray-900">
             Recent Referrals
           </h3>
-          <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full">
+          <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full">
             {stats?.referrals?.length || 0} Total
           </span>
         </div>
@@ -517,7 +517,7 @@ const ReferralManagement = () => {
                   <tr key={ref._id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold shrink-0">
                           {ref.referredUserId?.avatar ? (
                             <img
                               src={ref.referredUserId.avatar}
@@ -553,7 +553,7 @@ const ReferralManagement = () => {
                     </td>
                     <td className="p-4 text-sm font-medium text-gray-700">
                       {ref.firstSubscriptionId?.planId?.name ? (
-                        <span className="text-indigo-600 font-bold">{ref.firstSubscriptionId.planId.name}</span>
+                        <span className="text-emerald-600 font-bold">{ref.firstSubscriptionId.planId.name}</span>
                       ) : (
                         <span className="text-gray-400 italic">No Plan</span>
                       )}

@@ -14,7 +14,7 @@ import DocumentVerificationStatusCard from "../../components/provider/DocumentVe
 import AIProfileAssistant from "../../components/provider/AIProfileAssistant";
 import AIProfileAutoFillModal from "../../components/provider/AIProfileAutoFillModal";
 import ProviderAIChat from "../../components/provider/ProviderAIChat";
-import { getAiUsage } from "../../services/providerAIService";
+import { getAiUsage, uploadResume as uploadResumeAI } from "../../services/providerAIService";
 import PortfolioLinksManager from "../../components/common/PortfolioLinksManager";
 import { compressImage } from "../../utils/fileCompressionService";
 import { validateUploadFile } from "../../utils/fileValidationService";
@@ -2246,16 +2246,22 @@ const ProviderProfile = () => {
                       if (e.target.files && e.target.files[0]) {
                         const file = e.target.files[0];
                         if (file.size > 5 * 1024 * 1024) return toast.error("File must be under 5MB");
-                        const toastId = toast.loading("Uploading resume...");
+                        const toastId = toast.loading("Uploading and parsing resume with AI...");
                         try {
                           const fd = new FormData();
                           fd.append("resume", file);
-                          const { data } = await providerAPI.uploadResume(fd);
-                          setForm({ ...form, resumeUrl: data.url });
-                          toast.success("Resume uploaded successfully!", { id: toastId });
+                          const response = await uploadResumeAI(fd);
+                          const data = response.data || response;
+                          
+                          if (data.fileHash) {
+                            localStorage.setItem('lastResumeHash', data.fileHash);
+                          }
+                          
+                          setForm({ ...form, resumeUrl: data.data?.resumeUrl });
+                          toast.success("Resume parsed successfully! AI features are now updated.", { id: toastId });
                           if (typeof fetchProfile === 'function') fetchProfile();
                         } catch (err) {
-                          toast.error(err?.response?.data?.message || "Resume upload failed", { id: toastId });
+                          toast.error(err?.response?.data?.message || "Resume parsing failed", { id: toastId });
                         }
                       }
                     }} id="resume-upload" />

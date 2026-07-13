@@ -1,11 +1,24 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { 
-  HiLockClosed, HiTrendingUp, HiLightBulb, HiChartBar, HiCheckCircle, HiExclamationCircle, HiBriefcase, HiSparkles
+  HiOutlineArrowLeft, HiOutlineDownload, HiCheckCircle, HiArrowUp, HiArrowDown
 } from 'react-icons/hi';
+import { 
+  FiCheck, FiTarget, FiAlertCircle, FiLock, FiClock
+} from 'react-icons/fi';
+import { 
+  BiTrophy, BiBriefcase, BiLineChart, BiMessageRoundedDots 
+} from 'react-icons/bi';
+import { 
+  MdOutlineWorkOutline, MdOutlineMenuBook, MdOutlineMonitor, MdOutlineHandshake, MdOutlineLocationOn
+} from 'react-icons/md';
 import { getCareerHealth, getAiUsage, improveCareerHealth } from '../../services/providerAIService';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+import html2pdf from 'html2pdf.js/dist/html2pdf.bundle.min.js';
 
 export default function CareerHealthDashboard({ tab = 'overview' }) {
   const { user } = useAuth();
@@ -14,15 +27,11 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
 
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState(null);
-  const [isLocked, setIsLocked] = useState(false);
-  const [activeTab, setActiveTab] = useState('employability');
   const [errorMessage, setErrorMessage] = useState(null);
   const [improving, setImproving] = useState(false);
-
   const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
   const [usageLoading, setUsageLoading] = useState(true);
 
-  // When coming from Profile.jsx after resume upload, we might pass fileHash or parsedData in state
   const { state } = location;
   const fileHash = state?.fileHash || localStorage.getItem('lastResumeHash');
   const parsedData = state?.parsedData;
@@ -53,10 +62,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
       
       const { data } = await getCareerHealth({ fileHash, parsedData });
       if (data.success) {
-        console.log("=== Career Health Data from Gemini ===", data.data);
         setReport(data.data);
-        // setIsLocked(data.data.isLocked);
-        setIsLocked(false);
         if (fileHash) {
           localStorage.setItem('lastResumeHash', fileHash);
         }
@@ -80,7 +86,6 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
       const { data } = await improveCareerHealth({ fileHash, parsedData, improve: true });
       if (data.success) {
         setReport(data.data);
-        setIsLocked(false);
         toast.success('AI Career Health updated with improved insights!');
         fetchUsage();
       }
@@ -92,384 +97,524 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
     }
   };
 
-
-
-  const mockOverviewData = useMemo(() => ({
-    career_health_score: 0,
-    summary: "Upload your resume to generate a personalized AI career health summary, highlighting your strengths, weaknesses, and potential growth."
-  }), []);
-
-  const isEmptyState = (!report && !loading) || !!errorMessage;
-  const displayData = report || {};
-  const overviewData = report || mockOverviewData;
-
-  const categoryDetails = {
-    employability: {
-      title: 'Employability',
-      score: displayData?.employability_score || 0,
-      icon: HiBriefcase,
-      description: 'How likely you are to secure a job in the current market.',
-      breakdowns: [
-        { name: 'Core Skills Match', score: displayData?.employability_breakdown?.core_skills_match || 0 },
-        { name: 'Experience Relevance', score: displayData?.employability_breakdown?.experience_relevance || 0 },
-        { name: 'Resume Formatting (ATS)', score: displayData?.employability_breakdown?.resume_formatting || 0 }
-      ]
-    },
-    salaryGrowth: {
-      title: 'Salary Growth',
-      score: displayData?.salary_growth_score || 0,
-      icon: HiTrendingUp,
-      description: 'Your potential for compensation increases over the next 3-5 years.',
-      breakdowns: [
-        { name: 'Industry Benchmark', score: displayData?.salary_growth_breakdown?.industry_benchmark || 0 },
-        { name: 'Promotion Velocity', score: displayData?.salary_growth_breakdown?.promotion_velocity || 0 },
-        { name: 'Skill Scarcity', score: displayData?.salary_growth_breakdown?.skill_scarcity || 0 }
-      ]
-    },
-    marketDemand: {
-      title: 'Market Demand',
-      score: displayData?.market_demand_score || 0,
-      icon: HiChartBar,
-      description: 'The overall volume of job opportunities matching your profile.',
-      breakdowns: [
-        { name: 'Job Openings Trend', score: displayData?.market_demand_breakdown?.job_openings_trend || 0 },
-        { name: 'Remote Opportunities', score: displayData?.market_demand_breakdown?.remote_opportunities || 0 },
-        { name: 'Industry Growth Rate', score: displayData?.market_demand_breakdown?.industry_growth_rate || 0 }
-      ]
-    },
-    futureReadiness: {
-      title: 'Future Readiness',
-      score: displayData?.future_readiness_score || 0,
-      icon: HiLightBulb,
-      description: 'How prepared you are for upcoming shifts and disruptions in your field.',
-      breakdowns: [
-        { name: 'Trend Alignment', score: displayData?.future_readiness_breakdown?.trend_alignment || 0 },
-        { name: 'Continuous Learning', score: displayData?.future_readiness_breakdown?.continuous_learning || 0 },
-        { name: 'Adaptability Indicators', score: displayData?.future_readiness_breakdown?.adaptability_indicators || 0 }
-      ]
-    },
-    aiResistance: {
-      title: 'AI Resistance',
-      score: displayData?.ai_resistance_score || 0,
-      icon: HiLockClosed,
-      description: 'The likelihood that your core responsibilities cannot be automated by AI.',
-      breakdowns: [
-        { name: 'Automation Risk (Inverted)', score: displayData?.ai_resistance_breakdown?.automation_risk_inverted || 0 },
-        { name: 'Creative Thinking', score: displayData?.ai_resistance_breakdown?.creative_thinking || 0 },
-        { name: 'Strategic Complexity', score: displayData?.ai_resistance_breakdown?.strategic_complexity || 0 }
-      ]
+  const handleDownloadReport = async () => {
+    if (!report) {
+      toast.error("No report data available to download.");
+      return;
+    }
+    
+    const element = document.getElementById('report-content');
+    if (!element) return;
+    
+    toast.loading("Generating PDF...", { id: "pdf-toast" });
+    
+    try {
+      // Dynamically import to bypass Vite bundling issues
+      const html2pdfModule = await import('html2pdf.js');
+      const html2pdf = html2pdfModule.default ? html2pdfModule.default : html2pdfModule;
+      
+      const opt = {
+        margin:       [0.2, 0.2, 0.2, 0.2],
+        filename:     `Career_Health_Report_${new Date().toISOString().split('T')[0]}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+      
+      html2pdf().set(opt).from(element).save().then(() => {
+        toast.dismiss("pdf-toast");
+        toast.success("PDF Report downloaded successfully!");
+      }).catch(err => {
+        console.error("PDF Error inside promise:", err);
+        toast.dismiss("pdf-toast");
+        toast.error(`Failed: ${err.message || String(err)}`);
+      });
+    } catch (err) {
+      console.error("PDF Error:", err);
+      toast.dismiss("pdf-toast");
+      toast.error(`Failed: ${err.message || String(err)}`);
     }
   };
 
-  const tabs = [
-      { id: 'employability', label: 'Employability Score', icon: HiBriefcase },
-      { id: 'salaryGrowth', label: 'Salary Growth Insights', icon: HiTrendingUp },
-      { id: 'marketDemand', label: 'Market Demand', icon: HiChartBar },
-      { id: 'futureReadiness', label: 'Future Readiness', icon: HiLightBulb },
-      { id: 'aiResistance', label: 'AI Resistance', icon: HiLockClosed },
-  ];
-
-  const currentPanel = categoryDetails[activeTab] || categoryDetails['employability'];
+  const displayData = report || {};
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+        <div className="w-16 h-16 border-4 border-[#059669] border-t-transparent rounded-full animate-spin"></div>
         <p className="mt-4 text-sm font-semibold text-gray-500">Analyzing your career profile...</p>
       </div>
     );
   }
 
-  const renderScoreMeter = (score, size = 'lg') => {
-    let color = 'text-green-500';
-    let strokeColor = 'stroke-green-500';
-    if (score < 50) { color = 'text-red-500'; strokeColor = 'stroke-red-500'; }
-    else if (score < 75) { color = 'text-amber-500'; strokeColor = 'stroke-amber-500'; }
+  // --- Dynamic Data Mapping with Fallbacks ---
+  const healthScore = displayData.career_health_score || displayData.employability_score || 0;
+  const growthScore = displayData.salary_growth_score || 0;
+  const marketScore = displayData.market_demand_score || 0;
+  const expScore = displayData.employability_breakdown?.experience_relevance || displayData.experience_relevance_score || 0;
+  const overallFit = displayData.overall_fit_score || 0; 
+  const targetRole = displayData.target_role || "Target Role";
+  const expectedSalary = displayData.expected_salary_range || "N/A";
+  const aiTip = displayData.ai_tip || "Update your profile description to get personalized AI tips.";
 
-    const radius = size === 'lg' ? 45 : 20;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (score / 100) * circumference;
+  const strengths = displayData.top_strengths?.length > 0 
+    ? displayData.top_strengths.slice(0, 4) 
+    : [];
 
-    return (
-      <div className="relative flex items-center justify-center">
-        <svg className="transform -rotate-90" width={size === 'lg' ? "120" : "60"} height={size === 'lg' ? "120" : "60"}>
-          <circle cx={size === 'lg' ? "60" : "30"} cy={size === 'lg' ? "60" : "30"} r={radius} stroke="currentColor" strokeWidth={size === 'lg' ? "8" : "4"} fill="transparent" className="text-gray-100" />
-          <circle cx={size === 'lg' ? "60" : "30"} cy={size === 'lg' ? "60" : "30"} r={radius} stroke="currentColor" strokeWidth={size === 'lg' ? "8" : "4"} fill="transparent" strokeDasharray={circumference} strokeDashoffset={offset} className={`${strokeColor} transition-all duration-1000 ease-out`} />
-        </svg>
-        <div className="absolute flex flex-col items-center">
-          <span className={`font-black ${size === 'lg' ? 'text-3xl' : 'text-sm'} ${color}`}>{score}</span>
-          {size === 'lg' && <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">/ 100</span>}
-        </div>
-      </div>
-    );
+  const weaknesses = displayData.top_weaknesses?.length > 0
+    ? displayData.top_weaknesses.slice(0, 4)
+    : [];
+
+  const radarData = displayData.radar_data || [];
+
+  const roleFitIcons = [MdOutlineMenuBook, MdOutlineWorkOutline, BiBriefcase, MdOutlineMonitor, FiTarget, MdOutlineHandshake];
+  const roleFitFactors = displayData.role_fit_breakdown?.map((factor, idx) => ({
+    ...factor,
+    icon: roleFitIcons[idx % roleFitIcons.length]
+  })) || [];
+
+  const marketDemandData = displayData.market_demand_trend || [];
+
+  const skillsToImprove = displayData.skills_to_improve || [];
+
+  const inDemandSkills = displayData.in_demand_skills || [];
+
+  const timelineRoles = displayData.career_growth_path || [];
+
+  const marketInsights = displayData.market_insights || {
+    jobsInDemand: "N/A",
+    jobsGrowth: "N/A",
+    avgSalary: "N/A",
+    salaryGrowth: "N/A",
+    topCities: "N/A"
   };
 
-  const SubScoreProgressBar = ({ name, score }) => (
-    <div className="flex flex-col gap-1.5 w-full">
-      <div className="flex justify-between items-center text-sm font-bold text-gray-700">
-        <span>{name}</span>
-        <span>{score}/100</span>
-      </div>
-      <div className="w-full bg-gray-100 rounded-full h-2">
-        <div 
-          className="bg-indigo-600 h-2 rounded-full transition-all duration-1000" 
-          style={{ width: `${score}%` }}
-        ></div>
-      </div>
-    </div>
-  );
-
   return (
-    <div className="w-full mx-auto p-4 sm:p-6 lg:p-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-            <HiLightBulb className="text-amber-400" /> AI Career Health
-          </h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">Deep insights based on your resume and profile data.</p>
-        </div>
-        <div className="flex flex-col items-end">
-          <button
-            onClick={handleImprove}
-            disabled={improving || loading}
-            className="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-indigo-200"
-          >
-            <HiSparkles className={`w-5 h-5 ${improving ? 'animate-spin' : ''}`} />
-            <span>{improving ? 'Generating...' : 'Generate Improved Insights'}</span>
-          </button>
-          {!usageLoading && (() => {
-            const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
-            const used = aiUsage.usage['aiCareerAnalysis'] || 0;
-            if (limit === -1) return <span className="text-xs text-gray-400 mt-1">Unlimited uses</span>;
-            if (limit === 0) return <span className="text-xs text-red-500 mt-1">Not included in plan</span>;
-            const remaining = Math.max(0, limit - used);
-            return <span className={`text-xs mt-1 ${remaining === 0 ? 'text-red-500' : 'text-gray-400'}`}>{remaining} of {limit} uses remaining</span>;
-          })()}
-        </div>
-      </div>
-
-
-      {/* Usage Banner */}
-      {!usageLoading && (
-        <div className="bg-indigo-50/50 border-b border-indigo-100 px-6 py-3 mb-6 rounded-xl flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <HiChartBar className="w-4 h-4 text-indigo-600" />
-            <span className="text-sm font-medium text-indigo-900">
-              Career Analysis Limit: 
-              {(() => {
-                const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
-                const used = aiUsage.usage['aiCareerAnalysis'] || 0;
-                if (limit === -1) return <span className="font-bold text-indigo-700 ml-1">Unlimited</span>;
-                if (limit === 0) return <span className="font-bold text-red-600 ml-1">Not included in plan</span>;
-                return <span className="font-bold text-indigo-700 ml-1">{Math.max(0, limit - used)} / {limit} requests remaining</span>;
-              })()}
-            </span>
-          </div>
-          <Link to="/provider/plans" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-100 px-3 py-1 rounded-full transition-colors">
-            Upgrade Plan
-          </Link>
-        </div>
-      )}
-
-      <div className="relative">
-        {/* UI Block Overlay */}
-        {!usageLoading && (() => {
-          const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
-          const used = aiUsage.usage['aiCareerAnalysis'] || 0;
-          
-          if (limit !== -1 && (limit === 0 || used >= limit)) {
-            return (
-              <div className="absolute inset-0 z-40 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center rounded-3xl">
-                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
-                  <HiLockClosed className="w-8 h-8" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {limit === 0 ? 'Feature Not Available' : 'Usage Limit Reached'}
-                </h3>
-                <p className="text-gray-500 max-w-md mb-6">
-                  {limit === 0 
-                    ? "Your current plan does not include access to AI Career Analysis. Upgrade your plan to unlock."
-                    : `You have used all ${limit} requests for this feature in the current billing cycle.`}
-                </p>
-                <Link to="/provider/plans" className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
-                  Upgrade Plan
-                </Link>
-              </div>
-            );
-          }
-          return null;
-        })()}
-
-        <div className={!usageLoading && (() => {
-          const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
-          const used = aiUsage.usage['aiCareerAnalysis'] || 0;
-          return (limit !== -1 && (limit === 0 || used >= limit)) ? 'opacity-30 pointer-events-none' : '';
-        })() ? 'opacity-30 pointer-events-none' : ''}>
-        {isEmptyState && (
-          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center backdrop-blur-xl bg-white/60 rounded-3xl pb-10 pointer-events-auto shadow-sm">
-            <HiExclamationCircle className="w-16 h-16 text-indigo-600 mb-4 animate-bounce" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Profile Actions Required</h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto text-center px-4">
-              {errorMessage || "Our AI needs to analyze your latest resume to generate your deep Career Health metrics and personalized action plan."}
-            </p>
-            <Link 
-              to="/provider/profile" 
-              className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg hover:shadow-xl"
-            >
-              Go to Profile
+    <div className="w-full bg-[#f8fafc] min-h-screen text-slate-800 pb-24 font-sans">
+      <div className="w-full p-4 md:p-6 lg:p-8">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div>
+            <Link to="/provider/dashboard" className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 font-medium mb-3">
+              <HiOutlineArrowLeft className="w-4 h-4" /> Back to AI Dashboard
             </Link>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Career Analysis</h1>
+              <span className="bg-emerald-50 text-emerald-600 text-xs font-bold px-2 py-1 rounded-md border border-emerald-100">Beta</span>
+            </div>
+            <p className="text-sm text-slate-500 mt-1">Deep AI insights about your career growth and opportunities</p>
           </div>
-        )}
+          <button 
+            onClick={handleDownloadReport}
+            className="flex items-center gap-2 bg-white border border-slate-200 text-emerald-700 font-semibold px-4 py-2 rounded-lg shadow-sm hover:bg-emerald-50 transition-colors"
+          >
+            <HiOutlineDownload className="w-5 h-5" />
+            Download Report
+          </button>
+        </div>
 
-        {/* Global Overview Row */}
-        <div className="bg-white rounded-3xl border border-gray-100 p-6 md:p-8 flex flex-col md:flex-row items-center gap-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] mb-6">
-          <div className="flex flex-col items-center shrink-0">
-            {renderScoreMeter(overviewData.career_health_score || 0, 'lg')}
-            <span className="mt-4 text-xs font-black uppercase tracking-widest text-gray-400">Overall Health</span>
+        <div id="report-content" className="pt-2">
+        {/* Top Cards Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          {/* Card 1: Health Score */}
+          <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm font-semibold text-slate-700">Career Health Score</span>
+              <FiAlertCircle className="w-4 h-4 text-slate-400" />
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 shrink-0">
+                <CircularProgressbar 
+                  value={healthScore} 
+                  text={`${healthScore}%`}
+                  styles={buildStyles({
+                    textSize: '24px',
+                    pathColor: '#059669',
+                    textColor: '#059669',
+                    trailColor: '#ecfdf5',
+                    pathTransitionDuration: 0.5,
+                  })}
+                />
+              </div>
+              <div>
+                <div className="text-emerald-600 font-bold">{healthScore >= 80 ? 'Excellent' : healthScore >= 60 ? 'Good' : 'Fair'}</div>
+              </div>
+            </div>
+            <div className="text-xs font-medium text-slate-500 mt-4 leading-relaxed">
+              {displayData.summary || "AI is analyzing your profile to generate a detailed summary."}
+            </div>
           </div>
-          
-          <div className="flex-1">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">AI Summary</h3>
-            <p className="text-sm text-gray-600 leading-relaxed bg-indigo-50/50 p-4 rounded-xl border border-indigo-50">
-              {overviewData.summary}
-            </p>
+
+          {/* Card 2: Market Demand */}
+          <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="text-sm font-semibold text-slate-700 mb-2">Market Demand</div>
+            <div>
+              <div className="text-xl font-bold text-emerald-600">{marketScore >= 80 ? 'High' : marketScore >= 60 ? 'Medium' : 'Low'}</div>
+              <div className="text-xs text-slate-500 mt-1">{marketScore >= 80 ? 'Excellent opportunities in your field' : marketScore >= 60 ? 'Moderate opportunities available' : 'Tough market conditions'}</div>
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              <div className="text-center bg-slate-50 rounded p-1.5 border border-slate-100">
+                <div className="text-[10px] text-slate-500 font-medium">Job Trend</div>
+                <div className="text-xs font-bold text-slate-700">{displayData.market_demand_breakdown?.job_openings_trend || 0}/100</div>
+              </div>
+              <div className="text-center bg-slate-50 rounded p-1.5 border border-slate-100">
+                <div className="text-[10px] text-slate-500 font-medium">Remote</div>
+                <div className="text-xs font-bold text-slate-700">{displayData.market_demand_breakdown?.remote_opportunities || 0}/100</div>
+              </div>
+              <div className="text-center bg-slate-50 rounded p-1.5 border border-slate-100">
+                <div className="text-[10px] text-slate-500 font-medium">Growth</div>
+                <div className="text-xs font-bold text-slate-700">{displayData.market_demand_breakdown?.industry_growth_rate || 0}/100</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Experience Relevance */}
+          <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="text-sm font-semibold text-slate-700 mb-2">Experience Relevance</div>
+            <div>
+              <div className="text-xl font-bold text-emerald-600">{expScore >= 70 ? 'Good' : 'Needs Improvement'}</div>
+              <div className="text-xs text-slate-500 mt-1">{expScore >= 70 ? 'Strong alignment with target roles' : 'Needs more relevant experience'}</div>
+            </div>
+            <div className="mt-4">
+              <div className="text-sm font-bold text-emerald-600 mb-1">{expScore}%</div>
+              <div className="w-full bg-slate-100 rounded-full h-1.5">
+                <div className="bg-emerald-600 h-1.5 rounded-full" style={{ width: `${expScore}%` }}></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Growth Potential */}
+          <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="text-sm font-semibold text-slate-700 mb-2">Growth Potential</div>
+            <div>
+              <div className="text-xl font-bold text-emerald-600">{growthScore >= 80 ? 'High' : growthScore >= 60 ? 'Medium' : 'Low'}</div>
+              <div className="text-xs text-slate-500 mt-1">{growthScore >= 80 ? 'Strong growth path ahead' : growthScore >= 60 ? 'Steady growth potential' : 'Limited growth in current path'}</div>
+            </div>
+            <div className="mt-4">
+              <div className="text-sm font-bold text-emerald-600 mb-1">{growthScore}%</div>
+              <div className="w-full bg-slate-100 rounded-full h-1.5">
+                <div className="bg-emerald-600 h-1.5 rounded-full" style={{ width: `${growthScore}%` }}></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 5: Salary Potential */}
+          <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="text-sm font-semibold text-slate-700 mb-2">Salary Potential</div>
+            <div>
+              <div className="text-xl font-bold text-slate-800">{expectedSalary}</div>
+              <div className="text-xs text-slate-500 mt-1">Expected salary range<br/>for {targetRole}</div>
+            </div>
+            <button className="text-emerald-600 text-sm font-semibold text-left mt-4 hover:text-emerald-700">
+              View Details →
+            </button>
           </div>
         </div>
 
-        {/* 5 Tabs Detailed Breakdown Section */}
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden mb-6">
-          {/* Tabs Navigation */}
-          <div className="flex overflow-x-auto border-b border-gray-100 bg-gray-50/50 hide-scrollbar">
-            {tabs.map(tab => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap transition-all border-b-2 ${
-                    isActive 
-                      ? 'border-indigo-600 text-indigo-700 bg-white' 
-                      : 'border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Active Panel Content */}
-          <div className="p-6 md:p-8 relative">
-            {isLocked && !isEmptyState && (
-              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center backdrop-blur-md bg-white/50 pointer-events-auto">
-                <HiLockClosed className="w-12 h-12 text-amber-500 mb-3" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Upgrade to Unlock Breakdown</h3>
-                <Link to="/provider/plans" className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-2 rounded-full font-bold text-sm shadow-md hover:shadow-lg transition-all">
-                  View Plans
-                </Link>
-              </div>
-            )}
-            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center">
-              {/* Category Overall Score */}
-              <div className="flex flex-col items-center bg-gray-50 p-6 rounded-2xl border border-gray-100 min-w-[200px]">
-                <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-600 mb-6">
-                  <currentPanel.icon className="w-6 h-6" />
+        {/* Main Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* LEFT COLUMN (Spans 2/3) */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Career Fit & Breakdown Box */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row overflow-hidden">
+              {/* Radar Chart Area */}
+              <div className="p-6 border-b md:border-b-0 md:border-r border-slate-100 flex-1 relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold text-slate-800">Career Fit Overview</h3>
+                  <FiAlertCircle className="w-4 h-4 text-slate-400" />
                 </div>
-                {renderScoreMeter(currentPanel.score, 'lg')}
-                <h4 className="mt-4 font-bold text-gray-800 text-center">{currentPanel.title} Score</h4>
-                <p className="text-xs text-gray-500 text-center mt-2 font-medium max-w-[160px]">
-                  {currentPanel.description}
-                </p>
+                <p className="text-xs text-slate-500 mb-4">How well your profile fits your target role: {targetRole}</p>
+                
+                <div className="h-[240px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                      <PolarGrid stroke="#e2e8f0" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11 }} />
+                      <Radar name="Profile" dataKey="A" stroke="#059669" fill="#059669" fillOpacity={0.2} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Overall Fit Badge */}
+                <div className="absolute right-4 bottom-4 md:right-8 md:bottom-1/4 bg-white border border-slate-100 p-3 rounded-lg shadow-sm text-center">
+                  <div className="text-xs text-slate-500 font-medium">Overall Fit</div>
+                  <div className="text-2xl font-bold text-emerald-600 my-0.5">{overallFit}%</div>
+                  <div className="text-[10px] font-bold text-emerald-600">{overallFit >= 80 ? 'Strong Match' : overallFit >= 60 ? 'Good Match' : 'Fair Match'}</div>
+                </div>
               </div>
 
-              {/* Detailed Breakdown Bars */}
-              <div className="flex-1 w-full space-y-6">
-                <h4 className="text-xs font-black uppercase tracking-widest text-indigo-400 mb-2">Detailed Breakdown</h4>
-                <div className="space-y-5">
-                  {currentPanel.breakdowns.map((bk, i) => (
-                    <SubScoreProgressBar key={i} name={bk.name} score={bk.score} />
+              {/* Breakdown Area */}
+              <div className="p-6 flex-1 flex flex-col bg-slate-50/30">
+                <h3 className="font-semibold text-slate-800 mb-4">Role Fit Breakdown</h3>
+                
+                <div className="flex text-xs font-semibold text-slate-400 mb-3 px-1">
+                  <div className="flex-1">Factor</div>
+                  <div className="w-20 text-right">Your Score</div>
+                  <div className="w-20 text-right">Benchmark</div>
+                </div>
+
+                <div className="space-y-4 mb-6">
+                  {roleFitFactors.map((factor, idx) => {
+                    const IconComponent = factor.icon || roleFitIcons[idx % roleFitIcons.length];
+                    return (
+                    <div key={idx} className="flex items-center text-sm">
+                      <div className="flex-1 flex items-center gap-2 text-slate-600">
+                        <IconComponent className="w-4 h-4 text-emerald-600" />
+                        <span>{factor.name}</span>
+                      </div>
+                      <div className="w-20 flex items-center gap-2">
+                        <div className="w-12 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                          <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${factor.score}%` }}></div>
+                        </div>
+                        <span className="font-semibold text-slate-700 text-xs">{factor.score}%</span>
+                      </div>
+                      <div className="w-20 flex items-center gap-2 justify-end">
+                        <div className="w-12 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                          <div className="bg-slate-400 h-full rounded-full" style={{ width: `${factor.benchmark}%` }}></div>
+                        </div>
+                        <span className="text-slate-500 text-xs">{factor.benchmark}%</span>
+                      </div>
+                    </div>
+                  )})}
+                </div>
+
+                <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100 text-xs text-emerald-800">
+                  Great! You are strongly aligned with this role. Focus on improving the areas on the right to become an excellent fit.
+                </div>
+                
+                <button className="text-emerald-600 text-sm font-semibold text-center mt-4 hover:text-emerald-700 w-full">
+                  View Detailed Breakdown →
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Row inside Left Column */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              {/* Top Skills to Improve */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 md:col-span-1">
+                <h3 className="font-semibold text-slate-800 mb-1">Top Skills to Improve</h3>
+                <p className="text-xs text-slate-500 mb-5">Improve these skills to increase your match score</p>
+                
+                <div className="space-y-4 mb-6">
+                  {skillsToImprove.map((skill, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 text-sm text-slate-700 mb-1">
+                          <FiLock className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="truncate">{skill.name}</span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2">
+                          <div className="bg-emerald-600 h-1.5 rounded-full" style={{ width: `${skill.score}%` }}></div>
+                        </div>
+                      </div>
+                      <div className="ml-4 flex flex-col items-end">
+                        <span className="text-sm font-bold text-slate-700">{skill.score}%</span>
+                        <span className={`text-[10px] font-bold ${skill.impactColor || 'text-red-500'}`}>{skill.impact || 'High Impact'}</span>
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Profile Analysis and Actions Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
-          {isLocked && !isEmptyState && (
-            <div className="absolute inset-0 z-30 flex flex-col items-center justify-center backdrop-blur-md bg-white/50 rounded-3xl pointer-events-auto border border-gray-100">
-              <div className="bg-white p-4 rounded-full shadow-lg mb-4 border border-gray-100">
-                <HiLockClosed className="w-8 h-8 text-amber-500" />
+                <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">
+                  Get AI Learning Plan →
+                </button>
               </div>
-              <h3 className="text-xl font-black text-gray-900 mb-2">Deep Insights Locked</h3>
-              <p className="text-gray-600 mb-6 max-w-sm mx-auto text-center text-sm font-medium">
-                Upgrade to see your custom Action Plan and Top Strengths & Weaknesses.
-              </p>
-              <Link to="/provider/plans" className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-2.5 rounded-full font-bold text-sm shadow-md hover:shadow-lg transition-all">
-                Unlock Insights
-              </Link>
-            </div>
-          )}
 
-          {/* Card 3: Action Plan (Strengths & Weaknesses) */}
-          <div className="bg-white rounded-3xl border border-gray-100 p-6 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] flex flex-col gap-6">
-            <div>
-              <h3 className="text-lg font-bold text-gray-800 mb-6">Deep Profile Analysis</h3>
-              <div className="space-y-6">
-                <div className="bg-green-50/50 p-5 rounded-2xl border border-green-100">
-                  <h4 className="text-sm font-black uppercase text-green-700 mb-3 flex items-center gap-2"><HiCheckCircle className="w-5 h-5" /> Top Strengths</h4>
-                  <ul className="space-y-2">
-                    {displayData.top_strengths?.map((str, i) => (
-                      <li key={i} className="text-sm text-gray-700 flex items-start gap-2 font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" /> {str}
-                      </li>
+              {/* In-Demand Skills & Market Insights */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 md:col-span-2 flex flex-col md:flex-row gap-6">
+                
+                {/* In Demand */}
+                <div className="flex-1 border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-6">
+                  <h3 className="font-semibold text-slate-800 mb-1">In-Demand Skills for {targetRole}</h3>
+                  <p className="text-xs text-slate-500 mb-4">Skills in high demand in the market</p>
+                  
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {inDemandSkills.map((sk, i) => (
+                      <span key={i} className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full border border-emerald-100">
+                        {sk}
+                      </span>
                     ))}
-                  </ul>
-                </div>
-                <div className="bg-amber-50/50 p-5 rounded-2xl border border-amber-100">
-                  <h4 className="text-sm font-black uppercase text-amber-700 mb-3 flex items-center gap-2"><HiExclamationCircle className="w-5 h-5" /> Areas to Improve</h4>
-                  <ul className="space-y-2">
-                    {displayData.top_weaknesses?.map((wk, i) => (
-                      <li key={i} className="text-sm text-gray-700 flex items-start gap-2 font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" /> {wk}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
+                  </div>
 
-          {/* Card 4: Next Best Actions */}
-          <div className="bg-[#081B3A] text-white rounded-3xl border border-[#0A224A] p-6 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] flex flex-col">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center text-blue-400 border border-blue-500/30">
-                <HiTrendingUp className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-black text-white">Action Plan</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-widest text-blue-400 mb-4">Recommended Next Steps</h4>
-              <ul className="space-y-3">
-                {displayData.next_best_actions?.map((act, i) => (
-                  <li key={i} className="text-sm text-blue-50 bg-[#0A224A] p-4 rounded-xl border border-[#133060] flex items-start gap-3 shadow-sm">
-                    <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-black shrink-0">
-                      {i + 1}
+                  <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">
+                    Explore All Skills →
+                  </button>
+                </div>
+
+                {/* Market Insights */}
+                <div className="flex-1 flex flex-col">
+                  <h3 className="font-semibold text-slate-800 mb-1">Market Insights</h3>
+                  <p className="text-xs text-slate-500 mb-4">{targetRole} • India</p>
+
+                  <div className="space-y-4 mb-auto">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1"><BiBriefcase className="w-5 h-5 text-emerald-600" /></div>
+                      <div>
+                        <div className="text-xs text-slate-500">Jobs in demand</div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-lg font-bold text-slate-800">{marketInsights.jobsInDemand}</span>
+                          <span className="text-xs font-semibold text-emerald-600">{marketInsights.jobsGrowth}</span>
+                        </div>
+                      </div>
                     </div>
-                    <span className="mt-0.5 leading-relaxed">{act}</span>
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1"><FiAlertCircle className="w-5 h-5 text-emerald-600" /></div>
+                      <div>
+                        <div className="text-xs text-slate-500">Avg. Salary</div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-lg font-bold text-slate-800">{marketInsights.avgSalary}</span>
+                          <span className="text-xs font-semibold text-emerald-600">{marketInsights.salaryGrowth}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1"><BiLineChart className="w-5 h-5 text-emerald-600" /></div>
+                      <div>
+                        <div className="text-xs text-slate-500">Top Cities</div>
+                        <div className="text-sm font-medium text-slate-700 leading-tight mt-1">
+                          {marketInsights.topCities}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700 mt-4">
+                    View Full Market Report →
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN (Spans 1/3) */}
+          <div className="space-y-6">
+            
+            {/* Key Strengths */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <BiTrophy className="w-5 h-5 text-emerald-600" />
+                <h3 className="font-bold text-slate-800 text-lg">Key Strengths</h3>
+              </div>
+              <ul className="space-y-3 mb-6">
+                {strengths.map((str, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
+                    <FiCheck className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                    <span>{str}</span>
                   </li>
                 ))}
               </ul>
+              <button className="w-full py-2 text-center text-sm font-semibold text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-colors">
+                See All Strengths →
+              </button>
             </div>
+
+            {/* Areas to Improve */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <BiLineChart className="w-5 h-5 text-red-500" />
+                <h3 className="font-bold text-slate-800 text-lg">Areas to Improve</h3>
+              </div>
+              <ul className="space-y-3 mb-6">
+                {weaknesses.map((wk, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
+                    <FiCheck className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                    <span>{wk}</span>
+                  </li>
+                ))}
+              </ul>
+              <button className="w-full py-2 text-center text-sm font-semibold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-colors">
+                View Improvement Plan →
+              </button>
+            </div>
+
+            {/* Career Growth Path */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-emerald-600 rounded-sm"></div>
+                </div>
+                <h3 className="font-bold text-slate-800 text-lg">Career Growth Path</h3>
+              </div>
+              
+              <div className="relative pl-3 mb-6">
+                {/* Vertical Line */}
+                <div className="absolute left-[15px] top-2 bottom-2 w-px bg-slate-200"></div>
+                
+                <ul className="space-y-6">
+                  {timelineRoles.map((role, i) => (
+                    <li key={i} className="relative flex items-center gap-4">
+                      {role.current ? (
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-600 shrink-0 z-10 shadow-[0_0_0_4px_white]"></div>
+                      ) : (
+                        <div className="w-2.5 h-2.5 rounded-full border-2 border-slate-300 bg-white shrink-0 z-10 shadow-[0_0_0_4px_white]"></div>
+                      )}
+                      
+                      <div className="flex-1 flex justify-between items-center">
+                        <span className={`text-sm ${role.current ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
+                          {role.title}
+                        </span>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                          role.status === 'Current' ? 'bg-emerald-100 text-emerald-700' :
+                          role.status === 'Next Step' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400'
+                        }`}>
+                          {role.status}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">
+                View Full Roadmap →
+              </button>
+            </div>
+
+            {/* WhatsApp CTA */}
+            <div className="bg-emerald-50 rounded-xl border border-emerald-100 p-5 flex flex-col relative overflow-hidden">
+              <div className="flex items-center gap-2 mb-2">
+                <BiMessageRoundedDots className="w-5 h-5 text-emerald-600" />
+                <h3 className="font-bold text-slate-800">Stay Updated on WhatsApp</h3>
+              </div>
+              <p className="text-xs text-slate-600 mb-4 max-w-[200px]">
+                Get career insights, job trends & AI tips right on WhatsApp.
+              </p>
+              <button className="bg-white border border-emerald-200 text-emerald-700 text-sm font-semibold py-2 px-4 rounded-lg self-start shadow-sm hover:bg-emerald-100">
+                Enable WhatsApp Alerts
+              </button>
+              
+              {/* Decorative Icon */}
+              <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center opacity-50">
+                 <BiMessageRoundedDots className="w-10 h-10 text-emerald-600" />
+              </div>
+            </div>
+
           </div>
         </div>
         </div>
+      </div>
+      
+      {/* Floating AI Tip Footer */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl bg-white border border-slate-200 shadow-xl rounded-xl p-3 flex items-center justify-between z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+            <BiLineChart className="w-5 h-5 text-emerald-600" />
+          </div>
+          <span className="text-sm font-medium text-slate-700">
+            <strong className="text-slate-900">AI Tip:</strong> {aiTip}
+          </span>
+        </div>
+        <button className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-sm font-semibold px-4 py-1.5 rounded-lg hover:bg-emerald-100 whitespace-nowrap">
+          Improve Now →
+        </button>
       </div>
     </div>
   );
 }
+

@@ -23,6 +23,7 @@ const CareerHealthDashboard = lazy(() => import("../pages/provider/CareerHealthD
 const GrowWithAIDashboard = lazy(() => import("../pages/provider/GrowWithAIDashboard"));
 const AITips = lazy(() => import("../pages/provider/AITips"));
 const ProviderSupport = lazy(() => import("../pages/provider/Support"));
+const AppliedJobs = lazy(() => import("../pages/provider/AppliedJobs"));
 
 function ProviderLayoutWrapper({ children }) {
   return (
@@ -54,6 +55,7 @@ export default function ProviderRoutes() {
       <Route path="history" element={wrap(<ProviderHistory />)} />
       <Route path="job-for-me" element={wrap(<ProviderJobs />)} />
       <Route path="jobs" element={<Navigate to="/provider/job-for-me" state={location.state} replace />} />
+      <Route path="applied-jobs" element={wrap(<AppliedJobs />)} />
       <Route path="contacted" element={wrap(<ProviderContacted />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />
       <Route path="referrals" element={wrap(<ReferralManagement />)} />

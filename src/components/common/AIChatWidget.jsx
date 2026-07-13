@@ -23,7 +23,7 @@ function MessageBubble({ item }) {
   const isUser = item.author === 'user';
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-sm wrap-break-word whitespace-pre-wrap ${isUser ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+      <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-sm wrap-break-word whitespace-pre-wrap ${isUser ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
         {item.text}
       </div>
     </div>
@@ -87,6 +87,12 @@ export default function AIChatWidget({ role = 'recruiter', user = null, profile 
   const manualScrollDebounceRef = useRef(null);
   const pendingScrollAfterSendRef = useRef(false);
   const widgetRef = useRef(null);
+
+  useEffect(() => {
+    const handleOpenAiChat = () => setIsOpen(true);
+    window.addEventListener('open-ai-chat', handleOpenAiChat);
+    return () => window.removeEventListener('open-ai-chat', handleOpenAiChat);
+  }, []);
 
   const title = ROLE_TITLES[role] || ROLE_TITLES.recruiter;
   const quickPrompts = useMemo(() => starterPromptsByRole[role] || starterPromptsByRole.recruiter, [role]);
@@ -324,7 +330,7 @@ export default function AIChatWidget({ role = 'recruiter', user = null, profile 
     <div ref={widgetRef} className="fixed bottom-5 right-5 z-50">
       {isOpen && (
         <div className="mb-3 w-80 sm:w-96 rounded-2xl border border-gray-200 bg-white shadow-2xl overflow-hidden">
-          <div className="px-4 py-3 bg-gray-900 text-white flex items-center justify-between">
+          <div className="px-4 py-3 bg-emerald-950 text-white flex items-center justify-between">
             <div>
               <p className="text-sm font-bold">{title}</p>
               <p className="text-[11px] text-gray-300">Context-aware AI chat</p>
@@ -363,7 +369,7 @@ export default function AIChatWidget({ role = 'recruiter', user = null, profile 
                   key={text}
                   type="button"
                   onClick={() => askAI(text)}
-                  className="text-[11px] px-2 py-1 rounded-full border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100"
+                  className="text-[11px] px-2 py-1 rounded-full border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100"
                 >
                   {text}
                 </button>
@@ -380,12 +386,12 @@ export default function AIChatWidget({ role = 'recruiter', user = null, profile 
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask assistant..."
-                className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-300"
+                className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-300"
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                className="rounded-xl bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60"
               >
                 Send
               </button>
@@ -397,7 +403,7 @@ export default function AIChatWidget({ role = 'recruiter', user = null, profile 
       <button
         type="button"
         onClick={() => setIsOpen((v) => !v)}
-        className="rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:bg-blue-700"
+        className="rounded-full bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:bg-teal-700"
       >
         AI Chat
       </button>

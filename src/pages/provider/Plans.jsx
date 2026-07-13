@@ -491,10 +491,10 @@ const ProviderPlans = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-[#06133D] tracking-tight mb-3">
-            Choose the Right Plan for Your <span className="text-[#005BFF]">Career Growth</span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-emerald-950 tracking-tight mb-3">
+            Choose the Right Plan for Your <span className="text-emerald-600">Career Growth</span>
           </h1>
-          <p className="text-[#64748B] text-base">
+          <p className="text-slate-500 text-base">
             Unlock powerful AI insights, personalized reports, and smart alerts to get hired faster.
           </p>
         </div>
@@ -508,8 +508,8 @@ const ProviderPlans = () => {
             { icon: <MessageCircle className="w-4 h-4" />, text: 'WhatsApp & Email Alerts' },
             { icon: <ShieldCheck className="w-4 h-4" />, text: 'Bank-Level Security' },
           ].map((item, idx) => (
-            <div key={idx} className="flex items-center gap-1.5 text-xs font-semibold text-[#06133D] bg-white border border-[#E8EEF9] px-3 py-1.5 rounded-full shadow-sm">
-              <span className="text-[#005BFF]">{item.icon}</span>
+            <div key={idx} className="flex items-center gap-1.5 text-xs font-semibold text-emerald-950 bg-white border border-emerald-100 px-3 py-1.5 rounded-full shadow-sm">
+              <span className="text-emerald-600">{item.icon}</span>
               {item.text}
             </div>
           ))}
@@ -536,9 +536,9 @@ const ProviderPlans = () => {
           if (days <= 0) return null;
 
           return (
-            <div className="mb-10 max-w-2xl mx-auto bg-linear-to-r from-[#005BFF] to-[#8B5CF6] rounded-2xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="mb-10 max-w-2xl mx-auto bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
-                <h2 className="text-xs font-semibold text-blue-100 uppercase tracking-wider mb-1">Current Active Plan</h2>
+                <h2 className="text-xs font-semibold text-emerald-100 uppercase tracking-wider mb-1">Current Active Plan</h2>
                 <div className="text-2xl font-bold flex items-center gap-2">
                   <Crown className="w-6 h-6 text-yellow-300" />
                   {planName}
@@ -546,7 +546,7 @@ const ProviderPlans = () => {
               </div>
               <div className="bg-white/20 px-6 py-3 rounded-xl backdrop-blur-sm text-center min-w-[140px] border border-white/10 shadow-inner">
                 <div className="text-3xl font-extrabold">{days}</div>
-                <div className="text-[10px] font-bold text-blue-100 uppercase tracking-wider mt-0.5">Days Remaining</div>
+                <div className="text-[10px] font-bold text-emerald-100 uppercase tracking-wider mt-0.5">Days Remaining</div>
               </div>
             </div>
           );
@@ -554,26 +554,26 @@ const ProviderPlans = () => {
 
         {/* Duration Toggles */}
         <div className="flex justify-center mb-10 relative">
-          <div className="bg-white border border-[#E8EEF9] rounded-full p-1 inline-flex items-center relative shadow-sm">
+          <div className="bg-white border border-emerald-100 rounded-full p-1 inline-flex items-center relative shadow-sm">
             <button
               onClick={() => setSelectedDuration(1)}
-              className={`relative z-10 px-6 py-2.5 text-sm font-bold rounded-full transition-colors ${selectedDuration === 1 ? 'text-white bg-[#005BFF] shadow' : 'text-[#64748B] hover:text-[#06133D]'}`}
+              className={`relative z-10 px-6 py-2.5 text-sm font-bold rounded-full transition-colors ${selectedDuration === 1 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950'}`}
             >
               Monthly Plans
             </button>
             <button
               onClick={() => setSelectedDuration(3)}
-              className={`relative z-10 px-6 py-2.5 text-sm font-bold rounded-full transition-colors flex items-center gap-1.5 ${selectedDuration === 3 ? 'text-white bg-[#005BFF] shadow' : 'text-[#64748B] hover:text-[#06133D]'}`}
+              className={`relative z-10 px-6 py-2.5 text-sm font-bold rounded-full transition-colors flex items-center gap-1.5 ${selectedDuration === 3 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950'}`}
             >
               Quarterly Plans <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedDuration === 3 ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'}`}>10% OFF</span>
             </button>
             <button
               onClick={() => setSelectedDuration(12)}
-              className={`relative z-10 px-6 py-2.5 text-sm font-bold rounded-full transition-colors flex items-center gap-1.5 ${selectedDuration === 12 ? 'text-white bg-[#005BFF] shadow' : 'text-[#64748B] hover:text-[#06133D]'}`}
+              className={`relative z-10 px-6 py-2.5 text-sm font-bold rounded-full transition-colors flex items-center gap-1.5 ${selectedDuration === 12 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950'}`}
             >
               Yearly Plans <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedDuration === 12 ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'}`}>20% OFF</span>
               {selectedDuration !== 12 && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#005BFF] text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">BEST VALUE</div>
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">BEST VALUE</div>
               )}
             </button>
           </div>
@@ -592,9 +592,9 @@ const ProviderPlans = () => {
             if (selectedDuration === 12) displayMonthly = displayPrice * 0.8;
             
             return (
-              <div key={plan._id} className={`bg-white rounded-3xl p-6 relative flex flex-col ${isPro ? 'border-2 border-[#8B5CF6] shadow-xl scale-105 z-10' : 'border border-[#E8EEF9] shadow-md'}`}>
+              <div key={plan._id} className={`bg-white rounded-3xl p-6 relative flex flex-col ${isPro ? 'border-2 border-teal-600 shadow-xl scale-105 z-10' : 'border border-emerald-100 shadow-md'}`}>
                 {isPro && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#8B5CF6] text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-teal-600 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
                     MOST POPULAR
                   </div>
                 )}
@@ -605,18 +605,18 @@ const ProviderPlans = () => {
                 )}
                 
                 <div className="mb-6">
-                  <h3 className={`text-sm font-bold uppercase tracking-wider mb-2 ${isPro ? 'text-[#8B5CF6]' : isPremium ? 'text-amber-600' : 'text-emerald-600'}`}>
+                  <h3 className={`text-sm font-bold uppercase tracking-wider mb-2 ${isPro ? 'text-teal-600' : isPremium ? 'text-amber-600' : 'text-emerald-600'}`}>
                     {plan.name}
                   </h3>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-extrabold text-[#06133D]">{formatCurrency(Math.round(displayMonthly), plan.currencySymbol)}</span>
-                    <span className="text-xs text-[#64748B] font-semibold">/month</span>
+                    <span className="text-3xl font-extrabold text-emerald-950">{formatCurrency(Math.round(displayMonthly), plan.currencySymbol)}</span>
+                    <span className="text-xs text-slate-500 font-semibold">/month</span>
                   </div>
-                  <p className="text-xs text-[#64748B] mt-2 h-4">{plan.description}</p>
+                  <p className="text-xs text-slate-500 mt-2 h-4">{plan.description}</p>
                 </div>
 
                 <div className="flex-1">
-                  <p className="text-xs font-bold text-[#06133D] mb-4 uppercase tracking-wider">
+                  <p className="text-xs font-bold text-emerald-950 mb-4 uppercase tracking-wider">
                     {isPro ? 'EVERYTHING IN BASIC, PLUS' : isPremium ? 'EVERYTHING IN PRO, PLUS' : 'WHAT\'S INCLUDED'}
                   </p>
                   <ul className="space-y-3">
@@ -624,11 +624,11 @@ const ProviderPlans = () => {
                       const [name, val] = feature.split(':');
                       return (
                         <li key={i} className="flex items-start justify-between text-xs gap-3">
-                          <div className="flex items-start gap-2 text-[#06133D] font-medium">
+                          <div className="flex items-start gap-2 text-emerald-950 font-medium">
                             <Check className="w-4 h-4 text-emerald-500 shrink-0" />
                             <span>{name.trim()}</span>
                           </div>
-                          {val && <span className="text-[#64748B] text-right shrink-0">{val.trim()}</span>}
+                          {val && <span className="text-slate-500 text-right shrink-0">{val.trim()}</span>}
                         </li>
                       );
                     })}
@@ -643,7 +643,7 @@ const ProviderPlans = () => {
                     }}
                     className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-sm ${
                       isPro 
-                        ? 'bg-[#8B5CF6] hover:bg-[#7C3AED] text-white' 
+                        ? 'bg-teal-600 hover:bg-teal-700 text-white' 
                         : isPremium
                           ? 'bg-amber-500 hover:bg-amber-600 text-white'
                           : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
@@ -651,7 +651,7 @@ const ProviderPlans = () => {
                   >
                     Get Started with {plan.name.split(' ')[0]}
                   </button>
-                  <p className="text-[10px] text-center text-[#64748B] mt-3 flex items-center justify-center gap-1">
+                  <p className="text-[10px] text-center text-slate-500 mt-3 flex items-center justify-center gap-1">
                     <ShieldCheck className="w-3 h-3 text-emerald-500" /> Cancel anytime. No hidden charges.
                   </p>
                 </div>
@@ -661,32 +661,32 @@ const ProviderPlans = () => {
         </div>
 
         {/* Comparison Table */}
-        <div className="bg-white rounded-3xl border border-[#E8EEF9] shadow-sm overflow-hidden mb-8">
+        <div className="bg-white rounded-3xl border border-emerald-100 shadow-sm overflow-hidden mb-8">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead>
-                <tr className="border-b border-[#E8EEF9]">
-                  <th className="p-6 font-bold text-[#06133D] bg-slate-50 min-w-[200px]">
+                <tr className="border-b border-emerald-100">
+                  <th className="p-6 font-bold text-emerald-950 bg-slate-50 min-w-[200px]">
                     <div className="flex items-center gap-2">
-                      <Target className="w-5 h-5 text-[#005BFF]" />
+                      <Target className="w-5 h-5 text-emerald-600" />
                       PLAN COMPARISON <br/> AT A GLANCE
                     </div>
                   </th>
                   <th className="p-6 text-center">
                     <div className="text-xs font-bold text-emerald-600 uppercase">BASIC AI</div>
-                    <div className="text-[#06133D] font-extrabold mt-1">₹ 199/month</div>
+                    <div className="text-emerald-950 font-extrabold mt-1">₹ 199/month</div>
                   </th>
-                  <th className="p-6 text-center bg-[#F5F3FF]">
-                    <div className="text-xs font-bold text-[#8B5CF6] uppercase">PRO AI</div>
-                    <div className="text-[#06133D] font-extrabold mt-1">₹ 499/month</div>
+                  <th className="p-6 text-center bg-teal-50">
+                    <div className="text-xs font-bold text-teal-600 uppercase">PRO AI</div>
+                    <div className="text-emerald-950 font-extrabold mt-1">₹ 499/month</div>
                   </th>
                   <th className="p-6 text-center">
                     <div className="text-xs font-bold text-amber-600 uppercase">PREMIUM AI CAREER COACH</div>
-                    <div className="text-[#06133D] font-extrabold mt-1">₹ 999/month</div>
+                    <div className="text-emerald-950 font-extrabold mt-1">₹ 999/month</div>
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E8EEF9]">
+              <tbody className="divide-y divide-emerald-100">
                 {[
                   { label: 'AI Career Analysis (Skill Gap, Why Not, Interview Prob, Resume, Career GPS)', basic: '5 requests / month', pro: '20 requests / month', premium: 'Unlimited' },
                   { label: 'AI Chat Assistant', basic: '20 questions / month', pro: '200 questions / month', premium: 'Unlimited*' },
@@ -696,38 +696,38 @@ const ProviderPlans = () => {
                   { label: 'Deep Career Reports (Claude)', basic: '—', pro: '—', premium: '10 reports / month' },
                 ].map((row, i) => (
                   <tr key={i} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 pl-6 text-xs font-semibold text-[#06133D]">{row.label}</td>
-                    <td className="p-4 text-center text-xs text-[#64748B]">{row.basic}</td>
-                    <td className="p-4 text-center text-xs text-[#64748B] bg-[#F5F3FF]/50">{row.pro}</td>
-                    <td className="p-4 text-center text-xs text-[#64748B]">{row.premium}</td>
+                    <td className="p-4 pl-6 text-xs font-semibold text-emerald-950">{row.label}</td>
+                    <td className="p-4 text-center text-xs text-slate-500">{row.basic}</td>
+                    <td className="p-4 text-center text-xs text-slate-500 bg-teal-50/50">{row.pro}</td>
+                    <td className="p-4 text-center text-xs text-slate-500">{row.premium}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div className="p-4 text-[10px] text-center text-[#94A3B8] border-t border-[#E8EEF9]">
+          <div className="p-4 text-[10px] text-center text-[#94A3B8] border-t border-emerald-100">
             * Fair usage policy applies to prevent spam.
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="bg-white border border-[#E8EEF9] rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsAutoSubscription(!isAutoSubscription)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAutoSubscription ? 'bg-[#005BFF]' : 'bg-slate-300'}`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAutoSubscription ? 'bg-emerald-600' : 'bg-slate-300'}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAutoSubscription ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
             <div>
-              <p className="text-sm font-bold text-[#06133D]">Auto Subscription</p>
-              <p className="text-xs text-[#64748B]">Your plan will auto-renew at the end of each billing cycle.</p>
+              <p className="text-sm font-bold text-emerald-950">Auto Subscription</p>
+              <p className="text-xs text-slate-500">Your plan will auto-renew at the end of each billing cycle.</p>
             </div>
           </div>
-          <div className="flex items-center gap-6 text-xs font-bold text-[#64748B]">
-            <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#005BFF]" /> 100% Secure Payments</div>
-            <div className="flex items-center gap-2"><RefreshCw className="w-4 h-4 text-[#005BFF]" /> Cancel Anytime</div>
-            <div className="flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-[#005BFF]" /> 7-Day Money Back Guarantee (T&C Apply)</div>
+          <div className="flex items-center gap-6 text-xs font-bold text-slate-500">
+            <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-600" /> 100% Secure Payments</div>
+            <div className="flex items-center gap-2"><RefreshCw className="w-4 h-4 text-emerald-600" /> Cancel Anytime</div>
+            <div className="flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-emerald-600" /> 7-Day Money Back Guarantee (T&C Apply)</div>
           </div>
         </div>
       </div>
@@ -736,10 +736,10 @@ const ProviderPlans = () => {
       {showConfigModal && selectedPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-[#005BFF]/10 bg-linear-to-r from-[#005BFF]/5 to-transparent flex justify-between items-center">
+            <div className="p-6 border-b border-emerald-600/10 bg-gradient-to-r from-emerald-600/5 to-transparent flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-extrabold text-[#06133D]">Configure Plan</h2>
-                <p className="text-xs text-[#64748B] font-medium mt-1">Set your coverage and complete checkout</p>
+                <h2 className="text-xl font-extrabold text-emerald-950">Configure Plan</h2>
+                <p className="text-xs text-slate-500 font-medium mt-1">Set your coverage and complete checkout</p>
               </div>
               <button onClick={() => setShowConfigModal(false)} className="text-slate-400 hover:text-slate-600 text-3xl leading-none transition-colors hover:bg-slate-100 rounded-full w-10 h-10 flex items-center justify-center">&times;</button>
             </div>
@@ -749,7 +749,7 @@ const ProviderPlans = () => {
               {/* Coverage Selectors (From Old UI logic) */}
               {selectedPlan.coverageType === 'pincode' && (
                 <div>
-                  <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">Target Locality / Area</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Target Locality / Area</label>
                   <LocationSearch
                     value={selectedPincodes[0] || ''}
                     onChange={(val) => { if (!val) setSelectedPincodes([]); }}
@@ -769,7 +769,7 @@ const ProviderPlans = () => {
 
               {selectedPlan.coverageType === 'city' && (
                 <div>
-                  <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">Target City</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Target City</label>
                   <LocationSearch
                     value={selectedCities[0] || ''}
                     onChange={(val) => { if (!val) setSelectedCities([]); }}
@@ -788,7 +788,7 @@ const ProviderPlans = () => {
 
               {selectedPlan.coverageType === 'country' && (
                 <div>
-                  <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">Target Country</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Target Country</label>
                   <select
                     value={selectedCities[0] || ''}
                     onChange={(e) => {
@@ -808,7 +808,7 @@ const ProviderPlans = () => {
 
               {/* Boost Skills Selector */}
               <div>
-                <label className="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                   Select Target Skills (Max {selectedPlan.maxSkills})
                 </label>
                 <SkillSearchSelect
@@ -829,20 +829,20 @@ const ProviderPlans = () => {
               </div>
 
               {/* Premium Order Summary */}
-              <div className="bg-linear-to-br from-[#005BFF]/5 to-[#8B5CF6]/5 border border-[#005BFF]/10 p-5 rounded-2xl space-y-4">
-                <h3 className="text-sm font-extrabold text-[#06133D] uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <BadgeCheck className="w-5 h-5 text-[#005BFF]" />
+              <div className="bg-linear-to-br from-emerald-600/5 to-teal-600/5 border border-emerald-600/10 p-5 rounded-2xl space-y-4">
+                <h3 className="text-sm font-extrabold text-emerald-950 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <BadgeCheck className="w-5 h-5 text-emerald-600" />
                   Order Summary
                 </h3>
-                <div className="flex justify-between items-center text-[#06133D]">
+                <div className="flex justify-between items-center text-emerald-950">
                   <span className="font-semibold">{selectedPlan.name} Plan ({selectedDuration} Month{selectedDuration > 1 ? 's' : ''})</span>
                   <span className="font-bold">{formatCurrency(summary?.subtotal || 0, selectedPlan.currencySymbol)}</span>
                 </div>
-                <div className="pt-4 border-t border-[#005BFF]/10 flex justify-between items-center">
-                  <span className="font-extrabold text-[#06133D] text-lg">Total Pay</span>
+                <div className="pt-4 border-t border-emerald-600/10 flex justify-between items-center">
+                  <span className="font-extrabold text-emerald-950 text-lg">Total Pay</span>
                   <div className="text-right">
-                    <span className="font-extrabold text-[#005BFF] text-2xl">{formatCurrency(summary?.subtotal || 0, selectedPlan.currencySymbol)}</span>
-                    <p className="text-[10px] text-[#64748B] font-medium mt-1">(GST managed manually)</p>
+                    <span className="font-extrabold text-emerald-600 text-2xl">{formatCurrency(summary?.subtotal || 0, selectedPlan.currencySymbol)}</span>
+                    <p className="text-[10px] text-slate-500 font-medium mt-1">(GST managed manually)</p>
                   </div>
                 </div>
               </div>
@@ -856,11 +856,11 @@ const ProviderPlans = () => {
               )}
 
             </div>
-            <div className="p-6 border-t border-[#E8EEF9] bg-white">
+            <div className="p-6 border-t border-emerald-100 bg-white">
               <button
                 onClick={handleCheckout}
                 disabled={checkoutLoading || !isConfigurationValid}
-                className="w-full bg-[#005BFF] hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl transition-all shadow-md flex justify-center items-center gap-2"
+                className="w-full bg-emerald-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl transition-all shadow-md flex justify-center items-center gap-2"
               >
                 {checkoutLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
                 <Wallet className="w-4 h-4" />

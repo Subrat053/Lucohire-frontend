@@ -32,7 +32,7 @@ const AddMember = () => {
         <div className="lg:col-span-2">
           {/* Title Badge & Header */}
           <div className="flex items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
               <UserPlus className="w-3.5 h-3.5" /> Referral Program
             </span>
           </div>
@@ -66,7 +66,7 @@ const AddMember = () => {
                         required
                         value={inviteData.name}
                         onChange={(e) => setInviteData({ ...inviteData, name: e.target.value })}
-                        className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm placeholder-gray-400 text-gray-800"
+                        className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm placeholder-gray-400 text-gray-800"
                       />
                     </div>
                   </div>
@@ -82,7 +82,7 @@ const AddMember = () => {
                         required
                         value={inviteData.email}
                         onChange={(e) => setInviteData({ ...inviteData, email: e.target.value })}
-                        className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm placeholder-gray-400 text-gray-800"
+                        className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm placeholder-gray-400 text-gray-800"
                       />
                     </div>
                   </div>
@@ -97,7 +97,7 @@ const AddMember = () => {
                         placeholder="e.g. +91 98765 43210"
                         value={inviteData.phone}
                         onChange={(e) => setInviteData({ ...inviteData, phone: e.target.value })}
-                        className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm placeholder-gray-400 text-gray-800"
+                        className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm placeholder-gray-400 text-gray-800"
                       />
                     </div>
                   </div>
@@ -110,7 +110,7 @@ const AddMember = () => {
                       <select
                         value={inviteData.role}
                         onChange={(e) => setInviteData({ ...inviteData, role: e.target.value })}
-                        className="w-full pl-11 pr-10 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm text-gray-800 appearance-none cursor-pointer"
+                        className="w-full pl-11 pr-10 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm text-gray-800 appearance-none cursor-pointer"
                       >
                         <option value="provider">Service Provider</option>
                         <option value="recruiter">Recruiter / Client</option>
@@ -128,7 +128,7 @@ const AddMember = () => {
                   <button
                     type="submit"
                     disabled={inviting}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm shadow-[0_4px_14px_rgba(79,70,229,0.3)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.45)] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed select-none"
+                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-[0_4px_14px_rgba(79,70,229,0.3)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.45)] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed select-none"
                   >
                     {inviting ? (
                       <>
@@ -153,15 +153,15 @@ const AddMember = () => {
         {/* Right Column - Referral Rewards Information */}
         <div className="space-y-6">
           {/* Main Info Gradient Card */}
-          <div className="bg-gradient-to-br from-[#081B3A] to-[#122c54] text-white rounded-3xl p-6 shadow-xl relative overflow-hidden">
+          <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden">
             {/* Ambient glows */}
-            <div className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none" />
-            <div className="absolute bottom-[-50px] left-[-50px] w-40 h-40 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute bottom-[-50px] left-[-50px] w-40 h-40 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
 
             <div className="relative z-10">
               <div className='flex items-center gap-2 mb-2'>
                 <div className="p-2 bg-white/10 rounded-2xl">
-                  <Gift className="w-5 h-5 text-indigo-400" />
+                  <Gift className="w-5 h-5 text-emerald-400" />
                 </div>
                 <h3 className="text-lg font-bold">Invite Rewards</h3>
               </div>
@@ -175,7 +175,7 @@ const AddMember = () => {
                 <div className="flex items-center gap-3">
                   <span className="text-3xl font-extrabold tracking-tight text-white">40%</span>
                   <div>
-                    <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-wider">Direct Commission</h4>
+                    <h4 className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Direct Commission</h4>
                     <p className="text-[10px] text-slate-300">Earn 40% on subscription packages purchased by your referred members.</p>
                   </div>
                 </div>
@@ -190,7 +190,7 @@ const AddMember = () => {
                   { step: "03", title: "Earn Rewards", desc: "Once they register and buy a package, payouts land in your wallet." },
                 ].map((s) => (
                   <div key={s.step} className="flex gap-3 items-start">
-                    <span className="text-xs font-mono font-bold text-indigo-400 bg-white/5 border border-white/10 w-6 h-6 rounded-lg flex items-center justify-center shrink-0">
+                    <span className="text-xs font-mono font-bold text-emerald-400 bg-white/5 border border-white/10 w-6 h-6 rounded-lg flex items-center justify-center shrink-0">
                       {s.step}
                     </span>
                     <div>
