@@ -513,7 +513,14 @@ const ProviderProfile = () => {
       languages: pd.languages?.length > 0 ? pd.languages : prev.languages,
       education: pd.education?.length > 0 ? pd.education : prev.education,
       previousExperience: pd.previousWork?.length > 0 ? pd.previousWork : prev.previousExperience,
-      projects: pd.projects?.length > 0 ? pd.projects : prev.projects
+      projects: pd.projects?.length > 0 ? pd.projects : prev.projects,
+      email: pd.email || prev.email,
+      portfolioLinks: [
+        ...(prev.portfolioLinks || []),
+        ...(pd.portfolioLinks || []),
+        pd.linkedin,
+        pd.github
+      ].filter(Boolean)
     }));
     setParsedResumeData(null);
     setActiveTab("Personal");
@@ -1568,6 +1575,7 @@ const ProviderProfile = () => {
         relocationAvailable: form.relocationAvailable,
         whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : (form.whatsappNumber || (form.whatsappCountryCode + form.whatsappNationalNumber)),
         resumeUrl: form.resumeUrl,
+        projects: form.projects,
         firebaseToken: finalToken || undefined,
       };
       // sanitizePayload only touches string fields, leaves arrays/numbers intact
@@ -1579,6 +1587,7 @@ const ProviderProfile = () => {
       payload.education = rawPayload.education;
       payload.languages = rawPayload.languages;
       payload.portfolioLinks = rawPayload.portfolioLinks;
+      payload.projects = rawPayload.projects;
       payload.locations = rawPayload.locations;
       payload.serviceLocations = rawPayload.serviceLocations;
 
@@ -3070,6 +3079,36 @@ const ProviderProfile = () => {
                         placeholder="Not found"
                       />
                     </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email</p>
+                      <input 
+                        type="text" 
+                        value={parsedResumeData.email || ''} 
+                        onChange={(e) => setParsedResumeData({...parsedResumeData, email: e.target.value})}
+                        className="w-full px-3 py-2 text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                        placeholder="Not found"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">LinkedIn</p>
+                      <input 
+                        type="text" 
+                        value={parsedResumeData.linkedin || ''} 
+                        onChange={(e) => setParsedResumeData({...parsedResumeData, linkedin: e.target.value})}
+                        className="w-full px-3 py-2 text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                        placeholder="Not found"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">GitHub</p>
+                      <input 
+                        type="text" 
+                        value={parsedResumeData.github || ''} 
+                        onChange={(e) => setParsedResumeData({...parsedResumeData, github: e.target.value})}
+                        className="w-full px-3 py-2 text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                        placeholder="Not found"
+                      />
+                    </div>
                     <div className="col-span-1 md:col-span-2">
                       <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Bio / Summary</p>
                       <textarea 
@@ -3131,7 +3170,7 @@ const ProviderProfile = () => {
                       <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Previous Work</p>
                       {parsedResumeData.previousWork?.length > 0 ? parsedResumeData.previousWork.map((w, i) => (
                         <div key={i} className="mb-3 last:mb-0 border border-slate-100 p-2 rounded-lg relative">
-                          <input type="text" value={w.designation} onChange={e => { const nw = [...parsedResumeData.previousWork]; nw[i].designation = e.target.value; setParsedResumeData({...parsedResumeData, previousWork: nw}); }} className="w-full text-sm font-bold text-slate-800 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-1" placeholder="Designation" />
+                          <input type="text" value={w.role || w.designation || ''} onChange={e => { const nw = [...parsedResumeData.previousWork]; nw[i].role = e.target.value; setParsedResumeData({...parsedResumeData, previousWork: nw}); }} className="w-full text-sm font-bold text-slate-800 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-1" placeholder="Role / Designation" />
                           <input type="text" value={w.company} onChange={e => { const nw = [...parsedResumeData.previousWork]; nw[i].company = e.target.value; setParsedResumeData({...parsedResumeData, previousWork: nw}); }} className="w-full text-[13px] text-slate-500 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400" placeholder="Company" />
                         </div>
                       )) : <p className="text-sm text-slate-400 italic">Not found</p>}
@@ -3144,6 +3183,33 @@ const ProviderProfile = () => {
                           <input type="text" value={e.institution} onChange={ev => { const ne = [...parsedResumeData.education]; ne[i].institution = ev.target.value; setParsedResumeData({...parsedResumeData, education: ne}); }} className="w-full text-[13px] text-slate-500 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400" placeholder="Institution" />
                         </div>
                       )) : <p className="text-sm text-slate-400 italic">Not found</p>}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                  <h4 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><Book className="w-4 h-4 text-slate-400" />Projects & Links</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Projects</p>
+                      {parsedResumeData.projects?.length > 0 ? parsedResumeData.projects.map((p, i) => (
+                        <div key={i} className="mb-3 last:mb-0 border border-slate-100 p-2 rounded-lg relative">
+                          <input type="text" value={p.name || ''} onChange={ev => { const np = [...parsedResumeData.projects]; np[i].name = ev.target.value; setParsedResumeData({...parsedResumeData, projects: np}); }} className="w-full text-sm font-bold text-slate-800 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-1" placeholder="Project Name" />
+                          <input type="text" value={p.link || ''} onChange={ev => { const np = [...parsedResumeData.projects]; np[i].link = ev.target.value; setParsedResumeData({...parsedResumeData, projects: np}); }} className="w-full text-[13px] text-emerald-600 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400" placeholder="Project Link" />
+                        </div>
+                      )) : <p className="text-sm text-slate-400 italic">Not found</p>}
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+                        Portfolio Links
+                        <span className="text-xs font-normal text-slate-400 normal-case">(comma separated)</span>
+                      </p>
+                      <textarea
+                        value={(parsedResumeData.portfolioLinks || []).join(', ')}
+                        onChange={(e) => setParsedResumeData({...parsedResumeData, portfolioLinks: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+                        className="w-full px-3 py-2 text-sm font-semibold text-emerald-700 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all min-h-[80px]"
+                        placeholder="Link 1, Link 2"
+                      />
                     </div>
                   </div>
                 </div>
