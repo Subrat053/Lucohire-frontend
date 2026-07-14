@@ -11,6 +11,7 @@ import {
 } from 'react-icons/bi';
 import { MdOutlineWorkOutline, MdOutlineMenuBook, MdOutlineMonitor, MdOutlineHandshake, MdOutlineLocationOn } from 'react-icons/md';
 import { getCareerHealth, getAiUsage, improveCareerHealth } from '../../services/providerAIService';
+import { Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, LineChart, Line } from 'recharts';
@@ -335,6 +336,41 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
         </div>
 
         <div id="report-content" className="pt-2">
+        {/* Usage Banner */}
+        {!usageLoading && (
+          <div className="bg-emerald-50/50 border border-emerald-100 px-6 py-3 rounded-2xl flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              <span className="text-sm font-medium text-emerald-900">
+                Career Health AI Limit: 
+                {(() => {
+                  const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
+                  const used = aiUsage.usage['aiCareerAnalysis'] || 0;
+                  if (limit === -1) return <span className="font-bold text-emerald-700 ml-1">Unlimited</span>;
+                  if (limit === 0) return <span className="font-bold text-red-600 ml-1">Not included in plan</span>;
+                  return <span className="font-bold text-emerald-700 ml-1">{Math.max(0, limit - used)} / {limit} requests remaining</span>;
+                })()}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleImprove}
+                disabled={improving || (aiUsage.limits['aiCareerAnalysis'] !== -1 && aiUsage.usage['aiCareerAnalysis'] >= aiUsage.limits['aiCareerAnalysis'])}
+                className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-1.5 rounded-full transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {improving ? (
+                  <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Refreshing...</>
+                ) : (
+                  <><Sparkles className="w-3 h-3" /> Refresh Insights</>
+                )}
+              </button>
+              <Link to="/provider/plans" className="text-xs font-bold text-emerald-600 hover:text-emerald-800 bg-emerald-100 px-3 py-1.5 rounded-full transition-colors">
+                Upgrade Plan
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Top Cards Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           {/* Card 1: Health Score */}

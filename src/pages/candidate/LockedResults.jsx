@@ -254,41 +254,101 @@ const LockedResults = () => {
         <div className={`space-y-4 transition-all duration-500 ${!isVerified ? 'blur-sm select-none pointer-events-none' : ''}`}>
           {isVerified && realJobs.length > 0 ? (
             realJobs.map((job, idx) => (
-              <div key={job._id || idx} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                <div className="flex items-center mb-4 sm:mb-0">
-                  <div className="w-12 h-12 bg-blue-100 rounded-md flex items-center justify-center text-blue-600 font-bold text-xl mr-4">
-                    {job.recruiter?.companyName?.charAt(0) || job.title?.charAt(0) || 'J'}
+              <div key={job._id || idx} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                  <div className="flex items-center mb-4 sm:mb-0">
+                    <div className="w-12 h-12 bg-blue-100 rounded-md flex items-center justify-center text-blue-600 font-bold text-xl mr-4">
+                      {job.recruiter?.companyName?.charAt(0) || job.title?.charAt(0) || 'J'}
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-gray-900">{job.title}</h4>
+                      <p className="text-gray-500">{job.recruiter?.companyName || 'Confidential'} &bull; {job.city || 'Remote'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-lg font-bold text-gray-900">{job.title}</h4>
-                    <p className="text-gray-500">{job.recruiter?.companyName || 'Confidential'} &bull; {job.city || 'Remote'}</p>
+                  <div className="flex flex-col items-end">
+                    <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2">{job.matchScore || 90}% Match</span>
+                    <button onClick={() => navigate('/provider/dashboard')} className="text-blue-600 border border-blue-600 hover:bg-blue-50 font-medium px-4 py-2 rounded-md transition">
+                      Go to Dashboard
+                    </button>
                   </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2">{job.matchScore || 90}% Match</span>
-                  <button onClick={() => navigate('/provider/dashboard')} className="text-blue-600 border border-blue-600 hover:bg-blue-50 font-medium px-4 py-2 rounded-md transition">
-                    Go to Dashboard
-                  </button>
+                
+                {/* Blurred AI Insights CTA */}
+                <div className="mt-4 pt-4 border-t border-gray-100 relative overflow-hidden bg-gradient-to-r from-blue-50/50 to-indigo-50/50 -mx-6 -mb-6 px-6 pb-6 rounded-b-lg">
+                  <div className="filter blur-[4px] select-none pointer-events-none opacity-50 space-y-3 mt-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 bg-blue-200 rounded-full"></div>
+                      <div className="h-4 bg-gray-300 rounded w-32"></div>
+                    </div>
+                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                    <div className="h-3 bg-gray-200 rounded w-4/5"></div>
+                    <div className="flex gap-2 mt-2">
+                      <div className="h-6 w-20 bg-emerald-100 rounded-full"></div>
+                      <div className="h-6 w-24 bg-blue-100 rounded-full"></div>
+                    </div>
+                  </div>
+                  
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-white/40 backdrop-blur-[1px]">
+                    <p className="text-sm font-bold text-gray-800 mb-2 drop-shadow-sm flex items-center gap-2">
+                      <FiLock className="w-4 h-4 text-indigo-600" /> Unlock AI Job Insights
+                    </p>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); navigate('/provider/plans'); }}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-5 rounded-full transition-colors shadow-md flex items-center gap-1.5"
+                    >
+                      View Premium Plans
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
           ) : (
             ['Deloitte', 'TCS', 'Infosys'].map((company, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                <div className="flex items-center mb-4 sm:mb-0">
-                  <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 font-bold text-xl mr-4">
-                    {company.charAt(0)}
+              <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                  <div className="flex items-center mb-4 sm:mb-0">
+                    <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 font-bold text-xl mr-4">
+                      {company.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-gray-900">Senior Frontend Developer</h4>
+                      <p className="text-gray-500">{company} &bull; Remote &bull; Full-time</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-lg font-bold text-gray-900">Senior Frontend Developer</h4>
-                    <p className="text-gray-500">{company} &bull; Remote &bull; Full-time</p>
+                  <div className="flex flex-col items-end">
+                    <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2">90% Match</span>
+                    <button className="text-blue-600 border border-blue-600 hover:bg-blue-50 font-medium px-4 py-2 rounded-md transition">
+                      View Job
+                    </button>
                   </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2">90% Match</span>
-                  <button className="text-blue-600 border border-blue-600 hover:bg-blue-50 font-medium px-4 py-2 rounded-md transition">
-                    View Job
-                  </button>
+                
+                {/* Blurred AI Insights CTA */}
+                <div className="mt-4 pt-4 border-t border-gray-100 relative overflow-hidden bg-gradient-to-r from-blue-50/50 to-indigo-50/50 -mx-6 -mb-6 px-6 pb-6 rounded-b-lg">
+                  <div className="filter blur-[4px] select-none pointer-events-none opacity-50 space-y-3 mt-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 bg-blue-200 rounded-full"></div>
+                      <div className="h-4 bg-gray-300 rounded w-32"></div>
+                    </div>
+                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                    <div className="h-3 bg-gray-200 rounded w-4/5"></div>
+                    <div className="flex gap-2 mt-2">
+                      <div className="h-6 w-20 bg-emerald-100 rounded-full"></div>
+                      <div className="h-6 w-24 bg-blue-100 rounded-full"></div>
+                    </div>
+                  </div>
+                  
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-white/40 backdrop-blur-[1px]">
+                    <p className="text-sm font-bold text-gray-800 mb-2 drop-shadow-sm flex items-center gap-2">
+                      <FiLock className="w-4 h-4 text-indigo-600" /> Unlock AI Job Insights
+                    </p>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); navigate('/provider/plans'); }}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-5 rounded-full transition-colors shadow-md flex items-center gap-1.5"
+                    >
+                      View Premium Plans
+                    </button>
+                  </div>
                 </div>
               </div>
             ))

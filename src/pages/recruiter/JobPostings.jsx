@@ -6,7 +6,7 @@ import {
   FiClock, FiCheckCircle, FiPauseCircle, FiBriefcase, FiPlus, FiLoader, FiMapPin
 } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
-import { recruiterAPI } from '../../services/api';
+import { recruiterAPI, jobsAPI } from '../../services/api';
 
 const JobPostings = () => {
   const [activeTab, setActiveTab] = useState('All Jobs');
@@ -25,12 +25,37 @@ const JobPostings = () => {
 
   const fetchJobs = async () => {
     try {
+      setLoading(true);
       const res = await recruiterAPI.getJobPostings();
       setJobs(res.data.jobs || []);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBoost = async (job) => {
+    const daysStr = window.prompt(`How many days do you want to boost the job "${job.title}"?`);
+    if (!daysStr) return;
+    const days = parseInt(daysStr, 10);
+    if (isNaN(days) || days <= 0) {
+      alert("Please enter a valid number of days.");
+      return;
+    }
+    
+    try {
+      await jobsAPI.boostJob(job._id, days);
+      alert("Job boosted successfully!");
+      fetchJobs(); // Refresh job list
+    } catch (error) {
+      if (error.response?.status === 403) {
+        alert(error.response.data.message || "You need an active premium plan to boost jobs.");
+      } else if (error.response?.status === 400) {
+        alert(error.response.data.message || "Invalid request.");
+      } else {
+        alert("Failed to boost job. Please try again.");
+      }
     }
   };
 
@@ -271,6 +296,11 @@ const JobPostings = () => {
                               ) : (
                                 <span className="text-xs text-gray-400 font-medium">--</span>
                               )}
+                              {job.isBoosted && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-600 border border-purple-100 ml-1">
+                                  BOOSTED
+                                </span>
+                              )}
                             </div>
                           </td>
                           <td className="py-4 px-3 text-center">
@@ -288,6 +318,9 @@ const JobPostings = () => {
                               </Link>
                               <button onClick={() => handleEvaluate(job._id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-emerald-600 hover:bg-gray-50 transition shadow-sm">
                                 <HiSparkles className="w-3.5 h-3.5" /> Eval
+                              </button>
+                              <button onClick={() => handleBoost(job)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-purple-600 hover:bg-gray-50 transition shadow-sm">
+                                Boost
                               </button>
                               <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition">
                                 <FiMoreVertical className="w-4 h-4" />

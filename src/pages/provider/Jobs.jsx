@@ -403,13 +403,18 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePl
           </div>
         </div>
         <div className="flex flex-col justify-center">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-bold text-gray-900 text-base leading-tight truncate">
               {job.title}
             </h3>
             {job.hasApplied && (
               <span className="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
                 Applied
+              </span>
+            )}
+            {job.isBoosted && (
+              <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 uppercase tracking-wider">
+                Boosted
               </span>
             )}
           </div>

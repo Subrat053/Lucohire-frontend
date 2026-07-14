@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload, FileText, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, Globe } from 'lucide-react';
 import { adminAPI } from '../../../services/api';
 
 const BulkCrawlerPanel = () => {
@@ -100,6 +100,84 @@ const BulkCrawlerPanel = () => {
         <p className="text-sm text-gray-500 mt-1">
           Upload a CSV or paste a list of company names. The system will automatically find their career pages, store them, and perform an initial job scrape.
         </p>
+      </div>
+
+      {/* Verified Data Sources */}
+      <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <Globe className="w-4 h-4 text-indigo-500" /> Verified Bulk Data Sources
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {/* India */}
+          <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-sm transition-shadow">
+            <div className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <img src="https://flagcdn.com/w20/in.png" srcSet="https://flagcdn.com/w40/in.png 2x" width="20" alt="India" /> 
+              India
+            </div>
+            <div className="space-y-2 flex flex-col">
+              <a href="https://www.mca.gov.in" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">MCA Registry</a>
+              <a href="https://www.zaubacorp.com" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">Zauba Corp</a>
+              <a href="https://www.nseindia.com" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">NSE Listed</a>
+              <a href="https://www.bseindia.com" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">BSE Listed</a>
+            </div>
+          </div>
+          {/* USA */}
+          <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-sm transition-shadow">
+            <div className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <img src="https://flagcdn.com/w20/us.png" srcSet="https://flagcdn.com/w40/us.png 2x" width="20" alt="USA" /> 
+              USA
+            </div>
+            <div className="space-y-2 flex flex-col">
+              <a href="https://www.sec.gov/files/company_tickers.json" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">SEC JSON</a>
+              <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">EDGAR Search</a>
+              <a href="https://data.sec.gov/submissions/" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">EDGAR API</a>
+            </div>
+          </div>
+          {/* UK */}
+          <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-sm transition-shadow">
+            <div className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <img src="https://flagcdn.com/w20/gb.png" srcSet="https://flagcdn.com/w40/gb.png 2x" width="20" alt="UK" /> 
+              UK
+            </div>
+            <div className="space-y-2 flex flex-col">
+              <a href="https://download.companieshouse.gov.uk/en_output.html" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">Bulk Download</a>
+              <a href="https://developer.company-information.service.gov.uk/" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">Live API</a>
+            </div>
+          </div>
+          {/* Canada */}
+          <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-sm transition-shadow">
+            <div className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <img src="https://flagcdn.com/w20/ca.png" srcSet="https://flagcdn.com/w40/ca.png 2x" width="20" alt="Canada" /> 
+              Canada
+            </div>
+            <div className="space-y-2 flex flex-col">
+              <a href="https://open.canada.ca/data/en/dataset/0032ce54-c5dd-4b66-99a0-320a7b5e99f2" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">Open Data</a>
+              <a href="https://ised-isde.canada.ca/site/corporations-canada/en/data-services" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">Live API</a>
+            </div>
+          </div>
+          {/* Australia */}
+          <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-sm transition-shadow">
+            <div className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <img src="https://flagcdn.com/w20/au.png" srcSet="https://flagcdn.com/w40/au.png 2x" width="20" alt="Australia" /> 
+              Australia
+            </div>
+            <div className="space-y-2 flex flex-col">
+              <a href="https://abr.business.gov.au/Tools/BulkExtract" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">ABN Extract</a>
+              <a href="https://data.gov.au/data/dataset/abn-bulk-extract" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">Data.gov.au</a>
+            </div>
+          </div>
+          {/* Germany */}
+          <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-sm transition-shadow">
+            <div className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <img src="https://flagcdn.com/w20/de.png" srcSet="https://flagcdn.com/w40/de.png 2x" width="20" alt="Germany" /> 
+              Germany
+            </div>
+            <div className="space-y-2 flex flex-col">
+              <a href="https://www.handelsregister.de" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">Handelsregister</a>
+              <a href="https://www.northdata.de" target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2.5 py-1.5 rounded-md font-medium text-center transition-colors border border-indigo-100/50">North Data</a>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="p-6 space-y-6">

@@ -6,7 +6,7 @@ import {
   Search, MapPin, CheckCircle2, ArrowRight, ShieldCheck, 
   MessageCircle, Scale, Building2, Users, Briefcase, 
   Check, Zap, Target, Star, Phone, ChevronLeft, ChevronRight,
-  FileText, Brain, Globe, Clock, BadgeCheck
+  FileText, Brain, Globe, Clock, BadgeCheck, MoreVertical, Wallet, Calendar, Eye, Heart, X
 } from 'lucide-react';
 
 
@@ -57,6 +57,7 @@ export default function LandingPage() {
   const [liveJobsList, setLiveJobsList] = useState([]);
   const [topTalent, setTopTalent] = useState([]);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
   const carouselRef = useRef(null);
 
   useEffect(() => {
@@ -303,8 +304,13 @@ export default function LandingPage() {
             ) : liveJobsList.length > 0 ? (
               liveJobsList.map(job => (
                 <div key={job._id || job.id} onClick={() => navigate('/provider/job-for-me')} className="min-w-[220px] sm:min-w-[240px] bg-white rounded-xl p-4 sm:p-5 flex-shrink-0 cursor-pointer hover:-translate-y-1 transition duration-300">
-                  <div className="mb-3">
+                  <div className="mb-3 flex justify-between items-start">
                     <CompanyLogo company={job.companyName || job.recruiter?.name || 'Verified Company'} />
+                    {job.isBoosted && (
+                      <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border border-purple-200">
+                        Boosted
+                      </span>
+                    )}
                   </div>
                   <h5 className="font-bold text-gray-900 text-sm mb-0.5">{job.title}</h5>
                   <p className="text-xs text-gray-500 mb-3">{job.companyName || job.recruiter?.name || 'Verified Company'}</p>
@@ -372,92 +378,158 @@ export default function LandingPage() {
 
               <div ref={carouselRef} className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar scroll-smooth px-1">
                 {displayTalent.map(candidate => (
-                  <div key={candidate._id} className="min-w-[240px] sm:min-w-[260px] bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex-shrink-0 flex flex-col">
+                  <div key={candidate._id} className="min-w-[380px] max-w-[380px] sm:min-w-[420px] sm:max-w-[420px] bg-white rounded-3xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex-shrink-0 flex flex-col relative overflow-hidden">
                     
-                    {/* Availability Badge */}
-                    <div className="flex items-center gap-1.5 mb-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                      <span className="text-[10px] font-semibold text-green-700">Available Today</span>
-                    </div>
-
-                    {/* Profile Header */}
-                    <div className="flex items-start gap-3 mb-3">
-                      {candidate.profilePhoto ? (
-                        <img src={candidate.profilePhoto} alt={candidate.profileName} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex-shrink-0 object-cover" />
-                      ) : (
-                        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-base sm:text-lg font-bold flex-shrink-0 ${candidate.avatarBg || 'bg-blue-100 text-blue-700'}`}>
-                          {candidate.profileName?.substring(0, 2).toUpperCase() || 'UN'}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <h3 className="font-bold text-sm sm:text-[15px] text-gray-900 truncate">{candidate.profileName}</h3>
-                        <p className="text-xs text-gray-500">{candidate.primaryRole || 'Freelancer'} · {candidate.experienceYears || 0} years</p>
-                        <div className="flex items-center gap-1 mt-1">
-                          <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                          <span className="text-xs font-semibold text-gray-800">{candidate.rating || 5.0}</span>
-                          <span className="text-[10px] text-gray-400">({candidate.reviewCount || 0} reviews)</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Location Badge */}
-                    <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
-                      <MapPin className="w-3 h-3" />
-                      <span>{candidate.city || 'Remote'}</span>
-                    </div>
-
-                    {/* Skill Tags */}
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {candidate.skills?.slice(0, 3).map((tag, idx) => (
-                        <span key={idx} className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-medium">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Rate */}
-                    <div className="mt-auto">
-                      <div className="font-bold text-lg text-gray-900 mb-3">
-                        ₹{candidate.hourlyRate || 'Negotiable'}<span className="text-xs font-normal text-gray-400">/hr</span>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex gap-2">
-                        {candidate.hasWhatsApp ? (
-                          <>
-                            <button 
-                              onClick={() => {
-                                if (candidate.user?.whatsappNumber) {
-                                  window.open(`https://wa.me/${candidate.user.whatsappNumber}`, '_blank');
-                                }
-                              }}
-                              className="flex-1 py-2 rounded-lg border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors text-xs flex items-center justify-center gap-1.5"
-                            >
-                              <MessageCircle className="w-3.5 h-3.5" />
-                              WhatsApp
-                            </button>
-                            <button 
-                              onClick={() => {
-                                if (candidate.user?.whatsappNumber) {
-                                  window.open(`tel:${candidate.user.whatsappNumber}`);
-                                }
-                              }}
-                              className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors text-xs flex items-center justify-center gap-1.5"
-                            >
-                              <Phone className="w-3.5 h-3.5" />
-                              Call Now
-                            </button>
-                          </>
+                    {/* Top Section */}
+                    <div className="flex gap-4 mb-5">
+                      {/* Left: Avatar with Available Now pill */}
+                      <div className="relative shrink-0">
+                        {candidate.profilePhoto ? (
+                          <img src={candidate.profilePhoto} alt={candidate.profileName} className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-1 ring-gray-100" />
                         ) : (
-                          <button 
-                            onClick={() => navigate(`/search?query=${encodeURIComponent(candidate.primaryRole || '')}`)}
-                            className="flex-1 py-2 rounded-lg bg-gray-100 text-gray-600 font-semibold hover:bg-gray-200 transition-colors text-xs flex items-center justify-center gap-1.5"
-                          >
-                            <ArrowRight className="w-3.5 h-3.5" />
-                            View Profile
-                          </button>
+                          <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center text-3xl font-bold ring-1 ring-gray-100 ${candidate.avatarBg || 'bg-blue-100 text-blue-700'}`}>
+                            {candidate.profileName?.substring(0, 2).toUpperCase() || 'UN'}
+                          </div>
+                        )}
+                        <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
+                          <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+                          Available
+                        </div>
+                      </div>
+                      
+                      {/* Right: Info */}
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <div className="flex justify-between items-start mb-1">
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="text-lg font-bold text-gray-900 tracking-tight truncate">{candidate.profileName}</h3>
+                            <BadgeCheck className="w-5 h-5 text-blue-600 fill-blue-600/10" strokeWidth={2.5} />
+                          </div>
+                          <MoreVertical className="w-4 h-4 text-gray-400 cursor-pointer" />
+                        </div>
+                        
+                        <p className="text-[13px] font-bold text-indigo-700 mb-2 truncate">
+                          {candidate.primaryRole || 'Freelancer'}
+                        </p>
+                        
+                        <div className="flex flex-col gap-1.5 text-[12px] text-gray-600 font-medium">
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                            <span className="truncate">{candidate.city || 'India'}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-gray-400" />
+                            Last active: <span className="text-green-600 font-bold ml-0.5">Today</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 3 Stats Row */}
+                    <div className="grid grid-cols-3 gap-2 mb-5">
+                      <div className="flex items-center gap-2 bg-indigo-50/50 p-2 rounded-xl">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                          <Briefcase className="w-4 h-4 text-indigo-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-[12px] font-bold text-gray-900 truncate">{candidate.experienceYears || 0}+ Yrs</div>
+                          <div className="text-[10px] text-gray-500 font-medium truncate">Experience</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 bg-blue-50/50 p-2 rounded-xl">
+                        <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <Calendar className="w-4 h-4 text-blue-500" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-[12px] font-bold text-gray-900 truncate">25h/wk</div>
+                          <div className="text-[10px] text-gray-500 font-medium truncate">Availability</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 bg-green-50/50 p-2 rounded-xl">
+                        <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                          <Zap className="w-4 h-4 text-green-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-[12px] font-bold text-gray-900 truncate">Ready</div>
+                          <div className="text-[10px] text-gray-500 font-medium truncate">To Start</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Top Skills */}
+                    <div className="mb-5">
+                      <div className="flex flex-wrap gap-1.5">
+                        {candidate.skills?.slice(0, 4).map((tag, idx) => (
+                          <span key={idx} className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-[11px] font-bold">
+                            {tag}
+                          </span>
+                        ))}
+                        {(candidate.skills?.length || 0) > 4 && (
+                          <span className="bg-gray-50 text-gray-500 px-2.5 py-1 rounded-lg text-[11px] font-bold">
+                            +{candidate.skills.length - 4} More
+                          </span>
                         )}
                       </div>
+                    </div>
+
+                    {/* Rate & Verifications */}
+                    <div className="flex gap-4 mb-5 border-t border-gray-100 pt-5">
+                      <div className="flex-1 bg-[#f0fdf4] rounded-xl p-3 flex flex-col justify-center border border-green-100">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Wallet className="w-4 h-4 text-green-700" />
+                          <span className="text-[11px] text-green-800 font-bold uppercase tracking-wider">Hourly Rate</span>
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xl font-black text-gray-900">₹{candidate.hourlyRate || '1200'}</span>
+                          <span className="text-[12px] font-bold text-gray-500">/hr</span>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 flex flex-col justify-center space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 fill-green-500/10" />
+                          <span className="text-[11px] text-gray-700 font-medium">Resume Verified</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 fill-green-500/10" />
+                          <span className="text-[11px] text-gray-700 font-medium">Mobile Verified</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 fill-green-500/10" />
+                          <span className="text-[11px] text-gray-700 font-medium">Email Verified</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="mt-auto flex flex-col gap-2.5">
+                      <div className="flex gap-2.5">
+                        <button 
+                          onClick={() => {
+                            if (candidate.user?.whatsappNumber) {
+                              window.open(`https://wa.me/${candidate.user.whatsappNumber}`, '_blank');
+                            }
+                          }}
+                          className="flex-[1.5] py-2.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] transition-colors text-[13px] flex items-center justify-center gap-2 shadow-sm"
+                        >
+                          <MessageCircle className="w-4 h-4" fill="currentColor" strokeWidth={0} /> Chat on WhatsApp
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if (candidate.user?.whatsappNumber) {
+                              window.open(`tel:${candidate.user.whatsappNumber}`);
+                            }
+                          }}
+                          className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors text-[13px] flex items-center justify-center gap-1.5 shadow-sm"
+                        >
+                          <Phone className="w-4 h-4" /> Call Now
+                        </button>
+                      </div>
+                      <button 
+                        onClick={() => setSelectedCandidate(candidate)}
+                        className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-colors text-[13px] flex items-center justify-center gap-2"
+                      >
+                        <Eye className="w-4 h-4" /> View Full Profile
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -781,6 +853,159 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
+
+      {/* Candidate Details Modal */}
+      {selectedCandidate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div 
+            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+            onClick={() => setSelectedCandidate(null)}
+          ></div>
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col hide-scrollbar animate-fade-in-up">
+            
+            {/* Header */}
+            <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-100 p-5 flex justify-between items-center z-10">
+              <h2 className="text-xl font-bold text-gray-900">Candidate Profile</h2>
+              <button 
+                onClick={() => setSelectedCandidate(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 sm:p-8 flex flex-col gap-8">
+              
+              {/* Profile Header */}
+              <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+                {selectedCandidate.profilePhoto ? (
+                  <img src={selectedCandidate.profilePhoto} alt={selectedCandidate.profileName} className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl object-cover ring-4 ring-gray-50" />
+                ) : (
+                  <div className={`w-24 h-24 sm:w-32 sm:h-32 rounded-2xl flex items-center justify-center text-4xl font-bold ring-4 ring-gray-50 ${selectedCandidate.avatarBg || 'bg-blue-100 text-blue-700'}`}>
+                    {selectedCandidate.profileName?.substring(0, 2).toUpperCase() || 'UN'}
+                  </div>
+                )}
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">{selectedCandidate.profileName}</h3>
+                    <BadgeCheck className="w-7 h-7 text-blue-600 fill-blue-600/10" strokeWidth={2.5} />
+                  </div>
+                  <p className="text-lg font-bold text-indigo-700 mb-3">{selectedCandidate.primaryRole || 'Freelancer'}</p>
+                  
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 font-medium">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      {selectedCandidate.city || 'India'}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Globe className="w-4 h-4 text-gray-400" />
+                      Remote Worldwide
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-2 py-0.5 rounded-md">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                      Available Now
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-indigo-50/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                  <Briefcase className="w-6 h-6 text-indigo-600 mb-2" />
+                  <div className="text-lg font-bold text-gray-900">{selectedCandidate.experienceYears || 0}+ Years</div>
+                  <div className="text-xs text-gray-500 font-medium">Experience</div>
+                </div>
+                <div className="bg-green-50/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                  <Wallet className="w-6 h-6 text-green-600 mb-2" />
+                  <div className="text-lg font-bold text-gray-900">₹{selectedCandidate.hourlyRate || '1200'}/hr</div>
+                  <div className="text-xs text-gray-500 font-medium">Hourly Rate</div>
+                </div>
+                <div className="bg-blue-50/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                  <Calendar className="w-6 h-6 text-blue-500 mb-2" />
+                  <div className="text-lg font-bold text-gray-900">25h/week</div>
+                  <div className="text-xs text-gray-500 font-medium">Availability</div>
+                </div>
+                <div className="bg-yellow-50/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                  <Star className="w-6 h-6 text-yellow-600 fill-yellow-600/20 mb-2" />
+                  <div className="text-lg font-bold text-gray-900">{selectedCandidate.rating || '5.0'}</div>
+                  <div className="text-xs text-gray-500 font-medium">Rating ({selectedCandidate.reviewCount || 0})</div>
+                </div>
+              </div>
+
+              {/* Skills */}
+              <div>
+                <h4 className="text-base font-bold text-gray-900 mb-3">Top Skills</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedCandidate.skills?.map((tag, idx) => (
+                    <span key={idx} className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold">
+                      {tag}
+                    </span>
+                  ))}
+                  {(!selectedCandidate.skills || selectedCandidate.skills.length === 0) && (
+                    <span className="text-sm text-gray-500 italic">No skills listed</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Bio/About */}
+              <div>
+                <h4 className="text-base font-bold text-gray-900 mb-3">About</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {selectedCandidate.bio || `${selectedCandidate.profileName} is a highly skilled ${selectedCandidate.primaryRole || 'professional'} based in ${selectedCandidate.city || 'India'} with over ${selectedCandidate.experienceYears || 0} years of experience. They are ready to take on new projects and deliver high-quality results.`}
+                </p>
+              </div>
+
+              {/* Verifications */}
+              <div>
+                <h4 className="text-base font-bold text-gray-900 mb-3">Trust & Verification</h4>
+                <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-wrap gap-6 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-500 fill-green-500/10" />
+                    <span className="text-sm text-gray-700 font-bold">Resume Verified</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-500 fill-green-500/10" />
+                    <span className="text-sm text-gray-700 font-bold">Mobile Verified</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-500 fill-green-500/10" />
+                    <span className="text-sm text-gray-700 font-bold">Email Verified</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Footer Actions */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 p-5 sm:px-8 flex flex-col sm:flex-row gap-3 mt-auto">
+              <button 
+                onClick={() => {
+                  if (selectedCandidate.user?.whatsappNumber) {
+                    window.open(`https://wa.me/${selectedCandidate.user.whatsappNumber}`, '_blank');
+                  }
+                }}
+                className="flex-1 py-3.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] transition-colors text-sm flex items-center justify-center gap-2 shadow-sm"
+              >
+                <MessageCircle className="w-5 h-5" fill="currentColor" strokeWidth={0} /> Chat on WhatsApp
+              </button>
+              <button 
+                onClick={() => {
+                  if (selectedCandidate.user?.whatsappNumber) {
+                    window.open(`tel:${selectedCandidate.user.whatsappNumber}`);
+                  }
+                }}
+                className="flex-1 py-3.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Phone className="w-5 h-5" /> Call Now
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

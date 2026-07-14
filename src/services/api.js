@@ -727,6 +727,7 @@ export const jobsAPI = {
   getJobApplications: (jobId) => API.get(`/jobs/${jobId}/applications`),
   updateApplicationStatus: (applicationId, data) =>
     API.put(`/jobs/applications/${applicationId}`, data),
+  boostJob: (jobId, days) => API.post(`/jobs/${jobId}/boost`, { days }),
 };
 
 // Subscription APIs
@@ -858,6 +859,8 @@ export const adminWithdrawalAPI = {
 
 export const supportAPI = {
   createTicket: (data) => AUTH_API.post("/support", data),
+  getManagerTickets: () => AUTH_API.get("/support/manager"),
+  resolveManagerTicket: (id) => AUTH_API.put(`/support/manager/${id}/resolve`),
   getAdminTickets: () => AUTH_API.get("/support/admin"),
   resolveAdminTicket: (id) => AUTH_API.put(`/support/admin/${id}/resolve`),
 };
@@ -866,6 +869,21 @@ export const unlockProfileAPI = {
   sendOtp: (data) => AUTH_API.post("/unlock-profile/send-otp", data),
   verifyOtp: (data) => AUTH_API.post("/unlock-profile/verify", data),
   updateProfile: (id, data) => AUTH_API.put(`/unlock-profile/user/${id}`, data),
+};
+
+export const pipelineAdminAPI = {
+  getQueries: () => AUTH_API.get("/pipeline/queries"),
+  addQuery: (data) => AUTH_API.post("/pipeline/queries", data),
+  triggerManualScan: (data) => AUTH_API.post("/pipeline/manual-scan", data),
+  getScans: () => AUTH_API.get("/pipeline/scans"),
+  getRawImports: (params) => AUTH_API.get("/pipeline/raw-jobs", { params }),
+  getReviewQueue: () => AUTH_API.get("/pipeline/review-queue"),
+  approveReviewJob: (id, data) => AUTH_API.post(`/pipeline/review-queue/${id}/approve`, data),
+  getCategories: () => AUTH_API.get("/pipeline/categories"),
+  getCompanies: () => AUTH_API.get("/pipeline/companies"),
+  getLocations: () => AUTH_API.get("/pipeline/locations"),
+  // Also we need an endpoint to get the final pipeline jobs
+  getPipelineJobs: (params) => AUTH_API.get("/pipeline/jobs", { params }),
 };
 
 export default API;

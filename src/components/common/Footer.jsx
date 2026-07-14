@@ -1,14 +1,35 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import useTranslation from '../../hooks/useTranslation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaTwitter } from "react-icons/fa";
 import { Lock, ShieldCheck, FileCheck } from "lucide-react";
+import { ADMIN_API } from '../../services/api';
 
 const Footer = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
+  const [socials, setSocials] = useState({
+    facebook: 'https://facebook.com/lucohire',
+    twitter: 'https://twitter.com/lucohire',
+    linkedin: 'https://linkedin.com/company/lucohire',
+    instagram: 'https://instagram.com/lucohire'
+  });
+
+  useEffect(() => {
+    const fetchSocials = async () => {
+      try {
+        const res = await ADMIN_API.get('/admin/content/socials');
+        if (res.data) {
+          setSocials(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to load socials:', err);
+      }
+    };
+    fetchSocials();
+  }, []);
 
   if (user && user.role === 'admin') return null;
 
@@ -59,12 +80,12 @@ const Footer = () => {
             {t('footer.description', 'India\'s AI-powered hiring platform. Verified providers, fair distribution, WhatsApp-first.')}
           </p>
           
-          {/* Social Icons moved to the left side bottom as shown in some layouts, or keep it under newsletter */}
+          {/* Social Icons */}
           <div className="flex items-center gap-4 mt-6">
-            <a href="https://facebook.com/lucohire" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><FaFacebookF size={18} /></a>
-            <a href="https://twitter.com/lucohire" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><FaTwitter size={18} /></a>
-            <a href="https://linkedin.com/company/lucohire" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><FaLinkedinIn size={18} /></a>
-            <a href="https://instagram.com/lucohire" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><FaInstagram size={18} /></a>
+            {socials?.facebook && <a href={socials.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><FaFacebookF size={18} /></a>}
+            {socials?.twitter && <a href={socials.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><FaTwitter size={18} /></a>}
+            {socials?.linkedin && <a href={socials.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><FaLinkedinIn size={18} /></a>}
+            {socials?.instagram && <a href={socials.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><FaInstagram size={18} /></a>}
           </div>
         </div>
 

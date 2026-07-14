@@ -21,6 +21,7 @@ const AdminProviders = lazy(() => import("../pages/admin/Providers"));
 const AdminRecruiters = lazy(() => import("../pages/admin/Recruiters"));
 const AdminPlans = lazy(() => import("../pages/admin/Plans"));
 const AdminCustomPlanRequests = lazy(() => import("../pages/admin/CustomPlanRequests"));
+const Socials = lazy(() => import("../pages/admin/Socials"));
 const AdminSettings = lazy(() => import("../pages/admin/Settings"));
 const AdminManagers = lazy(() => import("../pages/admin/Managers"));
 const AdminPayments = lazy(() => import("../pages/admin/Payments"));
@@ -54,6 +55,7 @@ const BulkOutreach = lazy(() => import("../components/admin/BulkOutreach"));
 const ImportCandidates = lazy(() => import("../pages/admin/ImportCandidates"));
 const ImportRecruiters = lazy(() => import("../pages/admin/ImportRecruiters"));
 const DataPipeline = lazy(() => import("../pages/admin/DataPipeline"));
+const PipelineAdmin = lazy(() => import("../pages/admin/pipeline/PipelineAdmin"));
 const ScrapedDataVault = lazy(() => import("../pages/admin/ScrapedDataVault"));
 const RecruiterApprovals = lazy(() => import("../pages/admin/RecruiterApprovals"));
 
@@ -107,6 +109,7 @@ export default function AdminRoutes() {
       <Route path="plans" element={wrap(<AdminPlans />)} />
       <Route path="custom-plans" element={wrap(<AdminCustomPlanRequests />)} />
       <Route path="settings" element={wrap(<AdminSettings />)} />
+      <Route path="socials" element={wrap(<Socials />)} />
       <Route path="managers" element={wrap(<AdminManagers />)} />
       <Route path="payments" element={wrap(<AdminPayments />)} />
       <Route path="staging-candidates" element={wrap(<AdminStagingCandidates />)} />
@@ -153,6 +156,7 @@ export default function AdminRoutes() {
       <Route path="import-recruiters" element={wrap(<ImportRecruiters />)} />
       <Route path="recruiter-approvals" element={wrap(<RecruiterApprovals />)} />
       <Route path="data-pipeline" element={wrap(<DataPipeline />)} />
+      <Route path="pipeline/*" element={wrap(<PipelineAdmin />)} />
       <Route path="scraped-vault/jobs" element={wrap(<ExternalJobs />)} />
       <Route path="scraped-vault/candidates" element={wrap(<StagingCandidates />)} />
       <Route path="scraped-vault/recruiters" element={wrap(<RecruiterLeads />)} />

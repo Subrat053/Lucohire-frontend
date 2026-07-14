@@ -12,6 +12,7 @@ const CreatePartnerProvider = lazy(() => import("../pages/partner/CreatePartnerP
 const CreatePartnerRecruiter = lazy(() => import("../pages/partner/CreatePartnerRecruiter"));
 const PartnerBankDetails = lazy(() => import("../pages/partner/PartnerBankDetails"));
 const ChangePassword = lazy(() => import("../pages/user/ChangePassword"));
+const PartnerSupportIssues = lazy(() => import("../pages/partner/PartnerSupportIssues"));
 
 function PartnerLayoutWrapper({ children }) {
   return (
@@ -39,6 +40,7 @@ export default function PartnerRoutes() {
       <Route path="create-recruiter" element={wrap(<CreatePartnerRecruiter />)} />
       <Route path="bank-details" element={wrap(<PartnerBankDetails />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />
+      <Route path="support" element={wrap(<PartnerSupportIssues />)} />
     </Routes>
   );
 }

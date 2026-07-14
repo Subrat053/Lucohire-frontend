@@ -106,6 +106,13 @@ const navItems = [
     ],
   },
   {
+    labelKey: "admin.automatedPipeline",
+    fallback: "Automated Pipeline",
+    path: "/admin/pipeline",
+    icon: HiCollection,
+    adminOnly: true,
+  },
+  {
     labelKey: "admin.dataPipeline",
     fallback: "Data Pipeline & Sync",
     icon: HiDatabase,
@@ -320,6 +327,12 @@ const navItems = [
     fallback: "Settings",
     path: "/admin/settings",
     icon: HiCog,
+  },
+  {
+    labelKey: "admin.navSocials",
+    fallback: "Socials",
+    path: "/admin/socials",
+    icon: HiLink,
   },
   {
     labelKey: "admin.navTerms",
