@@ -4,6 +4,7 @@ import { providerAPI } from '../services/api';
 import { MapPin, Star, MessageCircle, Phone, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
+import Seo from '../components/common/Seo';
 
 export default function TopTalentPage() {
   const navigate = useNavigate();
@@ -33,6 +34,11 @@ export default function TopTalentPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <Seo 
+        title="Top Talent Available for Hourly Work" 
+        description="Browse our curated list of verified freelancers and professionals ready to take on your hourly projects immediately. Connect with them directly via WhatsApp or Call."
+        canonicalPath="/top-talent"
+      />
       <Navbar />
       
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
