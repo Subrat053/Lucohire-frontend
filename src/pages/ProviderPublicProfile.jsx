@@ -163,6 +163,29 @@ const ProviderPublicProfile = () => {
     </div>
   );
 
+  const isPublic = profile?.user?.isPublicProfile === true;
+  const isOwner = isAuthenticated && user?._id === profile?.user?._id;
+  const isAdminOrRecruiter = isAuthenticated && (user?.activeRole === 'recruiter' || user?.activeRole === 'admin' || user?.role === 'admin');
+  const canView = isPublic || isOwner || isAdminOrRecruiter || profile.isDummy;
+
+  if (!canView) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F7FC] p-4">
+        <Seo title="Profile Private" robots="noindex, nofollow" />
+        <div className="bg-white p-8 rounded-2xl shadow-sm max-w-md w-full text-center border border-[#E5E9F2]">
+          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
+            <span className="text-4xl text-gray-400">🔒</span>
+          </div>
+          <h2 className="text-xl font-bold text-[#1E293B] mb-2">Profile is Private</h2>
+          <p className="text-[#64748B] mb-6 text-sm">This provider has chosen not to make their profile public.</p>
+          <button onClick={() => navigate('/search')} className="bg-[#1E293B] text-white px-6 py-2.5 rounded-xl font-medium hover:bg-slate-800 transition w-full shadow-sm text-sm">
+            Go back to Search
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const seoTitle = profile.user?.name ? `${profile.user.name} - ${t('common.profile', 'Profile')}` : t('common.profile', 'Profile');
   const seoDescription = profile.description || t('provider.profileDescription', 'View verified provider profile, skills, and reviews on Lucohire.');
   const seoImage = profile.photo || profile.profilePhoto || '';
@@ -175,6 +198,19 @@ const ProviderPublicProfile = () => {
     return link.status === 'approved';
   });
 
+  const personSchema = {
+    "@context": "https://schema.org",
+    "@type": ["ProfilePage", "Person"],
+    "name": userName,
+    "jobTitle": profile.category || (Array.isArray(profile.skills) ? profile.skills[0] : 'Professional'),
+    "description": seoDescription,
+    "image": seoImage,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": profile.city || "India"
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F4F7FC] pb-24 pt-8 px-4 sm:px-6 lg:px-8 font-sans">
       <Seo
@@ -182,6 +218,8 @@ const ProviderPublicProfile = () => {
         description={seoDescription}
         canonicalPath={`/p/${id}`}
         image={seoImage}
+        robots={isPublic && !profile.isDummy ? 'index, follow' : 'noindex, nofollow'}
+        schema={personSchema}
       />
       
       <div className="max-w-[1200px] mx-auto">
@@ -249,14 +287,24 @@ const ProviderPublicProfile = () => {
                 <>
                   {profile.phone && <div className="text-[#3B82F6] font-medium text-[15px] blur-[4px] select-none">+1 (555) 000-0000</div>}
                   {profile.email && <div className="text-[#3B82F6] font-medium text-[15px] blur-[4px] select-none">contact@example.com</div>}
-                  <button 
-                    onClick={handleUnlock} 
-                    disabled={unlocking || profile.isDummy}
-                    className="mt-4 w-full bg-[#1E293B] text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-800 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {unlocking ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/> : <HiLockClosed className="w-4 h-4 text-slate-300"/>}
-                    Unlock Contact
-                  </button>
+                  {isPublic && profile.user?.whatsappConsent ? (
+                    <a 
+                      href={`${import.meta.env.VITE_AUTH_BASE_URL || import.meta.env.VITE_AUTH_URL || '/api/v1'}/provider/public/${id}/whatsapp-redirect`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 w-full border border-[#25D366] text-[#25D366] py-2 rounded-lg text-sm font-semibold flex justify-center items-center gap-2 hover:bg-[#25D366] hover:text-white transition-colors"
+                    >
+                      <FaWhatsapp className="w-4 h-4"/> Contact via WhatsApp
+                    </a>
+                  ) : (
+                    <button 
+                      disabled={unlocking}
+                      onClick={handleUnlock} 
+                      className={`mt-4 w-full bg-[#1E293B] text-white py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition shadow-sm ${unlocking ? 'opacity-70 cursor-wait' : ''}`}
+                    >
+                      {unlocking ? 'Unlocking...' : t('provider.unlockContactInfo', 'Unlock Contact Info')}
+                    </button>
+                  )}
                 </>
               )}
             </div>

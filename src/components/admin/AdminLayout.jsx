@@ -146,6 +146,20 @@ const navItems = [
     ],
   },
   {
+    labelKey: "admin.seoCommandCenter",
+    fallback: "SEO Command Center",
+    path: "/admin/seo-command-center",
+    icon: HiGlobe,
+    adminOnly: true,
+  },
+  {
+    labelKey: "admin.selfHealingCenter",
+    fallback: "Self-Healing Center",
+    path: "/admin/self-healing",
+    icon: HiShieldCheck,
+    adminOnly: true,
+  },
+  {
     labelKey: "admin.crawlers",
     fallback: "Scrapers & Crawlers",
     icon: HiTerminal,

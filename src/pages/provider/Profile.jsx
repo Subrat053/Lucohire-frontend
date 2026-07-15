@@ -937,6 +937,8 @@ const ProviderProfile = () => {
           relocationAvailable: data.relocationAvailable || false,
           pricingReason: data.pricingReason || "",
           email: data.user?.email || "",
+          isPublicProfile: data.user?.isPublicProfile !== false, // default true if undefined
+          whatsappConsent: data.user?.whatsappConsent !== false, // default true if undefined
         };
 
         setForm(defaultForm);
@@ -1576,6 +1578,8 @@ const ProviderProfile = () => {
         whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : (form.whatsappNumber || (form.whatsappCountryCode + form.whatsappNationalNumber)),
         resumeUrl: form.resumeUrl,
         projects: form.projects,
+        isPublicProfile: form.isPublicProfile,
+        whatsappConsent: form.whatsappConsent,
         firebaseToken: finalToken || undefined,
       };
       // sanitizePayload only touches string fields, leaves arrays/numbers intact
@@ -2094,6 +2098,30 @@ const ProviderProfile = () => {
                         <p className={`text-[11px] font-medium leading-tight pr-2 ${form.contactVisibility === "none" ? "text-emerald-700/80" : "text-slate-500"}`}>Recruiters will contact you through LucoHire only</p>
                       </div>
                     </div>
+
+                    <div className="mt-8 space-y-4">
+                      <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-white hover:border-emerald-300 transition-colors">
+                        <div>
+                          <h4 className="text-[14px] font-bold text-slate-800">Public SEO Profile</h4>
+                          <p className="text-[12px] text-slate-500 mt-0.5">Allow your profile to be indexed by search engines and viewed publicly.</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" className="sr-only peer" checked={form.isPublicProfile} onChange={(e) => setForm({ ...form, isPublicProfile: e.target.checked })} />
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-white hover:border-emerald-300 transition-colors">
+                        <div>
+                          <h4 className="text-[14px] font-bold text-slate-800">WhatsApp Contact Consent</h4>
+                          <p className="text-[12px] text-slate-500 mt-0.5">Allow recruiters to directly open a WhatsApp chat with you from your public profile.</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" className="sr-only peer" checked={form.whatsappConsent} onChange={(e) => setForm({ ...form, whatsappConsent: e.target.checked })} />
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </>
               )}
@@ -2600,7 +2628,7 @@ const ProviderProfile = () => {
                         <div className="flex items-center gap-3">
                           {item.done ? (
                             <div className="bg-emerald-100 rounded-full p-0.5 text-emerald-600">
-                               <Check className="w-3.5 h-3.5 stroke-[3]" />
+                               <Check className="w-3.5 h-3.5 stroke-3" />
                             </div>
                           ) : (
                             <div className="w-4.5 h-4.5 border-2 border-slate-200 rounded-full bg-white group-hover:border-slate-300 transition-colors" />
@@ -2644,7 +2672,7 @@ const ProviderProfile = () => {
                    <button type="button" onClick={handleShareProfile} className="flex items-center justify-between py-3.5 border-b border-slate-100 hover:bg-slate-50 -mx-6 px-6 transition-colors group">
                      <div className="flex items-center gap-3">
                        <Eye className="w-[18px] h-[18px] text-slate-400 group-hover:text-emerald-600 transition-colors" />
-                       <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">Preview Public Profile</span>
+                       <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">Share Profile</span>
                      </div>
                      <ChevronDown className="w-4 h-4 text-slate-300 transform -rotate-90 group-hover:text-emerald-600 transition-colors" />
                    </button>

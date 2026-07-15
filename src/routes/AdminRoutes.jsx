@@ -71,6 +71,9 @@ const BulkCrawlerPanel = lazy(() => import("../pages/admin/components/BulkCrawle
 const NightlyEngineSettings = lazy(() => import("../pages/admin/components/NightlyEngineSettings"));
 const StagingCandidates = lazy(() => import("../pages/admin/StagingCandidates"));
 
+const SeoCommandCenter = lazy(() => import("../pages/admin/pipeline/SeoCommandCenter"));
+const SelfHealingCenter = lazy(() => import("../pages/admin/pipeline/SelfHealingCenter"));
+
 function AdminLayoutWrapper({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -133,6 +136,10 @@ export default function AdminRoutes() {
       <Route path="enquiries" element={wrap(<AdminEnquiries />)} />
       <Route path="support-issues" element={wrap(<AdminSupportIssues />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />
+      
+      {/* Advanced Modules */}
+      <Route path="seo-command-center" element={wrap(<SeoCommandCenter />)} />
+      <Route path="self-healing" element={wrap(<SelfHealingCenter />)} />
       
       {/* Logs & Audit */}
       <Route path="otp-logs" element={wrap(<AdminOtpLogs />)} />
