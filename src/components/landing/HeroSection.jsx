@@ -63,7 +63,7 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
   };
 
   return (
-    <div className="w-full min-h-[100dvh] flex flex-col justify-between pt-4 sm:pt-6 bg-[#fcfdfe]" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="w-full flex flex-col pt-1 pb-6 sm:pt-5 sm:pb-10 bg-[#fcfdfe]" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
       {/* 2. Hero Section Content */}
       <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center flex-1">
         
@@ -75,7 +75,7 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
         </div> */}
 
         {/* Main Headline */}
-        <h1 className="text-[26px] sm:text-3xl md:text-4xl lg:text-[42px] font-bold text-[#0B1536] mb-2 sm:mb-3 text-center tracking-tight leading-tight px-2">
+        <h1 className="text-[26px] sm:text-3xl md:text-4xl lg:text-[42px] font-bold text-[#0B1536] mb-4 sm:mb-5 text-center tracking-tight leading-tight px-2">
           {t("One Platform.")} <span className="text-blue-600">{t("Endless Opportunities.")}</span>
         </h1>
 
@@ -168,7 +168,7 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
         </div>
         
         {/* 3. Dual Pathway Cards or Jobs */}
-        <div className="w-full mt-3 flex-1 flex flex-col justify-center">
+        <div className="w-full mt-8 sm:mt-10">
           {user ? (
             <div className="-mt-4 w-full">
               <LiveJobsCarousel isLoadingJobs={isLoadingJobs} liveJobsList={liveJobsList} />
@@ -179,9 +179,8 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
         </div>
       </div>
       
-      {/* 4. Live Jobs Carousel at the bottom of hero section */}
       {!user && (
-        <div className="w-full mt-auto pb-0 -mt-2">
+        <div className="w-full mt-8 sm:mt-10">
           <LiveJobsCarousel isLoadingJobs={isLoadingJobs} liveJobsList={liveJobsList} />
         </div>
       )}

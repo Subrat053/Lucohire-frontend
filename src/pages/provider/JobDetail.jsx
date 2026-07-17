@@ -112,35 +112,19 @@ export default function JobDetail() {
         const sub = subRes.status === "fulfilled" ? subRes.value.data?.subscription : null;
         setSubscription(sub);
 
-        const hasActivePlan = !!sub && sub.paymentStatus !== 'free' && sub.totalAmount > 0;
-
-        if (hasActivePlan) {
-          // Fetch real AI insights for this job
-          try {
-            const insRes = await providerAPI.getJobAiInsights([{
-              _id: jobData._id,
-              title: jobData.title,
-              skill: jobData.skill,
-              requirements: jobData.requirements,
-              experienceRequired: jobData.experienceRequired,
-            }]);
-            if (insRes.data?.success && insRes.data.data.length > 0) {
-              setAiInsights(insRes.data.data[0].insights);
-            }
-          } catch {/* silently fail */}
-        } else {
-          // Mock for display (will be blurred)
-          setAiInsights({
-            _isMock: true,
-            matchScore: 72,
-            whyMatch: ["Your skills align 90% of job requirements", "Strong match on UX Research & User Testing", "Your portfolio aligns with company needs"],
-            improve: "Improve Design Systems skills to increase match to 97%",
-            missingSkills: ["Figma Advanced", "Design Systems", "Interaction Design"],
-            hireBlocker: "Your portfolio lacks strong mobile UI/UX examples.",
-            interviewProbability: 65,
-            salaryInsight: "₹14 – 18 LPA for your profile",
-          });
-        }
+        // Always call backend — it checks ProviderSubscription and returns _isMock: true for free users
+        try {
+          const insRes = await providerAPI.getJobAiInsights([{
+            _id: jobData._id,
+            title: jobData.title,
+            skill: jobData.skill,
+            requirements: jobData.requirements,
+            experienceRequired: jobData.experienceRequired,
+          }]);
+          if (insRes.data?.success && insRes.data.data.length > 0) {
+            setAiInsights(insRes.data.data[0].insights);
+          }
+        } catch {/* silently fail */}
       } catch {
         toast.error("Failed to load job details");
         navigate(-1);
@@ -151,7 +135,8 @@ export default function JobDetail() {
     fetchAll();
   }, [jobId, navigate]);
 
-  const hasActivePlan = !!subscription && subscription.paymentStatus !== 'free' && subscription.totalAmount > 0;
+  // hasActivePlan is derived from backend response — _isMock: true means free user
+  const hasActivePlan = !aiInsights?._isMock;
 
   const handleSave = useCallback(async () => {
     try {

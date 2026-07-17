@@ -27,7 +27,7 @@ const matchesCache = {
 
 const ProviderDashboard = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, fetchUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const paymentHandledRef = useRef(false);
@@ -159,6 +159,9 @@ const ProviderDashboard = () => {
             paymentId: sessionId,
             orderId: 'stripe_session',
           });
+          if (fetchUser) {
+            await fetchUser();
+          }
           toast.success('Payment confirmed! Your WhatsApp plan is now active.');
           // Remove query params
           navigate('/provider/dashboard', { replace: true });

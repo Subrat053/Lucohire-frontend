@@ -18,6 +18,9 @@ import {
   HiPhone,
   HiLockClosed,
   HiBookmark,
+  HiClipboardList,
+  HiSparkles,
+  HiUserAdd,
 } from "react-icons/hi";
 import { FiChevronDown } from "react-icons/fi";
 import { toOptimizedMediaUrl } from "../../utils/media";
@@ -362,22 +365,6 @@ const Navbar = () => {
                   <span>{t("navbar.home")}</span>
                 </Link>
                 <Link
-                  to="/jobs-for-me"
-                  className="flex items-center space-x-3 rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <HiUsers className="w-5 h-5 text-gray-400" />
-                  <span>{t("navbar.findJobs", "Find Jobs")}</span>
-                </Link>
-                <Link
-                  to="/search"
-                  className="flex items-center space-x-3 rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <HiUsers className="w-5 h-5 text-gray-400" />
-                  <span>{t("navbar.findProviders")}</span>
-                </Link>
-                <Link
                   to="/contact"
                   className="flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition"
                   onClick={() => setMobileOpen(false)}
@@ -394,57 +381,24 @@ const Navbar = () => {
                     {t("provider.panel", "Provider Panel")}
                   </p>
                   {[
-                    {
-                      label: "Dashboard",
-                      path: "/provider/dashboard",
-                      icon: HiTrendingUp,
-                    },
-                    {
-                      label: "Wallet",
-                      path: "/provider/wallet",
-                      icon: HiCreditCard,
-                    },
-                    {
-                      label: "Payment Settings",
-                      path: "/provider/payout-settings",
-                      icon: HiCog,
-                    },
-                    {
-                      label: "Jobs for Me",
-                      path: "/provider/job-for-me",
-                      icon: HiBriefcase,
-                    },
-                    {
-                      label: "Messages",
-                      path: "/provider/contacted",
-                      icon: HiMail,
-                    },
-                    { label: "Leads", path: "/provider/leads", icon: HiUsers },
-                    {
-                      label: "History",
-                      path: "/provider/history",
-                      icon: HiClock,
-                    },
-                    {
-                      label: "Refer & Earn",
-                      path: "/provider/referrals",
-                      icon: HiPlusCircle,
-                    },
-                    {
-                      label: "My Plan",
-                      path: "/provider/my-plan",
-                      icon: HiPhone,
-                    },
-                    {
-                      label: "Profile",
-                      path: "/provider/profile",
-                      icon: HiCog,
-                    },
-                    {
-                      label: "Change Password",
-                      path: "/provider/change-password",
-                      icon: HiLockClosed,
-                    },
+                    { label: "Dashboard",        path: "/provider/dashboard",        icon: HiTrendingUp },
+                    { label: "Profile",           path: "/provider/profile",           icon: HiCog },
+                    { label: "Career Analysis",   path: "/provider/career-health",    icon: HiTrendingUp },
+                    { label: "Grow with AI",      path: "/provider/grow-with-ai",     icon: HiSparkles },
+                    { label: "AI Dashboard",      path: "/provider/ai-tips",          icon: HiSparkles },
+                    { label: "Resume Toolkit",    path: "/provider/resume-toolkit",   icon: HiClipboardList },
+                    { label: "Jobs for Me",       path: "/provider/job-for-me",       icon: HiBriefcase },
+                    { label: "Applied Jobs",      path: "/provider/applied-jobs",     icon: HiClipboardList },
+                    { label: "My Plan",           path: "/provider/my-plan",          icon: HiPhone },
+                    { label: "Refer & Earn",      path: "/provider/referrals",        icon: HiPlusCircle },
+                    { label: "Add Member",        path: "/provider/add-member",       icon: HiUserAdd },
+                    { label: "Messages",          path: "/provider/contacted",        icon: HiMail },
+                    { label: "Leads",             path: "/provider/leads",            icon: HiUsers },
+                    { label: "History",           path: "/provider/history",          icon: HiClock },
+                    { label: "Wallet",            path: "/provider/wallet",           icon: HiCreditCard },
+                    { label: "Payment Settings",  path: "/provider/payout-settings",  icon: HiCog },
+                    { label: "Support",           path: "/provider/support",          icon: HiCog },
+                    { label: "Change Password",   path: "/provider/change-password",  icon: HiLockClosed },
                   ].map(({ label, path, icon: Icon }) => {
                     const active = window.location.pathname === path;
                     return (

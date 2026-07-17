@@ -501,35 +501,47 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePl
           )}
 
           {/* List of insights — labels always visible, values blurred for free users */}
-          <div className="flex items-center gap-2 w-full min-w-0">
-            <HiExclamationCircle className="w-4 h-4 text-orange-500 shrink-0" />
+          <div className="flex items-start gap-2 w-full">
+            <HiExclamationCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
             <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Missing Skills</span>
             <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className={`flex-1 min-w-0 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : 'overflow-hidden'}`}>
-              <span className="text-xs text-gray-500 truncate block">
-                {!hasActivePlan ? "Figma, Bootstrap, HTML5, CSS, Web Design" : (aiInsights?.missingSkills?.length > 0 ? aiInsights.missingSkills.join(", ") : t("Generating..."))}
+            <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
+              <span className="text-xs text-gray-500 leading-snug">
+                {!hasActivePlan
+                  ? "Figma, Bootstrap, HTML5, CSS, Web Design"
+                  : aiInsights
+                    ? (aiInsights.missingSkills?.length > 0 ? aiInsights.missingSkills.join(", ") : "None")
+                    : "Generating..."}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full min-w-0">
-            <HiOutlineMail className="w-4 h-4 text-red-500 shrink-0" />
+          <div className="flex items-start gap-2 w-full">
+            <HiOutlineMail className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
             <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Not Getting Hired?</span>
             <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className={`flex-1 min-w-0 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : 'overflow-hidden'}`}>
-              <span className="text-xs text-gray-500 truncate block">
-                {!hasActivePlan ? "Portfolio lacks strong mobile UI/UX examples." : (aiInsights?.hireBlocker || t("Generating..."))}
+            <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
+              <span className="text-xs text-gray-500 leading-snug">
+                {!hasActivePlan
+                  ? "Portfolio lacks strong mobile UI/UX examples."
+                  : aiInsights
+                    ? (aiInsights.hireBlocker || "No major blockers found.")
+                    : "Generating..."}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full min-w-0">
-            <HiOutlinePhone className="w-4 h-4 text-emerald-500 shrink-0" />
+          <div className="flex items-start gap-2 w-full">
+            <HiOutlinePhone className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
             <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Call Probability</span>
             <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className={`flex-1 min-w-0 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : 'overflow-hidden'}`}>
-              <span className="text-xs text-gray-500 truncate block">
-                {!hasActivePlan ? "Based on call probability 65%" : (aiInsights?.interviewProbability ? `Interview probability: ${aiInsights.interviewProbability}%` : t("Generating..."))}
+            <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
+              <span className="text-xs text-gray-500 leading-snug">
+                {!hasActivePlan
+                  ? "Based on call probability 65%"
+                  : aiInsights
+                    ? (aiInsights.interviewProbability != null ? `Interview probability: ${aiInsights.interviewProbability}%` : "Not enough data")
+                    : "Generating..."}
               </span>
             </div>
           </div>
@@ -682,45 +694,19 @@ const ProviderJobs = () => {
 
   // Trigger AI insights load for visible jobs — only after subscription status is known
   useEffect(() => {
-    // subscription starts as null; wait until the fetch completes (subscriptionLoaded flag)
+    // subscription starts as null; wait until the fetch completes
     if (!subscriptionLoaded) return;
     if (jobs.length === 0) return;
 
-    // A real paid plan: paymentStatus is not 'free' AND user actually paid something
-    // The planType field is unreliable — even free subscriptions can have planType='paid'
-    // Ground truth: subscription.paymentStatus and aiLimits
-    const hasActivePlan = !!subscription &&
-      subscription.paymentStatus !== 'free' &&
-      subscription.totalAmount > 0;
-
-
+    // Only fetch jobs that don't already have real (non-mock) insights
     const jobsToFetch = jobs.slice(0, 10).filter(j => {
       const existing = aiInsightsMap[j._id];
-      // If free user already has mock data, skip. If paid user has mock data, re-fetch real.
-      if (!existing) return true;
-      if (hasActivePlan && existing._isMock) return true;
-      return false;
+      return !existing || existing._isMock === true;
     });
 
     if (jobsToFetch.length === 0) return;
 
-    if (!hasActivePlan) {
-      // Free users: store blurred mock data — never call the backend
-      const mockInsights = {};
-      jobsToFetch.forEach(j => {
-        mockInsights[j._id] = {
-          _isMock: true,
-          missingSkills: ['React Native', 'Node.js', 'Figma'],
-          hireBlocker: "Your profile lacks sufficient experience for this role.",
-          interviewProbability: 65,
-          matchScore: 0
-        };
-      });
-      setAiInsightsMap(prev => ({ ...prev, ...mockInsights }));
-      return;
-    }
-
-    // Paid users: call the real backend AI
+    // Always call backend — it decides paid vs free and returns _isMock: true for free users.
     (async () => {
       for (const j of jobsToFetch) {
         try {
@@ -740,7 +726,7 @@ const ProviderJobs = () => {
         }
       }
     })();
-  }, [jobs, subscription, subscriptionLoaded]);
+  }, [jobs, subscriptionLoaded]);
 
 
   const handleRunAIMatch = async () => {
@@ -1211,7 +1197,7 @@ const ProviderJobs = () => {
                       aiInsights={aiInsightsMap[job._id]}
                       onViewDetails={(job) => navigate(`/provider/job/${job._id}`)}
                       onRecruiterClick={handleRecruiterClick}
-                      hasActivePlan={!!subscription && subscription.paymentStatus !== 'free' && subscription.totalAmount > 0}
+                      hasActivePlan={aiInsightsMap[job._id]?._isMock !== true}
                     />
                   ))}
                 </div>
