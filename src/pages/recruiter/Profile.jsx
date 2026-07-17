@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -32,6 +33,10 @@ const InputField = ({ label, required, children }) => (
 const inputCls = 'w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none text-sm bg-white transition';
 
 const RecruiterProfile = () => {
+  const {
+    t
+  } = useTranslation();
+
   const { user, fetchUser } = useAuth();
   const navigate = useNavigate();
   const fileRef = useRef(null);
@@ -259,8 +264,8 @@ const RecruiterProfile = () => {
             <HiArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <div>
-            <h1 className="text-2xl font-extrabold text-gray-900">Edit Profile</h1>
-            <p className="text-sm text-gray-500">Keep your profile up to date</p>
+            <h1 className="text-2xl font-extrabold text-gray-900">{t("Edit Profile")}</h1>
+            <p className="text-sm text-gray-500">{t("Keep your profile up to date")}</p>
           </div>
         </div>
 
@@ -270,8 +275,7 @@ const RecruiterProfile = () => {
             {/* ── Photo + Basic Info ──────────────────────────────────── */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
               <h2 className="text-base font-extrabold text-gray-900 mb-5 flex items-center gap-2">
-                <HiUser className="w-4 h-4 text-blue-500" /> Basic Information
-              </h2>
+                <HiUser className="w-4 h-4 text-blue-500" />{t("Basic Information")}</h2>
 
               {/* Photo upload */}
               <div className="flex items-center gap-5 mb-6 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
@@ -297,20 +301,17 @@ const RecruiterProfile = () => {
                   </button>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">Profile Photo</p>
-                  <p className="text-xs text-gray-500 mt-0.5">JPG or PNG, max 5 MB</p>
+                  <p className="text-sm font-semibold text-gray-800">{t("Profile Photo")}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t("JPG or PNG, max 5 MB")}</p>
                   {profile?.profilePhotoApproval?.status === 'pending' && (
                     <div className="mt-1">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-semibold border border-amber-200">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                        Pending Approval
-                      </span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />{t("Pending Approval")}</span>
                     </div>
                   )}
                   {savedPhoto && profile?.profilePhotoApproval?.status !== 'pending' && (
                     <span className="inline-flex items-center gap-1 mt-1.5 text-xs text-green-600 font-medium">
-                      <HiCheckCircle className="w-3.5 h-3.5" /> Photo saved
-                    </span>
+                      <HiCheckCircle className="w-3.5 h-3.5" />{t("Photo saved")}</span>
                   )}
                   <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
                   <div className="flex items-center gap-2 mt-2">
@@ -328,9 +329,7 @@ const RecruiterProfile = () => {
                         onClick={handleRemovePhoto}
                         disabled={uploading}
                         className="text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-lg transition disabled:opacity-50"
-                      >
-                        Remove
-                      </button>
+                      >{t("Remove")}</button>
                     )}
                   </div>
                 </div>
@@ -342,7 +341,7 @@ const RecruiterProfile = () => {
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     className={inputCls}
-                    placeholder="Your account name"
+                    placeholder={t("Your account name")}
                   />
                 </InputField>
                 <InputField label="Profile / Display Name">
@@ -350,7 +349,7 @@ const RecruiterProfile = () => {
                     value={form.profileName}
                     onChange={(e) => setForm({ ...form, profileName: e.target.value })}
                     className={inputCls}
-                    placeholder="Publicly visible name"
+                    placeholder={t("Publicly visible name")}
                   />
                 </InputField>
               </div>
@@ -361,7 +360,7 @@ const RecruiterProfile = () => {
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     className={inputCls}
-                    placeholder="Your email address"
+                    placeholder={t("Your email address")}
                   />
                 </InputField>
                 <InputField label="Mobile Number">
@@ -377,7 +376,7 @@ const RecruiterProfile = () => {
                       }));
                     }}
                     className={inputCls}
-                    placeholder="Your phone number"
+                    placeholder={t("Your phone number")}
                   />
                 </InputField>
               </div>
@@ -398,9 +397,7 @@ const RecruiterProfile = () => {
                   }}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                 />
-                <label htmlFor="isWhatsappSameAsMobile-recruiter" className="text-sm font-semibold text-gray-700 select-none cursor-pointer">
-                  My WhatsApp number is the same as my mobile number
-                </label>
+                <label htmlFor="isWhatsappSameAsMobile-recruiter" className="text-sm font-semibold text-gray-700 select-none cursor-pointer">{t("My WhatsApp number is the same as my mobile number")}</label>
               </div>
 
               {form.isWhatsappSameAsMobile === false && (
@@ -411,7 +408,7 @@ const RecruiterProfile = () => {
                       value={form.whatsappNumber}
                       onChange={(e) => setForm({ ...form, whatsappNumber: e.target.value })}
                       className={inputCls}
-                      placeholder="Your WhatsApp number"
+                      placeholder={t("Your WhatsApp number")}
                     />
                   </InputField>
                 </div>
@@ -422,7 +419,7 @@ const RecruiterProfile = () => {
                     value={form.companyName}
                     onChange={(e) => setForm({ ...form, companyName: e.target.value })}
                     className={inputCls}
-                    placeholder="Company name"
+                    placeholder={t("Company name")}
                   />
                 </InputField>
                 <InputField label="Business Type">
@@ -430,7 +427,7 @@ const RecruiterProfile = () => {
                     value={form.businessType}
                     onChange={(e) => setForm({ ...form, businessType: e.target.value })}
                     className={inputCls}
-                    placeholder="e.g. Agency, IT Services"
+                    placeholder={t("e.g. Agency, IT Services")}
                   />
                 </InputField>
               </div>
@@ -440,7 +437,7 @@ const RecruiterProfile = () => {
                     value={form.contactPersonName}
                     onChange={(e) => setForm({ ...form, contactPersonName: e.target.value })}
                     className={inputCls}
-                    placeholder="Public contact name"
+                    placeholder={t("Public contact name")}
                   />
                 </InputField>
                 <InputField label="Designation">
@@ -448,7 +445,7 @@ const RecruiterProfile = () => {
                     value={form.designation}
                     onChange={(e) => setForm({ ...form, designation: e.target.value })}
                     className={inputCls}
-                    placeholder="e.g. HR Manager"
+                    placeholder={t("e.g. HR Manager")}
                   />
                 </InputField>
               </div>
@@ -458,8 +455,7 @@ const RecruiterProfile = () => {
             {/* ── Company Details ─────────────────────────────────────── */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
               <h2 className="text-base font-extrabold text-gray-900 mb-5 flex items-center gap-2">
-                <HiOfficeBuilding className="w-4 h-4 text-indigo-500" /> Company Details
-              </h2>
+                <HiOfficeBuilding className="w-4 h-4 text-indigo-500" />{t("Company Details")}</h2>
               <div className="grid sm:grid-cols-3 gap-4">
                 <InputField label="Type">
                   <select
@@ -467,11 +463,11 @@ const RecruiterProfile = () => {
                     onChange={(e) => setForm({ ...form, companyType: e.target.value })}
                     className={inputCls}
                   >
-                    <option value="individual">Individual</option>
-                    <option value="company">Company</option>
-                    <option value="shop">Shop</option>
-                    <option value="home">Home User</option>
-                    <option value="other">Other</option>
+                    <option value="individual">{t("Individual")}</option>
+                    <option value="company">{t("Company")}</option>
+                    <option value="shop">{t("Shop")}</option>
+                    <option value="home">{t("Home User")}</option>
+                    <option value="other">{t("Other")}</option>
                   </select>
                 </InputField>
                 <InputField label="City">
@@ -488,7 +484,7 @@ const RecruiterProfile = () => {
                       location: item || null,
                     }))}
 
-                    placeholder="e.g. Mumbai"
+                    placeholder={t("e.g. Mumbai")}
                   />
                 </InputField>
                 <InputField label="State">
@@ -496,7 +492,7 @@ const RecruiterProfile = () => {
                     value={form.state}
                     onChange={(e) => setForm({ ...form, state: e.target.value })}
                     className={inputCls}
-                    placeholder="e.g. Maharashtra"
+                    placeholder={t("e.g. Maharashtra")}
                   />
                 </InputField>
               </div>
@@ -506,7 +502,7 @@ const RecruiterProfile = () => {
                     value={form.companyWebsite}
                     onChange={(e) => setForm({ ...form, companyWebsite: e.target.value })}
                     className={inputCls}
-                    placeholder="https://..."
+                    placeholder={t("https://...")}
                   />
                 </InputField>
                 <InputField label="Hiring Location">
@@ -514,7 +510,7 @@ const RecruiterProfile = () => {
                     value={form.hiringLocation}
                     onChange={(e) => setForm({ ...form, hiringLocation: e.target.value })}
                     className={inputCls}
-                    placeholder="e.g. remote or specific office"
+                    placeholder={t("e.g. remote or specific office")}
                   />
                 </InputField>
               </div>
@@ -528,7 +524,7 @@ const RecruiterProfile = () => {
                     onChange={(e) => setForm({ ...form, bio: e.target.value })}
                     rows={4}
                     className={`${inputCls} resize-none`}
-                    placeholder="Brief description of your company or hiring needs..."
+                    placeholder={t("Brief description of your company or hiring needs...")}
                   />
                 </InputField>
               </div>
@@ -538,14 +534,13 @@ const RecruiterProfile = () => {
           {/* ── Skills Needed ──────────────────────────────────────── */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
             <h2 className="text-base font-extrabold text-gray-900 mb-1 flex items-center gap-2">
-              <HiInformationCircle className="w-4 h-4 text-purple-500" /> Skills You&apos;re Looking to Hire
-            </h2>
-            <p className="text-xs text-gray-500 mb-4">Providers matching these skills will appear in your results.</p>
+              <HiInformationCircle className="w-4 h-4 text-purple-500" />{t("Skills You're Looking to Hire")}</h2>
+            <p className="text-xs text-gray-500 mb-4">{t("Providers matching these skills will appear in your results.")}</p>
             <SkillPicker
               selectedSkills={form.skillsNeeded}
               onChange={(skills) => setForm({ ...form, skillsNeeded: skills })}
               maxSkills={0}
-              placeholder="Select skills you want to hire for…"
+              placeholder={t("Select skills you want to hire for…")}
             />
           </div>
 
@@ -555,9 +550,7 @@ const RecruiterProfile = () => {
               type="button"
               onClick={() => navigate('/recruiter/dashboard')}
               className="flex-1 border-2 border-gray-200 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition text-sm"
-            >
-              Cancel
-            </button>
+            >{t("Cancel")}</button>
             <button
               type="submit"
               disabled={isSubmitting || saving}

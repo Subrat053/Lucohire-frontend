@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { X, Bot, Send, Loader2 } from 'lucide-react';
@@ -42,6 +43,10 @@ function mergeMessages(existing = [], incoming = []) {
 }
 
 export default function AICoachModal({ role = 'provider' }) {
+  const {
+    t
+  } = useTranslation();
+
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -201,8 +206,8 @@ export default function AICoachModal({ role = 'provider' }) {
               <Bot className="w-5 h-5 text-teal-700" />
             </div>
             <div>
-              <h2 className="text-[16px] font-bold text-gray-900 leading-tight">AI Career Coach</h2>
-              <p className="text-[12px] font-medium text-gray-500">Premium guidance & insights</p>
+              <h2 className="text-[16px] font-bold text-gray-900 leading-tight">{t("AI Career Coach")}</h2>
+              <p className="text-[12px] font-medium text-gray-500">{t("Premium guidance & insights")}</p>
             </div>
           </div>
           <button 
@@ -218,15 +223,17 @@ export default function AICoachModal({ role = 'provider' }) {
           {loadingHistory ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
               <Loader2 className="w-8 h-8 animate-spin" />
-              <p className="text-sm font-medium">Loading previous conversation...</p>
+              <p className="text-sm font-medium">{t("Loading previous conversation...")}</p>
             </div>
           ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center max-w-sm mx-auto">
               <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mb-5 shadow-sm border border-teal-100">
                 <Bot className="w-8 h-8 text-teal-700" />
               </div>
-              <h3 className="text-gray-900 font-bold mb-2 text-lg">Start a conversation</h3>
-              <p className="text-[13px] leading-relaxed text-gray-500 font-medium">Ask me anything about your career path, interview preparation, or profile optimization.</p>
+              <h3 className="text-gray-900 font-bold mb-2 text-lg">{t("Start a conversation")}</h3>
+              <p className="text-[13px] leading-relaxed text-gray-500 font-medium">{t(
+                "Ask me anything about your career path, interview preparation, or profile optimization."
+              )}</p>
             </div>
           ) : (
             messages.map((item) => {
@@ -278,7 +285,7 @@ export default function AICoachModal({ role = 'provider' }) {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask for advice..."
+              placeholder={t("Ask for advice...")}
               className="flex-1 bg-transparent px-4 py-2 text-[14px] outline-none text-gray-800 placeholder-gray-400 font-medium"
             />
             <button

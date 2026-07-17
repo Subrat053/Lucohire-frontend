@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { HiCheck, HiOutlineLightningBolt, HiX } from 'react-icons/hi';
@@ -54,6 +55,10 @@ const DEFAULT_THEME = {
 };
 
 const RecruiterPlans = () => {
+  const {
+    t
+  } = useTranslation();
+
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activePlanId, setActivePlanId] = useState(null);
@@ -73,9 +78,9 @@ const RecruiterPlans = () => {
 
   const [roiHires, setRoiHires] = useState(500);
   const manualCostPerHire = 8000;
-  
+
   const manualTotal = roiHires * manualCostPerHire;
-  const lucohireTotal = Math.floor(manualTotal * 0.25); 
+  const lucohireTotal = Math.floor(manualTotal * 0.25);
   const savings = manualTotal - lucohireTotal;
 
   const navigate = useNavigate();
@@ -169,29 +174,26 @@ const RecruiterPlans = () => {
     else plansByDuration.Monthly.push(p);
   });
   const displayedPlans = plansByDuration[activePeriod]?.length ? plansByDuration[activePeriod] : plans;
-  
+
   const sortOrder = { 'free': 1, 'starter': 2, 'growth': 3, 'business': 4, 'enterprise': 5 };
   displayedPlans.sort((a,b) => (sortOrder[a.slug] || 99) - (sortOrder[b.slug] || 99));
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <div className="bg-white border-b border-gray-200 py-3 px-6 hidden md:flex items-center justify-between text-xs font-bold text-slate-600">
-        <div className="flex items-center gap-2"><HiCheck className="text-green-500 text-lg"/> Free Job Posting Forever</div>
-        <div className="flex items-center gap-2"><FaWallet className="text-indigo-500"/> 14 Days Money Back Guarantee</div>
-        <div className="flex items-center gap-2"><FaRegClock className="text-orange-500"/> Cancel Anytime No Questions Asked</div>
-        <div className="flex items-center gap-2"><FaShieldAlt className="text-green-600"/> 100% Secure Payments</div>
-        <div className="flex items-center gap-2"><FaHeadset className="text-blue-500"/> 24/7 Priority Support</div>
+        <div className="flex items-center gap-2"><HiCheck className="text-green-500 text-lg"/>{t("Free Job Posting Forever")}</div>
+        <div className="flex items-center gap-2"><FaWallet className="text-indigo-500"/>{t("14 Days Money Back Guarantee")}</div>
+        <div className="flex items-center gap-2"><FaRegClock className="text-orange-500"/>{t("Cancel Anytime No Questions Asked")}</div>
+        <div className="flex items-center gap-2"><FaShieldAlt className="text-green-600"/>{t("100% Secure Payments")}</div>
+        <div className="flex items-center gap-2"><FaHeadset className="text-blue-500"/>{t("24/7 Priority Support")}</div>
       </div>
-
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mt-12">
         <div className="flex flex-col lg:flex-row justify-between gap-12 mb-16">
           <div className="max-w-xl">
-            <h1 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight mb-4 tracking-tight">
-              Hire Faster. <br />Let <span className="text-indigo-600">AI</span> Do the Hard Work.
-            </h1>
-            <p className="text-slate-500 text-lg mb-8 font-medium">
-              The AI-Powered Recruitment Platform for Startups, Teams, Agencies & Enterprises.
-            </p>
+            <h1 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight mb-4 tracking-tight">{t("Hire Faster.")}<br />{t("Let")}<span className="text-indigo-600">{t("AI")}</span>{t("Do the Hard Work.")}</h1>
+            <p className="text-slate-500 text-lg mb-8 font-medium">{t(
+              "The AI-Powered Recruitment Platform for Startups, Teams, Agencies & Enterprises."
+            )}</p>
             <ul className="space-y-4">
               {['Post Jobs for Free Forever', 'Unlimited Candidate Search', 'AI Screening & Smart Shortlisting', 'Automate Outreach & Follow-ups', 'Make Data-Driven Hiring Decisions'].map((item, i) => (
                 <li key={i} className="flex items-center gap-3 text-slate-700 font-bold">
@@ -209,21 +211,21 @@ const RecruiterPlans = () => {
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col items-center justify-center w-40">
                 <FaRegClock className="text-indigo-500 text-3xl mb-3" />
                 <div className="text-3xl font-black text-slate-900">92%</div>
-                <div className="text-xs text-slate-500 font-bold">Time Saved</div>
+                <div className="text-xs text-slate-500 font-bold">{t("Time Saved")}</div>
               </div>
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col items-center justify-center w-40">
                 <FaChartLine className="text-indigo-500 text-3xl mb-3" />
-                <div className="text-3xl font-black text-slate-900">5X</div>
-                <div className="text-xs text-slate-500 font-bold text-center">More Qualified<br/>Applicants</div>
+                <div className="text-3xl font-black text-slate-900">{t("5X")}</div>
+                <div className="text-xs text-slate-500 font-bold text-center">{t("More Qualified")}<br/>{t("Applicants")}</div>
               </div>
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col items-center justify-center w-40">
                 <FaWallet className="text-indigo-500 text-3xl mb-3" />
                 <div className="text-3xl font-black text-slate-900">80%</div>
-                <div className="text-xs text-slate-500 font-bold">Lower Hiring Cost</div>
+                <div className="text-xs text-slate-500 font-bold">{t("Lower Hiring Cost")}</div>
               </div>
             </div>
             <div className="self-end text-right mt-4">
-              <div className="text-xs font-bold text-slate-600">Trusted by<br/><span className="text-slate-900 font-black">10,000+</span><br/>Recruiters & Companies</div>
+              <div className="text-xs font-bold text-slate-600">{t("Trusted by")}<br/><span className="text-slate-900 font-black">10,000+</span><br/>{t("Recruiters & Companies")}</div>
             </div>
           </div>
         </div>
@@ -235,18 +237,13 @@ const RecruiterPlans = () => {
                 <button 
                   onClick={() => setActivePeriod('Monthly')}
                   className={`px-6 py-2.5 rounded-full transition-all ${activePeriod === 'Monthly' ? 'bg-[#4a24ba] text-white shadow-md' : 'text-slate-900 hover:bg-slate-50'}`}
-                >
-                  Billed Monthly
-                </button>
+                >{t("Billed Monthly")}</button>
                 <button 
                   onClick={() => setActivePeriod('Yearly')}
                   className={`px-6 py-2.5 rounded-full transition-all ${activePeriod === 'Yearly' ? 'bg-[#4a24ba] text-white shadow-md' : 'text-slate-900 hover:bg-slate-50'}`}
-                >
-                  Billed Yearly
-                </button>
+                >{t("Billed Yearly")}</button>
               </div>
-              <div className="text-green-600 text-[10px] font-bold flex items-center gap-1">
-                Save up to 20% <HiOutlineLightningBolt className="w-4 h-4 text-green-500" />
+              <div className="text-green-600 text-[10px] font-bold flex items-center gap-1">{t("Save up to 20%")}<HiOutlineLightningBolt className="w-4 h-4 text-green-500" />
               </div>
             </div>
 
@@ -272,7 +269,7 @@ const RecruiterPlans = () => {
                       
                       <div className="text-center mb-5 h-12 flex items-end justify-center">
                         {theme.isCustom ? (
-                          <div className="text-2xl font-black text-slate-900 mb-1">Custom</div>
+                          <div className="text-2xl font-black text-slate-900 mb-1">{t("Custom")}</div>
                         ) : (
                           <div>
                             <div className="flex justify-center items-end gap-1 mb-1">
@@ -281,7 +278,7 @@ const RecruiterPlans = () => {
                               ) : (
                                 <>
                                   <span className="text-2xl font-black text-slate-900">₹{plan.price.toLocaleString('en-IN')}</span>
-                                  <span className="text-[11px] text-slate-500 font-bold mb-1">/month</span>
+                                  <span className="text-[11px] text-slate-500 font-bold mb-1">{t("/month")}</span>
                                 </>
                               )}
                             </div>
@@ -301,7 +298,7 @@ const RecruiterPlans = () => {
                       </button>
 
                       <div className="text-center mb-5">
-                        <p className="text-[9px] text-slate-500 font-bold mb-1">Best for:</p>
+                        <p className="text-[9px] text-slate-500 font-bold mb-1">{t("Best for:")}</p>
                         <p className="text-[10px] text-slate-800 font-black whitespace-pre-line leading-tight">{theme.bestFor}</p>
                       </div>
 
@@ -320,9 +317,7 @@ const RecruiterPlans = () => {
                         ))}
                       </ul>
                       
-                      <div className="mt-6 text-center text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer">
-                        View all features &rarr;
-                      </div>
+                      <div className="mt-6 text-center text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer">{t("View all features →")}</div>
                     </div>
                   </div>
                 );
@@ -334,39 +329,39 @@ const RecruiterPlans = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-20">
           <div className="bg-[#1e1b4b] rounded-3xl p-8 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 p-6 opacity-20"><FaRocket className="text-6xl"/></div>
-            <h3 className="text-2xl font-black mb-2">Why Upgrade?</h3>
-            <p className="text-indigo-200 text-sm font-medium mb-8">Unlock powerful AI features and save more time.</p>
+            <h3 className="text-2xl font-black mb-2">{t("Why Upgrade?")}</h3>
+            <p className="text-indigo-200 text-sm font-medium mb-8">{t("Unlock powerful AI features and save more time.")}</p>
             
             <div className="space-y-4">
               <div className="flex items-center justify-between text-sm font-bold border-b border-white/10 pb-4">
-                <div className="flex items-center gap-3"><FaRocket className="text-indigo-400"/> AI Hiring Copilot</div>
-                <div className="text-[10px] text-indigo-300">Unlock in Starter</div>
+                <div className="flex items-center gap-3"><FaRocket className="text-indigo-400"/>{t("AI Hiring Copilot")}</div>
+                <div className="text-[10px] text-indigo-300">{t("Unlock in Starter")}</div>
               </div>
               <div className="flex items-center justify-between text-sm font-bold border-b border-white/10 pb-4">
-                <div className="flex items-center gap-3"><FaSearch className="text-indigo-400"/> Hidden Talent Access</div>
-                <div className="text-[10px] text-indigo-300">Unlock in Growth</div>
+                <div className="flex items-center gap-3"><FaSearch className="text-indigo-400"/>{t("Hidden Talent Access")}</div>
+                <div className="text-[10px] text-indigo-300">{t("Unlock in Growth")}</div>
               </div>
               <div className="flex items-center justify-between text-sm font-bold border-b border-white/10 pb-4">
-                <div className="flex items-center gap-3"><HiCheck className="text-indigo-400"/> Smart Shortlisting</div>
-                <div className="text-[10px] text-indigo-300">Unlock in Growth</div>
+                <div className="flex items-center gap-3"><HiCheck className="text-indigo-400"/>{t("Smart Shortlisting")}</div>
+                <div className="text-[10px] text-indigo-300">{t("Unlock in Growth")}</div>
               </div>
               <div className="flex items-center justify-between text-sm font-bold border-b border-white/10 pb-4">
-                <div className="flex items-center gap-3"><FaChartLine className="text-indigo-400"/> Salary Intelligence</div>
-                <div className="text-[10px] text-indigo-300">Unlock in Business</div>
+                <div className="flex items-center gap-3"><FaChartLine className="text-indigo-400"/>{t("Salary Intelligence")}</div>
+                <div className="text-[10px] text-indigo-300">{t("Unlock in Business")}</div>
               </div>
             </div>
           </div>
           
           <div className="lg:col-span-2 bg-[#0f172a] rounded-3xl p-8 text-white">
-            <h3 className="text-2xl font-black mb-2">Calculate Your ROI</h3>
-            <p className="text-slate-400 text-sm font-medium mb-10">See how much you can save with Lucohire AI</p>
+            <h3 className="text-2xl font-black mb-2">{t("Calculate Your ROI")}</h3>
+            <p className="text-slate-400 text-sm font-medium mb-10">{t("See how much you can save with Lucohire AI")}</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
               <div>
-                <label className="block text-sm font-bold mb-4">How many hires do you make per year?</label>
+                <label className="block text-sm font-bold mb-4">{t("How many hires do you make per year?")}</label>
                 <div className="flex justify-between items-end mb-4">
                   <div className="text-4xl font-black">{roiHires}</div>
-                  <div className="text-xs text-slate-400 font-bold">Hires / Year</div>
+                  <div className="text-xs text-slate-400 font-bold">{t("Hires / Year")}</div>
                 </div>
                 <input 
                   type="range" min="10" max="2000" step="10" 
@@ -374,34 +369,32 @@ const RecruiterPlans = () => {
                   className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 mb-8"
                 />
                 <div className="flex justify-between items-center text-sm font-bold bg-slate-800 p-4 rounded-xl">
-                  <span>Average cost per hire (manual)</span>
+                  <span>{t("Average cost per hire (manual)")}</span>
                   <span>₹{manualCostPerHire.toLocaleString()}</span>
                 </div>
-                <p className="text-[10px] text-slate-500 mt-2">*Calculation is based on industry average and may vary.</p>
+                <p className="text-[10px] text-slate-500 mt-2">{t("*Calculation is based on industry average and may vary.")}</p>
               </div>
               
               <div className="space-y-4">
                 <div className="bg-slate-800 p-5 rounded-2xl flex justify-between items-center">
                   <div>
-                    <div className="text-xs text-slate-400 font-bold mb-1">Manual Hiring Cost</div>
+                    <div className="text-xs text-slate-400 font-bold mb-1">{t("Manual Hiring Cost")}</div>
                     <div className="text-2xl font-black">₹{manualTotal.toLocaleString()}</div>
-                    <div className="text-[10px] text-slate-500 font-bold">Per Year</div>
+                    <div className="text-[10px] text-slate-500 font-bold">{t("Per Year")}</div>
                   </div>
                 </div>
                 <div className="bg-indigo-900/40 border border-indigo-500/30 p-5 rounded-2xl flex justify-between items-center">
                   <div>
-                    <div className="text-xs text-indigo-300 font-bold mb-1">With Lucohire</div>
+                    <div className="text-xs text-indigo-300 font-bold mb-1">{t("With Lucohire")}</div>
                     <div className="text-2xl font-black text-white">₹{lucohireTotal.toLocaleString()}</div>
-                    <div className="text-[10px] text-indigo-400 font-bold">Per Year</div>
+                    <div className="text-[10px] text-indigo-400 font-bold">{t("Per Year")}</div>
                   </div>
                 </div>
                 
                 <div className="bg-[#022c22] border border-[#059669] p-5 rounded-2xl mt-4">
-                  <div className="text-xs text-emerald-400 font-bold mb-1">You Save</div>
+                  <div className="text-xs text-emerald-400 font-bold mb-1">{t("You Save")}</div>
                   <div className="text-3xl font-black text-emerald-400 mb-4">₹{savings.toLocaleString()}</div>
-                  <div className="inline-block bg-emerald-500/20 text-emerald-400 text-xs font-black px-3 py-1.5 rounded-lg border border-emerald-500/30">
-                    75% Cost Reduction
-                  </div>
+                  <div className="inline-block bg-emerald-500/20 text-emerald-400 text-xs font-black px-3 py-1.5 rounded-lg border border-emerald-500/30">{t("75% Cost Reduction")}</div>
                 </div>
               </div>
             </div>
@@ -411,14 +404,14 @@ const RecruiterPlans = () => {
         {/* Compare All Features Section */}
         <div className="bg-white rounded-3xl p-8 lg:p-12 shadow-sm border border-slate-200 mb-20 overflow-x-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-black text-slate-900 mb-4">Compare All Features</h2>
-            <p className="text-slate-500 font-medium">Everything you need to make the right choice.</p>
+            <h2 className="text-3xl font-black text-slate-900 mb-4">{t("Compare All Features")}</h2>
+            <p className="text-slate-500 font-medium">{t("Everything you need to make the right choice.")}</p>
           </div>
           
           <table className="w-full text-left min-w-[800px]">
             <thead>
               <tr className="border-b-2 border-slate-200">
-                <th className="py-4 px-6 w-1/3 text-slate-400 font-black text-xs uppercase tracking-wider">Features</th>
+                <th className="py-4 px-6 w-1/3 text-slate-400 font-black text-xs uppercase tracking-wider">{t("Features")}</th>
                 {['FREE', 'STARTER', 'GROWTH', 'BUSINESS', 'ENTERPRISE'].map((tier, i) => (
                   <th key={i} className="py-4 px-6 text-center">
                     <span className="text-slate-900 font-black text-sm">{tier}</span>
@@ -429,9 +422,7 @@ const RecruiterPlans = () => {
             <tbody className="divide-y divide-slate-100">
               {/* Category 1 */}
               <tr>
-                <td colSpan="6" className="py-6 px-6 bg-slate-50 text-indigo-700 font-black text-sm rounded-t-xl">
-                  Candidate Access & Engagement
-                </td>
+                <td colSpan="6" className="py-6 px-6 bg-slate-50 text-indigo-700 font-black text-sm rounded-t-xl">{t("Candidate Access & Engagement")}</td>
               </tr>
               {[
                 ['Job Postings', '1', '10', '50', 'Unlimited', 'Custom'],
@@ -451,9 +442,7 @@ const RecruiterPlans = () => {
 
               {/* Category 2 */}
               <tr>
-                <td colSpan="6" className="py-6 px-6 bg-slate-50 text-indigo-700 font-black text-sm">
-                  AI Hiring & Intelligence
-                </td>
+                <td colSpan="6" className="py-6 px-6 bg-slate-50 text-indigo-700 font-black text-sm">{t("AI Hiring & Intelligence")}</td>
               </tr>
               {[
                 ['AI Resume Screening', '-', 'Yes', 'Yes', 'Yes', 'Yes'],
@@ -474,9 +463,7 @@ const RecruiterPlans = () => {
               
               {/* Category 3 */}
               <tr>
-                <td colSpan="6" className="py-6 px-6 bg-slate-50 text-indigo-700 font-black text-sm">
-                  Support & Branding
-                </td>
+                <td colSpan="6" className="py-6 px-6 bg-slate-50 text-indigo-700 font-black text-sm">{t("Support & Branding")}</td>
               </tr>
               {[
                 ['Company Career Page', 'Basic', 'Custom', 'Custom', 'Premium', 'White-label'],
@@ -504,25 +491,25 @@ const RecruiterPlans = () => {
                     <HiOutlineLightningBolt className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">Secure Order Invoice</h3>
-                    <p className="text-xs text-gray-500">Recalculated securely on backend ledger servers</p>
+                    <h3 className="text-lg font-bold text-gray-900">{t("Secure Order Invoice")}</h3>
+                    <p className="text-xs text-gray-500">{t("Recalculated securely on backend ledger servers")}</p>
                   </div>
                 </div>
 
                 <div className="divide-y divide-slate-100 bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-500 font-medium">Base Plan Amount</span>
+                    <span className="text-slate-500 font-medium">{t("Base Plan Amount")}</span>
                     <span className="font-bold text-slate-800">₹{breakdownData.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-200">
-                    <span className="text-gray-900 font-extrabold">Final Payable Total</span>
+                    <span className="text-gray-900 font-extrabold">{t("Final Payable Total")}</span>
                     <span className="text-lg font-black text-indigo-600">₹{breakdownData.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
 
                 <div className="flex gap-3 mt-6">
-                  <button onClick={() => setShowBreakdownModal(false)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Cancel</button>
+                  <button onClick={() => setShowBreakdownModal(false)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">{t("Cancel")}</button>
                   <button onClick={confirmPurchase} disabled={paymentLoading} className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-600/15">
                     {paymentLoading ? 'Processing...' : 'Proceed to Checkout'}
                   </button>
@@ -538,8 +525,8 @@ const RecruiterPlans = () => {
               <div className="p-6 md:p-8">
                 <div className="flex justify-between items-center mb-6">
                   <div>
-                    <h3 className="text-xl font-black text-slate-900">Request Custom Plan</h3>
-                    <p className="text-xs text-slate-500 font-medium mt-1">Tell us your requirements and our team will get in touch.</p>
+                    <h3 className="text-xl font-black text-slate-900">{t("Request Custom Plan")}</h3>
+                    <p className="text-xs text-slate-500 font-medium mt-1">{t("Tell us your requirements and our team will get in touch.")}</p>
                   </div>
                   <button onClick={() => setShowCustomPlanModal(false)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 text-slate-500">
                     <HiX className="w-4 h-4" />
@@ -548,7 +535,7 @@ const RecruiterPlans = () => {
                 
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-2">Desired Duration (Months)</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-2">{t("Desired Duration (Months)")}</label>
                     <input 
                       type="number" 
                       min="1" 
@@ -559,7 +546,7 @@ const RecruiterPlans = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-2">Features Needed</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-2">{t("Features Needed")}</label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {['Custom solutions', 'Dedicated support', 'SLA & security', 'Unlimited hiring', 'Custom integrations', 'Data export'].map((feature) => (
                         <label key={feature} className="flex items-center gap-2 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 cursor-pointer">
@@ -579,19 +566,19 @@ const RecruiterPlans = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-2">Additional Notes</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-2">{t("Additional Notes")}</label>
                     <textarea 
                       value={customPlanNotes}
                       onChange={(e) => setCustomPlanNotes(e.target.value)}
                       rows={3}
-                      placeholder="Any specific requirements..."
+                      placeholder={t("Any specific requirements...")}
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-hidden"
                     ></textarea>
                   </div>
                 </div>
 
                 <div className="flex gap-3 mt-8">
-                  <button onClick={() => setShowCustomPlanModal(false)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition">Cancel</button>
+                  <button onClick={() => setShowCustomPlanModal(false)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition">{t("Cancel")}</button>
                   <button onClick={submitCustomPlanRequest} disabled={loading} className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition shadow-lg shadow-blue-600/20 disabled:opacity-70">
                     {loading ? 'Submitting...' : 'Submit Request'}
                   </button>

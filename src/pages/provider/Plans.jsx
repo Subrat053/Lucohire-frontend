@@ -491,12 +491,11 @@ const ProviderPlans = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-emerald-950 tracking-tight mb-3">
-            Choose the Right Plan for Your <span className="text-emerald-600">Career Growth</span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-emerald-950 tracking-tight mb-3">{t("Choose the Right Plan for Your")}<span className="text-emerald-600">{t("Career Growth")}</span>
           </h1>
-          <p className="text-slate-500 text-base">
-            Unlock powerful AI insights, personalized reports, and smart alerts to get hired faster.
-          </p>
+          <p className="text-slate-500 text-base">{t(
+            "Unlock powerful AI insights, personalized reports, and smart alerts to get hired faster."
+          )}</p>
         </div>
 
         {/* Feature Badges */}
@@ -538,7 +537,7 @@ const ProviderPlans = () => {
           return (
             <div className="mb-10 max-w-2xl mx-auto bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
-                <h2 className="text-xs font-semibold text-emerald-100 uppercase tracking-wider mb-1">Current Active Plan</h2>
+                <h2 className="text-xs font-semibold text-emerald-100 uppercase tracking-wider mb-1">{t("Current Active Plan")}</h2>
                 <div className="text-2xl font-bold flex items-center gap-2">
                   <Crown className="w-6 h-6 text-yellow-300" />
                   {planName}
@@ -546,7 +545,7 @@ const ProviderPlans = () => {
               </div>
               <div className="bg-white/20 px-6 py-3 rounded-xl backdrop-blur-sm text-center min-w-[140px] border border-white/10 shadow-inner">
                 <div className="text-3xl font-extrabold">{days}</div>
-                <div className="text-[10px] font-bold text-emerald-100 uppercase tracking-wider mt-0.5">Days Remaining</div>
+                <div className="text-[10px] font-bold text-emerald-100 uppercase tracking-wider mt-0.5">{t("Days Remaining")}</div>
               </div>
             </div>
           );
@@ -558,22 +557,18 @@ const ProviderPlans = () => {
             <button
               onClick={() => setSelectedDuration(1)}
               className={`relative z-10 px-6 py-2.5 text-sm font-bold rounded-full transition-colors ${selectedDuration === 1 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950'}`}
-            >
-              Monthly Plans
-            </button>
+            >{t("Monthly Plans")}</button>
             <button
               onClick={() => setSelectedDuration(3)}
               className={`relative z-10 px-6 py-2.5 text-sm font-bold rounded-full transition-colors flex items-center gap-1.5 ${selectedDuration === 3 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950'}`}
-            >
-              Quarterly Plans <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedDuration === 3 ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'}`}>10% OFF</span>
+            >{t("Quarterly Plans")}<span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedDuration === 3 ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'}`}>{t("10% OFF")}</span>
             </button>
             <button
               onClick={() => setSelectedDuration(12)}
               className={`relative z-10 px-6 py-2.5 text-sm font-bold rounded-full transition-colors flex items-center gap-1.5 ${selectedDuration === 12 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950'}`}
-            >
-              Yearly Plans <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedDuration === 12 ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'}`}>20% OFF</span>
+            >{t("Yearly Plans")}<span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedDuration === 12 ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'}`}>{t("20% OFF")}</span>
               {selectedDuration !== 12 && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">BEST VALUE</div>
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">{t("BEST VALUE")}</div>
               )}
             </button>
           </div>
@@ -594,27 +589,23 @@ const ProviderPlans = () => {
             return (
               <div key={plan._id} className={`bg-white rounded-3xl p-6 relative flex flex-col ${isPro ? 'border-2 border-teal-600 shadow-xl scale-105 z-10' : 'border border-emerald-100 shadow-md'}`}>
                 {isPro && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-teal-600 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
-                    MOST POPULAR
-                  </div>
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-teal-600 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">{t("MOST POPULAR")}</div>
                 )}
                 {isPremium && (
                   <div className="absolute top-4 right-4 text-amber-500">
                     <Crown className="w-8 h-8" />
                   </div>
                 )}
-                
                 <div className="mb-6">
                   <h3 className={`text-sm font-bold uppercase tracking-wider mb-2 ${isPro ? 'text-teal-600' : isPremium ? 'text-amber-600' : 'text-emerald-600'}`}>
                     {plan.name}
                   </h3>
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl font-extrabold text-emerald-950">{formatCurrency(Math.round(displayMonthly), plan.currencySymbol)}</span>
-                    <span className="text-xs text-slate-500 font-semibold">/month</span>
+                    <span className="text-xs text-slate-500 font-semibold">{t("/month")}</span>
                   </div>
                   <p className="text-xs text-slate-500 mt-2 h-4">{plan.description}</p>
                 </div>
-
                 <div className="flex-1">
                   <p className="text-xs font-bold text-emerald-950 mb-4 uppercase tracking-wider">
                     {isPro ? 'EVERYTHING IN BASIC, PLUS' : isPremium ? 'EVERYTHING IN PRO, PLUS' : 'WHAT\'S INCLUDED'}
@@ -634,7 +625,6 @@ const ProviderPlans = () => {
                     })}
                   </ul>
                 </div>
-
                 <div className="mt-8 pt-4">
                   <button
                     onClick={() => {
@@ -648,12 +638,10 @@ const ProviderPlans = () => {
                           ? 'bg-amber-500 hover:bg-amber-600 text-white'
                           : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
                     }`}
-                  >
-                    Get Started with {plan.name.split(' ')[0]}
+                  >{t("Get Started with")}{plan.name.split(' ')[0]}
                   </button>
                   <p className="text-[10px] text-center text-slate-500 mt-3 flex items-center justify-center gap-1">
-                    <ShieldCheck className="w-3 h-3 text-emerald-500" /> Cancel anytime. No hidden charges.
-                  </p>
+                    <ShieldCheck className="w-3 h-3 text-emerald-500" />{t("Cancel anytime. No hidden charges.")}</p>
                 </div>
               </div>
             );
@@ -668,21 +656,19 @@ const ProviderPlans = () => {
                 <tr className="border-b border-emerald-100">
                   <th className="p-6 font-bold text-emerald-950 bg-slate-50 min-w-[200px]">
                     <div className="flex items-center gap-2">
-                      <Target className="w-5 h-5 text-emerald-600" />
-                      PLAN COMPARISON <br/> AT A GLANCE
-                    </div>
+                      <Target className="w-5 h-5 text-emerald-600" />{t("PLAN COMPARISON")}<br/>{t("AT A GLANCE")}</div>
                   </th>
                   <th className="p-6 text-center">
-                    <div className="text-xs font-bold text-emerald-600 uppercase">BASIC AI</div>
-                    <div className="text-emerald-950 font-extrabold mt-1">₹ 199/month</div>
+                    <div className="text-xs font-bold text-emerald-600 uppercase">{t("BASIC AI")}</div>
+                    <div className="text-emerald-950 font-extrabold mt-1">{t("₹ 199/month")}</div>
                   </th>
                   <th className="p-6 text-center bg-teal-50">
-                    <div className="text-xs font-bold text-teal-600 uppercase">PRO AI</div>
-                    <div className="text-emerald-950 font-extrabold mt-1">₹ 499/month</div>
+                    <div className="text-xs font-bold text-teal-600 uppercase">{t("PRO AI")}</div>
+                    <div className="text-emerald-950 font-extrabold mt-1">{t("₹ 499/month")}</div>
                   </th>
                   <th className="p-6 text-center">
-                    <div className="text-xs font-bold text-amber-600 uppercase">PREMIUM AI CAREER COACH</div>
-                    <div className="text-emerald-950 font-extrabold mt-1">₹ 999/month</div>
+                    <div className="text-xs font-bold text-amber-600 uppercase">{t("PREMIUM AI CAREER COACH")}</div>
+                    <div className="text-emerald-950 font-extrabold mt-1">{t("₹ 999/month")}</div>
                   </th>
                 </tr>
               </thead>
@@ -705,9 +691,7 @@ const ProviderPlans = () => {
               </tbody>
             </table>
           </div>
-          <div className="p-4 text-[10px] text-center text-[#94A3B8] border-t border-emerald-100">
-            * Fair usage policy applies to prevent spam.
-          </div>
+          <div className="p-4 text-[10px] text-center text-[#94A3B8] border-t border-emerald-100">{t("* Fair usage policy applies to prevent spam.")}</div>
         </div>
 
         {/* Bottom Bar */}
@@ -720,26 +704,25 @@ const ProviderPlans = () => {
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAutoSubscription ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
             <div>
-              <p className="text-sm font-bold text-emerald-950">Auto Subscription</p>
-              <p className="text-xs text-slate-500">Your plan will auto-renew at the end of each billing cycle.</p>
+              <p className="text-sm font-bold text-emerald-950">{t("Auto Subscription")}</p>
+              <p className="text-xs text-slate-500">{t("Your plan will auto-renew at the end of each billing cycle.")}</p>
             </div>
           </div>
           <div className="flex items-center gap-6 text-xs font-bold text-slate-500">
-            <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-600" /> 100% Secure Payments</div>
-            <div className="flex items-center gap-2"><RefreshCw className="w-4 h-4 text-emerald-600" /> Cancel Anytime</div>
-            <div className="flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-emerald-600" /> 7-Day Money Back Guarantee (T&C Apply)</div>
+            <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-600" />{t("100% Secure Payments")}</div>
+            <div className="flex items-center gap-2"><RefreshCw className="w-4 h-4 text-emerald-600" />{t("Cancel Anytime")}</div>
+            <div className="flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-emerald-600" />{t("7-Day Money Back Guarantee (T&C Apply)")}</div>
           </div>
         </div>
       </div>
-
       {/* Configuration & Checkout Modal */}
       {showConfigModal && selectedPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-emerald-600/10 bg-gradient-to-r from-emerald-600/5 to-transparent flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-extrabold text-emerald-950">Configure Plan</h2>
-                <p className="text-xs text-slate-500 font-medium mt-1">Set your coverage and complete checkout</p>
+                <h2 className="text-xl font-extrabold text-emerald-950">{t("Configure Plan")}</h2>
+                <p className="text-xs text-slate-500 font-medium mt-1">{t("Set your coverage and complete checkout")}</p>
               </div>
               <button onClick={() => setShowConfigModal(false)} className="text-slate-400 hover:text-slate-600 text-3xl leading-none transition-colors hover:bg-slate-100 rounded-full w-10 h-10 flex items-center justify-center">&times;</button>
             </div>
@@ -749,7 +732,7 @@ const ProviderPlans = () => {
               {/* Coverage Selectors (From Old UI logic) */}
               {selectedPlan.coverageType === 'pincode' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Target Locality / Area</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t("Target Locality / Area")}</label>
                   <LocationSearch
                     value={selectedPincodes[0] || ''}
                     onChange={(val) => { if (!val) setSelectedPincodes([]); }}
@@ -762,14 +745,14 @@ const ProviderPlans = () => {
                         setSelectedPincodes([]);
                       }
                     }}
-                    placeholder="Search and select locality/area"
+                    placeholder={t("Search and select locality/area")}
                   />
                 </div>
               )}
 
               {selectedPlan.coverageType === 'city' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Target City</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t("Target City")}</label>
                   <LocationSearch
                     value={selectedCities[0] || ''}
                     onChange={(val) => { if (!val) setSelectedCities([]); }}
@@ -781,14 +764,14 @@ const ProviderPlans = () => {
                         setSelectedCities([]);
                       }
                     }}
-                    placeholder="Search and select city"
+                    placeholder={t("Search and select city")}
                   />
                 </div>
               )}
 
               {selectedPlan.coverageType === 'country' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Target Country</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t("Target Country")}</label>
                   <select
                     value={selectedCities[0] || ''}
                     onChange={(e) => {
@@ -797,19 +780,18 @@ const ProviderPlans = () => {
                     }}
                     className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] bg-white text-sm"
                   >
-                    <option value="">-- Select Country --</option>
-                    <option value="India">India (IN)</option>
-                    <option value="United Arab Emirates">United Arab Emirates (AE)</option>
-                    <option value="United States">United States (US)</option>
-                    <option value="United Kingdom">United Kingdom (UK)</option>
+                    <option value="">{t("-- Select Country --")}</option>
+                    <option value="India">{t("India (IN)")}</option>
+                    <option value="United Arab Emirates">{t("United Arab Emirates (AE)")}</option>
+                    <option value="United States">{t("United States (US)")}</option>
+                    <option value="United Kingdom">{t("United Kingdom (UK)")}</option>
                   </select>
                 </div>
               )}
 
               {/* Boost Skills Selector */}
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                  Select Target Skills (Max {selectedPlan.maxSkills})
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t("Select Target Skills (Max")}{selectedPlan.maxSkills})
                 </label>
                 <SkillSearchSelect
                   selected={selectedSkills}
@@ -831,18 +813,16 @@ const ProviderPlans = () => {
               {/* Premium Order Summary */}
               <div className="bg-linear-to-br from-emerald-600/5 to-teal-600/5 border border-emerald-600/10 p-5 rounded-2xl space-y-4">
                 <h3 className="text-sm font-extrabold text-emerald-950 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <BadgeCheck className="w-5 h-5 text-emerald-600" />
-                  Order Summary
-                </h3>
+                  <BadgeCheck className="w-5 h-5 text-emerald-600" />{t("Order Summary")}</h3>
                 <div className="flex justify-between items-center text-emerald-950">
-                  <span className="font-semibold">{selectedPlan.name} Plan ({selectedDuration} Month{selectedDuration > 1 ? 's' : ''})</span>
+                  <span className="font-semibold">{selectedPlan.name}{t("Plan (")}{selectedDuration}{t("Month")}{selectedDuration > 1 ? 's' : ''})</span>
                   <span className="font-bold">{formatCurrency(summary?.subtotal || 0, selectedPlan.currencySymbol)}</span>
                 </div>
                 <div className="pt-4 border-t border-emerald-600/10 flex justify-between items-center">
-                  <span className="font-extrabold text-emerald-950 text-lg">Total Pay</span>
+                  <span className="font-extrabold text-emerald-950 text-lg">{t("Total Pay")}</span>
                   <div className="text-right">
                     <span className="font-extrabold text-emerald-600 text-2xl">{formatCurrency(summary?.subtotal || 0, selectedPlan.currencySymbol)}</span>
-                    <p className="text-[10px] text-slate-500 font-medium mt-1">(GST managed manually)</p>
+                    <p className="text-[10px] text-slate-500 font-medium mt-1">{t("(GST managed manually)")}</p>
                   </div>
                 </div>
               </div>
@@ -850,9 +830,7 @@ const ProviderPlans = () => {
               {/* Validation Warning */}
               {!isConfigurationValid && (
                 <div className="text-xs text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-200 flex gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0" />
-                  Please complete location and skill selection to proceed.
-                </div>
+                  <AlertTriangle className="w-4 h-4 shrink-0" />{t("Please complete location and skill selection to proceed.")}</div>
               )}
 
             </div>
@@ -863,14 +841,11 @@ const ProviderPlans = () => {
                 className="w-full bg-emerald-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl transition-all shadow-md flex justify-center items-center gap-2"
               >
                 {checkoutLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
-                <Wallet className="w-4 h-4" />
-                Proceed to Payment
-              </button>
+                <Wallet className="w-4 h-4" />{t("Proceed to Payment")}</button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };

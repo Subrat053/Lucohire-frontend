@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { providerAPI } from '../../services/api';
@@ -64,6 +65,10 @@ const createCountryRow = (placeData = {}) => ({
  * Reusable Autocomplete for Skills Search
  */
 const SkillSearchSelect = ({ options = [], selected, onChange, placeholder, icon: Icon }) => {
+  const {
+    t
+  } = useTranslation();
+
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -109,7 +114,7 @@ const SkillSearchSelect = ({ options = [], selected, onChange, placeholder, icon
       {open && (
         <div className="absolute left-0 mt-1 w-full bg-white rounded-xl shadow-xl border border-gray-100 max-h-48 overflow-y-auto z-50">
           {filtered.length === 0 && (
-            <div className="px-4 py-3 text-xs text-gray-400 italic">No matches found.</div>
+            <div className="px-4 py-3 text-xs text-gray-400 italic">{t("No matches found.")}</div>
           )}
           {filtered.map(opt => (
             <button
@@ -135,6 +140,10 @@ const SkillSearchSelect = ({ options = [], selected, onChange, placeholder, icon
  * Reusable Autocomplete for Google Places
  */
 const GooglePlaceSearchInput = ({ type, placeholder, onSelect, value = '' }) => {
+  const {
+    t
+  } = useTranslation();
+
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [open, setOpen] = useState(false);
@@ -222,7 +231,7 @@ const GooglePlaceSearchInput = ({ type, placeholder, onSelect, value = '' }) => 
       {open && (query.trim().length >= 2) && (
         <div className="absolute left-0 mt-1 w-full bg-white rounded-xl shadow-xl border border-gray-100 max-h-48 overflow-y-auto z-50">
           {suggestions.length === 0 && !loading && (
-            <div className="px-4 py-3 text-xs text-gray-400 italic">No matches found.</div>
+            <div className="px-4 py-3 text-xs text-gray-400 italic">{t("No matches found.")}</div>
           )}
           {suggestions.map(place => (
             <button
@@ -242,6 +251,10 @@ const GooglePlaceSearchInput = ({ type, placeholder, onSelect, value = '' }) => 
 };
 
 const CustomPlan = () => {
+  const {
+    t
+  } = useTranslation();
+
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -830,11 +843,9 @@ const CustomPlan = () => {
               onClick={() => navigate('/provider/plans')}
               className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-violet-600 transition"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to My Plan
-            </button>
+              <ArrowLeft className="w-4 h-4" />{t("Back to My Plan")}</button>
             <div className="bg-emerald-50 text-emerald-600 font-semibold px-4 py-1.5 rounded-full border border-emerald-200 text-sm flex items-center gap-2 shadow-sm">
-              <CheckCircle className="w-4 h-4" /> Active Customised Plan
-            </div>
+              <CheckCircle className="w-4 h-4" />{t("Active Customised Plan")}</div>
           </div>
 
           <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 md:p-10 mb-8">
@@ -842,8 +853,10 @@ const CustomPlan = () => {
               <div className="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-4 text-violet-600 shadow-inner">
                 <Sparkles className="w-8 h-8" />
               </div>
-              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Your Smart Visibility Boosts Are Active!</h1>
-              <p className="mt-3 text-slate-500">Enjoy top-tier priority rankings across all of your configured custom visibility levels.</p>
+              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">{t("Your Smart Visibility Boosts Are Active!")}</h1>
+              <p className="mt-3 text-slate-500">{t(
+                "Enjoy top-tier priority rankings across all of your configured custom visibility levels."
+              )}</p>
             </div>
 
             <hr className="border-slate-100 mb-8" />
@@ -854,7 +867,7 @@ const CustomPlan = () => {
                 <div className="bg-violet-50/50 border border-violet-100 rounded-2xl p-6">
                   <div className="flex items-center gap-2 mb-4 text-violet-700">
                     <Layers className="w-5 h-5" />
-                    <h3 className="font-bold text-lg">Showcase Skills</h3>
+                    <h3 className="font-bold text-lg">{t("Showcase Skills")}</h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {config.multipleSkills.map((skill, idx) => (
@@ -871,7 +884,7 @@ const CustomPlan = () => {
                 <div className="bg-purple-50/50 border border-purple-100 rounded-2xl p-6">
                   <div className="flex items-center gap-2 mb-4 text-purple-700">
                     <MapPin className="w-5 h-5" />
-                    <h3 className="font-bold text-lg">Locality Boosts</h3>
+                    <h3 className="font-bold text-lg">{t("Locality Boosts")}</h3>
                   </div>
                   <div className="space-y-4">
                     {config.localities.map((item, idx) => (
@@ -879,7 +892,7 @@ const CustomPlan = () => {
                         <div className="font-bold text-slate-800 text-sm">{item.skill}</div>
                         <div className="text-slate-600 text-xs mt-1">{item.locality}</div>
                         <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-50 text-xs">
-                          <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">{item.durationMonths} Month{item.durationMonths > 1 ? 's' : ''}</span>
+                          <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">{item.durationMonths}{t("Month")}{item.durationMonths > 1 ? 's' : ''}</span>
                           <span className="font-bold text-slate-700">₹{item.price}</span>
                         </div>
                       </div>
@@ -893,7 +906,7 @@ const CustomPlan = () => {
                 <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6">
                   <div className="flex items-center gap-2 mb-4 text-blue-700">
                     <Building2 className="w-5 h-5" />
-                    <h3 className="font-bold text-lg">City Boosts</h3>
+                    <h3 className="font-bold text-lg">{t("City Boosts")}</h3>
                   </div>
                   <div className="space-y-4">
                     {config.cities.map((item, idx) => (
@@ -917,7 +930,7 @@ const CustomPlan = () => {
                 <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-6">
                   <div className="flex items-center gap-2 mb-4 text-emerald-700">
                     <Globe className="w-5 h-5" />
-                    <h3 className="font-bold text-lg">Country Boosts</h3>
+                    <h3 className="font-bold text-lg">{t("Country Boosts")}</h3>
                   </div>
                   <div className="space-y-4">
                     {config.countries.map((item, idx) => (
@@ -925,7 +938,7 @@ const CustomPlan = () => {
                         <div className="font-bold text-slate-800 text-sm">{item.skill}</div>
                         <div className="text-slate-600 text-xs mt-1">{item.country}</div>
                         <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-50 text-xs">
-                          <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">{item.durationMonths} Month{item.durationMonths > 1 ? 's' : ''}</span>
+                          <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">{item.durationMonths}{t("Month")}{item.durationMonths > 1 ? 's' : ''}</span>
                           <span className="font-bold text-slate-700">₹{item.price}</span>
                         </div>
                       </div>
@@ -937,22 +950,18 @@ const CustomPlan = () => {
 
             <div className="bg-slate-50 rounded-2xl p-6 mt-8 flex flex-col md:flex-row md:items-center md:justify-between border border-slate-100">
               <div className="text-sm text-slate-500 mb-4 md:mb-0">
-                <div className="font-bold text-slate-700">Renewal Info</div>
-                <div>Your plan will remain active until <span className="font-bold text-slate-700">{activePlan.subscription?.endDate ? new Date(activePlan.subscription.endDate).toLocaleDateString() : 'N/A'}</span>.</div>
+                <div className="font-bold text-slate-700">{t("Renewal Info")}</div>
+                <div>{t("Your plan will remain active until")}<span className="font-bold text-slate-700">{activePlan.subscription?.endDate ? new Date(activePlan.subscription.endDate).toLocaleDateString() : 'N/A'}</span>.</div>
               </div>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setActivePlan(null)} 
                   className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl text-sm transition shadow-md"
-                >
-                  Create New Custom Plan
-                </button>
+                >{t("Create New Custom Plan")}</button>
                 <button
                   onClick={() => navigate('/provider/profile')}
                   className="px-6 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-sm transition"
-                >
-                  Go to Profile
-                </button>
+                >{t("Go to Profile")}</button>
               </div>
             </div>
           </div>
@@ -972,19 +981,18 @@ const CustomPlan = () => {
               onClick={() => navigate('/provider/plans')}
               className="inline-flex items-center gap-1.5 text-sm font-bold text-violet-600 hover:text-violet-800 transition"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to My Plan
-            </button>
+              <ArrowLeft className="w-4 h-4" />{t("Back to My Plan")}</button>
             <div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Customise Your Plan</h1>
-              <p className="text-slate-500 text-sm mt-1.5 max-w-2xl">
-                Create a personalised visibility plan by choosing skills, locations and duration as per your goals.
-              </p>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">{t("Customise Your Plan")}</h1>
+              <p className="text-slate-500 text-sm mt-1.5 max-w-2xl">{t(
+                "Create a personalised visibility plan by choosing skills, locations and duration as per your goals."
+              )}</p>
             </div>
           </div>
 
           <div className="bg-white text-violet-700 font-semibold px-4 py-3 rounded-2xl border border-violet-100 text-xs flex items-center gap-2 shadow-sm w-fit lg:mt-1">
             <Gift className="w-4 h-4 text-violet-600" />
-            <span>Your one skill for one pin code is <span className="font-black">FREE!</span></span>
+            <span>{t("Your one skill for one pin code is")}<span className="font-black">{t("FREE!")}</span></span>
           </div>
         </div>
 
@@ -995,18 +1003,16 @@ const CustomPlan = () => {
                 <CheckCircle className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-800">Plan Activated Successfully!</h2>
-                <p className="text-slate-500 text-sm mt-1">
-                  Enjoy top visibility rankings across your configured custom specifications.
-                </p>
+                <h2 className="text-lg font-bold text-slate-800">{t("Plan Activated Successfully!")}</h2>
+                <p className="text-slate-500 text-sm mt-1">{t(
+                  "Enjoy top visibility rankings across your configured custom specifications."
+                )}</p>
               </div>
             </div>
             <button
               onClick={() => navigate('/provider/profile')}
               className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition shadow-md"
-            >
-              Go to Profile
-            </button>
+            >{t("Go to Profile")}</button>
           </div>
         )}
 
@@ -1018,7 +1024,7 @@ const CustomPlan = () => {
             
             {/* Choose Achievements */}
             <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
-              <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider mb-4">Choose What You Want to Achieve</h2>
+              <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider mb-4">{t("Choose What You Want to Achieve")}</h2>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 
@@ -1040,8 +1046,8 @@ const CustomPlan = () => {
                   <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600 mb-3">
                     <Layers className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-slate-800 text-sm">Multiple Skills</h3>
-                  <p className="text-slate-400 text-xs mt-1">Showcase multiple skills in your profile</p>
+                  <h3 className="font-bold text-slate-800 text-sm">{t("Multiple Skills")}</h3>
+                  <p className="text-slate-400 text-xs mt-1">{t("Showcase multiple skills in your profile")}</p>
                 </button>
 
                 {/* Achievement Card 2: Top in Locality */}
@@ -1062,8 +1068,8 @@ const CustomPlan = () => {
                   <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center text-pink-500 mb-3">
                     <MapPin className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-slate-800 text-sm">Top in Locality</h3>
-                  <p className="text-slate-400 text-xs mt-1">Be a top choice in selected locality(ies)</p>
+                  <h3 className="font-bold text-slate-800 text-sm">{t("Top in Locality")}</h3>
+                  <p className="text-slate-400 text-xs mt-1">{t("Be a top choice in selected locality(ies)")}</p>
                 </button>
 
                 {/* Achievement Card 3: Top in City */}
@@ -1084,8 +1090,8 @@ const CustomPlan = () => {
                   <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-500 mb-3">
                     <Building2 className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-slate-800 text-sm">Top in City</h3>
-                  <p className="text-slate-400 text-xs mt-1">Rank on top across selected city(ies)</p>
+                  <h3 className="font-bold text-slate-800 text-sm">{t("Top in City")}</h3>
+                  <p className="text-slate-400 text-xs mt-1">{t("Rank on top across selected city(ies)")}</p>
                 </button>
 
                 {/* Achievement Card 4: Top in Country */}
@@ -1106,8 +1112,8 @@ const CustomPlan = () => {
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-500 mb-3">
                     <Globe className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-slate-800 text-sm">Top in Country</h3>
-                  <p className="text-slate-400 text-xs mt-1">Max visibility across selected country(ies)</p>
+                  <h3 className="font-bold text-slate-800 text-sm">{t("Top in Country")}</h3>
+                  <p className="text-slate-400 text-xs mt-1">{t("Max visibility across selected country(ies)")}</p>
                 </button>
 
               </div>
@@ -1117,10 +1123,9 @@ const CustomPlan = () => {
             <div className="space-y-6">
               
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-black text-slate-800">Build Your Smart Visibility Plan</h2>
+                <h2 className="text-lg font-black text-slate-800">{t("Build Your Smart Visibility Plan")}</h2>
                 <span className="bg-violet-50 text-violet-600 border border-violet-100 text-[11px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" /> Smart Filters
-                </span>
+                  <Sparkles className="w-3 h-3" />{t("Smart Filters")}</span>
               </div>
 
               {/* Section: Multiple Skills Showcase */}
@@ -1132,15 +1137,13 @@ const CustomPlan = () => {
                     <div className="flex items-start gap-3">
                       <div className="w-7 h-7 bg-violet-600 text-white font-bold text-xs rounded-full flex items-center justify-center shadow-md">★</div>
                       <div>
-                        <h3 className="font-extrabold text-slate-800 text-sm">Multiple Skills</h3>
-                        <p className="text-xs text-slate-400">Showcase multiple skills on your profile.</p>
+                        <h3 className="font-extrabold text-slate-800 text-sm">{t("Multiple Skills")}</h3>
+                        <p className="text-xs text-slate-400">{t("Showcase multiple skills on your profile.")}</p>
                       </div>
                     </div>
                     
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
-                      <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0">
-                        Add Secondary Skill
-                      </span>
+                      <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0">{t("Add Secondary Skill")}</span>
                       <div className="w-full sm:w-64">
                         <SkillSearchSelect
                           options={allSkills}
@@ -1154,7 +1157,7 @@ const CustomPlan = () => {
                             setMultipleSkillsList([...multipleSkillsList, s]);
                             toast.success('Skill added.');
                           }}
-                          placeholder="Search skill (e.g. Electrician)"
+                          placeholder={t("Search skill (e.g. Electrician)")}
                           icon={Search}
                         />
                       </div>
@@ -1181,9 +1184,7 @@ const CustomPlan = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                      No secondary skills added yet. Search and select skills above.
-                    </div>
+                    <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">{t("No secondary skills added yet. Search and select skills above.")}</div>
                   )}
 
                 </div>
@@ -1198,21 +1199,19 @@ const CustomPlan = () => {
                     <div className="flex items-start gap-3">
                       <div className="w-7 h-7 bg-violet-600 text-white font-bold text-xs rounded-full flex items-center justify-center shadow-md">01</div>
                       <div>
-                        <h3 className="font-extrabold text-slate-800 text-sm">Top in One Locality</h3>
-                        <p className="text-xs text-slate-400">Be visible at the top in selected localities.</p>
+                        <h3 className="font-extrabold text-slate-800 text-sm">{t("Top in One Locality")}</h3>
+                        <p className="text-xs text-slate-400">{t("Be visible at the top in selected localities.")}</p>
                       </div>
                     </div>
                     
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
-                      <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0">
-                        Search Skill with AI
-                      </span>
+                      <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0">{t("Search Skill with AI")}</span>
                       <div className="w-full sm:w-64">
                         <SkillSearchSelect
                           options={allSkills}
                           selected={localitySkill}
                           onChange={(s) => setLocalitySkill(s)}
-                          placeholder="Search skill (e.g. Graphic Design)"
+                          placeholder={t("Search skill (e.g. Graphic Design)")}
                           icon={Search}
                         />
                       </div>
@@ -1236,9 +1235,9 @@ const CustomPlan = () => {
                           <table className="w-full text-left border-collapse">
                             <thead>
                               <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                                <th className="py-3 px-4">Locality</th>
-                                <th className="py-3 px-4">Duration</th>
-                                <th className="py-3 px-4">Price</th>
+                                <th className="py-3 px-4">{t("Locality")}</th>
+                                <th className="py-3 px-4">{t("Duration")}</th>
+                                <th className="py-3 px-4">{t("Price")}</th>
                                 <th className="py-3 px-4 w-12"></th>
                               </tr>
                             </thead>
@@ -1285,9 +1284,7 @@ const CustomPlan = () => {
                           </table>
                         </div>
                       ) : (
-                        <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">
-                          Select a skill first.
-                        </div>
+                        <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">{t("Select a skill first.")}</div>
                       )}
 
                       {localityItems.some(item => item.placeId) && (
@@ -1296,14 +1293,13 @@ const CustomPlan = () => {
                           onClick={() => addDraftRow('locality')}
                           className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold text-violet-700 hover:text-violet-900"
                         >
-                          <Plus className="w-3.5 h-3.5" /> Add Another Locality
-                        </button>
+                          <Plus className="w-3.5 h-3.5" />{t("Add Another Locality")}</button>
                       )}
 
                       <div className="flex items-center justify-between mt-4">
                         <div />
                         <div className="text-right">
-                          <span className="text-xs font-bold text-slate-400">Locality Total </span>
+                          <span className="text-xs font-bold text-slate-400">{t("Locality Total")}</span>
                           <span className="font-extrabold text-violet-700 text-lg">₹{localityItems.reduce((a, b) => a + b.price, 0)}</span>
                         </div>
                       </div>
@@ -1311,15 +1307,15 @@ const CustomPlan = () => {
                   ) : (
                     <div className="rounded-xl border border-slate-100 overflow-hidden">
                       <div className="bg-slate-50/50 border-b border-slate-100 grid grid-cols-[1.6fr_0.9fr_0.5fr_40px] gap-3 px-4 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                        <span>Locality</span>
-                        <span>Duration</span>
-                        <span>Price</span>
+                        <span>{t("Locality")}</span>
+                        <span>{t("Duration")}</span>
+                        <span>{t("Price")}</span>
                         <span />
                       </div>
                       <div className="grid grid-cols-[1.6fr_0.9fr_0.5fr_40px] gap-3 px-4 py-4 items-center bg-white">
                         <div>
-                          <div className="font-semibold text-slate-700">Add your first locality</div>
-                          <div className="text-[10px] text-slate-400">Search a locality above to populate this row</div>
+                          <div className="font-semibold text-slate-700">{t("Add your first locality")}</div>
+                          <div className="text-[10px] text-slate-400">{t("Search a locality above to populate this row")}</div>
                         </div>
                         <select disabled className="bg-slate-50 text-slate-400 outline-none border border-slate-200 rounded-lg px-2 py-2 text-xs">
                           <option>{durationsConfig.locality?.[0]?.label || '1 Month'}</option>
@@ -1344,21 +1340,19 @@ const CustomPlan = () => {
                     <div className="flex items-start gap-3">
                       <div className="w-7 h-7 bg-violet-600 text-white font-bold text-xs rounded-full flex items-center justify-center shadow-md">02</div>
                       <div>
-                        <h3 className="font-extrabold text-slate-800 text-sm">Top in City</h3>
-                        <p className="text-xs text-slate-400">Be visible at the top in selected cities.</p>
+                        <h3 className="font-extrabold text-slate-800 text-sm">{t("Top in City")}</h3>
+                        <p className="text-xs text-slate-400">{t("Be visible at the top in selected cities.")}</p>
                       </div>
                     </div>
                     
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
-                      <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0">
-                        Search Skill with AI
-                      </span>
+                      <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0">{t("Search Skill with AI")}</span>
                       <div className="w-full sm:w-64">
                         <SkillSearchSelect
                           options={allSkills}
                           selected={citySkill}
                           onChange={(s) => setCitySkill(s)}
-                          placeholder="Search skill (e.g. Video Editing)"
+                          placeholder={t("Search skill (e.g. Video Editing)")}
                           icon={Search}
                         />
                       </div>
@@ -1382,9 +1376,9 @@ const CustomPlan = () => {
                           <table className="w-full text-left border-collapse">
                             <thead>
                               <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                                <th className="py-3 px-4">City</th>
-                                <th className="py-3 px-4">Duration</th>
-                                <th className="py-3 px-4">Price</th>
+                                <th className="py-3 px-4">{t("City")}</th>
+                                <th className="py-3 px-4">{t("Duration")}</th>
+                                <th className="py-3 px-4">{t("Price")}</th>
                                 <th className="py-3 px-4 w-12"></th>
                               </tr>
                             </thead>
@@ -1431,9 +1425,7 @@ const CustomPlan = () => {
                           </table>
                         </div>
                       ) : (
-                        <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">
-                          Select a skill first.
-                        </div>
+                        <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">{t("Select a skill first.")}</div>
                       )}
 
                       {cityItems.some(item => item.placeId) && (
@@ -1442,14 +1434,13 @@ const CustomPlan = () => {
                           onClick={() => addDraftRow('city')}
                           className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold text-violet-700 hover:text-violet-900"
                         >
-                          <Plus className="w-3.5 h-3.5" /> Add Another City
-                        </button>
+                          <Plus className="w-3.5 h-3.5" />{t("Add Another City")}</button>
                       )}
 
                       <div className="flex items-center justify-between mt-4">
                         <div />
                         <div className="text-right">
-                          <span className="text-xs font-bold text-slate-400">City Total </span>
+                          <span className="text-xs font-bold text-slate-400">{t("City Total")}</span>
                           <span className="font-extrabold text-violet-700 text-lg">₹{cityItems.reduce((a, b) => a + b.price, 0)}</span>
                         </div>
                       </div>
@@ -1457,15 +1448,15 @@ const CustomPlan = () => {
                   ) : (
                     <div className="rounded-xl border border-slate-100 overflow-hidden">
                       <div className="bg-slate-50/50 border-b border-slate-100 grid grid-cols-[1.6fr_0.9fr_0.5fr_40px] gap-3 px-4 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                        <span>City</span>
-                        <span>Duration</span>
-                        <span>Price</span>
+                        <span>{t("City")}</span>
+                        <span>{t("Duration")}</span>
+                        <span>{t("Price")}</span>
                         <span />
                       </div>
                       <div className="grid grid-cols-[1.6fr_0.9fr_0.5fr_40px] gap-3 px-4 py-4 items-center bg-white">
                         <div>
-                          <div className="font-semibold text-slate-700">Add your first city</div>
-                          <div className="text-[10px] text-slate-400">Search a city above to populate this row</div>
+                          <div className="font-semibold text-slate-700">{t("Add your first city")}</div>
+                          <div className="text-[10px] text-slate-400">{t("Search a city above to populate this row")}</div>
                         </div>
                         <select disabled className="bg-slate-50 text-slate-400 outline-none border border-slate-200 rounded-lg px-2 py-2 text-xs">
                           <option>{durationsConfig.city?.[0]?.label || '1 Month'}</option>
@@ -1490,21 +1481,19 @@ const CustomPlan = () => {
                     <div className="flex items-start gap-3">
                       <div className="w-7 h-7 bg-violet-600 text-white font-bold text-xs rounded-full flex items-center justify-center shadow-md">03</div>
                       <div>
-                        <h3 className="font-extrabold text-slate-800 text-sm">Top in Country</h3>
-                        <p className="text-xs text-slate-400">Be visible at the top in selected countries.</p>
+                        <h3 className="font-extrabold text-slate-800 text-sm">{t("Top in Country")}</h3>
+                        <p className="text-xs text-slate-400">{t("Be visible at the top in selected countries.")}</p>
                       </div>
                     </div>
                     
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
-                      <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0">
-                        Search Skill with AI
-                      </span>
+                      <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0">{t("Search Skill with AI")}</span>
                       <div className="w-full sm:w-64">
                         <SkillSearchSelect
                           options={allSkills}
                           selected={countrySkill}
                           onChange={(s) => setCountrySkill(s)}
-                          placeholder="Search skill (e.g. UI/UX Design)"
+                          placeholder={t("Search skill (e.g. UI/UX Design)")}
                           icon={Search}
                         />
                       </div>
@@ -1528,9 +1517,9 @@ const CustomPlan = () => {
                           <table className="w-full text-left border-collapse">
                             <thead>
                               <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                                <th className="py-3 px-4">Country</th>
-                                <th className="py-3 px-4">Duration</th>
-                                <th className="py-3 px-4">Price</th>
+                                <th className="py-3 px-4">{t("Country")}</th>
+                                <th className="py-3 px-4">{t("Duration")}</th>
+                                <th className="py-3 px-4">{t("Price")}</th>
                                 <th className="py-3 px-4 w-12"></th>
                               </tr>
                             </thead>
@@ -1577,9 +1566,7 @@ const CustomPlan = () => {
                           </table>
                         </div>
                       ) : (
-                        <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">
-                          Select a skill first.
-                        </div>
+                        <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">{t("Select a skill first.")}</div>
                       )}
 
                       {countryItems.some(item => item.placeId) && (
@@ -1588,14 +1575,13 @@ const CustomPlan = () => {
                           onClick={() => addDraftRow('country')}
                           className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold text-violet-700 hover:text-violet-900"
                         >
-                          <Plus className="w-3.5 h-3.5" /> Add Another Country
-                        </button>
+                          <Plus className="w-3.5 h-3.5" />{t("Add Another Country")}</button>
                       )}
 
                       <div className="flex items-center justify-between mt-4">
                         <div />
                         <div className="text-right">
-                          <span className="text-xs font-bold text-slate-400">Country Total </span>
+                          <span className="text-xs font-bold text-slate-400">{t("Country Total")}</span>
                           <span className="font-extrabold text-violet-700 text-lg">₹{countryItems.reduce((a, b) => a + b.price, 0)}</span>
                         </div>
                       </div>
@@ -1603,15 +1589,15 @@ const CustomPlan = () => {
                   ) : (
                     <div className="rounded-xl border border-slate-100 overflow-hidden">
                       <div className="bg-slate-50/50 border-b border-slate-100 grid grid-cols-[1.6fr_0.9fr_0.5fr_40px] gap-3 px-4 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                        <span>Country</span>
-                        <span>Duration</span>
-                        <span>Price</span>
+                        <span>{t("Country")}</span>
+                        <span>{t("Duration")}</span>
+                        <span>{t("Price")}</span>
                         <span />
                       </div>
                       <div className="grid grid-cols-[1.6fr_0.9fr_0.5fr_40px] gap-3 px-4 py-4 items-center bg-white">
                         <div>
-                          <div className="font-semibold text-slate-700">Add your first country</div>
-                          <div className="text-[10px] text-slate-400">Search a country above to populate this row</div>
+                          <div className="font-semibold text-slate-700">{t("Add your first country")}</div>
+                          <div className="text-[10px] text-slate-400">{t("Search a country above to populate this row")}</div>
                         </div>
                         <select disabled className="bg-slate-50 text-slate-400 outline-none border border-slate-200 rounded-lg px-2 py-2 text-xs">
                           <option>{durationsConfig.country?.[0]?.label || '1 Month'}</option>
@@ -1635,8 +1621,7 @@ const CustomPlan = () => {
               onClick={() => toast.success('You can configure combinations dynamically above. Add skills or items inside Locality, City, or Country sections.')}
               className="w-full py-4 border-2 border-dashed border-slate-200 text-slate-500 hover:text-violet-600 hover:border-violet-300 rounded-3xl font-extrabold text-sm transition-all flex items-center justify-center gap-2 bg-white shadow-sm"
             >
-              <Plus className="w-4 h-4" /> Add Another Skill / Combination
-            </button>
+              <Plus className="w-4 h-4" />{t("Add Another Skill / Combination")}</button>
 
             {/* AI Smart Tip Bar */}
             <div className="bg-violet-50 border border-violet-100 rounded-3xl p-5 flex items-center justify-between gap-4 shadow-sm">
@@ -1645,16 +1630,16 @@ const CustomPlan = () => {
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="font-black text-xs text-violet-800 block">AI Smart Tip</span>
-                  <span className="text-xs text-slate-500">Mixing longer durations with shorter trial periods helps improve visibility and budget efficiency.</span>
+                  <span className="font-black text-xs text-violet-800 block">{t("AI Smart Tip")}</span>
+                  <span className="text-xs text-slate-500">{t(
+                    "Mixing longer durations with shorter trial periods helps improve visibility and budget efficiency."
+                  )}</span>
                 </div>
               </div>
               <button 
                 onClick={() => toast.success('Smart plans bundle multiple locales and categories to provide maximum rotation exposure.')}
                 className="text-xs font-extrabold text-violet-700 hover:text-violet-900 transition shrink-0"
-              >
-                View Details →
-              </button>
+              >{t("View Details →")}</button>
             </div>
 
           </div>
@@ -1667,9 +1652,7 @@ const CustomPlan = () => {
               
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                 <h2 className="font-black text-slate-800 text-lg flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-violet-600" />
-                  Your Plan Summary
-                </h2>
+                  <Layers className="w-5 h-5 text-violet-600" />{t("Your Plan Summary")}</h2>
                 {pricingLoading && (
                   <RefreshCw className="w-4 h-4 text-violet-600 animate-spin" />
                 )}
@@ -1677,8 +1660,7 @@ const CustomPlan = () => {
                   onClick={handleClearAll}
                   className="text-xs font-extrabold text-red-500 hover:text-red-700 flex items-center gap-1"
                 >
-                  <Trash2 className="w-3.5 h-3.5" /> Clear All
-                </button>
+                  <Trash2 className="w-3.5 h-3.5" />{t("Clear All")}</button>
               </div>
 
               {/* Items Breakdown list */}
@@ -1689,13 +1671,11 @@ const CustomPlan = () => {
                   <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm animate-fade-in">
                     <div className="w-full flex items-center justify-between p-4 bg-slate-50/50 border-b border-slate-100 text-left font-bold text-slate-700 text-xs">
                       <div className="flex items-center gap-2">
-                        <span className="bg-violet-100 text-violet-700 w-6 h-6 rounded-lg flex items-center justify-center font-bold">
-                          MS
-                        </span>
-                        <span>Multiple Skills</span>
+                        <span className="bg-violet-100 text-violet-700 w-6 h-6 rounded-lg flex items-center justify-center font-bold">{t("MS")}</span>
+                        <span>{t("Multiple Skills")}</span>
                       </div>
                       <span className="bg-violet-100 text-violet-700 text-[10px] font-bold px-2 py-0.5 rounded animate-fade-in">
-                        {multipleSkillsList.length} Skill{multipleSkillsList.length > 1 ? 's' : ''}
+                        {multipleSkillsList.length}{t("Skill")}{multipleSkillsList.length > 1 ? 's' : ''}
                       </span>
                     </div>
                     
@@ -1747,7 +1727,7 @@ const CustomPlan = () => {
                               <div className="font-semibold text-slate-700 flex items-center gap-1.5">
                                 <MapPin className="w-3 h-3 text-pink-500 shrink-0" /> <span className="truncate max-w-35">{item.locality}</span>
                               </div>
-                              <span className="text-[10px] text-slate-400 ml-4.5">{item.durationMonths} Months</span>
+                              <span className="text-[10px] text-slate-400 ml-4.5">{item.durationMonths}{t("Months")}</span>
                             </div>
                             <span className="font-bold text-slate-600">₹{item.price}</span>
                           </div>
@@ -1825,7 +1805,7 @@ const CustomPlan = () => {
                               <div className="font-semibold text-slate-700 flex items-center gap-1.5">
                                 <Globe className="w-3 h-3 text-emerald-500 shrink-0" /> <span className="truncate max-w-35">{item.country}</span>
                               </div>
-                              <span className="text-[10px] text-slate-400 ml-4.5">{item.durationMonths} Months</span>
+                              <span className="text-[10px] text-slate-400 ml-4.5">{item.durationMonths}{t("Months")}</span>
                             </div>
                             <span className="font-bold text-slate-600">₹{item.price}</span>
                           </div>
@@ -1836,9 +1816,7 @@ const CustomPlan = () => {
                 )}
 
                 {(!hasSelectedItems) && (
-                  <div className="text-center py-8 text-slate-400 text-xs italic bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                    No custom plan items selected yet.
-                  </div>
+                  <div className="text-center py-8 text-slate-400 text-xs italic bg-slate-50 rounded-2xl border border-dashed border-slate-200">{t("No custom plan items selected yet.")}</div>
                 )}
 
               </div>
@@ -1847,13 +1825,12 @@ const CustomPlan = () => {
               <div className="space-y-3.5 pt-4 border-t border-slate-100 text-sm">
                 
                 <div className="flex justify-between text-slate-500">
-                  <span>Subtotal</span>
+                  <span>{t("Subtotal")}</span>
                   <span className="font-bold text-slate-700">₹{pricingBreakdown.subtotal.toLocaleString('en-IN')}</span>
                 </div>
                 
                 <div className="flex justify-between text-slate-500">
-                  <span className="flex items-center gap-1.5">
-                    GST ({pricingBreakdown.gstPercent || 18}%) 
+                  <span className="flex items-center gap-1.5">{t("GST (")}{pricingBreakdown.gstPercent || 18}%) 
                     <button type="button" onClick={() => toast.info(`Goods and Services Tax of ${pricingBreakdown.gstPercent || 18}% is applicable on digital advertising visibility services.`)} className="text-slate-400 hover:text-slate-600">
                       ⓘ
                     </button>
@@ -1862,10 +1839,10 @@ const CustomPlan = () => {
                 </div>
                 
                 <div className="flex justify-between items-end pt-3 border-t border-slate-50">
-                  <span className="font-black text-slate-800">Total Amount</span>
+                  <span className="font-black text-slate-800">{t("Total Amount")}</span>
                   <span className="font-black text-violet-700 text-2xl">
                     {pricingLoading ? (
-                      <span className="text-xs text-violet-400 animate-pulse font-normal">Recalculating...</span>
+                      <span className="text-xs text-violet-400 animate-pulse font-normal">{t("Recalculating...")}</span>
                     ) : (
                       `₹${pricingBreakdown.totalAmount.toLocaleString('en-IN')}`
                     )}
@@ -1880,9 +1857,7 @@ const CustomPlan = () => {
                   <div className="bg-emerald-600 text-white rounded-full p-1.5 shadow-sm">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-50 bg-emerald-600 rounded-full" />
                   </div>
-                  <span className="text-xs font-bold text-emerald-800">
-                    You Save <span className="underline">₹{pricingBreakdown.savingsAmount?.toLocaleString('en-IN')}</span> with this smart plan
-                  </span>
+                  <span className="text-xs font-bold text-emerald-800">{t("You Save")}<span className="underline">₹{pricingBreakdown.savingsAmount?.toLocaleString('en-IN')}</span>{t("with this smart plan")}</span>
                 </div>
               )}
 
@@ -1896,19 +1871,18 @@ const CustomPlan = () => {
                 {checkoutLoading ? (
                   <>
                     <RefreshCw className="w-5 h-5 animate-spin" />
-                    <span>Processing...</span>
+                    <span>{t("Processing...")}</span>
                   </>
                 ) : (
                   <>
-                    <span>Proceed to Payment</span>
+                    <span>{t("Proceed to Payment")}</span>
                     <span>→</span>
                   </>
                 )}
               </button>
 
               <div className="flex items-center justify-center gap-1.5 mt-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                <Lock className="w-3.5 h-3.5 text-slate-300" /> Secure & Safe Payments
-              </div>
+                <Lock className="w-3.5 h-3.5 text-slate-300" />{t("Secure & Safe Payments")}</div>
 
             </div>
 
@@ -1918,32 +1892,32 @@ const CustomPlan = () => {
               <div className="flex items-start gap-3">
                 <Lock className="w-4 h-4 text-violet-600 mt-0.5" />
                 <div>
-                  <h4 className="text-slate-700 text-xs font-extrabold">Secure Payments</h4>
-                  <p className="text-[10px] font-normal text-slate-400">100% safe & secure transaction</p>
+                  <h4 className="text-slate-700 text-xs font-extrabold">{t("Secure Payments")}</h4>
+                  <p className="text-[10px] font-normal text-slate-400">{t("100% safe & secure transaction")}</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
                 <Sparkles className="w-4 h-4 text-violet-600 mt-0.5" />
                 <div>
-                  <h4 className="text-slate-700 text-xs font-extrabold">Instant Activation</h4>
-                  <p className="text-[10px] font-normal text-slate-400">Boosts apply automatically</p>
+                  <h4 className="text-slate-700 text-xs font-extrabold">{t("Instant Activation")}</h4>
+                  <p className="text-[10px] font-normal text-slate-400">{t("Boosts apply automatically")}</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
                 <RefreshCw className="w-4 h-4 text-violet-600 mt-0.5" />
                 <div>
-                  <h4 className="text-slate-700 text-xs font-extrabold">Cancel Anytime</h4>
-                  <p className="text-[10px] font-normal text-slate-400">Refund within 24 hours</p>
+                  <h4 className="text-slate-700 text-xs font-extrabold">{t("Cancel Anytime")}</h4>
+                  <p className="text-[10px] font-normal text-slate-400">{t("Refund within 24 hours")}</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
                 <Shield className="w-4 h-4 text-violet-600 mt-0.5" />
                 <div>
-                  <h4 className="text-slate-700 text-xs font-extrabold">Best Price Guarantee</h4>
-                  <p className="text-[10px] font-normal text-slate-400">Get maximum rotation value</p>
+                  <h4 className="text-slate-700 text-xs font-extrabold">{t("Best Price Guarantee")}</h4>
+                  <p className="text-[10px] font-normal text-slate-400">{t("Get maximum rotation value")}</p>
                 </div>
               </div>
 

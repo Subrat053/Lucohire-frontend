@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authAPI, providerAPI, aiAPI, profileShareAPI, userAPI } from "../../services/api";
@@ -317,6 +318,10 @@ const Chip = ({ label, onRemove }) => (
 
 // ─── TagPicker ───────────────────────────────────────────────────────────────
 const TagPicker = ({ available, selected, onAdd, onRemove, placeholder }) => {
+  const {
+    t
+  } = useTranslation();
+
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -353,8 +358,7 @@ const TagPicker = ({ available, selected, onAdd, onRemove, placeholder }) => {
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full border border-blue-300 text-blue-600 bg-white text-sm font-medium hover:bg-blue-50 transition"
-      >
-        + Add {placeholder}
+      >{t("+ Add")}{placeholder}
       </button>
       {open && (
         <div className="relative z-10 mt-1 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
@@ -379,8 +383,7 @@ const TagPicker = ({ available, selected, onAdd, onRemove, placeholder }) => {
                 <li
                   onClick={addCustom}
                   className="px-4 py-2.5 text-sm text-blue-600 cursor-pointer hover:bg-blue-50 border-b"
-                >
-                  Add &ldquo;{query.trim()}&rdquo;
+                >{t("Add “")}{query.trim()}&rdquo;
                 </li>
               )}
             {filtered.map((s) => (
@@ -405,6 +408,10 @@ const TagPicker = ({ available, selected, onAdd, onRemove, placeholder }) => {
 
 // ─── ProviderProfile ─────────────────────────────────────────────────────────
 const ProviderProfile = () => {
+  const {
+    t
+  } = useTranslation();
+
   const { user, fetchUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -1606,8 +1613,9 @@ const ProviderProfile = () => {
       await fetchProfile();
 
       if (localStorage.getItem('lastResumeHash')) {
-        // Option to redirect to Career Health Dashboard
-        navigate('/provider/career-health', { state: { parsedData: rawPayload } });
+        // Refresh resume-toolkit data on next visit by setting a flag
+        localStorage.setItem('resumeToolkitRefresh', Date.now().toString());
+        navigate('/provider/resume-toolkit', { state: { fileHash: localStorage.getItem('lastResumeHash'), parsedData: rawPayload } });
       }
     } catch (err) {
       if (err.response?.data?.upgradeRequired) {
@@ -1719,12 +1727,8 @@ const ProviderProfile = () => {
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-[28px] font-bold text-slate-800 tracking-tight">
-                Edit Profile
-              </h1>
-              <p className="text-sm text-slate-500 font-medium mt-1">
-                Keep your profile updated to get better job matches
-              </p>
+              <h1 className="text-[28px] font-bold text-slate-800 tracking-tight">{t("Edit Profile")}</h1>
+              <p className="text-sm text-slate-500 font-medium mt-1">{t("Keep your profile updated to get better job matches")}</p>
             </div>
             <div className="flex items-center gap-4 shrink-0">
               <button
@@ -1732,8 +1736,7 @@ const ProviderProfile = () => {
                 onClick={handleShareProfile}
                 className="py-2.5 px-6 bg-white text-emerald-700 border border-emerald-600 rounded-lg text-sm font-bold hover:bg-emerald-50 transition flex items-center justify-center gap-2"
               >
-                <Eye className="w-4 h-4" /> Share Profile
-              </button>
+                <Eye className="w-4 h-4" />{t("Share Profile")}</button>
               <button
                 type="submit"
                 disabled={saving}
@@ -1775,12 +1778,12 @@ const ProviderProfile = () => {
                 <>
                   {/* Basic Information Card */}
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6 relative">
-                    <h3 className="font-extrabold text-slate-800 text-lg tracking-tight">Basic Information</h3>
+                    <h3 className="font-extrabold text-slate-800 text-lg tracking-tight">{t("Basic Information")}</h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
                       {/* Profile Photo Upload */}
                       <div className="md:col-span-4 flex flex-col">
-                        <p className="text-xs font-semibold text-slate-500 mb-3">Profile Photo</p>
+                        <p className="text-xs font-semibold text-slate-500 mb-3">{t("Profile Photo")}</p>
                         <div className="w-32 h-32 rounded-full border border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center relative mb-4 group cursor-pointer self-center md:self-start" onClick={() => fileInputRef.current?.click()}>
                           {avatarSrc ? (
                             <img
@@ -1811,17 +1814,15 @@ const ProviderProfile = () => {
                           className="hidden"
                         />
                         <div className="text-center md:text-left">
-                          <p className="text-[11px] font-semibold text-slate-400">JPG, PNG or WEBP</p>
-                          <p className="text-[11px] font-semibold text-slate-400 mb-3">Max size 2MB</p>
+                          <p className="text-[11px] font-semibold text-slate-400">{t("JPG, PNG or WEBP")}</p>
+                          <p className="text-[11px] font-semibold text-slate-400 mb-3">{t("Max size 2MB")}</p>
                           {photoFile && (
                             <button
                               type="button"
                               onClick={handlePhotoUpload}
                               disabled={uploading}
                               className="px-4 py-2 rounded-lg bg-[#047857] text-white text-[11px] font-bold hover:bg-emerald-800 transition"
-                            >
-                              Upload Photo
-                            </button>
+                            >{t("Upload Photo")}</button>
                           )}
                         </div>
                       </div>
@@ -1829,20 +1830,20 @@ const ProviderProfile = () => {
                       {/* Inputs Grid */}
                       <div className="md:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">Full Name</label>
+                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">{t("Full Name")}</label>
                           <div className="relative">
                             <UserIcon className="absolute left-3 top-[11px] w-[18px] h-[18px] text-slate-400" />
                             <input
                               type="text"
                               value={form.name}
                               onChange={(e) => setForm({ ...form, name: e.target.value, profileName: e.target.value })}
-                              placeholder="Ananya Sharma"
+                              placeholder={t("Ananya Sharma")}
                               className="w-full pl-10 pr-4 py-2.5 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-700 placeholder:text-slate-400"
                             />
                           </div>
                         </div>
                         <div>
-                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">Headline</label>
+                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">{t("Headline")}</label>
                           <div className="relative">
                             <Briefcase className="absolute left-3 top-[11px] w-[18px] h-[18px] text-slate-400" />
                             <input
@@ -1852,13 +1853,13 @@ const ProviderProfile = () => {
                                 const skill = e.target.value;
                                 setForm(prev => ({ ...prev, skills: skill ? [skill] : [] }))
                               }}
-                              placeholder="UI/UX Designer"
+                              placeholder={t("UI/UX Designer")}
                               className="w-full pl-10 pr-4 py-2.5 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-700 placeholder:text-slate-400"
                             />
                           </div>
                         </div>
                         <div>
-                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">Email</label>
+                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">{t("Email")}</label>
                           <div className="relative">
                             <Mail className="absolute left-3 top-[11px] w-[18px] h-[18px] text-slate-400" />
                             <input
@@ -1866,7 +1867,7 @@ const ProviderProfile = () => {
                               value={form.email || ""}
                               onChange={(e) => setForm({ ...form, email: e.target.value })}
                               disabled={!!profileData?.user?.isEmailVerified}
-                              placeholder="ananya.sharma@example.com"
+                              placeholder={t("ananya.sharma@example.com")}
                               className={`w-full pl-10 pr-4 py-2.5 text-[13px] rounded-lg border border-slate-200 outline-none transition text-slate-700 placeholder:text-slate-400 ${
                                 profileData?.user?.isEmailVerified ? "bg-slate-50 cursor-not-allowed text-slate-500" : "focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                               }`}
@@ -1874,7 +1875,7 @@ const ProviderProfile = () => {
                           </div>
                         </div>
                         <div>
-                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">Phone Number</label>
+                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">{t("Phone Number")}</label>
                           <div className="border border-slate-200 rounded-lg overflow-hidden [&>div]:border-none [&_input]:text-[13px] focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
                              <CountryPhoneInput
                                variant="profile"
@@ -1892,7 +1893,7 @@ const ProviderProfile = () => {
                           </div>
                         </div>
                         <div>
-                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">Current Location</label>
+                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">{t("Current Location")}</label>
                           <div className="relative border border-slate-200 rounded-lg focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
                             <div className="w-full [&_input]:border-none [&_input]:text-[13px]">
                               <LocationSearch
@@ -1902,34 +1903,34 @@ const ProviderProfile = () => {
                                  onSelect={(item) => {
                                    if(item) setForm(prev => ({ ...prev, city: item.city || item.name || "" }));
                                  }}
-                                 placeholder="Bengaluru, Karnataka, India"
+                                 placeholder={t("Bengaluru, Karnataka, India")}
                               />
                             </div>
                           </div>
                         </div>
                         <div>
-                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">LinkedIn Profile (Optional)</label>
+                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">{t("LinkedIn Profile (Optional)")}</label>
                           <div className="relative">
                             <Link2 className="absolute left-3 top-[11px] w-[18px] h-[18px] text-slate-400" />
                             <input
                               type="text"
                               value={form.portfolioLinks?.[0]?.url || ""}
                               onChange={(e) => setForm({ ...form, portfolioLinks: e.target.value ? [{ platform: 'LinkedIn', url: e.target.value }] : [] })}
-                              placeholder="linkedin.com/in/ananyasharma"
+                              placeholder={t("linkedin.com/in/ananyasharma")}
                               className="w-full pl-10 pr-4 py-2.5 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-700 placeholder:text-slate-400"
                             />
                           </div>
                         </div>
                         {profileData?.whatsappFreelancePlanActive && (
                           <div>
-                            <label className="block text-[13px] font-bold text-slate-700 mb-1.5">Hourly Rate (₹)</label>
+                            <label className="block text-[13px] font-bold text-slate-700 mb-1.5">{t("Hourly Rate (₹)")}</label>
                             <div className="relative">
                               <span className="absolute left-3 top-[11px] font-bold text-slate-400 text-[13px]">₹</span>
                               <input
                                 type="text"
                                 value={form.pricing || ""}
                                 onChange={(e) => setForm({ ...form, pricing: e.target.value, pricingType: 'hourly' })}
-                                placeholder="500"
+                                placeholder={t("500")}
                                 className="w-full pl-7 pr-4 py-2.5 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-700 placeholder:text-slate-400"
                               />
                             </div>
@@ -1944,21 +1945,22 @@ const ProviderProfile = () => {
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-[280px]">
                        <div className="flex items-center gap-2 mb-2">
                          <UserIcon className="w-5 h-5 text-emerald-600" />
-                         <h3 className="font-extrabold text-slate-800 text-base tracking-tight">About Yourself</h3>
+                         <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("About Yourself")}</h3>
                        </div>
-                       <p className="text-[13px] text-slate-500 mb-4">Write a short summary about yourself</p>
+                       <p className="text-[13px] text-slate-500 mb-4">{t("Write a short summary about yourself")}</p>
                        
                        <div className="relative flex-1 flex flex-col border border-slate-200 rounded-lg p-1 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all bg-white overflow-hidden">
                          <textarea
                            value={form.description}
                            onChange={(e) => setForm({ ...form, description: e.target.value })}
-                           placeholder="Passionate UI/UX Designer with 3+ years of experience creating intuitive, user-centered digital experiences. Skilled in user research, wireframing, prototyping and visual design. I love solving complex problems and crafting beautiful, functional products."
+                           placeholder={t(
+                             "Passionate UI/UX Designer with 3+ years of experience creating intuitive, user-centered digital experiences. Skilled in user research, wireframing, prototyping and visual design. I love solving complex problems and crafting beautiful, functional products."
+                           )}
                            className="w-full h-full px-3 py-2 text-[13px] outline-none resize-none font-medium text-slate-700 bg-transparent scrollbar-thin"
                          />
                          <div className="flex items-center justify-between p-2 pt-0 mt-auto bg-white border-t border-transparent">
                            <span className="text-[11px] text-slate-400 font-medium">
-                             {form.description?.length || 0} / 600 characters
-                           </span>
+                             {form.description?.length || 0}{t("/ 600 characters")}</span>
                            <button 
                              type="button" 
                              onClick={handleSuggestAI} 
@@ -1979,52 +1981,52 @@ const ProviderProfile = () => {
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-[280px]">
                        <div className="flex items-center gap-2 mb-6">
                          <Briefcase className="w-5 h-5 text-emerald-600" />
-                         <h3 className="font-extrabold text-slate-800 text-base tracking-tight">Current Job Details</h3>
+                         <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Current Job Details")}</h3>
                        </div>
                        
                        <div className="grid grid-cols-2 gap-x-4 gap-y-5 flex-1">
                           <div className="col-span-2 sm:col-span-1">
-                            <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Current Designation</label>
+                            <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Current Designation")}</label>
                             <input
                               type="text"
                               value={form.designation}
                               onChange={(e) => setForm({ ...form, designation: e.target.value })}
-                              placeholder="e.g. UI/UX Designer"
+                              placeholder={t("e.g. UI/UX Designer")}
                               className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-700 font-medium placeholder:text-slate-400"
                             />
                           </div>
                           <div className="col-span-2 sm:col-span-1">
-                            <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Company (Optional)</label>
+                            <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Company (Optional)")}</label>
                             <input
                               type="text"
                               value={form.company}
                               onChange={(e) => setForm({ ...form, company: e.target.value })}
-                              placeholder="ABC Design Studio"
+                              placeholder={t("ABC Design Studio")}
                               className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-700 font-medium placeholder:text-slate-400"
                             />
                           </div>
                           <div className="col-span-2 sm:col-span-1">
-                            <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Total Experience</label>
+                            <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Total Experience")}</label>
                             <div className="relative">
                               <select 
                                 value={form.experience}
                                 onChange={(e) => setForm({ ...form, experience: e.target.value })}
                                 className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white appearance-none text-slate-700 font-medium cursor-pointer">
-                                <option value="Fresher">Fresher</option>
-                                <option value="1-3 years">1-3 Years</option>
-                                <option value="3-5 years">3-5 Years</option>
-                                <option value="5-10 years">5-10 Years</option>
+                                <option value="Fresher">{t("Fresher")}</option>
+                                <option value="1-3 years">{t("1-3 Years")}</option>
+                                <option value="3-5 years">{t("3-5 Years")}</option>
+                                <option value="5-10 years">{t("5-10 Years")}</option>
                               </select>
                               <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
                             </div>
                           </div>
                           <div className="col-span-2 sm:col-span-1">
-                            <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Notice Period</label>
+                            <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Notice Period")}</label>
                             <div className="relative">
                               <select className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white appearance-none text-slate-700 font-medium cursor-pointer">
-                                <option>30 Days</option>
-                                <option>15 Days</option>
-                                <option>Immediate</option>
+                                <option>{t("30 Days")}</option>
+                                <option>{t("15 Days")}</option>
+                                <option>{t("Immediate")}</option>
                               </select>
                               <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
                             </div>
@@ -2037,9 +2039,9 @@ const ProviderProfile = () => {
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-10">
                     <div className="flex items-center gap-2 mb-2">
                       <PhoneIcon className="w-5 h-5 text-emerald-600" />
-                      <h3 className="font-extrabold text-slate-800 text-base tracking-tight">Contact Information</h3>
+                      <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Contact Information")}</h3>
                     </div>
-                    <p className="text-[13px] text-slate-500 mb-5">Manage how recruiters can contact you</p>
+                    <p className="text-[13px] text-slate-500 mb-5">{t("Manage how recruiters can contact you")}</p>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                       {/* Option 1 */}
@@ -2051,9 +2053,9 @@ const ProviderProfile = () => {
                         )}
                         <div className={`flex items-center gap-2 mb-1.5 ${form.contactVisibility === "both" ? "text-emerald-800" : "text-slate-700"}`}>
                            <ShieldCheck className={`w-[18px] h-[18px] ${form.contactVisibility === "both" ? "" : "text-slate-400"}`} />
-                           <span className="font-bold text-[13px]">Show Phone & Email</span>
+                           <span className="font-bold text-[13px]">{t("Show Phone & Email")}</span>
                         </div>
-                        <p className={`text-[11px] font-medium leading-tight pr-2 ${form.contactVisibility === "both" ? "text-emerald-700/80" : "text-slate-500"}`}>Recruiters can see your phone & email</p>
+                        <p className={`text-[11px] font-medium leading-tight pr-2 ${form.contactVisibility === "both" ? "text-emerald-700/80" : "text-slate-500"}`}>{t("Recruiters can see your phone & email")}</p>
                       </div>
                       
                       {/* Option 2 */}
@@ -2065,9 +2067,9 @@ const ProviderProfile = () => {
                         )}
                         <div className={`flex items-center gap-2 mb-1.5 ${form.contactVisibility === "email_only" ? "text-emerald-800" : "text-slate-700"}`}>
                            <Mail className={`w-[18px] h-[18px] ${form.contactVisibility === "email_only" ? "" : "text-slate-400"}`} />
-                           <span className="font-bold text-[13px]">Show Email Only</span>
+                           <span className="font-bold text-[13px]">{t("Show Email Only")}</span>
                         </div>
-                        <p className={`text-[11px] font-medium leading-tight pr-2 ${form.contactVisibility === "email_only" ? "text-emerald-700/80" : "text-slate-500"}`}>Recruiters can see your email only</p>
+                        <p className={`text-[11px] font-medium leading-tight pr-2 ${form.contactVisibility === "email_only" ? "text-emerald-700/80" : "text-slate-500"}`}>{t("Recruiters can see your email only")}</p>
                       </div>
 
                       {/* Option 3 */}
@@ -2079,9 +2081,9 @@ const ProviderProfile = () => {
                         )}
                         <div className={`flex items-center gap-2 mb-1.5 ${form.contactVisibility === "phone_only" ? "text-emerald-800" : "text-slate-700"}`}>
                            <PhoneIcon className={`w-[18px] h-[18px] ${form.contactVisibility === "phone_only" ? "" : "text-slate-400"}`} />
-                           <span className="font-bold text-[13px]">Show Phone Only</span>
+                           <span className="font-bold text-[13px]">{t("Show Phone Only")}</span>
                         </div>
-                        <p className={`text-[11px] font-medium leading-tight pr-2 ${form.contactVisibility === "phone_only" ? "text-emerald-700/80" : "text-slate-500"}`}>Recruiters can see your phone only</p>
+                        <p className={`text-[11px] font-medium leading-tight pr-2 ${form.contactVisibility === "phone_only" ? "text-emerald-700/80" : "text-slate-500"}`}>{t("Recruiters can see your phone only")}</p>
                       </div>
 
                       {/* Option 4 */}
@@ -2093,17 +2095,17 @@ const ProviderProfile = () => {
                         )}
                         <div className={`flex items-center gap-2 mb-1.5 ${form.contactVisibility === "none" ? "text-emerald-800" : "text-slate-700"}`}>
                            <EyeOff className={`w-[18px] h-[18px] ${form.contactVisibility === "none" ? "" : "text-slate-400"}`} />
-                           <span className="font-bold text-[13px]">Hide All</span>
+                           <span className="font-bold text-[13px]">{t("Hide All")}</span>
                         </div>
-                        <p className={`text-[11px] font-medium leading-tight pr-2 ${form.contactVisibility === "none" ? "text-emerald-700/80" : "text-slate-500"}`}>Recruiters will contact you through LucoHire only</p>
+                        <p className={`text-[11px] font-medium leading-tight pr-2 ${form.contactVisibility === "none" ? "text-emerald-700/80" : "text-slate-500"}`}>{t("Recruiters will contact you through LucoHire only")}</p>
                       </div>
                     </div>
 
                     <div className="mt-8 space-y-4">
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-white hover:border-emerald-300 transition-colors">
                         <div>
-                          <h4 className="text-[14px] font-bold text-slate-800">Public SEO Profile</h4>
-                          <p className="text-[12px] text-slate-500 mt-0.5">Allow your profile to be indexed by search engines and viewed publicly.</p>
+                          <h4 className="text-[14px] font-bold text-slate-800">{t("Public SEO Profile")}</h4>
+                          <p className="text-[12px] text-slate-500 mt-0.5">{t("Allow your profile to be indexed by search engines and viewed publicly.")}</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" className="sr-only peer" checked={form.isPublicProfile} onChange={(e) => setForm({ ...form, isPublicProfile: e.target.checked })} />
@@ -2113,8 +2115,10 @@ const ProviderProfile = () => {
 
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-white hover:border-emerald-300 transition-colors">
                         <div>
-                          <h4 className="text-[14px] font-bold text-slate-800">WhatsApp Contact Consent</h4>
-                          <p className="text-[12px] text-slate-500 mt-0.5">Allow recruiters to directly open a WhatsApp chat with you from your public profile.</p>
+                          <h4 className="text-[14px] font-bold text-slate-800">{t("WhatsApp Contact Consent")}</h4>
+                          <p className="text-[12px] text-slate-500 mt-0.5">{t(
+                            "Allow recruiters to directly open a WhatsApp chat with you from your public profile."
+                          )}</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" className="sr-only peer" checked={form.whatsappConsent} onChange={(e) => setForm({ ...form, whatsappConsent: e.target.checked })} />
@@ -2132,35 +2136,35 @@ const ProviderProfile = () => {
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
                      <div className="flex items-center gap-2 mb-4">
                        <Briefcase className="w-5 h-5 text-emerald-600" />
-                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">Current Work Details</h3>
+                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Current Work Details")}</h3>
                      </div>
-                     <p className="text-[13px] text-slate-500 mb-4">Where are you currently working and what is your notice period?</p>
+                     <p className="text-[13px] text-slate-500 mb-4">{t("Where are you currently working and what is your notice period?")}</p>
                      
                      <div className="grid grid-cols-2 gap-4">
                        <div className="col-span-2 sm:col-span-1">
-                         <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Total Experience</label>
+                         <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Total Experience")}</label>
                          <div className="relative">
                            <select value={form.experience} onChange={(e) => setForm({ ...form, experience: e.target.value })} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white appearance-none cursor-pointer">
-                             <option value="">Select Experience</option>
-                             <option value="Fresher">Fresher</option>
-                             <option value="1-3 years">1-3 Years</option>
-                             <option value="3-5 years">3-5 Years</option>
-                             <option value="5-10 years">5-10 Years</option>
-                             <option value="10+ years">10+ Years</option>
+                             <option value="">{t("Select Experience")}</option>
+                             <option value="Fresher">{t("Fresher")}</option>
+                             <option value="1-3 years">{t("1-3 Years")}</option>
+                             <option value="3-5 years">{t("3-5 Years")}</option>
+                             <option value="5-10 years">{t("5-10 Years")}</option>
+                             <option value="10+ years">{t("10+ Years")}</option>
                            </select>
                            <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
                          </div>
                        </div>
                        <div className="col-span-2 sm:col-span-1">
-                         <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Notice Period / Availability</label>
+                         <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Notice Period / Availability")}</label>
                          <div className="relative">
                            <select value={form.noticePeriod} onChange={(e) => setForm({ ...form, noticePeriod: e.target.value })} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white appearance-none cursor-pointer">
-                             <option value="">Select Availability</option>
-                             <option value="Immediate">Can join immediately</option>
-                             <option value="15 Days">15 Days Notice</option>
-                             <option value="30 Days">30 Days Notice</option>
-                             <option value="60 Days">60 Days Notice</option>
-                             <option value="90 Days">90 Days Notice</option>
+                             <option value="">{t("Select Availability")}</option>
+                             <option value="Immediate">{t("Can join immediately")}</option>
+                             <option value="15 Days">{t("15 Days Notice")}</option>
+                             <option value="30 Days">{t("30 Days Notice")}</option>
+                             <option value="60 Days">{t("60 Days Notice")}</option>
+                             <option value="90 Days">{t("90 Days Notice")}</option>
                            </select>
                            <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
                          </div>
@@ -2169,16 +2173,16 @@ const ProviderProfile = () => {
                        {form.experience !== 'Fresher' && (
                          <>
                            <div className="col-span-2 sm:col-span-1">
-                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Current Designation / Role</label>
-                             <input type="text" value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. UI/UX Designer" />
+                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Current Designation / Role")}</label>
+                             <input type="text" value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. UI/UX Designer")} />
                            </div>
                            <div className="col-span-2 sm:col-span-1">
-                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Company</label>
-                             <input type="text" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. ABC Studio" />
+                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Company")}</label>
+                             <input type="text" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. ABC Studio")} />
                            </div>
                            <div className="col-span-2">
-                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">What work have you done in this company?</label>
-                             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 resize-none h-24" placeholder="Describe your responsibilities and achievements..." />
+                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("What work have you done in this company?")}</label>
+                             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 resize-none h-24" placeholder={t("Describe your responsibilities and achievements...")} />
                            </div>
                          </>
                        )}
@@ -2188,15 +2192,15 @@ const ProviderProfile = () => {
                   {/* Skills Section */}
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
                      <div className="flex items-center gap-2 mb-4">
-                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">Skills</h3>
+                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Skills")}</h3>
                      </div>
-                     <p className="text-[13px] text-slate-500 mb-4">Add skills relevant to your profession.</p>
+                     <p className="text-[13px] text-slate-500 mb-4">{t("Add skills relevant to your profession.")}</p>
                      
                      <div className="flex flex-col gap-3">
                        <div className="flex gap-2">
                          <input 
                            type="text" 
-                           placeholder="Add a skill (e.g. React, Carpentry)" 
+                           placeholder={t("Add a skill (e.g. React, Carpentry)")} 
                            id="newSkillInput"
                            className="flex-1 px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500"
                            onKeyDown={(e) => {
@@ -2218,7 +2222,7 @@ const ProviderProfile = () => {
                              }
                              el.value = '';
                            }}
-                           className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-[13px] font-bold hover:bg-emerald-700">Add</button>
+                           className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-[13px] font-bold hover:bg-emerald-700">{t("Add")}</button>
                        </div>
                        <div className="flex flex-wrap gap-2">
                          {form.skills.map((skill, i) => (
@@ -2236,9 +2240,9 @@ const ProviderProfile = () => {
                   {/* Experience Section */}
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
                      <div className="flex items-center gap-2 mb-4">
-                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">Previous Work Experience</h3>
+                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Previous Work Experience")}</h3>
                      </div>
-                     <p className="text-[13px] text-slate-500 mb-4">Where have you previously worked?</p>
+                     <p className="text-[13px] text-slate-500 mb-4">{t("Where have you previously worked?")}</p>
                      
                      <div className="space-y-4">
                        {form.previousExperience?.map((exp, i) => (
@@ -2246,33 +2250,35 @@ const ProviderProfile = () => {
                            <button type="button" onClick={() => setForm({ ...form, previousExperience: form.previousExperience.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
                            
                            <div className="sm:col-span-1">
-                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Company Name</label>
-                             <input type="text" value={exp.company} onChange={(e) => { const nx = [...form.previousExperience]; nx[i].company = e.target.value; setForm({ ...form, previousExperience: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="Company Name" />
+                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Company Name")}</label>
+                             <input type="text" value={exp.company} onChange={(e) => { const nx = [...form.previousExperience]; nx[i].company = e.target.value; setForm({ ...form, previousExperience: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("Company Name")} />
                            </div>
                            <div className="sm:col-span-1">
-                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Designation / Role</label>
-                             <input type="text" value={exp.role} onChange={(e) => { const nx = [...form.previousExperience]; nx[i].role = e.target.value; setForm({ ...form, previousExperience: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. Senior Designer" />
+                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Designation / Role")}</label>
+                             <input type="text" value={exp.role} onChange={(e) => { const nx = [...form.previousExperience]; nx[i].role = e.target.value; setForm({ ...form, previousExperience: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. Senior Designer")} />
                            </div>
                            <div className="sm:col-span-1">
-                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Duration</label>
-                             <input type="text" value={exp.duration} onChange={(e) => { const nx = [...form.previousExperience]; nx[i].duration = e.target.value; setForm({ ...form, previousExperience: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. 2020 - 2022" />
+                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Duration")}</label>
+                             <input type="text" value={exp.duration} onChange={(e) => { const nx = [...form.previousExperience]; nx[i].duration = e.target.value; setForm({ ...form, previousExperience: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. 2020 - 2022")} />
                            </div>
                            <div className="sm:col-span-2">
-                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Description (Optional)</label>
-                             <input type="text" value={exp.description} onChange={(e) => { const nx = [...form.previousExperience]; nx[i].description = e.target.value; setForm({ ...form, previousExperience: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="Brief description" />
+                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Description (Optional)")}</label>
+                             <input type="text" value={exp.description} onChange={(e) => { const nx = [...form.previousExperience]; nx[i].description = e.target.value; setForm({ ...form, previousExperience: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("Brief description")} />
                            </div>
                          </div>
                        ))}
-                       <button type="button" onClick={() => setForm({ ...form, previousExperience: [...(form.previousExperience || []), { company: '', role: '', duration: '', description: '' }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">+ Add Experience</button>
+                       <button type="button" onClick={() => setForm({ ...form, previousExperience: [...(form.previousExperience || []), { company: '', role: '', duration: '', description: '' }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">{t("+ Add Experience")}</button>
                      </div>
                   </div>
 
                   {/* Projects Section (Moved to Details) */}
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
                      <div className="flex items-center gap-2 mb-4">
-                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">Projects</h3>
+                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Projects")}</h3>
                      </div>
-                     <p className="text-[13px] text-slate-500 mb-4">Add your notable technical or design projects and choose if they are visible for all.</p>
+                     <p className="text-[13px] text-slate-500 mb-4">{t(
+                       "Add your notable technical or design projects and choose if they are visible for all."
+                     )}</p>
                      
                      <div className="space-y-4">
                        {form.projects?.map((proj, i) => (
@@ -2280,25 +2286,25 @@ const ProviderProfile = () => {
                            <button type="button" onClick={() => setForm({ ...form, projects: form.projects.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
                            <div className="grid grid-cols-2 gap-4">
                              <div className="col-span-2">
-                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Project Name</label>
-                               <input type="text" value={proj.name || ''} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].name = e.target.value; setForm({ ...form, projects: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. E-Commerce Dashboard" />
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Project Name")}</label>
+                               <input type="text" value={proj.name || ''} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].name = e.target.value; setForm({ ...form, projects: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. E-Commerce Dashboard")} />
                              </div>
                              <div className="col-span-2">
-                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Live Link (Optional)</label>
-                               <input type="text" value={proj.link || ''} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].link = e.target.value; setForm({ ...form, projects: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. https://github.com/... or https://..." />
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Live Link (Optional)")}</label>
+                               <input type="text" value={proj.link || ''} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].link = e.target.value; setForm({ ...form, projects: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. https://github.com/... or https://...")} />
                              </div>
                              <div className="col-span-2">
-                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Description</label>
-                               <textarea value={proj.description || ''} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].description = e.target.value; setForm({ ...form, projects: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 resize-none h-20" placeholder="Briefly describe what you built, technologies used, and your role." />
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Description")}</label>
+                               <textarea value={proj.description || ''} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].description = e.target.value; setForm({ ...form, projects: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 resize-none h-20" placeholder={t("Briefly describe what you built, technologies used, and your role.")} />
                              </div>
                              <div className="col-span-2 flex items-center gap-2">
                                <input type="checkbox" id={`visibleForAll-${i}`} checked={proj.visibleForAll !== false} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].visibleForAll = e.target.checked; setForm({ ...form, projects: nx }); }} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500" />
-                               <label htmlFor={`visibleForAll-${i}`} className="text-[13px] font-medium text-slate-700">Make this project visible for all recruiters and viewers</label>
+                               <label htmlFor={`visibleForAll-${i}`} className="text-[13px] font-medium text-slate-700">{t("Make this project visible for all recruiters and viewers")}</label>
                              </div>
                            </div>
                          </div>
                        ))}
-                       <button type="button" onClick={() => setForm({ ...form, projects: [...(form.projects || []), { name: '', link: '', description: '', visibleForAll: true }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">+ Add Project</button>
+                       <button type="button" onClick={() => setForm({ ...form, projects: [...(form.projects || []), { name: '', link: '', description: '', visibleForAll: true }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">{t("+ Add Project")}</button>
                      </div>
                   </div>
 
@@ -2310,9 +2316,9 @@ const ProviderProfile = () => {
                   {/* Education Section */}
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
                      <div className="flex items-center gap-2 mb-4">
-                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">Education</h3>
+                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Education")}</h3>
                      </div>
-                     <p className="text-[13px] text-slate-500 mb-4">Add your educational background.</p>
+                     <p className="text-[13px] text-slate-500 mb-4">{t("Add your educational background.")}</p>
                      
                      <div className="space-y-4">
                        {form.education?.map((edu, i) => (
@@ -2320,25 +2326,25 @@ const ProviderProfile = () => {
                            <button type="button" onClick={() => setForm({ ...form, education: form.education.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
                            <div className="grid grid-cols-2 gap-4">
                              <div>
-                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Institution</label>
-                               <input type="text" value={edu.institution} onChange={(e) => { const nx = [...form.education]; nx[i].institution = e.target.value; setForm({ ...form, education: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="University / College" />
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Institution")}</label>
+                               <input type="text" value={edu.institution} onChange={(e) => { const nx = [...form.education]; nx[i].institution = e.target.value; setForm({ ...form, education: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("University / College")} />
                              </div>
                              <div>
-                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Degree</label>
-                               <input type="text" value={edu.degree} onChange={(e) => { const nx = [...form.education]; nx[i].degree = e.target.value; setForm({ ...form, education: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. B.Tech" />
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Degree")}</label>
+                               <input type="text" value={edu.degree} onChange={(e) => { const nx = [...form.education]; nx[i].degree = e.target.value; setForm({ ...form, education: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. B.Tech")} />
                              </div>
                              <div>
-                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Year</label>
-                               <input type="text" value={edu.year} onChange={(e) => { const nx = [...form.education]; nx[i].year = e.target.value; setForm({ ...form, education: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. 2018 - 2022" />
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Year")}</label>
+                               <input type="text" value={edu.year} onChange={(e) => { const nx = [...form.education]; nx[i].year = e.target.value; setForm({ ...form, education: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. 2018 - 2022")} />
                              </div>
                              <div>
-                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Grade (GPA/%)</label>
-                               <input type="text" value={edu.grade || ''} onChange={(e) => { const nx = [...form.education]; nx[i].grade = e.target.value; setForm({ ...form, education: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. 8.5 CGPA or 85%" />
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Grade (GPA/%)")}</label>
+                               <input type="text" value={edu.grade || ''} onChange={(e) => { const nx = [...form.education]; nx[i].grade = e.target.value; setForm({ ...form, education: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. 8.5 CGPA or 85%")} />
                              </div>
                            </div>
                          </div>
                        ))}
-                       <button type="button" onClick={() => setForm({ ...form, education: [...(form.education || []), { institution: '', degree: '', year: '', grade: '' }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">+ Add Education</button>
+                       <button type="button" onClick={() => setForm({ ...form, education: [...(form.education || []), { institution: '', degree: '', year: '', grade: '' }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">{t("+ Add Education")}</button>
                      </div>
                   </div>
                 </div>
@@ -2348,9 +2354,11 @@ const ProviderProfile = () => {
                 <div className="space-y-6">
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
                      <div className="flex items-center gap-2 mb-4">
-                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">Portfolio Links</h3>
+                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Portfolio Links")}</h3>
                      </div>
-                     <p className="text-[13px] text-slate-500 mb-4">Add your portfolio links (e.g. GitHub, Behance, Dribbble). They will be reviewed by our team.</p>
+                     <p className="text-[13px] text-slate-500 mb-4">{t(
+                       "Add your portfolio links (e.g. GitHub, Behance, Dribbble). They will be reviewed by our team."
+                     )}</p>
                      
                      <div className="space-y-4">
                        {form.portfolioLinks?.map((link, i) => (
@@ -2364,22 +2372,22 @@ const ProviderProfile = () => {
                              </div>
                            )}
                            {(!link.status || link.status === 'pending') && (
-                             <div className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 inline-block rounded mb-3 bg-amber-100 text-amber-700">Pending Approval</div>
+                             <div className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 inline-block rounded mb-3 bg-amber-100 text-amber-700">{t("Pending Approval")}</div>
                            )}
 
                            <div className="grid grid-cols-2 gap-4">
                              <div className="col-span-2 md:col-span-1">
-                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Platform</label>
-                               <input type="text" value={link.platform || ''} onChange={(e) => { const nx = [...(form.portfolioLinks || [])]; nx[i].platform = e.target.value; setForm({ ...form, portfolioLinks: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="e.g. GitHub, Behance" />
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Platform")}</label>
+                               <input type="text" value={link.platform || ''} onChange={(e) => { const nx = [...(form.portfolioLinks || [])]; nx[i].platform = e.target.value; setForm({ ...form, portfolioLinks: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. GitHub, Behance")} />
                              </div>
                              <div className="col-span-2 md:col-span-1">
-                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">URL</label>
-                               <input type="text" value={link.url || ''} onChange={(e) => { const nx = [...(form.portfolioLinks || [])]; nx[i].url = e.target.value; setForm({ ...form, portfolioLinks: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="https://..." />
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("URL")}</label>
+                               <input type="text" value={link.url || ''} onChange={(e) => { const nx = [...(form.portfolioLinks || [])]; nx[i].url = e.target.value; setForm({ ...form, portfolioLinks: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("https://...")} />
                              </div>
                            </div>
                          </div>
                        ))}
-                       <button type="button" onClick={() => setForm({ ...form, portfolioLinks: [...(form.portfolioLinks || []), { platform: '', url: '', status: 'pending' }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">+ Add Portfolio Link</button>
+                       <button type="button" onClick={() => setForm({ ...form, portfolioLinks: [...(form.portfolioLinks || []), { platform: '', url: '', status: 'pending' }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">{t("+ Add Portfolio Link")}</button>
                      </div>
                   </div>
                 </div>
@@ -2391,16 +2399,18 @@ const ProviderProfile = () => {
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                   <div className="flex items-center gap-2 mb-4">
                     <FileText className="w-5 h-5 text-emerald-600" />
-                    <h3 className="font-extrabold text-slate-800 text-base tracking-tight">Resume Upload</h3>
+                    <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Resume Upload")}</h3>
                   </div>
-                  <p className="text-[13px] text-slate-500 mb-6">Upload your latest resume to help recruiters understand your profile better.</p>
+                  <p className="text-[13px] text-slate-500 mb-6">{t(
+                    "Upload your latest resume to help recruiters understand your profile better."
+                  )}</p>
                   
                   <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer group relative">
                     <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                       <UploadCloud className="w-5 h-5 text-emerald-600" />
                     </div>
-                    <p className="text-[14px] font-bold text-slate-700 mb-1">Click to upload or drag and drop</p>
-                    <p className="text-[12px] text-slate-500">PDF, DOC, or DOCX (Max 5MB)</p>
+                    <p className="text-[14px] font-bold text-slate-700 mb-1">{t("Click to upload or drag and drop")}</p>
+                    <p className="text-[12px] text-slate-500">{t("PDF, DOC, or DOCX (Max 5MB)")}</p>
                     <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={async (e) => {
                       if (e.target.files && e.target.files[0]) {
                         const file = e.target.files[0];
@@ -2418,7 +2428,13 @@ const ProviderProfile = () => {
                           
                           const pd = data.data || {};
                           setParsedResumeData(pd);
-                          toast.success("Resume parsed successfully! Please review the details.", { id: toastId, duration: 3000 });
+                          toast.success("Resume parsed successfully! Extracting details...", { id: toastId, duration: 3000 });
+                          
+                          // The backend now auto-applies missing details directly to the profile.
+                          // Wait a moment for background DB saves then fetch profile again to update the UI
+                          setTimeout(() => {
+                            fetchProfile();
+                          }, 1500);
                         } catch (err) {
                           toast.error(err?.response?.data?.message || "Resume parsing failed", { id: toastId });
                         }
@@ -2432,8 +2448,8 @@ const ProviderProfile = () => {
                       <div className="flex items-center gap-3">
                         <FileText className="w-8 h-8 text-rose-500" />
                         <div>
-                          <p className="text-[13px] font-bold text-slate-800">Current Resume</p>
-                          <p className="text-[11px] text-slate-500">Uploaded successfully</p>
+                          <p className="text-[13px] font-bold text-slate-800">{t("Current Resume")}</p>
+                          <p className="text-[11px] text-slate-500">{t("Uploaded successfully")}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
@@ -2441,9 +2457,7 @@ const ProviderProfile = () => {
                           type="button"
                           onClick={() => setIsResumeModalOpen(true)}
                           className="text-[12px] font-bold text-emerald-600 hover:text-emerald-700"
-                        >
-                          View Resume
-                        </button>
+                        >{t("View Resume")}</button>
                       </div>
                     </div>
                   )}
@@ -2458,15 +2472,15 @@ const ProviderProfile = () => {
                 <div className="space-y-6">
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                     <div className="flex items-center gap-2 mb-4">
-                      <h3 className="font-extrabold text-slate-800 text-base tracking-tight">Job Preferences</h3>
+                      <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Job Preferences")}</h3>
                     </div>
-                    <p className="text-[13px] text-slate-500 mb-6">Let recruiters know what kind of opportunities you are looking for.</p>
+                    <p className="text-[13px] text-slate-500 mb-6">{t("Let recruiters know what kind of opportunities you are looking for.")}</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       
                       {/* Job Type */}
                       <div>
-                        <label className="block text-[12px] font-bold text-slate-600 mb-2">Preferred Job Type</label>
+                        <label className="block text-[12px] font-bold text-slate-600 mb-2">{t("Preferred Job Type")}</label>
                         <div className="flex flex-wrap gap-2">
                           {["Full Time", "Part Time", "Contract", "Freelance", "Internship"].map(type => (
                             <button
@@ -2493,7 +2507,7 @@ const ProviderProfile = () => {
 
                       {/* Work Mode */}
                       <div>
-                        <label className="block text-[12px] font-bold text-slate-600 mb-2">Work Mode</label>
+                        <label className="block text-[12px] font-bold text-slate-600 mb-2">{t("Work Mode")}</label>
                         <div className="flex flex-wrap gap-2">
                           {["Remote", "Hybrid", "On-site"].map(mode => (
                             <button
@@ -2514,39 +2528,39 @@ const ProviderProfile = () => {
 
                       {/* Expected Compensation */}
                       <div>
-                        <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Expected Salary/Compensation</label>
+                        <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Expected Salary/Compensation")}</label>
                         <div className="flex gap-2">
                           <input
                             type="text"
                             value={form.pricing || ""}
                             onChange={(e) => setForm({ ...form, pricing: e.target.value })}
                             className="flex-1 px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500"
-                            placeholder="e.g. 80000"
+                            placeholder={t("e.g. 80000")}
                           />
                           <select
                             value={form.pricingType || ""}
                             onChange={(e) => setForm({ ...form, pricingType: e.target.value })}
                             className="w-32 px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-slate-50"
                           >
-                            <option value="">Unit</option>
-                            <option value="hourly">Hourly</option>
-                            <option value="daily">Daily</option>
-                            <option value="monthly">Monthly</option>
-                            <option value="fixed">Fixed</option>
+                            <option value="">{t("Unit")}</option>
+                            <option value="hourly">{t("Hourly")}</option>
+                            <option value="daily">{t("Daily")}</option>
+                            <option value="monthly">{t("Monthly")}</option>
+                            <option value="fixed">{t("Fixed")}</option>
                           </select>
                         </div>
                       </div>
 
                       {/* Relocation */}
                       <div>
-                        <label className="block text-[12px] font-bold text-slate-600 mb-1.5">Willing to Relocate?</label>
+                        <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Willing to Relocate?")}</label>
                         <select
                           value={form.relocationAvailable ? "Yes" : "No"}
                           onChange={(e) => setForm({ ...form, relocationAvailable: e.target.value === "Yes" })}
                           className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500"
                         >
-                          <option value="No">No</option>
-                          <option value="Yes">Yes</option>
+                          <option value="No">{t("No")}</option>
+                          <option value="Yes">{t("Yes")}</option>
                         </select>
                       </div>
 
@@ -2561,8 +2575,10 @@ const ProviderProfile = () => {
                     <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
                        <FileText className="w-8 h-8 text-emerald-600" />
                     </div>
-                    <h3 className="font-bold text-slate-800 text-lg mb-1">{activeTab} Details</h3>
-                    <p className="text-sm text-slate-500 max-w-sm leading-relaxed">This section is currently using existing dynamic data behind the scenes. Add more functionality here.</p>
+                    <h3 className="font-bold text-slate-800 text-lg mb-1">{activeTab}{t("Details")}</h3>
+                    <p className="text-sm text-slate-500 max-w-sm leading-relaxed">{t(
+                      "This section is currently using existing dynamic data behind the scenes. Add more functionality here."
+                    )}</p>
                   </div>
                 </div>
               )}
@@ -2574,7 +2590,7 @@ const ProviderProfile = () => {
                 
                 {/* Profile Strength */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                  <h3 className="font-extrabold text-slate-800 text-base tracking-tight mb-5">Profile Strength</h3>
+                  <h3 className="font-extrabold text-slate-800 text-base tracking-tight mb-5">{t("Profile Strength")}</h3>
                   
                   <div className="flex items-center gap-5 mb-7">
                     <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
@@ -2603,12 +2619,12 @@ const ProviderProfile = () => {
                       </svg>
                       <div className="absolute flex flex-col items-center justify-center mt-1">
                         <span className="font-black text-slate-800 text-[18px] leading-none">{profileData?.profileCompletion || 0}%</span>
-                        <span className="text-[10px] font-bold text-[#047857] uppercase mt-0.5 tracking-wider">Good</span>
+                        <span className="text-[10px] font-bold text-[#047857] uppercase mt-0.5 tracking-wider">{t("Good")}</span>
                       </div>
                     </div>
-                    <p className="text-[13px] text-slate-600 font-medium leading-relaxed flex-1">
-                      Almost there! Complete the remaining sections to unlock better opportunities.
-                    </p>
+                    <p className="text-[13px] text-slate-600 font-medium leading-relaxed flex-1">{t(
+                      "Almost there! Complete the remaining sections to unlock better opportunities."
+                    )}</p>
                   </div>
 
                   <div className="space-y-4 text-[13px] mb-8">
@@ -2640,60 +2656,58 @@ const ProviderProfile = () => {
                   </div>
 
                   <button type="button" className="w-full py-2.5 bg-white text-emerald-700 border border-emerald-200 rounded-lg text-sm font-bold hover:bg-emerald-50 transition flex items-center justify-center gap-2">
-                     <TrendingUp className="w-4 h-4" /> Improve Profile
-                  </button>
+                     <TrendingUp className="w-4 h-4" />{t("Improve Profile")}</button>
                 </div>
 
                 {/* AI Tip Card */}
                 <div className="bg-emerald-50/70 rounded-2xl p-6 border border-emerald-100 shadow-sm relative overflow-hidden">
                    <div className="flex items-center gap-2 mb-3 relative z-10">
                      <Sparkles className="w-5 h-5 text-emerald-600" />
-                     <h3 className="font-bold text-emerald-900 text-[15px]">AI Tip</h3>
+                     <h3 className="font-bold text-emerald-900 text-[15px]">{t("AI Tip")}</h3>
                    </div>
-                   <p className="text-[13px] text-emerald-800 font-medium mb-4 relative z-10 leading-relaxed pr-2">
-                     Profiles with complete information get 3X more profile views and better matches.
-                   </p>
+                   <p className="text-[13px] text-emerald-800 font-medium mb-4 relative z-10 leading-relaxed pr-2">{t(
+                     "Profiles with complete information get 3X more profile views and better matches."
+                   )}</p>
                    
                    <div className="bg-white/80 p-4 rounded-xl border border-emerald-100 relative z-10">
-                     <p className="text-[12px] font-bold text-emerald-900 mb-1">Tip to improve your profile</p>
-                     <p className="text-[12px] text-emerald-700/80 mb-4 leading-relaxed font-medium">
-                       Add your portfolio link to increase your chances of getting noticed by recruiters.
-                     </p>
-                     <button type="button" className="bg-white px-4 py-2 rounded-lg text-emerald-700 text-[12px] font-bold border border-emerald-200 hover:bg-emerald-50 transition flex items-center justify-center w-max gap-2 shadow-sm">
-                       Add Portfolio Link <Link2 className="w-3.5 h-3.5" />
+                     <p className="text-[12px] font-bold text-emerald-900 mb-1">{t("Tip to improve your profile")}</p>
+                     <p className="text-[12px] text-emerald-700/80 mb-4 leading-relaxed font-medium">{t(
+                       "Add your portfolio link to increase your chances of getting noticed by recruiters."
+                     )}</p>
+                     <button type="button" className="bg-white px-4 py-2 rounded-lg text-emerald-700 text-[12px] font-bold border border-emerald-200 hover:bg-emerald-50 transition flex items-center justify-center w-max gap-2 shadow-sm">{t("Add Portfolio Link")}<Link2 className="w-3.5 h-3.5" />
                      </button>
                    </div>
               </div>
 
               {/* Quick Actions */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                 <h3 className="font-extrabold text-slate-800 text-base tracking-tight mb-3">Quick Actions</h3>
+                 <h3 className="font-extrabold text-slate-800 text-base tracking-tight mb-3">{t("Quick Actions")}</h3>
                  <div className="flex flex-col">
                    <button type="button" onClick={handleShareProfile} className="flex items-center justify-between py-3.5 border-b border-slate-100 hover:bg-slate-50 -mx-6 px-6 transition-colors group">
                      <div className="flex items-center gap-3">
                        <Eye className="w-[18px] h-[18px] text-slate-400 group-hover:text-emerald-600 transition-colors" />
-                       <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">Share Profile</span>
+                       <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{t("Share Profile")}</span>
                      </div>
                      <ChevronDown className="w-4 h-4 text-slate-300 transform -rotate-90 group-hover:text-emerald-600 transition-colors" />
                    </button>
                    <button type="button" onClick={() => setShowResumeGenerator(true)} className="flex items-center justify-between py-3.5 border-b border-slate-100 hover:bg-slate-50 -mx-6 px-6 transition-colors group">
                      <div className="flex items-center gap-3">
                        <FileText className="w-[18px] h-[18px] text-slate-400 group-hover:text-emerald-600 transition-colors" />
-                       <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">Download Resume</span>
+                       <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{t("Download Resume")}</span>
                      </div>
                      <ChevronDown className="w-4 h-4 text-slate-300 transform -rotate-90 group-hover:text-emerald-600 transition-colors" />
                    </button>
                    <button type="button" className="flex items-center justify-between py-3.5 border-b border-slate-100 hover:bg-slate-50 -mx-6 px-6 transition-colors group">
                      <div className="flex items-center gap-3">
                        <Briefcase className="w-[18px] h-[18px] text-slate-400 group-hover:text-emerald-600 transition-colors" />
-                       <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">Manage Portfolio</span>
+                       <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{t("Manage Portfolio")}</span>
                      </div>
                      <ChevronDown className="w-4 h-4 text-slate-300 transform -rotate-90 group-hover:text-emerald-600 transition-colors" />
                    </button>
                    <button type="button" onClick={() => setShowErasureModal(true)} className="flex items-center justify-between py-3.5 hover:bg-red-50 -mx-6 px-6 transition-colors group">
                      <div className="flex items-center gap-3">
                        <Trash2 className="w-[18px] h-[18px] text-red-400 group-hover:text-red-600 transition-colors" />
-                       <span className="text-[13px] font-bold text-red-500 group-hover:text-red-700 transition-colors">Delete Account</span>
+                       <span className="text-[13px] font-bold text-red-500 group-hover:text-red-700 transition-colors">{t("Delete Account")}</span>
                      </div>
                      <ChevronDown className="w-4 h-4 text-slate-300 transform -rotate-90 group-hover:text-red-600 transition-colors" />
                    </button>
@@ -2704,9 +2718,6 @@ const ProviderProfile = () => {
           </div>
         </form>
       </div>
-
-
-
       {isOtpModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn">
           {/* Glass backdrop */}
@@ -2727,10 +2738,8 @@ const ProviderProfile = () => {
                 <ShieldCheck className="w-6 h-6" />
               </div>
 
-              <h3 className="text-base font-black text-slate-800 tracking-tight">Verify Mobile Number</h3>
-              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-                We sent a 6-digit verification code to <strong className="text-slate-800">{verifyingPhone || "your mobile number"}</strong>. Enter it below to save your profile.
-              </p>
+              <h3 className="text-base font-black text-slate-800 tracking-tight">{t("Verify Mobile Number")}</h3>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">{t("We sent a 6-digit verification code to")}<strong className="text-slate-800">{verifyingPhone || "your mobile number"}</strong>{t(". Enter it below to save your profile.")}</p>
 
               {/* Input */}
               <div className="my-5">
@@ -2739,7 +2748,7 @@ const ProviderProfile = () => {
                   maxLength={6}
                   value={emailOtp}
                   onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ""))}
-                  placeholder="Enter 6-digit OTP"
+                  placeholder={t("Enter 6-digit OTP")}
                   className="w-full text-center tracking-widest text-lg font-black py-2.5 px-4 rounded-xl border border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 outline-none bg-slate-50/50 shadow-inner transition placeholder:tracking-normal placeholder:font-bold placeholder:text-xs placeholder:text-slate-400"
                 />
               </div>
@@ -2747,8 +2756,7 @@ const ProviderProfile = () => {
               {/* Resend */}
               <div className="mb-5">
                 {resendCountdown > 0 ? (
-                  <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                    Resend code in <span className="text-violet-600">{resendCountdown}s</span>
+                  <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">{t("Resend code in")}<span className="text-violet-600">{resendCountdown}{t("s")}</span>
                   </p>
                 ) : (
                   <button
@@ -2756,9 +2764,7 @@ const ProviderProfile = () => {
                     onClick={handleResendOtp}
                     disabled={sendingOtp}
                     className="text-[10px] font-extrabold text-violet-600 hover:text-violet-700 uppercase tracking-wider underline outline-none"
-                  >
-                    Resend Code
-                  </button>
+                  >{t("Resend Code")}</button>
                 )}
               </div>
 
@@ -2768,9 +2774,7 @@ const ProviderProfile = () => {
                   type="button"
                   onClick={handleCancelOtp}
                   className="flex-1 px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-extrabold text-xs transition active:scale-95 outline-none"
-                >
-                  Cancel
-                </button>
+                >{t("Cancel")}</button>
                 <button
                   type="button"
                   onClick={async () => {
@@ -2801,10 +2805,10 @@ const ProviderProfile = () => {
                   {saving ? (
                     <>
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Saving...</span>
+                      <span>{t("Saving...")}</span>
                     </>
                   ) : (
-                    <span>Confirm</span>
+                    <span>{t("Confirm")}</span>
                   )}
                 </button>
               </div>
@@ -2812,10 +2816,8 @@ const ProviderProfile = () => {
           </div>
         </div>
       )}
-      
       {/* Recaptcha Container */}
       <div id="profile-recaptcha-container"></div>
-
       {/* Erasure Modal */}
       {showErasureModal && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
@@ -2824,23 +2826,23 @@ const ProviderProfile = () => {
               <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
                 <ShieldAlert className="w-6 h-6 text-red-600" />
               </div>
-              <h3 className="text-lg font-black text-slate-800 mb-2">Permanent Data Erasure</h3>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed mb-6">
-                This action is irreversible. All your data, including profiles, matches, leads, jobs, resumes, and communications, will be wiped out.
-              </p>
+              <h3 className="text-lg font-black text-slate-800 mb-2">{t("Permanent Data Erasure")}</h3>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed mb-6">{t(
+                "This action is irreversible. All your data, including profiles, matches, leads, jobs, resumes, and communications, will be wiped out."
+              )}</p>
 
               <div className="w-full bg-red-50 p-4 rounded-xl text-left border border-red-100 mb-6 space-y-3">
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                  <span className="text-xs font-semibold text-red-800">All data removed. No backup available.</span>
+                  <span className="text-xs font-semibold text-red-800">{t("All data removed. No backup available.")}</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                  <span className="text-xs font-semibold text-red-800">No storage maintained on our servers.</span>
+                  <span className="text-xs font-semibold text-red-800">{t("No storage maintained on our servers.")}</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                  <span className="text-xs font-semibold text-red-800">Lucohire is not responsible for data loss.</span>
+                  <span className="text-xs font-semibold text-red-800">{t("Lucohire is not responsible for data loss.")}</span>
                 </div>
               </div>
 
@@ -2851,9 +2853,9 @@ const ProviderProfile = () => {
                   onChange={(e) => setErasureConsent(e.target.checked)}
                   className="mt-1 shrink-0 cursor-pointer rounded text-red-600 focus:ring-red-500"
                 />
-                <span className="text-[11px] text-slate-600 font-medium select-none group-hover:text-slate-800 transition-colors leading-tight">
-                  I understand that clicking confirm will permanently wipe out all my data from the Lucohire network immediately for legal compliance.
-                </span>
+                <span className="text-[11px] text-slate-600 font-medium select-none group-hover:text-slate-800 transition-colors leading-tight">{t(
+                  "I understand that clicking confirm will permanently wipe out all my data from the Lucohire network immediately for legal compliance."
+                )}</span>
               </label>
 
               <div className="flex gap-3 w-full">
@@ -2862,9 +2864,7 @@ const ProviderProfile = () => {
                   onClick={() => setShowErasureModal(false)}
                   disabled={isErasing}
                   className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs transition active:scale-95 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
+                >{t("Cancel")}</button>
                 <button
                   type="button"
                   onClick={handleEraseAccount}
@@ -2874,10 +2874,10 @@ const ProviderProfile = () => {
                   {isErasing ? (
                     <>
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Erasing...</span>
+                      <span>{t("Erasing...")}</span>
                     </>
                   ) : (
-                    <span>Confirm Deletion</span>
+                    <span>{t("Confirm Deletion")}</span>
                   )}
                 </button>
               </div>
@@ -2885,7 +2885,6 @@ const ProviderProfile = () => {
           </div>
         </div>
       )}
-
       {/* Share Profile Modal */}
       {isShareModalOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
@@ -2903,10 +2902,10 @@ const ProviderProfile = () => {
               <div className="w-12 h-12 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center mb-4">
                 <Share2 className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-black text-slate-800 tracking-tight">Share Your Profile</h3>
-              <p className="text-xs text-slate-400 font-semibold mt-1 mb-6">
-                Spread the word! Copy the link or share it directly to your social networks.
-              </p>
+              <h3 className="text-base font-black text-slate-800 tracking-tight">{t("Share Your Profile")}</h3>
+              <p className="text-xs text-slate-400 font-semibold mt-1 mb-6">{t(
+                "Spread the word! Copy the link or share it directly to your social networks."
+              )}</p>
 
               {/* Share Channels Grid */}
               <div className="grid grid-cols-3 gap-4 w-full mb-6">
@@ -2922,7 +2921,7 @@ const ProviderProfile = () => {
                       <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436.002 9.858-4.41 9.86-9.85.001-2.636-1.02-5.115-2.875-6.973-1.854-1.859-4.326-2.882-6.966-2.883-5.438 0-9.862 4.412-9.865 9.853-.001 1.765.46 3.49 1.336 5.01l-.988 3.6 3.693-.968zm10.741-6.98c-.28-.14-1.65-.815-1.905-.907-.255-.093-.44-.139-.626.14-.185.28-.718.907-.88 1.092-.163.186-.325.21-.605.07-.28-.14-1.18-.435-2.247-1.388-.83-.74-1.388-1.653-1.55-1.93-.163-.28-.018-.43.122-.57.126-.127.28-.326.42-.489.14-.163.186-.28.28-.465.093-.186.046-.35-.023-.49-.07-.14-.626-1.507-.858-2.065-.226-.54-.452-.465-.626-.475-.162-.008-.348-.01-.533-.01-.186 0-.488.07-.743.35-.255.28-.975.953-.975 2.326 0 1.373 1 2.7 1.14 2.885.14.186 1.967 3.003 4.76 4.21.665.286 1.184.457 1.587.585.67.213 1.277.183 1.757.11.536-.08 1.65-.674 1.884-1.326.233-.652.233-1.21.163-1.325-.07-.11-.255-.21-.536-.35z" />
                     </svg>
                   </div>
-                  <span className="text-[10px] text-slate-650 font-bold">WhatsApp</span>
+                  <span className="text-[10px] text-slate-650 font-bold">{t("WhatsApp")}</span>
                 </a>
 
                 {/* Facebook */}
@@ -2937,7 +2936,7 @@ const ProviderProfile = () => {
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                     </svg>
                   </div>
-                  <span className="text-[10px] text-slate-650 font-bold">Facebook</span>
+                  <span className="text-[10px] text-slate-650 font-bold">{t("Facebook")}</span>
                 </a>
 
                 {/* Twitter / X */}
@@ -2952,7 +2951,7 @@ const ProviderProfile = () => {
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                     </svg>
                   </div>
-                  <span className="text-[10px] text-slate-650 font-bold">Twitter / X</span>
+                  <span className="text-[10px] text-slate-650 font-bold">{t("Twitter / X")}</span>
                 </a>
 
                 {/* LinkedIn */}
@@ -2967,7 +2966,7 @@ const ProviderProfile = () => {
                       <path d="M22.23 0H1.77C.8 0 0 .77 0 1.72v20.56C0 23.23.8 24 1.77 24h20.46c.98 0 1.77-.77 1.77-1.72V1.72C24 .77 23.2 0 22.23 0zM7.12 20.45H3.56V9H7.12v11.45zM5.34 7.43c-1.14 0-2.06-.92-2.06-2.06 0-1.14.92-2.06 2.06-2.06 1.14 0 2.06.92 2.06 2.06 0 1.14-.92 2.06-2.06 2.06zm15.11 13.02h-3.56v-5.6c0-1.34-.03-3.05-1.86-3.05-1.86 0-2.14 1.45-2.14 2.95v5.7H9.33V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29z" />
                     </svg>
                   </div>
-                  <span className="text-[10px] text-slate-650 font-bold">LinkedIn</span>
+                  <span className="text-[10px] text-slate-650 font-bold">{t("LinkedIn")}</span>
                 </a>
 
                 {/* Telegram */}
@@ -2982,7 +2981,7 @@ const ProviderProfile = () => {
                       <path d="M11.944 0C5.344 0 0 5.344 0 11.944c0 6.6 5.344 11.944 11.944 11.944 6.6 0 11.944-5.344 11.944-11.944C23.888 5.344 18.544 0 11.944 0zm5.836 8.261l-1.9 8.95c-.14.64-.52.8-.06.54l-2.9-2.14-1.4 1.35c-.15.15-.28.27-.57.27l.2-2.95 5.37-4.85c.23-.2-.05-.31-.36-.1l-6.64 4.18-2.86-.9c-.62-.2-.63-.62.13-.92l11.16-4.3c.52-.2.97.11.83.92z" />
                     </svg>
                   </div>
-                  <span className="text-[10px] text-slate-650 font-bold">Telegram</span>
+                  <span className="text-[10px] text-slate-650 font-bold">{t("Telegram")}</span>
                 </a>
 
                 {/* Instagram (Tips) */}
@@ -2999,7 +2998,7 @@ const ProviderProfile = () => {
                       <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
                     </svg>
                   </div>
-                  <span className="text-[10px] text-slate-650 font-bold">Instagram</span>
+                  <span className="text-[10px] text-slate-650 font-bold">{t("Instagram")}</span>
                 </button>
               </div>
 
@@ -3018,33 +3017,26 @@ const ProviderProfile = () => {
                     toast.success("Link copied!");
                   }}
                   className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition active:scale-95 shrink-0"
-                >
-                  Copy
-                </button>
+                >{t("Copy")}</button>
               </div>
             </div>
           </div>
         </div>
       )}
-
       {/* Resume Preview Modal */}
       {isResumeModalOpen && form.resumeUrl && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden relative">
             <div className="flex items-center justify-between p-4 border-b border-slate-100 shrink-0">
               <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-emerald-600" />
-                Resume Preview
-              </h3>
+                <FileText className="w-5 h-5 text-emerald-600" />{t("Resume Preview")}</h3>
               <div className="flex items-center gap-3">
                 <a 
                   href={toAbsoluteMediaUrl(form.resumeUrl)} 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[12px] font-bold transition-colors"
-                >
-                  Download
-                </a>
+                >{t("Download")}</a>
                 <button 
                   onClick={() => setIsResumeModalOpen(false)} 
                   className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
@@ -3067,16 +3059,13 @@ const ProviderProfile = () => {
           </div>
         </div>
       )}
-
       {/* Parsed Resume Data Review Modal */}
       {parsedResumeData && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl flex flex-col max-h-[85vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-5 border-b border-slate-100 flex items-center justify-between shrink-0">
               <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-indigo-500" />
-                Review Parsed Details
-              </h3>
+                <Sparkles className="w-5 h-5 text-indigo-500" />{t("Review Parsed Details")}</h3>
               <button onClick={() => setParsedResumeData(null)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -3085,85 +3074,85 @@ const ProviderProfile = () => {
             <div className="p-6 overflow-y-auto flex-1 bg-slate-50/50">
               <div className="space-y-6">
                 <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                  <h4 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><UserIcon className="w-4 h-4 text-slate-400" />Personal Info</h4>
+                  <h4 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><UserIcon className="w-4 h-4 text-slate-400" />{t("Personal Info")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">{t("Full Name")}</p>
                       <input 
                         type="text" 
                         value={parsedResumeData.fullName || ''} 
                         onChange={(e) => setParsedResumeData({...parsedResumeData, fullName: e.target.value})}
                         className="w-full px-3 py-2 text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                        placeholder="Not found"
+                        placeholder={t("Not found")}
                       />
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">City</p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">{t("City")}</p>
                       <input 
                         type="text" 
                         value={parsedResumeData.city || ''} 
                         onChange={(e) => setParsedResumeData({...parsedResumeData, city: e.target.value})}
                         className="w-full px-3 py-2 text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                        placeholder="Not found"
+                        placeholder={t("Not found")}
                       />
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email</p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">{t("Email")}</p>
                       <input 
                         type="text" 
                         value={parsedResumeData.email || ''} 
                         onChange={(e) => setParsedResumeData({...parsedResumeData, email: e.target.value})}
                         className="w-full px-3 py-2 text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                        placeholder="Not found"
+                        placeholder={t("Not found")}
                       />
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">LinkedIn</p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">{t("LinkedIn")}</p>
                       <input 
                         type="text" 
                         value={parsedResumeData.linkedin || ''} 
                         onChange={(e) => setParsedResumeData({...parsedResumeData, linkedin: e.target.value})}
                         className="w-full px-3 py-2 text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                        placeholder="Not found"
+                        placeholder={t("Not found")}
                       />
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">GitHub</p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">{t("GitHub")}</p>
                       <input 
                         type="text" 
                         value={parsedResumeData.github || ''} 
                         onChange={(e) => setParsedResumeData({...parsedResumeData, github: e.target.value})}
                         className="w-full px-3 py-2 text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                        placeholder="Not found"
+                        placeholder={t("Not found")}
                       />
                     </div>
                     <div className="col-span-1 md:col-span-2">
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Bio / Summary</p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">{t("Bio / Summary")}</p>
                       <textarea 
                         value={parsedResumeData.bio || ''} 
                         onChange={(e) => setParsedResumeData({...parsedResumeData, bio: e.target.value})}
                         className="w-full px-3 py-2 text-sm text-slate-700 leading-relaxed border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all min-h-[80px] resize-y"
-                        placeholder="Not found"
+                        placeholder={t("Not found")}
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                  <h4 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><Briefcase className="w-4 h-4 text-slate-400" />Professional Details</h4>
+                  <h4 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><Briefcase className="w-4 h-4 text-slate-400" />{t("Professional Details")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Experience</p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">{t("Experience")}</p>
                       <input 
                         type="text" 
                         value={parsedResumeData.experienceYears || ''} 
                         onChange={(e) => setParsedResumeData({...parsedResumeData, experienceYears: e.target.value})}
                         className="w-full px-3 py-2 text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                        placeholder="Not found"
+                        placeholder={t("Not found")}
                       />
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Suggested Pricing</p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">{t("Suggested Pricing")}</p>
                       <div className="flex items-center gap-2">
                         <span className="text-emerald-600 font-bold">₹</span>
                         <input 
@@ -3171,72 +3160,68 @@ const ProviderProfile = () => {
                           value={parsedResumeData.pricing || ''} 
                           onChange={(e) => setParsedResumeData({...parsedResumeData, pricing: e.target.value})}
                           className="w-full px-3 py-2 text-sm font-semibold text-emerald-700 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
-                          placeholder="0"
+                          placeholder={t("0")}
                         />
                       </div>
                     </div>
                     <div className="col-span-1 md:col-span-2">
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center justify-between">
-                        Skills
-                        <span className="text-xs font-normal text-slate-400 normal-case">(comma separated)</span>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center justify-between">{t("Skills")}<span className="text-xs font-normal text-slate-400 normal-case">{t("(comma separated)")}</span>
                       </p>
                       <input
                         type="text"
                         value={(parsedResumeData.skills || []).join(', ')}
                         onChange={(e) => setParsedResumeData({...parsedResumeData, skills: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
                         className="w-full px-3 py-2 text-sm font-semibold text-indigo-700 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                        placeholder="Skill 1, Skill 2"
+                        placeholder={t("Skill 1, Skill 2")}
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                  <h4 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><Book className="w-4 h-4 text-slate-400" />Experience & Education</h4>
+                  <h4 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><Book className="w-4 h-4 text-slate-400" />{t("Experience & Education")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Previous Work</p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">{t("Previous Work")}</p>
                       {parsedResumeData.previousWork?.length > 0 ? parsedResumeData.previousWork.map((w, i) => (
                         <div key={i} className="mb-3 last:mb-0 border border-slate-100 p-2 rounded-lg relative">
-                          <input type="text" value={w.role || w.designation || ''} onChange={e => { const nw = [...parsedResumeData.previousWork]; nw[i].role = e.target.value; setParsedResumeData({...parsedResumeData, previousWork: nw}); }} className="w-full text-sm font-bold text-slate-800 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-1" placeholder="Role / Designation" />
-                          <input type="text" value={w.company} onChange={e => { const nw = [...parsedResumeData.previousWork]; nw[i].company = e.target.value; setParsedResumeData({...parsedResumeData, previousWork: nw}); }} className="w-full text-[13px] text-slate-500 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400" placeholder="Company" />
+                          <input type="text" value={w.role || w.designation || ''} onChange={e => { const nw = [...parsedResumeData.previousWork]; nw[i].role = e.target.value; setParsedResumeData({...parsedResumeData, previousWork: nw}); }} className="w-full text-sm font-bold text-slate-800 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-1" placeholder={t("Role / Designation")} />
+                          <input type="text" value={w.company} onChange={e => { const nw = [...parsedResumeData.previousWork]; nw[i].company = e.target.value; setParsedResumeData({...parsedResumeData, previousWork: nw}); }} className="w-full text-[13px] text-slate-500 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400" placeholder={t("Company")} />
                         </div>
-                      )) : <p className="text-sm text-slate-400 italic">Not found</p>}
+                      )) : <p className="text-sm text-slate-400 italic">{t("Not found")}</p>}
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Education</p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">{t("Education")}</p>
                       {parsedResumeData.education?.length > 0 ? parsedResumeData.education.map((e, i) => (
                         <div key={i} className="mb-3 last:mb-0 border border-slate-100 p-2 rounded-lg relative">
-                          <input type="text" value={e.degree} onChange={ev => { const ne = [...parsedResumeData.education]; ne[i].degree = ev.target.value; setParsedResumeData({...parsedResumeData, education: ne}); }} className="w-full text-sm font-bold text-slate-800 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-1" placeholder="Degree" />
-                          <input type="text" value={e.institution} onChange={ev => { const ne = [...parsedResumeData.education]; ne[i].institution = ev.target.value; setParsedResumeData({...parsedResumeData, education: ne}); }} className="w-full text-[13px] text-slate-500 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400" placeholder="Institution" />
+                          <input type="text" value={e.degree} onChange={ev => { const ne = [...parsedResumeData.education]; ne[i].degree = ev.target.value; setParsedResumeData({...parsedResumeData, education: ne}); }} className="w-full text-sm font-bold text-slate-800 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-1" placeholder={t("Degree")} />
+                          <input type="text" value={e.institution} onChange={ev => { const ne = [...parsedResumeData.education]; ne[i].institution = ev.target.value; setParsedResumeData({...parsedResumeData, education: ne}); }} className="w-full text-[13px] text-slate-500 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400" placeholder={t("Institution")} />
                         </div>
-                      )) : <p className="text-sm text-slate-400 italic">Not found</p>}
+                      )) : <p className="text-sm text-slate-400 italic">{t("Not found")}</p>}
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                  <h4 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><Book className="w-4 h-4 text-slate-400" />Projects & Links</h4>
+                  <h4 className="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><Book className="w-4 h-4 text-slate-400" />{t("Projects & Links")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Projects</p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">{t("Projects")}</p>
                       {parsedResumeData.projects?.length > 0 ? parsedResumeData.projects.map((p, i) => (
                         <div key={i} className="mb-3 last:mb-0 border border-slate-100 p-2 rounded-lg relative">
-                          <input type="text" value={p.name || ''} onChange={ev => { const np = [...parsedResumeData.projects]; np[i].name = ev.target.value; setParsedResumeData({...parsedResumeData, projects: np}); }} className="w-full text-sm font-bold text-slate-800 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-1" placeholder="Project Name" />
-                          <input type="text" value={p.link || ''} onChange={ev => { const np = [...parsedResumeData.projects]; np[i].link = ev.target.value; setParsedResumeData({...parsedResumeData, projects: np}); }} className="w-full text-[13px] text-emerald-600 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400" placeholder="Project Link" />
+                          <input type="text" value={p.name || ''} onChange={ev => { const np = [...parsedResumeData.projects]; np[i].name = ev.target.value; setParsedResumeData({...parsedResumeData, projects: np}); }} className="w-full text-sm font-bold text-slate-800 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-1" placeholder={t("Project Name")} />
+                          <input type="text" value={p.link || ''} onChange={ev => { const np = [...parsedResumeData.projects]; np[i].link = ev.target.value; setParsedResumeData({...parsedResumeData, projects: np}); }} className="w-full text-[13px] text-emerald-600 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400" placeholder={t("Project Link")} />
                         </div>
-                      )) : <p className="text-sm text-slate-400 italic">Not found</p>}
+                      )) : <p className="text-sm text-slate-400 italic">{t("Not found")}</p>}
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
-                        Portfolio Links
-                        <span className="text-xs font-normal text-slate-400 normal-case">(comma separated)</span>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">{t("Portfolio Links")}<span className="text-xs font-normal text-slate-400 normal-case">{t("(comma separated)")}</span>
                       </p>
                       <textarea
                         value={(parsedResumeData.portfolioLinks || []).join(', ')}
                         onChange={(e) => setParsedResumeData({...parsedResumeData, portfolioLinks: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
                         className="w-full px-3 py-2 text-sm font-semibold text-emerald-700 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all min-h-[80px]"
-                        placeholder="Link 1, Link 2"
+                        placeholder={t("Link 1, Link 2")}
                       />
                     </div>
                   </div>
@@ -3245,13 +3230,9 @@ const ProviderProfile = () => {
             </div>
 
             <div className="p-5 border-t border-slate-100 flex justify-end gap-3 shrink-0 bg-white">
-              <button onClick={() => setParsedResumeData(null)} className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">
-                Cancel
-              </button>
+              <button onClick={() => setParsedResumeData(null)} className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">{t("Cancel")}</button>
               <button onClick={confirmParsedData} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-colors shadow-sm flex items-center gap-2">
-                <Check className="w-4 h-4" />
-                Confirm & Auto-fill Profile
-              </button>
+                <Check className="w-4 h-4" />{t("Confirm & Auto-fill Profile")}</button>
             </div>
           </div>
         </div>

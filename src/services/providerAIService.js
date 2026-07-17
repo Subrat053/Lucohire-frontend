@@ -16,13 +16,17 @@ export function getAiUsage() {
   return API.get('/provider/ai/usage', { timeout: 30000 });
 }
 
+export function getResumeToolkit(force = false) {
+  return API.get(`/provider/ai/resume-toolkit${force ? '?force=true' : ''}`, { timeout: 45000 });
+}
+
 export function testAIParser(payload) {
   return API.post('/provider/ai/test', payload);
 }
 
 export function uploadResume(formData) {
   return API.post('/provider/ai/build-from-resume', formData, {
-    timeout: 60000,
+    timeout: 180000,
     headers: {
       'Content-Type': 'multipart/form-data',
     },

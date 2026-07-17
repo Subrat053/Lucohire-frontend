@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React from 'react';
 import { FiMail, FiArrowUpRight, FiArrowDownRight, FiMessageCircle, FiSmartphone } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
@@ -13,6 +14,10 @@ const iconMap = {
 };
 
 export default function OutreachAnalyticsPage() {
+  const {
+    t
+  } = useTranslation();
+
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
 
@@ -25,7 +30,7 @@ export default function OutreachAnalyticsPage() {
     });
   }, []);
 
-  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading outreach data...</div>;
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">{t("Loading outreach data...")}</div>;
 
   const { channels, campaignData, weeklyStats, kpis } = data;
   const mappedChannels = channels.map(c => ({ ...c, icon: iconMap[c.icon] }));
@@ -39,12 +44,10 @@ export default function OutreachAnalyticsPage() {
             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">{k.label}</div>
             <div className="text-xl font-extrabold text-gray-900 mb-1">{k.value}</div>
             <div className={`text-[10px] font-bold flex items-center gap-0.5 ${k.up ? 'text-emerald-600' : 'text-red-500'}`}>
-              <FiArrowUpRight className="w-3 h-3" /> {k.trend} vs last month
-            </div>
+              <FiArrowUpRight className="w-3 h-3" /> {k.trend}{t("vs last month")}</div>
           </SCard>
         ))}
       </div>
-
       {/* Channel Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {mappedChannels.map((c, i) => (
@@ -53,7 +56,7 @@ export default function OutreachAnalyticsPage() {
               <div className={`${c.bg} ${c.ic} p-2.5 rounded-xl`}>{c.icon}</div>
               <div>
                 <div className="text-sm font-bold text-gray-900">{c.name}</div>
-                <div className="text-[10px] font-semibold text-gray-500">{c.sent.toLocaleString()} messages sent</div>
+                <div className="text-[10px] font-semibold text-gray-500">{c.sent.toLocaleString()}{t("messages sent")}</div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -72,26 +75,25 @@ export default function OutreachAnalyticsPage() {
           </SCard>
         ))}
       </div>
-
       {/* Campaign Performance */}
       <SCard className="p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-base font-bold text-gray-900">Campaign Performance</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Active and completed outreach campaigns</p>
+            <h2 className="text-base font-bold text-gray-900">{t("Campaign Performance")}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">{t("Active and completed outreach campaigns")}</p>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[600px]">
             <thead>
               <tr className="text-[10px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">
-                <th className="pb-3">Campaign</th>
-                <th className="pb-3">Channel</th>
-                <th className="pb-3 text-center">Sent</th>
-                <th className="pb-3 text-center">Opens</th>
-                <th className="pb-3 text-center">Replies</th>
-                <th className="pb-3 text-center">Hires</th>
-                <th className="pb-3 text-right">Status</th>
+                <th className="pb-3">{t("Campaign")}</th>
+                <th className="pb-3">{t("Channel")}</th>
+                <th className="pb-3 text-center">{t("Sent")}</th>
+                <th className="pb-3 text-center">{t("Opens")}</th>
+                <th className="pb-3 text-center">{t("Replies")}</th>
+                <th className="pb-3 text-center">{t("Hires")}</th>
+                <th className="pb-3 text-right">{t("Status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -118,19 +120,18 @@ export default function OutreachAnalyticsPage() {
           </table>
         </div>
       </SCard>
-
       {/* Weekly Activity */}
       <SCard className="p-6">
-        <h2 className="text-base font-bold text-gray-900 mb-5">Weekly Activity Breakdown</h2>
+        <h2 className="text-base font-bold text-gray-900 mb-5">{t("Weekly Activity Breakdown")}</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[420px]">
             <thead>
               <tr className="text-[10px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">
-                <th className="pb-3">Week</th>
-                <th className="pb-3 text-center text-blue-600">Emails</th>
-                <th className="pb-3 text-center text-indigo-600">LinkedIn</th>
-                <th className="pb-3 text-center text-emerald-600">WhatsApp</th>
-                <th className="pb-3 text-right">Total Responses</th>
+                <th className="pb-3">{t("Week")}</th>
+                <th className="pb-3 text-center text-blue-600">{t("Emails")}</th>
+                <th className="pb-3 text-center text-indigo-600">{t("LinkedIn")}</th>
+                <th className="pb-3 text-center text-emerald-600">{t("WhatsApp")}</th>
+                <th className="pb-3 text-right">{t("Total Responses")}</th>
               </tr>
             </thead>
             <tbody>
@@ -147,16 +148,15 @@ export default function OutreachAnalyticsPage() {
           </table>
         </div>
       </SCard>
-
       {/* AI Tip */}
       <SCard className="p-5 bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-100">
         <div className="flex items-start gap-4">
           <div className="bg-emerald-100 text-emerald-600 p-2.5 rounded-xl shrink-0"><HiSparkles className="w-5 h-5" /></div>
           <div>
-            <h3 className="text-sm font-bold text-emerald-900 mb-2">Outreach Optimization Insight</h3>
-            <p className="text-xs text-emerald-800/80 leading-relaxed">
-              WhatsApp has your highest open rate (78%) and reply rate (34%). Consider shifting more passive candidate outreach to WhatsApp. Personalized messages sent between 10 AM – 12 PM and 4 PM – 6 PM IST tend to get 40% higher response rates.
-            </p>
+            <h3 className="text-sm font-bold text-emerald-900 mb-2">{t("Outreach Optimization Insight")}</h3>
+            <p className="text-xs text-emerald-800/80 leading-relaxed">{t(
+              "WhatsApp has your highest open rate (78%) and reply rate (34%). Consider shifting more passive candidate outreach to WhatsApp. Personalized messages sent between 10 AM – 12 PM and 4 PM – 6 PM IST tend to get 40% higher response rates."
+            )}</p>
           </div>
         </div>
       </SCard>

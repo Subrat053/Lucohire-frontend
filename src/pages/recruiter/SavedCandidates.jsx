@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -11,6 +12,10 @@ import toast from 'react-hot-toast';
 import { toOptimizedMediaUrl } from '../../utils/media';
 
 const Candidates = () => {
+  const {
+    t
+  } = useTranslation();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -104,15 +109,13 @@ const Candidates = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 relative">
-      
       {/* HEADER */}
       <div className="bg-white border-b border-gray-100 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-20">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">Global Talent Search</h1>
-          <p className="text-sm text-gray-500 mt-1">Find the right talent, faster with AI</p>
+          <h1 className="text-2xl font-extrabold text-gray-900">{t("Global Talent Search")}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t("Find the right talent, faster with AI")}</p>
         </div>
       </div>
-
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
         {/* SIMPLE SEARCH AREA */}
@@ -124,7 +127,7 @@ const Candidates = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Search by skills, roles, companies or keywords..."
+              placeholder={t("Search by skills, roles, companies or keywords...")}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition"
             />
           </div>
@@ -143,8 +146,7 @@ const Candidates = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <h2 className="text-sm font-bold text-gray-900">
-                  <span className="text-lg font-extrabold mr-1">{candidates.length}</span> Candidates Found
-                </h2>
+                  <span className="text-lg font-extrabold mr-1">{candidates.length}</span>{t("Candidates Found")}</h2>
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1">
@@ -196,15 +198,13 @@ const Candidates = () => {
                                 <h3 className="text-lg font-bold text-gray-900 truncate">{name}</h3>
                                 {scoreData?.loading && (
                                   <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <FiLoader className="animate-spin" /> AI Rating...
-                                  </span>
+                                    <FiLoader className="animate-spin" />{t("AI Rating...")}</span>
                                 )}
                                 {scoreData?.score !== undefined && scoreData?.score !== null && (
                                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${scoreData.score >= 80 ? 'text-emerald-600 bg-emerald-50' : 'text-amber-600 bg-amber-50'}`}>
-                                    {scoreData.score}% Profile Rating
-                                  </span>
+                                    {scoreData.score}{t("% Profile Rating")}</span>
                                 )}
-                                {candidate.tier === 'skilled' && <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">Premium</span>}
+                                {candidate.tier === 'skilled' && <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">{t("Premium")}</span>}
                               </div>
                               <div className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
                                 {title}
@@ -219,11 +219,11 @@ const Candidates = () => {
                           <div className={`flex items-center gap-8 mt-5 ${layout === 'list' ? 'ml-20' : ''}`}>
                             <div>
                               <div className="text-sm font-extrabold text-gray-900">{candidate.experience ? `${candidate.experience}` : 'N/A'}</div>
-                              <div className="text-[11px] font-semibold text-gray-400">Experience</div>
+                              <div className="text-[11px] font-semibold text-gray-400">{t("Experience")}</div>
                             </div>
                             <div>
                               <div className="text-sm font-extrabold text-gray-900">{candidate.pricing ? `₹${candidate.pricing}` : 'N/A'}</div>
-                              <div className="text-[11px] font-semibold text-gray-400">Expected Fee</div>
+                              <div className="text-[11px] font-semibold text-gray-400">{t("Expected Fee")}</div>
                             </div>
                           </div>
 
@@ -252,8 +252,7 @@ const Candidates = () => {
                         {/* Action Buttons */}
                         <div className={`${layout === 'grid' ? 'w-full flex-row' : 'lg:w-48 flex-row lg:flex-col'} flex gap-2 justify-center lg:justify-start lg:border-l border-gray-100 lg:pl-6`}>
                           <Link to={`/recruiter/provider/${user._id || id}`} className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-200 text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-50 transition">
-                            <FiEye /> View Profile
-                          </Link>
+                            <FiEye />{t("View Profile")}</Link>
                         </div>
 
                       </div>
@@ -265,7 +264,7 @@ const Candidates = () => {
             
             {candidates.length === 0 && !loading && (
               <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <p className="text-gray-500 font-medium">No candidates found for your search.</p>
+                <p className="text-gray-500 font-medium">{t("No candidates found for your search.")}</p>
               </div>
             )}
             
@@ -277,18 +276,18 @@ const Candidates = () => {
             {/* Search Insights */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-sm font-bold text-gray-900">Search Insights</h3>
+                <h3 className="text-sm font-bold text-gray-900">{t("Search Insights")}</h3>
                 <button className="text-gray-400 hover:text-gray-600"><FiChevronUp className="w-4 h-4" /></button>
               </div>
               
               <div className="space-y-6">
                 <div>
-                  <div className="text-xs font-bold text-gray-900 mb-1">Current Search</div>
+                  <div className="text-xs font-bold text-gray-900 mb-1">{t("Current Search")}</div>
                   <div className="text-[11px] text-gray-600">{searchQuery || "All Candidates"}</div>
                 </div>
 
                 <div>
-                  <div className="text-xs font-bold text-gray-900 mb-3">Top Skills in Demand</div>
+                  <div className="text-xs font-bold text-gray-900 mb-3">{t("Top Skills in Demand")}</div>
                   <div className="flex flex-wrap gap-2">
                     {topSkills.map(skill => (
                       <span key={skill} className="text-[11px] font-semibold text-gray-700 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-md">
@@ -298,8 +297,7 @@ const Candidates = () => {
                   </div>
                 </div>
 
-                <button className="w-full bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-100 transition flex items-center justify-center gap-2">
-                  View Full Market Report <FiArrowUpRight />
+                <button className="w-full bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-100 transition flex items-center justify-center gap-2">{t("View Full Market Report")}<FiArrowUpRight />
                 </button>
               </div>
             </div>
@@ -307,23 +305,21 @@ const Candidates = () => {
             {/* AI Search Tips */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-gray-900">AI Search Tips</h3>
+                <h3 className="text-sm font-bold text-gray-900">{t("AI Search Tips")}</h3>
                 <button className="text-gray-400 hover:text-gray-600"><FiChevronUp className="w-4 h-4" /></button>
               </div>
               
-              <p className="text-[11px] text-gray-600 leading-relaxed mb-3">
-                Watch as Luco AI automatically evaluates candidate profiles as they load. High profile ratings indicate complete, in-demand skillsets.
-              </p>
+              <p className="text-[11px] text-gray-600 leading-relaxed mb-3">{t(
+                "Watch as Luco AI automatically evaluates candidate profiles as they load. High profile ratings indicate complete, in-demand skillsets."
+              )}</p>
               
               <button className="w-full bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-100 transition flex items-center justify-center gap-2">
-                <HiSparkles /> Ask AI to Improve Search &rarr;
-              </button>
+                <HiSparkles />{t("Ask AI to Improve Search →")}</button>
             </div>
 
           </div>
         </div>
       </div>
-      
     </div>
   );
 };

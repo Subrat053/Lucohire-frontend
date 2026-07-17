@@ -349,27 +349,27 @@ const PostJob = () => {
                     <div>
                       <Label text={t('common.workMode', 'Work Mode')} />
                       <select name="workMode" value={form.workMode} onChange={set('workMode')} className={inputCls}>
-                        <option value="onsite">Onsite</option>
-                        <option value="remote">Remote</option>
-                        <option value="hybrid">Hybrid</option>
-                        <option value="travel">Travel</option>
+                        <option value="onsite">{t("Onsite")}</option>
+                        <option value="remote">{t("Remote")}</option>
+                        <option value="hybrid">{t("Hybrid")}</option>
+                        <option value="travel">{t("Travel")}</option>
                       </select>
                     </div>
                     <div>
                       <Label text={t('common.skillLevel', 'Skill Level')} />
                       <select name="requiredSkillLevel" value={form.requiredSkillLevel} onChange={set('requiredSkillLevel')} className={inputCls}>
-                        <option value="unskilled">Unskilled</option>
-                        <option value="semi-skilled">Semi-skilled</option>
-                        <option value="skilled">Skilled</option>
+                        <option value="unskilled">{t("Unskilled")}</option>
+                        <option value="semi-skilled">{t("Semi-skilled")}</option>
+                        <option value="skilled">{t("Skilled")}</option>
                       </select>
                     </div>
                     <div>
                       <Label text={t('common.urgency', 'Urgency')} />
                       <select name="urgency" value={form.urgency} onChange={set('urgency')} className={inputCls}>
-                        <option value="low">Low</option>
-                        <option value="normal">Normal</option>
-                        <option value="high">High</option>
-                        <option value="immediate">Immediate</option>
+                        <option value="low">{t("Low")}</option>
+                        <option value="normal">{t("Normal")}</option>
+                        <option value="high">{t("High")}</option>
+                        <option value="immediate">{t("Immediate")}</option>
                       </select>
                     </div>
                   </div>
@@ -386,7 +386,7 @@ const PostJob = () => {
                       name="budgetMin"
                       value={form.budgetMin}
                       onChange={set('budgetMin')}
-                      placeholder="0"
+                      placeholder={t("0")}
                       min="0"
                       className={inputCls}
                     />
@@ -398,7 +398,7 @@ const PostJob = () => {
                       name="budgetMax"
                       value={form.budgetMax}
                       onChange={set('budgetMax')}
-                      placeholder="0"
+                      placeholder={t("0")}
                       min="0"
                       className={inputCls}
                     />

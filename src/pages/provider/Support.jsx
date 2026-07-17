@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { HiChatAlt2, HiMail, HiPaperAirplane, HiSparkles, HiCheckCircle } from 'react-icons/hi';
@@ -81,6 +82,10 @@ const getPredefinedIssues = (type) => {
 };
 
 const Support = () => {
+  const {
+    t
+  } = useTranslation();
+
   const { type } = useParams();
   const { user } = useAuth();
   const location = useLocation();
@@ -107,7 +112,7 @@ const Support = () => {
       handleTypeSelection(initialType);
     }
   }, [type, location.pathname]);
-  
+
   // Ticket Data State
   const [selectedPredefinedId, setSelectedPredefinedId] = useState(null);
   const [inputValue, setInputValue] = useState('');
@@ -215,11 +220,9 @@ const Support = () => {
                 <HiSparkles className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Support Assistant</h1>
+                <h1 className="text-xl font-bold text-gray-900">{t("Support Assistant")}</h1>
                 <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block animate-pulse"></span>
-                  Online and ready to help
-                </p>
+                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block animate-pulse"></span>{t("Online and ready to help")}</p>
               </div>
             </div>
             <button
@@ -231,9 +234,7 @@ const Support = () => {
               }}
               title="Reset Chat"
               className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-100"
-            >
-              End Chat
-            </button>
+            >{t("End Chat")}</button>
           </div>
         </div>
 
@@ -264,8 +265,7 @@ const Support = () => {
                 }`}>
                   {msg.isSolution && (
                     <h4 className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2 border-b border-emerald-100 pb-2">
-                      <HiCheckCircle className="w-4 h-4" /> Quick Solution
-                    </h4>
+                      <HiCheckCircle className="w-4 h-4" />{t("Quick Solution")}</h4>
                   )}
                   <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.text}</p>
                 </div>
@@ -293,9 +293,9 @@ const Support = () => {
           <div className="flex w-full justify-start ml-10">
             {step === 'SELECT_TYPE' && (
               <div className="flex flex-wrap gap-2 mt-2">
-                <button onClick={() => handleTypeSelection('profile')} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-100 transition-colors border border-emerald-100">Profile Issue</button>
-                <button onClick={() => handleTypeSelection('job')} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-100 transition-colors border border-emerald-100">Job Issue</button>
-                <button onClick={() => handleTypeSelection('payment')} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-100 transition-colors border border-emerald-100">Payment Issue</button>
+                <button onClick={() => handleTypeSelection('profile')} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-100 transition-colors border border-emerald-100">{t("Profile Issue")}</button>
+                <button onClick={() => handleTypeSelection('job')} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-100 transition-colors border border-emerald-100">{t("Job Issue")}</button>
+                <button onClick={() => handleTypeSelection('payment')} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-100 transition-colors border border-emerald-100">{t("Payment Issue")}</button>
               </div>
             )}
             
@@ -315,8 +315,8 @@ const Support = () => {
 
             {step === 'SOLVED_CONFIRMATION' && (
               <div className="flex flex-wrap gap-2 mt-2">
-                <button onClick={() => handleSolvedConfirmation(true)} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-100 transition-colors border border-emerald-100">Yes, it's solved!</button>
-                <button onClick={() => handleSolvedConfirmation(false)} className="px-4 py-2 bg-gray-50 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-100 transition-colors border border-gray-200">No, I need a ticket</button>
+                <button onClick={() => handleSolvedConfirmation(true)} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-100 transition-colors border border-emerald-100">{t("Yes, it's solved!")}</button>
+                <button onClick={() => handleSolvedConfirmation(false)} className="px-4 py-2 bg-gray-50 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-100 transition-colors border border-gray-200">{t("No, I need a ticket")}</button>
               </div>
             )}
             
@@ -326,7 +326,7 @@ const Support = () => {
                   setMessages([{ id: Date.now(), sender: 'bot', text: 'Hi there! 👋 How can we help you today?' }]);
                   setStep('SELECT_TYPE');
                   navigate('/provider/support');
-                }} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-xs font-medium hover:bg-gray-200 transition-colors">Start New Conversation</button>
+                }} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-xs font-medium hover:bg-gray-200 transition-colors">{t("Start New Conversation")}</button>
               </div>
             )}
           </div>

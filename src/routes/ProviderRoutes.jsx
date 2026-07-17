@@ -22,8 +22,10 @@ const AddMember = lazy(() => import("../pages/provider/AddMember"));
 const CareerHealthDashboard = lazy(() => import("../pages/provider/CareerHealthDashboard"));
 const GrowWithAIDashboard = lazy(() => import("../pages/provider/GrowWithAIDashboard"));
 const AITips = lazy(() => import("../pages/provider/AITips"));
+const ResumeToolkit = lazy(() => import("../pages/provider/ResumeToolkit"));
 const ProviderSupport = lazy(() => import("../pages/provider/Support"));
 const AppliedJobs = lazy(() => import("../pages/provider/AppliedJobs"));
+const JobDetail = lazy(() => import("../pages/provider/JobDetail"));
 
 function ProviderLayoutWrapper({ children }) {
   return (
@@ -56,6 +58,7 @@ export default function ProviderRoutes() {
       <Route path="job-for-me" element={wrap(<ProviderJobs />)} />
       <Route path="jobs" element={<Navigate to="/provider/job-for-me" state={location.state} replace />} />
       <Route path="applied-jobs" element={wrap(<AppliedJobs />)} />
+      <Route path="job/:jobId" element={wrap(<JobDetail />)} />
       <Route path="contacted" element={wrap(<ProviderContacted />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />
       <Route path="referrals" element={wrap(<ReferralManagement />)} />
@@ -73,6 +76,7 @@ export default function ProviderRoutes() {
       {/* Grow with AI Routes */}
       <Route path="grow-with-ai" element={wrap(<GrowWithAIDashboard />)} />
       <Route path="ai-tips" element={wrap(<AITips />)} />
+      <Route path="resume-toolkit" element={wrap(<ResumeToolkit />)} />
     </Routes>
   );
 }

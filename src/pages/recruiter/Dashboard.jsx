@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -9,6 +10,10 @@ import {
 import { HiSparkles, HiBriefcase } from 'react-icons/hi2';
 
 const Dashboard = () => {
+  const {
+    t
+  } = useTranslation();
+
   const [prioritiesCollapsed, setPrioritiesCollapsed] = useState(false);
 
   // --- MOCK DATA ---
@@ -63,11 +68,10 @@ const Dashboard = () => {
       {/* HEADER SECTION */}
       <div className="bg-white border-b border-gray-100 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-20">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">Hiring Workspace</h1>
-          <p className="text-sm text-gray-500 mt-1">Here&apos;s your hiring workspace. Let&apos;s get things done!</p>
+          <h1 className="text-2xl font-extrabold text-gray-900">{t("Hiring Workspace")}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t("Here's your hiring workspace. Let's get things done!")}</p>
         </div>
       </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         
         {/* 1. TOP METRICS (Full Width) */}
@@ -97,8 +101,8 @@ const Dashboard = () => {
         {/* 2. NOTIFICATIONS (Just Below 4 Cards) */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Notifications</h2>
-            <Link to="/recruiter/notifications" className="text-sm font-semibold text-indigo-600 hover:underline">View all &rarr;</Link>
+            <h2 className="text-lg font-bold text-gray-900">{t("Notifications")}</h2>
+            <Link to="/recruiter/notifications" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View all →")}</Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {notifications.map(n => (
@@ -120,7 +124,7 @@ const Dashboard = () => {
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-full flex flex-col">
             <div className="flex items-center justify-between p-5 border-b border-gray-50">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-gray-900">Today&apos;s Priorities</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t("Today's Priorities")}</h2>
                 <FiAlertCircle className="w-4 h-4 text-gray-400" />
               </div>
               <div className="flex items-center gap-4 text-sm font-medium text-gray-600">
@@ -128,7 +132,7 @@ const Dashboard = () => {
                   {prioritiesCollapsed ? 'Expand' : 'Collapse'} {prioritiesCollapsed ? <FiChevronDown /> : <FiChevronRight className="-rotate-90" />}
                 </button>
                 <label className="flex items-center gap-2 cursor-pointer hidden sm:flex">
-                  <span className="text-gray-500">Remember my preference</span>
+                  <span className="text-gray-500">{t("Remember my preference")}</span>
                   <div className="relative inline-block w-8 h-4 bg-indigo-600 rounded-full">
                     <div className="absolute right-1 top-0.5 w-3 h-3 bg-white rounded-full"></div>
                   </div>
@@ -142,33 +146,33 @@ const Dashboard = () => {
                     <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mb-2">
                       <FiUserPlus className="text-emerald-600 w-5 h-5" />
                     </div>
-                    <div className="text-sm text-gray-600 font-semibold mb-1">New Applications</div>
+                    <div className="text-sm text-gray-600 font-semibold mb-1">{t("New Applications")}</div>
                     <div className="text-2xl font-bold text-gray-900 mb-2">18</div>
-                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">View application list &rarr;</Link>
+                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">{t("View application list →")}</Link>
                   </div>
                   <div className="p-4 text-center flex flex-col items-center">
                     <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mb-2">
                       <FiCalendar className="text-blue-600 w-5 h-5" />
                     </div>
-                    <div className="text-sm text-gray-600 font-semibold mb-1">Interviews</div>
+                    <div className="text-sm text-gray-600 font-semibold mb-1">{t("Interviews")}</div>
                     <div className="text-2xl font-bold text-gray-900 mb-2">5</div>
-                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">View schedule &rarr;</Link>
+                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">{t("View schedule →")}</Link>
                   </div>
                   <div className="p-4 text-center flex flex-col items-center">
                     <div className="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center mb-2">
                       <FiCheckSquare className="text-orange-600 w-5 h-5" />
                     </div>
-                    <div className="text-sm text-gray-600 font-semibold mb-1">Offers</div>
+                    <div className="text-sm text-gray-600 font-semibold mb-1">{t("Offers")}</div>
                     <div className="text-2xl font-bold text-gray-900 mb-2">3</div>
-                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">View offers &rarr;</Link>
+                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">{t("View offers →")}</Link>
                   </div>
                   <div className="p-4 text-center flex flex-col items-center">
                     <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center mb-2">
                       <FiMessageSquare className="text-purple-600 w-5 h-5" />
                     </div>
-                    <div className="text-sm text-gray-600 font-semibold mb-1">Follow-ups</div>
+                    <div className="text-sm text-gray-600 font-semibold mb-1">{t("Follow-ups")}</div>
                     <div className="text-2xl font-bold text-gray-900 mb-2">11</div>
-                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">Respond now &rarr;</Link>
+                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">{t("Respond now →")}</Link>
                   </div>
                 </div>
               </div>
@@ -179,10 +183,10 @@ const Dashboard = () => {
           <div className="bg-gradient-to-b from-indigo-50/50 to-white rounded-2xl border border-indigo-100 shadow-sm p-5 h-full flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-gray-900">AI Suggestions</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t("AI Suggestions")}</h2>
                 <FiAlertCircle className="w-4 h-4 text-gray-400" />
               </div>
-              <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full">AI</span>
+              <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{t("AI")}</span>
             </div>
             
             <div className="flex-1 flex flex-col justify-center space-y-3 mb-4">
@@ -192,8 +196,8 @@ const Dashboard = () => {
                     <FiUserPlus className="w-4 h-4 text-emerald-600" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-gray-900 leading-tight">Contact 18 highly matching candidates</div>
-                    <div className="text-[10px] text-gray-500 mt-0.5">High chance of positive response</div>
+                    <div className="text-xs font-bold text-gray-900 leading-tight">{t("Contact 18 highly matching candidates")}</div>
+                    <div className="text-[10px] text-gray-500 mt-0.5">{t("High chance of positive response")}</div>
                   </div>
                 </div>
                 <FiChevronRight className="text-gray-400 group-hover:text-indigo-600 transition shrink-0" />
@@ -205,8 +209,8 @@ const Dashboard = () => {
                     <HiSparkles className="w-4 h-4 text-emerald-600" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-gray-900 leading-tight">Increase salary range by ₹1.0 L</div>
-                    <div className="text-[10px] text-gray-500 mt-0.5">To get 35% more applicants</div>
+                    <div className="text-xs font-bold text-gray-900 leading-tight">{t("Increase salary range by ₹1.0 L")}</div>
+                    <div className="text-[10px] text-gray-500 mt-0.5">{t("To get 35% more applicants")}</div>
                   </div>
                 </div>
                 <FiChevronRight className="text-gray-400 group-hover:text-indigo-600 transition shrink-0" />
@@ -214,9 +218,7 @@ const Dashboard = () => {
             </div>
             
             <div className="text-center mt-auto pt-2">
-              <Link to="/recruiter/ai" className="text-sm font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1">
-                View AI Workspace &rarr;
-              </Link>
+              <Link to="/recruiter/ai" className="text-sm font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1">{t("View AI Workspace →")}</Link>
             </div>
           </div>
         </div>
@@ -227,19 +229,19 @@ const Dashboard = () => {
           {/* My Active Jobs Table */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col h-full overflow-hidden">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">My Active Jobs</h2>
-              <Link to="/recruiter/jobs" className="text-sm font-semibold text-indigo-600 hover:underline">View all &rarr;</Link>
+              <h2 className="text-lg font-bold text-gray-900">{t("My Active Jobs")}</h2>
+              <Link to="/recruiter/jobs" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View all →")}</Link>
             </div>
             <div className="overflow-x-auto flex-1">
               <table className="w-full text-left border-collapse min-w-[600px]">
                 <thead>
                   <tr className="border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    <th className="py-3 pr-2 whitespace-nowrap">Job Title</th>
-                    <th className="py-3 px-2 text-center whitespace-nowrap">Apps</th>
-                    <th className="py-3 px-2 text-center whitespace-nowrap">Intvs</th>
-                    <th className="py-3 px-2 text-center whitespace-nowrap">AI Health</th>
-                    <th className="py-3 px-2 whitespace-nowrap">Tags</th>
-                    <th className="py-3 pl-2">Status</th>
+                    <th className="py-3 pr-2 whitespace-nowrap">{t("Job Title")}</th>
+                    <th className="py-3 px-2 text-center whitespace-nowrap">{t("Apps")}</th>
+                    <th className="py-3 px-2 text-center whitespace-nowrap">{t("Intvs")}</th>
+                    <th className="py-3 px-2 text-center whitespace-nowrap">{t("AI Health")}</th>
+                    <th className="py-3 px-2 whitespace-nowrap">{t("Tags")}</th>
+                    <th className="py-3 pl-2">{t("Status")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -274,17 +276,15 @@ const Dashboard = () => {
               </table>
             </div>
             <div className="mt-4 pt-4 border-t border-gray-50 text-center shrink-0">
-              <Link to="/recruiter/jobs/new" className="text-sm font-bold text-indigo-600 flex items-center justify-center gap-1 hover:underline">
-                + Create New Job
-              </Link>
+              <Link to="/recruiter/jobs/new" className="text-sm font-bold text-indigo-600 flex items-center justify-center gap-1 hover:underline">{t("+ Create New Job")}</Link>
             </div>
           </div>
 
           {/* Today's Interviews */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col h-full max-h-[450px]">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Today&apos;s Interviews</h2>
-              <Link to="/recruiter/interviews" className="text-sm font-semibold text-indigo-600 hover:underline">View all &rarr;</Link>
+              <h2 className="text-lg font-bold text-gray-900">{t("Today's Interviews")}</h2>
+              <Link to="/recruiter/interviews" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View all →")}</Link>
             </div>
             {/* Scrollable list */}
             <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
@@ -308,9 +308,7 @@ const Dashboard = () => {
               ))}
             </div>
             <div className="mt-4 pt-4 border-t border-gray-50 text-center shrink-0">
-              <Link to="/recruiter/calendar" className="text-sm font-bold text-indigo-600 hover:underline">
-                View Full Calendar &rarr;
-              </Link>
+              <Link to="/recruiter/calendar" className="text-sm font-bold text-indigo-600 hover:underline">{t("View Full Calendar →")}</Link>
             </div>
           </div>
 
@@ -322,8 +320,8 @@ const Dashboard = () => {
           {/* Hiring Snapshot */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 h-full flex flex-col">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-2">
-              <h2 className="text-lg font-bold text-gray-900">Hiring Snapshot <span className="text-sm font-medium text-gray-500">(This Week)</span></h2>
-              <Link to="/recruiter/reports" className="text-sm font-semibold text-indigo-600 hover:underline">View full report &rarr;</Link>
+              <h2 className="text-lg font-bold text-gray-900">{t("Hiring Snapshot")}<span className="text-sm font-medium text-gray-500">{t("(This Week)")}</span></h2>
+              <Link to="/recruiter/reports" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View full report →")}</Link>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1">
               <div className="flex flex-col justify-center">
@@ -331,52 +329,52 @@ const Dashboard = () => {
                   <div className="w-6 h-6 bg-emerald-50 rounded-full flex items-center justify-center">
                     <FiUserPlus className="w-3 h-3 text-emerald-600" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-600">New Apps</span>
+                  <span className="text-xs font-semibold text-gray-600">{t("New Apps")}</span>
                 </div>
                 <div className="text-3xl font-extrabold text-gray-900">86</div>
                 <div className="text-xs font-bold text-emerald-600 mt-1 flex items-center gap-1">
                   <FiTrendingUp /> 18%
                 </div>
-                <div className="text-[10px] text-gray-400 font-medium mt-1">vs last week</div>
+                <div className="text-[10px] text-gray-400 font-medium mt-1">{t("vs last week")}</div>
               </div>
               <div className="flex flex-col justify-center border-l border-gray-50 pl-4">
                 <div className="flex items-center gap-1.5 mb-2">
                   <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center">
                     <FiCalendar className="w-3 h-3 text-blue-600" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-600">Interviews</span>
+                  <span className="text-xs font-semibold text-gray-600">{t("Interviews")}</span>
                 </div>
                 <div className="text-3xl font-extrabold text-gray-900">23</div>
                 <div className="text-xs font-bold text-emerald-600 mt-1 flex items-center gap-1">
                   <FiTrendingUp /> 12%
                 </div>
-                <div className="text-[10px] text-gray-400 font-medium mt-1">vs last week</div>
+                <div className="text-[10px] text-gray-400 font-medium mt-1">{t("vs last week")}</div>
               </div>
               <div className="flex flex-col justify-center border-l border-gray-50 pl-4 hidden sm:flex">
                 <div className="flex items-center gap-1.5 mb-2">
                   <div className="w-6 h-6 bg-orange-50 rounded-full flex items-center justify-center">
                     <FiCheckSquare className="w-3 h-3 text-orange-600" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-600">Offers</span>
+                  <span className="text-xs font-semibold text-gray-600">{t("Offers")}</span>
                 </div>
                 <div className="text-3xl font-extrabold text-gray-900">4</div>
                 <div className="text-xs font-bold text-emerald-600 mt-1 flex items-center gap-1">
                   <FiTrendingUp /> 33%
                 </div>
-                <div className="text-[10px] text-gray-400 font-medium mt-1">vs last week</div>
+                <div className="text-[10px] text-gray-400 font-medium mt-1">{t("vs last week")}</div>
               </div>
               <div className="flex flex-col justify-center border-l border-gray-50 pl-4 hidden sm:flex">
                 <div className="flex items-center gap-1.5 mb-2">
                   <div className="w-6 h-6 bg-purple-50 rounded-full flex items-center justify-center">
                     <FiCheckCircle className="w-3 h-3 text-purple-600" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-600">Hires</span>
+                  <span className="text-xs font-semibold text-gray-600">{t("Hires")}</span>
                 </div>
                 <div className="text-3xl font-extrabold text-gray-900">2</div>
                 <div className="text-xs font-bold text-emerald-600 mt-1 flex items-center gap-1">
                   <FiTrendingUp /> 100%
                 </div>
-                <div className="text-[10px] text-gray-400 font-medium mt-1">vs last week</div>
+                <div className="text-[10px] text-gray-400 font-medium mt-1">{t("vs last week")}</div>
               </div>
             </div>
           </div>
@@ -384,8 +382,8 @@ const Dashboard = () => {
           {/* Follow-ups Pending */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 h-full flex flex-col">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Follow-ups Pending</h2>
-              <Link to="/recruiter/tasks" className="text-sm font-semibold text-indigo-600 hover:underline">View all &rarr;</Link>
+              <h2 className="text-lg font-bold text-gray-900">{t("Follow-ups Pending")}</h2>
+              <Link to="/recruiter/tasks" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View all →")}</Link>
             </div>
             <div className="flex-1 flex flex-col justify-center space-y-4">
               {followUps.map(f => (
@@ -410,7 +408,6 @@ const Dashboard = () => {
         </div>
 
       </div>
-
     </div>
   );
 };

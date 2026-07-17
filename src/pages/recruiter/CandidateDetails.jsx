@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { recruiterAPI } from '../../services/api';
@@ -10,6 +11,10 @@ import {
 import { HiSparkles, HiOutlineLocationMarker, HiOutlineUser, HiOutlineGlobeAlt, HiOutlineBriefcase, HiOutlineExclamationCircle } from 'react-icons/hi';
 
 const CandidateDetails = () => {
+  const {
+    t
+  } = useTranslation();
+
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('Overview');
   const [activeSidebarTab, setActiveSidebarTab] = useState('AI Insights');
@@ -36,7 +41,7 @@ const CandidateDetails = () => {
   const tabs = ['Overview', 'Experience', 'Skills', 'Resume', 'Education', 'Projects', 'Screening', 'Notes & Feedback', 'Activity'];
 
   if (loading) {
-     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+     return <div className="min-h-screen flex items-center justify-center">{t("Loading...")}</div>;
   }
 
   // Fallback to mock data if no candidate is found
@@ -74,17 +79,13 @@ const CandidateDetails = () => {
             {/* Top Nav */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <Link to="/recruiter/candidates" className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-gray-900 transition">
-            <FiArrowLeft /> Back to search
-          </Link>
+            <FiArrowLeft />{t("Back to search")}</Link>
           <div className="flex items-center gap-3">
             <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition">
-              <FiChevronLeft /> Previous
+              <FiChevronLeft />{t("Previous")}</button>
+            <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition">{t("Next")}<FiChevronRight />
             </button>
-            <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition">
-              Next <FiChevronRight />
-            </button>
-            <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold text-indigo-600 hover:bg-gray-50 transition ml-2">
-              More Actions <FiChevronDown />
+            <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold text-indigo-600 hover:bg-gray-50 transition ml-2">{t("More Actions")}<FiChevronDown />
             </button>
           </div>
         </div>
@@ -98,7 +99,7 @@ const CandidateDetails = () => {
               <div>
                 <div className="flex flex-wrap items-center gap-3 mb-2">
                   <h1 className="text-2xl font-extrabold text-gray-900">{cData.profileName || cData.user?.name || "Ankit Singh"}</h1>
-                  <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">95% Match</span>
+                  <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{t("95% Match")}</span>
                   <span className="text-[11px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">{cData.tier || 'Premium'}</span>
                   
                   {/* Bookmark & Share Buttons */}
@@ -109,12 +110,10 @@ const CandidateDetails = () => {
                 </div>
                 <div className="text-sm font-semibold text-gray-700 mb-1">{cData.designation || "Senior React Developer"} {cData.company ? `at ${cData.company}` : ""}</div>
                 <div className="text-xs font-medium text-gray-500 flex items-center gap-1 mb-4">
-                  <HiOutlineLocationMarker className="w-4 h-4" /> {cData.city || "Bangalore"}, {cData.state || "Karnataka"}, India
-                </div>
+                  <HiOutlineLocationMarker className="w-4 h-4" /> {cData.city || "Bangalore"}, {cData.state || "Karnataka"}{t(", India")}</div>
                 <div className="flex items-center gap-2">
                   <button className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-100 transition">
-                    <FiPhoneCall className="w-3.5 h-3.5" /> Contact
-                  </button>
+                    <FiPhoneCall className="w-3.5 h-3.5" />{t("Contact")}</button>
                   <button className="p-2 text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition">
                     <FiMessageCircle className="w-4 h-4" />
                   </button>
@@ -132,24 +131,24 @@ const CandidateDetails = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-6 lg:border-l border-gray-100 lg:pl-8">
               <div>
-                <div className="text-[10px] font-bold text-gray-400 mb-1">Experience</div>
+                <div className="text-[10px] font-bold text-gray-400 mb-1">{t("Experience")}</div>
                 <div className="text-sm font-extrabold text-gray-900">{cData.experience || "5.2 yrs"}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-gray-400 mb-1">Current CTC</div>
+                <div className="text-[10px] font-bold text-gray-400 mb-1">{t("Current CTC")}</div>
                 <div className="text-sm font-extrabold text-gray-900">{cData.pricing ? `₹${cData.pricing}` : '₹18 LPA'}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-gray-400 mb-1">Contact Visibility</div>
+                <div className="text-[10px] font-bold text-gray-400 mb-1">{t("Contact Visibility")}</div>
                 <div className="text-sm font-extrabold text-gray-900">{cData.contactVisibility === 'none' ? 'Hidden' : 'Visible'}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-gray-400 mb-1">Notice Period</div>
+                <div className="text-[10px] font-bold text-gray-400 mb-1">{t("Notice Period")}</div>
                 <div className="text-sm font-extrabold text-gray-900">{cData.noticePeriod || "30 Days"}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-gray-400 mb-1">Availability</div>
-                <div className="text-sm font-extrabold text-gray-900">Immediate</div>
+                <div className="text-[10px] font-bold text-gray-400 mb-1">{t("Availability")}</div>
+                <div className="text-sm font-extrabold text-gray-900">{t("Immediate")}</div>
               </div>
             </div>
           </div>
@@ -176,29 +175,29 @@ const CandidateDetails = () => {
             
             {/* About */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">About {cData.profileName?.split(' ')[0] || "Candidate"}</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-3">{t("About")}{cData.profileName?.split(' ')[0] || "Candidate"}</h3>
               <p className="text-xs text-gray-600 leading-relaxed mb-6">
                 {cData.description || "Experienced React Developer with a strong background in building scalable web applications and excellent problem-solving skills. Passionate about creating user-friendly interfaces and optimizing performance."}
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 <div>
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineUser /> Age</div>
-                  <div className="text-xs font-bold text-gray-900">29 yrs</div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineUser />{t("Age")}</div>
+                  <div className="text-xs font-bold text-gray-900">{t("29 yrs")}</div>
                 </div>
                 <div>
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineGlobeAlt /> Languages</div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineGlobeAlt />{t("Languages")}</div>
                   <div className="text-xs font-bold text-gray-900">{cData.languages?.length > 0 ? cData.languages.join(', ') : "English, Hindi"}</div>
                 </div>
                 <div>
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineLocationMarker /> Current Location</div>
-                  <div className="text-xs font-bold text-gray-900">{cData.city || "Bangalore"}, India</div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineLocationMarker />{t("Current Location")}</div>
+                  <div className="text-xs font-bold text-gray-900">{cData.city || "Bangalore"}{t(", India")}</div>
                 </div>
                 <div>
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><FiArrowUpRight /> Relocation</div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><FiArrowUpRight />{t("Relocation")}</div>
                   <div className="text-xs font-bold text-gray-900">{cData.relocationAvailable ? "Open to relocate" : "No"}</div>
                 </div>
                 <div>
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineBriefcase /> Employment Type</div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 mb-1"><HiOutlineBriefcase />{t("Employment Type")}</div>
                   <div className="text-xs font-bold text-gray-900">{cData.jobType?.length > 0 ? cData.jobType.join(', ') : "Full-time"} ({cData.workMode || "Hybrid"})</div>
                 </div>
               </div>
@@ -207,10 +206,9 @@ const CandidateDetails = () => {
             {/* Key Skills */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-gray-900">Key Skills</h3>
+                <h3 className="text-sm font-bold text-gray-900">{t("Key Skills")}</h3>
                 <button className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:underline">
-                  <FiEdit2 className="w-3.5 h-3.5" /> Edit
-                </button>
+                  <FiEdit2 className="w-3.5 h-3.5" />{t("Edit")}</button>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {(cData.skills?.length > 0 ? cData.skills : ['React', 'TypeScript', 'Next.js', 'Redux', 'Node.js', 'Tailwind CSS', 'JavaScript', 'HTML']).slice(0, 8).map(skill => (
@@ -228,16 +226,16 @@ const CandidateDetails = () => {
 
             {/* Experience Summary */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h3 className="text-sm font-bold text-gray-900 mb-6">Experience Summary</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-6">{t("Experience Summary")}</h3>
               <div className="flex flex-col sm:flex-row gap-8">
                 <div className="sm:w-1/3 space-y-6">
                   <div>
-                    <div className="text-xs font-bold text-gray-500 mb-1">Total Experience</div>
-                    <div className="text-sm font-extrabold text-gray-900">5.2 Years</div>
+                    <div className="text-xs font-bold text-gray-500 mb-1">{t("Total Experience")}</div>
+                    <div className="text-sm font-extrabold text-gray-900">{t("5.2 Years")}</div>
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-gray-500 mb-1">Relevant Experience</div>
-                    <div className="text-sm font-extrabold text-gray-900">4.6 Years</div>
+                    <div className="text-xs font-bold text-gray-500 mb-1">{t("Relevant Experience")}</div>
+                    <div className="text-sm font-extrabold text-gray-900">{t("4.6 Years")}</div>
                   </div>
                 </div>
                 
@@ -272,8 +270,7 @@ const CandidateDetails = () => {
                   })}
                   
                   <div className="text-center pt-2">
-                    <button className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1 mx-auto">
-                      View Full Experience <FiArrowUpRight />
+                    <button className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1 mx-auto">{t("View Full Experience")}<FiArrowUpRight />
                     </button>
                   </div>
                 </div>
@@ -284,7 +281,7 @@ const CandidateDetails = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col">
-                <h3 className="text-sm font-bold text-gray-900 mb-4">Education</h3>
+                <h3 className="text-sm font-bold text-gray-900 mb-4">{t("Education")}</h3>
                 <div className="space-y-4 mb-4">
                   {cData.education?.length > 0 ? cData.education.map((edu, idx) => (
                     <div key={idx}>
@@ -293,38 +290,34 @@ const CandidateDetails = () => {
                       <div className="text-[11px] text-gray-600">{edu.institution}</div>
                     </div>
                   )) : (
-                    <div className="text-[11px] text-gray-500 italic">No education details provided</div>
+                    <div className="text-[11px] text-gray-500 italic">{t("No education details provided")}</div>
                   )}
                 </div>
                 <div className="mt-auto text-center pt-4 border-t border-gray-50">
-                  <button className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1 mx-auto">
-                    View All Education <FiArrowUpRight />
+                  <button className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1 mx-auto">{t("View All Education")}<FiArrowUpRight />
                   </button>
                 </div>
               </div>
 
               {/* Projects */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col">
-                <h3 className="text-sm font-bold text-gray-900 mb-4">Projects (Top 2)</h3>
+                <h3 className="text-sm font-bold text-gray-900 mb-4">{t("Projects (Top 2)")}</h3>
                 <div className="space-y-3 mb-4">
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <div className="text-xs font-bold text-gray-900 mb-1">Swiggy Food Order Platform</div>
-                    <div className="text-[10px] text-gray-500 mb-2">React, Redux, Node.js</div>
+                    <div className="text-xs font-bold text-gray-900 mb-1">{t("Swiggy Food Order Platform")}</div>
+                    <div className="text-[10px] text-gray-500 mb-2">{t("React, Redux, Node.js")}</div>
                     <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
-                      <FiStar className="w-3 h-3 fill-emerald-600" /> Featured
-                    </div>
+                      <FiStar className="w-3 h-3 fill-emerald-600" />{t("Featured")}</div>
                   </div>
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <div className="text-xs font-bold text-gray-900 mb-1">Swiggy Instamart Redesign</div>
-                    <div className="text-[10px] text-gray-500 mb-2">Next.js, Tailwind CSS</div>
+                    <div className="text-xs font-bold text-gray-900 mb-1">{t("Swiggy Instamart Redesign")}</div>
+                    <div className="text-[10px] text-gray-500 mb-2">{t("Next.js, Tailwind CSS")}</div>
                     <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
-                      <FiStar className="w-3 h-3 fill-emerald-600" /> Featured
-                    </div>
+                      <FiStar className="w-3 h-3 fill-emerald-600" />{t("Featured")}</div>
                   </div>
                 </div>
                 <div className="mt-auto text-center pt-4 border-t border-gray-50">
-                  <button className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1 mx-auto">
-                    View All Projects <FiArrowUpRight />
+                  <button className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1 mx-auto">{t("View All Projects")}<FiArrowUpRight />
                   </button>
                 </div>
               </div>
@@ -337,22 +330,18 @@ const CandidateDetails = () => {
             
             {/* Quick Actions */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h3 className="text-sm font-bold text-gray-900 mb-4">Quick Actions</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-4">{t("Quick Actions")}</h3>
               <div className="space-y-3">
                 <button className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition">
-                  <FiCalendar /> Schedule Interview
-                </button>
+                  <FiCalendar />{t("Schedule Interview")}</button>
                 <button className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition">
-                  <FiPhoneCall /> Contact Candidate
-                </button>
+                  <FiPhoneCall />{t("Contact Candidate")}</button>
                 <button className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition">
-                  <FiStar /> Add to Shortlist
-                </button>
+                  <FiStar />{t("Add to Shortlist")}</button>
                 
                 {/* Mock Dropdown */}
                 <div className="pt-2 relative">
-                  <button className="w-full flex items-center justify-center gap-2 text-xs font-bold text-gray-600 hover:text-gray-900 transition">
-                    More Actions <FiChevronDown />
+                  <button className="w-full flex items-center justify-center gap-2 text-xs font-bold text-gray-600 hover:text-gray-900 transition">{t("More Actions")}<FiChevronDown />
                   </button>
                   {/* Overlay mock
                   <div className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-lg p-2 z-10">
@@ -370,7 +359,7 @@ const CandidateDetails = () => {
             {/* Candidate Fit */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-sm font-bold text-gray-900">Candidate Fit</h3>
+                <h3 className="text-sm font-bold text-gray-900">{t("Candidate Fit")}</h3>
               </div>
               
               <div className="flex items-center gap-4 mb-6">
@@ -378,37 +367,34 @@ const CandidateDetails = () => {
                   95%
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-emerald-600 mb-1">Excellent Match</div>
-                  <div className="text-[10px] text-gray-500">High match with your job requirements.</div>
+                  <div className="text-sm font-bold text-emerald-600 mb-1">{t("Excellent Match")}</div>
+                  <div className="text-[10px] text-gray-500">{t("High match with your job requirements.")}</div>
                 </div>
               </div>
 
               <div className="mb-6">
-                <h4 className="text-xs font-bold text-gray-900 mb-3">Top Matching Skills</h4>
+                <h4 className="text-xs font-bold text-gray-900 mb-3">{t("Top Matching Skills")}</h4>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold"><FiCheckCircle className="text-emerald-500 w-3 h-3" /> React</div>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold"><FiCheckCircle className="text-emerald-500 w-3 h-3" /> TypeScript</div>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold"><FiCheckCircle className="text-emerald-500 w-3 h-3" /> Next.js</div>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold"><FiCheckCircle className="text-emerald-500 w-3 h-3" /> JavaScript</div>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold"><FiCheckCircle className="text-emerald-500 w-3 h-3" />{t("React")}</div>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold"><FiCheckCircle className="text-emerald-500 w-3 h-3" />{t("TypeScript")}</div>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold"><FiCheckCircle className="text-emerald-500 w-3 h-3" />{t("Next.js")}</div>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold"><FiCheckCircle className="text-emerald-500 w-3 h-3" />{t("JavaScript")}</div>
                 </div>
               </div>
 
-              <button className="w-full text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1">
-                AI Match Breakdown <FiArrowUpRight />
+              <button className="w-full text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-1">{t("AI Match Breakdown")}<FiArrowUpRight />
               </button>
             </div>
 
             {/* AI Recommended Next Step */}
             <div className="bg-indigo-50 rounded-2xl border border-indigo-100 shadow-sm p-6">
               <h3 className="text-sm font-bold text-indigo-900 mb-3 flex items-center gap-2">
-                <HiSparkles className="text-indigo-600" /> AI Recommended Next Step
-              </h3>
-              <p className="text-xs text-indigo-800/80 leading-relaxed mb-4">
-                Ankit is a strong match for Senior React Developer roles. We recommend scheduling a technical interview.
-              </p>
+                <HiSparkles className="text-indigo-600" />{t("AI Recommended Next Step")}</h3>
+              <p className="text-xs text-indigo-800/80 leading-relaxed mb-4">{t(
+                "Ankit is a strong match for Senior React Developer roles. We recommend scheduling a technical interview."
+              )}</p>
               <button className="w-full bg-white text-indigo-700 px-4 py-2.5 rounded-xl text-sm font-bold border border-indigo-200 shadow-sm hover:bg-indigo-50 transition flex items-center justify-center gap-2">
-                <HiSparkles /> Generate Interview Kit
-              </button>
+                <HiSparkles />{t("Generate Interview Kit")}</button>
             </div>
 
           </div>
@@ -422,15 +408,11 @@ const CandidateDetails = () => {
                 <button 
                   onClick={() => setActiveSidebarTab('AI Insights')}
                   className={`flex-1 py-4 text-xs font-bold transition border-b-2 ${activeSidebarTab === 'AI Insights' ? 'text-indigo-600 border-indigo-600' : 'text-gray-500 border-transparent hover:text-gray-700'}`}
-                >
-                  AI Insights
-                </button>
+                >{t("AI Insights")}</button>
                 <button 
                   onClick={() => setActiveSidebarTab('Activity')}
                   className={`flex-1 py-4 text-xs font-bold transition border-b-2 ${activeSidebarTab === 'Activity' ? 'text-indigo-600 border-indigo-600' : 'text-gray-500 border-transparent hover:text-gray-700'}`}
-                >
-                  Activity
-                </button>
+                >{t("Activity")}</button>
               </div>
 
               {activeSidebarTab === 'AI Insights' && (
@@ -438,45 +420,44 @@ const CandidateDetails = () => {
                   
                   {/* AI Summary */}
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900 mb-3 flex items-center gap-2"><HiSparkles className="text-indigo-600" /> AI Summary</h4>
-                    <p className="text-[11px] text-gray-600 leading-relaxed mb-4">
-                      Ankit is a strong frontend engineer with expertise in modern React ecosystem. He has worked on high-scale products and shows consistent growth.
-                    </p>
+                    <h4 className="text-xs font-bold text-gray-900 mb-3 flex items-center gap-2"><HiSparkles className="text-indigo-600" />{t("AI Summary")}</h4>
+                    <p className="text-[11px] text-gray-600 leading-relaxed mb-4">{t(
+                      "Ankit is a strong frontend engineer with expertise in modern React ecosystem. He has worked on high-scale products and shows consistent growth."
+                    )}</p>
                     <div className="flex flex-wrap gap-2">
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">Strong Technical Fit</span>
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">Good Culture Fit</span>
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">Immediate Joiner</span>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">{t("Strong Technical Fit")}</span>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">{t("Good Culture Fit")}</span>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">{t("Immediate Joiner")}</span>
                     </div>
                   </div>
 
                   {/* Strengths */}
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900 mb-3">Strengths</h4>
+                    <h4 className="text-xs font-bold text-gray-900 mb-3">{t("Strengths")}</h4>
                     <ul className="space-y-2">
-                      <li className="flex items-start gap-2 text-[11px] text-gray-700"><FiCheckCircle className="text-emerald-500 w-3.5 h-3.5 shrink-0 mt-0.5" /> Strong in React ecosystem</li>
-                      <li className="flex items-start gap-2 text-[11px] text-gray-700"><FiCheckCircle className="text-emerald-500 w-3.5 h-3.5 shrink-0 mt-0.5" /> Experience in scalable applications</li>
-                      <li className="flex items-start gap-2 text-[11px] text-gray-700"><FiCheckCircle className="text-emerald-500 w-3.5 h-3.5 shrink-0 mt-0.5" /> Quick learner and problem solver</li>
+                      <li className="flex items-start gap-2 text-[11px] text-gray-700"><FiCheckCircle className="text-emerald-500 w-3.5 h-3.5 shrink-0 mt-0.5" />{t("Strong in React ecosystem")}</li>
+                      <li className="flex items-start gap-2 text-[11px] text-gray-700"><FiCheckCircle className="text-emerald-500 w-3.5 h-3.5 shrink-0 mt-0.5" />{t("Experience in scalable applications")}</li>
+                      <li className="flex items-start gap-2 text-[11px] text-gray-700"><FiCheckCircle className="text-emerald-500 w-3.5 h-3.5 shrink-0 mt-0.5" />{t("Quick learner and problem solver")}</li>
                     </ul>
                   </div>
 
                   {/* Potential Concerns */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-xs font-bold text-gray-900">Potential Concerns</h4>
+                      <h4 className="text-xs font-bold text-gray-900">{t("Potential Concerns")}</h4>
                       <FiChevronDown className="text-gray-400" />
                     </div>
                     <div className="flex items-start gap-2 text-[11px] text-gray-700">
                       <HiOutlineExclamationCircle className="text-orange-500 w-4 h-4 shrink-0" /> 
-                      <div>
-                        Higher salary expectation <br/>
-                        <span className="text-gray-500">(₹24 - 26 LPA)</span>
+                      <div>{t("Higher salary expectation")}<br/>
+                        <span className="text-gray-500">{t("(₹24 - 26 LPA)")}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Resume */}
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900 mb-3">Resume</h4>
+                    <h4 className="text-xs font-bold text-gray-900 mb-3">{t("Resume")}</h4>
                     {cData.resumeUrl ? (
                       <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-gray-50">
                         <div className="flex items-center gap-3">
@@ -485,7 +466,7 @@ const CandidateDetails = () => {
                           </div>
                           <div>
                             <div className="text-xs font-bold text-gray-900">{(cData.profileName?.replace(/\s+/g, '_') || "Candidate") + "_Resume"}</div>
-                            <div className="text-[9px] text-gray-500">Available</div>
+                            <div className="text-[9px] text-gray-500">{t("Available")}</div>
                           </div>
                         </div>
                         <a href={cData.resumeUrl} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-gray-600">
@@ -493,32 +474,32 @@ const CandidateDetails = () => {
                         </a>
                       </div>
                     ) : (
-                      <div className="text-[11px] text-gray-500 italic">No resume uploaded</div>
+                      <div className="text-[11px] text-gray-500 italic">{t("No resume uploaded")}</div>
                     )}
                   </div>
 
                   {/* Notes */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-xs font-bold text-gray-900">Notes</h4>
-                      <button className="text-[10px] font-bold text-indigo-600 flex items-center gap-1"><FiPlus /> Add Note</button>
+                      <h4 className="text-xs font-bold text-gray-900">{t("Notes")}</h4>
+                      <button className="text-[10px] font-bold text-indigo-600 flex items-center gap-1"><FiPlus />{t("Add Note")}</button>
                     </div>
                     <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
-                      <p className="text-[11px] text-gray-700 leading-relaxed mb-2">Good communication in initial call. Available for interview this week.</p>
-                      <div className="text-[9px] font-semibold text-gray-400">- Rahul Verma (Today, 10:30 AM)</div>
+                      <p className="text-[11px] text-gray-700 leading-relaxed mb-2">{t("Good communication in initial call. Available for interview this week.")}</p>
+                      <div className="text-[9px] font-semibold text-gray-400">{t("- Rahul Verma (Today, 10:30 AM)")}</div>
                     </div>
                   </div>
 
                   {/* Tags */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-xs font-bold text-gray-900">Tags</h4>
-                      <button className="text-[10px] font-bold text-indigo-600 flex items-center gap-1"><FiPlus /> Add Tag</button>
+                      <h4 className="text-xs font-bold text-gray-900">{t("Tags")}</h4>
+                      <button className="text-[10px] font-bold text-indigo-600 flex items-center gap-1"><FiPlus />{t("Add Tag")}</button>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">React Developer</span>
-                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">Immediate Joiner</span>
-                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">High Potential</span>
+                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">{t("React Developer")}</span>
+                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">{t("Immediate Joiner")}</span>
+                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">{t("High Potential")}</span>
                     </div>
                   </div>
 

@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState } from 'react';
 import { FiArrowUpRight, FiChevronRight, FiBriefcase, FiDollarSign, FiUsers, FiTrendingUp } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
@@ -14,6 +15,10 @@ const iconMap = {
 };
 
 export default function AIInsightsPage() {
+  const {
+    t
+  } = useTranslation();
+
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [activeCategory, setActiveCategory] = useState('skills');
@@ -27,7 +32,7 @@ export default function AIInsightsPage() {
     });
   }, []);
 
-  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading AI Insights...</div>;
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">{t("Loading AI Insights...")}</div>;
 
   const { insightCategories, kpis } = data;
   const mappedCategories = insightCategories.map(c => ({ ...c, icon: iconMap[c.icon] }));
@@ -45,7 +50,6 @@ export default function AIInsightsPage() {
           </SCard>
         ))}
       </div>
-
       {/* Category selector + Detail */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar category list */}
@@ -84,10 +88,10 @@ export default function AIInsightsPage() {
             {activeData.id === 'skills' && (
               <div className="space-y-3">
                 <div className="grid grid-cols-4 text-[10px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100 pb-2">
-                  <span>Skill</span>
-                  <span className="text-center">Demand</span>
-                  <span className="text-center">Supply</span>
-                  <span className="text-right">Market</span>
+                  <span>{t("Skill")}</span>
+                  <span className="text-center">{t("Demand")}</span>
+                  <span className="text-center">{t("Supply")}</span>
+                  <span className="text-right">{t("Market")}</span>
                 </div>
                 {activeData.items.map((item, i) => (
                   <div key={i} className="grid grid-cols-4 items-center">
@@ -144,28 +148,31 @@ export default function AIInsightsPage() {
           </div>
         </SCard>
       </div>
-
       {/* AI Summary Block */}
       <SCard className="p-6 bg-gradient-to-br from-indigo-900 to-purple-900 border-0 text-white">
         <div className="flex items-start gap-4">
           <div className="bg-white/20 p-3 rounded-xl shrink-0"><HiSparkles className="w-6 h-6" /></div>
           <div>
-            <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
-              AI Monthly Summary
-              <span className="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">New</span>
+            <h3 className="text-sm font-bold mb-3 flex items-center gap-2">{t("AI Monthly Summary")}<span className="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">{t("New")}</span>
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
               <div className="bg-white/10 rounded-xl p-4">
-                <div className="text-white/60 font-semibold mb-2 text-[10px] uppercase tracking-wide">Hiring Health</div>
-                <p className="text-white/90 leading-relaxed">Your overall hiring efficiency improved by 14%. AI shortlisting reduced screening time by 3.2 days on average.</p>
+                <div className="text-white/60 font-semibold mb-2 text-[10px] uppercase tracking-wide">{t("Hiring Health")}</div>
+                <p className="text-white/90 leading-relaxed">{t(
+                  "Your overall hiring efficiency improved by 14%. AI shortlisting reduced screening time by 3.2 days on average."
+                )}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-4">
-                <div className="text-white/60 font-semibold mb-2 text-[10px] uppercase tracking-wide">Talent Market</div>
-                <p className="text-white/90 leading-relaxed">React and DevOps skills remain in critical shortage. Expand your sourcing to tier-2 cities and consider upskilling programs.</p>
+                <div className="text-white/60 font-semibold mb-2 text-[10px] uppercase tracking-wide">{t("Talent Market")}</div>
+                <p className="text-white/90 leading-relaxed">{t(
+                  "React and DevOps skills remain in critical shortage. Expand your sourcing to tier-2 cities and consider upskilling programs."
+                )}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-4">
-                <div className="text-white/60 font-semibold mb-2 text-[10px] uppercase tracking-wide">Next Best Action</div>
-                <p className="text-white/90 leading-relaxed">Launch a senior tech referral campaign. Your Employee Referral quality score (95) is the highest of all sources — capitalize on it.</p>
+                <div className="text-white/60 font-semibold mb-2 text-[10px] uppercase tracking-wide">{t("Next Best Action")}</div>
+                <p className="text-white/90 leading-relaxed">{t(
+                  "Launch a senior tech referral campaign. Your Employee Referral quality score (95) is the highest of all sources — capitalize on it."
+                )}</p>
               </div>
             </div>
           </div>

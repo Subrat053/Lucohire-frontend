@@ -117,14 +117,11 @@ const Navbar = () => {
             <Link to="/" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
               {t("navbar.home")}
             </Link>
-            <Link to="/candidate-landing" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
+            <Link to="/jobs-for-me" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
               {t("navbar.findJobs", "Find Jobs")}
             </Link>
             <Link to="/search" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
               {t("navbar.findProviders")}
-            </Link>
-            <Link to="/signup?role=recruiter" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
-              {t("navbar.hireMe", "Hire Me")}
             </Link>
 
 
@@ -365,7 +362,7 @@ const Navbar = () => {
                   <span>{t("navbar.home")}</span>
                 </Link>
                 <Link
-                  to="/candidate-landing"
+                  to="/jobs-for-me"
                   className="flex items-center space-x-3 rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50"
                   onClick={() => setMobileOpen(false)}
                 >
@@ -379,14 +376,6 @@ const Navbar = () => {
                 >
                   <HiUsers className="w-5 h-5 text-gray-400" />
                   <span>{t("navbar.findProviders")}</span>
-                </Link>
-                <Link
-                  to="/signup?role=recruiter"
-                  className="flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <HiBriefcase className="w-5 h-5 text-gray-400" />
-                  <span>{t("navbar.hireMe", "Hire Me")}</span>
                 </Link>
                 <Link
                   to="/contact"

@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React from 'react';
 import { FiArrowUpRight, FiArrowDownRight, FiChevronDown, FiDownload } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
@@ -7,6 +8,10 @@ const SCard = ({ children, className = '' }) => (
 );
 
 export default function SourceAnalyticsPage() {
+  const {
+    t
+  } = useTranslation();
+
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
 
@@ -19,7 +24,7 @@ export default function SourceAnalyticsPage() {
     });
   }, []);
 
-  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading source data...</div>;
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">{t("Loading source data...")}</div>;
 
   const { sources, monthlyTrend, kpis } = data;
 
@@ -37,18 +42,17 @@ export default function SourceAnalyticsPage() {
           </SCard>
         ))}
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Donut + Legend */}
         <SCard className="p-6">
-          <h2 className="text-base font-bold text-gray-900 mb-6">Source Distribution</h2>
+          <h2 className="text-base font-bold text-gray-900 mb-6">{t("Source Distribution")}</h2>
           <div className="flex flex-col items-center gap-6">
             <div className="relative w-44 h-44 rounded-full"
               style={{ background: 'conic-gradient(#6366f1 0% 32%,#a855f7 32% 56%,#10b981 56% 75%,#f59e0b 75% 88%,#3b82f6 88% 95%,#94a3b8 95% 100%)' }}>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-32 h-32 bg-white rounded-full flex flex-col items-center justify-center">
                   <div className="text-2xl font-extrabold text-gray-900">{kpis[0].value}</div>
-                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-center">Total Applications</div>
+                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-center">{t("Total Applications")}</div>
                 </div>
               </div>
             </div>
@@ -67,20 +71,19 @@ export default function SourceAnalyticsPage() {
         {/* Detailed Table */}
         <SCard className="p-6 lg:col-span-2">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base font-bold text-gray-900">Source Performance Details</h2>
-            <button className="text-xs font-semibold text-gray-400 flex items-center gap-1 border border-gray-200 px-3 py-1.5 rounded-lg">
-              This Month <FiChevronDown className="w-3 h-3" />
+            <h2 className="text-base font-bold text-gray-900">{t("Source Performance Details")}</h2>
+            <button className="text-xs font-semibold text-gray-400 flex items-center gap-1 border border-gray-200 px-3 py-1.5 rounded-lg">{t("This Month")}<FiChevronDown className="w-3 h-3" />
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[500px]">
               <thead>
                 <tr className="text-[10px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">
-                  <th className="pb-3">Source</th>
-                  <th className="pb-3 text-center">Applications</th>
-                  <th className="pb-3 text-center">Hires</th>
-                  <th className="pb-3 text-center">Cost/Hire</th>
-                  <th className="pb-3 text-right">Quality Score</th>
+                  <th className="pb-3">{t("Source")}</th>
+                  <th className="pb-3 text-center">{t("Applications")}</th>
+                  <th className="pb-3 text-center">{t("Hires")}</th>
+                  <th className="pb-3 text-center">{t("Cost/Hire")}</th>
+                  <th className="pb-3 text-right">{t("Quality Score")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -110,26 +113,24 @@ export default function SourceAnalyticsPage() {
           </div>
         </SCard>
       </div>
-
       {/* Monthly trend */}
       <SCard className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-base font-bold text-gray-900">Monthly Source Trend</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Top 3 sources over the last 5 months</p>
+            <h2 className="text-base font-bold text-gray-900">{t("Monthly Source Trend")}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">{t("Top 3 sources over the last 5 months")}</p>
           </div>
-          <button className="text-xs font-semibold text-gray-400 flex items-center gap-1 border border-gray-200 px-3 py-1.5 rounded-lg">
-            Last 5 Months <FiChevronDown className="w-3 h-3" />
+          <button className="text-xs font-semibold text-gray-400 flex items-center gap-1 border border-gray-200 px-3 py-1.5 rounded-lg">{t("Last 5 Months")}<FiChevronDown className="w-3 h-3" />
           </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[400px]">
             <thead>
               <tr className="text-[10px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">
-                <th className="pb-3">Month</th>
-                <th className="pb-3 text-center text-indigo-600">LinkedIn</th>
-                <th className="pb-3 text-center text-purple-600">Lucohire Career</th>
-                <th className="pb-3 text-right text-emerald-600">Employee Referral</th>
+                <th className="pb-3">{t("Month")}</th>
+                <th className="pb-3 text-center text-indigo-600">{t("LinkedIn")}</th>
+                <th className="pb-3 text-center text-purple-600">{t("Lucohire Career")}</th>
+                <th className="pb-3 text-right text-emerald-600">{t("Employee Referral")}</th>
               </tr>
             </thead>
             <tbody>
@@ -160,16 +161,15 @@ export default function SourceAnalyticsPage() {
           </table>
         </div>
       </SCard>
-
       {/* AI Tip */}
       <SCard className="p-5 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-100">
         <div className="flex items-start gap-4">
           <div className="bg-purple-100 text-purple-600 p-2.5 rounded-xl shrink-0"><HiSparkles className="w-5 h-5" /></div>
           <div>
-            <h3 className="text-sm font-bold text-purple-900 mb-2">Source Optimization Insight</h3>
-            <p className="text-xs text-purple-800/80 leading-relaxed">
-              Employee Referrals have the highest quality score (95) but only account for 19% of applications. Consider launching a referral bonus campaign to boost this channel — referred candidates typically onboard 40% faster and have 50% better retention rates.
-            </p>
+            <h3 className="text-sm font-bold text-purple-900 mb-2">{t("Source Optimization Insight")}</h3>
+            <p className="text-xs text-purple-800/80 leading-relaxed">{t(
+              "Employee Referrals have the highest quality score (95) but only account for 19% of applications. Consider launching a referral bonus campaign to boost this channel — referred candidates typically onboard 40% faster and have 50% better retention rates."
+            )}</p>
           </div>
         </div>
       </SCard>

@@ -1,9 +1,14 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useRef, useState } from "react";
 import html2pdf from "html2pdf.js";
 import { HiX, HiDownload, HiTemplate, HiEye } from "react-icons/hi";
 import toast from "react-hot-toast";
 
 export default function ClientResumeGenerator({ user, profile, onClose }) {
+  const {
+    t
+  } = useTranslation();
+
   const [template, setTemplate] = useState("ats"); // "ats" or "color"
   const previewRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
@@ -54,20 +59,19 @@ export default function ClientResumeGenerator({ user, profile, onClose }) {
           <div>
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-xl font-extrabold tracking-tight flex items-center gap-2 text-indigo-400">
-                <HiTemplate className="w-6 h-6" /> Resume PDF
-              </h3>
+                <HiTemplate className="w-6 h-6" />{t("Resume PDF")}</h3>
               <button onClick={onClose} className="md:hidden p-1 bg-slate-800 hover:bg-slate-700 rounded-xl transition text-slate-400">
                 <HiX className="w-6 h-6" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-400 mb-6">
-              Select a professional layout to generate your PDF resume. All generation is processed securely on your device.
-            </p>
+            <p className="text-xs text-slate-400 mb-6">{t(
+              "Select a professional layout to generate your PDF resume. All generation is processed securely on your device."
+            )}</p>
 
             {/* Template Selector */}
             <div className="space-y-4">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">Choose Template</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">{t("Choose Template")}</label>
               
               <button
                 onClick={() => setTemplate("ats")}
@@ -77,8 +81,8 @@ export default function ClientResumeGenerator({ user, profile, onClose }) {
                     : "bg-slate-800/40 border-slate-700 hover:border-slate-600 text-slate-300"
                 }`}
               >
-                <div className="font-bold text-sm">ATS Single-Column</div>
-                <div className="text-[11px] text-slate-400 mt-1">Minimalist, optimized for automated screening and clean formatting.</div>
+                <div className="font-bold text-sm">{t("ATS Single-Column")}</div>
+                <div className="text-[11px] text-slate-400 mt-1">{t("Minimalist, optimized for automated screening and clean formatting.")}</div>
               </button>
 
               <button
@@ -89,8 +93,8 @@ export default function ClientResumeGenerator({ user, profile, onClose }) {
                     : "bg-slate-800/40 border-slate-700 hover:border-slate-600 text-slate-300"
                 }`}
               >
-                <div className="font-bold text-sm">Modern Accent Layout</div>
-                <div className="text-[11px] text-slate-400 mt-1">Stylish sidebar design with custom typography and clean highlights.</div>
+                <div className="font-bold text-sm">{t("Modern Accent Layout")}</div>
+                <div className="text-[11px] text-slate-400 mt-1">{t("Stylish sidebar design with custom typography and clean highlights.")}</div>
               </button>
             </div>
           </div>
@@ -108,9 +112,7 @@ export default function ClientResumeGenerator({ user, profile, onClose }) {
             <button
               onClick={onClose}
               className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl font-semibold transition text-center text-xs"
-            >
-              Close Window
-            </button>
+            >{t("Close Window")}</button>
           </div>
         </div>
 
@@ -121,7 +123,7 @@ export default function ClientResumeGenerator({ user, profile, onClose }) {
             <div ref={previewRef} className="p-8 md:p-12 text-slate-900 font-sans leading-relaxed" style={{ fontSize: "14px" }}>
               {template === "ats" ? (
                 /* ATS Single-Column Template */
-                <div className="space-y-6">
+                (<div className="space-y-6">
                   {/* Header */}
                   <div className="text-center border-b pb-4">
                     <h1 className="text-3xl font-extrabold uppercase tracking-wide text-slate-900 m-0">{name}</h1>
@@ -143,17 +145,15 @@ export default function ClientResumeGenerator({ user, profile, onClose }) {
                       </div>
                     )}
                   </div>
-
                   {/* Summary */}
                   <div className="space-y-2">
-                    <h2 className="text-base font-bold uppercase tracking-wider text-slate-900 border-b pb-1">Professional Summary</h2>
+                    <h2 className="text-base font-bold uppercase tracking-wider text-slate-900 border-b pb-1">{t("Professional Summary")}</h2>
                     <p className="text-slate-700 text-sm whitespace-pre-line m-0">{description}</p>
                   </div>
-
                   {/* Skills */}
                   {skills.length > 0 && (
                     <div className="space-y-2">
-                      <h2 className="text-base font-bold uppercase tracking-wider text-slate-900 border-b pb-1">Core Competencies & Skills</h2>
+                      <h2 className="text-base font-bold uppercase tracking-wider text-slate-900 border-b pb-1">{t("Core Competencies & Skills")}</h2>
                       <div className="flex flex-wrap gap-2">
                         {skills.map((skill, idx) => (
                           <span key={idx} className="bg-slate-100 text-slate-800 px-3 py-1 rounded-md text-xs font-semibold">
@@ -163,45 +163,42 @@ export default function ClientResumeGenerator({ user, profile, onClose }) {
                       </div>
                     </div>
                   )}
-
                   {/* Experience */}
                   <div className="space-y-2">
-                    <h2 className="text-base font-bold uppercase tracking-wider text-slate-900 border-b pb-1">Professional Experience</h2>
+                    <h2 className="text-base font-bold uppercase tracking-wider text-slate-900 border-b pb-1">{t("Professional Experience")}</h2>
                     <p className="text-slate-700 text-sm whitespace-pre-line m-0">{experience}</p>
                   </div>
-
                   {/* Languages */}
                   {languages.length > 0 && (
                     <div className="space-y-2">
-                      <h2 className="text-base font-bold uppercase tracking-wider text-slate-900 border-b pb-1">Languages</h2>
+                      <h2 className="text-base font-bold uppercase tracking-wider text-slate-900 border-b pb-1">{t("Languages")}</h2>
                       <p className="text-slate-700 text-sm m-0">{languages.join(", ")}</p>
                     </div>
                   )}
-                </div>
+                </div>)
               ) : (
                 /* Modern Color Accent Template */
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 min-h-[950px]">
-                  
+                (<div className="grid grid-cols-1 md:grid-cols-3 gap-8 min-h-[950px]">
                   {/* Left Column (Accent Sidebar) */}
                   <div className="md:col-span-1 bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col justify-between">
                     <div className="space-y-6">
                       {/* Contact Info */}
                       <div className="space-y-3">
-                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Contact Info</h3>
+                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">{t("Contact Info")}</h3>
                         <div className="space-y-2 text-xs text-slate-600">
                           <div>
-                            <div className="font-bold text-slate-800">Location</div>
+                            <div className="font-bold text-slate-800">{t("Location")}</div>
                             <div>{location}</div>
                           </div>
                           {phone && (
                             <div>
-                              <div className="font-bold text-slate-800">Phone</div>
+                              <div className="font-bold text-slate-800">{t("Phone")}</div>
                               <div>{phone}</div>
                             </div>
                           )}
                           {email && (
                             <div>
-                              <div className="font-bold text-slate-800">Email</div>
+                              <div className="font-bold text-slate-800">{t("Email")}</div>
                               <div className="break-all">{email}</div>
                             </div>
                           )}
@@ -211,7 +208,7 @@ export default function ClientResumeGenerator({ user, profile, onClose }) {
                       {/* Skills */}
                       {skills.length > 0 && (
                         <div className="space-y-3">
-                          <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Expertise</h3>
+                          <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">{t("Expertise")}</h3>
                           <div className="flex flex-wrap gap-1.5">
                             {skills.map((skill, idx) => (
                               <span key={idx} className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full text-[11px] font-bold">
@@ -225,7 +222,7 @@ export default function ClientResumeGenerator({ user, profile, onClose }) {
                       {/* Languages */}
                       {languages.length > 0 && (
                         <div className="space-y-3">
-                          <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Languages</h3>
+                          <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">{t("Languages")}</h3>
                           <div className="text-xs text-slate-700 space-y-1 font-medium">
                             {languages.map((lang, idx) => (
                               <div key={idx} className="flex items-center gap-1.5">
@@ -239,11 +236,8 @@ export default function ClientResumeGenerator({ user, profile, onClose }) {
                     </div>
 
                     {/* Footer watermark */}
-                    <div className="text-[10px] text-slate-400 mt-8 border-t pt-4">
-                      Generated via ServiceHub Career Platform
-                    </div>
+                    <div className="text-[10px] text-slate-400 mt-8 border-t pt-4">{t("Generated via ServiceHub Career Platform")}</div>
                   </div>
-
                   {/* Right Column (Details) */}
                   <div className="md:col-span-2 space-y-6">
                     {/* Header */}
@@ -256,26 +250,20 @@ export default function ClientResumeGenerator({ user, profile, onClose }) {
 
                     {/* Summary */}
                     <div className="space-y-2">
-                      <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 border-b-2 border-indigo-500 w-fit pb-0.5">
-                        About Me
-                      </h3>
+                      <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 border-b-2 border-indigo-500 w-fit pb-0.5">{t("About Me")}</h3>
                       <p className="text-slate-600 text-sm whitespace-pre-line leading-relaxed m-0">{description}</p>
                     </div>
 
                     {/* Experience */}
                     <div className="space-y-2">
-                      <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 border-b-2 border-indigo-500 w-fit pb-0.5">
-                        Work Experience
-                      </h3>
+                      <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 border-b-2 border-indigo-500 w-fit pb-0.5">{t("Work Experience")}</h3>
                       <p className="text-slate-600 text-sm whitespace-pre-line leading-relaxed m-0">{experience}</p>
                     </div>
 
                     {/* Portfolio/Social */}
                     {portfolioLinks.length > 0 && (
                       <div className="space-y-2">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 border-b-2 border-indigo-500 w-fit pb-0.5">
-                          Websites & Portfolios
-                        </h3>
+                        <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 border-b-2 border-indigo-500 w-fit pb-0.5">{t("Websites & Portfolios")}</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
                           {portfolioLinks.map((link, idx) => (
                             <a
@@ -293,8 +281,7 @@ export default function ClientResumeGenerator({ user, profile, onClose }) {
                       </div>
                     )}
                   </div>
-
-                </div>
+                </div>)
               )}
             </div>
           </div>

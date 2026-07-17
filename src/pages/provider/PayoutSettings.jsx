@@ -432,7 +432,6 @@ const PayoutSettings = () => {
           </div>
         </div>
       </div>
-
       <div className="grid md:grid-cols-3 gap-8">
         {/* Left Side: Payout Form */}
         <div className="md:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
@@ -476,7 +475,7 @@ const PayoutSettings = () => {
                       required
                       value={bankDetails.bankName}
                       onChange={e => setBankDetails({ ...bankDetails, bankName: e.target.value })}
-                      placeholder="e.g. HDFC Bank"
+                      placeholder={t("e.g. HDFC Bank")}
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition"
                     />
                   </div>
@@ -487,7 +486,7 @@ const PayoutSettings = () => {
                       required
                       value={bankDetails.accountHolderName}
                       onChange={e => setBankDetails({ ...bankDetails, accountHolderName: e.target.value })}
-                      placeholder="Name as in Bank"
+                      placeholder={t("Name as in Bank")}
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition"
                     />
                   </div>
@@ -511,7 +510,7 @@ const PayoutSettings = () => {
                     required
                     value={bankDetails.ifscCode}
                     onChange={e => setBankDetails({ ...bankDetails, ifscCode: e.target.value.toUpperCase() })}
-                    placeholder="e.g. HDFC0001234"
+                    placeholder={t("e.g. HDFC0001234")}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition font-mono uppercase"
                   />
                 </div>
@@ -527,7 +526,7 @@ const PayoutSettings = () => {
                     required
                     value={upiId}
                     onChange={e => setUpiId(e.target.value)}
-                    placeholder="e.g. name@upi"
+                    placeholder={t("e.g. name@upi")}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition font-mono"
                   />
                 </div>
@@ -557,7 +556,7 @@ const PayoutSettings = () => {
                       <div className="flex flex-col items-center">
                         <HiQrCode className="w-10 h-10 text-slate-400 mb-2" />
                         <p className="text-sm font-semibold text-slate-600">{t('payout.dragQr', 'Choose photo or drag here')}</p>
-                        <p className="text-xs text-slate-400 mt-1">PNG, JPG, JPEG up to 5MB</p>
+                        <p className="text-xs text-slate-400 mt-1">{t("PNG, JPG, JPEG up to 5MB")}</p>
                       </div>
                     )}
                   </div>
@@ -568,7 +567,7 @@ const PayoutSettings = () => {
                     type="text"
                     value={qrProviderName}
                     onChange={e => setQrProviderName(e.target.value)}
-                    placeholder="e.g. GPay, PhonePe, Paytm"
+                    placeholder={t("e.g. GPay, PhonePe, Paytm")}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition"
                   />
                 </div>
@@ -600,7 +599,7 @@ const PayoutSettings = () => {
                     disabled={!!user?.phone}
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
-                    placeholder="e.g. 9876543210"
+                    placeholder={t("e.g. 9876543210")}
                     className="w-full sm:flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition disabled:bg-slate-100 disabled:text-slate-500 font-semibold"
                   />
                   <button
@@ -675,7 +674,7 @@ const PayoutSettings = () => {
                     required
                     value={newPhone}
                     onChange={e => setNewPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="Enter 10 digits"
+                    placeholder={t("Enter 10 digits")}
                     className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 transition font-semibold"
                   />
                 </div>
@@ -756,7 +755,7 @@ const PayoutSettings = () => {
                           <p className="font-semibold text-slate-100 font-sans">{method.bankDetails?.accountHolderName}</p>
                           <p>{method.bankDetails?.bankName}</p>
                           <p className="text-emerald-200">{method.bankDetails?.accountNumber}</p>
-                          <p className="text-slate-400">IFSC: {method.bankDetails?.ifscCode}</p>
+                          <p className="text-slate-400">{t("IFSC:")}{method.bankDetails?.ifscCode}</p>
                         </>
                       )}
                       {method.type === 'upi' && (
@@ -791,7 +790,6 @@ const PayoutSettings = () => {
           </div>
         </div>
       </div>
-
       {/* OTP Verification Modal */}
       {showOtpModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
@@ -811,7 +809,7 @@ const PayoutSettings = () => {
                 maxLength={6}
                 value={otp}
                 onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
-                placeholder="0 0 0 0 0 0"
+                placeholder={t("0 0 0 0 0 0")}
                 className="w-full text-center px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xl font-extrabold font-mono tracking-[0.6em] focus:outline-hidden focus:border-emerald-500 focus:bg-white transition"
               />
 
@@ -844,7 +842,6 @@ const PayoutSettings = () => {
           </div>
         </div>
       )}
-
       {/* Two-step Phone Verification and Concern modal */}
       {showPhoneModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
@@ -872,7 +869,9 @@ const PayoutSettings = () => {
                       rows={4}
                       value={concernMessage}
                       onChange={e => setConcernMessage(e.target.value)}
-                      placeholder="Explain your case here, e.g. 'I lost my old phone SIM card and want to update to my new number: 9876543210'"
+                      placeholder={t(
+                        "Explain your case here, e.g. 'I lost my old phone SIM card and want to update to my new number: 9876543210'"
+                      )}
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:border-emerald-500 focus:bg-white transition"
                     />
                   </div>
@@ -931,7 +930,7 @@ const PayoutSettings = () => {
                     maxLength={6}
                     value={phoneOtp}
                     onChange={e => setPhoneOtp(e.target.value.replace(/\D/g, ''))}
-                    placeholder="0 0 0 0 0 0"
+                    placeholder={t("0 0 0 0 0 0")}
                     className="w-full text-center px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xl font-extrabold font-mono tracking-[0.6em] focus:outline-hidden focus:border-emerald-500 focus:bg-white transition"
                   />
 
@@ -979,7 +978,6 @@ const PayoutSettings = () => {
           </div>
         </div>
       )}
-      
       <div id="recaptcha-container"></div>
     </div>
   );

@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState } from "react";
 import { HiOutlineDownload, HiOutlineLightningBolt } from "react-icons/hi";
 import { FiCheck } from "react-icons/fi";
@@ -6,6 +7,10 @@ import { RefreshCw } from "lucide-react";
 // import { providerAPI } from '../../../services/api';
 
 export default function ResumeGenerator({ profileData }) {
+  const {
+    t
+  } = useTranslation();
+
   const [activeTemplate, setActiveTemplate] = useState("minimalist");
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizedData, setOptimizedData] = useState(null);
@@ -146,7 +151,6 @@ export default function ResumeGenerator({ profileData }) {
                 <span className="mx-2">•</span> {city}
               </p>
             </div>
-
             {about && (
               <div className="mb-8">
                 <p className="text-sm leading-relaxed text-slate-600">
@@ -154,10 +158,7 @@ export default function ResumeGenerator({ profileData }) {
                 </p>
               </div>
             )}
-
-            <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-widest">
-              Experience
-            </h2>
+            <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-widest">{t("Experience")}</h2>
             <div className="space-y-6 mb-8">
               {allExp.map((exp, i) => (
                 <div key={i} className="group">
@@ -180,12 +181,9 @@ export default function ResumeGenerator({ profileData }) {
                 </div>
               ))}
             </div>
-
             {projects?.length > 0 && (
               <>
-                <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-widest">
-                  Projects
-                </h2>
+                <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-widest">{t("Projects")}</h2>
                 <div className="space-y-5 mb-8">
                   {projects.map((proj, i) => (
                     <div key={i}>
@@ -209,13 +207,10 @@ export default function ResumeGenerator({ profileData }) {
                 </div>
               </>
             )}
-
             <div className="grid grid-cols-2 gap-8">
               {skills.length > 0 && (
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-widest">
-                    Skills
-                  </h2>
+                  <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-widest">{t("Skills")}</h2>
                   <div className="flex flex-wrap gap-2">
                     {skills.map((s, i) => (
                       <span
@@ -231,9 +226,7 @@ export default function ResumeGenerator({ profileData }) {
 
               {education.length > 0 && (
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-widest">
-                    Education
-                  </h2>
+                  <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-widest">{t("Education")}</h2>
                   <div className="space-y-4">
                     {education.map((edu, i) => (
                       <div key={i}>
@@ -250,12 +243,9 @@ export default function ResumeGenerator({ profileData }) {
                 </div>
               )}
             </div>
-
             {approvedPortfolioLinks.length > 0 && (
               <div className="mt-8">
-                <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-widest">
-                  Portfolio
-                </h2>
+                <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-widest">{t("Portfolio")}</h2>
                 <div className="grid grid-cols-2 gap-4">
                   {approvedPortfolioLinks.map((link, i) => (
                     <div key={i} className="flex flex-col">
@@ -300,30 +290,22 @@ export default function ResumeGenerator({ profileData }) {
                 <span>{city}</span>
               </div>
             </div>
-
             {about && (
               <div className="mb-8">
-                <h2 className="text-base font-bold uppercase tracking-widest mb-3 text-slate-900">
-                  Professional Summary
-                </h2>
+                <h2 className="text-base font-bold uppercase tracking-widest mb-3 text-slate-900">{t("Professional Summary")}</h2>
                 <p className="text-sm leading-relaxed text-slate-700 text-justify">
                   {about}
                 </p>
               </div>
             )}
-
-            <h2 className="text-base font-bold uppercase tracking-widest mb-5 border-b-2 border-slate-900 pb-2 text-slate-900">
-              Professional Experience
-            </h2>
+            <h2 className="text-base font-bold uppercase tracking-widest mb-5 border-b-2 border-slate-900 pb-2 text-slate-900">{t("Professional Experience")}</h2>
             <div className="space-y-7 mb-8">
               {allExp.map((exp, i) => (
                 <div key={i}>
                   <div className="flex justify-between items-baseline mb-2">
                     <span className="text-base font-bold text-slate-900">
                       {exp.role}{" "}
-                      <span className="font-normal text-slate-500 mx-1">
-                        at
-                      </span>{" "}
+                      <span className="font-normal text-slate-500 mx-1">{t("at")}</span>{" "}
                       {exp.company}
                     </span>
                     <span className="text-sm font-semibold text-slate-600">
@@ -338,12 +320,9 @@ export default function ResumeGenerator({ profileData }) {
                 </div>
               ))}
             </div>
-
             {education.length > 0 && (
               <>
-                <h2 className="text-base font-bold uppercase tracking-widest mb-5 mt-8 border-b-2 border-slate-900 pb-2 text-slate-900">
-                  Education
-                </h2>
+                <h2 className="text-base font-bold uppercase tracking-widest mb-5 mt-8 border-b-2 border-slate-900 pb-2 text-slate-900">{t("Education")}</h2>
                 <div className="space-y-3 mb-8">
                   {education.map((edu, i) => (
                     <div key={i} className="flex justify-between text-sm">
@@ -361,13 +340,10 @@ export default function ResumeGenerator({ profileData }) {
                 </div>
               </>
             )}
-
             <div className="grid grid-cols-2 gap-8">
               {skills.length > 0 && (
                 <div>
-                  <h2 className="text-base font-bold uppercase tracking-widest mb-4 border-b-2 border-slate-900 pb-2 text-slate-900">
-                    Core Competencies
-                  </h2>
+                  <h2 className="text-base font-bold uppercase tracking-widest mb-4 border-b-2 border-slate-900 pb-2 text-slate-900">{t("Core Competencies")}</h2>
                   <p className="text-sm leading-relaxed text-slate-700 font-medium">
                     {skills.map((s) => s.skill || s).join(" • ")}
                   </p>
@@ -376,9 +352,7 @@ export default function ResumeGenerator({ profileData }) {
 
               {approvedPortfolioLinks.length > 0 && (
                 <div>
-                  <h2 className="text-base font-bold uppercase tracking-widest mb-4 border-b-2 border-slate-900 pb-2 text-slate-900">
-                    Links
-                  </h2>
+                  <h2 className="text-base font-bold uppercase tracking-widest mb-4 border-b-2 border-slate-900 pb-2 text-slate-900">{t("Links")}</h2>
                   <div className="space-y-2">
                     {approvedPortfolioLinks.map((link, i) => (
                       <div key={i} className="text-sm flex flex-col">
@@ -436,9 +410,7 @@ export default function ResumeGenerator({ profileData }) {
 
               {skills.length > 0 && (
                 <div className="mb-10">
-                  <h2 className="text-sm font-bold uppercase tracking-widest mb-5 text-emerald-400">
-                    Expertise
-                  </h2>
+                  <h2 className="text-sm font-bold uppercase tracking-widest mb-5 text-emerald-400">{t("Expertise")}</h2>
                   <div className="flex flex-col gap-3">
                     {skills.map((s, i) => (
                       <span
@@ -454,9 +426,7 @@ export default function ResumeGenerator({ profileData }) {
 
               {approvedPortfolioLinks.length > 0 && (
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-widest mb-5 text-emerald-400">
-                    Connect
-                  </h2>
+                  <h2 className="text-sm font-bold uppercase tracking-widest mb-5 text-emerald-400">{t("Connect")}</h2>
                   <div className="flex flex-col gap-4">
                     {approvedPortfolioLinks.map((link, i) => (
                       <div key={i} className="text-sm">
@@ -477,14 +447,11 @@ export default function ResumeGenerator({ profileData }) {
                 </div>
               )}
             </div>
-
             <div className="w-[68%] p-10 bg-slate-50">
               {about && (
                 <div className="mb-10 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                   <h2 className="text-xl font-black text-slate-800 mb-3 flex items-center gap-3">
-                    <span className="w-8 h-1 bg-emerald-500 rounded-full"></span>{" "}
-                    Profile
-                  </h2>
+                    <span className="w-8 h-1 bg-emerald-500 rounded-full"></span>{" "}{t("Profile")}</h2>
                   <p className="text-sm leading-relaxed text-slate-600 font-medium">
                     {about}
                   </p>
@@ -492,9 +459,7 @@ export default function ResumeGenerator({ profileData }) {
               )}
 
               <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-3">
-                <span className="w-8 h-1 bg-emerald-500 rounded-full"></span>{" "}
-                Experience
-              </h2>
+                <span className="w-8 h-1 bg-emerald-500 rounded-full"></span>{" "}{t("Experience")}</h2>
               <div className="space-y-6 mb-10">
                 {allExp.map((exp, i) => (
                   <div
@@ -522,9 +487,7 @@ export default function ResumeGenerator({ profileData }) {
               {education.length > 0 && (
                 <>
                   <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-3 mt-10">
-                    <span className="w-8 h-1 bg-emerald-500 rounded-full"></span>{" "}
-                    Education
-                  </h2>
+                    <span className="w-8 h-1 bg-emerald-500 rounded-full"></span>{" "}{t("Education")}</h2>
                   <div className="grid gap-4">
                     {education.map((edu, i) => (
                       <div
@@ -557,26 +520,20 @@ export default function ResumeGenerator({ profileData }) {
           >
             <div className="border-b border-slate-700/50 pb-8 mb-8">
               <h1 className="text-4xl font-bold text-slate-100 mb-3 tracking-tight">{`<${profileName?.replace(/\s+/g, "") || "Developer"} />`}</h1>
-              <p className="text-emerald-400 font-semibold text-lg mb-4">
-                const role = "{designation || "Software Engineer"}";
+              <p className="text-emerald-400 font-semibold text-lg mb-4">{t("const role = \"")}{designation || "Software Engineer"}";
               </p>
               <div className="flex flex-wrap gap-6 text-xs text-slate-400">
-                <span className="bg-slate-800/50 px-3 py-1.5 rounded-md border border-slate-700/50">
-                  email: "{email}"
+                <span className="bg-slate-800/50 px-3 py-1.5 rounded-md border border-slate-700/50">{t("email: \"")}{email}"
                 </span>
-                <span className="bg-slate-800/50 px-3 py-1.5 rounded-md border border-slate-700/50">
-                  location: "{city}"
+                <span className="bg-slate-800/50 px-3 py-1.5 rounded-md border border-slate-700/50">{t("location: \"")}{city}"
                 </span>
               </div>
             </div>
-
             <div className="grid grid-cols-12 gap-8">
               <div className="col-span-8 space-y-10">
                 {about && (
                   <div>
-                    <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-4 font-bold tracking-wide">
-                      /* README.md */
-                    </h2>
+                    <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-4 font-bold tracking-wide">{t("/* README.md */")}</h2>
                     <p className="text-sm leading-relaxed text-slate-400 bg-slate-800/30 p-5 rounded-xl border border-slate-800/50">
                       {about}
                     </p>
@@ -584,9 +541,7 @@ export default function ResumeGenerator({ profileData }) {
                 )}
 
                 <div>
-                  <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-5 font-bold tracking-wide">
-                    Experience.ts
-                  </h2>
+                  <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-5 font-bold tracking-wide">{t("Experience.ts")}</h2>
                   <div className="space-y-5">
                     {allExp.map((exp, i) => (
                       <div
@@ -618,9 +573,7 @@ export default function ResumeGenerator({ profileData }) {
 
                 {projects?.length > 0 && (
                   <div>
-                    <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-5 font-bold tracking-wide">
-                      Projects.json
-                    </h2>
+                    <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-5 font-bold tracking-wide">{t("Projects.json")}</h2>
                     <div className="grid gap-4">
                       {projects.map((proj, i) => (
                         <div
@@ -631,8 +584,7 @@ export default function ResumeGenerator({ profileData }) {
                             {proj.name}
                           </div>
                           {proj.link && (
-                            <div className="text-xs text-blue-400/80 mb-3 truncate font-medium">
-                              "url": "{proj.link}"
+                            <div className="text-xs text-blue-400/80 mb-3 truncate font-medium">{t("\"url\": \"")}{proj.link}"
                             </div>
                           )}
                           {proj.description && (
@@ -650,9 +602,7 @@ export default function ResumeGenerator({ profileData }) {
               <div className="col-span-4 space-y-10">
                 {skills.length > 0 && (
                   <div>
-                    <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-5 font-bold tracking-wide">
-                      Dependencies
-                    </h2>
+                    <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-5 font-bold tracking-wide">{t("Dependencies")}</h2>
                     <div className="flex flex-wrap gap-2.5">
                       {skills.map((s, i) => (
                         <span
@@ -668,9 +618,7 @@ export default function ResumeGenerator({ profileData }) {
 
                 {education.length > 0 && (
                   <div>
-                    <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-5 font-bold tracking-wide">
-                      Education
-                    </h2>
+                    <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-5 font-bold tracking-wide">{t("Education")}</h2>
                     <div className="space-y-3">
                       {education.map((edu, i) => (
                         <div
@@ -694,9 +642,7 @@ export default function ResumeGenerator({ profileData }) {
 
                 {approvedPortfolioLinks.length > 0 && (
                   <div>
-                    <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-5 font-bold tracking-wide">
-                      Network
-                    </h2>
+                    <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-5 font-bold tracking-wide">{t("Network")}</h2>
                     <div className="space-y-3">
                       {approvedPortfolioLinks.map((link, i) => (
                         <div
@@ -755,13 +701,10 @@ export default function ResumeGenerator({ profileData }) {
                 </span>
               </div>
             </div>
-
             <div className="grid grid-cols-12 gap-10">
               <div className="col-span-4 space-y-6">
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60">
-                  <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
-                    About Me
-                  </h2>
+                  <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{t("About Me")}</h2>
                   <p className="text-sm text-slate-600 leading-relaxed font-medium">
                     {about || "Professional summary not provided."}
                   </p>
@@ -769,9 +712,7 @@ export default function ResumeGenerator({ profileData }) {
 
                 {skills.length > 0 && (
                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60">
-                    <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
-                      Expertise
-                    </h2>
+                    <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{t("Expertise")}</h2>
                     <div className="space-y-3">
                       {skills.map((s, i) => (
                         <div
@@ -788,9 +729,7 @@ export default function ResumeGenerator({ profileData }) {
 
                 {education.length > 0 && (
                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60">
-                    <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
-                      Education
-                    </h2>
+                    <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{t("Education")}</h2>
                     <div className="space-y-4">
                       {education.map((edu, i) => (
                         <div key={i}>
@@ -811,9 +750,7 @@ export default function ResumeGenerator({ profileData }) {
               </div>
 
               <div className="col-span-8">
-                <h2 className="text-2xl font-black text-slate-900 mb-8">
-                  Career Timeline
-                </h2>
+                <h2 className="text-2xl font-black text-slate-900 mb-8">{t("Career Timeline")}</h2>
                 <div className="relative border-l-2 border-indigo-100 pl-8 space-y-10 ml-2">
                   {allExp.map((exp, i) => (
                     <div key={i} className="relative">
@@ -855,29 +792,22 @@ export default function ResumeGenerator({ profileData }) {
                 {email} • {phone} • {city}
               </p>
             </div>
-
             {about && (
               <div className="mb-4">
-                <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-2 text-slate-800">
-                  Summary
-                </h2>
+                <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-2 text-slate-800">{t("Summary")}</h2>
                 <p className="text-xs leading-relaxed text-slate-700 text-justify">
                   {about}
                 </p>
               </div>
             )}
-
-            <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-3 text-slate-800">
-              Experience
-            </h2>
+            <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-3 text-slate-800">{t("Experience")}</h2>
             <div className="space-y-3 mb-4">
               {allExp.map((exp, i) => (
                 <div key={i}>
                   <div className="flex justify-between items-baseline mb-0.5">
                     <span className="text-sm font-bold">
                       {exp.role}{" "}
-                      <span className="font-normal text-slate-500">
-                        at {exp.company}
+                      <span className="font-normal text-slate-500">{t("at")}{exp.company}
                       </span>
                     </span>
                     <span className="text-xs font-semibold text-slate-500">
@@ -892,12 +822,9 @@ export default function ResumeGenerator({ profileData }) {
                 </div>
               ))}
             </div>
-
             {projects?.length > 0 && (
               <>
-                <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-3 text-slate-800">
-                  Projects
-                </h2>
+                <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-3 text-slate-800">{t("Projects")}</h2>
                 <div className="space-y-3 mb-4">
                   {projects.map((proj, i) => (
                     <div key={i}>
@@ -919,12 +846,9 @@ export default function ResumeGenerator({ profileData }) {
                 </div>
               </>
             )}
-
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-3 text-slate-800">
-                  Education
-                </h2>
+                <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-3 text-slate-800">{t("Education")}</h2>
                 <div className="space-y-2">
                   {education.map((edu, i) => (
                     <div key={i} className="text-xs">
@@ -941,9 +865,7 @@ export default function ResumeGenerator({ profileData }) {
               <div>
                 {skills.length > 0 && (
                   <div className="mb-4">
-                    <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-3 text-slate-800">
-                      Skills
-                    </h2>
+                    <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-3 text-slate-800">{t("Skills")}</h2>
                     <p className="text-xs leading-relaxed font-medium text-slate-700">
                       {skills.map((s) => s.skill || s).join(" • ")}
                     </p>
@@ -952,9 +874,7 @@ export default function ResumeGenerator({ profileData }) {
 
                 {approvedPortfolioLinks.length > 0 && (
                   <div>
-                    <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-3 text-slate-800">
-                      Links
-                    </h2>
+                    <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-3 text-slate-800">{t("Links")}</h2>
                     <div className="space-y-1.5">
                       {approvedPortfolioLinks.map((link, i) => (
                         <div key={i} className="flex justify-between text-xs">
@@ -1005,12 +925,9 @@ export default function ResumeGenerator({ profileData }) {
                 </span>
               </div>
             </div>
-
             <div className="px-2">
               <h2 className="text-2xl font-black text-rose-950 mb-6 flex items-center gap-4">
-                <div className="w-10 h-1.5 bg-rose-500 rounded-full" />{" "}
-                Experience
-              </h2>
+                <div className="w-10 h-1.5 bg-rose-500 rounded-full" />{" "}{t("Experience")}</h2>
               <div className="space-y-6 mb-12">
                 {allExp.map((exp, i) => (
                   <div
@@ -1040,9 +957,7 @@ export default function ResumeGenerator({ profileData }) {
               {projects?.length > 0 && (
                 <>
                   <h2 className="text-2xl font-black text-rose-950 mb-6 flex items-center gap-4">
-                    <div className="w-10 h-1.5 bg-rose-500 rounded-full" />{" "}
-                    Projects
-                  </h2>
+                    <div className="w-10 h-1.5 bg-rose-500 rounded-full" />{" "}{t("Projects")}</h2>
                   <div className="grid grid-cols-2 gap-6 mb-12">
                     {projects.map((proj, i) => (
                       <div
@@ -1071,9 +986,7 @@ export default function ResumeGenerator({ profileData }) {
               <div className="grid grid-cols-2 gap-10">
                 <div>
                   <h2 className="text-2xl font-black text-rose-950 mb-6 flex items-center gap-4">
-                    <div className="w-10 h-1.5 bg-rose-500 rounded-full" />{" "}
-                    Skills
-                  </h2>
+                    <div className="w-10 h-1.5 bg-rose-500 rounded-full" />{" "}{t("Skills")}</h2>
                   <div className="flex flex-wrap gap-3">
                     {skills.map((s, i) => (
                       <span
@@ -1088,9 +1001,7 @@ export default function ResumeGenerator({ profileData }) {
 
                 <div>
                   <h2 className="text-2xl font-black text-rose-950 mb-6 flex items-center gap-4">
-                    <div className="w-10 h-1.5 bg-rose-500 rounded-full" />{" "}
-                    Education
-                  </h2>
+                    <div className="w-10 h-1.5 bg-rose-500 rounded-full" />{" "}{t("Education")}</h2>
                   <div className="space-y-4">
                     {education.map((edu, i) => (
                       <div
@@ -1126,19 +1037,14 @@ export default function ResumeGenerator({ profileData }) {
         {/* Left Sidebar: Controls */}
         <div className="w-full lg:w-72 shrink-0 space-y-8 sticky top-24">
           <div>
-            <h3 className="font-extrabold text-slate-900 text-xl mb-2 tracking-tight">
-              Resume Builder
-            </h3>
-            <p className="text-sm text-slate-500 font-medium">
-              Select a template and let AI optimize your phrasing for maximum
-              impact.
-            </p>
+            <h3 className="font-extrabold text-slate-900 text-xl mb-2 tracking-tight">{t("Resume Builder")}</h3>
+            <p className="text-sm text-slate-500 font-medium">{t(
+              "Select a template and let AI optimize your phrasing for maximum\n              impact."
+            )}</p>
           </div>
 
           <div className="space-y-3">
-            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">
-              Select Template
-            </label>
+            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t("Select Template")}</label>
             <div className="flex flex-col gap-2">
               {templates.map((t) => (
                 <button
@@ -1184,9 +1090,7 @@ export default function ResumeGenerator({ profileData }) {
               onClick={handleDownload}
               className="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center gap-2.5 transition-all shadow-sm active:scale-[0.98]"
             >
-              <HiOutlineDownload className="w-5 h-5" />
-              Download PDF
-            </button>
+              <HiOutlineDownload className="w-5 h-5" />{t("Download PDF")}</button>
           </div>
         </div>
 

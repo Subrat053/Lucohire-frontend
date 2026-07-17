@@ -24,6 +24,43 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
   const [localPhone, setLocalPhone] = useState(recruiterData?.phone || '');
   const [isEditingPhone, setIsEditingPhone] = useState(false);
 
+  const [country, setCountry] = useState(recruiterData?.country || '');
+  const [stateName, setStateName] = useState(recruiterData?.state || '');
+  const [city, setCity] = useState(recruiterData?.city || '');
+  const [loadingLocation, setLoadingLocation] = useState(false);
+
+  const handleAutoFillLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      return;
+    }
+    
+    setLoadingLocation(true);
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      try {
+        const { latitude, longitude } = position.coords;
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+        const data = await res.json();
+        
+        if (data && data.address) {
+          setCountry(data.address.country || '');
+          setStateName(data.address.state || data.address.region || '');
+          setCity(data.address.city || data.address.town || data.address.village || data.address.county || '');
+          toast.success('Location detected successfully!');
+        } else {
+          toast.error('Could not detect exact location');
+        }
+      } catch (err) {
+        toast.error('Error fetching location data');
+      } finally {
+        setLoadingLocation(false);
+      }
+    }, () => {
+      setLoadingLocation(false);
+      toast.error('Location access denied or unavailable');
+    });
+  };
+
   useEffect(() => {
     if (recruiterData?.phone && !localPhone) {
       setLocalPhone(recruiterData.phone);
@@ -132,7 +169,10 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
         email: recruiterData.email,
         phone: localPhone,
         password: recruiterData.password,
-        industry: recruiterData.industry
+        industry: recruiterData.industry,
+        country,
+        state: stateName,
+        city
       };
 
       const { data } = await api.post('/jobs/recruiter-discovery/verify-dual', payload);
@@ -179,10 +219,40 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                 <p className="text-sm text-purple-700">{recruiterData.email}</p>
               </div>
             </div>
+
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="font-semibold text-gray-800 text-sm">Location Details</h4>
+                <button
+                  type="button"
+                  onClick={handleAutoFillLocation}
+                  disabled={loadingLocation}
+                  className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded hover:bg-indigo-100 flex items-center gap-1 transition"
+                >
+                  {loadingLocation ? 'Detecting...' : '📍 Auto Detect'}
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Country</label>
+                  <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} className="w-full text-sm p-2 border rounded-md outline-none focus:ring-1 focus:ring-purple-500" placeholder="e.g. India" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">State</label>
+                  <input type="text" value={stateName} onChange={(e) => setStateName(e.target.value)} className="w-full text-sm p-2 border rounded-md outline-none focus:ring-1 focus:ring-purple-500" placeholder="e.g. Karnataka" />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase">City</label>
+                <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full text-sm p-2 border rounded-md outline-none focus:ring-1 focus:ring-purple-500" placeholder="e.g. Bangalore" />
+              </div>
+            </div>
+
             <button
               onClick={handleSendEmailOtp}
-              disabled={loading}
-              className="w-full py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 disabled:opacity-50"
+              disabled={loading || !country || !stateName || !city}
+              className="w-full py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 disabled:opacity-50 transition"
             >
               {loading ? 'Sending...' : 'Send Email Code'}
             </button>

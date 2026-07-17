@@ -8,14 +8,17 @@ import NotificationBell from '../common/NotificationBell';
 import LanguageDropdown from '../LanguageDropdown';
 import useTranslation from '../../hooks/useTranslation';
 import { getCurrentSubscription } from '../../services/providerPlanService';
-import AICoachModal from './AICoachModal';
+import { FaWhatsapp } from 'react-icons/fa';
+import { ArrowRight } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { providerAPI } from '../../services/api';
 
 const navItems = [
   { label: 'Dashboard', fallback: 'Dashboard', path: '/provider/dashboard',      icon: HiTrendingUp },
   { label: 'Profile', fallback: 'Profile', path: '/provider/profile',        icon: HiCog },
   { 
-    label: 'Career Health', 
-    fallback: 'Career Health', 
+    label: 'Career Analysis', 
+    fallback: 'Career Analysis', 
     path: '/provider/career-health',
     icon: HiTrendingUp,
   },
@@ -26,10 +29,16 @@ const navItems = [
     icon: HiSparkles,
   },
   { 
-    label: 'AI Tips', 
-    fallback: 'AI Tips', 
+    label: 'AI Dashboard', 
+    fallback: 'AI Dashboard', 
     path: '/provider/ai-tips',
     icon: HiSparkles,
+  },
+  { 
+    label: 'Resume Toolkit', 
+    fallback: 'Resume Toolkit', 
+    path: '/provider/resume-toolkit',
+    icon: HiClipboardList,
   },
   { label: 'Jobs for Me', fallback: 'Jobs for Me', path: '/provider/job-for-me',icon: HiBriefcase },
   { label: 'Applied Jobs', fallback: 'Applied Jobs', path: '/provider/applied-jobs', icon: HiClipboardList },
@@ -52,7 +61,7 @@ const navItems = [
 ];
 
 const ProviderLayout = ({ children }) => {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -134,7 +143,21 @@ const ProviderLayout = ({ children }) => {
 
   const handleLogout = () => { logout(); };
 
-  const SidebarContent = ({ onNavClick }) => (
+  const handleWhatsappCheckout = async () => {
+    try {
+      toast.loading('Redirecting to checkout...', { id: 'whatsapp-checkout' });
+      const { data } = await providerAPI.checkoutWhatsappPlan();
+      if (data?.checkout?.url) {
+        window.location.href = data.checkout.url;
+      } else {
+        toast.error('Could not get checkout URL', { id: 'whatsapp-checkout' });
+      }
+    } catch (err) {
+      toast.error('Failed to initiate checkout', { id: 'whatsapp-checkout' });
+    }
+  };
+
+  const renderSidebarContent = (onNavClick) => (
     <div className="flex flex-col h-full">
       {/* Brand */}
       <div className={`flex items-center px-4 py-5 border-b border-gray-100 ${collapsed ? 'justify-center' : 'space-x-3'}`}>
@@ -241,7 +264,7 @@ const ProviderLayout = ({ children }) => {
           <aside className={`hidden md:flex flex-col bg-white border-r border-gray-100 transition-all duration-300 shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)]
             ${collapsed ? 'w-16' : 'w-56'}
           `}>
-            <SidebarContent />
+            {renderSidebarContent()}
             {/* Collapse toggle */}
             <button
               onClick={() => setCollapsed(!collapsed)}
@@ -260,23 +283,21 @@ const ProviderLayout = ({ children }) => {
               <div className="flex items-center gap-3">
                 <span className="text-xl">⚠️</span>
                 <div>
-                  <div className="font-bold text-sm">Restricted Support View</div>
-                  <div className="text-xs opacity-80">You are viewing {user?.email}'s profile data as a {impersonatorRole}. Navigation is restricted to relevant areas.</div>
+                  <div className="font-bold text-sm">{t("Restricted Support View")}</div>
+                  <div className="text-xs opacity-80">{t("You are viewing")}{user?.email}{t("'s profile data as a")}{impersonatorRole}{t(". Navigation is restricted to relevant areas.")}</div>
                 </div>
               </div>
               <button 
                 onClick={handleRestoreSession}
                 className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition"
-              >
-                Exit & Return to {impersonatorRole === 'manager' ? 'Manager' : 'Admin'} Dashboard
-              </button>
+              >{t("Exit & Return to")}{impersonatorRole === 'manager' ? 'Manager' : 'Admin'}{t("Dashboard")}</button>
             </div>
           )}
 
           {!isImpersonating && (
             <div className="bg-emerald-950 text-white px-6 py-4 flex items-center justify-between shadow-xs select-none">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Provider Panel</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-slate-400">{t("Provider Panel")}</span>
                 <span className="text-slate-500 text-xs">/</span>
                 <span className="text-sm font-extrabold text-teal-400 tracking-wide">
                   {(() => {
@@ -286,16 +307,29 @@ const ProviderLayout = ({ children }) => {
                   })()}
                 </span>
               </div>
-              <div className="hidden sm:block text-xs font-bold text-slate-400">
-                Active Session
-              </div>
+              <div className="hidden sm:block text-xs font-bold text-slate-400">{t("Active Session")}</div>
             </div>
           )}
 
           <main className="flex-1 overflow-auto p-0">
             {children}
           </main>
-          <AICoachModal role="provider" />
+          {profile?.whatsappFreelancePlanActive !== true && (
+            <div className="fixed bottom-6 right-6 z-50">
+              <button 
+                onClick={handleWhatsappCheckout}
+                className="bg-white hover:bg-gray-50 text-gray-900 rounded-full pl-2 pr-5 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-3 transition transform hover:scale-105 border border-gray-100 group">
+                <div className="w-12 h-12 bg-[#25D366] rounded-full flex items-center justify-center shadow-inner group-hover:bg-[#20bd5a] transition-colors">
+                  <FaWhatsapp className="w-7 h-7 text-white" />
+                </div>
+                <div className="text-left hidden sm:block">
+                  <div className="text-sm font-extrabold leading-tight text-gray-900">{t("Earn Extra Income")}</div>
+                  <div className="text-[11px] font-medium text-gray-500 mt-0.5">{t("Nearby freelance work")}<br/> <span className="font-bold text-gray-700">{t("₹30/month")}</span></div>
+                </div>
+                <ArrowRight className="w-5 h-5 ml-1 text-gray-400 group-hover:text-gray-700 transition-colors hidden sm:block" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

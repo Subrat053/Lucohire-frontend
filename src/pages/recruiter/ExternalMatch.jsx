@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -8,12 +9,16 @@ import { Briefcase, MapPin, Search, Star, Phone, FileText, Lock } from 'lucide-r
 import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
 
 const ExternalMatch = () => {
+  const {
+    t
+  } = useTranslation();
+
   const [searchParams] = useSearchParams();
   const category = searchParams.get('category');
   const jobId = searchParams.get('jobId');
   const navigate = useNavigate();
   const { user, isAuthenticated, login } = useAuth();
-  
+
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -108,12 +113,8 @@ const ExternalMatch = () => {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            Top Matches for your Job
-          </h1>
-          <p className="mt-4 text-xl text-gray-500">
-            We found {candidates.length} pre-screened professionals ready to start.
-          </p>
+          <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">{t("Top Matches for your Job")}</h1>
+          <p className="mt-4 text-xl text-gray-500">{t("We found")}{candidates.length}{t("pre-screened professionals ready to start.")}</p>
         </div>
 
         {loading ? (
@@ -133,7 +134,6 @@ const ExternalMatch = () => {
                       )}
                     </div>
                   </div>
-                  
                   <div className="flex-grow">
                     <h2 className={`text-2xl font-bold text-gray-900 ${!isUnlocked ? 'filter blur-md select-none' : ''}`}>
                       {candidate.user?.name || 'Candidate Name'}
@@ -150,8 +150,7 @@ const ExternalMatch = () => {
                       </div>
                       <div className="flex items-center gap-1 text-yellow-500">
                         <Star className="w-4 h-4 fill-current" />
-                        {candidate.ratings?.average || 4.5} Rating
-                      </div>
+                        {candidate.ratings?.average || 4.5}{t("Rating")}</div>
                     </div>
                     
                     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -161,23 +160,19 @@ const ExternalMatch = () => {
                       </div>
                       <div className={`flex items-center gap-2 p-3 bg-gray-50 rounded-md border border-gray-100 ${!isUnlocked ? 'filter blur-[5px] select-none' : ''}`}>
                         <FileText className="w-5 h-5 text-indigo-500" />
-                        <span className="font-medium text-indigo-600">View Resume</span>
+                        <span className="font-medium text-indigo-600">{t("View Resume")}</span>
                       </div>
                     </div>
                   </div>
-                  
                   <div className="flex-shrink-0 flex items-center justify-center">
                     {isUnlocked ? (
-                      <button className="px-6 py-3 bg-green-50 text-green-700 font-semibold rounded-lg border border-green-200 cursor-default">
-                        Connected
-                      </button>
+                      <button className="px-6 py-3 bg-green-50 text-green-700 font-semibold rounded-lg border border-green-200 cursor-default">{t("Connected")}</button>
                     ) : (
                       <button 
                         onClick={() => handleConnect(candidate._id)}
                         className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm flex items-center gap-2 transition-colors"
                       >
-                        <Lock className="w-4 h-4" /> Connect to View
-                      </button>
+                        <Lock className="w-4 h-4" />{t("Connect to View")}</button>
                     )}
                   </div>
                 </div>
@@ -186,7 +181,6 @@ const ExternalMatch = () => {
           </div>
         )}
       </div>
-
       {/* Auth Modal */}
       {showAuthModal && !isAuthenticated && (
         <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -199,13 +193,9 @@ const ExternalMatch = () => {
                   <Lock className="h-6 w-6 text-indigo-600" aria-hidden="true" />
                 </div>
                 <div className="mt-3 text-center sm:mt-5">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                    Create a Free Account
-                  </h3>
+                  <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">{t("Create a Free Account")}</h3>
                   <div className="mt-2">
-                    <p className="text-sm text-gray-500">
-                      Sign up now to instantly unlock 3 candidate profiles for free!
-                    </p>
+                    <p className="text-sm text-gray-500">{t("Sign up now to instantly unlock 3 candidate profiles for free!")}</p>
                   </div>
                 </div>
               </div>
@@ -214,7 +204,7 @@ const ExternalMatch = () => {
                   <input
                     type="text"
                     required
-                    placeholder="Full Name"
+                    placeholder={t("Full Name")}
                     className="w-full border-gray-300 rounded-md shadow-sm p-3 border focus:ring-indigo-500 focus:border-indigo-500"
                     value={authFormData.name}
                     onChange={(e) => setAuthFormData({...authFormData, name: e.target.value})}
@@ -224,7 +214,7 @@ const ExternalMatch = () => {
                   <input
                     type="email"
                     required
-                    placeholder="Email Address"
+                    placeholder={t("Email Address")}
                     className="w-full border-gray-300 rounded-md shadow-sm p-3 border focus:ring-indigo-500 focus:border-indigo-500"
                     value={authFormData.email}
                     onChange={(e) => setAuthFormData({...authFormData, email: e.target.value})}
@@ -234,7 +224,7 @@ const ExternalMatch = () => {
                   <input
                     type="password"
                     required
-                    placeholder="Password"
+                    placeholder={t("Password")}
                     className="w-full border-gray-300 rounded-md shadow-sm p-3 border focus:ring-indigo-500 focus:border-indigo-500"
                     value={authFormData.password}
                     onChange={(e) => setAuthFormData({...authFormData, password: e.target.value})}
@@ -254,7 +244,6 @@ const ExternalMatch = () => {
           </div>
         </div>
       )}
-
       {/* Paywall Popup */}
       <SubscriptionPlansPopup 
         isOpen={showPaywall} 

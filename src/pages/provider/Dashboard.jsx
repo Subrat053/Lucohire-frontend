@@ -228,11 +228,10 @@ const ProviderDashboard = () => {
       {/* Header */}
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Good Afternoon, {user?.name?.split(' ')[0] || 'Ananya'}! 👋</h1>
-          <p className="text-gray-500 mt-1">AI analyzed your profile and found the best opportunities for you.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("Good Afternoon,")}{user?.name?.split(' ')[0] || 'Ananya'}! 👋</h1>
+          <p className="text-gray-500 mt-1">{t("AI analyzed your profile and found the best opportunities for you.")}</p>
         </div>
       </div>
-
       {/* Main Grid: 3 columns layout (2 for content, 1 for sidebar) */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
@@ -247,21 +246,20 @@ const ProviderDashboard = () => {
                 <div className="p-2 bg-teal-50 rounded-lg">
                   <Briefcase className="w-5 h-5 text-teal-700" />
                 </div>
-                <span className="text-sm font-semibold text-gray-700">Top Match Jobs</span>
+                <span className="text-sm font-semibold text-gray-700">{t("Top Match Jobs")}</span>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-1">{activeJobsCount}</div>
-              <Link to="/provider/job-for-me" className="text-sm text-teal-700 font-bold hover:underline flex items-center gap-1 mt-1">
-                View Matches <ArrowRight className="w-4 h-4" />
+              <Link to="/provider/job-for-me" className="text-sm text-teal-700 font-bold hover:underline flex items-center gap-1 mt-1">{t("View Matches")}<ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
             {/* Freelance Opportunities */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col justify-between relative overflow-hidden group">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-gray-700">Freelance Opportunities</span>
+                <span className="text-sm font-semibold text-gray-700">{t("Freelance Opportunities")}</span>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-1">{freelanceCount}</div>
-              <div className="text-xs text-gray-500 mt-1 font-medium">Near your location</div>
+              <div className="text-xs text-gray-500 mt-1 font-medium">{t("Near your location")}</div>
               
               {/* WhatsApp Floating Icon */}
               <div className="absolute right-5 bottom-5 w-10 h-10 bg-[#25D366] rounded-full flex items-center justify-center text-white shadow-md transform transition-transform group-hover:scale-110">
@@ -272,7 +270,7 @@ const ProviderDashboard = () => {
             {/* Resume Score */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex items-center justify-between">
               <div>
-                <span className="text-sm font-semibold text-gray-700">Resume Score</span>
+                <span className="text-sm font-semibold text-gray-700">{t("Resume Score")}</span>
                 <div className="text-3xl font-bold text-gray-900 mt-2 mb-1">{resumeScore}<span className="text-sm text-gray-400 font-semibold">/100</span></div>
                 <div className={`text-[11px] font-semibold px-2 py-0.5 rounded inline-block mt-1 ${
                   resumeScore >= 80 ? 'text-green-700 bg-green-50' :
@@ -303,38 +301,32 @@ const ProviderDashboard = () => {
                 <CheckCircle2 className="w-6 h-6 text-teal-700" />
               </div>
               <div className="flex-1 max-w-sm">
-                <div className="text-[13px] font-bold text-gray-800 mb-2">Complete your profile to increase match accuracy</div>
+                <div className="text-[13px] font-bold text-gray-800 mb-2">{t("Complete your profile to increase match accuracy")}</div>
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div className="h-full bg-teal-600 rounded-full transition-all" style={{ width: `${profileCompletion}%` }}></div>
                   </div>
-                  <span className="text-xs font-bold text-teal-700 whitespace-nowrap">{profileCompletion}% Complete</span>
+                  <span className="text-xs font-bold text-teal-700 whitespace-nowrap">{profileCompletion}{t("% Complete")}</span>
                 </div>
               </div>
             </div>
-            <Link to="/provider/profile" className="shrink-0 w-full sm:w-auto text-center px-5 py-2.5 border-2 border-teal-700 text-teal-700 text-sm font-bold rounded-xl hover:bg-teal-50 transition">
-              Complete Now
-            </Link>
+            <Link to="/provider/profile" className="shrink-0 w-full sm:w-auto text-center px-5 py-2.5 border-2 border-teal-700 text-teal-700 text-sm font-bold rounded-xl hover:bg-teal-50 transition">{t("Complete Now")}</Link>
           </div>
 
           {/* AI Insights Section */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                Your AI Insights 
-                {!hasPremiumInsights && (
-                  <span className="px-2 py-0.5 text-[10px] font-bold bg-gray-100 text-gray-500 rounded-full">Premium</span>
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">{t("Your AI Insights")}{!hasPremiumInsights && (
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-gray-100 text-gray-500 rounded-full">{t("Premium")}</span>
                 )}
                 {!hasPremiumInsights && <Lock className="w-3.5 h-3.5 text-gray-400" />}
               </h2>
               {!hasPremiumInsights ? (
                 <Link to="/provider/plans" className="text-sm text-teal-700 hover:underline flex items-center gap-1.5 font-bold">
-                  <Lock className="w-3.5 h-3.5" /> Unlock all insights with AI Pro
-                </Link>
+                  <Lock className="w-3.5 h-3.5" />{t("Unlock all insights with AI Pro")}</Link>
               ) : (
                 <span className="text-sm text-teal-700 font-bold flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4" /> Unlocked
-                </span>
+                  <CheckCircle2 className="w-4 h-4" />{t("Unlocked")}</span>
               )}
             </div>
             
@@ -354,9 +346,7 @@ const ProviderDashboard = () => {
                       </div>
                     </div>
                     <div className="text-xs font-bold text-gray-400 text-center z-0">{insight}</div>
-                    <div className="absolute bottom-4 text-[11px] font-bold text-teal-700 z-20">
-                      View Sample
-                    </div>
+                    <div className="absolute bottom-4 text-[11px] font-bold text-teal-700 z-20">{t("View Sample")}</div>
                   </div>
                 ))}
               </div>
@@ -384,14 +374,11 @@ const ProviderDashboard = () => {
           {/* Top Matching Jobs */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                Top Matching Jobs for You
-                <button onClick={() => loadDashboard(true)} className="text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-100 px-2 py-1 rounded-full flex items-center gap-1 hover:bg-teal-100 transition-colors">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-3">{t("Top Matching Jobs for You")}<button onClick={() => loadDashboard(true)} className="text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-100 px-2 py-1 rounded-full flex items-center gap-1 hover:bg-teal-100 transition-colors">
                     <RefreshCcw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} /> {loading ? 'Refreshing...' : 'Refresh Matches'}
                 </button>
               </h2>
-              <Link to="/provider/job-for-me" className="text-sm font-bold text-teal-700 hover:underline flex items-center gap-1">
-                View All Jobs <ArrowRight className="w-4 h-4" />
+              <Link to="/provider/job-for-me" className="text-sm font-bold text-teal-700 hover:underline flex items-center gap-1">{t("View All Jobs")}<ArrowRight className="w-4 h-4" />
               </Link>
             </div>
             
@@ -436,16 +423,14 @@ const ProviderDashboard = () => {
                         
                         <div className="flex sm:flex-col items-center sm:items-end justify-between h-full space-y-0 sm:space-y-4 w-full sm:w-auto mt-2 sm:mt-0">
                           <div className="text-left sm:text-right">
-                            <div className="text-teal-700 font-extrabold text-sm">95% Match</div>
-                            <div className="text-teal-600/70 text-[11px] font-bold mt-0.5">Great Match</div>
+                            <div className="text-teal-700 font-extrabold text-sm">{t("95% Match")}</div>
+                            <div className="text-teal-600/70 text-[11px] font-bold mt-0.5">{t("Great Match")}</div>
                           </div>
                           <div className="flex items-center gap-3">
                             <button className="text-gray-300 hover:text-gray-500 transition-colors">
                               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
                             </button>
-                            <Link to="/provider/job-for-me" className="bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm inline-block text-center">
-                              View Job
-                            </Link>
+                            <Link to="/provider/job-for-me" className="bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm inline-block text-center">{t("View Job")}</Link>
                           </div>
                         </div>
                       </div>
@@ -453,13 +438,12 @@ const ProviderDashboard = () => {
                   );
                 }) : (
                   <div className="p-8 text-center bg-gray-50 rounded-xl border border-gray-100 border-dashed">
-                    <p className="text-gray-500 text-sm font-medium">No matching jobs found right now.</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("No matching jobs found right now.")}</p>
                   </div>
                   )}
               
               <div className="text-center pt-2 pb-6">
-                <Link to="/provider/job-for-me" className="text-teal-700 font-bold text-sm hover:underline flex items-center justify-center gap-1.5">
-                  View All Matching Jobs <ArrowRight className="w-4 h-4" />
+                <Link to="/provider/job-for-me" className="text-teal-700 font-bold text-sm hover:underline flex items-center justify-center gap-1.5">{t("View All Matching Jobs")}<ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>
@@ -481,7 +465,7 @@ const ProviderDashboard = () => {
                   {profile.whatsappFreelancePlanActive ? <CheckCircle2 className="w-4 h-4" /> : <span className="text-[10px] font-bold">💰</span>}
                 </div>
                 <span className="font-bold text-sm tracking-tight">{profile.whatsappFreelancePlanActive ? 'Active Plan' : 'LucoHire Freelance Alerts'}</span>
-                {!profile.whatsappFreelancePlanActive && <span className="bg-orange-400 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase ml-1">New</span>}
+                {!profile.whatsappFreelancePlanActive && <span className="bg-orange-400 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase ml-1">{t("New")}</span>}
               </div>
               
               <h2 className="text-2xl font-extrabold mb-2 tracking-tight">{profile.whatsappFreelancePlanActive ? 'WhatsApp Alerts Enabled' : 'Earn Extra Income'}</h2>
@@ -494,32 +478,30 @@ const ProviderDashboard = () => {
               {profile.whatsappFreelancePlanActive ? (
                 <div className="w-full bg-teal-800/50 text-teal-50 font-bold py-3.5 rounded-xl flex flex-col items-center justify-center gap-1 border border-teal-600 shadow-inner">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-teal-300" /> Receiving Daily Alerts
-                  </div>
-                  {waDaysLeft > 0 && <span className="text-xs font-normal text-teal-200">({waDaysLeft} days remaining)</span>}
+                    <CheckCircle2 className="w-5 h-5 text-teal-300" />{t("Receiving Daily Alerts")}</div>
+                  {waDaysLeft > 0 && <span className="text-xs font-normal text-teal-200">({waDaysLeft}{t("days remaining)")}</span>}
                 </div>
               ) : (
                 <>
                   <ul className="space-y-3 mb-8 text-[13px] text-white font-medium">
-                    <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" /> Weekend Projects</li>
-                    <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" /> Part-Time Work</li>
-                    <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" /> Nearby Opportunities</li>
-                    <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" /> Verified Clients Only</li>
+                    <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" />{t("Weekend Projects")}</li>
+                    <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" />{t("Part-Time Work")}</li>
+                    <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" />{t("Nearby Opportunities")}</li>
+                    <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-teal-300 shrink-0" />{t("Verified Clients Only")}</li>
                   </ul>
 
                   <div className="flex justify-between items-end mb-4 bg-teal-800/30 p-3 rounded-2xl border border-teal-600/30">
                     <div>
-                      <div className="text-sm font-extrabold">Just ₹1/day</div>
+                      <div className="text-sm font-extrabold">{t("Just ₹1/day")}</div>
                     </div>
-                    <div className="text-[11px] text-teal-100 font-medium">Only ₹30/month</div>
+                    <div className="text-[11px] text-teal-100 font-medium">{t("Only ₹30/month")}</div>
                   </div>
 
                   <button 
                     onClick={handleWhatsappCheckout}
-                    className="w-full bg-white text-teal-900 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-teal-50 transition shadow-md">
-                    Enable Alerts <div className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
+                    className="w-full bg-white text-teal-900 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-teal-50 transition shadow-md">{t("Enable Alerts")}<div className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
                   </button>
-                  <div className="text-center text-[10px] text-teal-200 mt-3 font-medium">Cancel anytime</div>
+                  <div className="text-center text-[10px] text-teal-200 mt-3 font-medium">{t("Cancel anytime")}</div>
                 </>
               )}
             </div>
@@ -529,19 +511,18 @@ const ProviderDashboard = () => {
           <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-gray-900 flex items-center gap-2 text-sm">
-                <div className="p-1.5 bg-gray-50 rounded-lg text-lg leading-none">🤖</div> AI Recommendation
-                <span className="px-1.5 py-0.5 text-[9px] font-bold bg-indigo-50 text-indigo-600 rounded">Premium</span>
+                <div className="p-1.5 bg-gray-50 rounded-lg text-lg leading-none">🤖</div>{t("AI Recommendation")}<span className="px-1.5 py-0.5 text-[9px] font-bold bg-indigo-50 text-indigo-600 rounded">{t("Premium")}</span>
                 <Lock className="w-3 h-3 text-gray-400" />
               </h3>
               <ArrowRight className="w-4 h-4 text-gray-400" />
             </div>
             
-            <p className="text-xs text-gray-500 mb-4 font-medium">Based on your profile, we found</p>
+            <p className="text-xs text-gray-500 mb-4 font-medium">{t("Based on your profile, we found")}</p>
             
             <div className="flex items-start justify-between gap-4 mb-5">
               <div>
                 <div className="text-4xl font-extrabold text-[#0f766e] mb-1 leading-none">{freelanceCount}</div>
-                <div className="text-xs text-gray-600 leading-snug font-medium mt-2">nearby freelance<br/>opportunities.</div>
+                <div className="text-xs text-gray-600 leading-snug font-medium mt-2">{t("nearby freelance")}<br/>{t("opportunities.")}</div>
               </div>
               
               <div className="w-20 h-20 bg-gray-50 rounded-full border-4 border-white shadow-sm flex items-center justify-center relative overflow-hidden">
@@ -556,16 +537,14 @@ const ProviderDashboard = () => {
             </div>
             
             <button className="w-full bg-[#0f766e] hover:bg-teal-800 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
-              <Lock className="w-4 h-4" /> Unlock to View
-            </button>
+              <Lock className="w-4 h-4" />{t("Unlock to View")}</button>
           </div>
 
           {/* Activity */}
           <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-gray-900 text-sm">Activity</h3>
-              <Link to="/provider/history" className="text-xs text-teal-700 font-bold flex items-center gap-1 hover:underline">
-                View All <ArrowRight className="w-3.5 h-3.5" />
+              <h3 className="font-bold text-gray-900 text-sm">{t("Activity")}</h3>
+              <Link to="/provider/history" className="text-xs text-teal-700 font-bold flex items-center gap-1 hover:underline">{t("View All")}<ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
             
@@ -578,8 +557,8 @@ const ProviderDashboard = () => {
                   </div>
                 </div>
                 <div className="flex-1 pb-1">
-                  <p className="text-xs font-bold text-gray-800">Resume viewed by Google</p>
-                  <p className="text-[10px] font-medium text-gray-400 mt-0.5">2h ago</p>
+                  <p className="text-xs font-bold text-gray-800">{t("Resume viewed by Google")}</p>
+                  <p className="text-[10px] font-medium text-gray-400 mt-0.5">{t("2h ago")}</p>
                 </div>
               </div>
               
@@ -591,8 +570,8 @@ const ProviderDashboard = () => {
                   </div>
                 </div>
                 <div className="flex-1 pb-1">
-                  <p className="text-xs font-bold text-gray-800">Applied for UI/UX Designer</p>
-                  <p className="text-[10px] font-medium text-gray-400 mt-0.5">5h ago</p>
+                  <p className="text-xs font-bold text-gray-800">{t("Applied for UI/UX Designer")}</p>
+                  <p className="text-[10px] font-medium text-gray-400 mt-0.5">{t("5h ago")}</p>
                 </div>
               </div>
 
@@ -603,8 +582,8 @@ const ProviderDashboard = () => {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-bold text-gray-800">Profile updated</p>
-                  <p className="text-[10px] font-medium text-gray-400 mt-0.5">Yesterday</p>
+                  <p className="text-xs font-bold text-gray-800">{t("Profile updated")}</p>
+                  <p className="text-[10px] font-medium text-gray-400 mt-0.5">{t("Yesterday")}</p>
                 </div>
               </div>
             </div>
@@ -612,24 +591,6 @@ const ProviderDashboard = () => {
 
         </div>
       </div>
-
-      {/* Floating Action WhatsApp */}
-      {!profile.whatsappFreelancePlanActive && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <button 
-            onClick={handleWhatsappCheckout}
-            className="bg-white hover:bg-gray-50 text-gray-900 rounded-full pl-2 pr-5 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-3 transition transform hover:scale-105 border border-gray-100 group">
-            <div className="w-12 h-12 bg-[#25D366] rounded-full flex items-center justify-center shadow-inner group-hover:bg-[#20bd5a] transition-colors">
-              <FaWhatsapp className="w-7 h-7 text-white" />
-            </div>
-            <div className="text-left hidden sm:block">
-              <div className="text-sm font-extrabold leading-tight text-gray-900">Earn Extra Income</div>
-              <div className="text-[11px] font-medium text-gray-500 mt-0.5">Nearby freelance work <br/> <span className="font-bold text-gray-700">₹30/month</span></div>
-            </div>
-            <ArrowRight className="w-5 h-5 ml-1 text-gray-400 group-hover:text-gray-700 transition-colors hidden sm:block" />
-          </button>
-        </div>
-      )}
     </div>
   );
 };

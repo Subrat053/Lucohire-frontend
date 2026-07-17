@@ -1,8 +1,10 @@
 import { useRef } from 'react';
 import { Search, MapPin, ChevronLeft, ChevronRight, BadgeCheck, MoreVertical, Clock, Briefcase, Calendar, Zap, Wallet, CheckCircle2, MessageCircle, Phone, Eye, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import useTranslation from '../../hooks/useTranslation';
 
 export default function TopTalentCarousel({ displayTalent, talentSearch, setTalentSearch, handleTalentSearch, setSelectedCandidate }) {
+  const { t } = useTranslation();
   const carouselRef = useRef(null);
 
   const scrollCarousel = (direction) => {
@@ -19,7 +21,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
     <div className="bg-white py-12 sm:py-16 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">
-          Top Talent Available for <span className="text-blue-600">Hourly Work</span>
+          {t("Top Talent Available for")} <span className="text-blue-600">{t("Hourly Work")}</span>
         </h2>
       
         {/* Filters Bar */}
@@ -28,23 +30,23 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
             <Search className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
             <input 
               type="text" 
-              placeholder="Search talent by skills or name" 
+              placeholder={t("Search talent by skills or name")} 
               className="bg-transparent border-none focus:ring-0 text-sm w-full outline-none"
               value={talentSearch}
               onChange={(e) => setTalentSearch(e.target.value)}
             />
           </div>
           <div className="hidden lg:flex items-center gap-2">
-            {['Skills', 'Experience', 'Hourly Rate', 'Availability', 'All Locations'].map((filter, i) => (
+            {[t('Skills'), t('Experience'), t('Hourly Rate'), t('Availability'), t('All Locations')].map((filter, i) => (
               <div key={i} className="flex items-center text-xs text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-50 whitespace-nowrap">
-                {filter === 'All Locations' && <MapPin className="w-3 h-3 mr-1 text-gray-400" />}
+                {filter === t('All Locations') && <MapPin className="w-3 h-3 mr-1 text-gray-400" />}
                 {filter}
                 <svg className="w-3.5 h-3.5 ml-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </div>
             ))}
           </div>
           <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg sm:ml-auto transition whitespace-nowrap">
-            Search Talent
+            {t("Search Talent")}
           </button>
         </form>
 
@@ -76,7 +78,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                     )}
                     <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
                       <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-                      Available
+                      {t("Available")}
                     </div>
                   </div>
                   
@@ -91,17 +93,17 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                     </div>
                     
                     <p className="text-[13px] font-bold text-indigo-700 mb-2 truncate">
-                      {candidate.primaryRole || 'Freelancer'}
+                      {candidate.primaryRole || t('Freelancer')}
                     </p>
                     
                     <div className="flex flex-col gap-1.5 text-[12px] text-gray-600 font-medium">
                       <div className="flex items-center gap-1.5">
                         <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                        <span className="truncate">{candidate.city || 'India'}</span>
+                        <span className="truncate">{candidate.city || t('India')}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-gray-400" />
-                        Last active: <span className="text-green-600 font-bold ml-0.5">Today</span>
+                        {t("Last active:")} <span className="text-green-600 font-bold ml-0.5">{t("Today")}</span>
                       </div>
                     </div>
                   </div>
@@ -114,8 +116,8 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                       <Briefcase className="w-4 h-4 text-indigo-600" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[12px] font-bold text-gray-900 truncate">{candidate.experienceYears || 0}+ Yrs</div>
-                      <div className="text-[10px] text-gray-500 font-medium truncate">Experience</div>
+                      <div className="text-[12px] font-bold text-gray-900 truncate">{candidate.experienceYears || 0}+ {t("Yrs")}</div>
+                      <div className="text-[10px] text-gray-500 font-medium truncate">{t("Experience")}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 bg-blue-50/50 p-2 rounded-xl">
@@ -123,8 +125,8 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                       <Calendar className="w-4 h-4 text-blue-500" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[12px] font-bold text-gray-900 truncate">25h/wk</div>
-                      <div className="text-[10px] text-gray-500 font-medium truncate">Availability</div>
+                      <div className="text-[12px] font-bold text-gray-900 truncate">25{t("h/wk")}</div>
+                      <div className="text-[10px] text-gray-500 font-medium truncate">{t("Availability")}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 bg-green-50/50 p-2 rounded-xl">
@@ -132,8 +134,8 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                       <Zap className="w-4 h-4 text-green-600" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[12px] font-bold text-gray-900 truncate">Ready</div>
-                      <div className="text-[10px] text-gray-500 font-medium truncate">To Start</div>
+                      <div className="text-[12px] font-bold text-gray-900 truncate">{t("Ready")}</div>
+                      <div className="text-[10px] text-gray-500 font-medium truncate">{t("To Start")}</div>
                     </div>
                   </div>
                 </div>
@@ -148,7 +150,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                     ))}
                     {(candidate.skills?.length || 0) > 4 && (
                       <span className="bg-gray-50 text-gray-500 px-2.5 py-1 rounded-lg text-[11px] font-bold">
-                        +{candidate.skills.length - 4} More
+                        +{candidate.skills.length - 4} {t("More")}
                       </span>
                     )}
                   </div>
@@ -159,26 +161,26 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                   <div className="flex-1 bg-[#f0fdf4] rounded-xl p-3 flex flex-col justify-center border border-green-100">
                     <div className="flex items-center gap-2 mb-1">
                       <Wallet className="w-4 h-4 text-green-700" />
-                      <span className="text-[11px] text-green-800 font-bold uppercase tracking-wider">Hourly Rate</span>
+                      <span className="text-[11px] text-green-800 font-bold uppercase tracking-wider">{t("Hourly Rate")}</span>
                     </div>
                     <div className="flex items-baseline gap-1">
                       <span className="text-xl font-black text-gray-900">₹{candidate.hourlyRate || '1200'}</span>
-                      <span className="text-[12px] font-bold text-gray-500">/hr</span>
+                      <span className="text-[12px] font-bold text-gray-500">{t("/hr")}</span>
                     </div>
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center space-y-1.5">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-green-500 fill-green-500/10" />
-                      <span className="text-[11px] text-gray-700 font-medium">Resume Verified</span>
+                      <span className="text-[11px] text-gray-700 font-medium">{t("Resume Verified")}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-green-500 fill-green-500/10" />
-                      <span className="text-[11px] text-gray-700 font-medium">Mobile Verified</span>
+                      <span className="text-[11px] text-gray-700 font-medium">{t("Mobile Verified")}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-green-500 fill-green-500/10" />
-                      <span className="text-[11px] text-gray-700 font-medium">Email Verified</span>
+                      <span className="text-[11px] text-gray-700 font-medium">{t("Email Verified")}</span>
                     </div>
                   </div>
                 </div>
@@ -192,20 +194,20 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                       rel="noopener noreferrer"
                       className="flex-[1.5] py-2.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] transition-colors text-[13px] flex items-center justify-center gap-2 shadow-sm"
                     >
-                      <MessageCircle className="w-4 h-4" fill="currentColor" strokeWidth={0} /> Chat on WhatsApp
+                      <MessageCircle className="w-4 h-4" fill="currentColor" strokeWidth={0} /> {t("Chat on WhatsApp")}
                     </a>
                     <a 
                       href={candidate.user?.whatsappNumber ? `tel:${candidate.user.whatsappNumber}` : '#'}
                       className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors text-[13px] flex items-center justify-center gap-1.5 shadow-sm"
                     >
-                      <Phone className="w-4 h-4" /> Call Now
+                      <Phone className="w-4 h-4" /> {t("Call")}
                     </a>
                   </div>
                   <button 
                     onClick={() => setSelectedCandidate(candidate)}
                     className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-colors text-[13px] flex items-center justify-center gap-2"
                   >
-                    <Eye className="w-4 h-4" /> View Full Profile
+                    <Eye className="w-4 h-4" strokeWidth={2.5} /> {t("View Full Profile")}
                   </button>
                 </div>
               </div>

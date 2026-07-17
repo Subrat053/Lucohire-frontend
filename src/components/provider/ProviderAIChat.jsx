@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { sendChatMessage, uploadResume } from '../../services/providerAIService';
@@ -16,6 +17,10 @@ function makeId(prefix = 'm') {
 }
 
 export default function ProviderAIChat({ profileContext = {}, missingFields = [], onUpdateField, inline = false, aiUsage = {} }) {
+  const {
+    t
+  } = useTranslation();
+
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(inline);
   const [input, setInput] = useState('');
@@ -672,26 +677,22 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
         <div className="flex-1 text-left flex flex-col justify-center h-full">
           <div className="flex items-center gap-2 mb-2">
             <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse shrink-0" />
-            <p className="text-base font-black text-slate-800 tracking-tight">
-              AI Profile Enhancer
-            </p>
+            <p className="text-base font-black text-slate-800 tracking-tight">{t("AI Profile Enhancer")}</p>
             {missingFields.length > 0 && (
               <span className="text-[9px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-amber-100 shrink-0">
-                {missingFields.length} left
-              </span>
+                {missingFields.length}{t("left")}</span>
             )}
           </div>
-          <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-            Fill your profile in 1-Click via Resume ✨ Upload a resume and our OCR-powered AI assistant will auto-fill your profile details instantly!
-          </p>
+          <p className="text-xs text-slate-500 font-semibold leading-relaxed">{t(
+            "Fill your profile in 1-Click via Resume ✨ Upload a resume and our OCR-powered AI assistant will auto-fill your profile details instantly!"
+          )}</p>
           <div className="mt-3 flex items-center gap-1.5 text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-            <span>Supported:</span>
-            <span className="bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-slate-500">PDF</span>
-            <span className="bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-slate-500">DOCX</span>
-            <span className="bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-slate-500">Images</span>
+            <span>{t("Supported:")}</span>
+            <span className="bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-slate-500">{t("PDF")}</span>
+            <span className="bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-slate-500">{t("DOCX")}</span>
+            <span className="bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-slate-500">{t("Images")}</span>
           </div>
         </div>
-
         {/* Right Side: Compact Dropzone */}
         <div className="w-full md:w-[45%] h-[100px] rounded-2xl bg-indigo-50/20 border-2 border-dashed border-indigo-200/60 flex flex-col items-center justify-center p-3 text-center transition hover:bg-indigo-50/40 relative overflow-hidden shrink-0">
           {resumeLoading ? (
@@ -703,14 +704,14 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                 {resumeLoadingState === 'analyzing' && 'AI parsing & analyzing...'}
                 {!resumeLoadingState && 'Processing...'}
               </p>
-              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Please keep open</p>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{t("Please keep open")}</p>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center w-full">
               {/* <div className="w-8 h-8 rounded-xl bg-white border border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm mb-1.5 shadow-sm">
                 📄
               </div> */}
-              <p className="text-xs font-black text-slate-800 leading-tight">Drop or Select Resume</p>
+              <p className="text-xs font-black text-slate-800 leading-tight">{t("Drop or Select Resume")}</p>
               
               {/* Resume Improvement Usage Badge */}
               {(() => {
@@ -736,14 +737,12 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
               
               {profileContext?.resumeApproval?.status === 'pending' && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded text-[9px] font-black uppercase mt-1 border border-amber-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" /> Pending Approval
-                </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />{t("Pending Approval")}</span>
               )}
 
               {profileContext?.resumeApproval?.status === 'rejected' && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-600 rounded text-[9px] font-black uppercase mt-1 border border-red-200" title={profileContext?.resumeApproval?.rejectionReason}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Rejected
-                </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" />{t("Rejected")}</span>
               )}
               
               {resumeError && (
@@ -763,13 +762,10 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                 type="button"
                 onClick={() => document.getElementById('resume-file-input').click()}
                 className="mt-2.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-all shadow-sm hover:shadow-indigo-200"
-              >
-                Select File
-              </button>
+              >{t("Select File")}</button>
             </div>
           )}
         </div>
-
         {/* 9. Editable Resume Preview Modal */}
         {parsedPreview && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
@@ -781,8 +777,10 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                     ✨
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-slate-800 tracking-tight">Review AI Extracted Details</h3>
-                    <p className="text-xs text-slate-400 font-semibold mt-0.5">Please review and edit details extracted from your resume before applying.</p>
+                    <h3 className="text-lg font-black text-slate-800 tracking-tight">{t("Review AI Extracted Details")}</h3>
+                    <p className="text-xs text-slate-400 font-semibold mt-0.5">{t(
+                      "Please review and edit details extracted from your resume before applying."
+                    )}</p>
                   </div>
                 </div>
                 <button 
@@ -800,7 +798,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Name */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Full Name")}</label>
                     <input
                       type="text"
                       value={parsedPreview.fullName || ''}
@@ -811,7 +809,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
 
                   {/* Phone */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">WhatsApp / Contact Number</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("WhatsApp / Contact Number")}</label>
                     <input
                       type="text"
                       value={parsedPreview.contactNumber || ''}
@@ -823,7 +821,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
 
                 {/* Bio */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Professional Bio</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Professional Bio")}</label>
                   <textarea
                     value={parsedPreview.bio || ''}
                     onChange={(e) => setParsedPreview({ ...parsedPreview, bio: e.target.value })}
@@ -835,7 +833,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Skills */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Skills (Comma-separated)</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Skills (Comma-separated)")}</label>
                     <input
                       type="text"
                       value={Array.isArray(parsedPreview.skills) ? parsedPreview.skills.join(', ') : parsedPreview.skills || ''}
@@ -846,7 +844,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
 
                   {/* Specialities */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Specialities (Comma-separated)</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Specialities (Comma-separated)")}</label>
                     <input
                       type="text"
                       value={Array.isArray(parsedPreview.specialities) ? parsedPreview.specialities.join(', ') : parsedPreview.specialities || ''}
@@ -858,14 +856,14 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
 
                 {(!user?.currentPlan || String(user.currentPlan).toLowerCase() === 'free' || String(user.currentPlan).toLowerCase() === 'provider-free-default') && (
                   <div className="text-[10px] text-amber-800 bg-red-50/90 px-3 py-2 rounded-xl border border-red-200/40 font-bold max-w-full text-center">
-                    <span>⚡ select only one skill and for all skills upgrade plan</span>
+                    <span>{t("⚡ select only one skill and for all skills upgrade plan")}</span>
                   </div>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* City */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">City</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("City")}</label>
                     <input
                       type="text"
                       value={parsedPreview.city || ''}
@@ -876,7 +874,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
 
                   {/* Service Locations */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Service Locations (Comma-separated)</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Service Locations (Comma-separated)")}</label>
                     <input
                       type="text"
                       value={Array.isArray(parsedPreview.serviceLocations) ? parsedPreview.serviceLocations.join(', ') : parsedPreview.serviceLocations || ''}
@@ -889,16 +887,16 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Smart Skill Level */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Smart Skill Level (AI Recommended)</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Smart Skill Level (AI Recommended)")}</label>
                     <div className="relative">
                       <select
                         value={parsedPreview.skillLevel || 'unskilled'}
                         onChange={(e) => setParsedPreview({ ...parsedPreview, skillLevel: e.target.value })}
                         className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition appearance-none shadow-inner"
                       >
-                        <option value="unskilled">Unskilled</option>
-                        <option value="semi_skilled">Semi Skilled</option>
-                        <option value="skilled">Skilled</option>
+                        <option value="unskilled">{t("Unskilled")}</option>
+                        <option value="semi_skilled">{t("Semi Skilled")}</option>
+                        <option value="skilled">{t("Skilled")}</option>
                       </select>
                       <div className="absolute right-3 top-3 pointer-events-none">
                         <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
@@ -908,7 +906,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
 
                   {/* Experience Years */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Experience Years</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Experience Years")}</label>
                     <input
                       type="text"
                       value={parsedPreview.experienceYears || ''}
@@ -921,7 +919,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Category */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Service Category</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Service Category")}</label>
                     <input
                       type="text"
                       value={parsedPreview.serviceCategory || ''}
@@ -932,7 +930,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
 
                   {/* Availability */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Availability</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Availability")}</label>
                     <input
                       type="text"
                       value={parsedPreview.availability || ''}
@@ -945,7 +943,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Pricing */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Payout Amount (₹)</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Payout Amount (₹)")}</label>
                     <input
                       type="text"
                       value={parsedPreview.pricing || ''}
@@ -956,17 +954,17 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
 
                   {/* Pricing Type */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Pricing Unit</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Pricing Unit")}</label>
                     <div className="relative">
                       <select
                         value={parsedPreview.pricingType || 'hourly'}
                         onChange={(e) => setParsedPreview({ ...parsedPreview, pricingType: e.target.value })}
                         className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none focus:ring-4 focus:ring-indigo-100 bg-slate-50/50 transition appearance-none shadow-inner"
                       >
-                        <option value="hourly">Hourly</option>
-                        <option value="daily">Daily</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="fixed">Fixed</option>
+                        <option value="hourly">{t("Hourly")}</option>
+                        <option value="daily">{t("Daily")}</option>
+                        <option value="monthly">{t("Monthly")}</option>
+                        <option value="fixed">{t("Fixed")}</option>
                       </select>
                       <div className="absolute right-3 top-3 pointer-events-none">
                         <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
@@ -978,7 +976,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Languages */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Languages (Comma-separated)</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Languages (Comma-separated)")}</label>
                     <input
                       type="text"
                       value={Array.isArray(parsedPreview.languages) ? parsedPreview.languages.join(', ') : parsedPreview.languages || ''}
@@ -990,8 +988,8 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                   {/* WhatsApp Alerts */}
                   <div className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50/50 shadow-inner">
                     <div>
-                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">WhatsApp Alerts</label>
-                      <p className="text-[10px] text-slate-400 font-medium mt-0.5">Receive job matches on WhatsApp</p>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">{t("WhatsApp Alerts")}</label>
+                      <p className="text-[10px] text-slate-400 font-medium mt-0.5">{t("Receive job matches on WhatsApp")}</p>
                     </div>
                     <button
                       type="button"
@@ -1007,8 +1005,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                 <div className="border-t border-slate-100 pt-6">
                   <div className="flex items-center justify-between mb-3">
                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <span>🌐</span> Portfolio & Social Links
-                    </label>
+                      <span>🌐</span>{t("Portfolio & Social Links")}</label>
                     <button
                       type="button"
                       onClick={() => {
@@ -1018,13 +1015,12 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                       }}
                       className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 transition-colors"
                     >
-                      <span>➕</span> Add Link
-                    </button>
+                      <span>➕</span>{t("Add Link")}</button>
                   </div>
                   {(!parsedPreview.portfolioLinks || parsedPreview.portfolioLinks.length === 0) ? (
-                    <p className="text-xs text-slate-400 font-medium italic py-3 bg-slate-50/50 rounded-xl text-center border border-dashed border-slate-200">
-                      No portfolio links extracted. Click "Add Link" to add your websites or social profiles.
-                    </p>
+                    <p className="text-xs text-slate-400 font-medium italic py-3 bg-slate-50/50 rounded-xl text-center border border-dashed border-slate-200">{t(
+                      "No portfolio links extracted. Click \"Add Link\" to add your websites or social profiles."
+                    )}</p>
                   ) : (
                     <div className="space-y-3">
                       {parsedPreview.portfolioLinks.map((link, idx) => (
@@ -1039,13 +1035,13 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                               }}
                               className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:border-indigo-500 bg-white outline-none"
                             >
-                              <option value="LinkedIn">LinkedIn</option>
-                              <option value="GitHub">GitHub</option>
-                              <option value="Behance">Behance</option>
-                              <option value="Dribbble">Dribbble</option>
-                              <option value="Instagram">Instagram</option>
-                              <option value="Facebook">Facebook</option>
-                              <option value="Personal Website">Personal Website</option>
+                              <option value="LinkedIn">{t("LinkedIn")}</option>
+                              <option value="GitHub">{t("GitHub")}</option>
+                              <option value="Behance">{t("Behance")}</option>
+                              <option value="Dribbble">{t("Dribbble")}</option>
+                              <option value="Instagram">{t("Instagram")}</option>
+                              <option value="Facebook">{t("Facebook")}</option>
+                              <option value="Personal Website">{t("Personal Website")}</option>
                             </select>
                           </div>
                           <input
@@ -1056,7 +1052,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                               nextLinks[idx].url = e.target.value;
                               setParsedPreview({ ...parsedPreview, portfolioLinks: nextLinks });
                             }}
-                            placeholder="URL (e.g. https://github.com/username)"
+                            placeholder={t("URL (e.g. https://github.com/username)")}
                             className="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-200 focus:border-indigo-500 bg-white outline-none"
                           />
                           <button
@@ -1085,21 +1081,16 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                   type="button"
                   onClick={() => setParsedPreview(null)}
                   className="px-5 py-2.5 text-slate-500 hover:text-slate-700 text-xs font-bold transition-all active:scale-95"
-                >
-                  Cancel
-                </button>
+                >{t("Cancel")}</button>
                 <button
                   type="button"
                   onClick={applyResumeChanges}
                   className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md shadow-indigo-200"
-                >
-                  Apply Changes to Draft
-                </button>
+                >{t("Apply Changes to Draft")}</button>
               </div>
             </div>
           </div>
         )}
-
         {/* <div ref={listRef} className="p-4 h-64 overflow-y-auto space-y-3 bg-slate-50/50 rounded-2xl mb-4 border border-slate-100/50">
           {messages.map((item) => (
             <div key={item.id} className={`flex ${item.author === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -1165,10 +1156,10 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
         <div className="mb-3 w-80 sm:w-96 rounded-2xl border border-gray-200 bg-white shadow-2xl overflow-hidden">
           <div className="px-4 py-3 bg-gray-900 text-white flex items-center justify-between">
             <div>
-              <p className="text-sm font-bold">Provider AI Assistant</p>
-              <p className="text-[11px] text-gray-300">Context-aware AI chat</p>
+              <p className="text-sm font-bold">{t("Provider AI Assistant")}</p>
+              <p className="text-[11px] text-gray-300">{t("Context-aware AI chat")}</p>
             </div>
-            <button type="button" onClick={() => setIsOpen(false)} className="text-xs text-gray-300 hover:text-white">Close</button>
+            <button type="button" onClick={() => setIsOpen(false)} className="text-xs text-gray-300 hover:text-white">{t("Close")}</button>
           </div>
 
           <div ref={listRef} className="p-3 h-96 overflow-y-auto space-y-2 bg-gray-50">
@@ -1214,30 +1205,25 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask assistant..."
+                placeholder={t("Ask assistant...")}
                 className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-300"
               />
               <button
                 type="submit"
                 disabled={isLoading}
                 className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-              >
-                Send
-              </button>
+              >{t("Send")}</button>
             </form>
 
             {isDev ? <ProviderAIDebugPanel debugState={debugState} /> : null}
           </div>
         </div>
       )}
-
       <button
         type="button"
         onClick={() => setIsOpen((v) => !v)}
         className="rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:bg-blue-700"
-      >
-        AI Chat
-      </button>
+      >{t("AI Chat")}</button>
     </div>
   );
 }

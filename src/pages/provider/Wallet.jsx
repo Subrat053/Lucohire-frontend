@@ -349,7 +349,6 @@ const Wallet = () => {
           </div>
         </div>
       </div>
-
       {/* Wallet Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-6 mb-8">
         {[
@@ -375,7 +374,6 @@ const Wallet = () => {
           </div>
         ))}
       </div>
-
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Ledger & Transactions: 2 Columns */}
         <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs">
@@ -407,7 +405,7 @@ const Wallet = () => {
                       <td className="py-4 px-2">
                         <div>
                           <p className="font-semibold text-slate-800">{txn.description}</p>
-                          <p className="text-[10px] text-slate-400 font-mono mt-0.5">ID: {txn._id}</p>
+                          <p className="text-[10px] text-slate-400 font-mono mt-0.5">{t("ID:")}{txn._id}</p>
                         </div>
                       </td>
                       <td className="py-4 px-2">
@@ -490,7 +488,6 @@ const Wallet = () => {
           </div>
         </div>
       </div>
-
       {/* WITHDRAW MONEY MODAL */}
       {showWithdrawModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
@@ -570,11 +567,11 @@ const Wallet = () => {
                       {defaultMethod.type === 'bank' && (
                         <>
                           <p className="font-bold text-slate-800">{defaultMethod.bankDetails?.accountHolderName}</p>
-                          <p className="text-slate-600">{defaultMethod.bankDetails?.bankName} • Account ending in {defaultMethod.bankDetails?.accountNumber?.slice(-4)}</p>
+                          <p className="text-slate-600">{defaultMethod.bankDetails?.bankName}{t("• Account ending in")}{defaultMethod.bankDetails?.accountNumber?.slice(-4)}</p>
                         </>
                       )}
                       {defaultMethod.type === 'upi' && <p className="text-slate-800 font-semibold">{defaultMethod.upiId}</p>}
-                      {defaultMethod.type === 'qr' && <p className="text-slate-800 font-semibold">QR Code {defaultMethod.providerName ? `(${defaultMethod.providerName})` : ''}</p>}
+                      {defaultMethod.type === 'qr' && <p className="text-slate-800 font-semibold">{t("QR Code")}{defaultMethod.providerName ? `(${defaultMethod.providerName})` : ''}</p>}
                     </div>
                   )}
 
@@ -627,7 +624,7 @@ const Wallet = () => {
                   <div className="text-center text-xs">
                     {resendTimer > 0 ? (
                       <span className="text-slate-400">
-                        {t('wallet.resendIn', 'Resend code in')} <strong className="text-slate-600">{resendTimer}s</strong>
+                        {t('wallet.resendIn', 'Resend code in')} <strong className="text-slate-600">{resendTimer}{t("s")}</strong>
                       </span>
                     ) : (
                       <button

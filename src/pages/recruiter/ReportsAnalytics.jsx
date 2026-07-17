@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { Suspense } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { FiCalendar, FiFilter, FiDownload, FiChevronDown } from 'react-icons/fi';
@@ -13,6 +14,10 @@ const tabs = [
 ];
 
 const ReportsAnalytics = () => {
+  const {
+    t
+  } = useTranslation();
+
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
@@ -21,22 +26,20 @@ const ReportsAnalytics = () => {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Reports &amp; Analytics</h1>
-              <p className="text-sm text-gray-500">Track performance, measure impact and make data-driven hiring decisions.</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{t("Reports & Analytics")}</h1>
+              <p className="text-sm text-gray-500">{t("Track performance, measure impact and make data-driven hiring decisions.")}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:bg-gray-50 transition whitespace-nowrap">
                 <FiCalendar className="w-4 h-4 text-gray-400 shrink-0" />
-                <span className="hidden sm:inline">20 Apr – 20 May 2026</span>
-                <span className="sm:hidden">Apr – May</span>
+                <span className="hidden sm:inline">{t("20 Apr – 20 May 2026")}</span>
+                <span className="sm:hidden">{t("Apr – May")}</span>
                 <FiChevronDown className="w-3.5 h-3.5" />
               </button>
               <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:bg-gray-50 transition">
-                <FiFilter className="w-4 h-4" /> Filters
-              </button>
+                <FiFilter className="w-4 h-4" />{t("Filters")}</button>
               <button className="flex items-center gap-2 bg-indigo-600 text-white px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:bg-indigo-700 transition">
-                <FiDownload className="w-4 h-4" /> Export
-              </button>
+                <FiDownload className="w-4 h-4" />{t("Export")}</button>
             </div>
           </div>
         </div>

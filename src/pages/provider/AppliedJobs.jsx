@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -45,6 +46,10 @@ const getStatusIndex = (status) => {
 const STEPS = ['Applied', 'Reviewed', 'Contacted', 'Shortlisted', 'Hired'];
 
 export default function AppliedJobs() {
+  const {
+    t
+  } = useTranslation();
+
   const [activeTab, setActiveTab] = useState('all');
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -88,27 +93,21 @@ export default function AppliedJobs() {
           <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input 
             type="text" 
-            placeholder="Search jobs, companies, skills..." 
+            placeholder={t("Search jobs, companies, skills...")} 
             className="w-full pl-10 pr-16 py-2.5 rounded-full border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-sm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-1 rounded">
-            Ctrl + K
-          </div>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-1 rounded">{t("Ctrl + K")}</div>
         </div>
       </div>
-
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-          Applied Jobs
-          <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">
+        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">{t("Applied Jobs")}<span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">
             {counts.all}
           </span>
         </h1>
-        <p className="text-sm text-slate-500 mt-1">Track your applications and stay updated on their progress</p>
+        <p className="text-sm text-slate-500 mt-1">{t("Track your applications and stay updated on their progress")}</p>
       </div>
-
       <div className="flex flex-col xl:flex-row gap-6">
         {/* Left Content Area */}
         <div className="flex-1 min-w-0">
@@ -131,16 +130,13 @@ export default function AppliedJobs() {
               ))}
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                Sort by
-                <select className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                  <option>Recently Applied</option>
-                  <option>Status Updates</option>
+              <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">{t("Sort by")}<select className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                  <option>{t("Recently Applied")}</option>
+                  <option>{t("Status Updates")}</option>
                 </select>
               </div>
               <button className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-1.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 shadow-sm">
-                <HiFilter className="w-4 h-4" /> Filter
-              </button>
+                <HiFilter className="w-4 h-4" />{t("Filter")}</button>
             </div>
           </div>
 
@@ -148,7 +144,7 @@ export default function AppliedJobs() {
           <div className="space-y-4">
             {filteredApps.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
-                <p className="text-slate-500 font-medium">No applications found in this category.</p>
+                <p className="text-slate-500 font-medium">{t("No applications found in this category.")}</p>
               </div>
             ) : (
               filteredApps.map((app, index) => {
@@ -187,7 +183,7 @@ export default function AppliedJobs() {
                           </div>
                           <div className="flex flex-col gap-1.5 mt-3 text-xs text-slate-500 font-medium">
                             <span className="flex items-center gap-1.5"><HiLocationMarker className="w-3.5 h-3.5" /> {job.city || 'Remote'} ({job.workMode || 'Hybrid'})</span>
-                            <span className="flex items-center gap-1.5"><HiOutlineCalendar className="w-3.5 h-3.5" /> Applied on {new Date(app.appliedAt || app.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                            <span className="flex items-center gap-1.5"><HiOutlineCalendar className="w-3.5 h-3.5" />{t("Applied on")}{new Date(app.appliedAt || app.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                           </div>
                         </div>
                       </div>
@@ -252,13 +248,13 @@ export default function AppliedJobs() {
                         <div className="flex gap-6 mt-auto text-sm bg-slate-50 p-3 rounded-lg border border-slate-100">
                           {isRejected ? (
                             <div className="flex-1">
-                              <span className="text-xs text-slate-500 font-medium block mb-1">Feedback</span>
-                              <span className="font-semibold text-slate-800">Not a match for this role.</span>
+                              <span className="text-xs text-slate-500 font-medium block mb-1">{t("Feedback")}</span>
+                              <span className="font-semibold text-slate-800">{t("Not a match for this role.")}</span>
                             </div>
                           ) : (
                             <>
                               <div className="flex-1">
-                                <span className="text-xs text-slate-500 font-medium block mb-1">Offered Salary</span>
+                                <span className="text-xs text-slate-500 font-medium block mb-1">{t("Offered Salary")}</span>
                                 <span className="font-semibold text-slate-800 flex items-center gap-2">
                                   {job.budgetMin && job.budgetMax 
                                     ? `₹${job.budgetMin.toLocaleString()} - ${job.budgetMax.toLocaleString()}` 
@@ -286,12 +282,9 @@ export default function AppliedJobs() {
                         </button>
                         
                         <div className="flex flex-col gap-3 w-full">
-                          <Link to={`/job/${job._id}`} target="_blank" className="w-full block py-1.5 px-4 text-xs font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition shadow-sm text-center">
-                            View Job
-                          </Link>
+                          <Link to={`/job/${job._id}`} target="_blank" className="w-full block py-1.5 px-4 text-xs font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition shadow-sm text-center">{t("View Job")}</Link>
                           {job.recruiter && (
-                            <button onClick={() => window.location.href = `mailto:${job.recruiter.email}`} className="w-full text-right text-xs font-semibold text-emerald-600 hover:text-emerald-800 flex items-center justify-end gap-1">
-                              Contact Recruiter <HiOutlineExternalLink className="w-3.5 h-3.5" />
+                            <button onClick={() => window.location.href = `mailto:${job.recruiter.email}`} className="w-full text-right text-xs font-semibold text-emerald-600 hover:text-emerald-800 flex items-center justify-end gap-1">{t("Contact Recruiter")}<HiOutlineExternalLink className="w-3.5 h-3.5" />
                             </button>
                           )}
 
@@ -308,7 +301,7 @@ export default function AppliedJobs() {
           {/* Pagination Mock */}
           {filteredApps.length > 0 && (
             <div className="flex items-center justify-between mt-8 text-sm text-slate-500">
-              <span>Showing 1 to {Math.min(5, filteredApps.length)} of {filteredApps.length} applications</span>
+              <span>{t("Showing 1 to")}{Math.min(5, filteredApps.length)}{t("of")}{filteredApps.length}{t("applications")}</span>
               <div className="flex items-center gap-1">
                 <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50">&lt;</button>
                 <button className="w-8 h-8 flex items-center justify-center rounded bg-emerald-600 text-white font-bold">1</button>

@@ -4,8 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { jobsAPI, providerAPI } from '../services/api';
 
 import HeroSection from '../components/landing/HeroSection';
-import DualPathwayCards from '../components/landing/DualPathwayCards';
-import LiveJobsCarousel from '../components/landing/LiveJobsCarousel';
 import TopTalentCarousel from '../components/landing/TopTalentCarousel';
 import FeaturesSection from '../components/landing/FeaturesSection';
 import CandidateModal from '../components/landing/CandidateModal';
@@ -71,7 +69,7 @@ export default function LandingPage() {
     } else if (user?.activeRole === 'recruiter') {
       navigate('/recruiter/dashboard');
     } else {
-      navigate(`/unlock-matches`, { state: { formData: { skills: jobSearch, location: jobLocation } } });
+      navigate(`/candidate-landing`, { state: { formData: { skills: jobSearch, location: jobLocation } } });
     }
   };
 
@@ -89,11 +87,6 @@ export default function LandingPage() {
         jobLocation={jobLocation}
         setJobLocation={setJobLocation}
         handleJobSearch={handleJobSearch}
-      />
-      
-      <DualPathwayCards user={user} />
-      
-      <LiveJobsCarousel 
         isLoadingJobs={isLoadingJobs}
         liveJobsList={liveJobsList}
       />

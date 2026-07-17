@@ -73,7 +73,7 @@ const RecruiterLayout = ({ children }) => {
 
   const handleLogout = () => { logout(); };
 
-  const SidebarContent = ({ onNavClick }) => (
+  const renderSidebarContent = (onNavClick) => (
     <div className="flex flex-col h-full">
       <div className={`flex items-center px-4 py-4 border-b border-gray-100 ${collapsed ? 'justify-center' : 'space-x-3'}`}>
         <div className="w-8 h-8 bg-[#0066FF] rounded-lg flex items-center justify-center shrink-0">
@@ -81,8 +81,8 @@ const RecruiterLayout = ({ children }) => {
         </div>
         {!collapsed && (
           <div className="flex flex-col">
-            <span className="font-bold text-[#081B3A] text-sm leading-tight">Recruiter Panel</span>
-            <span className="text-[10px] font-black text-[#0066FF] uppercase tracking-wider mt-0.5">{currentPlan.replace('-yearly', '')} PLAN</span>
+            <span className="font-bold text-[#081B3A] text-sm leading-tight">{t("Recruiter Panel")}</span>
+            <span className="text-[10px] font-black text-[#0066FF] uppercase tracking-wider mt-0.5">{currentPlan.replace('-yearly', '')}{t("PLAN")}</span>
           </div>
         )}
       </div>
@@ -126,7 +126,7 @@ const RecruiterLayout = ({ children }) => {
         {(!collapsed && stats) && (
           <div className="mt-8 mb-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm mx-1 shrink-0">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-bold text-gray-900">Subscription Usage</p>
+              <p className="text-xs font-bold text-gray-900">{t("Subscription Usage")}</p>
               <HiChevronRight className="w-3 h-3 text-gray-400" />
             </div>
             
@@ -134,11 +134,11 @@ const RecruiterLayout = ({ children }) => {
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
                   <HiBriefcase className="w-3 h-3 text-blue-500" />
-                  <span className="text-[10px] font-semibold text-gray-600">Job Postings</span>
+                  <span className="text-[10px] font-semibold text-gray-600">{t("Job Postings")}</span>
                 </div>
                 <div className="text-sm font-bold text-gray-900 mb-1">
                   {stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit}
-                  {stats.remainingPostLimit !== 'unlimited' && <span className="text-gray-400 font-medium"> left</span>}
+                  {stats.remainingPostLimit !== 'unlimited' && <span className="text-gray-400 font-medium">{t("left")}</span>}
                 </div>
                 {stats.remainingPostLimit !== 'unlimited' && (
                   <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -150,10 +150,10 @@ const RecruiterLayout = ({ children }) => {
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
                   <HiUsers className="w-3 h-3 text-green-500" />
-                  <span className="text-[10px] font-semibold text-gray-600">Candidate Unlocks</span>
+                  <span className="text-[10px] font-semibold text-gray-600">{t("Candidate Unlocks")}</span>
                 </div>
                 <div className="text-sm font-bold text-gray-900 mb-1">
-                  {stats.unlocksRemaining} <span className="text-gray-400 font-medium"> left</span>
+                  {stats.unlocksRemaining} <span className="text-gray-400 font-medium">{t("left")}</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-1.5">
                   <div className="bg-green-600 h-1.5 rounded-full" style={{ width: `${stats.unlocksRemaining > 0 ? 100 : 0}%` }}></div>
@@ -161,9 +161,7 @@ const RecruiterLayout = ({ children }) => {
               </div>
             </div>
 
-            <Link to="/recruiter/plans" className="mt-4 w-full rounded-xl border border-indigo-100 bg-white text-indigo-600 hover:bg-indigo-50 text-xs font-bold py-2 transition flex justify-center items-center">
-              Manage Subscription
-            </Link>
+            <Link to="/recruiter/plans" className="mt-4 w-full rounded-xl border border-indigo-100 bg-white text-indigo-600 hover:bg-indigo-50 text-xs font-bold py-2 transition flex justify-center items-center">{t("Manage Subscription")}</Link>
           </div>
         )}
       </nav>
@@ -189,7 +187,7 @@ const RecruiterLayout = ({ children }) => {
       <aside className={`hidden md:flex flex-col bg-white border-r border-gray-100 transition-all duration-300 shrink-0 sticky top-0 self-start h-screen
         ${collapsed ? 'w-16' : 'w-60'}
       `}>
-        <SidebarContent />
+        {renderSidebarContent()}
         {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -204,7 +202,7 @@ const RecruiterLayout = ({ children }) => {
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
           <aside className="relative w-56 h-full bg-white shadow-xl flex flex-col">
-            <SidebarContent onNavClick={() => setMobileOpen(false)} />
+            {renderSidebarContent(() => setMobileOpen(false))}
           </aside>
         </div>
       )}

@@ -1,9 +1,14 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiEye, FiEyeOff, FiBriefcase, FiMail, FiPhone, FiUser, FiLock, FiCheckCircle } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const RecruiterDiscovery = () => {
+  const {
+    t
+  } = useTranslation();
+
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -37,16 +42,13 @@ const RecruiterDiscovery = () => {
         {/* Left Side: Value Prop */}
         <div className="flex-1 space-y-8">
           <div>
-            <span className="text-purple-600 font-bold bg-purple-50 px-3 py-1 rounded-full text-sm">
-              Recruiter Workspace
-            </span>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mt-6 leading-tight">
-              Hire Top Talent, <br className="hidden md:block" />
-              <span className="text-purple-600">Faster & Smarter</span>
+            <span className="text-purple-600 font-bold bg-purple-50 px-3 py-1 rounded-full text-sm">{t("Recruiter Workspace")}</span>
+            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mt-6 leading-tight">{t("Hire Top Talent,")}<br className="hidden md:block" />
+              <span className="text-purple-600">{t("Faster & Smarter")}</span>
             </h1>
-            <p className="text-xl text-gray-600 mt-4 leading-relaxed">
-              Post a job for free and let our AI match you with the best candidates in your industry instantly.
-            </p>
+            <p className="text-xl text-gray-600 mt-4 leading-relaxed">{t(
+              "Post a job for free and let our AI match you with the best candidates in your industry instantly."
+            )}</p>
           </div>
 
           <div className="space-y-5">
@@ -55,8 +57,8 @@ const RecruiterDiscovery = () => {
                 <FiCheckCircle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-gray-900">8.6M+ Active Candidates</h3>
-                <p className="text-gray-500 text-sm">Access a massive pool of verified professionals.</p>
+                <h3 className="font-bold text-gray-900">{t("8.6M+ Active Candidates")}</h3>
+                <p className="text-gray-500 text-sm">{t("Access a massive pool of verified professionals.")}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -64,8 +66,8 @@ const RecruiterDiscovery = () => {
                 <FiCheckCircle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-gray-900">92% Match Accuracy</h3>
-                <p className="text-gray-500 text-sm">AI ranks and shortlists the best candidates for you.</p>
+                <h3 className="font-bold text-gray-900">{t("92% Match Accuracy")}</h3>
+                <p className="text-gray-500 text-sm">{t("AI ranks and shortlists the best candidates for you.")}</p>
               </div>
             </div>
           </div>
@@ -74,12 +76,12 @@ const RecruiterDiscovery = () => {
         {/* Right Side: Lead Capture Form */}
         <div className="w-full md:w-[500px]">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Create Your Free Account</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">{t("Create Your Free Account")}</h2>
             <form onSubmit={handleSubmit} className="space-y-5">
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("Your Name")}</label>
                   <div className="relative">
                     <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input 
@@ -89,12 +91,12 @@ const RecruiterDiscovery = () => {
                       value={formData.name}
                       onChange={handleInputChange}
                       className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
-                      placeholder="John Doe"
+                      placeholder={t("John Doe")}
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("Company Name")}</label>
                   <div className="relative">
                     <FiBriefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input 
@@ -104,14 +106,14 @@ const RecruiterDiscovery = () => {
                       value={formData.companyName}
                       onChange={handleInputChange}
                       className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
-                      placeholder="Acme Corp"
+                      placeholder={t("Acme Corp")}
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Company Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("Company Email")}</label>
                 <div className="relative">
                   <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input 
@@ -121,14 +123,14 @@ const RecruiterDiscovery = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
-                    placeholder="john@acmecorp.com"
+                    placeholder={t("john@acmecorp.com")}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("Phone Number")}</label>
                   <div className="relative">
                     <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input 
@@ -138,12 +140,12 @@ const RecruiterDiscovery = () => {
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
-                      placeholder="+91 XXXXXXXXXX"
+                      placeholder={t("+91 XXXXXXXXXX")}
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("Industry")}</label>
                   <select 
                     name="industry"
                     required
@@ -151,19 +153,19 @@ const RecruiterDiscovery = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none bg-white text-gray-700"
                   >
-                    <option value="" disabled>Select Industry</option>
-                    <option value="IT/Software">IT/Software</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Healthcare">Healthcare</option>
-                    <option value="Education">Education</option>
-                    <option value="Manufacturing">Manufacturing</option>
-                    <option value="Other">Other</option>
+                    <option value="" disabled>{t("Select Industry")}</option>
+                    <option value="IT/Software">{t("IT/Software")}</option>
+                    <option value="Finance">{t("Finance")}</option>
+                    <option value="Healthcare">{t("Healthcare")}</option>
+                    <option value="Education">{t("Education")}</option>
+                    <option value="Manufacturing">{t("Manufacturing")}</option>
+                    <option value="Other">{t("Other")}</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("Password")}</label>
                 <div className="relative">
                   <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input 
@@ -173,7 +175,7 @@ const RecruiterDiscovery = () => {
                     value={formData.password}
                     onChange={handleInputChange}
                     className="w-full pl-10 pr-10 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
-                    placeholder="Create a password"
+                    placeholder={t("Create a password")}
                   />
                   <button 
                     type="button"
@@ -188,13 +190,11 @@ const RecruiterDiscovery = () => {
               <button 
                 type="submit"
                 className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition"
-              >
-                Find Candidates Now
-              </button>
+              >{t("Find Candidates Now")}</button>
               
-              <p className="text-xs text-center text-gray-500 mt-4">
-                By clicking "Find Candidates Now", you agree to our Terms of Service and Privacy Policy.
-              </p>
+              <p className="text-xs text-center text-gray-500 mt-4">{t(
+                "By clicking \"Find Candidates Now\", you agree to our Terms of Service and Privacy Policy."
+              )}</p>
             </form>
           </div>
         </div>

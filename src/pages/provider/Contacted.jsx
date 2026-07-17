@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect } from 'react';
 import {
   HiPhone, HiMail, HiLocationMarker, HiStar,
@@ -18,6 +19,10 @@ const STATUS_BADGES = {
 };
 
 const ContactedCard = ({ application }) => {
+  const {
+    t
+  } = useTranslation();
+
   const { formatPrice } = useLocale();
   const recruiter = application.jobPost?.recruiter;
   const job = application.jobPost;
@@ -31,11 +36,8 @@ const ContactedCard = ({ application }) => {
         : 'bg-white border-gray-100 hover:border-gray-200'
     }`}>
       {isContacted && (
-        <div className="absolute top-0 right-0 bg-gradient-to-r from-teal-600 to-emerald-600 text-white px-4 py-1 rounded-bl-xl text-[10px] font-black uppercase tracking-wider">
-          💬 Contacted
-        </div>
+        <div className="absolute top-0 right-0 bg-gradient-to-r from-teal-600 to-emerald-600 text-white px-4 py-1 rounded-bl-xl text-[10px] font-black uppercase tracking-wider">{t("💬 Contacted")}</div>
       )}
-
       <div className="p-6 space-y-4">
         {/* Recruiter Info */}
         <div className="flex items-start justify-between gap-4">
@@ -54,7 +56,7 @@ const ContactedCard = ({ application }) => {
         <div className="bg-gray-50/50 rounded-xl p-4 space-y-2.5 border border-gray-100">
           <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
             <HiDocumentText className="w-4 h-4 text-gray-450" />
-            <span><span className="text-gray-500 uppercase tracking-wider text-[10px]">Skill Required:</span> {job?.skill}</span>
+            <span><span className="text-gray-500 uppercase tracking-wider text-[10px]">{t("Skill Required:")}</span> {job?.skill}</span>
           </div>
           {job?.budgetMin && (
             <div className="flex items-center gap-2 text-sm">
@@ -73,26 +75,23 @@ const ContactedCard = ({ application }) => {
             <a href={`mailto:${recruiter.email}`}
               className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-teal-50 text-teal-600 hover:bg-teal-100 transition-all text-xs font-bold border border-teal-200"
             >
-              <HiMail className="w-4 h-4" /> Send Email
-            </a>
+              <HiMail className="w-4 h-4" />{t("Send Email")}</a>
           )}
           {recruiter?.phone && (
             <a href={`tel:${recruiter.phone}`}
               className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all text-xs font-bold border border-emerald-200"
             >
-              <HiPhone className="w-4 h-4" /> Place Call
-            </a>
+              <HiPhone className="w-4 h-4" />{t("Place Call")}</a>
           )}
         </div>
 
         {/* Timeline */}
         <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-2">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-300" />
-          Applied {new Date(application.appliedAt || application.createdAt).toLocaleDateString()}
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-300" />{t("Applied")}{new Date(application.appliedAt || application.createdAt).toLocaleDateString()}
           {isContacted && (
             <>
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-teal-300" />
-              <span className="text-teal-600">Contacted recently</span>
+              <span className="text-teal-600">{t("Contacted recently")}</span>
             </>
           )}
         </div>
@@ -102,6 +101,10 @@ const ContactedCard = ({ application }) => {
 };
 
 const ProviderContacted = () => {
+  const {
+    t
+  } = useTranslation();
+
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('all');
@@ -136,25 +139,24 @@ const ProviderContacted = () => {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-emerald-950 mb-2">
-            Recruiter <span className="text-teal-600 drop-shadow-sm">Messages</span>
+          <h1 className="text-3xl font-extrabold text-emerald-950 mb-2">{t("Recruiter")}<span className="text-teal-600 drop-shadow-sm">{t("Messages")}</span>
           </h1>
-          <p className="text-gray-500 text-sm">See who has reached out to you about your applications</p>
+          <p className="text-gray-500 text-sm">{t("See who has reached out to you about your applications")}</p>
         </div>
 
         {/* Quick Stats */}
         <div className="grid sm:grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-2xl p-5 text-center shadow-xs border border-gray-100">
             <p className="text-3xl font-black text-emerald-950">{applications.length}</p>
-            <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">Total Applications</p>
+            <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">{t("Total Applications")}</p>
           </div>
           <div className="bg-white rounded-2xl p-5 text-center shadow-xs border border-gray-100">
             <p className="text-3xl font-black text-amber-600">{contactedApps.length}</p>
-            <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">Recruiters Contacted</p>
+            <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">{t("Recruiters Contacted")}</p>
           </div>
           <div className="bg-white rounded-2xl p-5 text-center shadow-xs border border-gray-100">
             <p className="text-3xl font-black text-emerald-650">{acceptedApps.length}</p>
-            <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">Jobs Accepted</p>
+            <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">{t("Jobs Accepted")}</p>
           </div>
         </div>
 

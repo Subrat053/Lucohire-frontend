@@ -655,7 +655,7 @@ const SearchPage = () => {
   ];
 
   const columns =
-    windowSize.width >= 1280 ? 4 : windowSize.width >= 1024 ? 3 : windowSize.width >= 640 ? 2 : 1;
+    windowSize.width >= 1280 ? 3 : windowSize.width >= 1024 ? 3 : windowSize.width >= 640 ? 2 : 1;
   const rowHeight =
     columns === 1 ? 300 : columns === 2 ? 310 : columns === 3 ? 320 : 330;
   const listHeight = Math.min(
@@ -673,7 +673,7 @@ const SearchPage = () => {
     return (
       <div
         style={{ ...style, width: "100%" }}
-        className={`grid gap-5 pb-5 ${columns === 1 ? "grid-cols-1" : columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"}`}
+        className={`grid gap-5 pb-5 ${columns === 1 ? "grid-cols-1" : columns === 2 ? "grid-cols-2" : "grid-cols-3"}`}
       >
         {rowItems.map((p, i) => (
           <Link key={p._id || `${index}-${i}`} to={`/p/${p._id || p.user?._id}`} className="block h-full text-inherit">
@@ -965,7 +965,7 @@ const SearchPage = () => {
           <div>
             {results.providers?.length > 0 ? (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 items-stretch">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 items-stretch">
                   {results.providers.map((p, i) => (
                     <Link key={p._id || i} to={`/p/${p._id || p.user?._id}`} className="block h-full text-inherit">
                       <SharedProviderCard

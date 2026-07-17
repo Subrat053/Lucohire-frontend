@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect } from 'react';
 import { FiUsers, FiAward, FiChevronDown, FiChevronUp, FiLoader, FiUser, FiMapPin, FiBriefcase } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
@@ -6,6 +7,10 @@ import toast from 'react-hot-toast';
 import CandidateProfileModal from '../../components/recruiter/CandidateProfileModal';
 
 const TalentPool = () => {
+  const {
+    t
+  } = useTranslation();
+
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedJobId, setExpandedJobId] = useState(null);
@@ -50,15 +55,13 @@ const TalentPool = () => {
       {/* HEADER SECTION */}
       <div className="bg-white border-b border-gray-100 px-6 py-8">
         <div className="max-w-[1600px] mx-auto">
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-            AI Talent Pool <HiSparkles className="text-indigo-600 w-8 h-8" />
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">{t("AI Talent Pool")}<HiSparkles className="text-indigo-600 w-8 h-8" />
           </h1>
-          <p className="text-sm text-gray-500 mt-2 max-w-2xl">
-            Automatically rank and evaluate the top candidates for every job you post using Lucohire's AI Matching Engine.
-          </p>
+          <p className="text-sm text-gray-500 mt-2 max-w-2xl">{t(
+            "Automatically rank and evaluate the top candidates for every job you post using Lucohire's AI Matching Engine."
+          )}</p>
         </div>
       </div>
-
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
           <div className="flex items-center justify-center h-48">
@@ -67,8 +70,8 @@ const TalentPool = () => {
         ) : jobs.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-sm">
             <FiUsers className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-gray-900 font-bold mb-1">No Jobs Found</h3>
-            <p className="text-gray-500 text-sm">Post a job to start building your AI-ranked talent pool.</p>
+            <h3 className="text-gray-900 font-bold mb-1">{t("No Jobs Found")}</h3>
+            <p className="text-gray-500 text-sm">{t("Post a job to start building your AI-ranked talent pool.")}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -80,7 +83,6 @@ const TalentPool = () => {
 
               return (
                 <div key={job._id} className={`bg-white rounded-2xl border ${isExpanded ? 'border-indigo-200 shadow-md ring-1 ring-indigo-50' : 'border-gray-200 shadow-sm'} transition-all overflow-hidden`}>
-                  
                   {/* ACCORDION HEADER */}
                   <div 
                     onClick={() => setExpandedJobId(isExpanded ? null : job._id)}
@@ -91,8 +93,7 @@ const TalentPool = () => {
                       <div className="flex items-center gap-4 mt-2">
                         <span className="text-sm text-gray-500">{typeof job.location === 'object' ? (job.location?.city || job.location?.name || job.location?.formattedAddress || 'Remote') : (job.location || 'Remote')}</span>
                         <span className="text-sm font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
-                          {job.candidates?.length || 0} Total Applicants
-                        </span>
+                          {job.candidates?.length || 0}{t("Total Applicants")}</span>
                       </div>
                     </div>
 
@@ -104,9 +105,9 @@ const TalentPool = () => {
                           className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition flex items-center gap-2"
                         >
                           {runningAI === job._id ? (
-                            <><FiLoader className="w-4 h-4 animate-spin" /> Analyzing...</>
+                            <><FiLoader className="w-4 h-4 animate-spin" />{t("Analyzing...")}</>
                           ) : (
-                            <><HiSparkles className="w-4 h-4" /> Run AI Analysis</>
+                            <><HiSparkles className="w-4 h-4" />{t("Run AI Analysis")}</>
                           )}
                         </button>
                       )}
@@ -115,20 +116,16 @@ const TalentPool = () => {
                       </div>
                     </div>
                   </div>
-
                   {/* EXPANDED CONTENT - AI TOP 5 */}
                   {isExpanded && (
                     <div className="p-6 bg-gray-50/50 border-t border-gray-100">
                       
                       {!hasCandidates ? (
-                        <div className="text-center py-8 text-gray-500 text-sm font-medium">
-                          No candidates have applied for this job yet.
-                        </div>
+                        <div className="text-center py-8 text-gray-500 text-sm font-medium">{t("No candidates have applied for this job yet.")}</div>
                       ) : (
                         <div>
                           <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2 mb-6">
-                            <FiUsers className="text-indigo-500 w-5 h-5" /> {job.candidates.length} Candidates
-                          </h3>
+                            <FiUsers className="text-indigo-500 w-5 h-5" /> {job.candidates.length}{t("Candidates")}</h3>
                           
                           <div className="grid grid-cols-1 gap-4">
                             {job.candidates.map((candidateInfo, index) => {
@@ -142,7 +139,6 @@ const TalentPool = () => {
 
                               return (
                                 <div key={providerProfile._id} className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col md:flex-row gap-6 shadow-sm hover:shadow-md transition">
-                                  
                                   {/* Left: Candidate Info & Score */}
                                   <div className="flex flex-col md:w-1/4 border-b md:border-b-0 md:border-r border-gray-100 pb-4 md:pb-0 md:pr-6 shrink-0">
                                     <div className="flex items-center gap-4 mb-4">
@@ -160,45 +156,43 @@ const TalentPool = () => {
                                     </div>
                                     
                                     <div className="mt-auto">
-                                      <div className="text-xs text-gray-500 font-semibold mb-1 uppercase tracking-wider">AI Match Score</div>
+                                      <div className="text-xs text-gray-500 font-semibold mb-1 uppercase tracking-wider">{t("AI Match Score")}</div>
                                       {evaluation ? (
                                         <div className="flex items-end gap-1">
                                           <span className="text-3xl font-black text-emerald-600 leading-none">{evaluation.score}</span>
                                           <span className="text-sm font-bold text-gray-400 mb-1">/100</span>
                                         </div>
                                       ) : (
-                                        <div className="text-sm font-bold text-amber-500">Pending Analysis</div>
+                                        <div className="text-sm font-bold text-amber-500">{t("Pending Analysis")}</div>
                                       )}
                                     </div>
                                   </div>
-
                                   {/* Right: AI Reasoning & Profile Details */}
                                   <div className="flex-1 flex flex-col">
                                     <div className="flex items-center gap-2 mb-2">
                                       <HiSparkles className="text-indigo-500 w-4 h-4" />
-                                      <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">AI Reasoning</span>
+                                      <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">{t("AI Reasoning")}</span>
                                     </div>
                                     {evaluation ? (
                                       <p className="text-gray-700 text-sm leading-relaxed mb-4">
                                         {evaluation.reasoning}
                                       </p>
                                     ) : (
-                                      <p className="text-gray-400 text-sm italic mb-4">
-                                        Run AI Analysis to see how well this candidate matches your job requirements.
-                                      </p>
+                                      <p className="text-gray-400 text-sm italic mb-4">{t(
+                                        "Run AI Analysis to see how well this candidate matches your job requirements."
+                                      )}</p>
                                     )}
 
                                     {/* Candidate Profile Details */}
                                     <div className="mt-2 pt-4 border-t border-gray-100 flex-1">
                                       <h5 className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider flex items-center gap-2">
-                                        <FiUser className="text-indigo-500 w-4 h-4" /> Complete Profile
-                                      </h5>
+                                        <FiUser className="text-indigo-500 w-4 h-4" />{t("Complete Profile")}</h5>
                                       
                                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                                         {/* Skills */}
                                         {providerProfile.skills && providerProfile.skills.length > 0 && (
                                           <div>
-                                            <div className="text-[10px] font-bold text-gray-500 uppercase mb-1.5">Top Skills</div>
+                                            <div className="text-[10px] font-bold text-gray-500 uppercase mb-1.5">{t("Top Skills")}</div>
                                             <div className="flex flex-wrap gap-1.5">
                                               {providerProfile.skills.slice(0, 5).map((skill, i) => (
                                                 <span key={i} className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold border border-indigo-100">
@@ -218,13 +212,13 @@ const TalentPool = () => {
                                         <div className="space-y-3">
                                           {providerProfile.experience && (
                                             <div>
-                                              <div className="text-[10px] font-bold text-gray-500 uppercase mb-0.5 flex items-center gap-1"><FiBriefcase className="w-3 h-3"/> Total Experience</div>
+                                              <div className="text-[10px] font-bold text-gray-500 uppercase mb-0.5 flex items-center gap-1"><FiBriefcase className="w-3 h-3"/>{t("Total Experience")}</div>
                                               <div className="text-xs font-medium text-gray-900">{providerProfile.experience}</div>
                                             </div>
                                           )}
                                           {(providerProfile.city || candidateUser.city) && (
                                             <div>
-                                              <div className="text-[10px] font-bold text-gray-500 uppercase mb-0.5 flex items-center gap-1"><FiMapPin className="w-3 h-3"/> Location</div>
+                                              <div className="text-[10px] font-bold text-gray-500 uppercase mb-0.5 flex items-center gap-1"><FiMapPin className="w-3 h-3"/>{t("Location")}</div>
                                               <div className="text-xs font-medium text-gray-900">{providerProfile.city || candidateUser.city}</div>
                                             </div>
                                           )}
@@ -233,10 +227,10 @@ const TalentPool = () => {
                                         {/* Recent Work Experience */}
                                         {providerProfile.previousExperience && providerProfile.previousExperience.length > 0 && (
                                           <div className="md:col-span-2">
-                                            <div className="text-[10px] font-bold text-gray-500 uppercase mb-1.5">Recent Experience</div>
+                                            <div className="text-[10px] font-bold text-gray-500 uppercase mb-1.5">{t("Recent Experience")}</div>
                                             {providerProfile.previousExperience.slice(0, 2).map((exp, i) => (
                                               <div key={i} className="mb-2 last:mb-0">
-                                                <div className="text-xs font-bold text-gray-900">{exp.role} <span className="font-normal text-gray-500">at</span> {exp.company}</div>
+                                                <div className="text-xs font-bold text-gray-900">{exp.role} <span className="font-normal text-gray-500">{t("at")}</span> {exp.company}</div>
                                                 {exp.duration && <div className="text-[10px] text-gray-500">{exp.duration}</div>}
                                               </div>
                                             ))}
@@ -246,10 +240,9 @@ const TalentPool = () => {
                                     </div>
                                     
                                     <div className="mt-4 pt-4 border-t border-gray-50 flex gap-3">
-                                      <button onClick={() => setSelectedCandidate(candidateInfo)} className="text-indigo-600 text-xs font-bold hover:underline">View Full Profile & Resume</button>
+                                      <button onClick={() => setSelectedCandidate(candidateInfo)} className="text-indigo-600 text-xs font-bold hover:underline">{t("View Full Profile & Resume")}</button>
                                     </div>
                                   </div>
-
                                 </div>
                               );
                             })}
@@ -264,7 +257,6 @@ const TalentPool = () => {
           </div>
         )}
       </div>
-
       <CandidateProfileModal
         isOpen={!!selectedCandidate}
         onClose={() => setSelectedCandidate(null)}

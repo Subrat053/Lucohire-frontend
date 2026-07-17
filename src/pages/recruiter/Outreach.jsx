@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect } from 'react';
 import { FiSend, FiUsers, FiClock, FiCheckCircle } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
@@ -5,6 +6,10 @@ import { recruiterAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 const Outreach = () => {
+  const {
+    t
+  } = useTranslation();
+
   const [jobs, setJobs] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -77,12 +82,11 @@ const Outreach = () => {
     <div className="min-h-screen bg-[#F8FAFC] pb-24">
       {/* HEADER SECTION */}
       <div className="bg-white border-b border-gray-100 px-6 py-8">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Outreach Engine</h1>
-        <p className="text-sm text-gray-500 mt-2 max-w-2xl">
-          Automate candidate sourcing. Run targeted email campaigns to matching candidates for your active job postings.
-        </p>
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t("Outreach Engine")}</h1>
+        <p className="text-sm text-gray-500 mt-2 max-w-2xl">{t(
+          "Automate candidate sourcing. Run targeted email campaigns to matching candidates for your active job postings."
+        )}</p>
       </div>
-
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {loading ? (
@@ -95,14 +99,13 @@ const Outreach = () => {
             {/* LEFT: JOB LIST */}
             <div className="xl:col-span-2 space-y-6">
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <FiUsers className="text-indigo-600" /> Active Job Campaigns
-              </h2>
+                <FiUsers className="text-indigo-600" />{t("Active Job Campaigns")}</h2>
               
               {jobs.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-sm">
                   <FiClock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-gray-900 font-bold mb-1">No Active Jobs</h3>
-                  <p className="text-gray-500 text-sm">Post a job to start running outreach campaigns.</p>
+                  <h3 className="text-gray-900 font-bold mb-1">{t("No Active Jobs")}</h3>
+                  <p className="text-gray-500 text-sm">{t("Post a job to start running outreach campaigns.")}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -114,8 +117,7 @@ const Outreach = () => {
                           <p className="text-xs font-medium text-gray-500 mt-1">{typeof job.location === 'object' ? (job.location?.city || job.location?.name || job.location?.formattedAddress) : job.location} • {job.workMode}</p>
                         </div>
                         <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
-                          {job.skill ? 1 : 0} Skill
-                        </span>
+                          {job.skill ? 1 : 0}{t("Skill")}</span>
                       </div>
                       
                       <div className="flex items-center gap-2 mb-6">
@@ -126,19 +128,17 @@ const Outreach = () => {
                             </div>
                           ))}
                         </div>
-                        <p className="text-xs text-gray-500 font-medium">Matches found</p>
+                        <p className="text-xs text-gray-500 font-medium">{t("Matches found")}</p>
                       </div>
 
                       <div className="flex items-center justify-between pt-4 border-t border-gray-50">
                         <div className="text-xs font-semibold text-gray-500">
-                          {getJobCampaignCount(job._id)} runs
-                        </div>
+                          {getJobCampaignCount(job._id)}{t("runs")}</div>
                         <button 
                           onClick={() => openModal(job)}
                           className="bg-gray-900 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 group-hover:scale-105"
                         >
-                          <FiSend className="w-4 h-4" /> Run Campaign
-                        </button>
+                          <FiSend className="w-4 h-4" />{t("Run Campaign")}</button>
                       </div>
                     </div>
                   ))}
@@ -149,13 +149,12 @@ const Outreach = () => {
             {/* RIGHT: HISTORY */}
             <div className="space-y-6">
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <FiClock className="text-indigo-600" /> Campaign History
-              </h2>
+                <FiClock className="text-indigo-600" />{t("Campaign History")}</h2>
 
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 {campaigns.length === 0 ? (
                   <div className="p-8 text-center">
-                    <p className="text-gray-500 text-sm font-medium">No campaigns run yet.</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("No campaigns run yet.")}</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-50 max-h-[600px] overflow-y-auto custom-scrollbar">
@@ -169,8 +168,7 @@ const Outreach = () => {
                         </div>
                         <div className="flex items-center justify-between text-xs text-gray-500">
                           <span className="flex items-center gap-1 font-medium">
-                            <FiUsers className="w-3.5 h-3.5" /> {camp.candidatesContacted} contacted
-                          </span>
+                            <FiUsers className="w-3.5 h-3.5" /> {camp.candidatesContacted}{t("contacted")}</span>
                           <span>{new Date(camp.runDate).toLocaleDateString()}</span>
                         </div>
                       </div>
@@ -182,7 +180,6 @@ const Outreach = () => {
           </div>
         )}
       </div>
-
       {/* CONFIRMATION MODAL */}
       {isModalOpen && selectedJob && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex justify-center items-center p-4">
@@ -193,8 +190,8 @@ const Outreach = () => {
                   <HiSparkles className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold">Outreach Campaign</h2>
-                  <p className="text-indigo-100 text-xs">For: {selectedJob.title}</p>
+                  <h2 className="text-lg font-bold">{t("Outreach Campaign")}</h2>
+                  <p className="text-indigo-100 text-xs">{t("For:")}{selectedJob.title}</p>
                 </div>
               </div>
             </div>
@@ -203,12 +200,9 @@ const Outreach = () => {
               
               {/* Left Side: Preview */}
               <div>
-                <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center justify-between">
-                  Candidate Matches
-                  {previewData && (
+                <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center justify-between">{t("Candidate Matches")}{previewData && (
                     <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-xs">
-                      {previewData.totalMatchCount} Found
-                    </span>
+                      {previewData.totalMatchCount}{t("Found")}</span>
                   )}
                 </h3>
                 
@@ -230,19 +224,19 @@ const Outreach = () => {
                       ))}
                       {previewData.totalMatchCount > 5 && (
                         <div className="text-center pt-2">
-                          <p className="text-xs font-medium text-gray-500">And {previewData.totalMatchCount - 5} more candidates...</p>
+                          <p className="text-xs font-medium text-gray-500">{t("And")}{previewData.totalMatchCount - 5}{t("more candidates...")}</p>
                         </div>
                       )}
                     </div>
                   ) : (
                     <div className="flex flex-col justify-center items-center h-full text-center">
                       <FiUsers className="w-8 h-8 text-gray-300 mb-2" />
-                      <p className="text-xs text-gray-500 font-medium">No candidates match the required skill for this job.</p>
+                      <p className="text-xs text-gray-500 font-medium">{t("No candidates match the required skill for this job.")}</p>
                     </div>
                   )}
                 </div>
                 <div className="mt-3 flex items-center justify-between text-xs">
-                   <span className="font-semibold text-gray-700">Required Skill:</span>
+                   <span className="font-semibold text-gray-700">{t("Required Skill:")}</span>
                    {selectedJob.skill && (
                      <span className="bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded font-bold">{selectedJob.skill}</span>
                    )}
@@ -251,16 +245,14 @@ const Outreach = () => {
 
               {/* Right Side: Message Editor */}
               <div className="flex flex-col">
-                <h3 className="text-sm font-bold text-gray-900 mb-3">Email Template</h3>
+                <h3 className="text-sm font-bold text-gray-900 mb-3">{t("Email Template")}</h3>
                 <textarea
                   className="flex-1 w-full bg-white border border-gray-200 rounded-xl p-3 text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none custom-scrollbar"
                   value={messageTemplate}
                   onChange={(e) => setMessageTemplate(e.target.value)}
-                  placeholder="Type your outreach message here..."
+                  placeholder={t("Type your outreach message here...")}
                 />
-                <p className="text-[10px] text-gray-400 mt-2 leading-tight">
-                  Variables like <code className="bg-gray-100 px-1 py-0.5 rounded">[Candidate Name]</code> and <code className="bg-gray-100 px-1 py-0.5 rounded">[Recruiter Name]</code> will be auto-filled by the engine.
-                </p>
+                <p className="text-[10px] text-gray-400 mt-2 leading-tight">{t("Variables like")}<code className="bg-gray-100 px-1 py-0.5 rounded">{t("[Candidate Name]")}</code>{t("and")}<code className="bg-gray-100 px-1 py-0.5 rounded">{t("[Recruiter Name]")}</code>{t("will be auto-filled by the engine.")}</p>
               </div>
 
             </div>
@@ -270,9 +262,7 @@ const Outreach = () => {
                 onClick={() => setIsModalOpen(false)}
                 disabled={runningCampaign}
                 className="px-5 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200 rounded-lg transition"
-              >
-                Cancel
-              </button>
+              >{t("Cancel")}</button>
               <button 
                 onClick={handleRunCampaign}
                 disabled={runningCampaign || loadingPreview || !previewData?.totalMatchCount}
@@ -281,7 +271,7 @@ const Outreach = () => {
                 {runningCampaign ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                 ) : (
-                  <><FiSend className="w-4 h-4" /> Start Campaign</>
+                  <><FiSend className="w-4 h-4" />{t("Start Campaign")}</>
                 )}
               </button>
             </div>

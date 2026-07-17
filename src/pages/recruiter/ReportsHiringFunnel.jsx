@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState } from 'react';
 import { FiChevronDown, FiArrowUpRight, FiUsers, FiClock, FiCheckCircle } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
@@ -7,6 +8,10 @@ const SCard = ({ children, className = '' }) => (
 );
 
 export default function HiringFunnelPage() {
+  const {
+    t
+  } = useTranslation();
+
   const [period, setPeriod] = useState('This Month');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +25,7 @@ export default function HiringFunnelPage() {
     });
   }, [period]);
 
-  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading funnel data...</div>;
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">{t("Loading funnel data...")}</div>;
 
   const { stages, weeklyData, conversionRates } = data;
 
@@ -36,20 +41,18 @@ export default function HiringFunnelPage() {
               <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">{s.label}</div>
               <div className="text-2xl font-extrabold text-gray-900 mb-1">{s.value.toLocaleString()}</div>
               <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
-                <FiArrowUpRight className="w-3 h-3" /> +{growth}% vs last month
-              </div>
+                <FiArrowUpRight className="w-3 h-3" /> +{growth}{t("% vs last month")}</div>
             </SCard>
           );
         })}
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Funnel Visual */}
         <SCard className="p-6 lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-base font-bold text-gray-900">Funnel Breakdown</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Stage-by-stage candidate progression</p>
+              <h2 className="text-base font-bold text-gray-900">{t("Funnel Breakdown")}</h2>
+              <p className="text-xs text-gray-500 mt-0.5">{t("Stage-by-stage candidate progression")}</p>
             </div>
             <button className="text-xs font-semibold text-gray-400 flex items-center gap-1 border border-gray-200 px-3 py-1.5 rounded-lg">
               {period} <FiChevronDown className="w-3 h-3" />
@@ -79,8 +82,7 @@ export default function HiringFunnelPage() {
                   </div>
                   {dropOff > 0 && (
                     <div className="ml-24 pl-4 text-[10px] font-semibold text-red-400 flex items-center gap-1 mb-2">
-                      ↓ {dropOff.toLocaleString()} dropped off ({(100 - stages[i+1].pct).toFixed(0)}% drop)
-                    </div>
+                      ↓ {dropOff.toLocaleString()}{t("dropped off (")}{(100 - stages[i+1].pct).toFixed(0)}{t("% drop)")}</div>
                   )}
                 </div>
               );
@@ -90,7 +92,7 @@ export default function HiringFunnelPage() {
 
         {/* Conversion Rates */}
         <SCard className="p-6 flex flex-col">
-          <h2 className="text-base font-bold text-gray-900 mb-5">Conversion Rates</h2>
+          <h2 className="text-base font-bold text-gray-900 mb-5">{t("Conversion Rates")}</h2>
           <div className="space-y-4 flex-1">
             {conversionRates.map((c, i) => (
               <div key={i} className="flex items-center justify-between p-3 bg-gray-50/60 rounded-xl">
@@ -106,25 +108,24 @@ export default function HiringFunnelPage() {
           </div>
         </SCard>
       </div>
-
       {/* Weekly Breakdown Table */}
       <SCard className="p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-base font-bold text-gray-900">Weekly Funnel Breakdown</h2>
-            <p className="text-xs text-gray-500 mt-0.5">How the funnel performed each week this month</p>
+            <h2 className="text-base font-bold text-gray-900">{t("Weekly Funnel Breakdown")}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">{t("How the funnel performed each week this month")}</p>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[500px]">
             <thead>
               <tr className="text-[10px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">
-                <th className="pb-3">Week</th>
-                <th className="pb-3 text-center">Applications</th>
-                <th className="pb-3 text-center">Screening</th>
-                <th className="pb-3 text-center">Interviews</th>
-                <th className="pb-3 text-center">Offers</th>
-                <th className="pb-3 text-right">Hires</th>
+                <th className="pb-3">{t("Week")}</th>
+                <th className="pb-3 text-center">{t("Applications")}</th>
+                <th className="pb-3 text-center">{t("Screening")}</th>
+                <th className="pb-3 text-center">{t("Interviews")}</th>
+                <th className="pb-3 text-center">{t("Offers")}</th>
+                <th className="pb-3 text-right">{t("Hires")}</th>
               </tr>
             </thead>
             <tbody>
@@ -139,7 +140,7 @@ export default function HiringFunnelPage() {
                 </tr>
               ))}
               <tr className="border-t-2 border-gray-200 bg-gray-50">
-                <td className="py-3 font-bold text-sm text-gray-900">Total</td>
+                <td className="py-3 font-bold text-sm text-gray-900">{t("Total")}</td>
                 <td className="py-3 text-center text-sm font-bold text-gray-900">2,842</td>
                 <td className="py-3 text-center text-sm font-bold text-gray-900">1,156</td>
                 <td className="py-3 text-center text-sm font-bold text-gray-900">312</td>
@@ -150,7 +151,6 @@ export default function HiringFunnelPage() {
           </table>
         </div>
       </SCard>
-
       {/* AI Insight */}
       <SCard className="p-5 bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-100">
         <div className="flex items-start gap-4">
@@ -158,10 +158,10 @@ export default function HiringFunnelPage() {
             <HiSparkles className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-indigo-900 mb-2">AI Funnel Analysis</h3>
-            <p className="text-xs text-indigo-800/80 leading-relaxed">
-              The screening-to-interview drop (27%) is your biggest bottleneck. Consider revising your screening criteria or adding an ATS screening step to improve quality at earlier stages. The offer acceptance rate of 66.7% is healthy, suggesting strong candidate alignment with your JD and compensation.
-            </p>
+            <h3 className="text-sm font-bold text-indigo-900 mb-2">{t("AI Funnel Analysis")}</h3>
+            <p className="text-xs text-indigo-800/80 leading-relaxed">{t(
+              "The screening-to-interview drop (27%) is your biggest bottleneck. Consider revising your screening criteria or adding an ATS screening step to improve quality at earlier stages. The offer acceptance rate of 66.7% is healthy, suggesting strong candidate alignment with your JD and compensation."
+            )}</p>
           </div>
         </div>
       </SCard>

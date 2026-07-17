@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -28,6 +29,10 @@ const POPULAR_SKILLS = [
 
 /* ── Provider Card ───────────────────────────────────────────────────── */
 const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
+  const {
+    t
+  } = useTranslation();
+
   const navigate = useNavigate();
   const name = provider.user?.name || provider.name || 'Provider';
 
@@ -92,7 +97,6 @@ const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
           )}
         </div>
       </div>
-
       {/* Skills (fixed height) */}
       <div className="flex flex-wrap items-center gap-1.5 h-7 overflow-hidden">
         {visibleSkills.map((s, i) => (
@@ -102,11 +106,9 @@ const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
         ))}
         {remainingSkills > 0 && (
           <span className="text-xs text-gray-400 font-medium shrink-0">
-            +{remainingSkills} more
-          </span>
+            +{remainingSkills}{t("more")}</span>
         )}
       </div>
-
       {/* Pricing / rate per hour (fixed vertical position) */}
       <div className="flex items-baseline justify-between pt-1 border-t border-gray-50 mt-auto">
         <div>
@@ -115,11 +117,10 @@ const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
               ₹{provider.pricing}{provider.pricingType ? ` / ${provider.pricingType}` : ''}
             </p>
           ) : (
-            <p className="text-xs text-gray-400">Rate N/A</p>
+            <p className="text-xs text-gray-400">{t("Rate N/A")}</p>
           )}
         </div>
       </div>
-
       {/* Contact & Actions (always at bottom) */}
       <div className="flex gap-2 pt-1 mt-2">
         <button
@@ -171,6 +172,10 @@ const ProviderCard = memo(ProviderCardBase);
 
 /* ── Main Page ───────────────────────────────────────────────────────── */
 const FindProviders = () => {
+  const {
+    t
+  } = useTranslation();
+
   const navigate = useNavigate();
   const [skill, setSkill] = useState('');
   const [skillQuery, setSkillQuery] = useState('');
@@ -375,25 +380,22 @@ const FindProviders = () => {
       {/* Header */}
       <div className="bg-linear-to-r from-blue-600 to-indigo-700 px-6 py-8">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-2xl font-extrabold text-white mb-1">Find Providers</h1>
-          <p className="text-blue-100 text-sm">Search skilled professionals for your requirements</p>
+          <h1 className="text-2xl font-extrabold text-white mb-1">{t("Find Providers")}</h1>
+          <p className="text-blue-100 text-sm">{t("Search skilled professionals for your requirements")}</p>
           <div className="flex flex-wrap gap-3 mt-3">
             {planName && (
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs text-white font-medium">
                 <HiSparkles className="w-3.5 h-3.5" />
-                {planName} Plan
-              </div>
+                {planName}{t("Plan")}</div>
             )}
             {unlockCredits !== undefined && (
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs text-white font-medium">
                 <HiLockOpen className="w-3.5 h-3.5" />
-                {unlockCredits} unlocks remaining
-              </div>
+                {unlockCredits}{t("unlocks remaining")}</div>
             )}
           </div>
         </div>
       </div>
-
       <div className="max-w-7xl mx-auto px-2 lg:px-4 py-2 lg:py-6">
         {/* Search Form */}
         <form ref={searchRef} onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-100 p-4 mb-4" onClick={e => e.stopPropagation()}>
@@ -401,12 +403,12 @@ const FindProviders = () => {
 
             {/* Skill Autocomplete */}
             <div ref={skillDropdownRef} className="flex-1 min-w-40 relative">
-              <label className="block text-xs text-gray-500 font-medium mb-1">Skill / Profession</label>
+              <label className="block text-xs text-gray-500 font-medium mb-1">{t("Skill / Profession")}</label>
               <div className="relative">
                 <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="e.g. Plumber, Electrician…"
+                  placeholder={t("e.g. Plumber, Electrician…")}
                   value={skillQuery}
                   onChange={handleSkillInputChange}
                   onFocus={() => setSkillDropdownOpen(true)}
@@ -460,7 +462,7 @@ const FindProviders = () => {
               )}
             </div>
             <div className="flex-1 min-w-40">
-              <label className="block text-xs text-gray-500 font-medium mb-1">City / Location</label>
+              <label className="block text-xs text-gray-500 font-medium mb-1">{t("City / Location")}</label>
               <LocationSearch
                 value={city}
                 onChange={(value) => {
@@ -470,31 +472,31 @@ const FindProviders = () => {
                   }
                 }}
                 onSelect={handleLocationSelect}
-                placeholder="e.g. Mumbai, Delhi…"
+                placeholder={t("e.g. Mumbai, Delhi…")}
               />
             </div>
             <div className="flex gap-2 items-end">
               <div>
-                <label className="block text-xs text-gray-500 font-medium mb-1">Tier</label>
+                <label className="block text-xs text-gray-500 font-medium mb-1">{t("Tier")}</label>
                 <select
                   value={tierFilter}
                   onChange={e => setTierFilter(e.target.value)}
                   className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300 h-9.5"
                 >
-                  <option value="">All Tiers</option>
-                  <option value="unskilled">Unskilled</option>
-                  <option value="semi-skilled">Semi-Skilled</option>
-                  <option value="skilled">Skilled</option>
+                  <option value="">{t("All Tiers")}</option>
+                  <option value="unskilled">{t("Unskilled")}</option>
+                  <option value="semi-skilled">{t("Semi-Skilled")}</option>
+                  <option value="skilled">{t("Skilled")}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 font-medium mb-1">Min Rating</label>
+                <label className="block text-xs text-gray-500 font-medium mb-1">{t("Min Rating")}</label>
                 <select
                   value={ratingFilter}
                   onChange={e => setRatingFilter(e.target.value)}
                   className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300 h-9.5"
                 >
-                  <option value="">Any</option>
+                  <option value="">{t("Any")}</option>
                   <option value="3">3+</option>
                   <option value="4">4+</option>
                   <option value="4.5">4.5+</option>
@@ -504,8 +506,7 @@ const FindProviders = () => {
                 type="submit"
                 className="h-9.5 px-5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition flex items-center gap-1.5"
               >
-                <HiSearch className="w-4 h-4" /> Search
-              </button>
+                <HiSearch className="w-4 h-4" />{t("Search")}</button>
             </div>
           </div>
         </form>
@@ -524,7 +525,7 @@ const FindProviders = () => {
         {/* Popular Skill Pills */}
         {!hasSearched && (
           <div className="mb-6">
-            <p className="text-xs text-gray-500 font-medium mb-2">Popular skills</p>
+            <p className="text-xs text-gray-500 font-medium mb-2">{t("Popular skills")}</p>
             <div className="flex flex-wrap gap-2">
               {POPULAR_SKILLS.map(s => (
                 <button
@@ -545,8 +546,8 @@ const FindProviders = () => {
         ) : hasSearched && providers.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
             <HiUsers className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p className="font-semibold text-gray-600">No providers found</p>
-            <p className="text-sm text-gray-400 mt-1">Try different skill or location keywords</p>
+            <p className="font-semibold text-gray-600">{t("No providers found")}</p>
+            <p className="text-sm text-gray-400 mt-1">{t("Try different skill or location keywords")}</p>
           </div>
         ) : providers.length > 0 ? (
           <>
@@ -554,8 +555,7 @@ const FindProviders = () => {
             <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="text-sm text-gray-700 font-semibold">
-                  {pagination.total ?? providers.length} provider{providers.length !== 1 ? 's' : ''} found
-                </p>
+                  {pagination.total ?? providers.length}{t("provider")}{providers.length !== 1 ? 's' : ''}{t("found")}</p>
               </div>
               <div className="flex items-center gap-3">
                 {providers.length >= 2 && (
@@ -563,16 +563,13 @@ const FindProviders = () => {
                     type="button"
                     onClick={() => setCompareOpen(true)}
                     className="text-xs text-indigo-600 font-semibold hover:underline"
-                  >
-                    Compare Top Providers
-                  </button>
+                  >{t("Compare Top Providers")}</button>
                 )}
                 <button
                   onClick={() => doSearch(1)}
                   className="text-xs text-blue-600 font-medium flex items-center gap-1 hover:underline"
                 >
-                  <HiRefresh className="w-3.5 h-3.5" /> Refresh
-                </button>
+                  <HiRefresh className="w-3.5 h-3.5" />{t("Refresh")}</button>
               </div>
             </div>
             <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 items-stretch">
@@ -597,8 +594,7 @@ const FindProviders = () => {
                 >
                   <HiChevronLeft className="w-4 h-4 text-gray-600" />
                 </button>
-                <span className="text-sm text-gray-600 font-medium">
-                  Page {currentPage} of {pagination.pages}
+                <span className="text-sm text-gray-600 font-medium">{t("Page")}{currentPage}{t("of")}{pagination.pages}
                 </span>
                 <button
                   disabled={currentPage >= pagination.pages}
@@ -616,12 +612,11 @@ const FindProviders = () => {
         {!hasSearched && !loading && (
           <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-100">
             <HiSearch className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p className="font-medium text-gray-600">Search for providers</p>
-            <p className="text-sm mt-1">Enter a skill or location above to get started</p>
+            <p className="font-medium text-gray-600">{t("Search for providers")}</p>
+            <p className="text-sm mt-1">{t("Enter a skill or location above to get started")}</p>
           </div>
         )}
       </div>
-
       <CompareProvidersModal
         open={compareOpen}
         providers={providers.slice(0, 5)}

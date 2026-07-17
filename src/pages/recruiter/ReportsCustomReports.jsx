@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState } from 'react';
 import { FiPlus, FiDownload, FiFileText, FiTrash2, FiEdit2, FiClock } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
@@ -7,6 +8,10 @@ const SCard = ({ children, className = '' }) => (
 );
 
 export default function CustomReportsPage() {
+  const {
+    t
+  } = useTranslation();
+
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [selectedMetrics, setSelectedMetrics] = useState(['hires', 'funnel', 'sources']);
@@ -23,7 +28,7 @@ export default function CustomReportsPage() {
     });
   }, []);
 
-  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading reports...</div>;
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">{t("Loading reports...")}</div>;
 
   const { savedReports, templates } = data;
   const metrics = [
@@ -50,8 +55,8 @@ export default function CustomReportsPage() {
       {/* Header actions */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-base font-bold text-gray-900">Custom Report Builder</h2>
-          <p className="text-xs text-gray-500 mt-0.5">Create tailored reports with the metrics you care about.</p>
+          <h2 className="text-base font-bold text-gray-900">{t("Custom Report Builder")}</h2>
+          <p className="text-xs text-gray-500 mt-0.5">{t("Create tailored reports with the metrics you care about.")}</p>
         </div>
         <button
           onClick={() => setShowBuilder(!showBuilder)}
@@ -60,34 +65,32 @@ export default function CustomReportsPage() {
           <FiPlus /> {showBuilder ? 'Close Builder' : 'Create Custom Report'}
         </button>
       </div>
-
       {/* Report Builder Panel */}
       {showBuilder && (
         <SCard className="p-6 border-indigo-100 bg-indigo-50/30">
           <h3 className="text-sm font-bold text-gray-900 mb-5 flex items-center gap-2">
-            <HiSparkles className="text-indigo-600" /> Report Builder
-          </h3>
+            <HiSparkles className="text-indigo-600" />{t("Report Builder")}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wide block mb-1.5">Report Name</label>
+                <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wide block mb-1.5">{t("Report Name")}</label>
                 <input
                   type="text"
                   value={reportName}
                   onChange={e => setReportName(e.target.value)}
-                  placeholder="e.g., Q3 Hiring Summary"
+                  placeholder={t("e.g., Q3 Hiring Summary")}
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
                 />
               </div>
               <div>
-                <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wide block mb-1.5">Date Range</label>
+                <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wide block mb-1.5">{t("Date Range")}</label>
                 <div className="grid grid-cols-2 gap-2">
                   <input type="date" className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
                   <input type="date" className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
                 </div>
               </div>
               <div>
-                <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wide block mb-1.5">Export Format</label>
+                <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wide block mb-1.5">{t("Export Format")}</label>
                 <div className="flex gap-3">
                   {['PDF', 'Excel', 'CSV'].map(f => (
                     <button
@@ -104,7 +107,7 @@ export default function CustomReportsPage() {
               </div>
             </div>
             <div>
-              <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wide block mb-1.5">Select Metrics to Include</label>
+              <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wide block mb-1.5">{t("Select Metrics to Include")}</label>
               <div className="grid grid-cols-2 gap-2">
                 {metrics.map(m => (
                   <button
@@ -129,21 +132,15 @@ export default function CustomReportsPage() {
           </div>
           <div className="flex flex-wrap gap-3 mt-6 pt-5 border-t border-indigo-100">
             <button className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition">
-              <FiDownload /> Generate Report
-            </button>
-            <button className="flex items-center gap-2 border border-indigo-200 text-indigo-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-50 transition">
-              Save Template
-            </button>
-            <button className="flex items-center gap-2 border border-gray-200 text-gray-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition">
-              Preview
-            </button>
+              <FiDownload />{t("Generate Report")}</button>
+            <button className="flex items-center gap-2 border border-indigo-200 text-indigo-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-50 transition">{t("Save Template")}</button>
+            <button className="flex items-center gap-2 border border-gray-200 text-gray-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition">{t("Preview")}</button>
           </div>
         </SCard>
       )}
-
       {/* Report Templates */}
       <SCard className="p-6">
-        <h3 className="text-sm font-bold text-gray-900 mb-4">Report Templates</h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-4">{t("Report Templates")}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {templates.map((t, i) => (
             <button
@@ -160,24 +157,23 @@ export default function CustomReportsPage() {
           ))}
         </div>
       </SCard>
-
       {/* Saved Reports */}
       <SCard className="p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h3 className="text-sm font-bold text-gray-900">Saved Reports</h3>
-            <p className="text-xs text-gray-500 mt-0.5">Your previously generated and saved reports</p>
+            <h3 className="text-sm font-bold text-gray-900">{t("Saved Reports")}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">{t("Your previously generated and saved reports")}</p>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[540px]">
             <thead>
               <tr className="text-[10px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">
-                <th className="pb-3">Report Name</th>
-                <th className="pb-3 text-center">Format</th>
-                <th className="pb-3 text-center">Created</th>
-                <th className="pb-3 text-center">Downloads</th>
-                <th className="pb-3 text-right">Actions</th>
+                <th className="pb-3">{t("Report Name")}</th>
+                <th className="pb-3 text-center">{t("Format")}</th>
+                <th className="pb-3 text-center">{t("Created")}</th>
+                <th className="pb-3 text-center">{t("Downloads")}</th>
+                <th className="pb-3 text-right">{t("Actions")}</th>
               </tr>
             </thead>
             <tbody>

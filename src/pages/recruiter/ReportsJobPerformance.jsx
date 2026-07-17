@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React from 'react';
 import { FiArrowUpRight, FiChevronDown, FiExternalLink } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
@@ -7,6 +8,10 @@ const SCard = ({ children, className = '' }) => (
 );
 
 export default function JobPerformancePage() {
+  const {
+    t
+  } = useTranslation();
+
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
 
@@ -19,7 +24,7 @@ export default function JobPerformancePage() {
     });
   }, []);
 
-  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading performance data...</div>;
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">{t("Loading performance data...")}</div>;
 
   const { jobs, jobTypeStats, kpis } = data;
 
@@ -37,7 +42,6 @@ export default function JobPerformancePage() {
           </SCard>
         ))}
       </div>
-
       {/* Job Type Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {jobTypeStats.map((j, i) => (
@@ -48,51 +52,48 @@ export default function JobPerformancePage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Jobs</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">{t("Jobs")}</div>
                 <div className="text-xl font-extrabold text-gray-900">{j.count}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Applications</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">{t("Applications")}</div>
                 <div className="text-xl font-extrabold text-gray-900">{j.apps}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Hires</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">{t("Hires")}</div>
                 <div className="text-xl font-extrabold text-emerald-700">{j.hires}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Hires/Job</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">{t("Hires/Job")}</div>
                 <div className="text-xl font-extrabold text-gray-900">{j.ratio}</div>
               </div>
             </div>
-            <div className="mt-4 pt-3 border-t border-gray-100 text-[11px] font-semibold text-gray-500">
-              Avg. cost/hire: <span className="text-gray-900 font-bold">{j.avg_cost}</span>
+            <div className="mt-4 pt-3 border-t border-gray-100 text-[11px] font-semibold text-gray-500">{t("Avg. cost/hire:")}<span className="text-gray-900 font-bold">{j.avg_cost}</span>
             </div>
           </SCard>
         ))}
       </div>
-
       {/* Job Detail Table */}
       <SCard className="p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-base font-bold text-gray-900">Individual Job Performance</h2>
-            <p className="text-xs text-gray-500 mt-0.5">All job postings with detailed performance metrics</p>
+            <h2 className="text-base font-bold text-gray-900">{t("Individual Job Performance")}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">{t("All job postings with detailed performance metrics")}</p>
           </div>
-          <button className="text-xs font-semibold text-gray-400 flex items-center gap-1 border border-gray-200 px-3 py-1.5 rounded-lg">
-            All Status <FiChevronDown className="w-3 h-3" />
+          <button className="text-xs font-semibold text-gray-400 flex items-center gap-1 border border-gray-200 px-3 py-1.5 rounded-lg">{t("All Status")}<FiChevronDown className="w-3 h-3" />
           </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[680px]">
             <thead>
               <tr className="text-[10px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">
-                <th className="pb-3">Job Title</th>
-                <th className="pb-3">Type</th>
-                <th className="pb-3 text-center">Apps</th>
-                <th className="pb-3 text-center">Hires</th>
-                <th className="pb-3 text-center">Hires/Job</th>
-                <th className="pb-3 text-center">Days Open</th>
-                <th className="pb-3 text-right">Status</th>
+                <th className="pb-3">{t("Job Title")}</th>
+                <th className="pb-3">{t("Type")}</th>
+                <th className="pb-3 text-center">{t("Apps")}</th>
+                <th className="pb-3 text-center">{t("Hires")}</th>
+                <th className="pb-3 text-center">{t("Hires/Job")}</th>
+                <th className="pb-3 text-center">{t("Days Open")}</th>
+                <th className="pb-3 text-right">{t("Status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -118,7 +119,7 @@ export default function JobPerformancePage() {
                       {Number(j.ratio).toFixed(2)}
                     </span>
                   </td>
-                  <td className="py-3.5 text-center text-xs font-semibold text-gray-700">{j.daysOpen}d</td>
+                  <td className="py-3.5 text-center text-xs font-semibold text-gray-700">{j.daysOpen}{t("d")}</td>
                   <td className="py-3.5 text-right">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                       j.status === 'Active' ? 'bg-emerald-50 text-emerald-700' :
@@ -132,16 +133,15 @@ export default function JobPerformancePage() {
           </table>
         </div>
       </SCard>
-
       {/* AI Tip */}
       <SCard className="p-5 bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-100">
         <div className="flex items-start gap-4">
           <div className="bg-orange-100 text-orange-600 p-2.5 rounded-xl shrink-0"><HiSparkles className="w-5 h-5" /></div>
           <div>
-            <h3 className="text-sm font-bold text-orange-900 mb-2">Job Optimization Insight</h3>
-            <p className="text-xs text-orange-800/80 leading-relaxed">
-              Your "Data Analyst" role has been open for 45 days with 0 hires. Consider reviewing the salary band (market shows ₹8–12 LPA) and skill requirements. Also, "Content Marketing Specialist" is paused but has 180 applications pending review — resuming it could yield quick hires.
-            </p>
+            <h3 className="text-sm font-bold text-orange-900 mb-2">{t("Job Optimization Insight")}</h3>
+            <p className="text-xs text-orange-800/80 leading-relaxed">{t(
+              "Your \"Data Analyst\" role has been open for 45 days with 0 hires. Consider reviewing the salary band (market shows ₹8–12 LPA) and skill requirements. Also, \"Content Marketing Specialist\" is paused but has 180 applications pending review — resuming it could yield quick hires."
+            )}</p>
           </div>
         </div>
       </SCard>

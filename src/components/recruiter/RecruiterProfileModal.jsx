@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect } from "react";
 import {
   HiX,
@@ -17,6 +18,10 @@ import LoadingSpinner from "../common/LoadingSpinner";
 import AIReputationBadge from "../ai/AIReputationBadge";
 
 export default function RecruiterProfileModal({ recruiterId, companyFallbackName, onClose }) {
+  const {
+    t
+  } = useTranslation();
+
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -81,7 +86,7 @@ export default function RecruiterProfileModal({ recruiterId, companyFallbackName
           <p className="text-xs text-indigo-200 font-medium mt-1 flex items-center gap-1">
             <HiOfficeBuilding className="w-3.5 h-3.5" />
             {profileData?.profile?.companyType ? (
-              <span className="capitalize">{profileData.profile.companyType} recruiter</span>
+              <span className="capitalize">{profileData.profile.companyType}{t("recruiter")}</span>
             ) : (
               "Registered Partner Recruiter"
             )}
@@ -93,7 +98,7 @@ export default function RecruiterProfileModal({ recruiterId, companyFallbackName
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-3">
               <LoadingSpinner />
-              <p className="text-xs text-slate-400 font-medium">Fetching profile details...</p>
+              <p className="text-xs text-slate-400 font-medium">{t("Fetching profile details...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-8 text-rose-500 font-medium">
@@ -109,20 +114,20 @@ export default function RecruiterProfileModal({ recruiterId, companyFallbackName
               {/* Stats Card Grid */}
               <div className="grid grid-cols-3 gap-2 bg-indigo-50/30 p-3.5 rounded-2xl border border-indigo-100/50">
                 <div className="text-center space-y-0.5">
-                  <span className="text-[10px] text-indigo-600 uppercase font-bold tracking-wider">Rating</span>
+                  <span className="text-[10px] text-indigo-600 uppercase font-bold tracking-wider">{t("Rating")}</span>
                   <p className="font-extrabold text-slate-900 flex items-center justify-center gap-0.5 text-xs sm:text-sm">
                     <HiStar className="w-4 h-4 text-amber-500 fill-amber-500" />
                     {profileData?.profile?.avgRating ? Number(profileData.profile.avgRating).toFixed(1) : "N/A"}
                   </p>
                 </div>
                 <div className="text-center space-y-0.5 border-x border-indigo-100/60">
-                  <span className="text-[10px] text-indigo-600 uppercase font-bold tracking-wider">Hires</span>
+                  <span className="text-[10px] text-indigo-600 uppercase font-bold tracking-wider">{t("Hires")}</span>
                   <p className="font-extrabold text-slate-900 text-xs sm:text-sm">
                     {profileData?.profile?.totalHires || 0}
                   </p>
                 </div>
                 <div className="text-center space-y-0.5">
-                  <span className="text-[10px] text-indigo-600 uppercase font-bold tracking-wider">Jobs Posted</span>
+                  <span className="text-[10px] text-indigo-600 uppercase font-bold tracking-wider">{t("Jobs Posted")}</span>
                   <p className="font-extrabold text-slate-900 text-xs sm:text-sm">
                     {profileData?.profile?.totalJobsPosted || 0}
                   </p>
@@ -131,9 +136,7 @@ export default function RecruiterProfileModal({ recruiterId, companyFallbackName
 
               {/* Bio / Description */}
               <div className="space-y-2">
-                <h4 className="font-bold text-slate-900 border-l-4 border-indigo-600 pl-2">
-                  Company Info & Bio
-                </h4>
+                <h4 className="font-bold text-slate-900 border-l-4 border-indigo-600 pl-2">{t("Company Info & Bio")}</h4>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed italic text-slate-600 text-xs sm:text-sm relative">
                   <span className="text-4xl text-slate-200 absolute top-1 left-2 select-none">“</span>
                   <p className="relative z-10 pl-3">
@@ -148,9 +151,7 @@ export default function RecruiterProfileModal({ recruiterId, companyFallbackName
               {profileData?.profile?.skillsNeeded?.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-bold text-slate-900 border-l-4 border-indigo-600 pl-2 flex items-center gap-1">
-                    <HiSparkles className="w-4 h-4 text-indigo-500" />
-                    Hiring Categories
-                  </h4>
+                    <HiSparkles className="w-4 h-4 text-indigo-500" />{t("Hiring Categories")}</h4>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {profileData.profile.skillsNeeded.map((skill, index) => (
                       <span
@@ -166,7 +167,7 @@ export default function RecruiterProfileModal({ recruiterId, companyFallbackName
 
               {/* Contact Info & Location details */}
               <div className="space-y-2.5 border-t border-slate-100 pt-5">
-                <h4 className="font-bold text-slate-900">Contact & Head Office</h4>
+                <h4 className="font-bold text-slate-900">{t("Contact & Head Office")}</h4>
                 <div className="space-y-2">
                   {/* Location */}
                   <div className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-600">
@@ -174,7 +175,7 @@ export default function RecruiterProfileModal({ recruiterId, companyFallbackName
                       <HiLocationMarker className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-800">Location</p>
+                      <p className="font-semibold text-slate-800">{t("Location")}</p>
                       <p>
                         {[
                           profileData?.profile?.nearestLocation,
@@ -194,7 +195,7 @@ export default function RecruiterProfileModal({ recruiterId, companyFallbackName
                         <HiMail className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-800">Email Address</p>
+                        <p className="font-semibold text-slate-800">{t("Email Address")}</p>
                         <a
                           href={`mailto:${profileData.user.email}`}
                           className="text-indigo-600 hover:underline"
@@ -212,7 +213,7 @@ export default function RecruiterProfileModal({ recruiterId, companyFallbackName
                         <HiUser className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-800">Contact Person</p>
+                        <p className="font-semibold text-slate-800">{t("Contact Person")}</p>
                         <p>
                           {profileData.profile.contactPersonName}
                           {profileData.profile.designation && ` (${profileData.profile.designation})`}
@@ -228,7 +229,7 @@ export default function RecruiterProfileModal({ recruiterId, companyFallbackName
                         <HiGlobeAlt className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-800">Website</p>
+                        <p className="font-semibold text-slate-800">{t("Website")}</p>
                         <a
                           href={
                             profileData.profile.companyWebsite.startsWith("http")
@@ -255,9 +256,7 @@ export default function RecruiterProfileModal({ recruiterId, companyFallbackName
           <button
             onClick={onClose}
             className="flex-1 py-2.5 text-center text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition shadow-2xs"
-          >
-            Close Profile
-          </button>
+          >{t("Close Profile")}</button>
         </div>
       </div>
     </div>

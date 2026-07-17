@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect } from 'react';
 import { FiPlus, FiCalendar, FiMessageSquare, FiPaperclip, FiSearch, FiX, FiBriefcase, FiList } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
@@ -8,6 +9,10 @@ import { recruiterAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 const PriorityBadge = ({ priority }) => {
+  const {
+    t
+  } = useTranslation();
+
   const colors = {
     High: 'bg-red-100 text-red-700',
     Medium: 'bg-orange-100 text-orange-700',
@@ -21,6 +26,10 @@ const PriorityBadge = ({ priority }) => {
 };
 
 const TaskCard = ({ task, isOverlay, jobs }) => {
+  const {
+    t
+  } = useTranslation();
+
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task._id || task.id,
     data: task
@@ -52,14 +61,11 @@ const TaskCard = ({ task, isOverlay, jobs }) => {
           <PriorityBadge priority={task.priority} />
           {task.aiSuggested && (
             <span className="flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
-              <HiSparkles className="w-3 h-3" /> AI Pick
-            </span>
+              <HiSparkles className="w-3 h-3" />{t("AI Pick")}</span>
           )}
         </div>
       </div>
-
       <h4 className="text-sm font-bold text-gray-900 leading-snug">{task.title}</h4>
-
       {(task.candidateName || associatedJob) && (
         <div className="flex items-center gap-2 mt-1">
           {task.candidateName && (
@@ -71,13 +77,12 @@ const TaskCard = ({ task, isOverlay, jobs }) => {
             {task.candidateName ? `${task.candidateName} ` : ''}
             {associatedJob && (
               <>
-                <span className="text-gray-400 font-normal">for</span> <span className="font-semibold text-gray-700">{associatedJob.title}</span>
+                <span className="text-gray-400 font-normal">{t("for")}</span> <span className="font-semibold text-gray-700">{associatedJob.title}</span>
               </>
             )}
           </div>
         </div>
       )}
-
       <div className="flex items-center justify-between mt-2 pt-3 border-t border-gray-100 text-gray-500">
         <div className="flex items-center gap-1.5 text-xs font-medium">
           <FiCalendar className="w-3.5 h-3.5" />
@@ -101,6 +106,10 @@ const TaskCard = ({ task, isOverlay, jobs }) => {
 };
 
 const Column = ({ title, count, colorClass, status, tasks, jobs }) => {
+  const {
+    t
+  } = useTranslation();
+
   const { isOver, setNodeRef } = useDroppable({
     id: status,
   });
@@ -132,13 +141,17 @@ const Column = ({ title, count, colorClass, status, tasks, jobs }) => {
 };
 
 const Tasks = () => {
+  const {
+    t
+  } = useTranslation();
+
   const [tasks, setTasks] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState('All');
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   const [formData, setFormData] = useState({
     title: '',
     candidateName: '',
@@ -249,8 +262,8 @@ const Tasks = () => {
       {/* HEADER SECTION */}
       <div className="bg-white border-b border-gray-100 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-20">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">Task Workspace</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your hiring workflow by job role.</p>
+          <h1 className="text-2xl font-extrabold text-gray-900">{t("Task Workspace")}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t("Manage your hiring workflow by job role.")}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -259,7 +272,7 @@ const Tasks = () => {
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tasks..." 
+              placeholder={t("Search tasks...")} 
               className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition w-full md:w-64"
             />
           </div>
@@ -267,11 +280,9 @@ const Tasks = () => {
             onClick={openNewTaskModal}
             className="bg-[#1E293B] text-white px-5 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-800 transition flex items-center gap-2 whitespace-nowrap"
           >
-            <FiPlus className="w-4 h-4" /> New Task
-          </button>
+            <FiPlus className="w-4 h-4" />{t("New Task")}</button>
         </div>
       </div>
-
       {loading ? (
         <div className="flex items-center justify-center h-[60vh]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -283,15 +294,14 @@ const Tasks = () => {
           <div className="w-full md:w-64 shrink-0 bg-white border border-gray-200 rounded-2xl flex flex-col overflow-hidden h-fit md:h-full">
             <div className="p-4 border-b border-gray-100 bg-gray-50/50">
               <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                <FiBriefcase className="text-indigo-500" /> Filter by Job
-              </h3>
+                <FiBriefcase className="text-indigo-500" />{t("Filter by Job")}</h3>
             </div>
             <div className="flex-1 overflow-y-auto p-2 space-y-1">
               <button 
                 onClick={() => setSelectedJob('All')}
                 className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-between ${selectedJob === 'All' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
               >
-                <div className="flex items-center gap-2"><FiList className="w-4 h-4" /> All Tasks</div>
+                <div className="flex items-center gap-2"><FiList className="w-4 h-4" />{t("All Tasks")}</div>
                 <span className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full">{tasks.length}</span>
               </button>
               
@@ -299,7 +309,7 @@ const Tasks = () => {
                 onClick={() => setSelectedJob('General')}
                 className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-between ${selectedJob === 'General' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
               >
-                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-gray-200"></div> General</div>
+                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-gray-200"></div>{t("General")}</div>
                 <span className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full">
                   {tasks.filter(t => !t.jobId).length}
                 </span>
@@ -331,7 +341,7 @@ const Tasks = () => {
               <h2 className="text-lg font-bold text-gray-800">
                 {selectedJob === 'All' ? 'All Tasks' : selectedJob === 'General' ? 'General Tasks' : `${jobs.find(j => j._id === selectedJob)?.title || 'Job'} Pipeline`}
               </h2>
-              <span className="text-sm font-medium text-gray-500">{filteredTasks.length} total tasks</span>
+              <span className="text-sm font-medium text-gray-500">{filteredTasks.length}{t("total tasks")}</span>
             </div>
             
             <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
@@ -345,44 +355,43 @@ const Tasks = () => {
 
         </div>
       )}
-
       {/* NEW TASK MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex justify-center items-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
             <div className="flex justify-between items-center p-5 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">Create New Task</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t("Create New Task")}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                 <FiX className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleCreateTask} className="p-5 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Task Title *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">{t("Task Title *")}</label>
                 <input 
                   type="text" required
                   value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
                   className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-hidden"
-                  placeholder="e.g. Schedule follow-up call"
+                  placeholder={t("e.g. Schedule follow-up call")}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Candidate Name</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">{t("Candidate Name")}</label>
                   <input 
                     type="text" 
                     value={formData.candidateName} onChange={e => setFormData({...formData, candidateName: e.target.value})}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-hidden"
-                    placeholder="John Doe"
+                    placeholder={t("John Doe")}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Job</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">{t("Job")}</label>
                   <select 
                     value={formData.jobId} onChange={e => setFormData({...formData, jobId: e.target.value})}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-hidden bg-white"
                   >
-                    <option value="">General (No Job)</option>
+                    <option value="">{t("General (No Job)")}</option>
                     {jobs.map(j => (
                       <option key={j._id} value={j._id}>{j.title}</option>
                     ))}
@@ -391,29 +400,29 @@ const Tasks = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Priority</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">{t("Priority")}</label>
                   <select 
                     value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-hidden bg-white"
                   >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
+                    <option value="Low">{t("Low")}</option>
+                    <option value="Medium">{t("Medium")}</option>
+                    <option value="High">{t("High")}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Due Date</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">{t("Due Date")}</label>
                   <input 
                     type="text" 
                     value={formData.dueDate} onChange={e => setFormData({...formData, dueDate: e.target.value})}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-hidden"
-                    placeholder="e.g. Tomorrow or Nov 12"
+                    placeholder={t("e.g. Tomorrow or Nov 12")}
                   />
                 </div>
               </div>
               <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
-                <button type="submit" className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg">Create Task</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg">{t("Cancel")}</button>
+                <button type="submit" className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg">{t("Create Task")}</button>
               </div>
             </form>
           </div>

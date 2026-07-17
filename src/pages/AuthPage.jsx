@@ -699,6 +699,7 @@ const AuthPage = () => {
   const [mode, setMode] = useState(isLoginRoute ? "login" : "register");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [roleSelectionData, setRoleSelectionData] = useState(null);
 
   const [selectedRoles, setSelectedRoles] = useState(
     preSelectedRole ? [preSelectedRole] : ["provider"],
@@ -877,10 +878,10 @@ const AuthPage = () => {
     : "/login";
 
   useEffect(() => {
-    if (authLoading || !isAuthenticated) return;
+    if (authLoading || !isAuthenticated || roleSelectionData) return;
     const resolvedRole = user?.activeRole || user?.role;
     redirectToDashboard(resolvedRole);
-  }, [authLoading, isAuthenticated, user, navigate]);
+  }, [authLoading, isAuthenticated, user, navigate, roleSelectionData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -1025,6 +1026,29 @@ const AuthPage = () => {
     window.recaptchaVerifier = null;
   };
 
+  const handleRoleSelection = async (selectedRole) => {
+    try {
+      setLoading(true);
+      const { data } = await authAPI.switchRole({ role: selectedRole });
+      
+      const updatedData = { ...roleSelectionData, ...data, token: data.token || roleSelectionData.token };
+      const savedUser = saveUserSession(updatedData) || updatedData.user;
+      
+      toast.success(
+        `${t("auth.welcomeBack")}${
+          savedUser?.name ? ", " + savedUser.name.split(" ")[0] : ""
+        }!`
+      );
+      
+      redirectToDashboard(selectedRole);
+    } catch (err) {
+      toast.error("Failed to switch role. Please try again.");
+    } finally {
+      setLoading(false);
+      setRoleSelectionData(null);
+    }
+  };
+
   const redirectAfterAuth = (data) => {
     console.log("[AUTH DEBUG] Starting redirectAfterAuth with data:", data);
     const authData = data?.token && data?.user ? data : null;
@@ -1035,6 +1059,13 @@ const AuthPage = () => {
 
     const savedUser = saveUserSession(authData) || authData.user;
     console.log("[AUTH DEBUG] savedUser result:", savedUser);
+
+    const hasMultipleRoles = savedUser?.roles?.includes('provider') && savedUser?.roles?.includes('recruiter');
+
+    if (hasMultipleRoles) {
+      setRoleSelectionData(authData);
+      return; // Stop redirection, let the modal show
+    }
 
     toast.success(
       `${t("auth.welcomeBack")}${
@@ -2207,6 +2238,7 @@ const AuthPage = () => {
             </p>
           </div>
 
+          {/* Hidden for now: Sign in with Phone OTP
           <div className="mb-3">
             <GreenBtn
               onClick={() => {
@@ -2218,11 +2250,8 @@ const AuthPage = () => {
               <HiPhone className="w-6 h-6" />{" "}
               {t("auth.signinPhone", "Sign in with Phone OTP")}
             </GreenBtn>
-
-            {/* <p className="text-center text-xs text-green-600 font-semibold mt-1.5">
-              {t("auth.firebaseAuthInfo", "Firebase OTP Authentication")}
-            </p> */}
           </div>
+          */}
 
           <div className="grid grid-cols-1 gap-3 mb-2">
             <button
@@ -2372,6 +2401,47 @@ const AuthPage = () => {
       </div>
 
       <div id="recaptcha-container"></div>
+
+      {/* Role Selection Modal */}
+      {roleSelectionData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-teal-500 to-emerald-500" />
+            <h3 className="text-2xl font-black text-gray-900 mb-2">{t("auth.welcomeBack") || "Welcome Back!"}</h3>
+            <p className="text-gray-500 text-sm mb-8">You have both a candidate and recruiter profile. Which one would you like to access?</p>
+            
+            <div className="flex flex-col gap-4">
+              <button 
+                onClick={() => handleRoleSelection('provider')}
+                disabled={loading}
+                className="w-full py-4 px-6 rounded-2xl border-2 border-gray-100 hover:border-teal-500 hover:bg-teal-50 transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                </div>
+                <div className="text-left">
+                  <div className="font-bold text-gray-900 text-lg">Candidate Profile</div>
+                  <div className="text-xs text-gray-500">Find jobs and get hired</div>
+                </div>
+              </button>
+
+              <button 
+                onClick={() => handleRoleSelection('recruiter')}
+                disabled={loading}
+                className="w-full py-4 px-6 rounded-2xl border-2 border-gray-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                </div>
+                <div className="text-left">
+                  <div className="font-bold text-gray-900 text-lg">Recruiter Profile</div>
+                  <div className="text-xs text-gray-500">Post jobs and hire talent</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .auth-page-card {

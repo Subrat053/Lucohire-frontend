@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   FiSearch, FiFileText, FiUsers, FiMail, FiHelpCircle, FiCode, 
@@ -15,6 +16,10 @@ const SCard = ({ children, className = '' }) => (
 );
 
 export default function AIRecruiterWorkspace() {
+  const {
+    t
+  } = useTranslation();
+
   const [chatInput, setChatInput] = useState('');
   const [isChatting, setIsChatting] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -168,14 +173,12 @@ export default function AIRecruiterWorkspace() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              AI Recruiter Workspace <HiSparkles className="text-purple-600" />
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">{t("AI Recruiter Workspace")}<HiSparkles className="text-purple-600" />
             </h1>
-            <p className="text-sm text-gray-500 mt-1">How can Luco AI help you hire better today?</p>
+            <p className="text-sm text-gray-500 mt-1">{t("How can Luco AI help you hire better today?")}</p>
           </div>
           <button onClick={startNewChat} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-sm">
-            <FiPlus /> New Chat
-          </button>
+            <FiPlus />{t("New Chat")}</button>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
@@ -189,8 +192,8 @@ export default function AIRecruiterWorkspace() {
             <div className="bg-gradient-to-r from-indigo-50 via-[#F3E8FF] to-purple-50 rounded-2xl p-6 sm:p-10 relative overflow-hidden flex flex-col md:flex-row items-center min-h-[280px]">
               
               <div className="relative z-10 w-full md:w-[60%] lg:w-[65%] flex flex-col pt-2 md:pt-0">
-                <h2 className="text-[22px] sm:text-[26px] font-extrabold text-gray-900 mb-1.5 tracking-tight text-center md:text-left">Start a conversation with Luco AI</h2>
-                <p className="text-sm font-medium text-gray-600 mb-6 text-center md:text-left">Ask anything about candidates, jobs, hiring strategies or insights.</p>
+                <h2 className="text-[22px] sm:text-[26px] font-extrabold text-gray-900 mb-1.5 tracking-tight text-center md:text-left">{t("Start a conversation with Luco AI")}</h2>
+                <p className="text-sm font-medium text-gray-600 mb-6 text-center md:text-left">{t("Ask anything about candidates, jobs, hiring strategies or insights.")}</p>
                 
                 <div className="bg-white rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-1.5 flex items-center mb-6 focus-within:ring-2 focus-within:ring-purple-200 transition">
                   <input
@@ -198,7 +201,7 @@ export default function AIRecruiterWorkspace() {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder='Ask anything... e.g. "Find React developers with 4+ yrs"'
+                    placeholder={t("Ask anything... e.g. \"Find React developers with 4+ yrs\"")}
                     className="flex-1 bg-transparent border-none px-4 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none min-w-0"
                   />
                   <button onClick={() => handleSend()} className="w-9 h-9 bg-purple-100 hover:bg-purple-200 text-purple-600 rounded-lg flex items-center justify-center transition shrink-0 ml-2">
@@ -230,7 +233,7 @@ export default function AIRecruiterWorkspace() {
 
             {/* Action Cards */}
             <div>
-              <h3 className="text-xl font-extrabold text-gray-900 mb-6">What would you like to do today?</h3>
+              <h3 className="text-xl font-extrabold text-gray-900 mb-6">{t("What would you like to do today?")}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                 {actionCards.map((card, idx) => (
                   <SCard key={idx} className="p-5 flex flex-col hover:border-indigo-200 transition group cursor-pointer" onClick={() => handleActionClick(card.title)}>
@@ -256,7 +259,7 @@ export default function AIRecruiterWorkspace() {
 
             {/* Smart Tools */}
             <div>
-              <h3 className="text-xl font-extrabold text-gray-900 mb-6">Smart Tools</h3>
+              <h3 className="text-xl font-extrabold text-gray-900 mb-6">{t("Smart Tools")}</h3>
               <SCard className="p-6 flex items-center">
                 <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
                   {smartTools.map((tool, idx) => (
@@ -271,8 +274,7 @@ export default function AIRecruiterWorkspace() {
                 </div>
               </SCard>
               <div className="mt-4 text-center">
-                <button className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center justify-center gap-1 mx-auto transition">
-                  Explore All Tools <FiArrowRight />
+                <button className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center justify-center gap-1 mx-auto transition">{t("Explore All Tools")}<FiArrowRight />
                 </button>
               </div>
             </div>
@@ -285,10 +287,9 @@ export default function AIRecruiterWorkspace() {
                       <FiArrowLeft />
                     </button>
                     <div>
-                      <h2 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                        Luco AI Assistant <HiSparkles className="text-purple-600 w-3 h-3" />
+                      <h2 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">{t("Luco AI Assistant")}<HiSparkles className="text-purple-600 w-3 h-3" />
                       </h2>
-                      <p className="text-[10px] font-semibold text-gray-500">Always here to help you hire</p>
+                      <p className="text-[10px] font-semibold text-gray-500">{t("Always here to help you hire")}</p>
                     </div>
                   </div>
                 </div>
@@ -297,7 +298,7 @@ export default function AIRecruiterWorkspace() {
                   {messages.length === 0 && !loading && (
                     <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
                       <FaRobot className="w-12 h-12 text-gray-300 mb-3" />
-                      <p className="text-sm font-medium text-gray-500">Start typing to begin...</p>
+                      <p className="text-sm font-medium text-gray-500">{t("Start typing to begin...")}</p>
                     </div>
                   )}
                   {messages.map((msg, i) => (
@@ -344,7 +345,7 @@ export default function AIRecruiterWorkspace() {
                           handleSend();
                         }
                       }}
-                      placeholder="Reply to Luco AI..."
+                      placeholder={t("Reply to Luco AI...")}
                       className="flex-1 bg-transparent border-none px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none resize-none min-h-[44px] max-h-[120px]"
                       rows={1}
                     />
@@ -356,9 +357,7 @@ export default function AIRecruiterWorkspace() {
                       {loading ? <FiLoader className="w-4 h-4 animate-spin" /> : <FiSend className="w-4 h-4" />}
                     </button>
                   </div>
-                  <div className="text-[10px] text-center font-medium text-gray-400 mt-2">
-                    AI can make mistakes. Verify important information.
-                  </div>
+                  <div className="text-[10px] text-center font-medium text-gray-400 mt-2">{t("AI can make mistakes. Verify important information.")}</div>
                 </div>
               </SCard>
             )}
@@ -370,12 +369,12 @@ export default function AIRecruiterWorkspace() {
             {/* Recent Conversations */}
             <SCard className="p-5">
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-sm font-extrabold text-gray-900">Recent Conversations</h3>
-                <button className="text-xs font-bold text-indigo-600 flex items-center gap-1">View all <FiArrowRight /></button>
+                <h3 className="text-sm font-extrabold text-gray-900">{t("Recent Conversations")}</h3>
+                <button className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t("View all")}<FiArrowRight /></button>
               </div>
               <div className="space-y-4">
                 {conversations.length === 0 ? (
-                  <div className="text-xs text-gray-500 text-center py-4">No recent conversations</div>
+                  <div className="text-xs text-gray-500 text-center py-4">{t("No recent conversations")}</div>
                 ) : (
                   conversations.map((conv, idx) => (
                     <div key={idx} onClick={() => loadConversation(conv._id)} className="flex gap-3 group cursor-pointer">
@@ -400,8 +399,8 @@ export default function AIRecruiterWorkspace() {
             {/* AI Insights */}
             <SCard className="p-5">
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-sm font-extrabold text-gray-900">AI Insights for You</h3>
-                <button className="text-xs font-bold text-indigo-600 flex items-center gap-1">View all <FiArrowRight /></button>
+                <h3 className="text-sm font-extrabold text-gray-900">{t("AI Insights for You")}</h3>
+                <button className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t("View all")}<FiArrowRight /></button>
               </div>
               <div className="space-y-4">
                 <div className="flex gap-3">
@@ -409,8 +408,8 @@ export default function AIRecruiterWorkspace() {
                     <FiTrendingUp className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">High demand for React developers</h4>
-                    <p className="text-[11px] font-medium text-gray-500">12% increase in demand this month</p>
+                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t("High demand for React developers")}</h4>
+                    <p className="text-[11px] font-medium text-gray-500">{t("12% increase in demand this month")}</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -418,8 +417,8 @@ export default function AIRecruiterWorkspace() {
                     <FiClock className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">Best time to hire</h4>
-                    <p className="text-[11px] font-medium text-gray-500">Thursdays show 28% more responses</p>
+                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t("Best time to hire")}</h4>
+                    <p className="text-[11px] font-medium text-gray-500">{t("Thursdays show 28% more responses")}</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -427,8 +426,8 @@ export default function AIRecruiterWorkspace() {
                     <FiCode className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">Top skill in demand</h4>
-                    <p className="text-[11px] font-medium text-gray-500">TypeScript is trending in your market</p>
+                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t("Top skill in demand")}</h4>
+                    <p className="text-[11px] font-medium text-gray-500">{t("TypeScript is trending in your market")}</p>
                   </div>
                 </div>
               </div>
@@ -437,29 +436,29 @@ export default function AIRecruiterWorkspace() {
             {/* Copilot Usage */}
             <SCard className="p-5">
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-sm font-extrabold text-gray-900">Copilot Usage This Week</h3>
-                <button className="text-xs font-bold text-indigo-600 flex items-center gap-1">View usage <FiArrowRight /></button>
+                <h3 className="text-sm font-extrabold text-gray-900">{t("Copilot Usage This Week")}</h3>
+                <button className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t("View usage")}<FiArrowRight /></button>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 rounded-xl border border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center text-center">
                   <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-1.5"><FiMessageSquare className="w-3 h-3" /></div>
                   <div className="text-sm font-extrabold text-gray-900">24</div>
-                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Conversations</div>
+                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">{t("Conversations")}</div>
                 </div>
                 <div className="p-3 rounded-xl border border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center text-center">
                   <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-1.5"><FiClock className="w-3 h-3" /></div>
-                  <div className="text-sm font-extrabold text-gray-900">3h 12m</div>
-                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Time Saved</div>
+                  <div className="text-sm font-extrabold text-gray-900">{t("3h 12m")}</div>
+                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">{t("Time Saved")}</div>
                 </div>
                 <div className="p-3 rounded-xl border border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center text-center">
                   <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center mb-1.5"><FiZap className="w-3 h-3" /></div>
                   <div className="text-sm font-extrabold text-gray-900">48</div>
-                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Tasks Completed</div>
+                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">{t("Tasks Completed")}</div>
                 </div>
                 <div className="p-3 rounded-xl border border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center text-center">
                   <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-1.5"><HiSparkles className="w-3 h-3" /></div>
                   <div className="text-sm font-extrabold text-gray-900">92%</div>
-                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Accuracy</div>
+                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">{t("Accuracy")}</div>
                 </div>
               </div>
             </SCard>
@@ -468,8 +467,6 @@ export default function AIRecruiterWorkspace() {
         </div>
 
       </div>
-
-
     </div>
   );
 }

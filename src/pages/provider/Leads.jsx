@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect } from 'react';
 import { HiPhone, HiMail, HiBriefcase, HiCheck, HiX as HiXIcon } from 'react-icons/hi';
 import { providerAPI } from '../../services/api';
@@ -5,6 +6,10 @@ import RouteLoader from '../../components/common/RouteLoader';
 import toast from 'react-hot-toast';
 
 const ProviderLeads = () => {
+  const {
+    t
+  } = useTranslation();
+
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,8 +48,7 @@ const ProviderLeads = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">My Leads ({leads.length})</h1>
-
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t("My Leads (")}{leads.length})</h1>
       {leads.length > 0 ? (
         <div className="space-y-4">
           {leads.map((lead) => (
@@ -95,8 +99,8 @@ const ProviderLeads = () => {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50">
             <HiBriefcase className="h-8 w-8 text-emerald-500" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">No leads yet</h3>
-          <p className="text-gray-500">Complete your profile and upgrade your plan to receive leads.</p>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">{t("No leads yet")}</h3>
+          <p className="text-gray-500">{t("Complete your profile and upgrade your plan to receive leads.")}</p>
         </div>
       )}
     </div>

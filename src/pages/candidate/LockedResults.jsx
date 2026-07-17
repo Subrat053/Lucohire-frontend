@@ -18,6 +18,7 @@ const LockedResults = () => {
   const [phoneState, setPhoneState] = useState('');
   const [step, setStep] = useState(1); // 1: Ask Phone, 2: OTP
   const [loading, setLoading] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState('');
   const [realScore, setRealScore] = useState(null);
   const [realJobs, setRealJobs] = useState([]);
   const { saveUserSession } = useAuth();
@@ -116,14 +117,19 @@ const LockedResults = () => {
       const result = await confirmationResult.confirm(otp);
       const firebaseToken = await result.user.getIdToken();
 
+      // Generate a system password since we removed it from manual form
+      const sysPassword = formData.password || Math.random().toString(36).slice(-6) + 'Luco@1';
+
       // 2. Verify with our backend and create user
       const verifyResponse = await api.post('/jobs/guest-firebase/verify', {
         firebaseToken,
-        ...formData, // send password, name, email, skills, experience from GuestDiscovery
+        ...formData, // send name, email, skills, experience from GuestDiscovery
+        password: sysPassword
       });
 
       if (verifyResponse.data?.success) {
         toast.success('Phone verified successfully!');
+        setGeneratedPassword(sysPassword);
         
         // Log the user in with the received token and user object
         if (verifyResponse.data.token && verifyResponse.data.user) {
@@ -136,22 +142,12 @@ const LockedResults = () => {
         setIsVerified(true);
         setShowOtpModal(false);
 
-        // Fetch real personalized jobs
-        try {
-          // Since we might have logged them in, it could use their auth token
-          // Or we can just use the guest-recommended endpoint with their skills
-          const response = await api.post('/jobs/guest-recommended', {
-            skills: formData?.skills || '',
-          });
-
-          if (response.data?.success) {
-            setRealScore(response.data.data.score);
-            setRealJobs(response.data.data.jobs);
-          }
-        } catch (err) {
-          console.error('Backend Recommendation Error:', err);
-          toast.error('Could not fetch personalized jobs. Showing popular ones.');
-        }
+        // Show a persistent toast with the password and redirect
+        toast.success(`Success! Save this temporary password: ${sysPassword}`, { duration: 6000 });
+        
+        setTimeout(() => {
+          navigate('/provider/job-for-me');
+        }, 1500);
       }
     } catch (err) {
       console.error('OTP Verify Error:', err);
@@ -198,9 +194,18 @@ const LockedResults = () => {
       )}
 
       {isVerified && (
-        <div className="w-full max-w-5xl bg-green-50 border border-green-200 rounded-lg p-6 mb-6 text-green-800 flex items-center">
-          <FiCheckCircle className="text-3xl mr-4 text-green-600" />
-          <h2 className="text-xl font-bold">You&apos;re Verified! Here are your top matching jobs.</h2>
+        <div className="w-full max-w-5xl bg-green-50 border border-green-200 rounded-lg p-6 mb-6 text-green-800 flex flex-col md:flex-row items-start md:items-center justify-between">
+          <div className="flex items-center">
+            <FiCheckCircle className="text-3xl mr-4 text-green-600 shrink-0" />
+            <div>
+              <h2 className="text-xl font-bold mb-1">You&apos;re Verified! Here are your top matching jobs.</h2>
+              <p className="text-sm text-green-700">
+                Your temporary password is: <span className="font-mono bg-white px-2 py-1 rounded border border-green-300 font-bold mx-1">{generatedPassword}</span>
+                <br className="md:hidden" />
+                (You can change it later in the Change Password tab)
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -209,40 +214,84 @@ const LockedResults = () => {
         className="w-full max-w-5xl relative" 
         onClickCapture={handleInterceptClick}
       >
-        {/* Score Section */}
-        <div className="bg-white shadow rounded-lg p-8 mb-6 flex flex-col md:flex-row items-center justify-between border border-gray-100">
-          <div className="flex items-center">
-            <div className="relative w-32 h-32 flex items-center justify-center mr-8">
+        {/* Score & Analytics Section */}
+        <div className="flex flex-col lg:flex-row gap-6 mb-8">
+          {/* Left Column: Score Section */}
+          <div className="lg:w-1/3 bg-white shadow rounded-lg p-8 border border-gray-100 flex flex-col items-center justify-center text-center">
+            <h3 className="text-sm font-bold text-gray-700 mb-6">Your Resume Match Score</h3>
+            <div className="relative w-32 h-32 flex items-center justify-center mb-6">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                <path className="text-gray-200" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path className="text-green-500" strokeWidth="3" strokeDasharray="78, 100" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path className="text-gray-200" strokeWidth="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path className="text-green-500" strokeWidth="4" strokeDasharray={`${formData?.resumeScore || 78}, 100`} strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
               </svg>
               <div className="absolute flex flex-col items-center justify-center text-center">
-                <span className="text-3xl font-bold text-gray-800">{isVerified ? realScore || 85 : 78}%</span>
+                <span className="text-4xl font-bold text-green-600">{formData?.resumeScore || 78}<span className="text-2xl">%</span></span>
               </div>
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Your Resume Match Score</h3>
-              <p className="text-gray-500">{isVerified ? 'Excellent Match' : 'Good Match'}</p>
+            <div className="flex items-center text-green-600 font-bold mb-2">
+               <FiCheckCircle className="mr-2" />
+               Good Match
+            </div>
+            <p className="text-gray-500 text-xs mt-2">You're a good fit for many<br/>opportunities out there!</p>
+          </div>
+
+          {/* Right Column: Analytics Section */}
+          <div className="lg:w-2/3 bg-white shadow rounded-lg p-6 border border-gray-100 flex flex-col">
+            <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+              <h3 className="text-base font-bold text-gray-900">Your Profile Analytics</h3>
+              <div className="flex items-center space-x-4">
+                {!isVerified && (
+                  <div className="flex items-center text-[10px] text-blue-600 bg-blue-50 px-2 py-1 rounded-full font-medium">
+                    <FiLock className="mr-1" /> Blurred for your privacy
+                  </div>
+                )}
+                <span className="text-[10px] text-gray-400 flex items-center">Powered by AI ✨</span>
+              </div>
+            </div>
+            
+            <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 transition-all duration-500 ${!isVerified ? 'select-none pointer-events-none' : ''}`}>
+              {[
+                { title: 'Skills Match', icon: <FiStar />, value: 'High' },
+                { title: 'Experience Match', icon: <FiBriefcase />, value: 'Medium' },
+                { title: 'Industry Fit', icon: <BiBuildingHouse />, value: 'Excellent' },
+                { title: 'Profile Strength', icon: <FiTrendingUp />, value: '85/100' }
+              ].map((item, idx) => (
+                <div key={idx} className="flex flex-col items-center text-center p-2">
+                  <div className="text-blue-600 text-xl mb-3">{item.icon}</div>
+                  <h4 className="text-gray-700 text-xs font-bold mb-1">{item.title}</h4>
+                  <p className={`font-bold text-sm ${!isVerified ? 'blur-[4px] text-gray-400 opacity-60' : 'text-gray-400'}`}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom Section: Top Strengths & Improvement Areas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2 mt-auto">
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 mb-4">Top Strengths</h4>
+                <ul className="space-y-3">
+                   {['React JS', 'Node JS', 'UI/UX Design'].map((strength, i) => (
+                      <li key={i} className="flex items-center text-xs font-medium">
+                        <FiCheckCircle className="text-green-500 mr-2 shrink-0" />
+                        <span className={`${!isVerified ? 'blur-[4px] text-gray-400 opacity-60 select-none' : 'text-gray-700'}`}>{strength}</span>
+                      </li>
+                   ))}
+                </ul>
+                {!isVerified && <div className="mt-6 border-t border-gray-100 pt-3 text-center"><span className="text-[10px] text-gray-400 flex justify-center items-center"><FiLock className="mr-1" /> Unlock to view details</span></div>}
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 mb-4">Improvement Areas</h4>
+                <ul className="space-y-3">
+                   {['System Design', 'Docker', 'AWS'].map((area, i) => (
+                      <li key={i} className="flex items-center text-xs font-medium">
+                        <span className="text-yellow-500 font-bold mr-2 shrink-0 text-sm">⚠</span>
+                        <span className={`${!isVerified ? 'blur-[4px] text-gray-400 opacity-60 select-none' : 'text-gray-700'}`}>{area}</span>
+                      </li>
+                   ))}
+                </ul>
+                {!isVerified && <div className="mt-6 border-t border-gray-100 pt-3 text-center"><span className="text-[10px] text-gray-400 flex justify-center items-center"><FiLock className="mr-1" /> Unlock to view details</span></div>}
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Analytics Section (Blurred) */}
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Your Profile Analytics</h3>
-        <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 transition-all duration-500 ${!isVerified ? 'blur-sm select-none' : ''}`}>
-          {[
-            { title: 'Skills Match', icon: <FiStar />, value: 'High' },
-            { title: 'Experience Match', icon: <FiBriefcase />, value: 'Medium' },
-            { title: 'Industry Fit', icon: <BiBuildingHouse />, value: 'Excellent' },
-            { title: 'Profile Strength', icon: <FiTrendingUp />, value: '85/100' }
-          ].map((item, idx) => (
-            <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col items-center text-center">
-              <div className="text-blue-500 text-2xl mb-3">{item.icon}</div>
-              <h4 className="text-gray-500 text-sm font-medium mb-1">{item.title}</h4>
-              <p className="text-gray-900 font-bold">{item.value}</p>
-            </div>
-          ))}
         </div>
 
         {/* Jobs Section (Blurred) */}
@@ -251,7 +300,7 @@ const LockedResults = () => {
           {!isVerified && <span className="text-sm text-gray-500 flex items-center"><FiLock className="mr-1" /> Unlock to view details</span>}
         </div>
         
-        <div className={`space-y-4 transition-all duration-500 ${!isVerified ? 'blur-sm select-none pointer-events-none' : ''}`}>
+        <div className={`space-y-4 transition-all duration-500 ${!isVerified ? 'select-none pointer-events-none' : ''}`}>
           {isVerified && realJobs.length > 0 ? (
             realJobs.map((job, idx) => (
               <div key={job._id || idx} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col">
@@ -275,7 +324,7 @@ const LockedResults = () => {
                 
                 {/* Blurred AI Insights CTA */}
                 <div className="mt-4 pt-4 border-t border-gray-100 relative overflow-hidden bg-gradient-to-r from-blue-50/50 to-indigo-50/50 -mx-6 -mb-6 px-6 pb-6 rounded-b-lg">
-                  <div className="filter blur-[4px] select-none pointer-events-none opacity-50 space-y-3 mt-2">
+                  <div className="filter blur-[3px] opacity-80 select-none pointer-events-none space-y-3 mt-2">
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 bg-blue-200 rounded-full"></div>
                       <div className="h-4 bg-gray-300 rounded w-32"></div>
@@ -303,20 +352,24 @@ const LockedResults = () => {
               </div>
             ))
           ) : (
-            ['Deloitte', 'TCS', 'Infosys'].map((company, idx) => (
+            [
+              { company: 'Deloitte', title: formData?.role || 'Senior Frontend Developer', score: 92 },
+              { company: 'TCS', title: formData?.role ? `Product ${formData?.role.split(' ').pop()}` : 'Product Designer', score: 87 },
+              { company: 'Infosys', title: formData?.role || 'UX Designer', score: 84 }
+            ].map((job, idx) => (
               <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                   <div className="flex items-center mb-4 sm:mb-0">
                     <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 font-bold text-xl mr-4">
-                      {company.charAt(0)}
+                      {job.company.charAt(0)}
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-gray-900">Senior Frontend Developer</h4>
-                      <p className="text-gray-500">{company} &bull; Remote &bull; Full-time</p>
+                      <h4 className="text-lg font-bold blur-[5px] text-gray-400 opacity-70">{job.title}</h4>
+                      <p className="text-gray-500 blur-[4px] opacity-70">{job.company} &bull; Remote &bull; Full-time</p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2">90% Match</span>
+                    <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2">{job.score}% Match</span>
                     <button className="text-blue-600 border border-blue-600 hover:bg-blue-50 font-medium px-4 py-2 rounded-md transition">
                       View Job
                     </button>
@@ -325,7 +378,7 @@ const LockedResults = () => {
                 
                 {/* Blurred AI Insights CTA */}
                 <div className="mt-4 pt-4 border-t border-gray-100 relative overflow-hidden bg-gradient-to-r from-blue-50/50 to-indigo-50/50 -mx-6 -mb-6 px-6 pb-6 rounded-b-lg">
-                  <div className="filter blur-[4px] select-none pointer-events-none opacity-50 space-y-3 mt-2">
+                  <div className="filter blur-[3px] opacity-80 select-none pointer-events-none space-y-3 mt-2">
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 bg-blue-200 rounded-full"></div>
                       <div className="h-4 bg-gray-300 rounded w-32"></div>

@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { 
@@ -11,6 +12,7 @@ import {
 } from 'react-icons/bi';
 import { MdOutlineWorkOutline, MdOutlineMenuBook, MdOutlineMonitor, MdOutlineHandshake, MdOutlineLocationOn } from 'react-icons/md';
 import { getCareerHealth, getAiUsage, improveCareerHealth } from '../../services/providerAIService';
+import { providerAPI } from '../../services/api';
 import { Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -18,6 +20,10 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Responsi
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 export default function CareerHealthDashboard({ tab = 'overview' }) {
+  const {
+    t
+  } = useTranslation();
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,6 +31,8 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [salaryDetails, setSalaryDetails] = useState(null);
+  const [loadingSalary, setLoadingSalary] = useState(false);
   const [improving, setImproving] = useState(false);
   const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
   const [usageLoading, setUsageLoading] = useState(true);
@@ -257,13 +265,43 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
     }
   };
 
+  const fetchSalaryDetails = async (role) => {
+    if (salaryDetails) return;
+    try {
+      setLoadingSalary(true);
+      const profileSkills = report?.top_strengths ? report.top_strengths.slice(0, 3).map(s => typeof s === 'string' ? s : s.name || s.skill).join(', ') : '';
+      const skillString = role + (profileSkills ? ` with skills: ${profileSkills}` : '');
+      const loc = user?.city || user?.profile?.city || user?.profile?.location?.city || user?.location?.city || user?.locations?.[0] || report?.location || report?.city || 'India';
+      
+      const res = await providerAPI.getWageEstimate({
+        skill: skillString,
+        cityName: loc,
+        pricingType: 'monthly'
+      });
+      if (res.data?.success) {
+        setSalaryDetails(res.data.data);
+      }
+    } catch (err) {
+      toast.error('Failed to fetch real-time salary insights.');
+    } finally {
+      setLoadingSalary(false);
+    }
+  };
+
+  useEffect(() => {
+    if (report && report.target_role) {
+      fetchSalaryDetails(report.target_role);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [report]);
+
   const displayData = report || {};
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <div className="w-16 h-16 border-4 border-[#059669] border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-sm font-semibold text-gray-500">Analyzing your career profile...</p>
+        <p className="mt-4 text-sm font-semibold text-gray-500">{t("Analyzing your career profile...")}</p>
       </div>
     );
   }
@@ -273,7 +311,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
   const growthScore = displayData.salary_growth_score || 0;
   const marketScore = displayData.market_demand_score || 0;
   const expScore = displayData.employability_breakdown?.experience_relevance || displayData.experience_relevance_score || 0;
-  const overallFit = displayData.overall_fit_score || 0; 
+  const overallFit = displayData.overall_fit_score || 0;
   const targetRole = displayData.target_role || "Target Role";
   const expectedSalary = displayData.expected_salary_range || "N/A";
   const aiTip = displayData.ai_tip || "Update your profile description to get personalized AI tips.";
@@ -318,21 +356,20 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
             <Link to="/provider/dashboard" className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 font-medium mb-3">
-              <HiOutlineArrowLeft className="w-4 h-4" /> Back to AI Dashboard
-            </Link>
+              <HiOutlineArrowLeft className="w-4 h-4" />{t("Back to AI Dashboard")}</Link>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Career Analysis</h1>
-              <span className="bg-emerald-50 text-emerald-600 text-xs font-bold px-2 py-1 rounded-md border border-emerald-100">Beta</span>
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">{t("Career Analysis")}</h1>
+              <span className="bg-emerald-50 text-emerald-600 text-xs font-bold px-2 py-1 rounded-md border border-emerald-100">
+                {(aiUsage.limits?.aiCareerAnalysis === -1 || aiUsage.limits?.aiCareerAnalysis > 0) ? 'Pro' : 'Beta'}
+              </span>
             </div>
-            <p className="text-sm text-slate-500 mt-1">Deep AI insights about your career growth and opportunities</p>
+            <p className="text-sm text-slate-500 mt-1">{t("Deep AI insights about your career growth and opportunities")}</p>
           </div>
           <button 
             onClick={handleDownloadReport}
             className="flex items-center gap-2 bg-white border border-slate-200 text-emerald-700 font-semibold px-4 py-2 rounded-lg shadow-sm hover:bg-emerald-50 transition-colors"
           >
-            <HiOutlineDownload className="w-5 h-5" />
-            Download Report
-          </button>
+            <HiOutlineDownload className="w-5 h-5" />{t("Download Report")}</button>
         </div>
 
         <div id="report-content" className="pt-2">
@@ -341,14 +378,12 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
           <div className="bg-emerald-50/50 border border-emerald-100 px-6 py-3 rounded-2xl flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-emerald-600" />
-              <span className="text-sm font-medium text-emerald-900">
-                Career Health AI Limit: 
-                {(() => {
+              <span className="text-sm font-medium text-emerald-900">{t("Career Health AI Limit:")}{(() => {
                   const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
                   const used = aiUsage.usage['aiCareerAnalysis'] || 0;
-                  if (limit === -1) return <span className="font-bold text-emerald-700 ml-1">Unlimited</span>;
-                  if (limit === 0) return <span className="font-bold text-red-600 ml-1">Not included in plan</span>;
-                  return <span className="font-bold text-emerald-700 ml-1">{Math.max(0, limit - used)} / {limit} requests remaining</span>;
+                  if (limit === -1) return <span className="font-bold text-emerald-700 ml-1">{t("Unlimited")}</span>;
+                  if (limit === 0) return <span className="font-bold text-red-600 ml-1">{t("Not included in plan")}</span>;
+                  return <span className="font-bold text-emerald-700 ml-1">{Math.max(0, limit - used)} / {limit}{t("requests remaining")}</span>;
                 })()}
               </span>
             </div>
@@ -359,14 +394,12 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                 className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-1.5 rounded-full transition-colors disabled:opacity-50 flex items-center gap-1.5"
               >
                 {improving ? (
-                  <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Refreshing...</>
+                  <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>{t("Refreshing...")}</>
                 ) : (
-                  <><Sparkles className="w-3 h-3" /> Refresh Insights</>
+                  <><Sparkles className="w-3 h-3" />{t("Refresh Insights")}</>
                 )}
               </button>
-              <Link to="/provider/plans" className="text-xs font-bold text-emerald-600 hover:text-emerald-800 bg-emerald-100 px-3 py-1.5 rounded-full transition-colors">
-                Upgrade Plan
-              </Link>
+              <Link to="/provider/plans" className="text-xs font-bold text-emerald-600 hover:text-emerald-800 bg-emerald-100 px-3 py-1.5 rounded-full transition-colors">{t("Upgrade Plan")}</Link>
             </div>
           </div>
         )}
@@ -376,7 +409,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
           {/* Card 1: Health Score */}
           <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-semibold text-slate-700">Career Health Score</span>
+              <span className="text-sm font-semibold text-slate-700">{t("Career Health Score")}</span>
               <FiAlertCircle className="w-4 h-4 text-slate-400" />
             </div>
             <div className="flex items-center gap-4">
@@ -404,22 +437,22 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
 
           {/* Card 2: Market Demand */}
           <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
-            <div className="text-sm font-semibold text-slate-700 mb-2">Market Demand</div>
+            <div className="text-sm font-semibold text-slate-700 mb-2">{t("Market Demand")}</div>
             <div>
               <div className="text-xl font-bold text-emerald-600">{marketScore >= 80 ? 'High' : marketScore >= 60 ? 'Medium' : 'Low'}</div>
               <div className="text-xs text-slate-500 mt-1">{marketScore >= 80 ? 'Excellent opportunities in your field' : marketScore >= 60 ? 'Moderate opportunities available' : 'Tough market conditions'}</div>
             </div>
             <div className="mt-2 grid grid-cols-3 gap-2">
               <div className="text-center bg-slate-50 rounded p-1.5 border border-slate-100">
-                <div className="text-[10px] text-slate-500 font-medium">Job Trend</div>
+                <div className="text-[10px] text-slate-500 font-medium">{t("Job Trend")}</div>
                 <div className="text-xs font-bold text-slate-700">{displayData.market_demand_breakdown?.job_openings_trend || 0}/100</div>
               </div>
               <div className="text-center bg-slate-50 rounded p-1.5 border border-slate-100">
-                <div className="text-[10px] text-slate-500 font-medium">Remote</div>
+                <div className="text-[10px] text-slate-500 font-medium">{t("Remote")}</div>
                 <div className="text-xs font-bold text-slate-700">{displayData.market_demand_breakdown?.remote_opportunities || 0}/100</div>
               </div>
               <div className="text-center bg-slate-50 rounded p-1.5 border border-slate-100">
-                <div className="text-[10px] text-slate-500 font-medium">Growth</div>
+                <div className="text-[10px] text-slate-500 font-medium">{t("Growth")}</div>
                 <div className="text-xs font-bold text-slate-700">{displayData.market_demand_breakdown?.industry_growth_rate || 0}/100</div>
               </div>
             </div>
@@ -427,7 +460,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
 
           {/* Card 3: Experience Relevance */}
           <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
-            <div className="text-sm font-semibold text-slate-700 mb-2">Experience Relevance</div>
+            <div className="text-sm font-semibold text-slate-700 mb-2">{t("Experience Relevance")}</div>
             <div>
               <div className="text-xl font-bold text-emerald-600">{expScore >= 70 ? 'Good' : 'Needs Improvement'}</div>
               <div className="text-xs text-slate-500 mt-1">{expScore >= 70 ? 'Strong alignment with target roles' : 'Needs more relevant experience'}</div>
@@ -442,7 +475,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
 
           {/* Card 4: Growth Potential */}
           <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
-            <div className="text-sm font-semibold text-slate-700 mb-2">Growth Potential</div>
+            <div className="text-sm font-semibold text-slate-700 mb-2">{t("Growth Potential")}</div>
             <div>
               <div className="text-xl font-bold text-emerald-600">{growthScore >= 80 ? 'High' : growthScore >= 60 ? 'Medium' : 'Low'}</div>
               <div className="text-xs text-slate-500 mt-1">{growthScore >= 80 ? 'Strong growth path ahead' : growthScore >= 60 ? 'Steady growth potential' : 'Limited growth in current path'}</div>
@@ -457,14 +490,51 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
 
           {/* Card 5: Salary Potential */}
           <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
-            <div className="text-sm font-semibold text-slate-700 mb-2">Salary Potential</div>
+            <div className="text-sm font-semibold text-slate-700 mb-2">{t("Salary Potential")}</div>
             <div>
-              <div className="text-xl font-bold text-slate-800">{expectedSalary}</div>
-              <div className="text-xs text-slate-500 mt-1">Expected salary range<br/>for {targetRole}</div>
+              <div className="text-xl font-bold text-slate-800">
+                {loadingSalary ? (
+                  <div className="flex items-center gap-2 py-1">
+                    <div className="w-4 h-4 border-2 border-slate-300 border-t-emerald-600 rounded-full animate-spin"></div>
+                    <span className="text-sm text-slate-400 font-normal">{t("Fetching...")}</span>
+                  </div>
+                ) : salaryDetails ? (
+                  <span className="text-emerald-600">
+                    {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(salaryDetails.minWage)} - {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(salaryDetails.maxWage)}
+                  </span>
+                ) : (
+                  (() => {
+                    if (!expectedSalary || expectedSalary === 'N/A') return 'N/A';
+                    let s = expectedSalary.toString();
+                    if (s.includes('₹') || s.toLowerCase().includes('inr')) return s;
+                    if (s.includes('$') || s.toLowerCase().includes('usd')) {
+                      return s.replace(/\$?([\d,]+)(k|m)?\s*(usd)?/ig, (match, numStr, multiplier) => {
+                        let num = parseFloat(numStr.replace(/,/g, ''));
+                        let valInUSD = num;
+                        if (multiplier) {
+                          if (multiplier.toLowerCase() === 'k') valInUSD *= 1000;
+                          if (multiplier.toLowerCase() === 'm') valInUSD *= 1000000;
+                        }
+                        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(valInUSD * 84);
+                      });
+                    }
+                    if (/^\d/.test(s.trim())) {
+                      return s.split('-').map(part => {
+                        let n = parseFloat(part.replace(/,/g, ''));
+                        return isNaN(n) ? part : new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+                      }).join(' - ');
+                    }
+                    return s;
+                  })()
+                )}
+              </div>
+              <div className="text-xs text-slate-500 mt-1">{t("Expected salary range")}<br/>{t("for")}{targetRole}</div>
             </div>
-            <button className="text-emerald-600 text-sm font-semibold text-left mt-4 hover:text-emerald-700">
-              View Details →
-            </button>
+            {salaryDetails && !loadingSalary && (
+              <div className="text-[10px] text-slate-400 mt-2 font-medium uppercase tracking-wide flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-emerald-500" />{t("Average:")}{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(salaryDetails.avgWage)}
+              </div>
+            )}
           </div>
         </div>
 
@@ -479,10 +549,10 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
               {/* Radar Chart Area */}
               <div className="p-6 border-b md:border-b-0 md:border-r border-slate-100 flex-1 relative">
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold text-slate-800">Career Fit Overview</h3>
+                  <h3 className="font-semibold text-slate-800">{t("Career Fit Overview")}</h3>
                   <FiAlertCircle className="w-4 h-4 text-slate-400" />
                 </div>
-                <p className="text-xs text-slate-500 mb-4">How well your profile fits your target role: {targetRole}</p>
+                <p className="text-xs text-slate-500 mb-4">{t("How well your profile fits your target role:")}{targetRole}</p>
                 
                 <div className="h-[240px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -496,7 +566,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
 
                 {/* Overall Fit Badge */}
                 <div className="absolute right-4 bottom-4 md:right-8 md:bottom-1/4 bg-white border border-slate-100 p-3 rounded-lg shadow-sm text-center">
-                  <div className="text-xs text-slate-500 font-medium">Overall Fit</div>
+                  <div className="text-xs text-slate-500 font-medium">{t("Overall Fit")}</div>
                   <div className="text-2xl font-bold text-emerald-600 my-0.5">{overallFit}%</div>
                   <div className="text-[10px] font-bold text-emerald-600">{overallFit >= 80 ? 'Strong Match' : overallFit >= 60 ? 'Good Match' : 'Fair Match'}</div>
                 </div>
@@ -504,12 +574,12 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
 
               {/* Breakdown Area */}
               <div className="p-6 flex-1 flex flex-col bg-slate-50/30">
-                <h3 className="font-semibold text-slate-800 mb-4">Role Fit Breakdown</h3>
+                <h3 className="font-semibold text-slate-800 mb-4">{t("Role Fit Breakdown")}</h3>
                 
                 <div className="flex text-xs font-semibold text-slate-400 mb-3 px-1">
-                  <div className="flex-1">Factor</div>
-                  <div className="w-20 text-right">Your Score</div>
-                  <div className="w-20 text-right">Benchmark</div>
+                  <div className="flex-1 min-w-0">{t("Factor")}</div>
+                  <div className="w-20 text-right shrink-0">{t("Your Score")}</div>
+                  <div className="w-20 text-right shrink-0">{t("Benchmark")}</div>
                 </div>
 
                 <div className="space-y-4 mb-6">
@@ -517,18 +587,18 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                     const IconComponent = factor.icon || roleFitIcons[idx % roleFitIcons.length];
                     return (
                     <div key={idx} className="flex items-center text-sm">
-                      <div className="flex-1 flex items-center gap-2 text-slate-600">
-                        <IconComponent className="w-4 h-4 text-emerald-600" />
-                        <span>{factor.name}</span>
+                      <div className="flex-1 flex items-center gap-2 text-slate-600 min-w-0 pr-2">
+                        <IconComponent className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span className="truncate">{factor.name}</span>
                       </div>
-                      <div className="w-20 flex items-center gap-2">
+                      <div className="w-20 flex items-center gap-2 shrink-0">
                         <div className="w-12 bg-slate-200 h-1.5 rounded-full overflow-hidden">
                           <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${factor.score}%` }}></div>
                         </div>
                         <span className="font-semibold text-slate-700 text-xs">{factor.score}%</span>
                       </div>
-                      <div className="w-20 flex items-center gap-2 justify-end">
-                        <div className="w-12 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                      <div className="w-20 flex items-center gap-2 justify-end shrink-0">
+                        <div className="w-12 bg-slate-200 h-1.5 rounded-full overflow-hidden hidden sm:block">
                           <div className="bg-slate-400 h-full rounded-full" style={{ width: `${factor.benchmark}%` }}></div>
                         </div>
                         <span className="text-slate-500 text-xs">{factor.benchmark}%</span>
@@ -537,13 +607,11 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                   )})}
                 </div>
 
-                <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100 text-xs text-emerald-800">
-                  Great! You are strongly aligned with this role. Focus on improving the areas on the right to become an excellent fit.
-                </div>
+                <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100 text-xs text-emerald-800">{t(
+                  "Great! You are strongly aligned with this role. Focus on improving the areas on the right to become an excellent fit."
+                )}</div>
                 
-                <button className="text-emerald-600 text-sm font-semibold text-center mt-4 hover:text-emerald-700 w-full">
-                  View Detailed Breakdown →
-                </button>
+                <button className="text-emerald-600 text-sm font-semibold text-center mt-4 hover:text-emerald-700 w-full">{t("View Detailed Breakdown →")}</button>
               </div>
             </div>
 
@@ -552,22 +620,22 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
               
               {/* Top Skills to Improve */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 md:col-span-1">
-                <h3 className="font-semibold text-slate-800 mb-1">Top Skills to Improve</h3>
-                <p className="text-xs text-slate-500 mb-5">Improve these skills to increase your match score</p>
+                <h3 className="font-semibold text-slate-800 mb-1">{t("Top Skills to Improve")}</h3>
+                <p className="text-xs text-slate-500 mb-5">{t("Improve these skills to increase your match score")}</p>
                 
                 <div className="space-y-4 mb-6">
                   {skillsToImprove.map((skill, i) => (
                     <div key={i} className="flex items-center justify-between">
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 text-sm text-slate-700 mb-1">
-                          <FiLock className="w-3.5 h-3.5 text-slate-400" />
+                          <FiLock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           <span className="truncate">{skill.name}</span>
                         </div>
                         <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2">
                           <div className="bg-emerald-600 h-1.5 rounded-full" style={{ width: `${skill.score}%` }}></div>
                         </div>
                       </div>
-                      <div className="ml-4 flex flex-col items-end">
+                      <div className="ml-4 flex flex-col items-end shrink-0">
                         <span className="text-sm font-bold text-slate-700">{skill.score}%</span>
                         <span className={`text-[10px] font-bold ${skill.impactColor || 'text-red-500'}`}>{skill.impact || 'High Impact'}</span>
                       </div>
@@ -575,9 +643,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                   ))}
                 </div>
 
-                <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">
-                  Get AI Learning Plan →
-                </button>
+                <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">{t("Get AI Learning Plan →")}</button>
               </div>
 
               {/* In-Demand Skills & Market Insights */}
@@ -585,8 +651,8 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                 
                 {/* In Demand */}
                 <div className="flex-1 border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-6">
-                  <h3 className="font-semibold text-slate-800 mb-1">In-Demand Skills for {targetRole}</h3>
-                  <p className="text-xs text-slate-500 mb-4">Skills in high demand in the market</p>
+                  <h3 className="font-semibold text-slate-800 mb-1">{t("In-Demand Skills for")}{targetRole}</h3>
+                  <p className="text-xs text-slate-500 mb-4">{t("Skills in high demand in the market")}</p>
                   
                   <div className="flex flex-wrap gap-2 mb-6">
                     {inDemandSkills.map((sk, i) => (
@@ -596,41 +662,39 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                     ))}
                   </div>
 
-                  <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">
-                    Explore All Skills →
-                  </button>
+                  <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">{t("Explore All Skills →")}</button>
                 </div>
 
                 {/* Market Insights */}
                 <div className="flex-1 flex flex-col">
-                  <h3 className="font-semibold text-slate-800 mb-1">Market Insights</h3>
-                  <p className="text-xs text-slate-500 mb-4">{targetRole} • India</p>
+                  <h3 className="font-semibold text-slate-800 mb-1">{t("Market Insights")}</h3>
+                  <p className="text-xs text-slate-500 mb-4">{targetRole}{t("• India")}</p>
 
                   <div className="space-y-4 mb-auto">
                     <div className="flex items-start gap-3">
                       <div className="mt-1"><BiBriefcase className="w-5 h-5 text-emerald-600" /></div>
                       <div>
-                        <div className="text-xs text-slate-500">Jobs in demand</div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-lg font-bold text-slate-800">{marketInsights.jobsInDemand}</span>
-                          <span className="text-xs font-semibold text-emerald-600">{marketInsights.jobsGrowth}</span>
+                        <div className="text-xs text-slate-500">{t("Jobs in demand")}</div>
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <span className="text-lg font-bold text-slate-800 truncate">{marketInsights.jobsInDemand}</span>
+                          <span className="text-xs font-semibold text-emerald-600 whitespace-nowrap">{marketInsights.jobsGrowth}</span>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <div className="mt-1"><FiAlertCircle className="w-5 h-5 text-emerald-600" /></div>
                       <div>
-                        <div className="text-xs text-slate-500">Avg. Salary</div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-lg font-bold text-slate-800">{marketInsights.avgSalary}</span>
-                          <span className="text-xs font-semibold text-emerald-600">{marketInsights.salaryGrowth}</span>
+                        <div className="text-xs text-slate-500">{t("Avg. Salary")}</div>
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <span className="text-lg font-bold text-slate-800 truncate">{marketInsights.avgSalary}</span>
+                          <span className="text-xs font-semibold text-emerald-600 whitespace-nowrap">{marketInsights.salaryGrowth}</span>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <div className="mt-1"><BiLineChart className="w-5 h-5 text-emerald-600" /></div>
                       <div>
-                        <div className="text-xs text-slate-500">Top Cities</div>
+                        <div className="text-xs text-slate-500">{t("Top Cities")}</div>
                         <div className="text-sm font-medium text-slate-700 leading-tight mt-1">
                           {marketInsights.topCities}
                         </div>
@@ -638,9 +702,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                     </div>
                   </div>
 
-                  <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700 mt-4">
-                    View Full Market Report →
-                  </button>
+                  <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700 mt-4">{t("View Full Market Report →")}</button>
                 </div>
 
               </div>
@@ -655,7 +717,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
               <div className="flex items-center gap-2 mb-5">
                 <BiTrophy className="w-5 h-5 text-emerald-600" />
-                <h3 className="font-bold text-slate-800 text-lg">Key Strengths</h3>
+                <h3 className="font-bold text-slate-800 text-lg">{t("Key Strengths")}</h3>
               </div>
               <ul className="space-y-3 mb-6">
                 {strengths.map((str, i) => (
@@ -665,16 +727,14 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                   </li>
                 ))}
               </ul>
-              <button className="w-full py-2 text-center text-sm font-semibold text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-colors">
-                See All Strengths →
-              </button>
+              <button className="w-full py-2 text-center text-sm font-semibold text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-colors">{t("See All Strengths →")}</button>
             </div>
 
             {/* Areas to Improve */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
               <div className="flex items-center gap-2 mb-5">
                 <BiLineChart className="w-5 h-5 text-red-500" />
-                <h3 className="font-bold text-slate-800 text-lg">Areas to Improve</h3>
+                <h3 className="font-bold text-slate-800 text-lg">{t("Areas to Improve")}</h3>
               </div>
               <ul className="space-y-3 mb-6">
                 {weaknesses.map((wk, i) => (
@@ -684,9 +744,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                   </li>
                 ))}
               </ul>
-              <button className="w-full py-2 text-center text-sm font-semibold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-colors">
-                View Improvement Plan →
-              </button>
+              <button className="w-full py-2 text-center text-sm font-semibold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-colors">{t("View Improvement Plan →")}</button>
             </div>
 
             {/* Career Growth Path */}
@@ -695,7 +753,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                 <div className="w-5 h-5 flex items-center justify-center">
                   <div className="w-4 h-4 border-2 border-emerald-600 rounded-sm"></div>
                 </div>
-                <h3 className="font-bold text-slate-800 text-lg">Career Growth Path</h3>
+                <h3 className="font-bold text-slate-800 text-lg">{t("Career Growth Path")}</h3>
               </div>
               
               <div className="relative pl-3 mb-6">
@@ -727,48 +785,12 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                 </ul>
               </div>
               
-              <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">
-                View Full Roadmap →
-              </button>
-            </div>
-
-            {/* WhatsApp CTA */}
-            <div className="bg-emerald-50 rounded-xl border border-emerald-100 p-5 flex flex-col relative overflow-hidden">
-              <div className="flex items-center gap-2 mb-2">
-                <BiMessageRoundedDots className="w-5 h-5 text-emerald-600" />
-                <h3 className="font-bold text-slate-800">Stay Updated on WhatsApp</h3>
-              </div>
-              <p className="text-xs text-slate-600 mb-4 max-w-[200px]">
-                Get career insights, job trends & AI tips right on WhatsApp.
-              </p>
-              <button className="bg-white border border-emerald-200 text-emerald-700 text-sm font-semibold py-2 px-4 rounded-lg self-start shadow-sm hover:bg-emerald-100">
-                Enable WhatsApp Alerts
-              </button>
-              
-              {/* Decorative Icon */}
-              <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center opacity-50">
-                 <BiMessageRoundedDots className="w-10 h-10 text-emerald-600" />
-              </div>
+              <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">{t("View Full Roadmap →")}</button>
             </div>
 
           </div>
         </div>
         </div>
-      </div>
-      
-      {/* Floating AI Tip Footer */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl bg-white border border-slate-200 shadow-xl rounded-xl p-3 flex items-center justify-between z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-            <BiLineChart className="w-5 h-5 text-emerald-600" />
-          </div>
-          <span className="text-sm font-medium text-slate-700">
-            <strong className="text-slate-900">AI Tip:</strong> {aiTip}
-          </span>
-        </div>
-        <button className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-sm font-semibold px-4 py-1.5 rounded-lg hover:bg-emerald-100 whitespace-nowrap">
-          Improve Now →
-        </button>
       </div>
     </div>
   );

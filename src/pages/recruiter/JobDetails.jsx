@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect } from 'react';
 import { 
   FiMapPin, FiClock, FiCalendar, FiExternalLink, FiMoreHorizontal, 
@@ -26,9 +27,13 @@ const STATUS_COLUMNS = [
 ];
 
 export default function JobDetails() {
+  const {
+    t
+  } = useTranslation();
+
   const { id: jobId } = useParams();
   const [activeTab, setActiveTab] = useState('pipeline');
-  
+
   const [job, setJob] = useState(null);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,7 +110,7 @@ export default function JobDetails() {
 
   if (!job) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center pb-24">
-      <div className="text-gray-500 font-bold">Job not found</div>
+      <div className="text-gray-500 font-bold">{t("Job not found")}</div>
     </div>
   );
 
@@ -134,22 +139,20 @@ export default function JobDetails() {
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-2xl font-bold text-gray-900">{job.title}</h1>
                 <span className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Active
-                </span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>{t("Active")}</span>
               </div>
               <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-gray-500">
                 <div className="flex items-center gap-1"><FiMapPin className="text-gray-400" /> {job.city || job.location?.city || 'Location N/A'}</div>
                 <div className="flex items-center gap-1"><FiClock className="text-gray-400" /> {job.workMode || 'Full-time'}</div>
-                <div className="flex items-center gap-1"><FiCalendar className="text-gray-400" /> Created on {format(new Date(job.createdAt), 'dd MMM yyyy')}</div>
-                <div className="flex items-center gap-1 text-gray-400">Job ID: {job._id.slice(-6).toUpperCase()}</div>
+                <div className="flex items-center gap-1"><FiCalendar className="text-gray-400" />{t("Created on")}{format(new Date(job.createdAt), 'dd MMM yyyy')}</div>
+                <div className="flex items-center gap-1 text-gray-400">{t("Job ID:")}{job._id.slice(-6).toUpperCase()}</div>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0 w-full md:w-auto justify-start md:justify-end">
-              <Link to={`/job/${job._id}`} target="_blank" className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-white border border-gray-200 text-indigo-600 hover:bg-gray-50 px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition">
-                View Job Page <FiExternalLink />
+              <Link to={`/job/${job._id}`} target="_blank" className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-white border border-gray-200 text-indigo-600 hover:bg-gray-50 px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition">{t("View Job Page")}<FiExternalLink />
               </Link>
               <button onClick={() => toast('Promote job feature coming soon!', { icon: '🚀' })} className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition">
-                <HiSparkles /> Promote Job <FiChevronDown />
+                <HiSparkles />{t("Promote Job")}<FiChevronDown />
               </button>
               <button onClick={() => toast('More actions coming soon!')} className="p-2.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition shadow-sm shrink-0">
                 <FiMoreHorizontal />
@@ -180,7 +183,6 @@ export default function JobDetails() {
           </div>
         </div>
       </div>
-
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'pipeline' && (
           <>
@@ -191,15 +193,14 @@ export default function JobDetails() {
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input 
                 type="text" 
-                placeholder="Search candidates..." 
+                placeholder={t("Search candidates...")} 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-white border border-gray-200 rounded-lg pl-9 pr-4 py-2.5 text-sm font-medium focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all" 
               />
             </div>
             <button onClick={() => toast('Advanced filters coming soon!')} className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors">
-              <FiFilter className="text-gray-400" /> Filters
-            </button>
+              <FiFilter className="text-gray-400" />{t("Filters")}</button>
           </div>
         </div>
 
@@ -223,9 +224,7 @@ export default function JobDetails() {
               {/* Candidates List */}
               <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 mt-1 min-h-[100px]">
                 {col.candidates.length === 0 && (
-                  <div className="text-[11px] font-medium text-gray-400 text-center py-4 border-2 border-dashed border-gray-200 rounded-xl mx-2">
-                    Drop candidates here
-                  </div>
+                  <div className="text-[11px] font-medium text-gray-400 text-center py-4 border-2 border-dashed border-gray-200 rounded-xl mx-2">{t("Drop candidates here")}</div>
                 )}
                 {col.candidates.map((cand) => {
                   const initial = cand.provider?.name ? cand.provider.name.charAt(0).toUpperCase() : 'U';
@@ -294,7 +293,7 @@ export default function JobDetails() {
         {/* Bottom Panels (Summary) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           <SCard className="p-5">
-            <h3 className="font-bold text-gray-900 text-sm mb-6">Pipeline Summary</h3>
+            <h3 className="font-bold text-gray-900 text-sm mb-6">{t("Pipeline Summary")}</h3>
             <div className="flex items-center justify-between">
               <div className="relative w-24 h-24 shrink-0">
                 <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
@@ -302,7 +301,7 @@ export default function JobDetails() {
                   <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#4F46E5" strokeWidth="8" strokeDasharray="100 0" strokeDashoffset="0" />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-xs font-medium text-gray-500 leading-none">Total</span>
+                  <span className="text-xs font-medium text-gray-500 leading-none">{t("Total")}</span>
                   <span className="text-xl font-bold text-gray-900 leading-none mt-1">{totalCandidates}</span>
                 </div>
               </div>
@@ -326,27 +325,24 @@ export default function JobDetails() {
           <SCard className="p-5">
              <div className="flex items-center justify-between mb-5">
                <h3 className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
-                 <HiSparkles className="text-indigo-600" /> AI Recommendations
-               </h3>
+                 <HiSparkles className="text-indigo-600" />{t("AI Recommendations")}</h3>
              </div>
              <div className="space-y-4 mt-2">
                {totalCandidates < 5 && (
                   <div className="flex gap-3 text-xs font-bold text-gray-700">
-                    <FiCheckCircle className="text-indigo-500 w-4 h-4 shrink-0" />
-                    Review and refresh your job posting. Try updating the salary bounds to attract more candidates.
-                  </div>
+                    <FiCheckCircle className="text-indigo-500 w-4 h-4 shrink-0" />{t(
+                    "Review and refresh your job posting. Try updating the salary bounds to attract more candidates."
+                  )}</div>
                )}
                {groupedApps.find(a => a.id === 'applied')?.candidates.length > 0 && (
                   <div className="flex gap-3 text-xs font-bold text-gray-700">
-                    <FiCheckCircle className="text-emerald-500 w-4 h-4 shrink-0" />
-                    You have candidates waiting in the Applied stage. Review their AI scores to fast-track them.
-                  </div>
+                    <FiCheckCircle className="text-emerald-500 w-4 h-4 shrink-0" />{t(
+                    "You have candidates waiting in the Applied stage. Review their AI scores to fast-track them."
+                  )}</div>
                )}
                {groupedApps.find(a => a.id === 'contacted')?.candidates.length > 0 && (
                   <div className="flex gap-3 text-xs font-bold text-gray-700">
-                    <FiCheckCircle className="text-amber-500 w-4 h-4 shrink-0" />
-                    Don't forget to follow up with your Contacted candidates!
-                  </div>
+                    <FiCheckCircle className="text-amber-500 w-4 h-4 shrink-0" />{t("Don't forget to follow up with your Contacted candidates!")}</div>
                )}
              </div>
           </SCard>
@@ -356,12 +352,12 @@ export default function JobDetails() {
 
         {activeTab === 'details' && (
           <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Job Details</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">{t("Job Details")}</h2>
             <div className="prose text-sm text-gray-600 max-w-none">
-              <p><strong>Title:</strong> {job.title}</p>
-              <p><strong>Location:</strong> {job.city || job.location?.city}</p>
-              <p><strong>Work Mode:</strong> {job.workMode}</p>
-              <p><strong>Description:</strong></p>
+              <p><strong>{t("Title:")}</strong> {job.title}</p>
+              <p><strong>{t("Location:")}</strong> {job.city || job.location?.city}</p>
+              <p><strong>{t("Work Mode:")}</strong> {job.workMode}</p>
+              <p><strong>{t("Description:")}</strong></p>
               <div className="whitespace-pre-wrap">{job.description || 'No description provided.'}</div>
             </div>
           </div>
@@ -369,20 +365,20 @@ export default function JobDetails() {
 
         {activeTab === 'applicants' && (
           <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">All Applicants</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">{t("All Applicants")}</h2>
             <div className="space-y-4">
               {applications.map(app => (
                 <div key={app._id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg">
                   <div>
                     <p className="font-bold text-gray-900 text-sm">{app.provider?.name || 'Unknown User'}</p>
-                    <p className="text-xs text-gray-500">Applied {app.appliedAt ? formatDistanceToNow(new Date(app.appliedAt), { addSuffix: true }) : ''}</p>
+                    <p className="text-xs text-gray-500">{t("Applied")}{app.appliedAt ? formatDistanceToNow(new Date(app.appliedAt), { addSuffix: true }) : ''}</p>
                   </div>
                   <div className="text-sm font-semibold capitalize px-3 py-1 bg-gray-50 rounded-md border border-gray-200">
                     {app.status}
                   </div>
                 </div>
               ))}
-              {applications.length === 0 && <p className="text-gray-500 text-sm">No applicants yet.</p>}
+              {applications.length === 0 && <p className="text-gray-500 text-sm">{t("No applicants yet.")}</p>}
             </div>
           </div>
         )}
@@ -395,7 +391,7 @@ export default function JobDetails() {
                   <FiUsers className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Total Applicants</p>
+                  <p className="text-sm font-medium text-gray-500">{t("Total Applicants")}</p>
                   <p className="text-2xl font-bold text-gray-900">{totalCandidates}</p>
                 </div>
               </SCard>
@@ -405,7 +401,7 @@ export default function JobDetails() {
                   <FiTrendingUp className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Shortlisted</p>
+                  <p className="text-sm font-medium text-gray-500">{t("Shortlisted")}</p>
                   <p className="text-2xl font-bold text-gray-900">{groupedApps.find(a => a.id === 'shortlisted')?.candidates.length || 0}</p>
                 </div>
               </SCard>
@@ -415,7 +411,7 @@ export default function JobDetails() {
                   <FiCheckCircle className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Hired</p>
+                  <p className="text-sm font-medium text-gray-500">{t("Hired")}</p>
                   <p className="text-2xl font-bold text-gray-900">{groupedApps.find(a => a.id === 'hired')?.candidates.length || 0}</p>
                 </div>
               </SCard>
@@ -425,7 +421,7 @@ export default function JobDetails() {
                   <FiBarChart2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Avg. AI Match</p>
+                  <p className="text-sm font-medium text-gray-500">{t("Avg. AI Match")}</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {totalCandidates > 0 
                       ? Math.round(applications.reduce((acc, a) => acc + (a.aiMatch || 0), 0) / totalCandidates) + '%'
@@ -437,7 +433,7 @@ export default function JobDetails() {
             </div>
 
             <SCard className="p-6">
-              <h3 className="font-bold text-gray-900 mb-6">Funnel Drop-off</h3>
+              <h3 className="font-bold text-gray-900 mb-6">{t("Funnel Drop-off")}</h3>
               <div className="space-y-4">
                 {groupedApps.map(col => {
                   const pct = totalCandidates ? Math.round((col.candidates.length / totalCandidates) * 100) : 0;
@@ -445,7 +441,7 @@ export default function JobDetails() {
                     <div key={col.id}>
                       <div className="flex items-center justify-between text-sm mb-1.5">
                         <span className="font-semibold text-gray-700">{col.title}</span>
-                        <span className="text-gray-500 font-medium">{col.candidates.length} candidates ({pct}%)</span>
+                        <span className="text-gray-500 font-medium">{col.candidates.length}{t("candidates (")}{pct}%)</span>
                       </div>
                       <div className="w-full bg-gray-100 rounded-full h-2">
                         <div className={`h-2 rounded-full ${col.bg.replace('50', '500')}`} style={{ width: `${pct}%` }}></div>
@@ -458,7 +454,6 @@ export default function JobDetails() {
           </div>
         )}
       </div>
-      
       <CandidateProfileModal
         isOpen={!!selectedCandidate}
         onClose={() => setSelectedCandidate(null)}

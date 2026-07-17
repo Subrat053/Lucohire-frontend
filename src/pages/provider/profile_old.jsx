@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { providerAPI, aiAPI } from '../../services/api';
@@ -112,6 +113,10 @@ const Chip = ({ label, onRemove }) => (
 
 // ─── TagPicker ───────────────────────────────────────────────────────────────
 const TagPicker = ({ available, selected, onAdd, onRemove, placeholder }) => {
+  const {
+    t
+  } = useTranslation();
+
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -137,8 +142,7 @@ const TagPicker = ({ available, selected, onAdd, onRemove, placeholder }) => {
         {selected.map(s => <Chip key={s} label={s} onRemove={() => onRemove(s)} />)}
       </div>
       <button type="button" onClick={() => setOpen(o => !o)}
-        className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full border border-blue-300 text-blue-600 bg-white text-sm font-medium hover:bg-blue-50 transition">
-        + Add {placeholder}
+        className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full border border-blue-300 text-blue-600 bg-white text-sm font-medium hover:bg-blue-50 transition">{t("+ Add")}{placeholder}
       </button>
       {open && (
         <div className="relative z-10 mt-1 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
@@ -151,8 +155,7 @@ const TagPicker = ({ available, selected, onAdd, onRemove, placeholder }) => {
           <ul className="max-h-48 overflow-y-auto divide-y divide-gray-50">
             {query.trim() && !selected.includes(query.trim()) && !filtered.some(f => f.toLowerCase() === query.trim().toLowerCase()) && (
               <li onClick={addCustom}
-                className="px-4 py-2.5 text-sm text-blue-600 cursor-pointer hover:bg-blue-50 border-b">
-                Add &ldquo;{query.trim()}&rdquo;
+                className="px-4 py-2.5 text-sm text-blue-600 cursor-pointer hover:bg-blue-50 border-b">{t("Add “")}{query.trim()}&rdquo;
               </li>
             )}
             {filtered.map(s => (
@@ -168,6 +171,10 @@ const TagPicker = ({ available, selected, onAdd, onRemove, placeholder }) => {
 
 // ─── ProviderProfile ─────────────────────────────────────────────────────────
 const ProviderProfile = () => {
+  const {
+    t
+  } = useTranslation();
+
   const { user, fetchUser } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -832,12 +839,12 @@ const ProviderProfile = () => {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight">Manage Profile</h1>
-            <p className="text-xs text-slate-400 font-semibold mt-0.5">Customise your public listing, service areas, and AI optimizations.</p>
+            <h1 className="text-2xl font-black text-slate-800 tracking-tight">{t("Manage Profile")}</h1>
+            <p className="text-xs text-slate-400 font-semibold mt-0.5">{t("Customise your public listing, service areas, and AI optimizations.")}</p>
           </div>
           <div className="flex items-center gap-2 bg-white border border-slate-100 px-4 py-2 rounded-2xl shadow-xs shrink-0">
             <span className="w-2 h-2 rounded-full bg-violet-600 animate-pulse" />
-            <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Plan:</span>
+            <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider">{t("Plan:")}</span>
             <span className="text-xs text-violet-700 font-black uppercase tracking-wider bg-violet-50 px-3 py-1 rounded-xl border border-violet-100">
               {plan ? plan.toUpperCase() : 'FREE'}
             </span>
@@ -850,8 +857,10 @@ const ProviderProfile = () => {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center text-lg">⚠️</div>
               <div>
-                <p className="font-extrabold text-sm tracking-wide">Unsaved Profile Changes</p>
-                <p className="text-xs text-amber-50 leading-normal mt-0.5">You have unsaved edits in your profile draft. Click save below to update your public details.</p>
+                <p className="font-extrabold text-sm tracking-wide">{t("Unsaved Profile Changes")}</p>
+                <p className="text-xs text-amber-50 leading-normal mt-0.5">{t(
+                  "You have unsaved edits in your profile draft. Click save below to update your public details."
+                )}</p>
               </div>
             </div>
             <button
@@ -942,8 +951,8 @@ const ProviderProfile = () => {
             {/* Profile Strength Right */}
             <div className="border-t lg:border-t-0 lg:border-l border-slate-100 pt-6 lg:pt-0 lg:pl-8 flex flex-col justify-between">
               <div>
-                <h3 className="font-extrabold text-slate-800 text-sm">Profile Strength</h3>
-                <p className="text-slate-400 text-xs">Complete your profile to maximize placement rankings.</p>
+                <h3 className="font-extrabold text-slate-800 text-sm">{t("Profile Strength")}</h3>
+                <p className="text-slate-400 text-xs">{t("Complete your profile to maximize placement rankings.")}</p>
               </div>
 
               <div className="flex items-center justify-center gap-6 my-4">
@@ -980,8 +989,7 @@ const ProviderProfile = () => {
                     }`}>
                     {completion >= 80 ? 'Excellent' : completion >= 50 ? 'Good' : 'Weak'}
                   </span>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-violet-50 text-violet-700 border border-violet-100/50 text-center">
-                    Plan: {plan ? plan.toUpperCase() : 'FREE'}
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-violet-50 text-violet-700 border border-violet-100/50 text-center">{t("Plan:")}{plan ? plan.toUpperCase() : 'FREE'}
                   </span>
                 </div>
               </div>
@@ -994,7 +1002,7 @@ const ProviderProfile = () => {
                   ) : (
                     <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
                   )}
-                  <span>Add more specialities</span>
+                  <span>{t("Add more specialities")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {(documentVerification?.status === 'approved' || profileData?.user?.approvalStatus === 'approved' || profileData?.isApproved) ? (
@@ -1002,7 +1010,7 @@ const ProviderProfile = () => {
                   ) : (
                     <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
                   )}
-                  <span>Verify your documents</span>
+                  <span>{t("Verify your documents")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {form.portfolioLinks.length > 0 ? (
@@ -1010,7 +1018,7 @@ const ProviderProfile = () => {
                   ) : (
                     <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
                   )}
-                  <span>Add portfolio links</span>
+                  <span>{t("Add portfolio links")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {(form.pricing && form.pricingType) ? (
@@ -1018,7 +1026,7 @@ const ProviderProfile = () => {
                   ) : (
                     <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
                   )}
-                  <span>Set pricing & services</span>
+                  <span>{t("Set pricing & services")}</span>
                 </div>
               </div>
             </div>
@@ -1036,23 +1044,23 @@ const ProviderProfile = () => {
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
               <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
                 <UserIcon className="w-5 h-5 text-violet-600" />
-                <h3 className="font-extrabold text-slate-800 text-sm">Basic Information</h3>
+                <h3 className="font-extrabold text-slate-800 text-sm">{t("Basic Information")}</h3>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Full Name")}</label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value, profileName: e.target.value })}
-                    placeholder="e.g. Mritunjay kumar jha"
+                    placeholder={t("e.g. Mritunjay kumar jha")}
                     className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">WhatsApp / Contact Number</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("WhatsApp / Contact Number")}</label>
                   <div className="flex gap-2">
                     <div className="w-24 shrink-0 relative">
                       <select
@@ -1064,10 +1072,10 @@ const ProviderProfile = () => {
                         }}
                         className="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 outline-none bg-slate-50/50 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 appearance-none shadow-inner"
                       >
-                        <option value="+91">+91 (IN)</option>
-                        <option value="+971">+971 (AE)</option>
-                        <option value="+1">+1 (US)</option>
-                        <option value="+44">+44 (UK)</option>
+                        <option value="+91">{t("+91 (IN)")}</option>
+                        <option value="+971">{t("+971 (AE)")}</option>
+                        <option value="+1">{t("+1 (US)")}</option>
+                        <option value="+44">{t("+44 (UK)")}</option>
                       </select>
                       <div className="absolute right-3 top-3.5 pointer-events-none">
                         <ChevronDown className="w-4 h-4 text-slate-400" />
@@ -1082,7 +1090,7 @@ const ProviderProfile = () => {
                         const prefix = form.phone?.startsWith('+') ? form.phone.split(' ')[0] : '+91';
                         setForm({ ...form, phone: `${prefix} ${cleanPhone}` });
                       }}
-                      placeholder="08376022337"
+                      placeholder={t("08376022337")}
                       className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
                     />
                   </div>
@@ -1095,7 +1103,7 @@ const ProviderProfile = () => {
               <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
                 <MapPin className="w-5 h-5 text-violet-600" />
                 <div className="flex-1">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Location (Service Area)</h3>
+                  <h3 className="font-extrabold text-slate-800 text-sm">{t("Location (Service Area)")}</h3>
                   <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
                     {maxLocations > 1 ? `Max ${maxLocations} service locations allowed` : '1 service location allowed'}
                   </p>
@@ -1168,7 +1176,7 @@ const ProviderProfile = () => {
                         };
                       });
                     }}
-                    placeholder="Search and add a service location"
+                    placeholder={t("Search and add a service location")}
                   />
                 </div>
 
@@ -1194,15 +1202,14 @@ const ProviderProfile = () => {
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                    No service areas added. Search above to boost visibility coverage.
-                  </div>
+                  <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">{t("No service areas added. Search above to boost visibility coverage.")}</div>
                 )}
 
                 {form.locations.length >= maxLocations && maxLocations === 1 && (
                   <p className="text-[10px] text-amber-600 bg-amber-50 p-2.5 rounded-xl border border-amber-100/50 font-semibold flex items-center gap-1">
-                    <span>⚡</span> Upgrade your plan to expand your service reach to multiple pincodes or cities.
-                  </p>
+                    <span>⚡</span>{t(
+                    "Upgrade your plan to expand your service reach to multiple pincodes or cities."
+                  )}</p>
                 )}
               </div>
             </div>
@@ -1211,7 +1218,7 @@ const ProviderProfile = () => {
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
               <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
                 <Globe className="w-5 h-5 text-violet-600" />
-                <h3 className="font-extrabold text-slate-800 text-sm">Languages Spoken</h3>
+                <h3 className="font-extrabold text-slate-800 text-sm">{t("Languages Spoken")}</h3>
               </div>
 
               <SmartMultiSelect
@@ -1220,7 +1227,7 @@ const ProviderProfile = () => {
                   setForm(prev => ({ ...prev, languages: nextLangs }));
                 }}
                 allowCustom
-                placeholder="Search or type language"
+                placeholder={t("Search or type language")}
               />
             </div>
 
@@ -1228,7 +1235,7 @@ const ProviderProfile = () => {
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
               <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
                 <Calendar className="w-5 h-5 text-violet-600" />
-                <h3 className="font-extrabold text-slate-800 text-sm">Years of Experience</h3>
+                <h3 className="font-extrabold text-slate-800 text-sm">{t("Years of Experience")}</h3>
               </div>
 
               <div className="relative">
@@ -1241,11 +1248,11 @@ const ProviderProfile = () => {
                   onChange={(e) => setForm({ ...form, experience: e.target.value })}
                   className="w-full px-4 py-3 text-sm rounded-xl border border-slate-200 outline-none bg-slate-50/50 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 appearance-none shadow-inner text-slate-700 font-semibold"
                 >
-                  <option value="Fresher">Fresher (Entry-level)</option>
-                  <option value="0-1 years">0-1 years (Junior)</option>
-                  <option value="1-3 years">1-3 years (Intermediate)</option>
-                  <option value="3-5 years">3-5 years (Experienced)</option>
-                  <option value="5+ years">5+ years (Senior Expert)</option>
+                  <option value="Fresher">{t("Fresher (Entry-level)")}</option>
+                  <option value="0-1 years">{t("0-1 years (Junior)")}</option>
+                  <option value="1-3 years">{t("1-3 years (Intermediate)")}</option>
+                  <option value="3-5 years">{t("3-5 years (Experienced)")}</option>
+                  <option value="5+ years">{t("5+ years (Senior Expert)")}</option>
                 </select>
                 <div className="absolute right-4 top-3.5 pointer-events-none">
                   <ChevronDown className="w-4 h-4 text-slate-400" />
@@ -1257,11 +1264,13 @@ const ProviderProfile = () => {
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
               <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
                 <ShieldCheck className="w-5 h-5 text-violet-600" />
-                <h3 className="font-extrabold text-slate-800 text-sm">Aadhaar Verification</h3>
+                <h3 className="font-extrabold text-slate-800 text-sm">{t("Aadhaar Verification")}</h3>
               </div>
 
               <div className="space-y-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                <p className="text-xs text-slate-500 font-semibold">Verify your identity to build recruiter trust and unlock premium job opportunities.</p>
+                <p className="text-xs text-slate-500 font-semibold">{t(
+                  "Verify your identity to build recruiter trust and unlock premium job opportunities."
+                )}</p>
 
                 <div className="flex flex-col gap-3 justify-center">
                   <div className="border border-dashed border-slate-200 bg-white rounded-2xl p-4 flex flex-col items-center justify-center relative cursor-pointer hover:bg-slate-50 transition">
@@ -1302,9 +1311,7 @@ const ProviderProfile = () => {
                       type="button"
                       onClick={() => setShowLinkInput(v => !v)}
                       className="text-[10px] font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"
-                    >
-                      🛠️ Open Developer OCR Sandbox
-                    </button>
+                    >{t("🛠️ Open Developer OCR Sandbox")}</button>
 
                     {showLinkInput && (
                       <div className="mt-2 space-y-3 bg-white p-3 rounded-xl border border-slate-200">
@@ -1343,7 +1350,7 @@ const ProviderProfile = () => {
               <div className="flex items-center justify-between pb-3 border-b border-slate-50">
                 <div className="flex items-center gap-2">
                   <Link2 className="w-5 h-5 text-violet-600" />
-                  <h3 className="font-extrabold text-slate-800 text-sm">Portfolio / Links</h3>
+                  <h3 className="font-extrabold text-slate-800 text-sm">{t("Portfolio / Links")}</h3>
                 </div>
 
                 <button
@@ -1351,8 +1358,7 @@ const ProviderProfile = () => {
                   onClick={() => setShowLinkInput(v => !v)}
                   className="text-xs font-black text-violet-700 hover:text-violet-900 transition flex items-center gap-1"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Add Link
-                </button>
+                  <Plus className="w-3.5 h-3.5" />{t("Add Link")}</button>
               </div>
 
               {form.portfolioLinks.length > 0 ? (
@@ -1378,9 +1384,7 @@ const ProviderProfile = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                  No portfolio links configured. Add websites or socials above.
-                </div>
+                <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">{t("No portfolio links configured. Add websites or socials above.")}</div>
               )}
 
               {/* Add Link Input Field */}
@@ -1399,7 +1403,7 @@ const ProviderProfile = () => {
                         }
                       }
                     }}
-                    placeholder="https://your-portfolio.com"
+                    placeholder={t("https://your-portfolio.com")}
                     className="flex-1 px-4 py-2.5 text-xs border border-slate-200 rounded-xl bg-slate-50/50 outline-none focus:ring-4 focus:ring-violet-100 focus:border-violet-500 shadow-inner"
                   />
                   <button
@@ -1412,9 +1416,7 @@ const ProviderProfile = () => {
                       }
                     }}
                     className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-violet-200 transition"
-                  >
-                    Add
-                  </button>
+                  >{t("Add")}</button>
                 </div>
               )}
             </div>
@@ -1428,7 +1430,7 @@ const ProviderProfile = () => {
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col items-center gap-4 relative">
               <div className="flex items-center gap-2 pb-3 border-b border-slate-50 w-full">
                 <Camera className="w-5 h-5 text-violet-600" />
-                <h3 className="font-extrabold text-slate-800 text-sm">Profile Photo</h3>
+                <h3 className="font-extrabold text-slate-800 text-sm">{t("Profile Photo")}</h3>
               </div>
 
               <div className="w-24 h-24 rounded-full border-4 border-violet-100 shadow-lg overflow-hidden bg-slate-50 flex items-center justify-center relative shadow-inner">
@@ -1445,8 +1447,8 @@ const ProviderProfile = () => {
               </div>
 
               <div className="text-center">
-                <p className="font-extrabold text-slate-800 text-sm">Upload Profile Portrait</p>
-                <p className="text-[10px] font-bold text-slate-400 mt-0.5">JPG or PNG formats, maximum size 5MB</p>
+                <p className="font-extrabold text-slate-800 text-sm">{t("Upload Profile Portrait")}</p>
+                <p className="text-[10px] font-bold text-slate-400 mt-0.5">{t("JPG or PNG formats, maximum size 5MB")}</p>
               </div>
 
               <input
@@ -1472,9 +1474,7 @@ const ProviderProfile = () => {
                     type="button"
                     onClick={handleRemovePhoto}
                     className="px-5 py-2.5 rounded-full border border-slate-200 text-slate-600 text-xs font-black hover:bg-slate-50 transition"
-                  >
-                    Remove
-                  </button>
+                  >{t("Remove")}</button>
                 )}
               </div>
             </div>
@@ -1484,7 +1484,7 @@ const ProviderProfile = () => {
               <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
                 <Award className="w-5 h-5 text-violet-600" />
                 <div className="flex-1">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Speciality</h3>
+                  <h3 className="font-extrabold text-slate-800 text-sm">{t("Speciality")}</h3>
                   <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
                     {plan === 'free' ? 'First Specialty is Free' : 'Unlimited Specialities Unlocked'}
                   </p>
@@ -1522,9 +1522,7 @@ const ProviderProfile = () => {
                       type="button"
                       onClick={() => navigate('/provider/plans')}
                       className="mt-2.5 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-black rounded-full shadow-md hover:shadow-violet-200 transition"
-                    >
-                      Choose Plan
-                    </button>
+                    >{t("Choose Plan")}</button>
                   )}
                 </div>
               )}
@@ -1533,7 +1531,7 @@ const ProviderProfile = () => {
               <div className="pt-4 border-t border-slate-100 space-y-4">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-violet-600" />
-                  <span className="font-extrabold text-slate-800 text-xs">Smart Skill Level (AI Recommended)</span>
+                  <span className="font-extrabold text-slate-800 text-xs">{t("Smart Skill Level (AI Recommended)")}</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1572,7 +1570,7 @@ const ProviderProfile = () => {
               <div className="flex items-center gap-2 pb-3 border-b border-slate-50 w-full justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-violet-600 font-black text-lg">₹</span>
-                  <h3 className="font-extrabold text-slate-800 text-sm">Rate & Payout</h3>
+                  <h3 className="font-extrabold text-slate-800 text-sm">{t("Rate & Payout")}</h3>
                 </div>
 
                 <button
@@ -1581,7 +1579,7 @@ const ProviderProfile = () => {
                   className="text-xs font-black text-violet-700 hover:text-violet-900 transition flex items-center gap-1 bg-violet-50 border border-violet-100 px-2.5 py-1.5 rounded-full"
                 >
                   <Sparkles className="w-3.5 h-3.5 animate-pulse text-violet-600" />
-                  <span>AI Suggest</span>
+                  <span>{t("AI Suggest")}</span>
                 </button>
               </div>
 
@@ -1615,7 +1613,7 @@ const ProviderProfile = () => {
                   type="text"
                   value={form.pricing}
                   onChange={(e) => setForm({ ...form, pricing: e.target.value })}
-                  placeholder="Enter your rate amount"
+                  placeholder={t("Enter your rate amount")}
                   className="w-full pl-8 pr-4 py-3 text-sm rounded-xl border border-slate-200 focus:border-violet-500 outline-none focus:ring-4 focus:ring-violet-100 bg-slate-50/50 shadow-inner transition"
                 />
               </div>
@@ -1623,20 +1621,20 @@ const ProviderProfile = () => {
               {pricingSuggestion?.pricing && (
                 <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-emerald-900">AI Pricing Preview</p>
+                    <p className="text-sm font-semibold text-emerald-900">{t("AI Pricing Preview")}</p>
                     <span className="text-[11px] font-bold text-emerald-700">{pricingSuggestion.reasoning || pricingSuggestion.pricing.reason}</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div className="rounded-xl bg-white border border-emerald-100 p-3">
-                      <p className="text-emerald-600 font-bold">Per Hour</p>
+                      <p className="text-emerald-600 font-bold">{t("Per Hour")}</p>
                       <p className="text-lg font-black text-emerald-900">₹{pricingSuggestion.pricing.perHour}</p>
                     </div>
                     <div className="rounded-xl bg-white border border-emerald-100 p-3">
-                      <p className="text-emerald-600 font-bold">Per Day</p>
+                      <p className="text-emerald-600 font-bold">{t("Per Day")}</p>
                       <p className="text-lg font-black text-emerald-900">₹{pricingSuggestion.pricing.perDay}</p>
                     </div>
                     <div className="rounded-xl bg-white border border-emerald-100 p-3">
-                      <p className="text-emerald-600 font-bold">Per Month</p>
+                      <p className="text-emerald-600 font-bold">{t("Per Month")}</p>
                       <p className="text-lg font-black text-emerald-900">₹{pricingSuggestion.pricing.perMonth}</p>
                     </div>
                   </div>
@@ -1644,9 +1642,7 @@ const ProviderProfile = () => {
                     type="button"
                     onClick={applyPricingSuggestion}
                     className="w-full px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition"
-                  >
-                    Use AI Pricing
-                  </button>
+                  >{t("Use AI Pricing")}</button>
                 </div>
               )}
             </div>
@@ -1655,31 +1651,27 @@ const ProviderProfile = () => {
               <div className="bg-white rounded-3xl border border-violet-100 shadow-sm p-6 space-y-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h3 className="font-extrabold text-slate-800 text-sm">AI Suggestion Preview</h3>
-                    <p className="text-[11px] text-slate-400 font-semibold">Review before applying to the draft.</p>
+                    <h3 className="font-extrabold text-slate-800 text-sm">{t("AI Suggestion Preview")}</h3>
+                    <p className="text-[11px] text-slate-400 font-semibold">{t("Review before applying to the draft.")}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setAiSuggestion(null)}
                     className="text-xs font-bold text-slate-400 hover:text-slate-700"
-                  >
-                    Dismiss
-                  </button>
+                  >{t("Dismiss")}</button>
                 </div>
                 <div className="space-y-2 text-xs text-slate-600">
-                  <p><span className="font-bold text-slate-800">Title:</span> {aiSuggestion.title}</p>
-                  <p><span className="font-bold text-slate-800">Description:</span> {aiSuggestion.description}</p>
-                  <p><span className="font-bold text-slate-800">Specialities:</span> {(aiSuggestion.suggestedSpecialities || []).map((item) => item.name).join(', ') || 'None'}</p>
-                  <p><span className="font-bold text-slate-800">Locations:</span> {(aiSuggestion.suggestedLocations || []).map((item) => item.formattedAddress || item.city).join(', ') || 'None'}</p>
-                  <p><span className="font-bold text-slate-800">Tags:</span> {(aiSuggestion.tags || []).join(', ') || 'None'}</p>
+                  <p><span className="font-bold text-slate-800">{t("Title:")}</span> {aiSuggestion.title}</p>
+                  <p><span className="font-bold text-slate-800">{t("Description:")}</span> {aiSuggestion.description}</p>
+                  <p><span className="font-bold text-slate-800">{t("Specialities:")}</span> {(aiSuggestion.suggestedSpecialities || []).map((item) => item.name).join(', ') || 'None'}</p>
+                  <p><span className="font-bold text-slate-800">{t("Locations:")}</span> {(aiSuggestion.suggestedLocations || []).map((item) => item.formattedAddress || item.city).join(', ') || 'None'}</p>
+                  <p><span className="font-bold text-slate-800">{t("Tags:")}</span> {(aiSuggestion.tags || []).join(', ') || 'None'}</p>
                 </div>
                 <button
                   type="button"
                   onClick={applyAiSuggestion}
                   className="w-full px-4 py-2.5 rounded-xl bg-violet-600 text-white text-xs font-black hover:bg-violet-700 transition"
-                >
-                  Apply AI Suggestion
-                </button>
+                >{t("Apply AI Suggestion")}</button>
               </div>
             )}
 
@@ -1691,8 +1683,8 @@ const ProviderProfile = () => {
                     <svg className="w-5 h-5 fill-emerald-600" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.45L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.966a9.79 9.79 0 0 0-6.979-2.879C5.036 1.961.612 6.331.608 11.76c-.001 1.673.454 3.305 1.319 4.717L1.139 21.03l4.733-1.229c1.603.953 3.193 1.453 4.832 1.454z" /></svg>
                   </div>
                   <div>
-                    <p className="font-extrabold text-slate-800 text-sm">WhatsApp Alerts</p>
-                    <p className="text-[10px] font-semibold text-slate-400 mt-0.5">Get instant real-time notification alerts for job leads.</p>
+                    <p className="font-extrabold text-slate-800 text-sm">{t("WhatsApp Alerts")}</p>
+                    <p className="text-[10px] font-semibold text-slate-400 mt-0.5">{t("Get instant real-time notification alerts for job leads.")}</p>
                   </div>
                 </div>
 
@@ -1721,7 +1713,7 @@ const ProviderProfile = () => {
                   <Compass className="w-6 h-6 animate-spin-slow text-violet-100" />
                 </div>
                 <div>
-                  <h4 className="font-black text-lg tracking-wide">Unlock Premium Search Placements</h4>
+                  <h4 className="font-black text-lg tracking-wide">{t("Unlock Premium Search Placements")}</h4>
                   <p className="text-violet-100 text-xs mt-1 leading-relaxed">
                     {plan === 'free'
                       ? 'Upgrade your plan to showcase multiple specialities, secure top ranks, and unlock unlimited service locations.'
@@ -1751,41 +1743,39 @@ const ProviderProfile = () => {
                 {saving ? (
                   <>
                     <RefreshCw className="w-5 h-5 animate-spin" />
-                    <span>Saving Profile...</span>
+                    <span>{t("Saving Profile...")}</span>
                   </>
                 ) : (
                   <>
-                    <span>Save Profile</span>
+                    <span>{t("Save Profile")}</span>
                     <span>→</span>
                   </>
                 )}
               </button>
-              <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-                Your profile will be immediately refreshed for active search results
-              </p>
+              <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">{t("Your profile will be immediately refreshed for active search results")}</p>
             </div>
 
             {/* Premium feature benefit icons */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-t border-slate-100/60">
               <div className="flex flex-col items-center text-center p-4 bg-white rounded-2xl border border-slate-100 shadow-xs">
                 <Sparkles className="w-6 h-6 text-violet-600 mb-2" />
-                <h5 className="font-extrabold text-slate-800 text-xs">AI Powered</h5>
-                <p className="text-[10px] text-slate-400 font-semibold mt-1">Smart profile optimization recommendations</p>
+                <h5 className="font-extrabold text-slate-800 text-xs">{t("AI Powered")}</h5>
+                <p className="text-[10px] text-slate-400 font-semibold mt-1">{t("Smart profile optimization recommendations")}</p>
               </div>
               <div className="flex flex-col items-center text-center p-4 bg-white rounded-2xl border border-slate-100 shadow-xs">
                 <ShieldCheck className="w-6 h-6 text-violet-600 mb-2" />
-                <h5 className="font-extrabold text-slate-800 text-xs">Verified Badges</h5>
-                <p className="text-[10px] text-slate-400 font-semibold mt-1">OCR document verified profile trust boosts</p>
+                <h5 className="font-extrabold text-slate-800 text-xs">{t("Verified Badges")}</h5>
+                <p className="text-[10px] text-slate-400 font-semibold mt-1">{t("OCR document verified profile trust boosts")}</p>
               </div>
               <div className="flex flex-col items-center text-center p-4 bg-white rounded-2xl border border-slate-100 shadow-xs">
                 <Compass className="w-6 h-6 text-violet-600 mb-2" />
-                <h5 className="font-extrabold text-slate-800 text-xs">Maximum Exposure</h5>
-                <p className="text-[10px] text-slate-400 font-semibold mt-1">Rank at the top in recruiter searches</p>
+                <h5 className="font-extrabold text-slate-800 text-xs">{t("Maximum Exposure")}</h5>
+                <p className="text-[10px] text-slate-400 font-semibold mt-1">{t("Rank at the top in recruiter searches")}</p>
               </div>
               <div className="flex flex-col items-center text-center p-4 bg-white rounded-2xl border border-slate-100 shadow-xs">
                 <Zap className="w-6 h-6 text-violet-600 mb-2" />
-                <h5 className="font-extrabold text-slate-800 text-xs">Instant Opportunities</h5>
-                <p className="text-[10px] text-slate-400 font-semibold mt-1">Get immediate WhatsApp push alerts</p>
+                <h5 className="font-extrabold text-slate-800 text-xs">{t("Instant Opportunities")}</h5>
+                <p className="text-[10px] text-slate-400 font-semibold mt-1">{t("Get immediate WhatsApp push alerts")}</p>
               </div>
             </div>
 
@@ -1794,7 +1784,6 @@ const ProviderProfile = () => {
         </form>
 
       </div>
-
       {/* Embedded inline AI Chat is at the top of the page */}
     </div>
   );

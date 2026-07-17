@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { recruiterAPI } from '../../services/api';
@@ -6,6 +7,10 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 
 export default function TopMatches() {
+  const {
+    t
+  } = useTranslation();
+
   const [searchParams] = useSearchParams();
   const jobId = searchParams.get('jobId');
   const navigate = useNavigate();
@@ -52,12 +57,11 @@ export default function TopMatches() {
           </Link>
           <div>
             <h1 className="text-xl font-bold text-[#081B3A] flex items-center gap-2">
-              <HiSparkles className="text-purple-600" /> 
-              Top Matches {jobTitle ? `for "${jobTitle}"` : ''}
+              <HiSparkles className="text-purple-600" />{t("Top Matches")}{jobTitle ? `for "${jobTitle}"` : ''}
             </h1>
-            <p className="text-sm text-gray-500">
-              Our AI Matchmaking Engine analyzed this job's requirements and found the top 15 most suitable providers.
-            </p>
+            <p className="text-sm text-gray-500">{t(
+              "Our AI Matchmaking Engine analyzed this job's requirements and found the top 15 most suitable providers."
+            )}</p>
           </div>
         </div>
 
@@ -69,8 +73,10 @@ export default function TopMatches() {
         ) : matches.length === 0 ? (
           <div className="bg-white rounded-2xl border border-[#E5EAF3] p-10 text-center">
             <HiSparkles className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-gray-700">No Perfect Matches Found</h3>
-            <p className="text-sm text-gray-500 mt-1">Try expanding the location or adjusting the skill requirements in your job post.</p>
+            <h3 className="text-lg font-bold text-gray-700">{t("No Perfect Matches Found")}</h3>
+            <p className="text-sm text-gray-500 mt-1">{t(
+              "Try expanding the location or adjusting the skill requirements in your job post."
+            )}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -78,8 +84,7 @@ export default function TopMatches() {
               <div key={provider._id} className="bg-white rounded-2xl border border-[#E5EAF3] p-5 hover:border-purple-300 hover:shadow-md transition group relative overflow-hidden">
                 {/* Ranking Badge */}
                 <div className="absolute top-0 right-0 bg-gradient-to-bl from-purple-600 to-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-bl-xl shadow-sm">
-                  #{index + 1} Match
-                </div>
+                  #{index + 1}{t("Match")}</div>
 
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold text-xl border-2 border-purple-200">
@@ -102,12 +107,10 @@ export default function TopMatches() {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <HiBriefcase className="w-4 h-4 text-purple-500 shrink-0" />
-                    <span>{provider.experience || '0'} Years Experience</span>
+                    <span>{provider.experience || '0'}{t("Years Experience")}</span>
                   </div>
                   {provider.pricing && (
-                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                      Pricing: ₹{provider.pricing} / hr
-                    </div>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 bg-gray-50 p-2 rounded-lg border border-gray-100">{t("Pricing: ₹")}{provider.pricing}{t("/ hr")}</div>
                   )}
                 </div>
 
@@ -127,9 +130,7 @@ export default function TopMatches() {
                 <button 
                   onClick={() => navigate(`/recruiter/find-providers?providerId=${provider._id}`)}
                   className="w-full py-2.5 bg-white border-2 border-purple-600 text-purple-700 font-bold rounded-xl hover:bg-purple-50 transition"
-                >
-                  View Full Profile
-                </button>
+                >{t("View Full Profile")}</button>
               </div>
             ))}
           </div>

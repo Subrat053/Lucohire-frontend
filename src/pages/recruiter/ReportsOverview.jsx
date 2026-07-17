@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -36,6 +37,10 @@ const iconMap = {
 };
 
 export default function ReportsOverview() {
+  const {
+    t
+  } = useTranslation();
+
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
 
@@ -48,7 +53,7 @@ export default function ReportsOverview() {
     });
   }, []);
 
-  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">Loading dashboard data...</div>;
+  if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">{t("Loading dashboard data...")}</div>;
 
   const topMetrics = data.topMetrics.map(m => ({ ...m, icon: iconMap[m.icon] }));
   const { funnelStages, sourceLegend, jobPerf, interviewLegend, aiTrends, applicationsTrend, timeToHireTrend } = data;
@@ -67,12 +72,10 @@ export default function ReportsOverview() {
             <div className="text-lg font-extrabold text-gray-900 mb-1">{m.value}</div>
             <div className={`text-[10px] font-bold flex items-center gap-0.5 ${m.up ? 'text-emerald-600' : 'text-red-500'}`}>
               {m.up ? <FiArrowUpRight className="w-3 h-3" /> : <FiArrowDownRight className="w-3 h-3" />}
-              {m.trend} vs last month
-            </div>
+              {m.trend}{t("vs last month")}</div>
           </SCard>
         ))}
       </div>
-
       {/* Row 2 */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-4 sm:gap-6">
         {/* Funnel */}
@@ -152,8 +155,8 @@ export default function ReportsOverview() {
           <div className="space-y-3 flex-1">
             {[
               { bg: 'bg-emerald-50', ic: 'text-emerald-600', icon: <HiSparkles />, text: 'Your time to hire improved by 8% compared to last month.' },
-              { bg: 'bg-orange-50',  ic: 'text-orange-500',  icon: <FiUsers />,    text: <><strong>Frontend Developer</strong> has highest applications and conversion rate.</> },
-              { bg: 'bg-blue-50',    ic: 'text-blue-600',    icon: <span className="font-black text-xs">%</span>, text: <><strong>LinkedIn</strong> is top source with 32% of total hires.</> },
+              { bg: 'bg-orange-50',  ic: 'text-orange-500',  icon: <FiUsers />,    text: <><strong>{t("Frontend Developer")}</strong>{t("has highest applications and conversion rate.")}</> },
+              { bg: 'bg-blue-50',    ic: 'text-blue-600',    icon: <span className="font-black text-xs">%</span>, text: <><strong>{t("LinkedIn")}</strong>{t("is top source with 32% of total hires.")}</> },
               { bg: 'bg-purple-50',  ic: 'text-purple-600',  icon: <HiSparkles />, text: 'Increase outreach to passive candidates for Senior React Developer roles.' },
             ].map((item, i) => (
               <div key={i} className={`flex items-start gap-3 p-3 rounded-xl ${item.bg}`}>
@@ -165,7 +168,6 @@ export default function ReportsOverview() {
           <ViewBtn label="View All AI Insights" to="/recruiter/reports/ai-insights" />
         </SCard>
       </div>
-
       {/* Row 3 */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-4 sm:gap-6">
         <SCard className="p-5 xl:col-span-6 flex flex-col">
@@ -175,7 +177,7 @@ export default function ReportsOverview() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-24 h-24 bg-white rounded-full flex flex-col items-center justify-center">
                   <div className="text-base font-extrabold text-gray-900">2,842</div>
-                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-center">Total<br/>Apps</div>
+                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-center">{t("Total")}<br/>{t("Apps")}</div>
                 </div>
               </div>
             </div>
@@ -202,11 +204,11 @@ export default function ReportsOverview() {
             <table className="w-full text-left min-w-[240px]">
               <thead>
                 <tr className="text-[10px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">
-                  <th className="pb-3">Type</th>
-                  <th className="pb-3 text-center">Jobs</th>
-                  <th className="pb-3 text-center">Apps</th>
-                  <th className="pb-3 text-center">Hires</th>
-                  <th className="pb-3 text-right">H/J</th>
+                  <th className="pb-3">{t("Type")}</th>
+                  <th className="pb-3 text-center">{t("Jobs")}</th>
+                  <th className="pb-3 text-center">{t("Apps")}</th>
+                  <th className="pb-3 text-center">{t("Hires")}</th>
+                  <th className="pb-3 text-right">{t("H/J")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -233,14 +235,13 @@ export default function ReportsOverview() {
         {/* Custom Reports + Downloads */}
         <div className="xl:col-span-12 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <SCard className="p-5">
-            <h3 className="text-sm font-bold text-gray-900 mb-2">Custom Reports</h3>
-            <p className="text-[11px] text-gray-500 mb-4 leading-relaxed">Create reports with advanced filters and save for future use.</p>
+            <h3 className="text-sm font-bold text-gray-900 mb-2">{t("Custom Reports")}</h3>
+            <p className="text-[11px] text-gray-500 mb-4 leading-relaxed">{t("Create reports with advanced filters and save for future use.")}</p>
             <Link to="/recruiter/reports/custom-reports" className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-indigo-200 text-indigo-600 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-50 transition">
-              <FiPlus /> Create Custom Report
-            </Link>
+              <FiPlus />{t("Create Custom Report")}</Link>
           </SCard>
           <SCard className="p-5">
-            <h3 className="text-sm font-bold text-gray-900 mb-4">Download Center</h3>
+            <h3 className="text-sm font-bold text-gray-900 mb-4">{t("Download Center")}</h3>
             <div className="space-y-2.5">
               {[{ c: 'text-red-500', l: 'Hiring Overview (PDF)' }, { c: 'text-emerald-500', l: 'Source Performance (Excel)' }, { c: 'text-red-500', l: 'Recruiter Perf. (PDF)' }].map((d, i) => (
                 <div key={i} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
@@ -255,7 +256,6 @@ export default function ReportsOverview() {
           </SCard>
         </div>
       </div>
-
       {/* Row 4 */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
         {/* Outreach */}
@@ -287,7 +287,7 @@ export default function ReportsOverview() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-28 h-28 bg-white rounded-full flex flex-col items-center justify-center">
                   <div className="text-xl font-extrabold text-gray-900">312</div>
-                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-center">Total<br/>Interviews</div>
+                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-center">{t("Total")}<br/>{t("Interviews")}</div>
                 </div>
               </div>
             </div>
@@ -326,14 +326,11 @@ export default function ReportsOverview() {
           <ViewBtn label="View Full AI Insights" to="/recruiter/reports/ai-insights" />
         </SCard>
       </div>
-
       {/* Footer */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px] font-medium text-gray-400 border-t border-gray-200 pt-4 px-1">
         <div className="flex items-center gap-1.5">
-          <FiClock className="w-3.5 h-3.5" />
-          All data is updated daily. Last updated on 20 May 2026, 09:30 AM
-        </div>
-        <div>Data shown in India Standard Time (IST)</div>
+          <FiClock className="w-3.5 h-3.5" />{t("All data is updated daily. Last updated on 20 May 2026, 09:30 AM")}</div>
+        <div>{t("Data shown in India Standard Time (IST)")}</div>
       </div>
     </div>
   );

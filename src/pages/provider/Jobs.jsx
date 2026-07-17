@@ -1,5 +1,6 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect, useCallback } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import {
@@ -17,6 +18,12 @@ import {
   HiDocumentText,
   HiExclamationCircle,
   HiSparkles,
+  HiOutlineBookmark,
+  HiOutlineLockClosed,
+  HiOutlinePaperAirplane,
+  HiOutlineMail,
+  HiOutlinePhone,
+  HiOutlineBriefcase,
 } from "react-icons/hi";
 import { FaRupeeSign, FaWhatsapp } from "react-icons/fa";
 import toast from "react-hot-toast";
@@ -43,6 +50,10 @@ const STATUS_COLORS = {
 
 /* ── Apply Modal ─────────────────────────────────────────────────────── */
 const ApplyModal = ({ job, onClose, onSuccess }) => {
+  const {
+    t
+  } = useTranslation();
+
   const [coverLetter, setCoverLetter] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -64,8 +75,7 @@ const ApplyModal = ({ job, onClose, onSuccess }) => {
     <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg border border-gray-100 overflow-hidden transform transition-all">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">
-            Apply for: {job.title}
+          <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">{t("Apply for:")}{job.title}
           </h3>
           <button
             onClick={onClose}
@@ -77,25 +87,26 @@ const ApplyModal = ({ job, onClose, onSuccess }) => {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-1">
             <p className="text-xs sm:text-sm text-gray-600">
-              <span className="font-bold text-gray-800">Recruiter:</span>{" "}
+              <span className="font-bold text-gray-800">{t("Recruiter:")}</span>{" "}
               {job.companyName || job.recruiter?.name || "Recruiter Company"}
             </p>
             <p className="text-xs sm:text-sm text-gray-600">
-              <span className="font-bold text-gray-800">Skill needed:</span>{" "}
+              <span className="font-bold text-gray-800">{t("Skill needed:")}</span>{" "}
               {job.skill} · {job.city}
             </p>
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1.5">
-              Introduce Yourself / Cover Letter{" "}
-              <span className="text-gray-400 font-normal">(optional)</span>
+            <label className="block text-xs font-bold text-gray-700 mb-1.5">{t("Introduce Yourself / Cover Letter")}{" "}
+              <span className="text-gray-400 font-normal">{t("(optional)")}</span>
             </label>
             <textarea
               rows={5}
               value={coverLetter}
               onChange={(e) => setCoverLetter(e.target.value)}
               maxLength={1000}
-              placeholder="Describe your qualifications, experience, and why you are the best fit for this role..."
+              placeholder={t(
+                "Describe your qualifications, experience, and why you are the best fit for this role..."
+              )}
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-xs sm:text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-300 resize-none outline-none"
             />
             <p className="text-right text-[10px] text-gray-400 mt-0.5">
@@ -107,9 +118,7 @@ const ApplyModal = ({ job, onClose, onSuccess }) => {
               type="button"
               onClick={onClose}
               className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition"
-            >
-              Cancel
-            </button>
+            >{t("Cancel")}</button>
             <button
               type="submit"
               disabled={loading}
@@ -126,6 +135,10 @@ const ApplyModal = ({ job, onClose, onSuccess }) => {
 
 /* ── Job Details Modal ────────────────────────────────────────────────── */
 const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
+  const {
+    t
+  } = useTranslation();
+
   useEffect(() => {
     let metaTag = null;
     if (job?.isExternal) {
@@ -160,8 +173,7 @@ const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
               <HiBriefcase className="w-5 h-5 text-emerald-600 shrink-0 animate-pulse" />
               {job.title}
             </h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Posted {postedAgo} by{" "}
+            <p className="text-xs text-gray-500 mt-1">{t("Posted")}{postedAgo}{t("by")}{" "}
               <span
                 onClick={() => {
                   if (job.recruiter?._id) {
@@ -193,65 +205,49 @@ const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
           {/* Main Info Badges */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-emerald-50/40 p-4 rounded-2xl border border-emerald-100/50">
             <div className="space-y-1">
-              <span className="text-[10px] uppercase tracking-wider text-emerald-600 font-bold">
-                Budget / Salary
-              </span>
+              <span className="text-[10px] uppercase tracking-wider text-emerald-600 font-bold">{t("Budget / Salary")}</span>
               <p className="font-extrabold text-gray-900 flex items-center gap-0.5 text-sm sm:text-base">
                 <FaRupeeSign className="w-3.5 h-3.5 text-emerald-600" />
                 {budgetText}
               </p>
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] uppercase tracking-wider text-emerald-600 font-bold">
-                Location
-              </span>
+              <span className="text-[10px] uppercase tracking-wider text-emerald-600 font-bold">{t("Location")}</span>
               <p className="font-bold text-gray-800 flex items-center gap-1">
                 <HiLocationMarker className="w-4 h-4 text-emerald-600" />
                 {job.city || "Not specified"}
               </p>
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] uppercase tracking-wider text-emerald-600 font-bold">
-                Job Status
-              </span>
-              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 mt-0.5 w-fit">
-                Active Job
-              </span>
+              <span className="text-[10px] uppercase tracking-wider text-emerald-600 font-bold">{t("Job Status")}</span>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 mt-0.5 w-fit">{t("Active Job")}</span>
             </div>
           </div>
 
           {/* Job Description */}
           <div className="space-y-2">
-            <h4 className="font-bold text-gray-900 text-sm sm:text-base border-l-4 border-emerald-600 pl-2">
-              Job Description
-            </h4>
+            <h4 className="font-bold text-gray-900 text-sm sm:text-base border-l-4 border-emerald-600 pl-2">{t("Job Description")}</h4>
             {job.description ? (
               <div 
                 className="text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 text-xs sm:text-sm prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: job.description }}
               />
             ) : (
-              <p className="text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 whitespace-pre-line text-xs sm:text-sm">
-                No detailed description available.
-              </p>
+              <p className="text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 whitespace-pre-line text-xs sm:text-sm">{t("No detailed description available.")}</p>
             )}
           </div>
 
           {/* Requirements & Skills */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <h4 className="font-bold text-gray-900 text-sm border-l-4 border-emerald-600 pl-2">
-                Experience Needed
-              </h4>
+              <h4 className="font-bold text-gray-900 text-sm border-l-4 border-emerald-600 pl-2">{t("Experience Needed")}</h4>
               <p className="text-xs sm:text-sm text-gray-600 bg-gray-50/50 px-4 py-3 rounded-xl border border-gray-100/80 font-medium">
                 {job.experienceRequired ||
                   "Experience requirement not specified"}
               </p>
             </div>
             <div className="space-y-2">
-              <h4 className="font-bold text-gray-900 text-sm border-l-4 border-emerald-600 pl-2">
-                Primary Skill Category
-              </h4>
+              <h4 className="font-bold text-gray-900 text-sm border-l-4 border-emerald-600 pl-2">{t("Primary Skill Category")}</h4>
               <p className="text-xs sm:text-sm text-emerald-700 bg-emerald-50/30 px-4 py-3 rounded-xl border border-emerald-100/50 font-bold">
                 {job.skill}
               </p>
@@ -261,9 +257,7 @@ const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
           {/* Other Skills Needed */}
           {job.requirements?.length > 0 && (
             <div className="space-y-2">
-              <h4 className="font-bold text-gray-900 text-sm border-l-4 border-emerald-600 pl-2">
-                Required Skills / Credentials
-              </h4>
+              <h4 className="font-bold text-gray-900 text-sm border-l-4 border-emerald-600 pl-2">{t("Required Skills / Credentials")}</h4>
               <div className="flex flex-wrap gap-2 pt-1">
                 {job.requirements.map((r, i) => (
                   <span
@@ -280,9 +274,7 @@ const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
           {/* Company / Recruiter Basic Info */}
           <div className="space-y-2 border-t border-gray-100 pt-5">
             <h4 className="font-bold text-gray-900 text-sm sm:text-base flex items-center gap-1">
-              <HiOfficeBuilding className="w-5 h-5 text-gray-400" />
-              About The Company
-            </h4>
+              <HiOfficeBuilding className="w-5 h-5 text-gray-400" />{t("About The Company")}</h4>
             <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 space-y-2">
               <p
                 onClick={() => {
@@ -311,32 +303,24 @@ const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
           <button
             onClick={onClose}
             className="flex-1 py-3 text-xs sm:text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition"
-          >
-            Close details
-          </button>
+          >{t("Close details")}</button>
           {job.hasApplied ? (
             <div className="flex-1 py-3 bg-green-50 border border-green-200 text-green-700 font-bold rounded-xl text-xs sm:text-sm text-center flex items-center justify-center gap-1.5 shadow-2xs">
-              <HiCheckCircle className="w-4 h-4 animate-bounce" /> Applied
-              Successfully
-            </div>
+              <HiCheckCircle className="w-4 h-4 animate-bounce" />{t("Applied\n              Successfully")}</div>
           ) : job.isExternal && job.externalUrl ? (
             <a
               href={job.externalUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 py-3 bg-emerald-600 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-emerald-700 transition block text-center"
-            >
-              Apply Externally
-            </a>
+            >{t("Apply Externally")}</a>
           ) : (
             <button
               onClick={() => {
                 onApplyNow(job);
               }}
               className="flex-1 py-3 bg-emerald-600 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-emerald-700 transition"
-            >
-              Apply Now
-            </button>
+            >{t("Apply Now")}</button>
           )}
         </div>
       </div>
@@ -378,8 +362,9 @@ const JobCardSkeleton = () => (
   </div>
 );
 
-/* ── Job Card ────────────────────────────────────────────────────────── */
 const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePlan }) => {
+  const { t } = useTranslation();
+
   const budgetText =
     job.budgetType === "negotiable"
       ? "Negotiable"
@@ -392,158 +377,187 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePl
 
   const matchScore = aiInsights?.matchScore || job.matchScore || 0;
   
+  // Extract missing skills string to reuse in insights
+  const missingSkillsStr = aiInsights?.missingSkills?.length > 0 ? aiInsights.missingSkills.join(", ") : "Figma, UI Design, Strategy";
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs hover:shadow-md transition-all mb-4 flex flex-col xl:flex-row gap-6">
+    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs hover:shadow-md transition-all mb-4 flex flex-col xl:flex-row gap-6 xl:items-center">
       
       {/* 1. Logo & Basic Info */}
-      <div className="flex flex-row gap-4 xl:w-[35%]">
+      <div className="flex flex-row gap-4 xl:gap-5 flex-1 w-full xl:w-auto relative min-w-0">
+        <HiOutlineBookmark className="w-5 h-5 text-blue-600 absolute right-0 top-0 cursor-pointer hover:text-blue-700 hidden xl:block" />
         <div className="shrink-0">
-          <div className="w-14 h-14 rounded-xl bg-white border border-gray-100 flex items-center justify-center p-2 shadow-xs">
-            <span className="font-extrabold text-lg text-gray-800 tracking-tighter capitalize">{job.companyName?.substring(0,2) || "CO"}</span>
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border border-gray-100 flex flex-col items-center justify-center p-2 shadow-xs relative">
+            <span className="font-extrabold text-xl sm:text-2xl text-gray-800 tracking-tighter capitalize">{job.companyName?.substring(0,2) || "CO"}</span>
+            <div className="absolute -bottom-2 bg-emerald-50 text-emerald-600 text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-100 whitespace-nowrap shadow-sm">
+              {matchScore}% Match
+            </div>
           </div>
         </div>
-        <div className="flex flex-col justify-center">
+        <div className="flex flex-col justify-center gap-1.5 w-full pr-6 xl:pr-0 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-bold text-gray-900 text-base leading-tight truncate">
+            <h3 className="font-bold text-gray-900 text-lg leading-tight truncate">
               {job.title}
             </h3>
-            {job.hasApplied && (
-              <span className="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
-                Applied
-              </span>
+            {matchScore >= 80 && (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">Best Match</span>
             )}
-            {job.isBoosted && (
-              <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 uppercase tracking-wider">
-                Boosted
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 mt-1">
-            <span className="text-sm font-semibold text-gray-700 cursor-pointer hover:text-emerald-600 hover:underline" onClick={() => job.recruiter?._id && onRecruiterClick(job.recruiter._id, job.companyName)}>
-              {job.companyName || job.recruiter?.name || "Company"}
-            </span>
-            <HiCheckCircle className="w-4 h-4 text-blue-500" />
-          </div>
-          <div className="text-xs text-gray-500 mt-2 space-y-1">
-            <div className="flex items-center gap-1.5">
-              <HiLocationMarker className="w-3.5 h-3.5 text-gray-400" />
-              <span>{job.city} • {job.workMode || 'Full-time'}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <HiClock className="w-3.5 h-3.5 text-gray-400" />
-              <span>Posted {postedAgo}</span>
-            </div>
-            <div className="flex items-center gap-1.5 pt-1">
-              <HiCurrencyRupee className="w-3.5 h-3.5 text-gray-400" />
-              <span>{budgetText} • {job.experienceRequired || '0-2 Yrs'}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Middle Section: AI Insights styled like the screenshot stats */}
-      <div className="flex-1 flex flex-col justify-center gap-3">
-        {/* Top: Badges/Skills */}
-        <div className="flex flex-wrap gap-2">
-          <span className="text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 font-semibold rounded-md border border-emerald-100">
-            {job.skill}
-          </span>
-          {job.requirements?.slice(0, 3).map((r, i) => (
-            <span key={i} className="text-[10px] px-2 py-1 bg-gray-50 text-gray-600 rounded-md border border-gray-100">
-              {r}
-            </span>
-          ))}
-          {job.requirements?.length > 3 && (
-            <span className="text-[10px] px-2 py-1 bg-gray-50 text-gray-600 rounded-md border border-gray-100">
-              +{job.requirements.length - 3}
-            </span>
-          )}
-        </div>
-
-        {/* AI Stats block matching screenshot's "Expected Response / AI Interview Chance" boxes */}
-        <div className="grid grid-cols-2 gap-3 mt-1">
-          <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100 relative overflow-hidden">
-            <div className="text-[10px] text-gray-500 font-medium mb-1 flex items-center gap-1">
-              <HiSparkles className="w-3 h-3 text-emerald-500" /> AI Match Score
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className={`text-lg font-bold ${matchScore >= 80 ? 'text-emerald-600' : 'text-yellow-600'}`}>
-                {matchScore}%
-              </span>
-              <span className="text-[10px] font-medium text-gray-600">
-                {matchScore >= 80 ? 'Excellent' : 'Average'}
-              </span>
-            </div>
+            <HiOutlineBookmark className="w-5 h-5 text-blue-600 ml-auto cursor-pointer xl:hidden" />
           </div>
           
-          <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100 relative overflow-hidden">
-             <div className="flex items-center justify-between mb-1">
-               <span className="text-[10px] text-gray-500 font-medium">Interview Call Probability</span>
-               {!hasActivePlan && <span className="text-[10px] text-gray-400">🔒</span>}
-             </div>
-             {aiInsights ? (
-               <div className="flex items-baseline gap-2">
-                 <span className={`text-lg font-bold text-gray-900 ${!hasActivePlan ? 'filter blur-[4px] select-none' : ''}`}>
-                   {aiInsights.interviewProbability || 67}%
-                 </span>
-                 <span className={`text-[10px] font-medium text-gray-600 ${!hasActivePlan ? 'filter blur-[4px] select-none' : ''}`}>Chance</span>
-               </div>
-             ) : (
-               <div className="text-[10px] text-gray-400 italic">Generating...</div>
+          <div className="flex flex-wrap items-center gap-1 text-[12px] sm:text-[13px] font-medium text-gray-500">
+             <span className="cursor-pointer hover:text-blue-600 font-semibold truncate max-w-[120px] sm:max-w-[200px]" onClick={() => job.recruiter?._id && onRecruiterClick(job.recruiter._id, job.companyName)}>
+               {job.companyName || job.recruiter?.name || "Company"}
+             </span>
+             <span className="text-gray-300">•</span>
+             <span>{job.city}</span>
+             <span className="text-gray-300">•</span>
+             <span>{job.workMode || 'Full-time'}</span>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-1">
+             {job.skill && (
+               <span className="text-xs px-3 py-1 bg-gray-50 text-gray-600 rounded-full font-medium">{job.skill}</span>
+             )}
+             {job.requirements?.slice(0, 3).map((r, i) => (
+               <span key={i} className="text-xs px-3 py-1 bg-gray-50 text-gray-600 rounded-full font-medium">{r}</span>
+             ))}
+             {job.requirements?.length > 3 && (
+               <span className="text-xs px-3 py-1 bg-gray-50 text-gray-600 rounded-full font-medium">+{job.requirements.length - 3}</span>
              )}
           </div>
+
+          <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-gray-500 mt-2">
+            <div className="flex items-center gap-1.5">
+               <HiOutlineBriefcase className="w-4 h-4" /> {t("Posted")} {postedAgo}
+            </div>
+            <div className="flex items-center gap-1.5">
+               <span className="text-gray-300">•</span> 120 applicants
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-6 text-xs font-semibold text-gray-700 mt-2">
+            <div className="flex items-center gap-1.5">
+               <HiOutlineBriefcase className="w-4 h-4 text-gray-400" /> {job.experienceRequired || '2-5 Yrs'}
+            </div>
+            <div className="flex items-center gap-1.5">
+               <HiCurrencyRupee className="w-4 h-4 text-gray-400" /> {budgetText}
+            </div>
+            <div className="flex items-center gap-1.5">
+               <HiLocationMarker className="w-4 h-4 text-gray-400" /> {job.workMode || 'On-site'}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Middle Section: Match Score & Action Buttons */}
+      <div className="flex flex-col sm:flex-row xl:flex-col items-center justify-center gap-4 xl:gap-3 px-2 w-full xl:w-auto shrink-0 mt-4 xl:mt-0">
+        <div className="flex flex-col items-center gap-1">
+          {/* Match Score Circle */}
+          <div className="w-16 h-16 rounded-full border-[4px] border-emerald-500 border-l-emerald-100 flex items-center justify-center -rotate-45">
+             <span className="font-bold text-[15px] text-emerald-600 rotate-45">{matchScore}%</span>
+          </div>
+          <span className="text-[10px] font-semibold text-gray-500">Match Score</span>
+        </div>
+        <div className="flex flex-col items-center gap-2 w-full sm:w-auto xl:w-full">
+          <button
+            onClick={() => onViewDetails(job)}
+            className="w-full sm:w-40 xl:w-36 py-2.5 bg-[#1d4ed8] hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm"
+          >
+            {t("Apply Now")} <HiOutlinePaperAirplane className="w-4 h-4 -rotate-45" />
+          </button>
+          <button
+            onClick={() => onViewDetails(job)}
+            className="text-xs font-bold text-blue-600 hover:underline"
+          >
+            {t("View Job Details")}
+          </button>
+        </div>
+      </div>
+
+      {/* 3. Right Section: AI Insights Box */}
+      <div className="w-full xl:w-[330px] shrink-0 bg-[#f9fafb] rounded-xl p-3.5 border border-gray-100 flex flex-col relative overflow-hidden mt-4 xl:mt-0">
+        <div className="flex items-center justify-between mb-3">
+           <h4 className="font-bold text-sm text-[#1e293b]">Your AI Career Insights</h4>
+           <HiOutlineLockClosed className="w-4 h-4 text-blue-600" />
         </div>
 
-        {/* Detailed Insights / Missing Skills text content as requested */}
-        {aiInsights && (
-          <div className="text-[10px] bg-red-50/50 rounded-lg p-2.5 border border-red-100/50 space-y-1.5 mt-1">
-            <div className="flex gap-1.5">
-              <span className="text-red-400">❌</span>
-              <span className={`text-gray-600 leading-snug ${!hasActivePlan ? 'filter blur-[4px] select-none' : ''}`}>
-                {aiInsights.hireBlocker || "Your profile lacks the sufficient experience required."}
+        <div className="space-y-3 relative min-h-[110px]">
+          {/* If no plan, overlay banner at the bottom */}
+          {!hasActivePlan && (
+            <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col justify-end">
+               <div className="bg-[#eff6ff] border border-blue-100 rounded-lg p-2.5 flex gap-2.5 items-center">
+                  <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-blue-50">
+                    <HiOutlineLockClosed className="w-3.5 h-3.5 text-blue-600" />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-bold text-[#1e3a8a] truncate">Want more clarity?</span>
+                    <Link to="/provider/my-plan" className="text-[10px] text-blue-600 hover:underline mt-0.5 truncate">
+                      Unlock complete insights
+                    </Link>
+                  </div>
+               </div>
+            </div>
+          )}
+
+          {/* List of insights — labels always visible, values blurred for free users */}
+          <div className="flex items-center gap-2 w-full min-w-0">
+            <HiExclamationCircle className="w-4 h-4 text-orange-500 shrink-0" />
+            <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Missing Skills</span>
+            <span className="text-gray-300 shrink-0 text-xs">•</span>
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <span
+                className="text-xs text-gray-500 truncate block"
+                style={!hasActivePlan ? { filter: 'blur(4px)', userSelect: 'none', opacity: 0.7 } : {}}
+              >
+                {!hasActivePlan ? "Figma, Bootstrap, HTML5, CSS, Web Design" : (aiInsights?.missingSkills?.length > 0 ? aiInsights.missingSkills.join(", ") : t("Generating..."))}
               </span>
             </div>
-            {aiInsights.missingSkills?.length > 0 && (
-              <div className="flex gap-1.5 items-center flex-wrap">
-                <span className="text-orange-400">⚠️</span>
-                <span className="text-gray-500 font-medium">Missing Skills:</span>
-                <div className={`flex gap-1 flex-wrap ${!hasActivePlan ? 'filter blur-[4px] select-none' : ''}`}>
-                  {aiInsights.missingSkills.map((s,i)=><span key={i} className="text-gray-600 bg-white border border-gray-200 px-1 rounded">{s}</span>)}
-                </div>
-              </div>
-            )}
-            {!hasActivePlan && (
-              <Link to="/provider/my-plan" className="text-[9px] text-blue-600 font-bold hover:underline block pt-1">
-                Purchase a plan to unlock detailed AI insights
-              </Link>
-            )}
           </div>
-        )}
+
+          <div className="flex items-center gap-2 w-full min-w-0">
+            <HiOutlineMail className="w-4 h-4 text-red-500 shrink-0" />
+            <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Not Getting Hired?</span>
+            <span className="text-gray-300 shrink-0 text-xs">•</span>
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <span
+                className="text-xs text-gray-500 truncate block"
+                style={!hasActivePlan ? { filter: 'blur(4px)', userSelect: 'none', opacity: 0.7 } : {}}
+              >
+                {!hasActivePlan ? "Portfolio lacks strong mobile UI/UX examples." : (aiInsights?.hireBlocker || t("Generating..."))}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full min-w-0">
+            <HiOutlinePhone className="w-4 h-4 text-emerald-500 shrink-0" />
+            <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Call Probability</span>
+            <span className="text-gray-300 shrink-0 text-xs">•</span>
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <span
+                className="text-xs text-gray-500 truncate block"
+                style={!hasActivePlan ? { filter: 'blur(4px)', userSelect: 'none', opacity: 0.7 } : {}}
+              >
+                {!hasActivePlan ? "Based on call probability 65%" : (aiInsights?.interviewProbability ? `Interview probability: ${aiInsights.interviewProbability}%` : t("Generating..."))}
+              </span>
+            </div>
+          </div>
+
+          {/* Spacer so lock banner doesn't cover last row */}
+          {!hasActivePlan && <div className="h-8" />}
+        </div>
       </div>
 
-      {/* 3. Action Buttons */}
-      <div className="xl:w-[220px] flex flex-col gap-2 justify-center border-t xl:border-t-0 xl:border-l border-gray-100 pt-4 xl:pt-0 xl:pl-6">
-        <button
-          onClick={() => onViewDetails(job)}
-          className="w-full py-2 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 rounded-lg text-xs font-semibold transition"
-        >
-          View Job
-        </button>
-        <button
-          onClick={() => onViewDetails(job)}
-          className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 shadow-xs"
-        >
-          Apply Now <span className="text-[10px]">↗</span>
-        </button>
-
-      </div>
-      
     </div>
   );
 };
 
 /* ── Applications Tab ────────────────────────────────────────────────── */
 const ApplicationsTab = ({ onRecruiterClick }) => {
+  const {
+    t
+  } = useTranslation();
+
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -565,8 +579,8 @@ const ApplicationsTab = ({ onRecruiterClick }) => {
     return (
       <div className="text-center py-16 text-gray-400">
         <HiDocumentText className="w-12 h-12 mx-auto mb-3 opacity-40" />
-        <p className="font-medium">No applications yet</p>
-        <p className="text-sm mt-1">Browse jobs and apply to get started</p>
+        <p className="font-medium">{t("No applications yet")}</p>
+        <p className="text-sm mt-1">{t("Browse jobs and apply to get started")}</p>
       </div>
     );
 
@@ -605,8 +619,7 @@ const ApplicationsTab = ({ onRecruiterClick }) => {
                   {app.jobPost?.city}
                 </span>
                 <span className="flex items-center gap-1">
-                  <HiClock className="w-3.5 h-3.5" />
-                  Applied{" "}
+                  <HiClock className="w-3.5 h-3.5" />{t("Applied")}{" "}
                   {new Date(
                     app.appliedAt || app.createdAt,
                   ).toLocaleDateString()}
@@ -632,7 +645,12 @@ const ApplicationsTab = ({ onRecruiterClick }) => {
 
 /* ── Main Page ───────────────────────────────────────────────────────── */
 const ProviderJobs = () => {
+  const {
+    t
+  } = useTranslation();
+
   const location = useLocation();
+  const navigate = useNavigate();
   const [tab, setTab] = useState("browse"); // 'browse' | 'applications'
   const [jobs, setJobs] = useState([]);
   const [topMatches, setTopMatches] = useState([]);
@@ -643,7 +661,7 @@ const ProviderJobs = () => {
   const [filters, setFilters] = useState({ skill: "", city: "", origin: "all", source: "" });
   const [search, setSearch] = useState({ skill: "", city: "", origin: "all", source: "" });
   const [applyTarget, setApplyTarget] = useState(null);
-  const [viewDetailTarget, setViewDetailTarget] = useState(null);
+  // viewDetailTarget removed — now navigates to /provider/job/:jobId
   const [recruiterProfileTarget, setRecruiterProfileTarget] = useState(null);
 
   const [aiMatchResults, setAiMatchResults] = useState(null);
@@ -668,65 +686,66 @@ const ProviderJobs = () => {
 
   const [aiInsightsMap, setAiInsightsMap] = useState({});
 
-  // Trigger AI insights load for visible jobs
+  // Track whether subscription has finished loading (null = loading, object/false = done)
+  const [subscriptionLoaded, setSubscriptionLoaded] = useState(false);
+
+  // Trigger AI insights load for visible jobs — only after subscription status is known
   useEffect(() => {
-    // Only proceed if subscription is fully loaded (so we don't accidentally skip paid users while waiting for the plan API)
-    // If subscription isn't loaded yet, we'll run again when it does (since it's a dependency)
-    if (subscription === null && typeof subscription === 'object') {
-      // It's still loading (initial state)
-      // wait for it
-    }
+    // subscription starts as null; wait until the fetch completes (subscriptionLoaded flag)
+    if (!subscriptionLoaded) return;
+    if (jobs.length === 0) return;
 
-    if (jobs.length > 0) {
-      const fetchInsightsForJobs = async () => {
-        const jobsToFetch = jobs.slice(0, 10).filter(j => !aiInsightsMap[j._id]);
-        if (jobsToFetch.length === 0) return;
+    // A real paid plan: subscription exists and the plan itself is not the default free plan
+    const planObj = subscription?.planId || subscription?.plan;
+    const hasActivePlan = !!planObj && planObj.price > 0;
 
-        const hasActivePlan = !!(subscription?.planId || subscription?.plan);
+    const jobsToFetch = jobs.slice(0, 10).filter(j => {
+      const existing = aiInsightsMap[j._id];
+      // If free user already has mock data, skip. If paid user has mock data, re-fetch real.
+      if (!existing) return true;
+      if (hasActivePlan && existing._isMock) return true;
+      return false;
+    });
 
-        if (!hasActivePlan) {
-          // Free users: don't call the API, just provide mock insights that will be blurred in UI
-          const mockInsights = {};
-          jobsToFetch.forEach(j => {
-            mockInsights[j._id] = {
-              missingSkills: ['React Native', 'Node.js'],
-              hireBlocker: "Your profile lacks the sufficient 3 years of experience required for this specific senior role.",
-              interviewProbability: 67,
-              matchScore: 0
-            };
-          });
-          setAiInsightsMap(prev => ({...prev, ...mockInsights}));
-          return;
-        }
+    if (jobsToFetch.length === 0) return;
 
-        // Paid users: actually call the backend AI
-        const processJobsOneByOne = async () => {
-          for (const j of jobsToFetch) {
-            try {
-              const jobPayload = [{
-                _id: j._id || j.id || Math.random().toString(36).substr(2, 9),
-                title: j.title,
-                skill: j.skill,
-                requirements: j.requirements,
-                experienceRequired: j.experienceRequired
-              }];
-
-              const res = await providerAPI.getJobAiInsights(jobPayload);
-              if (res.data?.success && res.data.data.length > 0) {
-                const item = res.data.data[0];
-                setAiInsightsMap(prev => ({ ...prev, [item.jobId]: item.insights }));
-              }
-            } catch (error) {
-              console.error("Failed to load AI insight for job:", j._id, error);
-            }
-          }
+    if (!hasActivePlan) {
+      // Free users: store blurred mock data — never call the backend
+      const mockInsights = {};
+      jobsToFetch.forEach(j => {
+        mockInsights[j._id] = {
+          _isMock: true,
+          missingSkills: ['React Native', 'Node.js', 'Figma'],
+          hireBlocker: "Your profile lacks sufficient experience for this role.",
+          interviewProbability: 65,
+          matchScore: 0
         };
-        
-        processJobsOneByOne();
-      };
-      fetchInsightsForJobs();
+      });
+      setAiInsightsMap(prev => ({ ...prev, ...mockInsights }));
+      return;
     }
-  }, [jobs, subscription]);
+
+    // Paid users: call the real backend AI
+    (async () => {
+      for (const j of jobsToFetch) {
+        try {
+          const res = await providerAPI.getJobAiInsights([{
+            _id: j._id || j.id,
+            title: j.title,
+            skill: j.skill,
+            requirements: j.requirements,
+            experienceRequired: j.experienceRequired
+          }]);
+          if (res.data?.success && res.data.data.length > 0) {
+            const item = res.data.data[0];
+            setAiInsightsMap(prev => ({ ...prev, [item.jobId]: item.insights }));
+          }
+        } catch (error) {
+          console.error("Failed to load AI insight for job:", j._id, error);
+        }
+      }
+    })();
+  }, [jobs, subscription, subscriptionLoaded]);
 
 
   const handleRunAIMatch = async () => {
@@ -889,13 +908,17 @@ const ProviderJobs = () => {
   useEffect(() => {
     subscriptionAPI
       .getMySubscription()
-      .then((r) => setSubscription(r.data?.subscription || null))
-      .catch(() => {});
+      .then((r) => {
+        setSubscription(r.data?.subscription || null);
+        setSubscriptionLoaded(true);
+      })
+      .catch(() => {
+        setSubscriptionLoaded(true); // even on error, we know there's no plan
+      });
   }, []);
 
   const handleApplySuccess = (jobId) => {
     setApplyTarget(null);
-    setViewDetailTarget(null);
     setJobs((prev) =>
       prev.map((j) => (j._id === jobId ? { ...j, hasApplied: true } : j)),
     );
@@ -930,27 +953,22 @@ const ProviderJobs = () => {
       <div className="bg-gradient-to-r from-emerald-800 to-teal-900 px-6 py-10 shadow-inner">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">
-              Explore Opportunities
-            </h1>
-            <p className="text-emerald-50 text-sm md:text-base opacity-90 max-w-xl">
-              Discover and apply to top jobs perfectly tailored to your skills, experience, and preferences.
-            </p>
+            <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">{t("Explore Opportunities")}</h1>
+            <p className="text-emerald-50 text-sm md:text-base opacity-90 max-w-xl">{t(
+              "Discover and apply to top jobs perfectly tailored to your skills, experience, and preferences."
+            )}</p>
             {planName && (
               <div className="mt-4 inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 text-xs text-white font-medium border border-white/20 shadow-sm">
                 <HiSparkles className="w-4 h-4 text-emerald-200" />
-                {planName} Plan
-                {applyLimit !== -1 && remainingApply !== undefined && (
+                {planName}{t("Plan")}{applyLimit !== -1 && remainingApply !== undefined && (
                   <span className="text-emerald-100/80 ml-1">
-                    · {remainingApply} applications remaining
-                  </span>
+                    · {remainingApply}{t("applications remaining")}</span>
                 )}
               </div>
             )}
           </div>
         </div>
       </div>
-
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* Tabs */}
         <div className="flex gap-1 bg-white rounded-xl border border-gray-100 p-1.5 mb-6 w-fit shadow-xs">
@@ -975,8 +993,7 @@ const ProviderJobs = () => {
               <div className="flex items-center justify-between bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-100 rounded-xl px-4 py-3 mb-4 shadow-sm">
                 <div className="flex items-center gap-2">
                   <HiSparkles className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span className="text-sm text-emerald-800 font-medium">
-                    Showing jobs related to: <strong>{incomePathBanner}</strong>
+                  <span className="text-sm text-emerald-800 font-medium">{t("Showing jobs related to:")}<strong>{incomePathBanner}</strong>
                   </span>
                 </div>
                 <button
@@ -988,8 +1005,7 @@ const ProviderJobs = () => {
                   }}
                   className="text-xs text-emerald-600 hover:text-emerald-800 font-semibold ml-3 shrink-0 flex items-center gap-1"
                 >
-                  <HiX className="w-3.5 h-3.5" /> Clear filter
-                </button>
+                  <HiX className="w-3.5 h-3.5" />{t("Clear filter")}</button>
               </div>
             )}
 
@@ -1002,17 +1018,13 @@ const ProviderJobs = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex-1 w-full relative">
-                  <label className="block text-xs text-gray-500 font-medium mb-1 flex items-center gap-1">
-                    Skill / Job Title
-                    <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 rounded-full border border-emerald-100">
-                      AI Enabled
-                    </span>
+                  <label className="block text-xs text-gray-500 font-medium mb-1 flex items-center gap-1">{t("Skill / Job Title")}<span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 rounded-full border border-emerald-100">{t("AI Enabled")}</span>
                   </label>
                   <div className="relative">
                     <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="e.g. Plumber, Designer…"
+                      placeholder={t("e.g. Plumber, Designer…")}
                       value={filters.skill}
                       onChange={(e) =>
                         setFilters((f) => ({ ...f, skill: e.target.value }))
@@ -1027,16 +1039,14 @@ const ProviderJobs = () => {
                     <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 z-50 max-h-[350px] overflow-y-auto animate-fadeInUp">
                       <div className="p-3 border-b border-gray-50 bg-emerald-50/50 sticky top-0">
                         <h4 className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-                          <HiSparkles className="w-3.5 h-3.5" />
-                          Top Matches Based On Your Profile
-                        </h4>
+                          <HiSparkles className="w-3.5 h-3.5" />{t("Top Matches Based On Your Profile")}</h4>
                       </div>
                       <div className="divide-y divide-gray-50">
                         {topMatches.map((match) => (
                           <div
                             key={match._id}
                             onClick={() => {
-                              setViewDetailTarget(match);
+                              navigate(`/provider/job/${match._id}`);
                               setShowMatchesDropdown(false);
                             }}
                             className="p-3 hover:bg-gray-50 cursor-pointer transition-colors"
@@ -1061,9 +1071,7 @@ const ProviderJobs = () => {
                   )}
                 </div>
                 <div className="flex-1 w-full">
-                  <label className="block text-xs text-gray-500 font-medium mb-1">
-                    City / Location
-                  </label>
+                  <label className="block text-xs text-gray-500 font-medium mb-1">{t("City / Location")}</label>
                   <LocationSearch
                     allowRemote={true}
                     value={filters.city}
@@ -1073,14 +1081,12 @@ const ProviderJobs = () => {
                     onSelect={(item) =>
                       setFilters((f) => ({ ...f, city: item?.name || f.city }))
                     }
-                    placeholder="e.g. Mumbai, Delhi…"
+                    placeholder={t("e.g. Mumbai, Delhi…")}
                     className="focus:ring-emerald-300"
                   />
                 </div>
                 <div className="flex-1 min-w-[200px] w-full">
-                  <label className="block text-xs text-gray-500 font-medium mb-1">
-                    Job Source / Type
-                  </label>
+                  <label className="block text-xs text-gray-500 font-medium mb-1">{t("Job Source / Type")}</label>
                   <select
                     value={filters.origin}
                     onChange={(e) =>
@@ -1088,17 +1094,15 @@ const ProviderJobs = () => {
                     }
                     className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300 outline-none h-[38px]"
                   >
-                    <option value="all">All Jobs (Internal & Ingested)</option>
-                    <option value="internal">Direct Jobs (Internal Platform)</option>
-                    <option value="external">Ingested Jobs (Aggregators & ATS)</option>
+                    <option value="all">{t("All Jobs (Internal & Ingested)")}</option>
+                    <option value="internal">{t("Direct Jobs (Internal Platform)")}</option>
+                    <option value="external">{t("Ingested Jobs (Aggregators & ATS)")}</option>
                   </select>
                 </div>
 
                 {filters.origin === "external" && (
                   <div className="flex-1 min-w-[200px] w-full">
-                    <label className="block text-xs text-gray-500 font-medium mb-1">
-                      Ingestion Source
-                    </label>
+                    <label className="block text-xs text-gray-500 font-medium mb-1">{t("Ingestion Source")}</label>
                     <select
                       value={filters.source}
                       onChange={(e) =>
@@ -1106,18 +1110,18 @@ const ProviderJobs = () => {
                       }
                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300 outline-none h-[38px]"
                     >
-                      <option value="">All Ingestion Sources</option>
-                      <option value="adzuna">Adzuna</option>
-                      <option value="jooble">Jooble</option>
-                      <option value="remoteok">RemoteOK</option>
-                      <option value="remotive">Remotive</option>
-                      <option value="arbeitnow">Arbeitnow</option>
-                      <option value="themuse">The Muse</option>
-                      <option value="greenhouse">Greenhouse</option>
-                      <option value="lever">Lever</option>
-                      <option value="ashby">Ashby</option>
-                      <option value="smartrecruiters">SmartRecruiters</option>
-                      <option value="workable">Workable</option>
+                      <option value="">{t("All Ingestion Sources")}</option>
+                      <option value="adzuna">{t("Adzuna")}</option>
+                      <option value="jooble">{t("Jooble")}</option>
+                      <option value="remoteok">{t("RemoteOK")}</option>
+                      <option value="remotive">{t("Remotive")}</option>
+                      <option value="arbeitnow">{t("Arbeitnow")}</option>
+                      <option value="themuse">{t("The Muse")}</option>
+                      <option value="greenhouse">{t("Greenhouse")}</option>
+                      <option value="lever">{t("Lever")}</option>
+                      <option value="ashby">{t("Ashby")}</option>
+                      <option value="smartrecruiters">{t("SmartRecruiters")}</option>
+                      <option value="workable">{t("Workable")}</option>
                     </select>
                   </div>
                 )}
@@ -1141,10 +1145,10 @@ const ProviderJobs = () => {
                       onChange={(e) => handleRadiusChange(Number(e.target.value))}
                       className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300 outline-none"
                     >
-                      <option value={10}>Within 10 km</option>
-                      <option value={25}>Within 25 km</option>
-                      <option value={50}>Within 50 km</option>
-                      <option value={100}>Within 100 km</option>
+                      <option value={10}>{t("Within 10 km")}</option>
+                      <option value={25}>{t("Within 25 km")}</option>
+                      <option value={50}>{t("Within 50 km")}</option>
+                      <option value={100}>{t("Within 100 km")}</option>
                     </select>
                   )}
 
@@ -1156,17 +1160,14 @@ const ProviderJobs = () => {
                         setNearbyOnly(false);
                       }}
                       className="flex-1 md:flex-none px-4 py-2 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition text-center"
-                    >
-                      Clear
-                    </button>
+                    >{t("Clear")}</button>
                   )}
                   <button
                     type="submit"
                     disabled={nearbyOnly}
                     className="flex-1 md:flex-none justify-center px-5 py-2 text-sm font-bold text-white bg-[#081B3A] rounded-xl hover:bg-[#0E2854] transition flex items-center gap-2 disabled:opacity-50"
                   >
-                    <HiFilter className="w-4 h-4" /> Search
-                  </button>
+                    <HiFilter className="w-4 h-4" />{t("Search")}</button>
                 </div>
               </form>
             </div>
@@ -1181,29 +1182,24 @@ const ProviderJobs = () => {
             ) : jobs.length === 0 ? (
               <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-100 shadow-2xs">
                 <HiBriefcase className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                <p className="font-medium text-gray-600">No jobs found</p>
+                <p className="font-medium text-gray-600">{t("No jobs found")}</p>
                 {nearbyOnly ? (
                   <div className="mt-3 space-y-2">
-                    <p className="text-sm">There are no jobs within {radius} km of your location.</p>
+                    <p className="text-sm">{t("There are no jobs within")}{radius}{t("km of your location.")}</p>
                     {radius < 100 && (
                       <button
                         onClick={() => handleRadiusChange(100)}
                         className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-md"
-                      >
-                        Expand Search to 100 km
-                      </button>
+                      >{t("Expand Search to 100 km")}</button>
                     )}
                   </div>
                 ) : (
                   (search.skill || search.city) && (
-                    <p className="text-sm mt-1">
-                      Try different keywords or{" "}
+                    <p className="text-sm mt-1">{t("Try different keywords or")}{" "}
                       <button
                         onClick={clearFilters}
                         className="text-emerald-600 font-medium"
-                      >
-                        clear filters
-                      </button>
+                      >{t("clear filters")}</button>
                     </p>
                   )
                 )}
@@ -1211,18 +1207,16 @@ const ProviderJobs = () => {
             ) : (
               <>
                 <p className="text-sm text-gray-500 mb-3">
-                  {pagination.total} job{pagination.total !== 1 ? "s" : ""}{" "}
-                  found
-                </p>
+                  {pagination.total}{t("job")}{pagination.total !== 1 ? "s" : ""}{" "}{t("found")}</p>
                 <div className="flex flex-col gap-4">
                   {jobs.map((job) => (
                     <JobCard
                       key={job._id}
                       job={job}
                       aiInsights={aiInsightsMap[job._id]}
-                      onViewDetails={setViewDetailTarget}
+                      onViewDetails={(job) => navigate(`/provider/job/${job._id}`)}
                       onRecruiterClick={handleRecruiterClick}
-                      hasActivePlan={!!(subscription?.planId || subscription?.plan)}
+                      hasActivePlan={!!(subscription?.planId || subscription?.plan) && (subscription?.planId?.price > 0 || subscription?.plan?.price > 0)}
                     />
                   ))}
                 </div>
@@ -1236,8 +1230,7 @@ const ProviderJobs = () => {
                     >
                       <HiChevronLeft className="w-4 h-4 text-gray-600" />
                     </button>
-                    <span className="text-sm text-gray-600 font-semibold">
-                      Page {pagination.page} of {pagination.pages}
+                    <span className="text-sm text-gray-600 font-semibold">{t("Page")}{pagination.page}{t("of")}{pagination.pages}
                     </span>
                     <button
                       disabled={pagination.page >= pagination.pages}
@@ -1256,15 +1249,16 @@ const ProviderJobs = () => {
                       <span className="text-2xl text-purple-500">👑</span>
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-gray-900">Want to see deeper insights & boost your chances?</h4>
-                      <p className="text-sm text-gray-600">Unlock detailed analytics, skill gap reports, and personalized career guidance.</p>
+                      <h4 className="text-lg font-bold text-gray-900">{t("Want to see deeper insights & boost your chances?")}</h4>
+                      <p className="text-sm text-gray-600">{t(
+                        "Unlock detailed analytics, skill gap reports, and personalized career guidance."
+                      )}</p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end">
-                    <Link to="/provider/plans" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition shadow-md flex items-center gap-2">
-                      Explore Subscription Plans <span className="text-sm">👑</span>
+                    <Link to="/provider/plans" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition shadow-md flex items-center gap-2">{t("Explore Subscription Plans")}<span className="text-sm">👑</span>
                     </Link>
-                    <span className="text-[10px] text-gray-500 mt-2 font-medium">Starting at just ₹299/month</span>
+                    <span className="text-[10px] text-gray-500 mt-2 font-medium">{t("Starting at just ₹299/month")}</span>
                   </div>
                 </div>
               </>
@@ -1276,17 +1270,7 @@ const ProviderJobs = () => {
           <ApplicationsTab onRecruiterClick={handleRecruiterClick} />
         )}
       </div>
-
-      {/* View Details Modal */}
-      {viewDetailTarget && (
-        <JobDetailsModal
-          job={viewDetailTarget}
-          onClose={() => setViewDetailTarget(null)}
-          onApplyNow={(job) => setApplyTarget(job)}
-          onRecruiterClick={handleRecruiterClick}
-        />
-      )}
-
+      {/* View Details navigates to dedicated page — no modal here */}
       {/* Apply Modal */}
       {applyTarget && (
         <ApplyModal
@@ -1295,7 +1279,6 @@ const ProviderJobs = () => {
           onSuccess={handleApplySuccess}
         />
       )}
-
       {/* Recruiter Profile Modal */}
       {recruiterProfileTarget && (
         <RecruiterProfileModal

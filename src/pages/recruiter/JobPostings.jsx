@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -9,9 +10,13 @@ import { HiSparkles } from 'react-icons/hi2';
 import { recruiterAPI, jobsAPI } from '../../services/api';
 
 const JobPostings = () => {
+  const {
+    t
+  } = useTranslation();
+
   const [activeTab, setActiveTab] = useState('All Jobs');
   const [activeAIHealthTooltip, setActiveAIHealthTooltip] = useState(null);
-  
+
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -130,7 +135,7 @@ const JobPostings = () => {
 
   const maxPoint = Math.max(...chartPoints, 10);
   const getY = (val) => 35 - ((val / maxPoint) * 30);
-  
+
   const pathD = `M0,${getY(chartPoints[0])} C12,${getY(chartPoints[0])} 12,${getY(chartPoints[1])} 25,${getY(chartPoints[1])} S37,${getY(chartPoints[2])} 50,${getY(chartPoints[2])} S62,${getY(chartPoints[3])} 75,${getY(chartPoints[3])} S87,${getY(chartPoints[4])} 100,${getY(chartPoints[4])}`;
   const fillPathD = `${pathD} L100,40 L0,40 Z`;
 
@@ -142,20 +147,18 @@ const JobPostings = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 relative">
-      
       {/* HEADER */}
       <div className="bg-white border-b border-gray-100 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-20">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">Jobs</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your jobs and hiring pipeline</p>
+          <h1 className="text-2xl font-extrabold text-gray-900">{t("Jobs")}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t("Manage your jobs and hiring pipeline")}</p>
         </div>
         <div className="flex items-center gap-3">
           <Link to="/recruiter/post-job" className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-indigo-700 transition flex items-center gap-2">
-            <FiPlus className="w-4 h-4" /> Create New Job <FiChevronDown className="ml-1 opacity-70" />
+            <FiPlus className="w-4 h-4" />{t("Create New Job")}<FiChevronDown className="ml-1 opacity-70" />
           </Link>
         </div>
       </div>
-
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         {/* SEARCH & FILTERS BAR */}
@@ -176,17 +179,17 @@ const JobPostings = () => {
           
           <div className="flex items-center gap-3">
             <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition">
-              <FiFilter /> Filters <span className="bg-indigo-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">2</span>
+              <FiFilter />{t("Filters")}<span className="bg-indigo-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">2</span>
             </button>
             <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition">
-              <FiBookmark /> Saved Views <FiChevronDown className="opacity-50" />
+              <FiBookmark />{t("Saved Views")}<FiChevronDown className="opacity-50" />
             </button>
           </div>
         </div>
 
         {/* JOBS OVERVIEW */}
         <div>
-          <h2 className="text-sm font-bold text-gray-900 mb-3">Jobs Overview</h2>
+          <h2 className="text-sm font-bold text-gray-900 mb-3">{t("Jobs Overview")}</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {jobStats.map((stat, i) => (
               <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center gap-4 hover:shadow-md transition">
@@ -196,7 +199,7 @@ const JobPostings = () => {
                 <div>
                   <div className="text-xs font-semibold text-gray-500 mb-0.5">{stat.title}</div>
                   <div className="text-2xl font-extrabold text-gray-900">{stat.count}</div>
-                  <div className="text-[10px] font-bold text-gray-400 mt-0.5">{stat.percent} of total jobs</div>
+                  <div className="text-[10px] font-bold text-gray-400 mt-0.5">{stat.percent}{t("of total jobs")}</div>
                 </div>
               </div>
             ))}
@@ -209,7 +212,7 @@ const JobPostings = () => {
           {/* LEFT COLUMN: MY JOBS TABLE */}
           <div className="xl:col-span-3 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <h2 className="text-lg font-bold text-gray-900">My Jobs ({filteredJobs.length})</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t("My Jobs (")}{filteredJobs.length})</h2>
               <div className="flex items-center gap-3">
                 <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1">
                   <button onClick={() => setLayout('list')} className={`p-1.5 rounded ${layout === 'list' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}><FiList className="w-4 h-4" /></button>
@@ -220,9 +223,9 @@ const JobPostings = () => {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="bg-white border border-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50 transition focus:outline-none cursor-pointer"
                 >
-                  <option value="recent">Sort by: Recent</option>
-                  <option value="applicants">Sort by: Applicants</option>
-                  <option value="match">Sort by: AI Match</option>
+                  <option value="recent">{t("Sort by: Recent")}</option>
+                  <option value="applicants">{t("Sort by: Applicants")}</option>
+                  <option value="match">{t("Sort by: AI Match")}</option>
                 </select>
               </div>
             </div>
@@ -233,13 +236,13 @@ const JobPostings = () => {
                   <table className="w-full text-left border-collapse min-w-[900px]">
                     <thead>
                       <tr className="border-b border-gray-100 text-[11px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">
-                        <th className="py-4 pl-6 pr-3">Job Title</th>
-                        <th className="py-4 px-3 text-center">Applicants</th>
-                        <th className="py-4 px-3 text-center">Interviews</th>
-                        <th className="py-4 px-3 text-center">Top AI Match</th>
-                        <th className="py-4 px-3 text-center">Status</th>
-                        <th className="py-4 px-3">Created On</th>
-                        <th className="py-4 pr-6 pl-3 text-right">Actions</th>
+                        <th className="py-4 pl-6 pr-3">{t("Job Title")}</th>
+                        <th className="py-4 px-3 text-center">{t("Applicants")}</th>
+                        <th className="py-4 px-3 text-center">{t("Interviews")}</th>
+                        <th className="py-4 px-3 text-center">{t("Top AI Match")}</th>
+                        <th className="py-4 px-3 text-center">{t("Status")}</th>
+                        <th className="py-4 px-3">{t("Created On")}</th>
+                        <th className="py-4 pr-6 pl-3 text-right">{t("Actions")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
@@ -297,9 +300,7 @@ const JobPostings = () => {
                                 <span className="text-xs text-gray-400 font-medium">--</span>
                               )}
                               {job.isBoosted && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-600 border border-purple-100 ml-1">
-                                  BOOSTED
-                                </span>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-600 border border-purple-100 ml-1">{t("BOOSTED")}</span>
                               )}
                             </div>
                           </td>
@@ -314,14 +315,10 @@ const JobPostings = () => {
                           <td className="py-4 pr-6 pl-3 text-right">
                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Link to={`/recruiter/jobs/${job._id}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-indigo-600 hover:bg-gray-50 transition shadow-sm">
-                                <FiEye className="w-3.5 h-3.5" /> View
-                              </Link>
+                                <FiEye className="w-3.5 h-3.5" />{t("View")}</Link>
                               <button onClick={() => handleEvaluate(job._id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-emerald-600 hover:bg-gray-50 transition shadow-sm">
-                                <HiSparkles className="w-3.5 h-3.5" /> Eval
-                              </button>
-                              <button onClick={() => handleBoost(job)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-purple-600 hover:bg-gray-50 transition shadow-sm">
-                                Boost
-                              </button>
+                                <HiSparkles className="w-3.5 h-3.5" />{t("Eval")}</button>
+                              <button onClick={() => handleBoost(job)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-purple-600 hover:bg-gray-50 transition shadow-sm">{t("Boost")}</button>
                               <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition">
                                 <FiMoreVertical className="w-4 h-4" />
                               </button>
@@ -357,11 +354,11 @@ const JobPostings = () => {
                       
                       <div className="mt-auto pt-4 flex items-center justify-between border-t border-gray-50">
                         <div>
-                          <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">Applicants</div>
+                          <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">{t("Applicants")}</div>
                           <div className="text-sm font-bold text-gray-900">{job.interestedCount || 0}</div>
                         </div>
                         <div>
-                          <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">AI Match</div>
+                          <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">{t("AI Match")}</div>
                           <div className="text-sm font-bold text-indigo-600">{job.topAiMatch ? job.topAiMatch + '%' : '--'}</div>
                         </div>
                       </div>
@@ -372,9 +369,7 @@ const JobPostings = () => {
               
               {/* Pagination */}
               <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
-                  Rows per page: 
-                  <select 
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">{t("Rows per page:")}<select 
                     value={rowsPerPage}
                     onChange={(e) => {
                       setRowsPerPage(Number(e.target.value));
@@ -388,9 +383,7 @@ const JobPostings = () => {
                     <option value={100}>100</option>
                   </select>
                 </div>
-                <div className="text-xs font-semibold text-gray-500">
-                  Showing {filteredJobs.length > 0 ? ((currentPage - 1) * rowsPerPage) + 1 : 0} to {Math.min(currentPage * rowsPerPage, filteredJobs.length)} of {filteredJobs.length} jobs
-                </div>
+                <div className="text-xs font-semibold text-gray-500">{t("Showing")}{filteredJobs.length > 0 ? ((currentPage - 1) * rowsPerPage) + 1 : 0}{t("to")}{Math.min(currentPage * rowsPerPage, filteredJobs.length)}{t("of")}{filteredJobs.length}{t("jobs")}</div>
                 <div className="flex items-center gap-1">
                   <button 
                     disabled={currentPage === 1}
@@ -399,8 +392,7 @@ const JobPostings = () => {
                   >
                     &lt;
                   </button>
-                  <div className="text-xs font-bold px-2 text-gray-700">
-                    Page {currentPage} of {totalPages || 1}
+                  <div className="text-xs font-bold px-2 text-gray-700">{t("Page")}{currentPage}{t("of")}{totalPages || 1}
                   </div>
                   <button 
                     disabled={currentPage >= totalPages}
@@ -420,8 +412,8 @@ const JobPostings = () => {
             {/* Jobs Needing Attention */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-gray-900">Jobs Needing Attention</h3>
-                <Link to="#" className="text-[10px] font-bold text-indigo-600 hover:underline">View all ({jobsNeedingAttention.length}) &rarr;</Link>
+                <h3 className="text-sm font-bold text-gray-900">{t("Jobs Needing Attention")}</h3>
+                <Link to="#" className="text-[10px] font-bold text-indigo-600 hover:underline">{t("View all (")}{jobsNeedingAttention.length}) &rarr;</Link>
               </div>
               <div className="space-y-4">
                 {jobsNeedingAttention.map((job, idx) => (
@@ -443,8 +435,8 @@ const JobPostings = () => {
             {/* Hiring Pipeline Snapshot */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-sm font-bold text-gray-900">Hiring Pipeline Snapshot</h3>
-                <Link to="#" className="text-[10px] font-bold text-indigo-600 hover:underline">View full pipeline &rarr;</Link>
+                <h3 className="text-sm font-bold text-gray-900">{t("Hiring Pipeline Snapshot")}</h3>
+                <Link to="#" className="text-[10px] font-bold text-indigo-600 hover:underline">{t("View full pipeline →")}</Link>
               </div>
               <div className="space-y-4">
                 {pipeline.map(stage => (
@@ -464,23 +456,23 @@ const JobPostings = () => {
             {/* Job Performance */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-gray-900">Job Performance <span className="block text-[10px] text-gray-500 font-medium">(This Month)</span></h3>
-                <Link to="#" className="text-[10px] font-bold text-indigo-600 hover:underline">View analytics &rarr;</Link>
+                <h3 className="text-sm font-bold text-gray-900">{t("Job Performance")}<span className="block text-[10px] text-gray-500 font-medium">{t("(This Month)")}</span></h3>
+                <Link to="#" className="text-[10px] font-bold text-indigo-600 hover:underline">{t("View analytics →")}</Link>
               </div>
               
               <div className="grid grid-cols-3 gap-2 mb-6">
                 <div>
-                  <div className="text-[10px] font-bold text-gray-500 mb-1">Total Applicants</div>
+                  <div className="text-[10px] font-bold text-gray-500 mb-1">{t("Total Applicants")}</div>
                   <div className="text-lg font-extrabold text-gray-900">{totalApplicants}</div>
                   <div className="text-[10px] font-bold text-emerald-600 flex items-center mt-1"><FiTrendingUp className="mr-0.5" /> 24%</div>
                 </div>
                 <div>
-                  <div className="text-[10px] font-bold text-gray-500 mb-1">Interviews</div>
+                  <div className="text-[10px] font-bold text-gray-500 mb-1">{t("Interviews")}</div>
                   <div className="text-lg font-extrabold text-gray-900">{interview}</div>
                   <div className="text-[10px] font-bold text-emerald-600 flex items-center mt-1"><FiTrendingUp className="mr-0.5" /> 18%</div>
                 </div>
                 <div>
-                  <div className="text-[10px] font-bold text-gray-500 mb-1">Hires</div>
+                  <div className="text-[10px] font-bold text-gray-500 mb-1">{t("Hires")}</div>
                   <div className="text-lg font-extrabold text-gray-900">{hired}</div>
                   <div className="text-[10px] font-bold text-emerald-600 flex items-center mt-1"><FiTrendingUp className="mr-0.5" /> 14%</div>
                 </div>
@@ -515,8 +507,6 @@ const JobPostings = () => {
           </div>
         </div>
       </div>
-      
-
     </div>
   );
 };

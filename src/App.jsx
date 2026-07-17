@@ -107,11 +107,6 @@ function App() {
       <Suspense fallback={null}>
         <CookieConsent />
       </Suspense>
-      {user?.activeRole && ['provider', 'recruiter', 'admin'].includes(user.activeRole) && (
-        <Suspense fallback={null}>
-          <AIChatWidget role={user.activeRole} user={user} profile={profile} />
-        </Suspense>
-      )}
 
       <Suspense fallback={<PageLoader />}>
         <Routes>

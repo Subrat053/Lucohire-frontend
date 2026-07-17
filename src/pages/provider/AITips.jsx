@@ -1,3 +1,4 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Sparkles, AlertCircle, ArrowRight, Briefcase, TrendingUp, Lightbulb, Target, CheckCircle2, Lock, Bot, Info, RefreshCcw, Bookmark, MapPin, Heart, ChevronRight, Check, FileText } from "lucide-react";
@@ -10,6 +11,10 @@ import 'react-circular-progressbar/dist/styles.css';
 import { FaWhatsapp } from 'react-icons/fa';
 
 export default function AITips() {
+  const {
+    t
+  } = useTranslation();
+
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -93,7 +98,7 @@ export default function AITips() {
     return (
       <div className="flex flex-col items-center justify-center py-20 min-h-[60vh]">
         <LoadingSpinner size="lg" className="text-indigo-600 mb-4" />
-        <p className="text-gray-500 font-medium">Analyzing your profile to generate AI Career Tips...</p>
+        <p className="text-gray-500 font-medium">{t("Analyzing your profile to generate AI Career Tips...")}</p>
       </div>
     );
   }
@@ -103,13 +108,12 @@ export default function AITips() {
       <div className="p-6 max-w-4xl mx-auto">
         <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center mt-10">
           <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-red-800 mb-2">Profile Actions Required</h2>
+          <h2 className="text-xl font-bold text-red-800 mb-2">{t("Profile Actions Required")}</h2>
           <p className="text-red-600 mb-6 max-w-md mx-auto">{error}</p>
           <Link
             to="/provider/profile"
             className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors gap-2"
-          >
-            Go to Profile <ArrowRight className="w-5 h-5" />
+          >{t("Go to Profile")}<ArrowRight className="w-5 h-5" />
           </Link>
         </div>
       </div>
@@ -118,29 +122,23 @@ export default function AITips() {
 
   return (
     <div className="w-full p-4 md:p-6 lg:p-8 space-y-8 pb-20 relative bg-slate-50 min-h-screen">
-      
       {/* Usage Banner */}
       {!usageLoading && (
         <div className="bg-indigo-50/50 border border-indigo-100 px-6 py-3 rounded-2xl flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-indigo-600" />
-            <span className="text-sm font-medium text-indigo-900">
-              Career Report Limit: 
-              {(() => {
+            <span className="text-sm font-medium text-indigo-900">{t("Career Report Limit:")}{(() => {
                 const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
                 const used = aiUsage.usage['aiCareerAnalysis'] || 0;
-                if (limit === -1) return <span className="font-bold text-indigo-700 ml-1">Unlimited</span>;
-                if (limit === 0) return <span className="font-bold text-red-600 ml-1">Not included in plan</span>;
-                return <span className="font-bold text-indigo-700 ml-1">{Math.max(0, limit - used)} / {limit} requests remaining</span>;
+                if (limit === -1) return <span className="font-bold text-indigo-700 ml-1">{t("Unlimited")}</span>;
+                if (limit === 0) return <span className="font-bold text-red-600 ml-1">{t("Not included in plan")}</span>;
+                return <span className="font-bold text-indigo-700 ml-1">{Math.max(0, limit - used)} / {limit}{t("requests remaining")}</span>;
               })()}
             </span>
           </div>
-          <Link to="/provider/plans" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-100 px-3 py-1 rounded-full transition-colors">
-            Upgrade Plan
-          </Link>
+          <Link to="/provider/plans" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-100 px-3 py-1 rounded-full transition-colors">{t("Upgrade Plan")}</Link>
         </div>
       )}
-      
       {/* UI Block Overlay */}
       {!usageLoading && (() => {
         const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
@@ -160,15 +158,12 @@ export default function AITips() {
                   ? "Your current plan does not include access to AI Career Reports. Upgrade your plan to unlock."
                   : `You have used all ${limit} requests for this feature in the current billing cycle.`}
               </p>
-              <Link to="/provider/plans" className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
-                Upgrade Plan
-              </Link>
+              <Link to="/provider/plans" className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">{t("Upgrade Plan")}</Link>
             </div>
           );
         }
         return null;
       })()}
-
       <div className={!usageLoading && (() => {
         const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
         const used = aiUsage.usage['aiCareerAnalysis'] || 0;
@@ -184,15 +179,11 @@ export default function AITips() {
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                  AI Dashboard <span className="bg-teal-50 text-teal-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-teal-100">Beta</span>
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">{t("AI Dashboard")}<span className="bg-teal-50 text-teal-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-teal-100">{t("Pro")}</span>
                 </h1>
-                <p className="text-sm text-gray-500 mt-1 font-medium">Smart insights to help you get better matches and faster results</p>
+                <p className="text-sm text-gray-500 mt-1 font-medium">{t("Smart insights to help you get better matches and faster results")}</p>
               </div>
               <div className="flex items-center gap-4">
-                <button className="flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-gray-700 font-bold transition">
-                  <Info className="w-4 h-4" /> How it works
-                </button>
                 <button 
                   onClick={async () => {
                     try {
@@ -216,8 +207,7 @@ export default function AITips() {
                   disabled={loading}
                   className="bg-[#0f766e] hover:bg-teal-800 text-white px-4 py-2.5 rounded-xl text-[13px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
                 >
-                  <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh Insights
-                </button>
+                  <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />{t("Refresh Insights")}</button>
               </div>
             </div>
 
@@ -234,7 +224,7 @@ export default function AITips() {
                   />
                 </div>
                 <div className="z-10 relative mt-2">
-                  <div className="text-[11px] font-bold text-gray-500 flex items-center gap-1 whitespace-nowrap">AI Match Score <Info className="w-3 h-3 text-gray-400" /></div>
+                  <div className="text-[11px] font-bold text-gray-500 flex items-center gap-1 whitespace-nowrap">{t("AI Match Score")}<Info className="w-3 h-3 text-gray-400" /></div>
                   <div className="text-3xl font-black text-gray-900 mt-1 leading-none">{reportData?.top_job_roles?.[0]?.match_percentage || 92}%</div>
                   <div className="text-[11px] font-bold text-teal-700 mt-1">{(reportData?.top_job_roles?.[0]?.match_percentage || 92) > 85 ? 'Excellent' : 'Good'}</div>
                 </div>
@@ -251,41 +241,39 @@ export default function AITips() {
                     />
                   </div>
                   <div>
-                    <div className="text-[11px] font-bold text-gray-500 flex items-center gap-1 whitespace-nowrap">Profile Strength <Info className="w-3 h-3 text-gray-400" /></div>
+                    <div className="text-[11px] font-bold text-gray-500 flex items-center gap-1 whitespace-nowrap">{t("Profile Strength")}<Info className="w-3 h-3 text-gray-400" /></div>
                     <div className="text-3xl font-black text-gray-900 mt-1 leading-none">{reportData?.resume_score?.overall || 78}%</div>
                     <div className="text-[11px] font-bold text-gray-600 mt-1">{(reportData?.resume_score?.overall || 78) > 80 ? 'Excellent' : 'Good'}</div>
                   </div>
                 </div>
-                <div className="text-[10px] font-medium text-gray-500 mt-5 pt-1 border-t border-gray-50">
-                  Complete more to reach 100%
-                </div>
+                <div className="text-[10px] font-medium text-gray-500 mt-5 pt-1 border-t border-gray-50">{t("Complete more to reach 100%")}</div>
               </div>
 
               {/* Better Matches */}
               <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between">
                 <div>
-                  <div className="text-[11px] font-bold text-gray-500 mb-2">Better Matches</div>
+                  <div className="text-[11px] font-bold text-gray-500 mb-2">{t("Better Matches")}</div>
                   <div className="text-4xl font-black text-[#0f766e] mt-1 mb-1">{topJobs.length > 0 ? topJobs.length : 18}</div>
-                  <div className="text-[11px] font-bold text-teal-700 mt-1">jobs found</div>
+                  <div className="text-[11px] font-bold text-teal-700 mt-1">{t("jobs found")}</div>
                 </div>
-                <div className="text-[10px] font-medium text-gray-500 mt-4 pt-1 border-t border-gray-50">Updated today</div>
+                <div className="text-[10px] font-medium text-gray-500 mt-4 pt-1 border-t border-gray-50">{t("Updated today")}</div>
               </div>
 
               {/* Interview Chance */}
               <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between">
                 <div>
-                  <div className="text-[11px] font-bold text-gray-500 mb-2">Interview Chance</div>
+                  <div className="text-[11px] font-bold text-gray-500 mb-2">{t("Interview Chance")}</div>
                   <div className="text-3xl font-black text-[#0f766e] mt-2 mb-2">{(reportData?.resume_score?.impact || 80) > 85 ? 'High' : (reportData?.resume_score?.impact || 80) > 60 ? 'Medium' : 'Low'}</div>
-                  <div className="text-[10px] font-bold text-teal-700 mt-1.5 bg-teal-50 px-2.5 py-1 rounded-md inline-block w-full text-center">You're in top {(reportData?.resume_score?.impact || 80) > 85 ? '10%' : '30%'}</div>
+                  <div className="text-[10px] font-bold text-teal-700 mt-1.5 bg-teal-50 px-2.5 py-1 rounded-md inline-block w-full text-center">{t("You're in top")}{(reportData?.resume_score?.impact || 80) > 85 ? '10%' : '30%'}</div>
                 </div>
-                <div className="text-[10px] font-medium text-gray-500 mt-4 pt-1 border-t border-gray-50">for similar roles</div>
+                <div className="text-[10px] font-medium text-gray-500 mt-4 pt-1 border-t border-gray-50">{t("for similar roles")}</div>
               </div>
 
             </div>
 
             {/* AI Insights For You Grid */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-              <h2 className="text-[15px] font-bold text-gray-900 mb-5">AI Insights for You</h2>
+              <h2 className="text-[15px] font-bold text-gray-900 mb-5">{t("AI Insights for You")}</h2>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 
@@ -293,45 +281,43 @@ export default function AITips() {
                 <div className="border border-gray-100 rounded-xl p-4 flex flex-col h-full bg-gray-50/30">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="bg-teal-50 p-1.5 rounded-md"><Target className="w-4 h-4 text-teal-700" /></div>
-                    <span className="font-bold text-[13px] text-gray-900">Skills You Should Improve</span>
+                    <span className="font-bold text-[13px] text-gray-900">{t("Skills You Should Improve")}</span>
                   </div>
-                  <p className="text-[11px] text-gray-500 mb-5 line-clamp-2 leading-relaxed">These skills are in high demand for your target roles.</p>
+                  <p className="text-[11px] text-gray-500 mb-5 line-clamp-2 leading-relaxed">{t("These skills are in high demand for your target roles.")}</p>
                   
                   <div className="space-y-3.5 mb-auto">
                     {reportData?.missing_skills?.slice(0,3).map((skill, i) => (
                       <div key={i} className="flex justify-between items-center text-[11px]">
                         <span className="font-bold text-gray-700 truncate max-w-[120px]">{skill}</span>
-                        <span className={`font-bold px-1.5 py-0.5 rounded text-[9px] whitespace-nowrap ${i===0?'text-teal-700 bg-teal-50':'text-gray-500 bg-gray-100'}`}>{i===0?'High':'Medium'} Impact</span>
+                        <span className={`font-bold px-1.5 py-0.5 rounded text-[9px] whitespace-nowrap ${i===0?'text-teal-700 bg-teal-50':'text-gray-500 bg-gray-100'}`}>{i===0?'High':'Medium'}{t("Impact")}</span>
                       </div>
                     )) || (
                       <>
                         <div className="flex justify-between items-center text-[11px]">
-                          <span className="font-bold text-gray-700">Figma (Advanced)</span>
-                          <span className="text-teal-700 font-bold bg-teal-50 px-1.5 py-0.5 rounded text-[9px]">High Impact</span>
+                          <span className="font-bold text-gray-700">{t("Figma (Advanced)")}</span>
+                          <span className="text-teal-700 font-bold bg-teal-50 px-1.5 py-0.5 rounded text-[9px]">{t("High Impact")}</span>
                         </div>
                         <div className="flex justify-between items-center text-[11px]">
-                          <span className="font-bold text-gray-700">User Research</span>
-                          <span className="text-gray-500 font-bold bg-gray-100 px-1.5 py-0.5 rounded text-[9px]">Medium Impact</span>
+                          <span className="font-bold text-gray-700">{t("User Research")}</span>
+                          <span className="text-gray-500 font-bold bg-gray-100 px-1.5 py-0.5 rounded text-[9px]">{t("Medium Impact")}</span>
                         </div>
                         <div className="flex justify-between items-center text-[11px]">
-                          <span className="font-bold text-gray-700">Interaction Design</span>
-                          <span className="text-gray-500 font-bold bg-gray-100 px-1.5 py-0.5 rounded text-[9px]">Medium Impact</span>
+                          <span className="font-bold text-gray-700">{t("Interaction Design")}</span>
+                          <span className="text-gray-500 font-bold bg-gray-100 px-1.5 py-0.5 rounded text-[9px]">{t("Medium Impact")}</span>
                         </div>
                       </>
                     )}
                   </div>
-                  <button className="w-full text-center py-2.5 mt-5 text-[11px] font-bold text-[#0f766e] border border-teal-100 rounded-lg hover:bg-teal-50 transition">
-                    Improve Skills →
-                  </button>
+                  <button className="w-full text-center py-2.5 mt-5 text-[11px] font-bold text-[#0f766e] border border-teal-100 rounded-lg hover:bg-teal-50 transition">{t("Improve Skills →")}</button>
                 </div>
 
                 {/* Top Skills You Have */}
                 <div className="border border-gray-100 rounded-xl p-4 flex flex-col h-full bg-gray-50/30">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="bg-green-50 p-1.5 rounded-md"><CheckCircle2 className="w-4 h-4 text-[#0f766e]" /></div>
-                    <span className="font-bold text-[13px] text-gray-900">Top Skills You Have</span>
+                    <span className="font-bold text-[13px] text-gray-900">{t("Top Skills You Have")}</span>
                   </div>
-                  <p className="text-[11px] text-gray-500 mb-5 line-clamp-2 leading-relaxed">Great! These skills make you stand out.</p>
+                  <p className="text-[11px] text-gray-500 mb-5 line-clamp-2 leading-relaxed">{t("Great! These skills make you stand out.")}</p>
                   
                   <ul className="space-y-3.5 mb-auto">
                     {(reportData?.top_skills || profile?.skills || ['Please click Refresh Insights']).slice(0, 4).map((s,i) => (
@@ -343,49 +329,45 @@ export default function AITips() {
                       </li>
                     ))}
                   </ul>
-                  <button className="w-full text-center py-2.5 mt-5 text-[11px] font-bold text-[#0f766e] border border-teal-100 rounded-lg hover:bg-teal-50 transition">
-                    View All Skills →
-                  </button>
+                  <button className="w-full text-center py-2.5 mt-5 text-[11px] font-bold text-[#0f766e] border border-teal-100 rounded-lg hover:bg-teal-50 transition">{t("View All Skills →")}</button>
                 </div>
 
                 {/* Resume Score */}
                 <div className="border border-gray-100 rounded-xl p-4 flex flex-col h-full bg-gray-50/30">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="bg-teal-50 p-1.5 rounded-md"><FileText className="w-4 h-4 text-teal-700" /></div>
-                    <span className="font-bold text-[13px] text-gray-900">Resume Score</span>
+                    <span className="font-bold text-[13px] text-gray-900">{t("Resume Score")}</span>
                   </div>
-                  <p className="text-[11px] text-gray-500 mb-5 line-clamp-2 leading-relaxed">Your resume is good. Improve these areas to make it excellent.</p>
+                  <p className="text-[11px] text-gray-500 mb-5 line-clamp-2 leading-relaxed">{t("Your resume is good. Improve these areas to make it excellent.")}</p>
                   
                   <div className="space-y-4 mb-auto">
                     <div>
                       <div className="flex justify-between text-[11px] font-bold text-gray-700 mb-1.5">
-                        <span>Format & Structure</span> <span className="text-[#0f766e]">{(reportData?.resume_score?.impact > 70) ? 'Good' : 'Average'}</span>
+                        <span>{t("Format & Structure")}</span> <span className="text-[#0f766e]">{(reportData?.resume_score?.impact > 70) ? 'Good' : 'Average'}</span>
                       </div>
                       <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden"><div className="h-full bg-[#0f766e] rounded-full" style={{width: `${reportData?.resume_score?.impact || 80}%`}}></div></div>
                     </div>
                     <div>
                       <div className="flex justify-between text-[11px] font-bold text-gray-700 mb-1.5">
-                        <span>Content Depth</span> <span className="text-[#0f766e]">{(reportData?.resume_score?.brevity > 70) ? 'Good' : 'Average'}</span>
+                        <span>{t("Content Depth")}</span> <span className="text-[#0f766e]">{(reportData?.resume_score?.brevity > 70) ? 'Good' : 'Average'}</span>
                       </div>
                       <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden"><div className="h-full bg-[#0f766e] rounded-full" style={{width: `${reportData?.resume_score?.brevity || 75}%`}}></div></div>
                     </div>
                     <div>
                       <div className="flex justify-between text-[11px] font-bold text-gray-700 mb-1.5">
-                        <span>Keywords Optimization</span> <span className={reportData?.resume_score?.skills_match > 70 ? 'text-[#0f766e]' : 'text-orange-500'}>{(reportData?.resume_score?.skills_match > 70) ? 'Good' : 'Average'}</span>
+                        <span>{t("Keywords Optimization")}</span> <span className={reportData?.resume_score?.skills_match > 70 ? 'text-[#0f766e]' : 'text-orange-500'}>{(reportData?.resume_score?.skills_match > 70) ? 'Good' : 'Average'}</span>
                       </div>
                       <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden"><div className={`h-full ${reportData?.resume_score?.skills_match > 70 ? 'bg-[#0f766e]' : 'bg-orange-400'} rounded-full`} style={{width: `${reportData?.resume_score?.skills_match || 50}%`}}></div></div>
                     </div>
                   </div>
-                  <button className="w-full text-center py-2.5 mt-5 text-[11px] font-bold text-[#0f766e] border border-teal-100 rounded-lg hover:bg-teal-50 transition">
-                    Optimize Resume →
-                  </button>
+                  <button className="w-full text-center py-2.5 mt-5 text-[11px] font-bold text-[#0f766e] border border-teal-100 rounded-lg hover:bg-teal-50 transition">{t("Optimize Resume →")}</button>
                 </div>
 
                 {/* Top Job Roles */}
                 <div className="border border-gray-100 rounded-xl p-4 flex flex-col h-full bg-gray-50/30">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="bg-indigo-50 p-1.5 rounded-md"><Briefcase className="w-4 h-4 text-indigo-600" /></div>
-                    <span className="font-bold text-[13px] text-gray-900">Top Job Roles for You</span>
+                    <span className="font-bold text-[13px] text-gray-900">{t("Top Job Roles for You")}</span>
                   </div>
                   <div className="mb-2 h-1"></div>
                   
@@ -402,9 +384,7 @@ export default function AITips() {
                       </div>
                     ))}
                   </div>
-                  <button className="w-full text-center py-2.5 mt-5 text-[11px] font-bold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                    Explore Roles →
-                  </button>
+                  <button className="w-full text-center py-2.5 mt-5 text-[11px] font-bold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">{t("Explore Roles →")}</button>
                 </div>
 
               </div>
@@ -414,11 +394,10 @@ export default function AITips() {
             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-[15px] font-bold text-gray-900">AI Recommended Jobs</h2>
-                  <p className="text-[11px] text-gray-500 mt-1 font-medium">Jobs picked by AI based on your profile & activity</p>
+                  <h2 className="text-[15px] font-bold text-gray-900">{t("AI Recommended Jobs")}</h2>
+                  <p className="text-[11px] text-gray-500 mt-1 font-medium">{t("Jobs picked by AI based on your profile & activity")}</p>
                 </div>
-                <Link to="/provider/job-for-me" className="text-[11px] font-bold text-[#0f766e] flex items-center gap-1 hover:underline">
-                  View All Matches <ArrowRight className="w-3.5 h-3.5" />
+                <Link to="/provider/job-for-me" className="text-[11px] font-bold text-[#0f766e] flex items-center gap-1 hover:underline">{t("View All Matches")}<ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
 
@@ -428,10 +407,10 @@ export default function AITips() {
                     <div className="flex items-start gap-3 mb-4">
                       <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center font-black text-gray-700 shadow-sm border border-gray-100 shrink-0 text-lg relative overflow-hidden">
                          {/* Fallback to color blocks for companies if no logo */}
-                         {idx === 0 ? <div className="w-full h-full bg-blue-500 text-white flex items-center justify-center">G</div> : 
-                          idx === 1 ? <div className="w-full h-full bg-gray-800 text-white flex items-center justify-center">M</div> :
-                          idx === 2 ? <div className="w-full h-full bg-red-600 text-white flex items-center justify-center">A</div> :
-                          <div className="w-full h-full bg-orange-500 text-white flex items-center justify-center">S</div>
+                         {idx === 0 ? <div className="w-full h-full bg-blue-500 text-white flex items-center justify-center">{t("G")}</div> : 
+                          idx === 1 ? <div className="w-full h-full bg-gray-800 text-white flex items-center justify-center">{t("M")}</div> :
+                          idx === 2 ? <div className="w-full h-full bg-red-600 text-white flex items-center justify-center">{t("A")}</div> :
+                          <div className="w-full h-full bg-orange-500 text-white flex items-center justify-center">{t("S")}</div>
                          }
                       </div>
                       <div>
@@ -441,8 +420,8 @@ export default function AITips() {
                     </div>
                     
                     <div className="mb-4">
-                      <div className="text-[#0f766e] font-black text-[13px] leading-none">{92 - idx}% Match</div>
-                      <div className="text-[#0f766e]/80 text-[10px] font-bold mt-1">Excellent</div>
+                      <div className="text-[#0f766e] font-black text-[13px] leading-none">{92 - idx}{t("% Match")}</div>
+                      <div className="text-[#0f766e]/80 text-[10px] font-bold mt-1">{t("Excellent")}</div>
                     </div>
                     
                     <div className="space-y-2 mb-5">
@@ -450,8 +429,7 @@ export default function AITips() {
                         <MapPin className="w-3.5 h-3.5 text-gray-400" /> {job.city || 'Remote'}
                       </div>
                       <div className="flex items-center gap-1.5 text-[11px] text-gray-500 font-medium">
-                        <Briefcase className="w-3.5 h-3.5 text-gray-400" /> ₹{job.budgetMin || 12} - {job.budgetMax || 18} LPA
-                      </div>
+                        <Briefcase className="w-3.5 h-3.5 text-gray-400" /> ₹{job.budgetMin || 12} - {job.budgetMax || 18}{t("LPA")}</div>
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 mb-5">
@@ -461,8 +439,7 @@ export default function AITips() {
                     </div>
                     
                     <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
-                      <Link to="/provider/job-for-me" className="text-[12px] font-bold text-[#0f766e] flex items-center gap-1.5 hover:underline">
-                        View Job <ArrowRight className="w-3.5 h-3.5" />
+                      <Link to="/provider/job-for-me" className="text-[12px] font-bold text-[#0f766e] flex items-center gap-1.5 hover:underline">{t("View Job")}<ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                       <button className="text-gray-300 hover:text-gray-500 transition"><Bookmark className="w-4 h-4" /></button>
                     </div>
@@ -483,11 +460,11 @@ export default function AITips() {
               <div className="flex items-center gap-3">
                 <div className="bg-[#dcfce7] p-2 rounded-lg"><Lightbulb className="w-5 h-5 text-[#166534]" /></div>
                 <span className="text-[13px] font-medium text-[#166534]">
-                  <strong className="font-bold text-[#14532d]">AI Tip:</strong> Candidates with strong Design Systems skills are getting 40% more interview calls.
-                </span>
+                  <strong className="font-bold text-[#14532d]">{t("AI Tip:")}</strong>{t(
+                  "Candidates with strong Design Systems skills are getting 40% more interview calls."
+                )}</span>
               </div>
-              <button className="text-[11px] font-bold bg-white text-[#166534] border border-[#bcf0cf] px-4 py-2 rounded-lg hover:bg-green-50 flex items-center gap-1.5 shadow-sm transition">
-                Learn This Skill <ArrowRight className="w-3.5 h-3.5" />
+              <button className="text-[11px] font-bold bg-white text-[#166534] border border-[#bcf0cf] px-4 py-2 rounded-lg hover:bg-green-50 flex items-center gap-1.5 shadow-sm transition">{t("Learn This Skill")}<ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -500,26 +477,21 @@ export default function AITips() {
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-5 h-5 text-[#0f766e]" />
-                <h3 className="font-bold text-gray-900 text-[14px]">AI Summary</h3>
+                <h3 className="font-bold text-gray-900 text-[14px]">{t("AI Summary")}</h3>
               </div>
-              <p className="text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">Here's what AI thinks about your job search progress.</p>
+              <p className="text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">{t("Here's what AI thinks about your job search progress.")}</p>
               
               <ul className="space-y-3.5 mb-6">
                 <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" /> Your profile is well optimized
-                </li>
+                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Your profile is well optimized")}</li>
                 <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" /> You have strong skills for your roles
-                </li>
+                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("You have strong skills for your roles")}</li>
                 <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" /> Keep applying consistently
-                </li>
+                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Keep applying consistently")}</li>
                 <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" /> Improve these skills to get more interviews
-                </li>
+                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Improve these skills to get more interviews")}</li>
               </ul>
-              <button className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-600 hover:bg-gray-50 transition flex justify-center items-center gap-1.5">
-                View Full AI Analysis <ArrowRight className="w-3.5 h-3.5" />
+              <button className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-600 hover:bg-gray-50 transition flex justify-center items-center gap-1.5">{t("View Full AI Analysis")}<ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -528,21 +500,22 @@ export default function AITips() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Bot className="w-5 h-5 text-gray-700" />
-                  <h3 className="font-bold text-gray-900 text-[14px]">AI Coach</h3>
+                  <h3 className="font-bold text-gray-900 text-[14px]">{t("AI Coach")}</h3>
                 </div>
-                <span className="bg-indigo-50 text-indigo-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-indigo-100">Premium</span>
+                <span className="bg-indigo-50 text-indigo-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-indigo-100">{t("Premium")}</span>
               </div>
-              <p className="text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">Get personalized guidance to move ahead in your career.</p>
+              <p className="text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">{t("Get personalized guidance to move ahead in your career.")}</p>
               
               <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl rounded-tr-sm mb-5 relative ml-6">
-                <p className="text-[11px] text-gray-700 leading-relaxed font-medium">Hi Ananya! I analyzed your profile and applications. Would you like me to suggest some ways to improve your chances?</p>
+                <p className="text-[11px] text-gray-700 leading-relaxed font-medium">{t(
+                  "Hi Ananya! I analyzed your profile and applications. Would you like me to suggest some ways to improve your chances?"
+                )}</p>
                 <div className="absolute -left-8 top-0 w-8 h-8 bg-[#0f766e] shadow-sm rounded-full flex items-center justify-center">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
               </div>
               
-              <button onClick={() => window.dispatchEvent(new CustomEvent('open-ai-coach'))} className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-[#0f766e] hover:bg-gray-50 transition flex justify-center items-center gap-1.5 cursor-pointer">
-                Chat with AI Coach <ArrowRight className="w-3.5 h-3.5" />
+              <button onClick={() => window.dispatchEvent(new CustomEvent('open-ai-coach'))} className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-[#0f766e] hover:bg-gray-50 transition flex justify-center items-center gap-1.5 cursor-pointer">{t("Chat with AI Coach")}<ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -550,19 +523,18 @@ export default function AITips() {
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative overflow-hidden group">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-6 h-6 rounded-full bg-[#25D366] flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
-                <h3 className="font-bold text-gray-900 text-[14px]">WhatsApp AI Alerts</h3>
+                <h3 className="font-bold text-gray-900 text-[14px]">{t("WhatsApp AI Alerts")}</h3>
               </div>
-              <p className="text-[11px] text-gray-500 mb-4 font-medium">Stay updated on the go!</p>
+              <p className="text-[11px] text-gray-500 mb-4 font-medium">{t("Stay updated on the go!")}</p>
               
               <ul className="space-y-3 mb-6">
-                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" /> New job matches</li>
-                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" /> Application status updates</li>
-                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" /> Interview reminders</li>
-                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" /> Salary drops & more</li>
+                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" />{t("New job matches")}</li>
+                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" />{t("Application status updates")}</li>
+                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" />{t("Interview reminders")}</li>
+                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" />{t("Salary drops & more")}</li>
               </ul>
               
-              <button className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition flex justify-center items-center gap-2">
-                Enable WhatsApp Alerts <FaWhatsapp className="w-4 h-4 text-[#25D366]" />
+              <button className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition flex justify-center items-center gap-2">{t("Enable WhatsApp Alerts")}<FaWhatsapp className="w-4 h-4 text-[#25D366]" />
               </button>
             </div>
 
@@ -570,19 +542,18 @@ export default function AITips() {
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-6 h-6 bg-orange-50 border border-orange-100 rounded-lg flex items-center justify-center text-[10px]">💰</div>
-                <h3 className="font-bold text-gray-900 text-[14px]">Earn Extra Income</h3>
-                <span className="bg-orange-50 text-orange-600 border border-orange-100 text-[9px] font-bold px-1.5 py-0.5 rounded-full">New</span>
+                <h3 className="font-bold text-gray-900 text-[14px]">{t("Earn Extra Income")}</h3>
+                <span className="bg-orange-50 text-orange-600 border border-orange-100 text-[9px] font-bold px-1.5 py-0.5 rounded-full">{t("New")}</span>
               </div>
               
               <div className="flex items-center justify-between gap-2 mb-5 mt-4">
-                <p className="text-[11px] text-gray-600 leading-relaxed max-w-[130px] font-medium">Discover freelance projects matching your skills.</p>
+                <p className="text-[11px] text-gray-600 leading-relaxed max-w-[130px] font-medium">{t("Discover freelance projects matching your skills.")}</p>
                 <div className="w-10 h-10 bg-[#0f766e]/10 rounded-xl flex items-center justify-center border border-[#0f766e]/20">
                   <Briefcase className="w-5 h-5 text-[#0f766e]" />
                 </div>
               </div>
 
-              <button className="w-full py-2.5 border border-[#0f766e]/20 bg-[#0f766e]/5 rounded-xl text-[11px] font-bold text-[#0f766e] hover:bg-[#0f766e]/10 transition flex justify-center items-center gap-1.5 shadow-sm">
-                Explore Freelance Jobs <ArrowRight className="w-3.5 h-3.5" />
+              <button className="w-full py-2.5 border border-[#0f766e]/20 bg-[#0f766e]/5 rounded-xl text-[11px] font-bold text-[#0f766e] hover:bg-[#0f766e]/10 transition flex justify-center items-center gap-1.5 shadow-sm">{t("Explore Freelance Jobs")}<ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 

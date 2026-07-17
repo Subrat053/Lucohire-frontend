@@ -1,4 +1,9 @@
+import useTranslation from "../../hooks/useTranslation";
 export default function DocumentVerificationStatusCard({ verification }) {
+  const {
+    t
+  } = useTranslation();
+
   if (!verification) return null;
 
   const status = String(verification.status || 'pending').toLowerCase();
@@ -11,13 +16,13 @@ export default function DocumentVerificationStatusCard({ verification }) {
 
   return (
     <div className={`rounded-xl border p-3 text-sm ${colorClass}`}>
-      <p className="font-semibold mb-1">Document Verification</p>
-      <p className="capitalize">Status: {status.replace('_', ' ')}</p>
+      <p className="font-semibold mb-1">{t("Document Verification")}</p>
+      <p className="capitalize">{t("Status:")}{status.replace('_', ' ')}</p>
       {verification.reasons?.length > 0 && (
         <p className="text-xs mt-1">{verification.reasons.join(', ')}</p>
       )}
       {typeof verification.confidence === 'number' && (
-        <p className="text-xs mt-1">Confidence: {Math.round(verification.confidence * 100)}%</p>
+        <p className="text-xs mt-1">{t("Confidence:")}{Math.round(verification.confidence * 100)}%</p>
       )}
     </div>
   );

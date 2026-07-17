@@ -1,11 +1,20 @@
+import useTranslation from "../../hooks/useTranslation";
 import { useState } from 'react';
 import { searchAPI } from '../../services/api';
 
 function Chip({ label }) {
+  const {
+    t
+  } = useTranslation();
+
   return <span className="text-xs px-2 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700">{label}</span>;
 }
 
 export default function NaturalLanguageIntentBar({ query, onChange, onApplyIntent }) {
+  const {
+    t
+  } = useTranslation();
+
   const [loading, setLoading] = useState(false);
   const [intent, setIntent] = useState(null);
 
@@ -27,12 +36,12 @@ export default function NaturalLanguageIntentBar({ query, onChange, onApplyInten
 
   return (
     <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
-      <p className="text-xs font-semibold text-blue-800 mb-1">Natural Language Search</p>
+      <p className="text-xs font-semibold text-blue-800 mb-1">{t("Natural Language Search")}</p>
       <div className="flex gap-2">
         <input
           value={query}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Part time cook evening me, Noida sector 137"
+          placeholder={t("Part time cook evening me, Noida sector 137")}
           className="flex-1 rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-300"
         />
         <button
@@ -44,7 +53,6 @@ export default function NaturalLanguageIntentBar({ query, onChange, onApplyInten
           {loading ? 'Parsing…' : 'Parse'}
         </button>
       </div>
-
       {intent && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {intent.extractedSkill && <Chip label={`Skill: ${intent.extractedSkill}`} />}
