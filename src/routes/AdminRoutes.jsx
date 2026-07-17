@@ -34,6 +34,7 @@ const AdminRenewalPolicy = lazy(() => import("../pages/admin/RenewalPolicy"));
 const AdminFaq = lazy(() => import("../pages/admin/Faq"));
 const AdminAbout = lazy(() => import("../pages/admin/About"));
 const AdminSkills = lazy(() => import("../pages/admin/Skills"));
+const AdminJobRoles = lazy(() => import("../pages/admin/JobRoles"));
 const AdminWhatsApp = lazy(() => import("../pages/admin/WhatsApp"));
 const AdminCurrency = lazy(() => import("../pages/admin/Currency"));
 const AdminCountries = lazy(() => import("../pages/admin/Countries"));
@@ -124,6 +125,7 @@ export default function AdminRoutes() {
       <Route path="faq" element={wrap(<AdminFaq />)} />
       <Route path="about" element={wrap(<AdminAbout />)} />
       <Route path="skills" element={wrap(<AdminSkills />)} />
+      <Route path="job-roles" element={wrap(<AdminJobRoles />)} />
       <Route path="whatsapp" element={wrap(<AdminWhatsApp />)} />
       <Route path="currency" element={wrap(<AdminCurrency />)} />
       <Route path="countries" element={wrap(<AdminCountries />)} />

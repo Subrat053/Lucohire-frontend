@@ -1,22 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiUploadCloud, FiShield, FiUpload, FiCheckCircle, FiLock } from 'react-icons/fi';
 import { BiBuildingHouse } from 'react-icons/bi';
 import { RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
-
-const JOB_ROLES = [
-  "Frontend Developer", "Backend Developer", "Full Stack Engineer", "UI/UX Designer",
-  "Product Manager", "Data Scientist", "Data Analyst", "Machine Learning Engineer",
-  "DevOps Engineer", "Cloud Architect", "Software Engineer", "Mobile App Developer",
-  "iOS Developer", "Android Developer", "QA Engineer", "Automation Engineer",
-  "Project Manager", "Scrum Master", "Business Analyst", "Marketing Specialist",
-  "Digital Marketing Manager", "Content Writer", "SEO Specialist", "Sales Representative",
-  "Account Manager", "Customer Success Manager", "HR Generalist", "Technical Recruiter",
-  "Operations Manager", "Supply Chain Analyst", "Financial Analyst", "Accountant",
-  "Graphic Designer", "Video Editor", "Driver", "Delivery Executive", "Customer Support Executive"
-];
 
 const GuestDiscovery = () => {
   const navigate = useNavigate();
@@ -25,7 +13,26 @@ const GuestDiscovery = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [otherExperience, setOtherExperience] = useState('');
+  const [otherRole, setOtherRole] = useState('');
+  const [jobRoles, setJobRoles] = useState([]);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await api.get('/job-roles');
+        if (res.data && res.data.length > 0) {
+          setJobRoles(res.data.map(r => r.roleName));
+        } else {
+          setJobRoles(["Software Engineer", "Frontend Developer", "Backend Developer", "Product Manager", "Data Analyst"]);
+        }
+      } catch (err) {
+        console.error('Error fetching job roles:', err);
+        setJobRoles(["Software Engineer", "Frontend Developer", "Backend Developer", "Product Manager", "Data Analyst"]);
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const [formData, setFormData] = useState({
     emailId: '',
@@ -128,13 +135,18 @@ const GuestDiscovery = () => {
       return toast.error('Please enter your experience in years.');
     }
 
+    if (role === 'Other' && !otherRole) {
+      return toast.error('Please enter your custom role.');
+    }
+
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailId)) {
       return toast.error('Please enter a valid email address.');
     }
 
     const finalFormData = {
       ...formData,
-      experience: experience === 'Other' ? otherExperience : experience
+      experience: experience === 'Other' ? otherExperience : experience,
+      role: role === 'Other' ? otherRole : role
     };
 
     navigate('/unlock-matches', { state: { file, formData: finalFormData } });
@@ -260,10 +272,20 @@ const GuestDiscovery = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white"
                 >
                   <option value="">Select a role</option>
-                  {JOB_ROLES.map((role) => (
-                    <option key={role} value={role}>{role}</option>
+                  {jobRoles.map((r) => (
+                    <option key={r} value={r}>{r}</option>
                   ))}
+                  <option value="Other">Other</option>
                 </select>
+                {formData.role === 'Other' && (
+                  <input 
+                    type="text"
+                    value={otherRole}
+                    onChange={(e) => setOtherRole(e.target.value)}
+                    placeholder="Enter your custom role"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 mt-2"
+                  />
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Years of Experience *</label>

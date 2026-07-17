@@ -32,6 +32,23 @@ const LockedResults = () => {
     }
   }, [formData]);
 
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const res = await api.post('/jobs/guest-recommended', {
+          skills: formData?.role || '',
+          mobileNumber: formData?.phone || ''
+        });
+        if (res.data?.success && res.data?.data?.jobs) {
+          setRealJobs(res.data.data.jobs);
+        }
+      } catch (err) {
+        console.error('Failed to fetch recommended jobs:', err);
+      }
+    };
+    fetchJobs();
+  }, [formData?.role, formData?.phone]);
+
   const handleInterceptClick = (e) => {
     if (!isVerified) {
       e.preventDefault();
@@ -301,110 +318,88 @@ const LockedResults = () => {
         </div>
         
         <div className={`space-y-4 transition-all duration-500 ${!isVerified ? 'select-none pointer-events-none' : ''}`}>
-          {isVerified && realJobs.length > 0 ? (
-            realJobs.map((job, idx) => (
-              <div key={job._id || idx} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                  <div className="flex items-center mb-4 sm:mb-0">
-                    <div className="w-12 h-12 bg-blue-100 rounded-md flex items-center justify-center text-blue-600 font-bold text-xl mr-4">
-                      {job.recruiter?.companyName?.charAt(0) || job.title?.charAt(0) || 'J'}
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-bold text-gray-900">{job.title}</h4>
-                      <p className="text-gray-500">{job.recruiter?.companyName || 'Confidential'} &bull; {job.city || 'Remote'}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2">{job.matchScore || 90}% Match</span>
-                    <button onClick={() => navigate('/provider/dashboard')} className="text-blue-600 border border-blue-600 hover:bg-blue-50 font-medium px-4 py-2 rounded-md transition">
-                      Go to Dashboard
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Blurred AI Insights CTA */}
-                <div className="mt-4 pt-4 border-t border-gray-100 relative overflow-hidden bg-gradient-to-r from-blue-50/50 to-indigo-50/50 -mx-6 -mb-6 px-6 pb-6 rounded-b-lg">
-                  <div className="filter blur-[3px] opacity-80 select-none pointer-events-none space-y-3 mt-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-blue-200 rounded-full"></div>
-                      <div className="h-4 bg-gray-300 rounded w-32"></div>
-                    </div>
-                    <div className="h-3 bg-gray-200 rounded w-full"></div>
-                    <div className="h-3 bg-gray-200 rounded w-4/5"></div>
-                    <div className="flex gap-2 mt-2">
-                      <div className="h-6 w-20 bg-emerald-100 rounded-full"></div>
-                      <div className="h-6 w-24 bg-blue-100 rounded-full"></div>
+          {realJobs.length > 0 ? (
+            realJobs.map((job, idx) => {
+              if (isVerified) {
+                return (
+                  <div key={job._id || idx} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                      <div className="flex items-center mb-4 sm:mb-0">
+                        <div className="w-12 h-12 bg-blue-100 rounded-md flex items-center justify-center text-blue-600 font-bold text-xl mr-4">
+                          {(job.companyName || job.recruiter?.name || job.recruiter?.companyName || 'J').charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-bold text-gray-900">{job.title}</h4>
+                          <p className="text-gray-500">{job.companyName || job.recruiter?.name || job.recruiter?.companyName || 'Confidential'} &bull; {job.city || 'Remote'}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2">{job.matchScore || 90}% Match</span>
+                        <button onClick={() => navigate('/provider/dashboard')} className="text-blue-600 border border-blue-600 hover:bg-blue-50 font-medium px-4 py-2 rounded-md transition">
+                          Go to Dashboard
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-white/40 backdrop-blur-[1px]">
-                    <p className="text-sm font-bold text-gray-800 mb-2 drop-shadow-sm flex items-center gap-2">
-                      <FiLock className="w-4 h-4 text-indigo-600" /> Unlock AI Job Insights
-                    </p>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); navigate('/provider/plans'); }}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-5 rounded-full transition-colors shadow-md flex items-center gap-1.5"
-                    >
-                      View Premium Plans
-                    </button>
+                );
+              } else {
+                return (
+                  <div key={job._id || idx} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                      <div className="flex items-center mb-4 sm:mb-0">
+                        <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-md flex items-center justify-center text-blue-600 font-bold text-xl mr-4">
+                          {(job.companyName || job.recruiter?.name || job.recruiter?.companyName || 'C').charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-bold text-gray-900">{job.companyName || job.recruiter?.name || job.recruiter?.companyName || 'Confidential'}</h4>
+                          <p className="text-gray-500">
+                            {job.title} <span className="blur-[5px] opacity-70 select-none">&bull; {job.city || 'Remote'} &bull; Full-time</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2 blur-[5px] opacity-70 select-none">{job.matchScore || 90}% Match</span>
+                        <button className="text-gray-400 border border-gray-200 bg-gray-50 font-medium px-4 py-2 rounded-md transition flex items-center cursor-not-allowed">
+                          <FiLock className="mr-2" /> Locked
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Blurred AI Insights CTA */}
+                    <div className="mt-4 pt-4 border-t border-gray-100 relative overflow-hidden bg-gradient-to-r from-blue-50/50 to-indigo-50/50 -mx-6 -mb-6 px-6 pb-6 rounded-b-lg">
+                      <div className="filter blur-[3px] opacity-80 select-none pointer-events-none space-y-3 mt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 bg-blue-200 rounded-full"></div>
+                          <div className="h-4 bg-gray-300 rounded w-32"></div>
+                        </div>
+                        <div className="h-3 bg-gray-200 rounded w-full"></div>
+                        <div className="h-3 bg-gray-200 rounded w-4/5"></div>
+                        <div className="flex gap-2 mt-2">
+                          <div className="h-6 w-20 bg-emerald-100 rounded-full"></div>
+                          <div className="h-6 w-24 bg-blue-100 rounded-full"></div>
+                        </div>
+                      </div>
+                      
+                      <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-white/40 backdrop-blur-[1px]">
+                        <p className="text-sm font-bold text-gray-800 mb-2 drop-shadow-sm flex items-center gap-2">
+                          <FiLock className="w-4 h-4 text-indigo-600" /> Unlock AI Job Insights
+                        </p>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); navigate('/provider/plans'); }}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-5 rounded-full transition-colors shadow-md flex items-center gap-1.5"
+                        >
+                          View Premium Plans
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))
+                );
+              }
+            })
           ) : (
-            [
-              { company: 'Deloitte', title: formData?.role || 'Senior Frontend Developer', score: 92 },
-              { company: 'TCS', title: formData?.role ? `Product ${formData?.role.split(' ').pop()}` : 'Product Designer', score: 87 },
-              { company: 'Infosys', title: formData?.role || 'UX Designer', score: 84 }
-            ].map((job, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                  <div className="flex items-center mb-4 sm:mb-0">
-                    <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 font-bold text-xl mr-4">
-                      {job.company.charAt(0)}
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-bold blur-[5px] text-gray-400 opacity-70">{job.title}</h4>
-                      <p className="text-gray-500 blur-[4px] opacity-70">{job.company} &bull; Remote &bull; Full-time</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2">{job.score}% Match</span>
-                    <button className="text-blue-600 border border-blue-600 hover:bg-blue-50 font-medium px-4 py-2 rounded-md transition">
-                      View Job
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Blurred AI Insights CTA */}
-                <div className="mt-4 pt-4 border-t border-gray-100 relative overflow-hidden bg-gradient-to-r from-blue-50/50 to-indigo-50/50 -mx-6 -mb-6 px-6 pb-6 rounded-b-lg">
-                  <div className="filter blur-[3px] opacity-80 select-none pointer-events-none space-y-3 mt-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-blue-200 rounded-full"></div>
-                      <div className="h-4 bg-gray-300 rounded w-32"></div>
-                    </div>
-                    <div className="h-3 bg-gray-200 rounded w-full"></div>
-                    <div className="h-3 bg-gray-200 rounded w-4/5"></div>
-                    <div className="flex gap-2 mt-2">
-                      <div className="h-6 w-20 bg-emerald-100 rounded-full"></div>
-                      <div className="h-6 w-24 bg-blue-100 rounded-full"></div>
-                    </div>
-                  </div>
-                  
-                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-white/40 backdrop-blur-[1px]">
-                    <p className="text-sm font-bold text-gray-800 mb-2 drop-shadow-sm flex items-center gap-2">
-                      <FiLock className="w-4 h-4 text-indigo-600" /> Unlock AI Job Insights
-                    </p>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); navigate('/provider/plans'); }}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-5 rounded-full transition-colors shadow-md flex items-center gap-1.5"
-                    >
-                      View Premium Plans
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
+            <div className="flex justify-center py-12">
+               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            </div>
           )}
         </div>
       </div>

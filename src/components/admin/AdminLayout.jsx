@@ -266,6 +266,12 @@ const navItems = [
     icon: HiCollection,
   },
   {
+    labelKey: "admin.navJobRoles",
+    fallback: "Job Roles",
+    path: "/admin/job-roles",
+    icon: HiCollection,
+  },
+  {
     labelKey: "admin.navPlans",
     fallback: "Plans",
     path: "/admin/plans",

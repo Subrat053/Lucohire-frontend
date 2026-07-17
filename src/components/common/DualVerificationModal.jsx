@@ -18,8 +18,10 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
   const [emailOtp, setEmailOtp] = useState('');
   const [guestToken, setGuestToken] = useState('');
 
-  const [phoneOtp, setPhoneOtp] = useState('');
   const [confirmationResult, setConfirmationResult] = useState(null);
+  const [accountExistsError, setAccountExistsError] = useState(false);
+
+  const [phoneOtp, setPhoneOtp] = useState('');
 
   const [localPhone, setLocalPhone] = useState(recruiterData?.phone || '');
   const [isEditingPhone, setIsEditingPhone] = useState(false);
@@ -95,6 +97,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
 
   const handleSendEmailOtp = async () => {
     setLoading(true);
+    setAccountExistsError(false);
     try {
       const { data } = await api.post('/jobs/recruiter-discovery/send-email-otp', {
         email: recruiterData.email
@@ -110,7 +113,11 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
         toast.error(data.message || 'Failed to send OTP');
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to send OTP to email');
+      if (err.response?.status === 409 || err.response?.data?.accountExists) {
+        setAccountExistsError(true);
+      } else {
+        toast.error(err.response?.data?.message || 'Failed to send OTP to email');
+      }
     } finally {
       setLoading(false);
     }
@@ -220,7 +227,19 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+            {accountExistsError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-4 text-center">
+                <p className="font-medium mb-2 text-sm">Account already exists!</p>
+                <button 
+                  onClick={() => navigate('/login')}
+                  className="bg-red-600 text-white px-4 py-2 rounded-md font-medium hover:bg-red-700 transition text-sm w-full"
+                >
+                  Login to Continue
+                </button>
+              </div>
+            )}
+
+            <div className={`bg-gray-50 p-4 rounded-xl border border-gray-200 ${accountExistsError ? 'opacity-50 pointer-events-none' : ''}`}>
               <div className="flex justify-between items-center mb-3">
                 <h4 className="font-semibold text-gray-800 text-sm">Location Details</h4>
                 <button
@@ -251,7 +270,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
 
             <button
               onClick={handleSendEmailOtp}
-              disabled={loading || !country || !stateName || !city}
+              disabled={loading || !country || !stateName || !city || accountExistsError}
               className="w-full py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 disabled:opacity-50 transition"
             >
               {loading ? 'Sending...' : 'Send Email Code'}

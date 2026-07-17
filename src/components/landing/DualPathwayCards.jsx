@@ -10,23 +10,23 @@ export default function DualPathwayCards({ user }) {
   if (user) return null;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-4 w-full mt-2">
-      <div className="grid md:grid-cols-2 gap-6 w-full">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-0 w-full -mt-[25px]">
+      <div className="grid md:grid-cols-2 gap-4 lg:gap-5 w-full">
       
         {/* Candidate Card */}
-        <Link to="/candidate-landing" className="bg-white border border-gray-100 rounded-[20px] p-5 lg:p-6 flex flex-col relative group hover:shadow-lg hover:border-blue-100 transition duration-300 shadow-sm cursor-pointer block">
-          <div className="flex justify-between items-center mb-10">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center border-2 border-blue-50 text-blue-600 shrink-0 shadow-sm">
-                <User className="w-6 h-6" strokeWidth={2.5} />
+        <Link to="/candidate-landing" className="bg-white border border-gray-100 rounded-[16px] px-4 py-3 lg:px-5 lg:py-4 h-[200px] flex flex-col relative group hover:shadow-lg hover:border-blue-100 transition duration-300 shadow-sm cursor-pointer block">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-blue-50 text-blue-600 shrink-0 shadow-sm">
+                <User className="w-5 h-5" strokeWidth={2.5} />
               </div>
               <div>
-                <h2 className="text-[22px] font-extrabold text-blue-600 mb-1 leading-tight tracking-tight">{t("I'm a Candidate")}</h2>
-                <p className="text-xs font-semibold text-gray-700">{t("Find jobs that match your skills and goals.")}</p>
+                <h2 className="text-2xl lg:text-3xl font-extrabold text-blue-600 mb-2 leading-normal tracking-tight">{t("I'm a Candidate")}</h2>
+                <p className="text-sm lg:text-base font-semibold text-gray-700 leading-[1.6]">{t("Find jobs that match your skills and goals.")}</p>
               </div>
             </div>
-            <div className="w-8 h-8 flex items-center justify-center text-gray-800 shrink-0">
-              <ChevronRight className="w-6 h-6" strokeWidth={2.5} />
+            <div className="w-6 h-6 flex items-center justify-center text-gray-800 shrink-0">
+              <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
             </div>
           </div>
           
@@ -59,19 +59,19 @@ export default function DualPathwayCards({ user }) {
         </Link>
 
         {/* Recruiter Card */}
-        <Link to="/recruiter-discovery" className="bg-[#fafffb] border border-green-100/50 rounded-[20px] p-5 lg:p-6 flex flex-col relative group hover:shadow-lg hover:border-green-200 transition duration-300 shadow-sm cursor-pointer block">
-          <div className="flex justify-between items-center mb-10">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center border-2 border-green-50 text-green-600 shrink-0 shadow-sm">
-                <Briefcase className="w-6 h-6" strokeWidth={2.5} />
+        <Link to="/recruiter-discovery" className="bg-[#fafffb] border border-green-100/50 rounded-[16px] px-4 py-3 lg:px-5 lg:py-4 h-[200px] flex flex-col relative group hover:shadow-lg hover:border-green-200 transition duration-300 shadow-sm cursor-pointer block">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-green-50 text-green-600 shrink-0 shadow-sm">
+                <Briefcase className="w-5 h-5" strokeWidth={2.5} />
               </div>
               <div>
-                <h2 className="text-[22px] font-extrabold text-green-600 mb-1 leading-tight tracking-tight">{t("I'm a Recruiter")}</h2>
-                <p className="text-xs font-semibold text-gray-700">{t("Hire verified talent faster and build winning teams.")}</p>
+                <h2 className="text-2xl lg:text-3xl font-extrabold text-green-600 mb-2 leading-normal tracking-tight">{t("I'm a Recruiter")}</h2>
+                <p className="text-sm lg:text-base font-semibold text-gray-700 leading-[1.6]">{t("Hire verified talent faster and build teams.")}</p>
               </div>
             </div>
-            <div className="w-8 h-8 flex items-center justify-center text-gray-800 shrink-0">
-              <ChevronRight className="w-6 h-6" strokeWidth={2.5} />
+            <div className="w-6 h-6 flex items-center justify-center text-gray-800 shrink-0">
+              <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
             </div>
           </div>
           
