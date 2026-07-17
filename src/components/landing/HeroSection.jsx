@@ -63,7 +63,7 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
   };
 
   return (
-    <div className="w-full h-[100vh] flex flex-col justify-between pt-2 sm:pt-3 overflow-hidden bg-[#fcfdfe]" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="w-full min-h-[100dvh] flex flex-col justify-between pt-4 sm:pt-6 bg-[#fcfdfe]" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
       {/* 2. Hero Section Content */}
       <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center flex-1">
         
@@ -75,7 +75,7 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
         </div> */}
 
         {/* Main Headline */}
-        <h1 className="text-3xl md:text-4xl lg:text-[42px] font-bold text-[#0B1536] mb-3 text-center tracking-tight leading-tight">
+        <h1 className="text-[26px] sm:text-3xl md:text-4xl lg:text-[42px] font-bold text-[#0B1536] mb-2 sm:mb-3 text-center tracking-tight leading-tight px-2">
           {t("One Platform.")} <span className="text-blue-600">{t("Endless Opportunities.")}</span>
         </h1>
 
@@ -167,16 +167,24 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
           </Link> */}
         </div>
         
-        {/* 3. Dual Pathway Cards */}
+        {/* 3. Dual Pathway Cards or Jobs */}
         <div className="w-full mt-3 flex-1 flex flex-col justify-center">
-          <DualPathwayCards user={user} />
+          {user ? (
+            <div className="-mt-4 w-full">
+              <LiveJobsCarousel isLoadingJobs={isLoadingJobs} liveJobsList={liveJobsList} />
+            </div>
+          ) : (
+            <DualPathwayCards user={user} />
+          )}
         </div>
       </div>
       
       {/* 4. Live Jobs Carousel at the bottom of hero section */}
-      <div className="w-full mt-auto pb-0 -mt-2">
-        <LiveJobsCarousel isLoadingJobs={isLoadingJobs} liveJobsList={liveJobsList} />
-      </div>
+      {!user && (
+        <div className="w-full mt-auto pb-0 -mt-2">
+          <LiveJobsCarousel isLoadingJobs={isLoadingJobs} liveJobsList={liveJobsList} />
+        </div>
+      )}
     </div>
   );
 }

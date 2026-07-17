@@ -505,11 +505,8 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePl
             <HiExclamationCircle className="w-4 h-4 text-orange-500 shrink-0" />
             <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Missing Skills</span>
             <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className="flex-1 min-w-0 overflow-hidden">
-              <span
-                className="text-xs text-gray-500 truncate block"
-                style={!hasActivePlan ? { filter: 'blur(4px)', userSelect: 'none', opacity: 0.7 } : {}}
-              >
+            <div className={`flex-1 min-w-0 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : 'overflow-hidden'}`}>
+              <span className="text-xs text-gray-500 truncate block">
                 {!hasActivePlan ? "Figma, Bootstrap, HTML5, CSS, Web Design" : (aiInsights?.missingSkills?.length > 0 ? aiInsights.missingSkills.join(", ") : t("Generating..."))}
               </span>
             </div>
@@ -519,11 +516,8 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePl
             <HiOutlineMail className="w-4 h-4 text-red-500 shrink-0" />
             <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Not Getting Hired?</span>
             <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className="flex-1 min-w-0 overflow-hidden">
-              <span
-                className="text-xs text-gray-500 truncate block"
-                style={!hasActivePlan ? { filter: 'blur(4px)', userSelect: 'none', opacity: 0.7 } : {}}
-              >
+            <div className={`flex-1 min-w-0 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : 'overflow-hidden'}`}>
+              <span className="text-xs text-gray-500 truncate block">
                 {!hasActivePlan ? "Portfolio lacks strong mobile UI/UX examples." : (aiInsights?.hireBlocker || t("Generating..."))}
               </span>
             </div>
@@ -533,11 +527,8 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePl
             <HiOutlinePhone className="w-4 h-4 text-emerald-500 shrink-0" />
             <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Call Probability</span>
             <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className="flex-1 min-w-0 overflow-hidden">
-              <span
-                className="text-xs text-gray-500 truncate block"
-                style={!hasActivePlan ? { filter: 'blur(4px)', userSelect: 'none', opacity: 0.7 } : {}}
-              >
+            <div className={`flex-1 min-w-0 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : 'overflow-hidden'}`}>
+              <span className="text-xs text-gray-500 truncate block">
                 {!hasActivePlan ? "Based on call probability 65%" : (aiInsights?.interviewProbability ? `Interview probability: ${aiInsights.interviewProbability}%` : t("Generating..."))}
               </span>
             </div>
@@ -695,9 +686,13 @@ const ProviderJobs = () => {
     if (!subscriptionLoaded) return;
     if (jobs.length === 0) return;
 
-    // A real paid plan: subscription exists and the plan itself is not the default free plan
-    const planObj = subscription?.planId || subscription?.plan;
-    const hasActivePlan = !!planObj && planObj.price > 0;
+    // A real paid plan: paymentStatus is not 'free' AND user actually paid something
+    // The planType field is unreliable — even free subscriptions can have planType='paid'
+    // Ground truth: subscription.paymentStatus and aiLimits
+    const hasActivePlan = !!subscription &&
+      subscription.paymentStatus !== 'free' &&
+      subscription.totalAmount > 0;
+
 
     const jobsToFetch = jobs.slice(0, 10).filter(j => {
       const existing = aiInsightsMap[j._id];
@@ -1216,7 +1211,7 @@ const ProviderJobs = () => {
                       aiInsights={aiInsightsMap[job._id]}
                       onViewDetails={(job) => navigate(`/provider/job/${job._id}`)}
                       onRecruiterClick={handleRecruiterClick}
-                      hasActivePlan={!!(subscription?.planId || subscription?.plan) && (subscription?.planId?.price > 0 || subscription?.plan?.price > 0)}
+                      hasActivePlan={!!subscription && subscription.paymentStatus !== 'free' && subscription.totalAmount > 0}
                     />
                   ))}
                 </div>

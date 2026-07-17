@@ -10,12 +10,12 @@ export default function DualPathwayCards({ user }) {
   if (user) return null;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-0 w-full -mt-[25px]">
-      <div className="grid md:grid-cols-2 gap-4 lg:gap-5 w-full">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-0 w-full mt-4 sm:-mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 w-full">
       
         {/* Candidate Card */}
-        <Link to="/candidate-landing" className="bg-white border border-gray-100 rounded-[16px] px-4 py-3 lg:px-5 lg:py-4 h-[200px] flex flex-col relative group hover:shadow-lg hover:border-blue-100 transition duration-300 shadow-sm cursor-pointer block">
-          <div className="flex justify-between items-center mb-6">
+        <Link to="/candidate-landing" className="bg-white border border-gray-100 rounded-[16px] px-4 py-3 lg:px-5 lg:py-4 min-h-[160px] sm:min-h-[200px] h-auto flex flex-col relative group hover:shadow-lg hover:border-blue-100 transition duration-300 shadow-sm cursor-pointer block">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-blue-50 text-blue-600 shrink-0 shadow-sm">
                 <User className="w-5 h-5" strokeWidth={2.5} />
@@ -30,27 +30,27 @@ export default function DualPathwayCards({ user }) {
             </div>
           </div>
           
-          <div className="mt-auto flex items-center justify-between">
+          <div className="mt-4 sm:mt-auto flex flex-wrap items-center justify-start sm:justify-between gap-y-3 gap-x-4 sm:gap-x-0 w-full">
             <div className="flex flex-col items-center gap-1.5 text-blue-600">
               <Target className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("AI Match")}</span>
             </div>
-            <div className="w-px h-6 bg-gray-200"></div>
+            <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-gray-600">
               <FileText className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Resume Score")}</span>
             </div>
-            <div className="w-px h-6 bg-gray-200"></div>
+            <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-gray-600">
               <PieChart className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Skill Insights")}</span>
             </div>
-            <div className="w-px h-6 bg-gray-200"></div>
+            <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-gray-600">
               <TrendingUp className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Career Tips")}</span>
             </div>
-            <div className="w-px h-6 bg-gray-200"></div>
+            <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-gray-600">
               <Globe className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Global Jobs")}</span>
@@ -59,8 +59,8 @@ export default function DualPathwayCards({ user }) {
         </Link>
 
         {/* Recruiter Card */}
-        <Link to="/recruiter-discovery" className="bg-[#fafffb] border border-green-100/50 rounded-[16px] px-4 py-3 lg:px-5 lg:py-4 h-[200px] flex flex-col relative group hover:shadow-lg hover:border-green-200 transition duration-300 shadow-sm cursor-pointer block">
-          <div className="flex justify-between items-center mb-6">
+        <Link to="/recruiter-discovery" className="bg-[#fafffb] border border-green-100/50 rounded-[16px] px-4 py-3 lg:px-5 lg:py-4 min-h-[160px] sm:min-h-[200px] h-auto flex flex-col relative group hover:shadow-lg hover:border-green-200 transition duration-300 shadow-sm cursor-pointer block">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-green-50 text-green-600 shrink-0 shadow-sm">
                 <Briefcase className="w-5 h-5" strokeWidth={2.5} />
@@ -75,27 +75,27 @@ export default function DualPathwayCards({ user }) {
             </div>
           </div>
           
-          <div className="mt-auto flex items-center justify-between">
+          <div className="mt-4 sm:mt-auto flex flex-wrap items-center justify-start sm:justify-between gap-y-3 gap-x-4 sm:gap-x-0 w-full">
             <div className="flex flex-col items-center gap-1.5 text-green-500">
               <Users className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Verified Talent")}</span>
             </div>
-            <div className="w-px h-6 bg-gray-200"></div>
+            <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-green-500">
               <ShieldCheck className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Post Jobs Free")}</span>
             </div>
-            <div className="w-px h-6 bg-gray-200"></div>
+            <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-green-500">
               <Send className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Smart Shortlist")}</span>
             </div>
-            <div className="w-px h-6 bg-gray-200"></div>
+            <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-green-500">
               <MessageCircle className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("WhatsApp Connect")}</span>
             </div>
-            <div className="w-px h-6 bg-gray-200"></div>
+            <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-green-500">
               <Award className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("AI Ranking")}</span>

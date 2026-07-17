@@ -112,8 +112,7 @@ export default function JobDetail() {
         const sub = subRes.status === "fulfilled" ? subRes.value.data?.subscription : null;
         setSubscription(sub);
 
-        const planObj = sub?.planId || sub?.plan;
-        const hasActivePlan = !!planObj && planObj.price > 0;
+        const hasActivePlan = !!sub && sub.paymentStatus !== 'free' && sub.totalAmount > 0;
 
         if (hasActivePlan) {
           // Fetch real AI insights for this job
@@ -152,8 +151,7 @@ export default function JobDetail() {
     fetchAll();
   }, [jobId, navigate]);
 
-  const planObj = subscription?.planId || subscription?.plan;
-  const hasActivePlan = !!planObj && planObj.price > 0;
+  const hasActivePlan = !!subscription && subscription.paymentStatus !== 'free' && subscription.totalAmount > 0;
 
   const handleSave = useCallback(async () => {
     try {
@@ -263,7 +261,7 @@ export default function JobDetail() {
                         "Your portfolio aligns with company needs",
                       ]
                   ).map((point, i) => (
-                    <li key={i} className={`flex items-start gap-2 text-xs text-gray-700 ${!hasActivePlan && i > 0 ? "blur-sm select-none" : ""}`}>
+                    <li key={i} className={`flex items-start gap-2 text-xs text-gray-700 ${!hasActivePlan && i > 0 ? "blur-md opacity-50 select-none" : ""}`}>
                       <span className="mt-0.5 w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                         <HiCheckCircle className="w-3 h-3 text-emerald-600" />
                       </span>
@@ -272,7 +270,7 @@ export default function JobDetail() {
                   ))}
 
                   {/* Improvement tip */}
-                  <li className={`flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 ${!hasActivePlan ? "blur-sm select-none" : ""}`}>
+                  <li className={`flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
                     <HiExclamationCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                     <span>
                       {hasActivePlan
@@ -453,7 +451,7 @@ export default function JobDetail() {
               {/* Why Great Match */}
               <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
                 <p className="text-[10px] font-bold text-gray-500 mb-1">Why this is a great match</p>
-                <p className={`text-xs text-gray-600 leading-snug ${!hasActivePlan ? "blur-sm select-none" : ""}`}>
+                <p className={`text-xs text-gray-600 leading-snug ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
                   {hasActivePlan ? (aiInsights?.whyMatch?.[0] || "Your skills align with this role") : "Your UI/UX skills, Figma experience and portfolio strongly match this role."}
                 </p>
 
@@ -462,7 +460,7 @@ export default function JobDetail() {
               {/* Skills You Have */}
               <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
                 <p className="text-[10px] font-bold text-gray-500 mb-1">Skills you have</p>
-                <ul className={`space-y-0.5 ${!hasActivePlan ? "blur-sm select-none" : ""}`}>
+                <ul className={`space-y-0.5 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
                   {(hasActivePlan ? [job.skill, ...(job.requirements?.slice(0,2) || [])] : ["UI/UX Design", "Figma", "Interaction Design"]).filter(Boolean).slice(0,3).map((s, i) => (
                     <li key={i} className="text-xs text-gray-600 flex items-center gap-1"><HiCheckCircle className="w-3 h-3 text-emerald-500 shrink-0" />{s}</li>
                   ))}
@@ -472,7 +470,7 @@ export default function JobDetail() {
               {/* Skills to Improve */}
               <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
                 <p className="text-[10px] font-bold text-gray-500 mb-1">Skills to improve</p>
-                <ul className={`space-y-0.5 ${!hasActivePlan ? "blur-sm select-none" : ""}`}>
+                <ul className={`space-y-0.5 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
                   {(hasActivePlan ? (aiInsights?.missingSkills || []) : ["Design Systems", "Interaction Design", "Prototyping"]).slice(0,3).map((s, i) => (
                     <li key={i} className="text-xs text-red-600 flex items-center gap-1"><HiExclamationCircle className="w-3 h-3 text-red-400 shrink-0" />{s}</li>
                   ))}
@@ -495,10 +493,10 @@ export default function JobDetail() {
                         strokeWidth="3"
                         strokeDasharray={`${hasActivePlan ? (aiInsights?.interviewProbability || 65) : 78} ${100 - (hasActivePlan ? (aiInsights?.interviewProbability || 65) : 78)}`}
                         strokeLinecap="round"
-                        className={!hasActivePlan ? "blur-sm" : ""}
+                        className={!hasActivePlan ? "blur-md opacity-50" : ""}
                       />
                     </svg>
-                    <span className={`absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-900 ${!hasActivePlan ? "blur-sm" : ""}`}>
+                    <span className={`absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-900 ${!hasActivePlan ? "blur-md opacity-50" : ""}`}>
                       {hasActivePlan ? `${aiInsights?.interviewProbability || 65}%` : "78%"}
                     </span>
                   </div>
@@ -514,10 +512,10 @@ export default function JobDetail() {
             <div className={`mt-3 bg-gray-50 rounded-xl p-3 border border-gray-100 flex items-center justify-between ${!hasActivePlan ? "" : ""}`}>
               <div>
                 <p className="text-[10px] font-bold text-gray-500">Salary Insight</p>
-                <p className={`text-sm font-bold text-gray-900 ${!hasActivePlan ? "blur-sm select-none" : ""}`}>
+                <p className={`text-sm font-bold text-gray-900 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
                   {hasActivePlan ? (aiInsights?.salaryInsight || budgetText) : "₹14 – 18 LPA"}
                 </p>
-                <p className={`text-[10px] text-gray-500 ${!hasActivePlan ? "blur-sm select-none" : ""}`}>
+                <p className={`text-[10px] text-gray-500 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
                   Avg. for your profile
                 </p>
               </div>
@@ -540,17 +538,17 @@ export default function JobDetail() {
               <h3 className="font-bold text-sm text-gray-900">AI Summary</h3>
               <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-full flex items-center gap-1"><HiSparkles className="w-3 h-3" /> AI</span>
             </div>
-            <p className={`text-xs text-gray-600 leading-relaxed mb-2 ${!hasActivePlan ? "blur-sm select-none" : ""}`}>
+            <p className={`text-xs text-gray-600 leading-relaxed mb-2 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
               You're a strong match for this role. Here's why:
             </p>
             <ul className="space-y-1">
               {["Figma skills match 90%", "UX Research experience", "Strong portfolio alignment"].map((pt, i) => (
-                <li key={i} className={`flex items-start gap-2 text-xs text-gray-600 ${!hasActivePlan ? "blur-sm select-none" : ""}`}>
+                <li key={i} className={`flex items-start gap-2 text-xs text-gray-600 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
                   <HiCheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
                   {hasActivePlan ? pt : pt}
                 </li>
               ))}
-              <li className={`flex items-start gap-2 text-xs text-amber-700 ${!hasActivePlan ? "blur-sm select-none" : ""}`}>
+              <li className={`flex items-start gap-2 text-xs text-amber-700 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
                 <HiExclamationCircle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                 {hasActivePlan ? (aiInsights?.improve || "Improve Design Systems to increase match") : "Improve Design Systems to increase match to 97%"}
               </li>
