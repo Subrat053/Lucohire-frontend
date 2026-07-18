@@ -33,7 +33,9 @@ import SkillSearchSelect from "../components/common/SkillSearchSelect";
 import useSubmitLock from "../hooks/useSubmitLock";
 import { sanitizePayload } from "../utils/sanitizePayload";
 import CascadeLocationSelect from "../components/common/CascadeLocationSelect";
-import CountryPhoneInput, { parsePhoneString } from "../components/common/CountryPhoneInput";
+import CountryPhoneInput, {
+  parsePhoneString,
+} from "../components/common/CountryPhoneInput";
 
 /* keep all your existing illustration / small components same */
 /* ═══════════════════════════ ILLUSTRATIONS ═══════════════════════════ */
@@ -700,6 +702,8 @@ const AuthPage = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [roleSelectionData, setRoleSelectionData] = useState(null);
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [signupModalRole, setSignupModalRole] = useState("recruiter");
 
   const [selectedRoles, setSelectedRoles] = useState(
     preSelectedRole ? [preSelectedRole] : ["provider"],
@@ -954,7 +958,9 @@ const AuthPage = () => {
     setErrors((prev) => ({
       ...prev,
       phone: phoneData.validationError || "",
-      ...(form.isWhatsappSameAsMobile !== false ? { whatsappNumber: phoneData.validationError || "" } : {}),
+      ...(form.isWhatsappSameAsMobile !== false
+        ? { whatsappNumber: phoneData.validationError || "" }
+        : {}),
     }));
   };
 
@@ -1030,16 +1036,20 @@ const AuthPage = () => {
     try {
       setLoading(true);
       const { data } = await authAPI.switchRole({ role: selectedRole });
-      
-      const updatedData = { ...roleSelectionData, ...data, token: data.token || roleSelectionData.token };
+
+      const updatedData = {
+        ...roleSelectionData,
+        ...data,
+        token: data.token || roleSelectionData.token,
+      };
       const savedUser = saveUserSession(updatedData) || updatedData.user;
-      
+
       toast.success(
         `${t("auth.welcomeBack")}${
           savedUser?.name ? ", " + savedUser.name.split(" ")[0] : ""
-        }!`
+        }!`,
       );
-      
+
       redirectToDashboard(selectedRole);
     } catch (err) {
       toast.error("Failed to switch role. Please try again.");
@@ -1060,7 +1070,9 @@ const AuthPage = () => {
     const savedUser = saveUserSession(authData) || authData.user;
     console.log("[AUTH DEBUG] savedUser result:", savedUser);
 
-    const hasMultipleRoles = savedUser?.roles?.includes('provider') && savedUser?.roles?.includes('recruiter');
+    const hasMultipleRoles =
+      savedUser?.roles?.includes("provider") &&
+      savedUser?.roles?.includes("recruiter");
 
     if (hasMultipleRoles) {
       setRoleSelectionData(authData);
@@ -1172,9 +1184,12 @@ const AuthPage = () => {
       }));
 
       toast.success("OTP sent successfully");
-      
+
       // If we are coming from handleEmailRegister for a provider, use a specific mode
-      if (form.selectedRole === "provider" && (mode === "register" || mode === "provider-phone-verify")) {
+      if (
+        form.selectedRole === "provider" &&
+        (mode === "register" || mode === "provider-phone-verify")
+      ) {
         setMode("provider-phone-verify");
       } else {
         setMode("phone-verify");
@@ -1212,7 +1227,7 @@ const AuthPage = () => {
         const trimmedName = form.name.trim();
         const trimmedEmail = form.email.trim().toLowerCase();
         const trimmedPassword = form.password.trim();
-        
+
         const rawPayload = {
           name: trimmedName,
           email: trimmedEmail,
@@ -1225,7 +1240,10 @@ const AuthPage = () => {
           skills: form.providerProfile.skills,
           experience: form.providerProfile.experience,
           isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
-          whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : form.whatsappNumber,
+          whatsappNumber:
+            form.isWhatsappSameAsMobile !== false
+              ? undefined
+              : form.whatsappNumber,
           firebaseToken,
         };
         const payload = sanitizePayload(rawPayload);
@@ -1233,7 +1251,9 @@ const AuthPage = () => {
         console.log("[PROVIDER PHONE REGISTER RESPONSE]", data);
         redirectAfterAuth(data);
       } else {
-        const defaultRoles = selectedRoles.length ? selectedRoles : ["provider"];
+        const defaultRoles = selectedRoles.length
+          ? selectedRoles
+          : ["provider"];
         const defaultActiveRole =
           mode === "register" || mode === "phone-register"
             ? activeRole || selectedRoles[0] || "provider"
@@ -1244,12 +1264,18 @@ const AuthPage = () => {
           phone: result.user.phoneNumber,
           name: form.name || undefined,
           city: form.city || undefined,
-          roles: (mode === "register" || mode === "phone-register") ? defaultRoles : undefined,
+          roles:
+            mode === "register" || mode === "phone-register"
+              ? defaultRoles
+              : undefined,
           activeRole: defaultActiveRole,
           role: defaultActiveRole,
           referralCode,
           isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
-          whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : form.whatsappNumber,
+          whatsappNumber:
+            form.isWhatsappSameAsMobile !== false
+              ? undefined
+              : form.whatsappNumber,
         };
 
         const { data } = await authAPI.phoneLogin(payload);
@@ -1414,12 +1440,17 @@ const AuthPage = () => {
             ? (form.recruiterProfile.gstNumber || "").trim()
             : undefined,
         isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
-        whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : form.whatsappNumber,
+        whatsappNumber:
+          form.isWhatsappSameAsMobile !== false
+            ? undefined
+            : form.whatsappNumber,
       };
 
       if (form.selectedRole === "provider") {
         if (!form.phone) {
-          return toast.error("Mobile number is required for Provider registration.");
+          return toast.error(
+            "Mobile number is required for Provider registration.",
+          );
         }
         await handleFirebaseSendOtp();
         return;
@@ -1454,7 +1485,10 @@ const AuthPage = () => {
       const { data } = await authAPI.verifyEmailOtp({
         email: form.email.trim().toLowerCase(),
         otp,
-        whatsappNumber: form.isWhatsappSameAsMobile !== false ? undefined : form.whatsappNumber,
+        whatsappNumber:
+          form.isWhatsappSameAsMobile !== false
+            ? undefined
+            : form.whatsappNumber,
         isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
       });
 
@@ -1689,7 +1723,11 @@ const AuthPage = () => {
             required
           />
 
-          <PhoneField form={form} onChange={handlePhoneInputChange} error={errors.phone} />
+          <PhoneField
+            form={form}
+            onChange={handlePhoneInputChange}
+            error={errors.phone}
+          />
 
           <div className="flex items-center space-x-2 py-1">
             <input
@@ -1711,8 +1749,14 @@ const AuthPage = () => {
               }}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
             />
-            <label htmlFor="isWhatsappSameAsMobile-email" className="text-sm font-semibold text-gray-700 select-none cursor-pointer">
-              {t("auth.whatsappSame", "My WhatsApp number is the same as my mobile number")}
+            <label
+              htmlFor="isWhatsappSameAsMobile-email"
+              className="text-sm font-semibold text-gray-700 select-none cursor-pointer"
+            >
+              {t(
+                "auth.whatsappSame",
+                "My WhatsApp number is the same as my mobile number",
+              )}
             </label>
           </div>
 
@@ -1729,7 +1773,10 @@ const AuthPage = () => {
                 accent="blue"
               />
               <p className="text-gray-400 text-[11px] font-medium pl-1">
-                {t("auth.whatsappHelp", "If unchecked, you may enter a separate WhatsApp number.")}
+                {t(
+                  "auth.whatsappHelp",
+                  "If unchecked, you may enter a separate WhatsApp number.",
+                )}
               </p>
             </div>
           )}
@@ -1962,8 +2009,14 @@ const AuthPage = () => {
               }}
               className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer"
             />
-            <label htmlFor="isWhatsappSameAsMobile-phone" className="text-sm font-semibold text-gray-700 select-none cursor-pointer">
-              {t("auth.whatsappSame", "My WhatsApp number is the same as my mobile number")}
+            <label
+              htmlFor="isWhatsappSameAsMobile-phone"
+              className="text-sm font-semibold text-gray-700 select-none cursor-pointer"
+            >
+              {t(
+                "auth.whatsappSame",
+                "My WhatsApp number is the same as my mobile number",
+              )}
             </label>
           </div>
 
@@ -1980,7 +2033,10 @@ const AuthPage = () => {
                 accent="green"
               />
               <p className="text-gray-400 text-[11px] font-medium pl-1">
-                {t("auth.whatsappHelp", "If unchecked, you may enter a separate WhatsApp number.")}
+                {t(
+                  "auth.whatsappHelp",
+                  "If unchecked, you may enter a separate WhatsApp number.",
+                )}
               </p>
             </div>
           )}
@@ -2323,12 +2379,13 @@ const AuthPage = () => {
 
           <p className="text-center text-sm text-gray-500 mt-3">
             {t("auth.noAccount")}{" "}
-            <Link
-              to="/signup"
+            <button
+              type="button"
+              onClick={() => setShowSignupModal(true)}
               className="text-blue-600 font-bold hover:underline"
             >
               {t("navbar.signup")}
-            </Link>
+            </button>
           </p>
         </form>
       );
@@ -2407,38 +2464,147 @@ const AuthPage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-teal-500 to-emerald-500" />
-            <h3 className="text-2xl font-black text-gray-900 mb-2">{t("auth.welcomeBack") || "Welcome Back!"}</h3>
-            <p className="text-gray-500 text-sm mb-8">You have both a candidate and recruiter profile. Which one would you like to access?</p>
-            
+            <h3 className="text-2xl font-black text-gray-900 mb-2">
+              {t("auth.welcomeBack") || "Welcome Back!"}
+            </h3>
+            <p className="text-gray-500 text-sm mb-8">
+              You have both a candidate and recruiter profile. Which one would
+              you like to access?
+            </p>
+
             <div className="flex flex-col gap-4">
-              <button 
-                onClick={() => handleRoleSelection('provider')}
+              <button
+                onClick={() => handleRoleSelection("provider")}
                 disabled={loading}
                 className="w-full py-4 px-6 rounded-2xl border-2 border-gray-100 hover:border-teal-500 hover:bg-teal-50 transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
                 </div>
                 <div className="text-left">
-                  <div className="font-bold text-gray-900 text-lg">Candidate Profile</div>
-                  <div className="text-xs text-gray-500">Find jobs and get hired</div>
+                  <div className="font-bold text-gray-900 text-lg">
+                    Candidate Profile
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Find jobs and get hired
+                  </div>
                 </div>
               </button>
 
-              <button 
-                onClick={() => handleRoleSelection('recruiter')}
+              <button
+                onClick={() => handleRoleSelection("recruiter")}
                 disabled={loading}
                 className="w-full py-4 px-6 rounded-2xl border-2 border-gray-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
                 </div>
                 <div className="text-left">
-                  <div className="font-bold text-gray-900 text-lg">Recruiter Profile</div>
-                  <div className="text-xs text-gray-500">Post jobs and hire talent</div>
+                  <div className="font-bold text-gray-900 text-lg">
+                    Recruiter Profile
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Post jobs and hire talent
+                  </div>
                 </div>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Signup Modal */}
+      {showSignupModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-md w-full relative animate-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setShowSignupModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <span className="text-2xl leading-none">&times;</span>
+            </button>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Join as</h3>
+            <p className="text-gray-500 mb-6 text-sm">Choose how you want to use the platform.</p>
+            
+            <div className="space-y-4 mb-6">
+              <label 
+                className={`w-full flex items-center p-4 border rounded-xl cursor-pointer transition-all ${signupModalRole === 'recruiter' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300 hover:bg-gray-50'}`}
+              >
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4 shrink-0">
+                  <HiUser className="text-blue-600 w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-gray-900">Recruiter</h4>
+                  <p className="text-xs text-gray-500">I want to hire talent</p>
+                </div>
+                <input 
+                  type="radio" 
+                  name="signupRole" 
+                  value="recruiter" 
+                  checked={signupModalRole === 'recruiter'}
+                  onChange={() => setSignupModalRole('recruiter')}
+                  className="w-5 h-5 text-blue-600 focus:ring-blue-500"
+                />
+              </label>
+              
+              <label 
+                className={`w-full flex items-center p-4 border rounded-xl cursor-pointer transition-all ${signupModalRole === 'candidate' ? 'border-green-500 bg-green-50' : 'hover:border-green-300 hover:bg-gray-50'}`}
+              >
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-4 shrink-0">
+                  <HiUser className="text-green-600 w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-gray-900">Candidate</h4>
+                  <p className="text-xs text-gray-500">I am looking for work</p>
+                </div>
+                <input 
+                  type="radio" 
+                  name="signupRole" 
+                  value="candidate" 
+                  checked={signupModalRole === 'candidate'}
+                  onChange={() => setSignupModalRole('candidate')}
+                  className="w-5 h-5 text-green-600 focus:ring-green-500"
+                />
+              </label>
+            </div>
+
+            <button 
+              onClick={() => {
+                setShowSignupModal(false);
+                if (signupModalRole === 'recruiter') {
+                  navigate('/recruiter-discovery');
+                } else {
+                  navigate('/candidate-landing');
+                }
+              }}
+              className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors"
+            >
+              Okay
+            </button>
           </div>
         </div>
       )}

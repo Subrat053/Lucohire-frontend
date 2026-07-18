@@ -21,6 +21,7 @@ const LockedResults = () => {
   const [generatedPassword, setGeneratedPassword] = useState('');
   const [realScore, setRealScore] = useState(null);
   const [realJobs, setRealJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(true);
   const { saveUserSession } = useAuth();
   const [confirmationResult, setConfirmationResult] = useState(null);
 
@@ -35,8 +36,9 @@ const LockedResults = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
+        setJobsLoading(true);
         const res = await api.post('/jobs/guest-recommended', {
-          skills: formData?.role || '',
+          skills: formData?.skills || formData?.role || '',
           mobileNumber: formData?.phone || ''
         });
         if (res.data?.success && res.data?.data?.jobs) {
@@ -44,6 +46,8 @@ const LockedResults = () => {
         }
       } catch (err) {
         console.error('Failed to fetch recommended jobs:', err);
+      } finally {
+        setJobsLoading(false);
       }
     };
     fetchJobs();
@@ -276,7 +280,7 @@ const LockedResults = () => {
                 <div key={idx} className="flex flex-col items-center text-center p-2">
                   <div className="text-blue-600 text-xl mb-3">{item.icon}</div>
                   <h4 className="text-gray-700 text-xs font-bold mb-1">{item.title}</h4>
-                  <p className={`font-bold text-sm ${!isVerified ? 'blur-[4px] text-gray-400 opacity-60' : 'text-gray-400'}`}>{item.value}</p>
+                  <p className={`font-bold text-sm ${!isVerified ? 'blur-[2px] text-gray-400 opacity-60' : 'text-gray-400'}`}>{item.value}</p>
                 </div>
               ))}
             </div>
@@ -289,7 +293,7 @@ const LockedResults = () => {
                    {['React JS', 'Node JS', 'UI/UX Design'].map((strength, i) => (
                       <li key={i} className="flex items-center text-xs font-medium">
                         <FiCheckCircle className="text-green-500 mr-2 shrink-0" />
-                        <span className={`${!isVerified ? 'blur-[4px] text-gray-400 opacity-60 select-none' : 'text-gray-700'}`}>{strength}</span>
+                        <span className={`${!isVerified ? 'blur-[2px] text-gray-400 opacity-60 select-none' : 'text-gray-700'}`}>{strength}</span>
                       </li>
                    ))}
                 </ul>
@@ -301,7 +305,7 @@ const LockedResults = () => {
                    {['System Design', 'Docker', 'AWS'].map((area, i) => (
                       <li key={i} className="flex items-center text-xs font-medium">
                         <span className="text-yellow-500 font-bold mr-2 shrink-0 text-sm">⚠</span>
-                        <span className={`${!isVerified ? 'blur-[4px] text-gray-400 opacity-60 select-none' : 'text-gray-700'}`}>{area}</span>
+                        <span className={`${!isVerified ? 'blur-[2px] text-gray-400 opacity-60 select-none' : 'text-gray-700'}`}>{area}</span>
                       </li>
                    ))}
                 </ul>
@@ -318,7 +322,11 @@ const LockedResults = () => {
         </div>
         
         <div className={`space-y-4 transition-all duration-500 ${!isVerified ? 'select-none pointer-events-none' : ''}`}>
-          {realJobs.length > 0 ? (
+          {jobsLoading ? (
+            <div className="flex justify-center py-12">
+               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            </div>
+          ) : realJobs.length > 0 ? (
             realJobs.map((job, idx) => {
               if (isVerified) {
                 return (
@@ -353,12 +361,12 @@ const LockedResults = () => {
                         <div>
                           <h4 className="text-lg font-bold text-gray-900">{job.companyName || job.recruiter?.name || job.recruiter?.companyName || 'Confidential'}</h4>
                           <p className="text-gray-500">
-                            {job.title} <span className="blur-[5px] opacity-70 select-none">&bull; {job.city || 'Remote'} &bull; Full-time</span>
+                            {job.title} <span className="blur-[2px] opacity-70 select-none">&bull; {job.city || 'Remote'} &bull; Full-time</span>
                           </p>
                         </div>
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2 blur-[5px] opacity-70 select-none">{job.matchScore || 90}% Match</span>
+                        <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2 blur-[2px] opacity-70 select-none">{job.matchScore || 90}% Match</span>
                         <button className="text-gray-400 border border-gray-200 bg-gray-50 font-medium px-4 py-2 rounded-md transition flex items-center cursor-not-allowed">
                           <FiLock className="mr-2" /> Locked
                         </button>
@@ -367,7 +375,7 @@ const LockedResults = () => {
                     
                     {/* Blurred AI Insights CTA */}
                     <div className="mt-4 pt-4 border-t border-gray-100 relative overflow-hidden bg-gradient-to-r from-blue-50/50 to-indigo-50/50 -mx-6 -mb-6 px-6 pb-6 rounded-b-lg">
-                      <div className="filter blur-[3px] opacity-80 select-none pointer-events-none space-y-3 mt-2">
+                      <div className="filter blur-[2px] opacity-80 select-none pointer-events-none space-y-3 mt-2">
                         <div className="flex items-center gap-2">
                           <div className="w-5 h-5 bg-blue-200 rounded-full"></div>
                           <div className="h-4 bg-gray-300 rounded w-32"></div>
@@ -397,8 +405,12 @@ const LockedResults = () => {
               }
             })
           ) : (
-            <div className="flex justify-center py-12">
-               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg shadow-sm border border-gray-100">
+               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                 <FiBriefcase className="text-gray-400 text-2xl" />
+               </div>
+               <h3 className="text-lg font-bold text-gray-900 mb-2">No exact matches yet</h3>
+               <p className="text-gray-500 text-center max-w-md">We couldn't find active jobs matching your specific profile right now. We'll notify you when new opportunities arrive.</p>
             </div>
           )}
         </div>

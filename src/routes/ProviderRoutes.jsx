@@ -21,6 +21,7 @@ const ProviderPayoutSettings = lazy(() => import("../pages/provider/PayoutSettin
 const AddMember = lazy(() => import("../pages/provider/AddMember"));
 const CareerHealthDashboard = lazy(() => import("../pages/provider/CareerHealthDashboard"));
 const GrowWithAIDashboard = lazy(() => import("../pages/provider/GrowWithAIDashboard"));
+const AiCareerCoach = lazy(() => import("../pages/provider/AiCareerCoach"));
 const AITips = lazy(() => import("../pages/provider/AITips"));
 const ResumeToolkit = lazy(() => import("../pages/provider/ResumeToolkit"));
 const ProviderSupport = lazy(() => import("../pages/provider/Support"));
@@ -77,6 +78,7 @@ export default function ProviderRoutes() {
       
       {/* Grow with AI Routes */}
       <Route path="grow-with-ai" element={wrap(<GrowWithAIDashboard />)} />
+      <Route path="ai-career-coach" element={wrap(<AiCareerCoach />)} />
       <Route path="ai-tips" element={wrap(<AITips />)} />
       <Route path="resume-toolkit" element={wrap(<ResumeToolkit />)} />
     </Routes>

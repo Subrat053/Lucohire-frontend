@@ -385,6 +385,7 @@ const Navbar = () => {
                     { label: "Profile",           path: "/provider/profile",           icon: HiCog },
                     { label: "Career Analysis",   path: "/provider/career-health",    icon: HiTrendingUp },
                     { label: "Grow with AI",      path: "/provider/grow-with-ai",     icon: HiSparkles },
+                    { label: "AI Career Coach",   path: "/provider/ai-career-coach",  icon: HiSparkles },
                     { label: "AI Dashboard",      path: "/provider/ai-tips",          icon: HiSparkles },
                     { label: "Resume Toolkit",    path: "/provider/resume-toolkit",   icon: HiClipboardList },
                     { label: "Jobs for Me",       path: "/provider/job-for-me",       icon: HiBriefcase },

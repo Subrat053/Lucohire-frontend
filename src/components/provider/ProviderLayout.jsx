@@ -15,7 +15,7 @@ import { providerAPI } from '../../services/api';
 
 const navItems = [
   { label: 'Dashboard', fallback: 'Dashboard', path: '/provider/dashboard',      icon: HiTrendingUp },
-  { label: 'Profile', fallback: 'Profile', path: '/provider/profile',        icon: HiCog },
+  { label: 'Edit Profile', fallback: 'Edit Profile', path: '/provider/profile',        icon: HiCog },
   { 
     label: 'Career Analysis', 
     fallback: 'Career Analysis', 
@@ -26,6 +26,12 @@ const navItems = [
     label: 'Grow with AI', 
     fallback: 'Grow with AI', 
     path: '/provider/grow-with-ai',
+    icon: HiSparkles,
+  },
+  { 
+    label: 'AI Career Coach', 
+    fallback: 'AI Career Coach', 
+    path: '/provider/ai-career-coach',
     icon: HiSparkles,
   },
   { 
@@ -40,7 +46,7 @@ const navItems = [
     path: '/provider/resume-toolkit',
     icon: HiClipboardList,
   },
-  { label: 'Jobs for Me', fallback: 'Jobs for Me', path: '/provider/job-for-me',icon: HiBriefcase },
+  { label: 'Explore Opportunities', fallback: 'Explore Opportunities', path: '/provider/job-for-me',icon: HiBriefcase },
   { label: 'Applied Jobs', fallback: 'Applied Jobs', path: '/provider/applied-jobs', icon: HiClipboardList },
   { label: 'Saved Jobs', fallback: 'Saved Jobs', path: '/provider/saved-jobs', icon: HiOutlineBookmark },
   { label: 'My Plan', fallback: 'My Plan', path: '/provider/my-plan',          icon: HiPhone },
