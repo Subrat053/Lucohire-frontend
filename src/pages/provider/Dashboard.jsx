@@ -25,6 +25,17 @@ const matchesCache = {
   inflight: null,
 };
 
+const getTimeAgo = (dateString) => {
+  if (!dateString) return "Just now";
+  const diff = Date.now() - new Date(dateString).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${Math.max(1, minutes)}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+};
+
 const ProviderDashboard = () => {
   const { t } = useTranslation();
   const { user, fetchUser } = useAuth();
@@ -541,54 +552,37 @@ const ProviderDashboard = () => {
             
             <button className="w-full bg-[#0f766e] hover:bg-teal-800 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
               <Lock className="w-4 h-4" />{t("Unlock to View")}</button>
-          </div>
-
-          {/* Activity */}
-          <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-gray-900 text-sm">{t("Activity")}</h3>
+          {/* Recent Activities Widget */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+              <h2 className="text-base font-bold text-gray-900">{t("Recent Activities")}</h2>
               <Link to="/provider/history" className="text-xs text-teal-700 font-bold flex items-center gap-1 hover:underline">{t("View All")}<ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
             
             <div className="space-y-5">
-              <div className="flex gap-3.5 relative">
-                <div className="absolute left-3.5 top-8 bottom-[-16px] w-[2px] bg-gray-100"></div>
-                <div className="relative z-10">
-                  <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100 shadow-sm">
-                    <Eye className="w-3.5 h-3.5 text-blue-600" />
+              {recentActivities.length > 0 ? (
+                recentActivities.map((activity, index) => (
+                  <div key={activity.id} className="flex gap-3.5 relative">
+                    {index !== recentActivities.length - 1 && (
+                      <div className="absolute left-3.5 top-8 bottom-[-16px] w-[2px] bg-gray-100"></div>
+                    )}
+                    <div className="relative z-10">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shadow-sm ${activity.iconBg}`}>
+                        {activity.icon}
+                      </div>
+                    </div>
+                    <div className="flex-1 pb-1">
+                      <p className="text-xs font-bold text-gray-800">{activity.text}</p>
+                      <p className="text-[10px] font-medium text-gray-400 mt-0.5">{activity.timeAgo}</p>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500 text-xs font-medium">
+                  {t("No recent activities.")}
                 </div>
-                <div className="flex-1 pb-1">
-                  <p className="text-xs font-bold text-gray-800">{t("Resume viewed by Google")}</p>
-                  <p className="text-[10px] font-medium text-gray-400 mt-0.5">{t("2h ago")}</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-3.5 relative">
-                <div className="absolute left-3.5 top-8 bottom-[-16px] w-[2px] bg-gray-100"></div>
-                <div className="relative z-10">
-                  <div className="w-7 h-7 rounded-full bg-teal-50 flex items-center justify-center border border-teal-100 shadow-sm">
-                    <FileText className="w-3.5 h-3.5 text-teal-700" />
-                  </div>
-                </div>
-                <div className="flex-1 pb-1">
-                  <p className="text-xs font-bold text-gray-800">{t("Applied for UI/UX Designer")}</p>
-                  <p className="text-[10px] font-medium text-gray-400 mt-0.5">{t("5h ago")}</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3.5 relative">
-                <div className="relative z-10">
-                  <div className="w-7 h-7 rounded-full bg-orange-50 flex items-center justify-center border border-orange-100 shadow-sm">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-orange-500" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-bold text-gray-800">{t("Profile updated")}</p>
-                  <p className="text-[10px] font-medium text-gray-400 mt-0.5">{t("Yesterday")}</p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 

@@ -2655,7 +2655,7 @@ const ProviderProfile = () => {
                     ))}
                   </div>
 
-                  <button type="button" className="w-full py-2.5 bg-white text-emerald-700 border border-emerald-200 rounded-lg text-sm font-bold hover:bg-emerald-50 transition flex items-center justify-center gap-2">
+                  <button type="button" onClick={() => { setActiveTab("Details"); window.scrollTo(0, 0); }} className="w-full py-2.5 bg-white text-emerald-700 border border-emerald-200 rounded-lg text-sm font-bold hover:bg-emerald-50 transition flex items-center justify-center gap-2">
                      <TrendingUp className="w-4 h-4" />{t("Improve Profile")}</button>
                 </div>
 
@@ -2674,7 +2674,7 @@ const ProviderProfile = () => {
                      <p className="text-[12px] text-emerald-700/80 mb-4 leading-relaxed font-medium">{t(
                        "Add your portfolio link to increase your chances of getting noticed by recruiters."
                      )}</p>
-                     <button type="button" className="bg-white px-4 py-2 rounded-lg text-emerald-700 text-[12px] font-bold border border-emerald-200 hover:bg-emerald-50 transition flex items-center justify-center w-max gap-2 shadow-sm">{t("Add Portfolio Link")}<Link2 className="w-3.5 h-3.5" />
+                     <button type="button" onClick={() => { setActiveTab("Portfolio"); window.scrollTo(0, 0); }} className="bg-white px-4 py-2 rounded-lg text-emerald-700 text-[12px] font-bold border border-emerald-200 hover:bg-emerald-50 transition flex items-center justify-center w-max gap-2 shadow-sm">{t("Add Portfolio Link")}<Link2 className="w-3.5 h-3.5" />
                      </button>
                    </div>
               </div>
@@ -2690,14 +2690,14 @@ const ProviderProfile = () => {
                      </div>
                      <ChevronDown className="w-4 h-4 text-slate-300 transform -rotate-90 group-hover:text-emerald-600 transition-colors" />
                    </button>
-                   <button type="button" onClick={() => setShowResumeGenerator(true)} className="flex items-center justify-between py-3.5 border-b border-slate-100 hover:bg-slate-50 -mx-6 px-6 transition-colors group">
+                   <button type="button" onClick={() => { setActiveTab("Generate Resume"); window.scrollTo(0, 0); }} className="flex items-center justify-between py-3.5 border-b border-slate-100 hover:bg-slate-50 -mx-6 px-6 transition-colors group">
                      <div className="flex items-center gap-3">
                        <FileText className="w-[18px] h-[18px] text-slate-400 group-hover:text-emerald-600 transition-colors" />
                        <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{t("Download Resume")}</span>
                      </div>
                      <ChevronDown className="w-4 h-4 text-slate-300 transform -rotate-90 group-hover:text-emerald-600 transition-colors" />
                    </button>
-                   <button type="button" className="flex items-center justify-between py-3.5 border-b border-slate-100 hover:bg-slate-50 -mx-6 px-6 transition-colors group">
+                   <button type="button" onClick={() => { setActiveTab("Portfolio"); window.scrollTo(0, 0); }} className="flex items-center justify-between py-3.5 border-b border-slate-100 hover:bg-slate-50 -mx-6 px-6 transition-colors group">
                      <div className="flex items-center gap-3">
                        <Briefcase className="w-[18px] h-[18px] text-slate-400 group-hover:text-emerald-600 transition-colors" />
                        <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{t("Manage Portfolio")}</span>

@@ -25,6 +25,7 @@ const AITips = lazy(() => import("../pages/provider/AITips"));
 const ResumeToolkit = lazy(() => import("../pages/provider/ResumeToolkit"));
 const ProviderSupport = lazy(() => import("../pages/provider/Support"));
 const AppliedJobs = lazy(() => import("../pages/provider/AppliedJobs"));
+const SavedJobs = lazy(() => import("../pages/provider/SavedJobs"));
 const JobDetail = lazy(() => import("../pages/provider/JobDetail"));
 
 function ProviderLayoutWrapper({ children }) {
@@ -58,6 +59,7 @@ export default function ProviderRoutes() {
       <Route path="job-for-me" element={wrap(<ProviderJobs />)} />
       <Route path="jobs" element={<Navigate to="/provider/job-for-me" state={location.state} replace />} />
       <Route path="applied-jobs" element={wrap(<AppliedJobs />)} />
+      <Route path="saved-jobs" element={wrap(<SavedJobs />)} />
       <Route path="job/:jobId" element={wrap(<JobDetail />)} />
       <Route path="contacted" element={wrap(<ProviderContacted />)} />
       <Route path="change-password" element={wrap(<ChangePassword />)} />

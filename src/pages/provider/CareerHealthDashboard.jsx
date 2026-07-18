@@ -65,7 +65,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
       setLoading(true);
       setErrorMessage(null);
       
-      const { data } = await getCareerHealth({ fileHash, parsedData });
+      const { data } = await getCareerHealth({ fileHash: parsedData ? fileHash : undefined, parsedData });
       if (data.success) {
         setReport(data.data);
         if (fileHash) {
@@ -88,7 +88,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
   const handleImprove = async () => {
     try {
       setImproving(true);
-      const { data } = await improveCareerHealth({ fileHash, parsedData, improve: true });
+      const { data } = await improveCareerHealth({ fileHash: parsedData ? fileHash : undefined, parsedData, improve: true });
       if (data.success) {
         setReport(data.data);
         toast.success('AI Career Health updated with improved insights!');
