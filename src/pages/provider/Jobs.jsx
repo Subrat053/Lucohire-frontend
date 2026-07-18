@@ -73,7 +73,7 @@ const ApplyModal = ({ job, onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg border border-gray-100 overflow-hidden transform transition-all">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">{t("Apply for:")}{job.title}
@@ -363,7 +363,15 @@ const JobCardSkeleton = () => (
   </div>
 );
 
-const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePlan, onToggleSave }) => {
+const JobCard = ({
+  job,
+  onViewDetails,
+  onApplyNow,
+  aiInsights,
+  onRecruiterClick,
+  hasActivePlan,
+  onToggleSave
+}) => {
   const { t } = useTranslation();
 
   const budgetText =
@@ -470,7 +478,7 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePl
         </div>
         <div className="flex flex-col items-center gap-2 w-full sm:w-auto xl:w-full">
           <button
-            onClick={() => onViewDetails(job)}
+            onClick={() => onApplyNow ? onApplyNow(job) : onViewDetails(job)}
             className="w-full sm:w-40 xl:w-36 py-2.5 bg-[#1d4ed8] hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm"
           >
             {t("Apply Now")} <HiOutlinePaperAirplane className="w-4 h-4 -rotate-45" />
@@ -1215,8 +1223,9 @@ const ProviderJobs = () => {
                     <JobCard
                       key={job._id}
                       job={job}
+                      onViewDetails={() => navigate(`/provider/job/${job._id}`)}
+                      onApplyNow={() => setApplyTarget(job)}
                       aiInsights={aiInsightsMap[job._id]}
-                      onViewDetails={(job) => navigate(`/provider/job/${job._id}`)}
                       onRecruiterClick={handleRecruiterClick}
                       hasActivePlan={aiInsightsMap[job._id]?._isMock !== true}
                       onToggleSave={handleToggleSave}

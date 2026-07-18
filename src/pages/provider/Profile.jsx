@@ -459,6 +459,20 @@ const ProviderProfile = () => {
   const [shareUrl, setShareUrl] = useState("");
   const [aiUsageData, setAiUsageData] = useState({ limits: {}, usage: {} });
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+    }
+    if (location.hash) {
+      setTimeout(() => {
+        const el = document.getElementById(location.hash.substring(1));
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 500); // Give it a bit of time to render the tab
+    }
+  }, [location.search, location.hash]);
+
   const [form, setForm] = useState({
     designation: "",
     company: "",
@@ -2190,7 +2204,7 @@ const ProviderProfile = () => {
                   </div>
 
                   {/* Skills Section */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
+                  <div id="skills-section" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
                      <div className="flex items-center gap-2 mb-4">
                        <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Skills")}</h3>
                      </div>
@@ -2411,7 +2425,7 @@ const ProviderProfile = () => {
                     </div>
                     <p className="text-[14px] font-bold text-slate-700 mb-1">{t("Click to upload or drag and drop")}</p>
                     <p className="text-[12px] text-slate-500">{t("PDF, DOC, or DOCX (Max 5MB)")}</p>
-                    <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={async (e) => {
+                    <input type="file" className="hidden" accept=".pdf,.doc,.docx" onClick={(e) => { e.target.value = null; }} onChange={async (e) => {
                       if (e.target.files && e.target.files[0]) {
                         const file = e.target.files[0];
                         if (file.size > 5 * 1024 * 1024) return toast.error("File must be under 5MB");

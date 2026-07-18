@@ -34,6 +34,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
   const [salaryDetails, setSalaryDetails] = useState(null);
   const [loadingSalary, setLoadingSalary] = useState(false);
   const [improving, setImproving] = useState(false);
+  const [activeModal, setActiveModal] = useState(null);
   const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
   const [usageLoading, setUsageLoading] = useState(true);
 
@@ -65,7 +66,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
       setLoading(true);
       setErrorMessage(null);
       
-      const { data } = await getCareerHealth({ fileHash: parsedData ? fileHash : undefined, parsedData });
+      const { data } = await getCareerHealth({ fileHash, parsedData });
       if (data.success) {
         setReport(data.data);
         if (fileHash) {
@@ -88,7 +89,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
   const handleImprove = async () => {
     try {
       setImproving(true);
-      const { data } = await improveCareerHealth({ fileHash: parsedData ? fileHash : undefined, parsedData, improve: true });
+      const { data } = await improveCareerHealth({ fileHash, parsedData, improve: true });
       if (data.success) {
         setReport(data.data);
         toast.success('AI Career Health updated with improved insights!');
@@ -583,7 +584,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                 </div>
 
                 <div className="space-y-4 mb-6">
-                  {roleFitFactors.map((factor, idx) => {
+                  {roleFitFactors.slice(0, 3).map((factor, idx) => {
                     const IconComponent = factor.icon || roleFitIcons[idx % roleFitIcons.length];
                     return (
                     <div key={idx} className="flex items-center text-sm">
@@ -611,7 +612,9 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                   "Great! You are strongly aligned with this role. Focus on improving the areas on the right to become an excellent fit."
                 )}</div>
                 
-                <button className="text-emerald-600 text-sm font-semibold text-center mt-4 hover:text-emerald-700 w-full">{t("View Detailed Breakdown →")}</button>
+                {roleFitFactors.length > 3 && (
+                  <button onClick={() => setActiveModal('breakdown')} className="text-emerald-600 text-sm font-semibold text-center mt-4 hover:text-emerald-700 w-full">{t("View Detailed Breakdown →")}</button>
+                )}
               </div>
             </div>
 
@@ -642,8 +645,6 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                     </div>
                   ))}
                 </div>
-
-                <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">{t("Get AI Learning Plan →")}</button>
               </div>
 
               {/* In-Demand Skills & Market Insights */}
@@ -662,7 +663,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                     ))}
                   </div>
 
-                  <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">{t("Explore All Skills →")}</button>
+                  <button onClick={() => setActiveModal('skills')} className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">{t("Explore All Skills →")}</button>
                 </div>
 
                 {/* Market Insights */}
@@ -702,7 +703,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                     </div>
                   </div>
 
-                  <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700 mt-4">{t("View Full Market Report →")}</button>
+                  <button onClick={() => setActiveModal('market')} className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700 mt-4">{t("View Full Market Report →")}</button>
                 </div>
 
               </div>
@@ -727,7 +728,9 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                   </li>
                 ))}
               </ul>
-              <button className="w-full py-2 text-center text-sm font-semibold text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-colors">{t("See All Strengths →")}</button>
+              {displayData.top_strengths?.length > 4 && (
+                <button onClick={() => setActiveModal('strengths')} className="w-full py-2 text-center text-sm font-semibold text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-colors">{t("See All Strengths →")}</button>
+              )}
             </div>
 
             {/* Areas to Improve */}
@@ -744,7 +747,6 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                   </li>
                 ))}
               </ul>
-              <button className="w-full py-2 text-center text-sm font-semibold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-colors">{t("View Improvement Plan →")}</button>
             </div>
 
             {/* Career Growth Path */}
@@ -785,13 +787,173 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                 </ul>
               </div>
               
-              <button className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">{t("View Full Roadmap →")}</button>
+              <button onClick={() => setActiveModal('roadmap')} className="text-emerald-600 text-sm font-semibold w-full text-center hover:text-emerald-700">{t("View Full Roadmap →")}</button>
             </div>
 
           </div>
         </div>
         </div>
       </div>
+      
+      {/* POPUP MODALS */}
+      {activeModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-white w-full max-w-2xl max-h-[85vh] rounded-2xl shadow-xl flex flex-col overflow-hidden relative animate-slideUp">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white z-10 sticky top-0">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                {activeModal === 'breakdown' && <FiTarget className="w-5 h-5 text-emerald-600" />}
+                {activeModal === 'skills' && <BiBriefcase className="w-5 h-5 text-emerald-600" />}
+                {activeModal === 'market' && <BiLineChart className="w-5 h-5 text-emerald-600" />}
+                {activeModal === 'strengths' && <BiTrophy className="w-5 h-5 text-emerald-600" />}
+                {activeModal === 'improvement' && <FiAlertCircle className="w-5 h-5 text-red-500" />}
+                {activeModal === 'roadmap' && <MdOutlineLocationOn className="w-5 h-5 text-emerald-600" />}
+                
+                {activeModal === 'breakdown' && t("Detailed Role Fit Breakdown")}
+                {activeModal === 'skills' && t("All In-Demand Skills")}
+                {activeModal === 'market' && t("Full Market Report")}
+                {activeModal === 'strengths' && t("All Key Strengths")}
+                {activeModal === 'improvement' && t("Full Improvement Plan")}
+                {activeModal === 'roadmap' && t("Complete Career Roadmap")}
+              </h2>
+              <button onClick={() => setActiveModal(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition">
+                <span className="text-xl font-light">&times;</span>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto bg-slate-50 flex-1">
+              {activeModal === 'breakdown' && (
+                <div className="space-y-4">
+                  {roleFitFactors.map((factor, idx) => {
+                    const IconComponent = factor.icon || roleFitIcons[idx % roleFitIcons.length];
+                    return (
+                    <div key={idx} className="flex flex-col bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 font-semibold text-slate-700">
+                          <IconComponent className="w-5 h-5 text-emerald-600" />
+                          {factor.name}
+                        </div>
+                        <span className="font-bold text-emerald-600">{factor.score}%</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
+                         <span>Benchmark: {factor.benchmark}%</span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${factor.score}%` }}></div>
+                      </div>
+                    </div>
+                  )})}
+                </div>
+              )}
+              {activeModal === 'skills' && (
+                <div className="flex flex-wrap gap-2">
+                  {displayData.in_demand_skills?.map((sk, i) => (
+                    <span key={i} className="px-3 py-1.5 bg-white shadow-sm text-emerald-700 text-sm font-medium rounded-full border border-emerald-100">
+                      {sk}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {activeModal === 'market' && (
+                <div className="space-y-4 bg-white p-5 rounded-xl border border-slate-200">
+                  <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                    {displayData.market_demand_breakdown ? 
+                      "Comprehensive analysis indicates strong demand in technology hubs, with remote opportunities expanding. Compensation growth is steady, especially for specialized skills."
+                      : "Market insights not fully available."}
+                  </p>
+                  {marketInsights && (
+                     <div className="grid grid-cols-2 gap-4 mt-4">
+                        <div className="bg-slate-50 p-3 rounded text-center">
+                          <div className="text-xs text-slate-500">{t("Jobs in demand")}</div>
+                          <div className="font-bold text-slate-800">{marketInsights.jobsInDemand}</div>
+                        </div>
+                        <div className="bg-slate-50 p-3 rounded text-center">
+                          <div className="text-xs text-slate-500">{t("Avg. Salary")}</div>
+                          <div className="font-bold text-slate-800">{marketInsights.avgSalary}</div>
+                        </div>
+                        <div className="bg-slate-50 p-3 rounded text-center">
+                          <div className="text-xs text-slate-500">{t("Growth Rate")}</div>
+                          <div className="font-bold text-slate-800">{marketInsights.jobsGrowth}</div>
+                        </div>
+                     </div>
+                  )}
+                </div>
+              )}
+              {activeModal === 'strengths' && (
+                <ul className="space-y-3">
+                  {displayData.top_strengths?.map((str, i) => (
+                    <li key={i} className="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-sm text-slate-700">
+                      <FiCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                      <span>{str}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {activeModal === 'improvement' && (
+                <div className="space-y-6">
+                  {displayData.top_weaknesses?.length > 0 && (
+                    <div>
+                      <h3 className="font-bold text-slate-800 mb-3">{t("Areas to Improve")}</h3>
+                      <ul className="space-y-3">
+                        {displayData.top_weaknesses.map((wk, i) => (
+                          <li key={i} className="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm border border-red-50 text-sm text-slate-700">
+                            <FiAlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                            <span>{wk}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {displayData.next_best_actions?.length > 0 && (
+                    <div>
+                      <h3 className="font-bold text-slate-800 mb-3">{t("Action Plan")}</h3>
+                      <ul className="space-y-3">
+                        {displayData.next_best_actions.map((act, i) => (
+                          <li key={i} className="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm border border-indigo-50 text-sm text-slate-700">
+                            <div className="w-6 h-6 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 font-bold text-xs">{i+1}</div>
+                            <span>{act}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+              {activeModal === 'roadmap' && (
+                <div className="relative pl-4 py-4">
+                  <div className="absolute left-[23px] top-4 bottom-4 w-0.5 bg-slate-200"></div>
+                  <ul className="space-y-8">
+                    {displayData.career_growth_path?.map((role, i) => (
+                      <li key={i} className="relative flex gap-4">
+                        {role.current ? (
+                          <div className="w-4 h-4 rounded-full bg-emerald-600 shrink-0 z-10 shadow-[0_0_0_4px_white] mt-1"></div>
+                        ) : (
+                          <div className="w-4 h-4 rounded-full border-2 border-slate-300 bg-white shrink-0 z-10 shadow-[0_0_0_4px_white] mt-1"></div>
+                        )}
+                        <div className="flex-1 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className={`text-base font-bold ${role.current ? 'text-emerald-700' : 'text-slate-800'}`}>
+                              {role.title}
+                            </span>
+                            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                              role.status === 'Current' ? 'bg-emerald-100 text-emerald-700' :
+                              role.status === 'Next Step' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 bg-slate-100'
+                            }`}>
+                              {role.status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-slate-500 leading-relaxed font-medium">
+                            {t("Estimated timeline: ")}{role.status === 'Current' ? t("Now") : role.status === 'Next Step' ? t("1-2 Years") : t("3-5 Years")}<br/>
+                            {t("Develop skills required to advance to this stage.")}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -231,6 +231,7 @@ export const providerAPI = {
     API.post("/provider/jobs/ai-insights", { jobsData }),
   getJobById: (jobId) => API.get(`/provider/jobs/${jobId}`),
   applyToJob: (jobId, data) => API.post(`/provider/jobs/${jobId}/apply`, data),
+  withdrawApplication: (jobId) => API.delete(`/provider/jobs/${jobId}/apply`),
   getApplications: () => API.get("/provider/applications"),
   getSkillGapReport: () => API.post("/candidate/skill-gap-report"),
   getBenchmark: (id) => API.get(`/provider/benchmark/${id}`),

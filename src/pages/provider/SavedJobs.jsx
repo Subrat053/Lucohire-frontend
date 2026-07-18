@@ -143,10 +143,12 @@ const SavedJobs = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [aiInsightsLoading, setAiInsightsLoading] = useState(false);
   const [tab, setTab] = useState('all'); // all, active
   const [sortBy, setSortBy] = useState('recent'); // recent, match
   const [filterActive, setFilterActive] = useState(false);
   const [filterWorkMode, setFilterWorkMode] = useState('All');
+  const [visibleCount, setVisibleCount] = useState(10);
   const [recommendations, setRecommendations] = useState([]);
   const [allMatches, setAllMatches] = useState([]);
   const [profile, setProfile] = useState(null);
@@ -221,11 +223,44 @@ const SavedJobs = () => {
     setLoading(true);
     try {
       const { data } = await providerAPI.getSavedJobs();
-      setJobs(data.jobs || []);
+      const savedJobs = data.jobs || [];
+      setJobs(savedJobs);
+      if (savedJobs.length > 0) {
+        fetchAiInsights(savedJobs);
+      }
     } catch (err) {
       toast.error("Failed to load saved jobs");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAiInsights = async (jobsToAnalyze) => {
+    setAiInsightsLoading(true);
+    try {
+      const response = await providerAPI.getJobAiInsights(jobsToAnalyze);
+      if (response.data?.success && response.data?.data) {
+        const insightsMap = {};
+        response.data.data.forEach(item => {
+          insightsMap[item.jobId] = item.insights;
+        });
+        
+        setJobs(prevJobs => prevJobs.map(job => {
+          if (insightsMap[job._id]) {
+            return {
+              ...job,
+              matchScore: insightsMap[job._id].matchScore || 0,
+              aiMatchedSkills: insightsMap[job._id].matchedSkills || [],
+              aiMissingSkills: insightsMap[job._id].missingSkills || []
+            };
+          }
+          return job;
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to load AI insights for jobs", err);
+    } finally {
+      setAiInsightsLoading(false);
     }
   };
 
@@ -239,45 +274,7 @@ const SavedJobs = () => {
     }
   };
 
-  const userSkillsRaw = [
-    ...(profile?.skills || []),
-    ...(profile?.parsedResumeData?.skills || []),
-    ...(profile?.parsedResumeData?.technicalSkills || []),
-    ...(profile?.parsedResumeData?.softSkills || [])
-  ];
-  
-  const userSkills = Array.from(new Set(userSkillsRaw))
-    .map(s => typeof s === 'string' ? s.trim() : s?.name?.trim() || "")
-    .filter(Boolean);
-  const userSkillsLower = userSkills.map(s => s.toLowerCase());
-
-  // Dynamically calculate match score for jobs if not present
-  const jobsWithScores = jobs.map(job => {
-    if (job.matchScore) return job;
-    
-    const jSkills = [];
-    if (job.skill) job.skill.split(',').forEach(s => jSkills.push(s.trim().toLowerCase()));
-    if (job.skills) {
-      job.skills.forEach(s => {
-        const val = typeof s === 'string' ? s : s?.name || '';
-        if (val) val.split(',').forEach(v => jSkills.push(v.trim().toLowerCase()));
-      });
-    }
-    const uniqueJobSkills = Array.from(new Set(jSkills)).filter(Boolean);
-    if (uniqueJobSkills.length === 0) return { ...job, matchScore: 100 };
-    
-    let matches = 0;
-    uniqueJobSkills.forEach(req => {
-      let found = userSkillsLower.find(us => us === req);
-      if (!found) found = userSkillsLower.find(us => us.includes(req));
-      if (!found) found = userSkillsLower.find(us => req.includes(us));
-      if (found) matches++;
-    });
-    
-    return { ...job, matchScore: Math.round((matches / uniqueJobSkills.length) * 100) };
-  });
-
-  let filteredJobs = jobsWithScores.filter(job => {
+  let filteredJobs = jobs.filter(job => {
     if (tab === 'active' && (job.status === 'closed' || job.status === 'expired')) return false; 
     
     if (filterWorkMode && filterWorkMode !== 'All') {
@@ -297,50 +294,22 @@ const SavedJobs = () => {
     return 0;
   });
 
-  const averageMatchScore = jobsWithScores.length > 0 
-    ? Math.round(jobsWithScores.reduce((acc, job) => acc + (job.matchScore || 0), 0) / jobsWithScores.length)
+  const averageMatchScore = jobs.length > 0 
+    ? Math.round(jobs.reduce((acc, job) => acc + (job.matchScore || 0), 0) / jobs.length)
     : 0;
-
-  const allRequiredSkills = new Set();
-  jobsWithScores.forEach(job => {
-    if (job.skill) {
-      job.skill.split(',').forEach(s => allRequiredSkills.add(s.trim()));
-    }
-    if (job.skills) {
-      job.skills.forEach(s => {
-        const val = typeof s === 'string' ? s : s?.name || '';
-        if (val) val.split(',').forEach(v => allRequiredSkills.add(v.trim()));
-      });
-    }
-  });
-  allRequiredSkills.delete("");
 
   const matchedSkillsSet = new Set();
   const missingSkillsSet = new Set();
 
-  allRequiredSkills.forEach(reqSkill => {
-    const reqLower = reqSkill.toLowerCase();
-    
-    // 1. Exact match
-    let bestMatch = userSkills.find(us => us.toLowerCase() === reqLower);
-    
-    // 2. User skill contains job skill (e.g. "React Developer" contains "React")
-    if (!bestMatch) {
-      bestMatch = userSkills.find(us => us.toLowerCase().includes(reqLower));
+  jobs.forEach(job => {
+    if (job.aiMatchedSkills) {
+      job.aiMatchedSkills.forEach(s => matchedSkillsSet.add(s));
     }
-    
-    // 3. Job skill contains user skill (e.g. "DevOps Engineer" contains "DevOps")
-    if (!bestMatch) {
-      bestMatch = userSkills.find(us => reqLower.includes(us.toLowerCase()));
-    }
-
-    if (bestMatch) {
-      matchedSkillsSet.add(bestMatch);
-    } else {
-      missingSkillsSet.add(reqSkill);
+    if (job.aiMissingSkills) {
+      job.aiMissingSkills.forEach(s => missingSkillsSet.add(s));
     }
   });
-  
+
   const matchedSkillsList = Array.from(matchedSkillsSet);
   const missingSkillsList = Array.from(missingSkillsSet);
   const matchedCount = matchedSkillsList.length;
@@ -394,7 +363,20 @@ const SavedJobs = () => {
                   </select>
                 </div>
                 
-
+                <div className="flex items-center gap-2 border-l border-gray-200 pl-3">
+                  <span className="text-[13px] font-medium text-gray-500 flex items-center gap-1"><HiOutlineFilter /> Mode</span>
+                  <select 
+                    value={filterWorkMode}
+                    onChange={(e) => setFilterWorkMode(e.target.value)}
+                    className="text-[13px] font-bold text-gray-700 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 appearance-none pr-8 cursor-pointer relative"
+                    style={{ backgroundImage: `url('data:image/svg+xml;utf8,<svg fill="none" viewBox="0 0 24 24" stroke="%239ca3af" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>')`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', backgroundSize: '16px' }}
+                  >
+                    <option value="All">All</option>
+                    <option value="Remote">Remote</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="On-site">On-site</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -408,7 +390,7 @@ const SavedJobs = () => {
               </div>
             ) : (
               <div className="bg-white rounded-3xl border border-gray-200 p-2 sm:p-6 shadow-sm">
-                {filteredJobs.map(job => (
+                {filteredJobs.slice(0, visibleCount).map(job => (
                   <SavedJobCard 
                     key={job._id} 
                     job={job} 
@@ -417,9 +399,14 @@ const SavedJobs = () => {
                   />
                 ))}
                 
-                <button className="w-full mt-4 py-3 text-[14px] font-bold text-[#10b981] flex items-center justify-center gap-2 hover:bg-gray-50 rounded-xl transition">
-                  Load More Jobs <HiChevronDown className="w-4 h-4" />
-                </button>
+                {visibleCount < filteredJobs.length && (
+                  <button 
+                    onClick={() => setVisibleCount(prev => prev + 10)}
+                    className="w-full mt-4 py-3 text-[14px] font-bold text-[#10b981] flex items-center justify-center gap-2 hover:bg-gray-50 rounded-xl transition"
+                  >
+                    Load More Jobs <HiChevronDown className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -432,33 +419,46 @@ const SavedJobs = () => {
               <h3 className="font-bold text-gray-900 mb-4">Your Match Overview</h3>
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 shrink-0">
-                  <CircularProgressbar 
-                    value={displayScore} 
-                    text={`${displayScore}%`} 
-                    styles={buildStyles({
-                      pathColor: '#10b981',
-                      textColor: '#10b981',
-                      trailColor: '#ecfdf5',
-                      textSize: '24px',
-                      strokeLinecap: 'round',
-                    })}
-                    strokeWidth={10}
-                  />
+                  {aiInsightsLoading ? (
+                    <div className="w-full h-full rounded-full border-4 border-gray-100 border-t-[#10b981] animate-spin"></div>
+                  ) : (
+                    <CircularProgressbar 
+                      value={displayScore} 
+                      text={`${displayScore}%`} 
+                      styles={buildStyles({
+                        pathColor: '#10b981',
+                        textColor: '#10b981',
+                        trailColor: '#ecfdf5',
+                        textSize: '24px',
+                        strokeLinecap: 'round',
+                      })}
+                      strokeWidth={10}
+                    />
+                  )}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-gray-900">
-                    {totalRequired === 0 ? 'Analysis Ready' : coveragePercent >= 70 ? 'Strong Skill Match' : coveragePercent >= 40 ? 'Moderate Skill Match' : 'Skill Gap Detected'}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1 leading-snug">
-                    {totalRequired === 0 
-                      ? "Save jobs with listed skills to see your match overview." 
-                      : `You possess ${matchedCount} out of ${totalRequired} core skills required across your saved jobs.`
-                    }
-                  </p>
+                  {aiInsightsLoading ? (
+                    <>
+                      <p className="text-sm font-bold text-gray-900">Analyzing Matches...</p>
+                      <p className="text-xs text-gray-500 mt-1 leading-snug">AI is analyzing your profile against saved jobs.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-bold text-gray-900">
+                        {totalRequired === 0 ? 'Analysis Ready' : coveragePercent >= 70 ? 'Strong Skill Match' : coveragePercent >= 40 ? 'Moderate Skill Match' : 'Skill Gap Detected'}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1 leading-snug">
+                        {totalRequired === 0 
+                          ? "Save jobs with listed skills to see your match overview." 
+                          : `You possess ${matchedCount} out of ${totalRequired} core skills required across your saved jobs.`
+                        }
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
 
-              {totalRequired > 0 && (
+              {!aiInsightsLoading && totalRequired > 0 && (
                 <div className="space-y-3 mt-4 pt-4 border-t border-gray-100">
                   {matchedSkillsList.length > 0 && (
                     <div>

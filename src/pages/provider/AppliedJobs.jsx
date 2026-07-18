@@ -55,6 +55,17 @@ export default function AppliedJobs() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [whatsappEnabled, setWhatsappEnabled] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.dropdown-container')) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     providerAPI.getApplications()
@@ -254,11 +265,7 @@ export default function AppliedJobs() {
                                   {statusIndex === 5 ? 'Offered Salary' : statusIndex >= 3 ? 'Next Step' : 'Expected Response'}
                                 </span>
                                 <span className="text-[13px] font-bold text-slate-800 flex items-center gap-2">
-                                  {statusIndex === 5 && job.budgetMin && job.budgetMax 
-                                    ? `₹${(job.budgetMin/100000).toFixed(1)} - ${(job.budgetMax/100000).toFixed(1)} LPA`
-                                    : statusIndex === 5 ? 'Not Disclosed'
-                                    : statusIndex >= 3 ? 'Technical Interview'
-                                    : '3-7 days'}
+                                  {statusIndex === 5 ? '$' + (job.salary || 'Negotiable') : statusIndex >= 3 ? 'Technical Round' : 'Within 3 Days'}
                                 </span>
                               </div>
                             </>
@@ -267,12 +274,19 @@ export default function AppliedJobs() {
                       </div>
 
                       {/* Right: Actions */}
-                      <div className="flex flex-col items-end justify-between shrink-0 min-w-[160px] pt-0 lg:pt-0 lg:pl-6 border-t lg:border-t-0 lg:border-l border-slate-100 mt-4 lg:mt-0">
-                        <div className="w-full flex items-center justify-between mb-8 mt-2 lg:mt-0">
+                      <div className="shrink-0 flex flex-row lg:flex-col items-center lg:items-end justify-between border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6 mt-2 lg:mt-0">
+                        <div className="w-full flex items-center justify-between mb-8 mt-2 lg:mt-0 relative dropdown-container">
                           <Link to={`/provider/job/${job._id}`} target="_blank" className="py-1.5 px-4 text-[11px] font-bold text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition shadow-sm">View Job</Link>
-                          <button className="text-slate-400 hover:text-slate-600 p-1 border border-slate-200 rounded-md">
+                          <button onClick={() => setOpenMenuId(openMenuId === app._id ? null : app._id)} className="text-slate-400 hover:text-slate-600 p-1 border border-slate-200 rounded-md">
                             <HiOutlineDotsVertical className="w-4 h-4" />
                           </button>
+                          {openMenuId === app._id && (
+                            <div className="absolute top-8 right-0 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-10 py-1">
+                              <button onClick={() => { setOpenMenuId(null); navigator.clipboard.writeText(window.location.origin + "/provider/job/" + job._id); toast.success("Job link copied!"); }} className="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">Copy Job Link</button>
+                              <button onClick={() => { setOpenMenuId(null); if (job.recruiter?._id) { /* We don't have recruiter profile modal in this component yet, so just link */ window.open("/provider/profile/" + job.recruiter._id, "_blank"); } else { toast.error("Recruiter info not available"); } }} className="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">View Recruiter</button>
+                              <button onClick={() => handleWithdraw(job._id, app._id)} className="w-full text-left px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50 transition">Withdraw</button>
+                            </div>
+                          )}
                         </div>
                       </div>
 
