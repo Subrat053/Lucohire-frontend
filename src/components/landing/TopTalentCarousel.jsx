@@ -189,7 +189,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                 <div className="mt-auto flex flex-col gap-2.5">
                   <div className="flex gap-2.5">
                     <a 
-                      href={candidate.user?.whatsappNumber ? `https://wa.me/${candidate.user.whatsappNumber}` : '#'}
+                      href={candidate._id ? `${import.meta.env.VITE_API_URL}/provider/public/${candidate._id}/whatsapp-redirect` : '#'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-[1.5] py-2.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] transition-colors text-[13px] flex items-center justify-center gap-2 shadow-sm"

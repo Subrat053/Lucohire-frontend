@@ -201,7 +201,7 @@ const ProviderDashboard = () => {
   const isProfileEmpty = !profile.city && !profile.skills?.length;
   const profileCompletion = stats.profileCompletion || 60; // Mock default if missing
   const activeJobsCount = topJobsCount || 0;
-  const freelanceCount = 0;
+  const freelanceCount = profile?.freelancerAnalytics?.freelanceOpportunities || 0;
   const resumeScore = stats.resumeScore || 0;
 
   if (loading) return (

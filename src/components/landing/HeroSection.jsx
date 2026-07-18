@@ -5,7 +5,7 @@ import DualPathwayCards from './DualPathwayCards';
 import LiveJobsCarousel from './LiveJobsCarousel';
 import useTranslation from '../../hooks/useTranslation';
 
-export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation, setJobLocation, handleJobSearch, isLoadingJobs, liveJobsList }) {
+export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation, setJobLocation, handleJobSearch, isLoadingJobs, liveJobsList, onJobClick }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
@@ -171,7 +171,7 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
         <div className="w-full mt-8 sm:mt-10">
           {user ? (
             <div className="-mt-4 w-full">
-              <LiveJobsCarousel isLoadingJobs={isLoadingJobs} liveJobsList={liveJobsList} />
+              <LiveJobsCarousel isLoadingJobs={isLoadingJobs} liveJobsList={liveJobsList} onJobClick={onJobClick} />
             </div>
           ) : (
             <DualPathwayCards user={user} />
@@ -181,7 +181,7 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
       
       {!user && (
         <div className="w-full mt-8 sm:mt-10">
-          <LiveJobsCarousel isLoadingJobs={isLoadingJobs} liveJobsList={liveJobsList} />
+          <LiveJobsCarousel isLoadingJobs={isLoadingJobs} liveJobsList={liveJobsList} onJobClick={onJobClick} />
         </div>
       )}
     </div>

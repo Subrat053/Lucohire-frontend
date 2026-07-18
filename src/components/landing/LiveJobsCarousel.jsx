@@ -36,7 +36,7 @@ const CompanyLogo = ({ company, className = '' }) => {
   return logos[company] || <span className="font-bold">{company}</span>;
 };
 
-export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList }) {
+export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobClick }) {
   const { t } = useTranslation();
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 pb-1">
@@ -71,9 +71,9 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList }) {
             ))
           ) : liveJobsList.length > 0 ? (
             liveJobsList.map(job => (
-              <Link 
+              <div 
                 key={job._id || job.id} 
-                to="/provider/job-for-me" 
+                onClick={() => onJobClick && onJobClick(job)}
                 className="w-[180px] sm:w-[200px] bg-white border border-gray-100 rounded-2xl p-3 sm:p-4 flex-shrink-0 cursor-pointer hover:shadow-md transition duration-300 block relative"
               >
                 <div className="mb-2 flex justify-between items-start">
@@ -96,7 +96,7 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList }) {
                    <span className="bg-blue-50 text-blue-600 text-[9px] font-bold px-2 py-0.5 rounded-md">{job.workMode || 'Full-time'}</span>
                    <span className="bg-blue-50 text-blue-600 text-[9px] font-bold px-2 py-0.5 rounded-md">{job.jobType || 'On-site'}</span>
                 </div>
-              </Link>
+              </div>
             ))
           ) : (
             <div className="w-full text-center py-6 text-gray-400">
