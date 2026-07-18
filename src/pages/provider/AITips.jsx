@@ -78,7 +78,13 @@ export default function AITips() {
       const fileHash = state?.fileHash || localStorage.getItem('lastResumeHash');
       const parsedData = state?.parsedData;
       
-      const response = await getAICareerReport({ fileHash, parsedData });
+      const payload = {};
+      if (parsedData) {
+        payload.fileHash = fileHash;
+        payload.parsedData = parsedData;
+      }
+      
+      const response = await getAICareerReport(payload);
       if (response?.data?.data) {
         setReportData(response.data.data);
       } else {
@@ -191,8 +197,14 @@ export default function AITips() {
                       const fileHash = state?.fileHash || localStorage.getItem('lastResumeHash');
                       const parsedData = state?.parsedData;
                       
+                      const payload = { improve: true };
+                      if (parsedData) {
+                        payload.fileHash = fileHash;
+                        payload.parsedData = parsedData;
+                      }
+                      
                       setLoading(true);
-                      const { data } = await improveAICareerReport({ fileHash, parsedData, improve: true });
+                      const { data } = await improveAICareerReport(payload);
                       if (data.success) {
                         setReportData(data.data);
                         toast.success("AI Career Report updated!");

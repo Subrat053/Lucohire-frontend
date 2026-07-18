@@ -19,6 +19,7 @@ import {
   HiExclamationCircle,
   HiSparkles,
   HiOutlineBookmark,
+  HiBookmark,
   HiOutlineLockClosed,
   HiOutlinePaperAirplane,
   HiOutlineMail,
@@ -362,7 +363,7 @@ const JobCardSkeleton = () => (
   </div>
 );
 
-const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePlan }) => {
+const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePlan, onToggleSave }) => {
   const { t } = useTranslation();
 
   const budgetText =
@@ -385,7 +386,11 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePl
       
       {/* 1. Logo & Basic Info */}
       <div className="flex flex-row gap-4 xl:gap-5 flex-1 w-full xl:w-auto relative min-w-0">
-        <HiOutlineBookmark className="w-5 h-5 text-blue-600 absolute right-0 top-0 cursor-pointer hover:text-blue-700 hidden xl:block" />
+        {job.isSaved ? (
+          <HiBookmark onClick={(e) => { e.stopPropagation(); onToggleSave && onToggleSave(job); }} className="w-5 h-5 text-blue-600 absolute right-0 top-0 cursor-pointer hover:text-blue-700 hidden xl:block" />
+        ) : (
+          <HiOutlineBookmark onClick={(e) => { e.stopPropagation(); onToggleSave && onToggleSave(job); }} className="w-5 h-5 text-blue-600 absolute right-0 top-0 cursor-pointer hover:text-blue-700 hidden xl:block" />
+        )}
         <div className="shrink-0">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border border-gray-100 flex flex-col items-center justify-center p-2 shadow-xs relative">
             <span className="font-extrabold text-xl sm:text-2xl text-gray-800 tracking-tighter capitalize">{job.companyName?.substring(0,2) || "CO"}</span>
@@ -402,7 +407,11 @@ const JobCard = ({ job, aiInsights, onViewDetails, onRecruiterClick, hasActivePl
             {matchScore >= 80 && (
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">Best Match</span>
             )}
-            <HiOutlineBookmark className="w-5 h-5 text-blue-600 ml-auto cursor-pointer xl:hidden" />
+            {job.isSaved ? (
+              <HiBookmark onClick={(e) => { e.stopPropagation(); onToggleSave && onToggleSave(job); }} className="w-5 h-5 text-blue-600 ml-auto cursor-pointer xl:hidden" />
+            ) : (
+              <HiOutlineBookmark onClick={(e) => { e.stopPropagation(); onToggleSave && onToggleSave(job); }} className="w-5 h-5 text-blue-600 ml-auto cursor-pointer xl:hidden" />
+            )}
           </div>
           
           <div className="flex flex-wrap items-center gap-1 text-[12px] sm:text-[13px] font-medium text-gray-500">
@@ -778,6 +787,18 @@ const ProviderJobs = () => {
 
   const handleRecruiterClick = (id, name) => {
     setRecruiterProfileTarget({ id, name });
+  };
+
+  const handleToggleSave = async (job) => {
+    try {
+      const res = await providerAPI.toggleSaveJob(job._id, !!job.isExternal);
+      if (res.data?.isSaved !== undefined) {
+        setJobs(prev => prev.map(j => j._id === job._id ? { ...j, isSaved: res.data.isSaved } : j));
+        toast.success(res.data.message || (res.data.isSaved ? "Job saved!" : "Job removed from saved jobs."));
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to toggle saved job");
+    }
   };
 
   const [nearbyOnly, setNearbyOnly] = useState(false);
@@ -1198,6 +1219,7 @@ const ProviderJobs = () => {
                       onViewDetails={(job) => navigate(`/provider/job/${job._id}`)}
                       onRecruiterClick={handleRecruiterClick}
                       hasActivePlan={aiInsightsMap[job._id]?._isMock !== true}
+                      onToggleSave={handleToggleSave}
                     />
                   ))}
                 </div>

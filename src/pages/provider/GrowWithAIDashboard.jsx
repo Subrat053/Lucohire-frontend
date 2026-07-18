@@ -64,7 +64,7 @@ export default function GrowWithAIDashboard() {
       setGpsLoading(true);
       setErrorMessage(null);
       
-      const { data } = await getCareerGPS({ fileHash, parsedData });
+      const { data } = await getCareerGPS({ fileHash: parsedData ? fileHash : undefined, parsedData });
       if (data.success) {
         setGpsData(data.data);
         setGpsLocked(false);
@@ -86,7 +86,7 @@ export default function GrowWithAIDashboard() {
     try {
       setBarriersLoading(true);
       
-      const { data } = await getHiringBarriers({ fileHash, parsedData });
+      const { data } = await getHiringBarriers({ fileHash: parsedData ? fileHash : undefined, parsedData });
       if (data.success) {
         setBarriersData(data.data);
         setBarriersLocked(false);
@@ -161,7 +161,7 @@ export default function GrowWithAIDashboard() {
                   if (activeTab === 'gps') {
                     try {
                       setGpsLoading(true);
-                      const { data } = await improveCareerGPS({ fileHash, parsedData, improve: true });
+                      const { data } = await improveCareerGPS({ fileHash: parsedData ? fileHash : undefined, parsedData, improve: true });
                       if (data.success) {
                         setGpsData(data.data);
                         toast.success("Career GPS Insights updated!");
@@ -175,7 +175,7 @@ export default function GrowWithAIDashboard() {
                   } else if (activeTab === 'barriers') {
                     try {
                       setBarriersLoading(true);
-                      const { data } = await improveHiringBarriers({ fileHash, parsedData, improve: true });
+                      const { data } = await improveHiringBarriers({ fileHash: parsedData ? fileHash : undefined, parsedData, improve: true });
                       if (data.success) {
                         setBarriersData(data.data);
                         toast.success("Hiring Barriers updated!");
@@ -594,7 +594,7 @@ function SkillGapPanel({ fileHash, parsedData }) {
     if (!jd.trim()) return;
     try {
       setLoading(true);
-      const res = await getSkillGap({ fileHash, parsedData, jobDescription: jd });
+      const res = await getSkillGap({ fileHash: parsedData ? fileHash : undefined, parsedData, jobDescription: jd });
       if (res.data.success) {
         setData(res.data.data);
       }
@@ -717,7 +717,7 @@ function AtsOptimizerPanel({ fileHash, parsedData }) {
     if (!jd.trim()) return;
     try {
       setLoading(true);
-      const res = await getAtsOptimizer({ fileHash, parsedData, jobDescription: jd });
+      const res = await getAtsOptimizer({ fileHash: parsedData ? fileHash : undefined, parsedData, jobDescription: jd });
       if (res.success || res.data) {
         setData(res.data.data || res.data);
       }

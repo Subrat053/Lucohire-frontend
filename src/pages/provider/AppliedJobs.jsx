@@ -54,6 +54,7 @@ export default function AppliedJobs() {
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [whatsappEnabled, setWhatsappEnabled] = useState(false);
 
   useEffect(() => {
     providerAPI.getApplications()
@@ -87,30 +88,17 @@ export default function AppliedJobs() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans p-4 md:p-6 xl:p-8">
-      {/* Top Search Bar */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="relative w-full max-w-xl">
-          <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-          <input 
-            type="text" 
-            placeholder={t("Search jobs, companies, skills...")} 
-            className="w-full pl-10 pr-16 py-2.5 rounded-full border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-sm"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-1 rounded">{t("Ctrl + K")}</div>
-        </div>
-      </div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">{t("Applied Jobs")}<span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">
-            {counts.all}
-          </span>
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">{t("Track your applications and stay updated on their progress")}</p>
-      </div>
       <div className="flex flex-col xl:flex-row gap-6">
         {/* Left Content Area */}
         <div className="flex-1 min-w-0">
+          
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">{t("Applied Jobs")}<span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                {counts.all}
+              </span>
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">{t("Track your applications and stay updated on their progress")}</p>
+          </div>
           
           {/* Tabs & Controls */}
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-slate-200 pb-2">
@@ -135,12 +123,8 @@ export default function AppliedJobs() {
                   <option>{t("Status Updates")}</option>
                 </select>
               </div>
-              <button className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-1.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 shadow-sm">
-                <HiFilter className="w-4 h-4" />{t("Filter")}</button>
             </div>
           </div>
-
-          {/* Job List */}
           <div className="space-y-4">
             {filteredApps.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
@@ -169,105 +153,112 @@ export default function AppliedJobs() {
                     <div className="flex flex-col lg:flex-row gap-6">
                       
                       {/* Left: Job Info */}
-                      <div className="flex gap-4 min-w-[280px]">
-                        <div className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
-                          <span className="font-extrabold text-xl text-slate-800 capitalize">
-                            {(job.companyName || 'CO').substring(0,2)}
-                          </span>
+                      <div className="flex flex-col gap-4 min-w-[240px] xl:min-w-[280px]">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
+                            {job.companyLogo ? (
+                              <img src={job.companyLogo} alt={job.companyName} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="font-extrabold text-xl text-slate-800 capitalize">
+                                {(job.companyName || 'CO').substring(0,2)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="pt-0.5">
+                            <h3 className="font-bold text-slate-900 text-[15px] leading-tight">{job.title || 'Job Title'}</h3>
+                            <div className="flex items-center gap-1 text-[13px] font-medium text-slate-600 mt-1">
+                              {job.companyName || job.recruiter?.name || 'Company Name'}
+                              <HiCheckCircle className="text-blue-500 w-3.5 h-3.5" />
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-bold text-slate-900 text-lg leading-tight">{job.title || 'Job Title'}</h3>
-                          <div className="flex items-center gap-1 text-sm font-semibold text-slate-700 mt-1">
-                            {job.companyName || job.recruiter?.name || 'Company Name'}
-                            <HiCheckCircle className="text-blue-500 w-4 h-4" />
-                          </div>
-                          <div className="flex flex-col gap-1.5 mt-3 text-xs text-slate-500 font-medium">
-                            <span className="flex items-center gap-1.5"><HiLocationMarker className="w-3.5 h-3.5" /> {job.city || 'Remote'} ({job.workMode || 'Hybrid'})</span>
-                            <span className="flex items-center gap-1.5"><HiOutlineCalendar className="w-3.5 h-3.5" />{t("Applied on")}{new Date(app.appliedAt || app.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                          </div>
+                        <div className="flex flex-col gap-2.5 mt-2 text-[11px] text-slate-500 font-medium">
+                          <span className="flex items-center gap-1.5"><HiLocationMarker className="w-3.5 h-3.5 text-slate-400" /> {job.city || 'Remote'}{job.state ? `, ${job.state}` : ''} ({job.workMode || 'Hybrid'})</span>
+                          <span className="flex items-center gap-1.5"><HiOutlineCalendar className="w-3.5 h-3.5 text-slate-400" />{t("Applied on")} {new Date(app.appliedAt || app.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                         </div>
                       </div>
 
                       {/* Middle: Progress Tracker & AI Stats */}
-                      <div className="flex-1 flex flex-col justify-between border-l border-slate-100 pl-6 border-t lg:border-t-0 pt-4 lg:pt-0">
-                        <div className="mb-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusColor}`}>
-                              {statusLabel}
-                            </span>
-                            <p className="text-xs text-slate-600 font-medium">
-                              {isRejected ? 'This application was not successful.' : 
-                               statusIndex === 5 ? 'Congratulations! You are hired.' :
-                               statusIndex === 4 ? 'Great! You have been shortlisted.' :
-                               statusIndex === 3 ? 'You have been contacted by the recruiter.' :
-                               statusIndex === 2 ? 'Your application has been reviewed.' :
-                               'Your application is under review.'}
-                            </p>
-                          </div>
-                          
-                          {/* Stepper */}
-                          <div className="relative mt-2">
-                            <div className="flex w-full items-start text-[10px] sm:text-xs font-semibold">
-                              {STEPS.map((step, idx) => {
-                                const stepNum = idx + 1;
-                                const isCompleted = !isRejected && statusIndex >= stepNum;
-                                const isCurrent = !isRejected && statusIndex === stepNum;
-                                const isFailed = isRejected && statusIndex === -1 && idx === 0;
-                                
-                                return (
-                                  <div key={step} className="flex-1 flex flex-col items-center gap-2 relative">
-                                    {/* Line connecting to previous step */}
-                                    {idx !== 0 && (
-                                      <div className={`absolute top-2 left-0 w-1/2 h-0.5 -z-10 ${statusIndex >= stepNum ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
-                                    )}
-                                    {/* Line connecting to next step */}
-                                    {idx !== STEPS.length - 1 && (
-                                      <div className={`absolute top-2 right-0 w-1/2 h-0.5 -z-10 ${statusIndex > stepNum ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
-                                    )}
-                                    
-                                    <div className={`w-4 h-4 rounded-full flex items-center justify-center border-2 ${
-                                      isFailed ? 'bg-white border-red-500' :
-                                      isCompleted ? 'bg-emerald-500 border-emerald-500' : 
-                                      isCurrent ? 'bg-white border-emerald-500 shadow-[0_0_0_2px_white,0_0_0_4px_#10b981]' : 
-                                      'bg-white border-slate-300'
-                                    }`}>
-                                      {isCompleted && <HiCheckCircle className="w-4 h-4 text-white shrink-0" />}
-                                      {isFailed && <HiX className="w-3 h-3 text-red-500 shrink-0" />}
-                                    </div>
-                                    <span className={`text-center ${isCurrent || isCompleted ? 'text-emerald-800' : isFailed ? 'text-red-600' : 'text-slate-400'}`}>
-                                      {step}
-                                    </span>
+                      <div className="flex-1 flex flex-col border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6">
+                        <div className="flex items-center gap-3 mb-4">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${statusColor}`}>
+                            {statusLabel}
+                          </span>
+                          <p className="text-[11px] text-slate-500 font-medium">
+                            {isRejected ? 'This application was not successful.' : 
+                             statusIndex === 5 ? 'Congratulations! You have an offer.' :
+                             statusIndex === 4 ? 'Great! You have been shortlisted.' :
+                             statusIndex === 3 ? 'You are invited for an interview.' :
+                             statusIndex === 2 ? 'Your application is being screened.' :
+                             'Your application is under review.'}
+                          </p>
+                        </div>
+                        
+                        {/* Horizontal Stepper */}
+                        <div className="relative mt-2 mb-8">
+                          <div className="flex w-full items-center justify-between text-[10px] font-bold">
+                            {STEPS.map((step, idx) => {
+                              const stepNum = idx + 1;
+                              const isCompleted = !isRejected && statusIndex >= stepNum;
+                              const isCurrent = !isRejected && statusIndex === stepNum;
+                              const isFailed = isRejected && statusIndex === -1 && idx === 0;
+                              
+                              return (
+                                <div key={step} className="flex flex-col items-center gap-2 relative z-10 w-8">
+                                  <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border-2 ${
+                                    isFailed ? 'bg-white border-red-500' :
+                                    isCompleted ? 'bg-emerald-500 border-emerald-500' : 
+                                    isCurrent ? 'bg-white border-blue-600' : 
+                                    'bg-white border-slate-300'
+                                  }`}>
+                                    {isCompleted && <HiCheckCircle className="w-3.5 h-3.5 text-white shrink-0 absolute" />}
+                                    {isFailed && <HiX className="w-2.5 h-2.5 text-red-500 shrink-0 absolute" />}
                                   </div>
-                                );
-                              })}
+                                  <span className={`absolute top-6 whitespace-nowrap ${isCurrent || isCompleted ? 'text-slate-800' : isFailed ? 'text-red-600' : 'text-slate-400'}`}>
+                                    {step}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                            
+                            {/* Connecting Lines Container (Absolute positioned behind circles) */}
+                            <div className="absolute top-[6px] left-4 right-4 h-0.5 flex z-0">
+                               {STEPS.slice(0, -1).map((_, idx) => {
+                                 const stepNum = idx + 1;
+                                 const isPassed = !isRejected && statusIndex > stepNum;
+                                 return (
+                                   <div key={idx} className={`flex-1 h-full ${isPassed ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
+                                 );
+                               })}
                             </div>
                           </div>
                         </div>
 
-                        {/* Job Snapshot Area */}
-                        <div className="flex gap-6 mt-auto text-sm bg-slate-50 p-3 rounded-lg border border-slate-100">
+                        {/* AI Stats / Job Snapshot */}
+                        <div className="grid grid-cols-2 gap-4 mt-auto">
                           {isRejected ? (
-                            <div className="flex-1">
-                              <span className="text-xs text-slate-500 font-medium block mb-1">{t("Feedback")}</span>
-                              <span className="font-semibold text-slate-800">{t("Not a match for this role.")}</span>
+                            <div className="col-span-2">
+                              <span className="text-[10px] text-slate-500 font-bold block mb-1 uppercase tracking-wider">{t("Feedback")}</span>
+                              <span className="text-[13px] font-medium text-slate-700">{t("Not a match for this role.")}</span>
                             </div>
                           ) : (
                             <>
-                              <div className="flex-1">
-                                <span className="text-xs text-slate-500 font-medium block mb-1">{t("Offered Salary")}</span>
-                                <span className="font-semibold text-slate-800 flex items-center gap-2">
-                                  {job.budgetMin && job.budgetMax 
-                                    ? `₹${job.budgetMin.toLocaleString()} - ${job.budgetMax.toLocaleString()}` 
-                                    : 'Not Disclosed'}
-                                  {job.budgetType && <span className="text-[10px] text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded capitalize">{job.budgetType}</span>}
-                                </span>
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold block mb-1 uppercase tracking-wider">AI {statusIndex >= 3 ? 'Match Score' : 'Interview Chance'}</span>
+                                <div className="flex items-center gap-2 text-[13px] font-bold text-emerald-600">
+                                  {aiChance}% <span className="text-[11px] font-medium text-slate-600">{aiLabel}</span>
+                                </div>
                               </div>
-                              <div className="flex-1">
-                                <span className="text-xs text-slate-500 font-medium block mb-1">
-                                  {statusIndex === 5 ? 'Status' : statusIndex >= 3 ? 'Next Step' : 'Expected Response'}
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold block mb-1 uppercase tracking-wider">
+                                  {statusIndex === 5 ? 'Offered Salary' : statusIndex >= 3 ? 'Next Step' : 'Expected Response'}
                                 </span>
-                                <span className="font-semibold text-slate-800 block text-xs">
-                                  {statusIndex === 5 ? 'Hired' : statusIndex >= 3 ? 'Awaiting Recruiter' : '3-7 days'}
+                                <span className="text-[13px] font-bold text-slate-800 flex items-center gap-2">
+                                  {statusIndex === 5 && job.budgetMin && job.budgetMax 
+                                    ? `₹${(job.budgetMin/100000).toFixed(1)} - ${(job.budgetMax/100000).toFixed(1)} LPA`
+                                    : statusIndex === 5 ? 'Not Disclosed'
+                                    : statusIndex >= 3 ? 'Technical Interview'
+                                    : '3-7 days'}
                                 </span>
                               </div>
                             </>
@@ -276,18 +267,12 @@ export default function AppliedJobs() {
                       </div>
 
                       {/* Right: Actions */}
-                      <div className="flex flex-col items-end justify-between shrink-0 min-w-[140px] pt-2">
-                        <button className="text-slate-400 hover:text-slate-600 p-1 mb-2">
-                          <HiOutlineDotsVertical className="w-5 h-5" />
-                        </button>
-                        
-                        <div className="flex flex-col gap-3 w-full">
-                          <Link to={`/job/${job._id}`} target="_blank" className="w-full block py-1.5 px-4 text-xs font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition shadow-sm text-center">{t("View Job")}</Link>
-                          {job.recruiter && (
-                            <button onClick={() => window.location.href = `mailto:${job.recruiter.email}`} className="w-full text-right text-xs font-semibold text-emerald-600 hover:text-emerald-800 flex items-center justify-end gap-1">{t("Contact Recruiter")}<HiOutlineExternalLink className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-
+                      <div className="flex flex-col items-end justify-between shrink-0 min-w-[160px] pt-0 lg:pt-0 lg:pl-6 border-t lg:border-t-0 lg:border-l border-slate-100 mt-4 lg:mt-0">
+                        <div className="w-full flex items-center justify-between mb-8 mt-2 lg:mt-0">
+                          <Link to={`/provider/job/${job._id}`} target="_blank" className="py-1.5 px-4 text-[11px] font-bold text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition shadow-sm">View Job</Link>
+                          <button className="text-slate-400 hover:text-slate-600 p-1 border border-slate-200 rounded-md">
+                            <HiOutlineDotsVertical className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
 
@@ -312,6 +297,155 @@ export default function AppliedJobs() {
             </div>
           )}
 
+        </div>
+
+        {/* Right Sidebar */}
+        <div className="w-full xl:w-[320px] shrink-0 space-y-4">
+          
+          {/* AI Application Overview */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-slate-900 flex items-center gap-2">AI Application Overview</h3>
+              <span className="bg-indigo-100 text-indigo-700 w-6 h-6 rounded flex items-center justify-center text-xs font-bold">AI</span>
+            </div>
+            
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-[72px] h-[72px] shrink-0 relative">
+                {(() => {
+                  const progressPercent = Math.round(((counts.review + counts.contacted + counts.shortlisted + counts.hired) / (counts.all || 1)) * 100) || 0;
+                  const getProgressText = (percent) => {
+                    if (percent >= 80) return { title: "Excellent Progress", desc: "You're doing great! Keep applying to increase your chances.", color: '#10b981', trail: '#ecfdf5' };
+                    if (percent >= 50) return { title: "Good Progress", desc: "You are on the right track. Keep pushing forward.", color: '#3b82f6', trail: '#eff6ff' };
+                    if (percent >= 20) return { title: "Getting Started", desc: "Your applications are moving. Keep building momentum!", color: '#f59e0b', trail: '#fffbeb' };
+                    return { title: "Keep Applying", desc: "Apply to more jobs to increase your chances of getting hired.", color: '#64748b', trail: '#f8fafc' };
+                  };
+                  const progressData = getProgressText(progressPercent);
+                  
+                  return (
+                    <>
+                      <CircularProgressbar 
+                        value={progressPercent} 
+                        styles={buildStyles({
+                          pathColor: progressData.color,
+                          trailColor: progressData.trail,
+                          strokeLinecap: 'round',
+                        })} 
+                      />
+                      <span className="absolute inset-0 flex items-center justify-center font-bold text-slate-800 text-lg">
+                        {progressPercent}%
+                      </span>
+                    </>
+                  );
+                })()}
+              </div>
+              <div>
+                {(() => {
+                  const progressPercent = Math.round(((counts.review + counts.contacted + counts.shortlisted + counts.hired) / (counts.all || 1)) * 100) || 0;
+                  const getProgressText = (percent) => {
+                    if (percent >= 80) return { title: "Excellent Progress", desc: "You're doing great! Keep applying to increase your chances." };
+                    if (percent >= 50) return { title: "Good Progress", desc: "You are on the right track. Keep pushing forward." };
+                    if (percent >= 20) return { title: "Getting Started", desc: "Your applications are moving. Keep building momentum!" };
+                    return { title: "Keep Applying", desc: "Apply to more jobs to increase your chances of getting hired." };
+                  };
+                  const progressData = getProgressText(progressPercent);
+                  return (
+                    <>
+                      <p className="font-bold text-slate-800 text-sm">{progressData.title}</p>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">{progressData.desc}</p>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {(() => {
+              let cApplied = 0, cReviewed = 0, cContacted = 0, cShortlisted = 0, cHired = 0;
+              apps.forEach(app => {
+                const idx = getStatusIndex(app.status);
+                if (idx === 1) cApplied++;
+                else if (idx === 2) cReviewed++;
+                else if (idx === 3) cContacted++;
+                else if (idx === 4) cShortlisted++;
+                else if (idx === 5) cHired++;
+              });
+              
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-slate-600 font-medium"><HiCheckCircle className="text-emerald-500 w-4 h-4" /> Applied</span>
+                    <span className="font-bold text-slate-800">{cApplied}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-slate-600 font-medium"><HiCheckCircle className="text-emerald-500 w-4 h-4" /> Reviewed</span>
+                    <span className="font-bold text-slate-800">{cReviewed}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-slate-600 font-medium"><HiCheckCircle className="text-emerald-500 w-4 h-4" /> Contacted</span>
+                    <span className="font-bold text-slate-800">{cContacted}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-slate-600 font-medium"><HiCheckCircle className="text-emerald-500 w-4 h-4" /> Shortlisted</span>
+                    <span className="font-bold text-slate-800">{cShortlisted}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-slate-600 font-medium"><HiCheckCircle className="text-emerald-500 w-4 h-4" /> Hired</span>
+                    <span className="font-bold text-slate-800">{cHired}</span>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Stay Updated on WhatsApp */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-[#25D366]/10 flex items-center justify-center">
+                <FaWhatsapp className="w-5 h-5 text-[#25D366]" />
+              </div>
+              <h3 className="font-bold text-slate-900">Stay Updated on WhatsApp</h3>
+            </div>
+            <p className="text-xs text-slate-500 mb-4 leading-relaxed font-medium">Get real-time updates about your applications, interviews & job alerts.</p>
+            
+            <ul className="space-y-2 mb-4 text-xs font-medium text-slate-600">
+              <li className="flex items-center gap-2"><HiCheckCircle className="text-emerald-500 w-3.5 h-3.5" /> Application status updates</li>
+              <li className="flex items-center gap-2"><HiCheckCircle className="text-emerald-500 w-3.5 h-3.5" /> Interview reminders</li>
+              <li className="flex items-center gap-2"><HiCheckCircle className="text-emerald-500 w-3.5 h-3.5" /> New job matches</li>
+            </ul>
+            
+            <button 
+              onClick={() => setWhatsappEnabled(!whatsappEnabled)}
+              className={`w-full text-xs font-bold rounded-xl py-2.5 flex items-center justify-center gap-2 transition shadow-sm border ${
+                whatsappEnabled 
+                  ? 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100' 
+                  : 'bg-white border-emerald-200 text-emerald-700 hover:bg-emerald-50'
+              }`}
+            >
+              {whatsappEnabled ? (
+                <>Updates Enabled <HiCheckCircle className="w-4 h-4 text-emerald-500" /></>
+              ) : (
+                <>Enable WhatsApp Updates <FaWhatsapp className="w-4 h-4 text-emerald-500" /></>
+              )}
+            </button>
+          </div>
+
+          {/* Need Help? */}
+          <div className="bg-[#1e3a8a] rounded-2xl border border-blue-900 p-5 shadow-sm relative overflow-hidden flex items-center gap-4 text-white">
+             <div className="flex-1 relative z-10">
+               <h3 className="font-bold text-sm mb-1">Need Help?</h3>
+               <p className="text-[11px] font-medium text-blue-100 mb-3 leading-relaxed">Chat with us on WhatsApp.<br/>We're here to help you 9 AM - 9 PM</p>
+               <button className="text-[11px] font-bold text-blue-900 bg-white rounded-full px-4 py-2 flex items-center gap-1.5 hover:bg-blue-50 shadow-sm transition w-fit">
+                 Chat Now on WhatsApp <FaWhatsapp className="w-3.5 h-3.5 text-[#25D366]" />
+               </button>
+             </div>
+             <div className="w-[80px] shrink-0 flex items-end justify-end pt-2 relative z-10">
+                <div className="w-16 h-16 rounded-full bg-blue-100/20 flex items-center justify-center">
+                  <span className="text-3xl">👩‍💼</span>
+                </div>
+             </div>
+             {/* Decorative circles */}
+             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4"></div>
+          </div>
         </div>
 
       </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail, HiLockClosed, HiPlusCircle, HiCreditCard, HiUserAdd, HiSparkles, HiClipboardList
+  HiTrendingUp, HiUsers, HiPhone, HiCog, HiChevronLeft, HiChevronRight, HiLogout, HiMenu, HiX, HiClock, HiBriefcase, HiMail, HiLockClosed, HiPlusCircle, HiCreditCard, HiUserAdd, HiSparkles, HiClipboardList, HiOutlineBookmark
 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../common/NotificationBell';
@@ -48,6 +48,7 @@ const navItems = [
   },
   { label: 'Explore Opportunities', fallback: 'Explore Opportunities', path: '/provider/job-for-me',icon: HiBriefcase },
   { label: 'Applied Jobs', fallback: 'Applied Jobs', path: '/provider/applied-jobs', icon: HiClipboardList },
+  { label: 'Saved Jobs', fallback: 'Saved Jobs', path: '/provider/saved-jobs', icon: HiOutlineBookmark },
   { label: 'My Plan', fallback: 'My Plan', path: '/provider/my-plan',          icon: HiPhone },
   { label: 'Refer & Earn', fallback: 'Refer & Earn', path: '/provider/referrals', icon: HiPlusCircle },
   { label: 'Add Member', fallback: 'Add Member', path: '/provider/add-member', icon: HiUserAdd },

@@ -235,8 +235,8 @@ export const providerAPI = {
   getSkillGapReport: () => API.post("/candidate/skill-gap-report"),
   getBenchmark: (id) => API.get(`/provider/benchmark/${id}`),
   getRecommendations: () => API.get("/candidate-matching/recommendations"),
-  getSavedJobs: () => API.get("/candidate-matching/saved"),
-  toggleSaveJob: (data) => API.post("/candidate-matching/save", data),
+  getSavedJobs: () => API.get("/provider/saved-jobs"),
+  toggleSaveJob: (jobId, isExternal) => API.post(`/provider/jobs/${jobId}/save`, { isExternal }),
   trackApplyClick: (jobId) =>
     API.post(`/candidate-matching/${jobId}/apply-click`),
   getTopTalent: (params) => API.get("/provider/top-talent", { params }),
