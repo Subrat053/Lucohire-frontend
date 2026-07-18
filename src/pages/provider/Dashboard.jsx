@@ -214,6 +214,7 @@ const ProviderDashboard = () => {
   const activeJobsCount = topJobsCount || 0;
   const freelanceCount = profile?.freelancerAnalytics?.freelanceOpportunities || 0;
   const resumeScore = stats.resumeScore || 0;
+  const recentActivities = dashboard?.recentActivities || [];
 
   if (loading) return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
@@ -552,6 +553,8 @@ const ProviderDashboard = () => {
             
             <button className="w-full bg-[#0f766e] hover:bg-teal-800 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
               <Lock className="w-4 h-4" />{t("Unlock to View")}</button>
+          </div>
+          
           {/* Recent Activities Widget */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
