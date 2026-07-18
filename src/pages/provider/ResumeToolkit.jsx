@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useTranslation from '../../hooks/useTranslation';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
@@ -9,7 +9,7 @@ import {
   Star, PenTool, Check, Eye
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
-import { getResumeToolkit } from '../../services/providerAIService';
+import { getResumeToolkit, uploadResume } from '../../services/providerAIService';
 import { getCurrentSubscription } from '../../services/providerPlanService';
 import { providerAPI } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -26,6 +26,8 @@ export default function ResumeToolkit() {
   const [whatsappEnabled, setWhatsappEnabled] = useState(false);
   const [missingData, setMissingData] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Re-fetch whenever profile is saved (same trigger as GrowWithAI)
   const fileHash = location.state?.fileHash || localStorage.getItem('lastResumeHash');
@@ -110,16 +112,50 @@ export default function ResumeToolkit() {
   };
 
   const handleDownloadResume = () => {
-    const url = profile?.resumeApproval?.pendingUrl || profile?.resumeUrl;
+    let url = profile?.resumeApproval?.pendingUrl || profile?.resumeUrl;
     if (!url) { toast.error(t('No resume uploaded yet')); return; }
+    
+    // If it's a legacy Cloudinary raw URL missing the .pdf extension, force download as PDF
+    if (url.includes('res.cloudinary.com') && url.includes('/raw/upload/') && !url.includes('fl_attachment')) {
+      const fileName = resumeFileName || 'Resume.pdf';
+      const safeName = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
+      url = url.replace('/raw/upload/', `/raw/upload/fl_attachment:${safeName}/`);
+    }
+    
     window.open(url, '_blank');
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append('resume', file);
+      
+      const res = await uploadResume(formData);
+      if (res.data?.success) {
+        toast.success(t('Resume parsed & profile updated successfully!'));
+        await fetchAll(true);
+      } else {
+        toast.error(res.data?.message || t('Failed to parse resume'));
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || t('Error uploading resume'));
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
-  if (loading) {
+
+  if (loading || uploading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <div className="animate-spin w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full" />
+        {uploading && <p className="text-teal-700 font-bold text-sm animate-pulse">{t('Analyzing your resume and updating profile...')}</p>}
       </div>
     );
   }
@@ -162,6 +198,13 @@ export default function ResumeToolkit() {
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 pb-12">
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        className="hidden" 
+        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+        onChange={handleFileUpload} 
+      />
 
       {/* ── Header ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -453,7 +496,7 @@ export default function ResumeToolkit() {
                 </button>
               )}
               <button
-                onClick={() => navigate('/provider/profile?tab=Resume')}
+                onClick={() => fileInputRef.current?.click()}
                 className="px-3 py-2 border border-teal-200 rounded-xl text-xs font-bold text-teal-700 hover:bg-teal-50 flex items-center gap-1.5 shadow-sm transition"
               >
                 <Upload className="w-3.5 h-3.5" /> {t('Upload New')}
