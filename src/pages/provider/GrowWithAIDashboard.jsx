@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { getCareerGPS, getHiringBarriers, getSkillGap, getAtsOptimizer, getAiUsage, improveCareerGPS, improveHiringBarriers, improveSkillGap } from '../../services/providerAIService';
+import AiCareerReportModal from '../../components/provider/AiCareerReportModal';
+import AICoachModal from '../../components/provider/AICoachModal';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
@@ -34,6 +36,7 @@ export default function GrowWithAIDashboard() {
 
   const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
   const [usageLoading, setUsageLoading] = useState(true);
+  const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
 
   const { state } = location;
   const fileHash = state?.fileHash || localStorage.getItem('lastResumeHash');
@@ -64,7 +67,7 @@ export default function GrowWithAIDashboard() {
       setGpsLoading(true);
       setErrorMessage(null);
       
-      const { data } = await getCareerGPS({ fileHash: parsedData ? fileHash : undefined, parsedData });
+      const { data } = await getCareerGPS({ fileHash, parsedData });
       if (data.success) {
         setGpsData(data.data);
         setGpsLocked(false);
@@ -86,7 +89,7 @@ export default function GrowWithAIDashboard() {
     try {
       setBarriersLoading(true);
       
-      const { data } = await getHiringBarriers({ fileHash: parsedData ? fileHash : undefined, parsedData });
+      const { data } = await getHiringBarriers({ fileHash, parsedData });
       if (data.success) {
         setBarriersData(data.data);
         setBarriersLocked(false);
@@ -161,7 +164,7 @@ export default function GrowWithAIDashboard() {
                   if (activeTab === 'gps') {
                     try {
                       setGpsLoading(true);
-                      const { data } = await improveCareerGPS({ fileHash: parsedData ? fileHash : undefined, parsedData, improve: true });
+                      const { data } = await improveCareerGPS({ fileHash, parsedData, improve: true });
                       if (data.success) {
                         setGpsData(data.data);
                         toast.success("Career GPS Insights updated!");
@@ -175,7 +178,7 @@ export default function GrowWithAIDashboard() {
                   } else if (activeTab === 'barriers') {
                     try {
                       setBarriersLoading(true);
-                      const { data } = await improveHiringBarriers({ fileHash: parsedData ? fileHash : undefined, parsedData, improve: true });
+                      const { data } = await improveHiringBarriers({ fileHash, parsedData, improve: true });
                       if (data.success) {
                         setBarriersData(data.data);
                         toast.success("Hiring Barriers updated!");
@@ -284,7 +287,11 @@ export default function GrowWithAIDashboard() {
               <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
                 <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Improve these skills to get more interviews")}</li>
             </ul>
-            <button className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-600 hover:bg-gray-50 transition flex justify-center items-center gap-1.5">{t("View Full AI Analysis")}<ArrowRight className="w-3.5 h-3.5" />
+            <button 
+              onClick={() => setIsAiReportModalOpen(true)}
+              className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-600 hover:bg-gray-50 transition flex justify-center items-center gap-1.5"
+            >
+              {t("View Full AI Analysis")}<ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -350,8 +357,14 @@ export default function GrowWithAIDashboard() {
             </button>
           </div>
         </div>
-
       </div>
+      <AiCareerReportModal 
+        isOpen={isAiReportModalOpen} 
+        onClose={() => setIsAiReportModalOpen(false)} 
+        fileHash={fileHash} 
+        parsedData={parsedData} 
+      />
+      <AICoachModal role="provider" />
     </div>
   );
 }
@@ -408,7 +421,7 @@ function CareerGPSPanel({ loading, data, isLocked }) {
             <h4 className="text-[13px] font-bold text-gray-900 mb-3 flex items-center gap-1.5">
               <AlertCircle className="w-4 h-4 text-orange-500" />{t("Missing Skills to Acquire")}</h4>
             <div className="flex flex-wrap gap-1.5">
-              {(data.missing_skills || ['AWS', 'GraphQL']).map((skill, i) => (
+              {(data.missing_skills && data.missing_skills.length > 0 ? data.missing_skills : ['TypeScript', 'System Design']).map((skill, i) => (
                 <span key={i} className="px-2.5 py-1.5 bg-orange-50 border border-orange-100 text-orange-700 rounded-lg text-[11px] font-bold">
                   {skill}
                 </span>
@@ -594,7 +607,7 @@ function SkillGapPanel({ fileHash, parsedData }) {
     if (!jd.trim()) return;
     try {
       setLoading(true);
-      const res = await getSkillGap({ fileHash: parsedData ? fileHash : undefined, parsedData, jobDescription: jd });
+      const res = await getSkillGap({ fileHash, parsedData, jobDescription: jd });
       if (res.data.success) {
         setData(res.data.data);
       }
@@ -717,7 +730,7 @@ function AtsOptimizerPanel({ fileHash, parsedData }) {
     if (!jd.trim()) return;
     try {
       setLoading(true);
-      const res = await getAtsOptimizer({ fileHash: parsedData ? fileHash : undefined, parsedData, jobDescription: jd });
+      const res = await getAtsOptimizer({ fileHash, parsedData, jobDescription: jd });
       if (res.success || res.data) {
         setData(res.data.data || res.data);
       }

@@ -247,6 +247,7 @@ const ProviderLayout = ({ children }) => {
         })}
       </nav>
 
+
       {/* Logout */}
       <div className="shrink-0 px-2 pb-4 border-t border-gray-100 pt-3">
         <button

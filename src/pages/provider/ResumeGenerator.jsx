@@ -4,7 +4,7 @@ import { HiOutlineDownload, HiOutlineLightningBolt } from "react-icons/hi";
 import { FiCheck } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { RefreshCw } from "lucide-react";
-// import { providerAPI } from '../../../services/api';
+import AtsOptimizerPanel from "../../components/provider/AtsOptimizerPanel";
 
 export default function ResumeGenerator({ profileData }) {
   const {
@@ -1032,82 +1032,89 @@ export default function ResumeGenerator({ profileData }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 min-h-[85vh]">
-      <div className="flex flex-col lg:flex-row gap-8 items-start h-full">
-        {/* Left Sidebar: Controls */}
-        <div className="w-full lg:w-72 shrink-0 space-y-8 sticky top-24">
-          <div>
-            <h3 className="font-extrabold text-slate-900 text-xl mb-2 tracking-tight">{t("Resume Builder")}</h3>
-            <p className="text-sm text-slate-500 font-medium">{t(
-              "Select a template and let AI optimize your phrasing for maximum\n              impact."
-            )}</p>
-          </div>
+    <div className="space-y-8">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 min-h-[85vh]">
+        <div className="flex flex-col lg:flex-row gap-8 items-start h-full">
+          {/* Left Sidebar: Controls */}
+          <div className="w-full lg:w-72 shrink-0 space-y-8 sticky top-24">
+            <div>
+              <h3 className="font-extrabold text-slate-900 text-xl mb-2 tracking-tight">{t("Resume Builder")}</h3>
+              <p className="text-sm text-slate-500 font-medium">{t(
+                "Select a template and let AI optimize your phrasing for maximum\n              impact."
+              )}</p>
+            </div>
 
-          <div className="space-y-3">
-            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t("Select Template")}</label>
-            <div className="flex flex-col gap-2">
-              {templates.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setActiveTemplate(t.id)}
-                  className={`text-left px-5 py-3.5 rounded-xl border-2 text-sm font-bold transition-all flex items-center justify-between group ${
-                    activeTemplate === t.id
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-800"
-                      : "border-slate-100 text-slate-600 hover:border-emerald-200 hover:bg-slate-50"
-                  }`}
-                >
-                  {t.name}
-                  <FiCheck
-                    className={`w-4 h-4 transition-transform ${activeTemplate === t.id ? "text-emerald-500 scale-100" : "text-transparent scale-50 group-hover:scale-100 group-hover:text-emerald-200"}`}
-                  />
-                </button>
-              ))}
+            <div className="space-y-3">
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t("Select Template")}</label>
+              <div className="flex flex-col gap-2">
+                {templates.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setActiveTemplate(t.id)}
+                    className={`text-left px-5 py-3.5 rounded-xl border-2 text-sm font-bold transition-all flex items-center justify-between group ${
+                      activeTemplate === t.id
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-800"
+                        : "border-slate-100 text-slate-600 hover:border-emerald-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    {t.name}
+                    <FiCheck
+                      className={`w-4 h-4 transition-transform ${activeTemplate === t.id ? "text-emerald-500 scale-100" : "text-transparent scale-50 group-hover:scale-100 group-hover:text-emerald-200"}`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-slate-100 space-y-3">
+              <button
+                type="button"
+                onClick={handleOptimize}
+                disabled={isOptimizing}
+                className={`w-full py-3.5 px-4 rounded-xl font-bold flex items-center justify-center gap-2.5 transition-all shadow-sm ${
+                  isOptimizing
+                    ? "bg-amber-50 text-amber-500 cursor-not-allowed border-2 border-amber-100"
+                    : "bg-gradient-to-br from-amber-400 to-orange-500 text-white hover:shadow-md hover:shadow-orange-500/20 active:scale-[0.98]"
+                }`}
+              >
+                {isOptimizing ? (
+                  <RefreshCw className="w-5 h-5 animate-spin" />
+                ) : (
+                  <HiOutlineLightningBolt className="w-5 h-5" />
+                )}
+                {isOptimizing ? "Optimizing..." : "AI Optimize Resume"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownload}
+                className="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center gap-2.5 transition-all shadow-sm active:scale-[0.98]"
+              >
+                <HiOutlineDownload className="w-5 h-5" />{t("Download PDF")}</button>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-slate-100 space-y-3">
-            <button
-              type="button"
-              onClick={handleOptimize}
-              disabled={isOptimizing}
-              className={`w-full py-3.5 px-4 rounded-xl font-bold flex items-center justify-center gap-2.5 transition-all shadow-sm ${
-                isOptimizing
-                  ? "bg-amber-50 text-amber-500 cursor-not-allowed border-2 border-amber-100"
-                  : "bg-gradient-to-br from-amber-400 to-orange-500 text-white hover:shadow-md hover:shadow-orange-500/20 active:scale-[0.98]"
-              }`}
-            >
-              {isOptimizing ? (
-                <RefreshCw className="w-5 h-5 animate-spin" />
-              ) : (
-                <HiOutlineLightningBolt className="w-5 h-5" />
-              )}
-              {isOptimizing ? "Optimizing..." : "AI Optimize Resume"}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleDownload}
-              className="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center gap-2.5 transition-all shadow-sm active:scale-[0.98]"
-            >
-              <HiOutlineDownload className="w-5 h-5" />{t("Download PDF")}</button>
-          </div>
-        </div>
-
-        {/* Right Area: Preview Container */}
-        {/* Fixed Horizontal Clipping by forcing a minimum width inside a scrollable container */}
-        <div className="w-full lg:flex-1 bg-slate-100/50 rounded-2xl p-6 lg:p-8 flex overflow-x-auto overflow-y-auto custom-scrollbar border border-slate-200 shadow-inner max-h-[85vh]">
-          {/* This wrapper ensures the content never shrinks below A4 width, enabling safe horizontal scroll on smaller screens */}
-          <div className="mx-auto flex justify-center min-w-[794px]">
-            <div
-              id="resume-preview-content"
-              className="bg-white shadow-2xl rounded-sm overflow-hidden text-left ring-1 ring-slate-900/5"
-              style={{ width: "794px", minHeight: "1123px" }}
-            >
-              {renderTemplate()}
+          {/* Right Area: Preview Container */}
+          {/* Fixed Horizontal Clipping by forcing a minimum width inside a scrollable container */}
+          <div className="w-full lg:flex-1 bg-slate-100/50 rounded-2xl p-6 lg:p-8 flex overflow-x-auto overflow-y-auto custom-scrollbar border border-slate-200 shadow-inner max-h-[85vh]">
+            {/* This wrapper ensures the content never shrinks below A4 width, enabling safe horizontal scroll on smaller screens */}
+            <div className="mx-auto flex justify-center min-w-[794px]">
+              <div
+                id="resume-preview-content"
+                className="bg-white shadow-2xl rounded-sm overflow-hidden text-left ring-1 ring-slate-900/5"
+                style={{ width: "794px", minHeight: "1123px" }}
+              >
+                {renderTemplate()}
+              </div>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ATS Optimizer Section */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+        <AtsOptimizerPanel fileHash={profileData?.fileHash || undefined} parsedData={profileData} />
       </div>
     </div>
   );
