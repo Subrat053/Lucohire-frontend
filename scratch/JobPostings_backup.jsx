@@ -1109,13 +1109,6 @@ export default function JobPostings() {
                                 <p className="text-sm text-gray-500 truncate">
                                     {companyName}
                                 </p>
-
-                                <button
-                                    onClick={() => navigate("/recruiter/company-profile")}
-                                    className="mt-2 text-sm font-semibold text-[#0066FF]"
-                                >
-                                    View Company Profile →
-                                </button>
                             </div>
                         </div>
                     </div>

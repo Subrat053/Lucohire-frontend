@@ -2461,13 +2461,12 @@ const AuthPage = () => {
 
       {/* Role Selection Modal */}
       {roleSelectionData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-teal-500 to-emerald-500" />
-            <h3 className="text-2xl font-black text-gray-900 mb-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-md">
+          <div className="bg-white/10 backdrop-blur-3xl border border-white/20 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+            <h3 className="text-2xl font-black text-white mb-2">
               {t("auth.welcomeBack") || "Welcome Back!"}
             </h3>
-            <p className="text-gray-500 text-sm mb-8">
+            <p className="text-white text-sm mb-8">
               You have both a candidate and recruiter profile. Which one would
               you like to access?
             </p>
@@ -2476,7 +2475,7 @@ const AuthPage = () => {
               <button
                 onClick={() => handleRoleSelection("provider")}
                 disabled={loading}
-                className="w-full py-4 px-6 rounded-2xl border-2 border-gray-100 hover:border-teal-500 hover:bg-teal-50 transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 px-6 rounded-2xl border border-white/60 bg-white/40 hover:border-teal-400 hover:bg-white/70 shadow-sm transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <svg
@@ -2506,7 +2505,7 @@ const AuthPage = () => {
               <button
                 onClick={() => handleRoleSelection("recruiter")}
                 disabled={loading}
-                className="w-full py-4 px-6 rounded-2xl border-2 border-gray-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 px-6 rounded-2xl border border-white/60 bg-white/40 hover:border-indigo-400 hover:bg-white/70 shadow-sm transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <svg

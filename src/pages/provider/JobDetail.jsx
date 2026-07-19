@@ -23,6 +23,7 @@ import {
   HiChevronRight,
   HiChevronDown,
   HiOutlineBookmark,
+  HiOutlineClock,
 } from "react-icons/hi";
 import { FaWhatsapp, FaLinkedin, FaTwitter } from "react-icons/fa";
 import { providerAPI, subscriptionAPI } from "../../services/api";
@@ -31,56 +32,91 @@ import toast from "react-hot-toast";
 
 const BUDGET_LABELS = { fixed: "Fixed", hourly: "/hr", monthly: "/mo", negotiable: "Negotiable" };
 
-/* ── Apply Modal ─────────────────────────────────────────────────────────── */
-const ApplyModal = ({ job, onClose, onSuccess }) => {
-  const [coverLetter, setCoverLetter] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await providerAPI.applyToJob(job._id, { coverLetter });
-      toast.success("Application submitted successfully!");
-      onSuccess();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to apply");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+/* ── Full Report Modal ───────────────────────────────────────────────────── */
+const FullReportModal = ({ job, aiInsights, onClose }) => {
+  if (!job || !aiInsights) return null;
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg border border-gray-100 overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50">
-          <h3 className="font-bold text-gray-900">Apply for: {job.title}</h3>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-xl transition text-gray-500">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
+          <div>
+            <h3 className="font-extrabold text-gray-900 text-lg flex items-center gap-2">
+              <span className="text-xl">📊</span> Full AI Insights Report
+            </h3>
+            <p className="text-xs text-gray-500 font-medium">For {job.title}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition text-gray-500"
+          >
             <HiX className="w-5 h-5" />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <div className="p-5 max-h-[70vh] overflow-y-auto space-y-6">
+          
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1.5">
-              Introduce Yourself / Cover Letter <span className="text-gray-400 font-normal">(optional)</span>
-            </label>
-            <textarea
-              rows={5}
-              value={coverLetter}
-              onChange={(e) => setCoverLetter(e.target.value)}
-              maxLength={1000}
-              placeholder="Describe your qualifications and why you're the best fit..."
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-300 resize-none"
-            />
-            <p className="text-right text-[10px] text-gray-400">{coverLetter.length}/1000</p>
+            <h4 className="text-sm font-bold text-gray-900 mb-2 flex items-center gap-1.5 text-purple-700">
+              <HiSparkles className="w-4 h-4" /> Why this is a great match
+            </h4>
+            <ul className="space-y-2">
+              {(aiInsights.whyMatch || ["Strong skill alignment"]).map((pt, i) => (
+                <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
+                  <span className="text-emerald-500 mt-0.5">•</span> {pt}
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="flex gap-3">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition">Cancel</button>
-            <button type="submit" disabled={loading} className="flex-1 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-xl transition">
-              {loading ? "Submitting…" : "Submit Application"}
-            </button>
+
+          <div>
+            <h4 className="text-sm font-bold text-gray-900 mb-2 flex items-center gap-1.5 text-blue-700">
+              <HiCheckCircle className="w-4 h-4" /> Matched Skills
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {(aiInsights.matchedSkills || []).map((skill, i) => (
+                <span key={i} className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold">
+                  {skill}
+                </span>
+              ))}
+              {(!aiInsights.matchedSkills || aiInsights.matchedSkills.length === 0) && (
+                <span className="text-sm text-gray-500 italic">No exact skill matches found</span>
+              )}
+            </div>
           </div>
-        </form>
+
+          <div>
+            <h4 className="text-sm font-bold text-gray-900 mb-2 flex items-center gap-1.5 text-orange-700">
+              <HiExclamationCircle className="w-4 h-4" /> Areas for Improvement
+            </h4>
+            <p className="text-sm text-gray-600 mb-2">
+              {aiInsights.improve || "Improve your missing skills to increase your match score."}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {(aiInsights.missingSkills || []).map((skill, i) => (
+                <span key={i} className="px-2.5 py-1 bg-orange-50 text-orange-700 rounded-lg text-xs font-semibold">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold text-gray-900 mb-2 flex items-center gap-1.5 text-emerald-700">
+              <HiTrendingUp className="w-4 h-4" /> Market Insights
+            </h4>
+            <p className="text-sm text-gray-600">
+              {aiInsights.salaryInsight || "Salary data is currently limited for this exact role."}
+            </p>
+          </div>
+
+        </div>
+        <div className="p-4 border-t border-gray-100 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-sm font-bold transition"
+          >
+            Close Report
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -97,7 +133,8 @@ export default function JobDetail() {
   const [aiInsights, setAiInsights] = useState(null);
   const [similarJobs, setSimilarJobs] = useState([]);
   const [saved, setSaved] = useState(false);
-  const [showApply, setShowApply] = useState(false);
+
+  const [showFullReport, setShowFullReport] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [activeTab, setActiveTab] = useState("Overview");
 
@@ -250,64 +287,57 @@ export default function JobDetail() {
                 <h3 className="font-bold text-gray-900 text-[15px] mb-3">Why this job is a great match for you</h3>
 
                 {/* Checklist bullets */}
-                <ul className="space-y-2.5 mb-4">
-                  {(hasActivePlan
-                    ? (aiInsights?.whyMatch || [])
-                    : [
-                        "Your Figma skills match 90% of job requirements",
-                        "Strong match on UX Research & User Testing",
-                        "Your portfolio aligns with company needs",
-                      ]
-                  ).slice(0,3).map((point, i) => (
-                    <li key={i} className={`flex items-start gap-2.5 text-[13px] text-gray-700 font-medium ${!hasActivePlan && i > 0 ? "blur-md opacity-50 select-none" : ""}`}>
-                      <HiCheckCircle className="w-[18px] h-[18px] text-emerald-500 shrink-0" />
-                      {point}
+                {hasActivePlan ? (
+                  <ul className="space-y-2.5 mb-4">
+                    {(aiInsights?.whyMatch || []).slice(0,3).map((point, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-[13px] text-gray-700 font-medium">
+                        <HiCheckCircle className="w-[18px] h-[18px] text-emerald-500 shrink-0" />
+                        {point}
+                      </li>
+                    ))}
+                    <li className="flex items-start gap-2.5 text-[13px] font-medium text-amber-700">
+                      <HiArrowRight className="w-[18px] h-[18px] text-amber-500 -rotate-45 shrink-0" />
+                      <span>{aiInsights?.improve || "Improve skills to increase match score"}</span>
                     </li>
-                  ))}
-
-                  {/* Improvement tip */}
-                  <li className={`flex items-start gap-2.5 text-[13px] font-medium text-amber-700 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
-                    <HiArrowRight className="w-[18px] h-[18px] text-amber-500 -rotate-45 shrink-0" />
-                    <span>
-                      {hasActivePlan
-                        ? (aiInsights?.improve || "Improve Design Systems skills to increase match to 97%")
-                        : "Improve Design Systems skills to increase match to 97%"}
-                    </span>
-                  </li>
-                </ul>
-
-                {/* <button className="text-[13px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-lg transition flex items-center gap-1.5">
-                  View AI Match Report {!hasActivePlan && <HiLockClosed className="w-3 h-3" />}
-                </button> */}
+                  </ul>
+                ) : (
+                  <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center mt-2">
+                    <HiLockClosed className="w-5 h-5 text-gray-400 mx-auto mb-1.5" />
+                    <p className="text-[13px] font-bold text-gray-700 mb-1">Unlock Premium AI Features</p>
+                    <p className="text-[11px] text-gray-500 mb-3">Purchase a plan to see exactly why you match this job and how to improve your chances.</p>
+                    <button onClick={() => navigate('/provider/plans')} className="text-[12px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-lg transition inline-flex items-center gap-1.5">
+                      View Plans
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* Right Metrics */}
-              <div className="w-full xl:w-[200px] shrink-0 xl:border-l border-gray-100 xl:pl-8 space-y-4 pt-4 xl:pt-0 border-t xl:border-t-0">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
-                    <HiBriefcase className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <div>
-                    <p className="font-extrabold text-lg text-gray-900 leading-none">23</p>
-                    <p className="text-[11px] font-medium text-gray-500 mt-1 leading-tight">Similar jobs found</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
-                    <HiUsers className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <div>
-                    <p className="font-extrabold text-lg text-gray-900 leading-none">18</p>
-                    <p className="text-[11px] font-medium text-gray-500 mt-1 leading-tight">Recruiters viewed candidates like you</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
+              {/* Right Action Block */}
+              <div className="w-full xl:w-[200px] shrink-0 xl:border-l border-gray-100 xl:pl-8 space-y-4 pt-4 xl:pt-0 border-t xl:border-t-0 flex flex-col justify-center">
+                <button 
+                  onClick={() => {
+                    if (job.isExternal || job.source !== 'internal') {
+                      const extUrl = job.applyUrl || job.apply_url || job.externalUrl || job.url || '#';
+                      if (extUrl && extUrl !== '#') {
+                        window.open(extUrl, '_blank', 'noopener,noreferrer');
+                      } else {
+                        alert("Application link is not available for this job.");
+                      }
+                    } else {
+                      navigate(`/provider/job/${job._id}/apply`);
+                    }
+                  }}
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-bold rounded-xl shadow-sm transition"
+                >
+                  Apply Now
+                </button>
+                <div className="flex items-start gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
                     <HiClock className="w-4 h-4 text-gray-400" />
                   </div>
                   <div>
-                    <p className="font-bold text-[13px] text-gray-900 leading-tight">Updated</p>
-                    <p className="text-[11px] font-medium text-gray-500 mt-0.5">Today, 9:30 AM</p>
+                    <p className="font-bold text-[13px] text-gray-900 leading-tight">Posted</p>
+                    <p className="text-[11px] font-medium text-gray-500 mt-0.5">{postedAgo}</p>
                   </div>
                 </div>
               </div>
@@ -340,8 +370,6 @@ export default function JobDetail() {
                       <span className="text-yellow-400">★</span>
                       <span className="font-bold text-gray-700">4.6</span>
                       <span>(12.4K reviews)</span>
-                      <span className="mx-1 text-gray-300">|</span>
-                      <button className="text-blue-600 font-bold hover:underline flex items-center gap-1">View Company <HiArrowRight className="w-3 h-3" /></button>
                     </div>
                   </div>
                 </div>
@@ -349,7 +377,6 @@ export default function JobDetail() {
                   <button onClick={() => handleShare("copy")} className="flex items-center gap-1.5 text-[13px] font-bold text-gray-600 hover:bg-gray-50 px-3 py-1.5 rounded-xl transition">
                     <HiShare className="w-4 h-4" /> Share
                   </button>
-                  <button className="p-1.5 hover:bg-gray-100 rounded-xl text-gray-400 transition tracking-widest font-bold">•••</button>
                 </div>
               </div>
 
@@ -362,9 +389,7 @@ export default function JobDetail() {
                   <span className="flex items-center gap-1.5"><HiCurrencyRupee className="w-4 h-4 text-gray-400" /> {budgetText}</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-4 mt-2 text-[12px] font-medium text-gray-400">
-                  <span className="flex items-center gap-1.5"><HiOutlineBookmark className="w-4 h-4" /> Posted {postedAgo}</span>
-                  <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                  <span className="flex items-center gap-1.5 text-gray-500 font-bold"><HiUsers className="w-4 h-4" /> 1,248 applicants</span>
+                  <span className="flex items-center gap-1.5"><HiOutlineClock className="w-4 h-4" /> Posted {postedAgo}</span>
                 </div>
 
                 {/* Skills */}
@@ -384,7 +409,8 @@ export default function JobDetail() {
                     onClick={() => handleSave()}
                     className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold border transition ${saved ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"}`}
                   >
-                    <HiBookmark className="w-[18px] h-[18px]" /> {saved ? "Saved" : "Save"}
+                    {saved ? <HiBookmark className="w-[18px] h-[18px]" /> : <HiOutlineBookmark className="w-[18px] h-[18px]" />}
+                    {saved ? "Saved" : "Save"}
                   </button>
                   <div className="flex flex-col items-end gap-1">
                     <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-500"><HiClock className="w-3.5 h-3.5 text-emerald-500" /> Apply takes less than 2 minutes</span>
@@ -396,7 +422,7 @@ export default function JobDetail() {
 
             {/* Tabs */}
             <div className="border-t border-gray-100 flex items-center gap-8 px-6 pt-1">
-              {['Overview', 'About Company', 'Reviews', 'Team', 'FAQs'].map(tab => (
+              {['Overview', 'About Company'].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -419,88 +445,75 @@ export default function JobDetail() {
                   </div>
                   Overview
                 </h2>
-                {job.description ? (
+                {job.description && (
                   <div
                     className="text-[14px] text-gray-600 leading-relaxed prose prose-sm max-w-none px-1"
-                    dangerouslySetInnerHTML={{ __html: job.description }}
+                    dangerouslySetInnerHTML={{ __html: job.description.replace(/<img[^>]*>/g, '') }}
                   />
-                ) : (
-                  <p className="text-[14px] text-gray-600 leading-relaxed px-1">
-                    We are looking for a passionate professional who can deliver exceptional results. You will work with cross-functional teams to design, build, and ship impactful solutions.
-                  </p>
                 )}
-                <button className="text-emerald-600 font-bold text-[13px] flex items-center gap-1 mt-2 px-1 hover:underline">Show more <HiChevronDown className="w-4 h-4" /></button>
-              </section>
-
-              {/* Key Responsibilities */}
-              <section className="border-t border-gray-100 pt-5">
-                <button className="w-full flex items-center justify-between font-extrabold text-[15px] text-gray-900">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                      <HiCheckCircle className="w-4 h-4 text-blue-600" />
-                    </div>
-                    Key Responsibilities
-                  </div>
-                  <HiChevronRight className="w-5 h-5 text-gray-400" />
-                </button>
-                <p className="text-[13px] text-gray-600 mt-2 px-10">Design interfaces, conduct research, create prototypes, collaborate with teams and iterate.</p>
               </section>
 
               {/* Requirements */}
-              <section className="border-t border-gray-100 pt-5">
-                <button className="w-full flex items-center justify-between font-extrabold text-[15px] text-gray-900">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-                      <HiBriefcase className="w-4 h-4 text-purple-600" />
+              {job.requirements && job.requirements.length > 0 && (
+                <section className="border-t border-gray-100 pt-5">
+                  <button className="w-full flex items-center justify-between font-extrabold text-[15px] text-gray-900">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                        <HiBriefcase className="w-4 h-4 text-purple-600" />
+                      </div>
+                      Requirements
                     </div>
-                    Requirements
-                  </div>
-                  <HiChevronRight className="w-5 h-5 text-gray-400" />
-                </button>
-                {job.requirements?.length > 0 ? (
-                  <p className="text-[13px] text-gray-600 mt-2 px-10">{job.requirements.join(", ")} & more.</p>
-                ) : (
-                  <p className="text-[13px] text-gray-600 mt-2 px-10">2-5 years experience in related field, strong portfolio & more.</p>
-                )}
-              </section>
+                    <HiChevronRight className="w-5 h-5 text-gray-400" />
+                  </button>
+                  <p className="text-[13px] text-gray-600 mt-2 px-10">{job.requirements.join(", ")}</p>
+                </section>
+              )}
 
               {/* Benefits & Perks */}
-              <section className="border-t border-gray-100 pt-5">
-                <button className="w-full flex items-center justify-between font-extrabold text-[15px] text-gray-900">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                      <HiSparkles className="w-4 h-4 text-emerald-600" />
+              {job.benefits && job.benefits.length > 0 && (
+                <section className="border-t border-gray-100 pt-5">
+                  <button className="w-full flex items-center justify-between font-extrabold text-[15px] text-gray-900">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                        <HiSparkles className="w-4 h-4 text-emerald-600" />
+                      </div>
+                      Benefits & Perks
                     </div>
-                    Benefits & Perks
-                  </div>
-                  <HiChevronRight className="w-5 h-5 text-gray-400" />
-                </button>
-                <p className="text-[13px] text-gray-600 mt-2 px-10">Health insurance, flexible work, learning budget, wellness programs & more.</p>
-              </section>
-
-              {/* About the Team */}
-              <section className="border-t border-gray-100 pt-5">
-                <button className="w-full flex items-center justify-between font-extrabold text-[15px] text-gray-900">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
-                      <HiUsers className="w-4 h-4 text-indigo-600" />
-                    </div>
-                    About the Team
-                  </div>
-                  <HiChevronRight className="w-5 h-5 text-gray-400" />
-                </button>
-                <p className="text-[13px] text-gray-600 mt-2 px-10">Work with world-class designers and engineers building products that impact billions.</p>
-              </section>
+                    <HiChevronRight className="w-5 h-5 text-gray-400" />
+                  </button>
+                  <ul className="text-[13px] text-gray-600 mt-2 px-10 list-disc list-inside">
+                    {job.benefits.map((benefit, i) => (
+                      <li key={i}>{benefit}</li>
+                    ))}
+                  </ul>
+                </section>
+              )}
             </div>
           )}
 
-          {activeTab !== 'Overview' && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                <HiOutlineBookmark className="w-8 h-8 text-gray-400" />
+          {activeTab === 'About Company' && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm flex flex-col items-start">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-2xl border border-gray-100 flex items-center justify-center overflow-hidden bg-gray-50 shadow-sm">
+                  {job.companyLogo ? (
+                    <img src={job.companyLogo} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="font-extrabold text-2xl text-gray-900">{job.companyName?.substring(0,1) || "C"}</span>
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-xl text-gray-900">{job.companyName || job.recruiter?.name || "Company"}</h3>
+                  <p className="text-[13px] font-medium text-gray-500 mt-0.5">{job.city || "Headquarters"}</p>
+                </div>
               </div>
-              <h3 className="font-extrabold text-lg text-gray-900">{activeTab}</h3>
-              <p className="text-gray-500 text-[13px] mt-2 max-w-sm">Detailed information for {activeTab.toLowerCase()} is not available for this job at the moment.</p>
+              {job.companyDescription ? (
+                <div 
+                  className="text-[13px] text-gray-600 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: job.companyDescription.replace(/<img[^>]*>/g, '') }}
+                />
+              ) : (
+                <p className="text-gray-500 text-[14px]">No detailed information is available for this company at the moment.</p>
+              )}
             </div>
           )}
 
@@ -515,23 +528,31 @@ export default function JobDetail() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {similarJobs.length > 0 ? (
                 similarJobs.map((sJob, idx) => (
-                  <div key={idx} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition cursor-pointer" onClick={() => navigate(`/provider/job/${sJob._id}`)}>
+                  <div key={idx} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between group relative overflow-hidden" onClick={() => navigate(`/provider/job/${sJob._id}`)}>
+                     <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-emerald-400 to-teal-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                      <div className="flex items-start gap-3 mb-3">
                        <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
                          {sJob.companyLogo ? <img src={sJob.companyLogo} className="w-full h-full object-cover" /> : <span className="font-bold text-gray-600">{sJob.companyName?.substring(0,1) || "C"}</span>}
                        </div>
-                       <div>
-                         <p className="font-extrabold text-[13px] text-gray-900 line-clamp-1">{sJob.title}</p>
-                         <p className="text-[11px] text-gray-500 font-medium flex items-center gap-1">{sJob.companyName || "Company"} <HiCheckCircle className="w-3 h-3 text-blue-500" /></p>
+                       <div className="flex-1 min-w-0">
+                         <div className="flex items-start justify-between gap-1">
+                           <p className="font-extrabold text-[13px] text-gray-900 line-clamp-1 truncate">{sJob.title}</p>
+                           {sJob.source === 'internal' || !sJob.isExternal ? (
+                             <span className="text-[9px] font-bold bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded shrink-0">Internal</span>
+                           ) : (
+                             <span className="text-[9px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded shrink-0">External</span>
+                           )}
+                         </div>
+                         <p className="text-[11px] text-gray-500 font-medium flex items-center gap-1 mt-0.5 truncate">{sJob.companyName || "Company"} <HiCheckCircle className="w-3 h-3 text-blue-500 shrink-0" /></p>
                        </div>
                      </div>
                      <div className="space-y-1.5 mb-4">
-                        <p className="text-[11px] text-gray-500 flex items-center gap-1.5"><HiLocationMarker className="w-3.5 h-3.5 text-gray-400" /> {sJob.city || "Remote"}</p>
-                        <p className="text-[11px] text-gray-500 flex items-center gap-1.5"><HiCurrencyRupee className="w-3.5 h-3.5 text-gray-400" /> {sJob.budgetMax ? `₹${sJob.budgetMin/100000} - ${sJob.budgetMax/100000} LPA` : "Negotiable"}</p>
+                        <p className="text-[11px] text-gray-500 flex items-center gap-1.5 truncate"><HiLocationMarker className="w-3.5 h-3.5 text-gray-400 shrink-0" /> {sJob.city || "Remote"}</p>
+                        <p className="text-[11px] text-gray-500 flex items-center gap-1.5 truncate"><HiCurrencyRupee className="w-3.5 h-3.5 text-gray-400 shrink-0" /> {sJob.budgetMax ? `₹${sJob.budgetMin/100000} - ${sJob.budgetMax/100000} LPA` : "Negotiable"}</p>
                      </div>
-                     <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                     <div className="flex items-center justify-between pt-3 border-t border-gray-50 mt-auto">
                         <span className="text-[11px] font-bold text-emerald-600">{sJob.matchScore || 80}% Match</span>
-                        <HiOutlineBookmark className="w-4 h-4 text-gray-400" />
+                        <HiArrowRight className="w-4 h-4 text-gray-300 group-hover:text-emerald-500 transition-colors" />
                      </div>
                   </div>
                 ))
@@ -610,7 +631,7 @@ export default function JobDetail() {
               <div className="flex items-center gap-2.5"><HiUsers className="w-[18px] h-[18px] text-gray-400" /> <div><p className="text-[10px] text-gray-400 leading-none">Company Size</p><p className="font-bold text-gray-700">10,001+ employees</p></div></div>
               <div className="flex items-center gap-2.5"><HiLocationMarker className="w-[18px] h-[18px] text-gray-400" /> <div><p className="text-[10px] text-gray-400 leading-none">Headquarters</p><p className="font-bold text-gray-700">{job.city || "India"}</p></div></div>
             </div>
-            <button className="text-[12px] font-bold text-emerald-600 hover:underline flex items-center gap-1">View company profile <HiArrowRight className="w-3 h-3" /></button>
+
           </div>
 
           {/* ── AI Insights for You (Sidebar) ── */}
@@ -711,9 +732,18 @@ export default function JobDetail() {
               </div>
             </div>
             
-            <button className="w-full mt-4 text-[12px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 py-2 rounded-xl transition flex items-center justify-center gap-1.5">
+            {/* <button 
+              onClick={() => {
+                if (hasActivePlan) {
+                  setShowFullReport(true);
+                } else {
+                  navigate('/provider/plans');
+                }
+              }}
+              className="w-full mt-4 text-[12px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 py-2 rounded-xl transition flex items-center justify-center gap-1.5"
+            >
               View Full Report {!hasActivePlan && <HiLockClosed className="w-3.5 h-3.5" />}
-            </button>
+            </button> */}
           </div>
 
 
@@ -746,59 +776,15 @@ export default function JobDetail() {
                 </li>
               ))}
             </ul>
-            <button className="mt-3 text-xs font-bold text-red-500 hover:underline flex items-center gap-1">
-              <HiExclamationCircle className="w-3.5 h-3.5" /> Report this job
-            </button>
           </div>
         </div>
       </div>
-      <div className="mt-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-[#0a2e1a] rounded-[20px] p-4 flex flex-col md:flex-row items-center justify-between shadow-2xl gap-4">
-            <div className="flex items-center gap-4 flex-1">
-               <div className="w-12 h-12 bg-emerald-800 rounded-xl flex items-center justify-center shrink-0 border border-emerald-700">
-                 <HiSparkles className="w-6 h-6 text-emerald-400" />
-               </div>
-               <div>
-                 <p className="font-extrabold text-[15px] text-white">Your AI says this is one of your strongest matches!</p>
-                 <p className="text-[12px] font-medium text-emerald-200 flex items-center gap-1">Apply now before applications close <span className="text-xl leading-none">🚀</span></p>
-               </div>
-            </div>
-            
-            <div className="flex items-center gap-6 md:gap-8 shrink-0">
-               <div className="hidden sm:flex flex-col items-center">
-                 <p className="text-white font-extrabold text-[15px] flex items-center gap-1"><HiUsers className="w-4 h-4 text-emerald-400" /> 1,248</p>
-                 <p className="text-[10px] text-emerald-200">Applicants</p>
-               </div>
-               <div className="hidden sm:flex flex-col items-center border-l border-emerald-800 pl-6">
-                 <p className="text-white font-extrabold text-[15px] flex items-center gap-1"><HiClock className="w-4 h-4 text-emerald-400" /> 2 days ago</p>
-                 <p className="text-[10px] text-emerald-200">Posted</p>
-               </div>
-               
-               <div className="flex flex-col items-center gap-1">
-                 {hasApplied ? (
-                   <button className="bg-emerald-800 text-emerald-300 font-extrabold text-[14px] px-8 py-3 rounded-xl cursor-default flex items-center gap-2 border border-emerald-700">
-                     <HiCheckCircle className="w-5 h-5" /> Applied
-                   </button>
-                 ) : job.isExternal && job.externalUrl ? (
-                   <a href={job.externalUrl} target="_blank" rel="noopener noreferrer" className="bg-white hover:bg-gray-50 text-[#0a2e1a] font-extrabold text-[14px] px-8 py-3 rounded-xl transition shadow-sm flex items-center gap-2">
-                     Apply Externally <HiExternalLink className="w-4 h-4 text-emerald-600" />
-                   </a>
-                 ) : (
-                   <button onClick={() => setShowApply(true)} className="bg-white hover:bg-gray-50 text-[#0a2e1a] font-extrabold text-[14px] px-8 py-3 rounded-xl transition shadow-sm flex items-center gap-2">
-                     <HiSparkles className="w-4 h-4 text-emerald-600" /> Easy Apply Now
-                   </button>
-                 )}
-                 <p className="text-[10px] font-medium text-emerald-300 flex items-center gap-1"><HiClock className="w-3 h-3" /> Takes less than 2 minutes</p>
-               </div>
-            </div>
-          </div>
-        </div>
-      </div>      {showApply && (
-        <ApplyModal
+
+      {showFullReport && (
+        <FullReportModal
           job={job}
-          onClose={() => setShowApply(false)}
-          onSuccess={() => { setShowApply(false); setHasApplied(true); }}
+          aiInsights={aiInsights}
+          onClose={() => setShowFullReport(false)}
         />
       )}
     </div>

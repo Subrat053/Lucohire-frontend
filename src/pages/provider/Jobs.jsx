@@ -25,6 +25,7 @@ import {
   HiOutlineMail,
   HiOutlinePhone,
   HiOutlineBriefcase,
+  HiOutlineClock,
 } from "react-icons/hi";
 import { FaRupeeSign, FaWhatsapp } from "react-icons/fa";
 import toast from "react-hot-toast";
@@ -47,91 +48,6 @@ const STATUS_COLORS = {
   shortlisted: "bg-purple-50 text-purple-700 border-purple-200",
   rejected: "bg-red-50 text-red-700 border-red-200",
   hired: "bg-green-50 text-green-700 border-green-200",
-};
-
-/* ── Apply Modal ─────────────────────────────────────────────────────── */
-const ApplyModal = ({ job, onClose, onSuccess }) => {
-  const {
-    t
-  } = useTranslation();
-
-  const [coverLetter, setCoverLetter] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await providerAPI.applyToJob(job._id, { coverLetter });
-      toast.success("Application submitted successfully!");
-      onSuccess(job._id);
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to apply to this job");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg border border-gray-100 overflow-hidden transform transition-all">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">{t("Apply for:")}{job.title}
-          </h3>
-          <button
-            onClick={onClose}
-            className="p-1.5 hover:bg-gray-200 rounded-xl transition text-gray-500"
-          >
-            <HiX className="w-5.5 h-5.5" />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="space-y-1">
-            <p className="text-xs sm:text-sm text-gray-600">
-              <span className="font-bold text-gray-800">{t("Recruiter:")}</span>{" "}
-              {job.companyName || job.recruiter?.name || "Recruiter Company"}
-            </p>
-            <p className="text-xs sm:text-sm text-gray-600">
-              <span className="font-bold text-gray-800">{t("Skill needed:")}</span>{" "}
-              {job.skill} · {job.city}
-            </p>
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1.5">{t("Introduce Yourself / Cover Letter")}{" "}
-              <span className="text-gray-400 font-normal">{t("(optional)")}</span>
-            </label>
-            <textarea
-              rows={5}
-              value={coverLetter}
-              onChange={(e) => setCoverLetter(e.target.value)}
-              maxLength={1000}
-              placeholder={t(
-                "Describe your qualifications, experience, and why you are the best fit for this role..."
-              )}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-xs sm:text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-300 resize-none outline-none"
-            />
-            <p className="text-right text-[10px] text-gray-400 mt-0.5">
-              {coverLetter.length}/1000
-            </p>
-          </div>
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition"
-            >{t("Cancel")}</button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 transition"
-            >
-              {loading ? "Submitting…" : "Submit Application"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
 };
 
 /* ── Job Details Modal ────────────────────────────────────────────────── */
@@ -308,13 +224,15 @@ const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
           {job.hasApplied ? (
             <div className="flex-1 py-3 bg-green-50 border border-green-200 text-green-700 font-bold rounded-xl text-xs sm:text-sm text-center flex items-center justify-center gap-1.5 shadow-2xs">
               <HiCheckCircle className="w-4 h-4 animate-bounce" />{t("Applied\n              Successfully")}</div>
-          ) : job.isExternal && job.externalUrl ? (
-            <a
-              href={job.externalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+          ) : (job.isExternal || job.source !== 'internal') ? (
+            <button
+              onClick={() => {
+                const extUrl = job.applyUrl || job.apply_url || job.externalUrl || job.url || '#';
+                if (extUrl && extUrl !== '#') window.open(extUrl, '_blank', 'noopener,noreferrer');
+                else alert("Application link is not available for this job.");
+              }}
               className="flex-1 py-3 bg-emerald-600 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-emerald-700 transition block text-center"
-            >{t("Apply Externally")}</a>
+            >{t("Apply Externally")}</button>
           ) : (
             <button
               onClick={() => {
@@ -373,6 +291,7 @@ const JobCard = ({
   onToggleSave
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const budgetText =
     job.budgetType === "negotiable"
@@ -386,9 +305,6 @@ const JobCard = ({
 
   const matchScore = aiInsights?.matchScore || job.matchScore || 0;
   
-  // Extract missing skills string to reuse in insights
-  const missingSkillsStr = aiInsights?.missingSkills?.length > 0 ? aiInsights.missingSkills.join(", ") : "Figma, UI Design, Strategy";
-
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs hover:shadow-md transition-all mb-4 flex flex-col xl:flex-row gap-6 xl:items-center">
       
@@ -446,10 +362,7 @@ const JobCard = ({
 
           <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-gray-500 mt-2">
             <div className="flex items-center gap-1.5">
-               <HiOutlineBriefcase className="w-4 h-4" /> {t("Posted")} {postedAgo}
-            </div>
-            <div className="flex items-center gap-1.5">
-               <span className="text-gray-300">•</span> 120 applicants
+               <HiOutlineClock className="w-4 h-4" /> {t("Posted")} {postedAgo}
             </div>
           </div>
 
@@ -478,7 +391,16 @@ const JobCard = ({
         </div>
         <div className="flex flex-col items-center gap-2 w-full sm:w-auto xl:w-full">
           <button
-            onClick={() => onApplyNow ? onApplyNow(job) : onViewDetails(job)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (job.isExternal || job.source !== 'internal') {
+                const extUrl = job.applyUrl || job.apply_url || job.externalUrl || job.url || '#';
+                if (extUrl && extUrl !== '#') window.open(extUrl, '_blank', 'noopener,noreferrer');
+                else alert("Application link is not available for this job.");
+              } else {
+                navigate(`/provider/job/${job._id}/apply`);
+              }
+            }}
             className="w-full sm:w-40 xl:w-36 py-2.5 bg-[#1d4ed8] hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm"
           >
             {t("Apply Now")} <HiOutlinePaperAirplane className="w-4 h-4 -rotate-45" />
@@ -680,8 +602,6 @@ const ProviderJobs = () => {
   const [subscription, setSubscription] = useState(null);
   const [filters, setFilters] = useState({ skill: "", city: "", origin: "all", source: "" });
   const [search, setSearch] = useState({ skill: "", city: "", origin: "all", source: "" });
-  const [applyTarget, setApplyTarget] = useState(null);
-  // viewDetailTarget removed — now navigates to /provider/job/:jobId
   const [recruiterProfileTarget, setRecruiterProfileTarget] = useState(null);
 
   const [aiMatchResults, setAiMatchResults] = useState(null);
@@ -689,8 +609,6 @@ const ProviderJobs = () => {
   const [resumeMissing, setResumeMissing] = useState(false);
 
   // ── Income Path Filter ──────────────────────────────────────────────
-  // Computed SYNCHRONOUSLY from location.state so the first data-fetch
-  // useEffect already sees the correct value (no async race condition).
   const navState = location.state;
   const initialIncomeFilter = (() => {
     if (!navState?.fromIncomePath) return null;
@@ -706,16 +624,12 @@ const ProviderJobs = () => {
 
   const [aiInsightsMap, setAiInsightsMap] = useState({});
 
-  // Track whether subscription has finished loading (null = loading, object/false = done)
   const [subscriptionLoaded, setSubscriptionLoaded] = useState(false);
 
-  // Trigger AI insights load for visible jobs — only after subscription status is known
   useEffect(() => {
-    // subscription starts as null; wait until the fetch completes
     if (!subscriptionLoaded) return;
     if (jobs.length === 0) return;
 
-    // Only fetch jobs that don't already have real (non-mock) insights
     const jobsToFetch = jobs.slice(0, 10).filter(j => {
       const existing = aiInsightsMap[j._id];
       return !existing || existing._isMock === true;
@@ -723,7 +637,6 @@ const ProviderJobs = () => {
 
     if (jobsToFetch.length === 0) return;
 
-    // Always call backend — it decides paid vs free and returns _isMock: true for free users.
     (async () => {
       for (const j of jobsToFetch) {
         try {
@@ -752,10 +665,8 @@ const ProviderJobs = () => {
       return;
     }
 
-    // Pass undefined/null for fileHash so backend dynamically pulls from profile/resume
     const fileHash = null;
 
-    // Check local cache first
     const currentJobsHash = jobs.map(j => j._id || j.title).join(',');
     const cachedHash = localStorage.getItem('cachedScrapeJobsHash');
     if (cachedHash && currentJobsHash === cachedHash) {
@@ -771,13 +682,11 @@ const ProviderJobs = () => {
     setResumeMissing(false);
     
     try {
-      // Backend validates max 100 jobs at a time, so we slice it
       const jobsToAnalyze = jobs.slice(0, 100);
       const res = await getJobMatchingEngine({ fileHash, jobs: jobsToAnalyze });
       if (res.data?.success && res.data?.data?.matched_jobs) {
         setAiMatchResults(res.data.data.matched_jobs);
         
-        // Save to cache
         localStorage.setItem('cachedScrapeJobsHash', currentJobsHash);
         localStorage.setItem('cachedAiMatchResults', JSON.stringify(res.data.data.matched_jobs));
         
@@ -863,7 +772,6 @@ const ProviderJobs = () => {
           if (search.city) params.city = search.city;
           if (search.origin) params.origin = search.origin;
           if (search.source) params.source = search.source;
-          // Apply income path type filters when navigated from Dashboard cards
           if (incomePathFilter?.scheduleType) params.scheduleType = incomePathFilter.scheduleType;
           if (incomePathFilter?.workMode) params.workMode = incomePathFilter.workMode;
           const { data } = await providerAPI.getJobs(params);
@@ -887,9 +795,8 @@ const ProviderJobs = () => {
         fetchJobs(1, radius, nearbyOnly);
       }
     } else if (incomePathFilter) {
-      // Navigated from Dashboard income path card — fetch by scheduleType/workMode
       fetchJobs(1, radius, nearbyOnly);
-    } else if (search.skill || search.city) {
+    } else if (search.skill || search.city || search.origin !== "all" || search.source) {
       fetchJobs(1, radius, nearbyOnly);
     } else {
       setLoading(true);
@@ -923,16 +830,9 @@ const ProviderJobs = () => {
         setSubscriptionLoaded(true);
       })
       .catch(() => {
-        setSubscriptionLoaded(true); // even on error, we know there's no plan
+        setSubscriptionLoaded(true);
       });
   }, []);
-
-  const handleApplySuccess = (jobId) => {
-    setApplyTarget(null);
-    setJobs((prev) =>
-      prev.map((j) => (j._id === jobId ? { ...j, hasApplied: true } : j)),
-    );
-  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -950,16 +850,11 @@ const ProviderJobs = () => {
     setSearch({ skill: "", city: "", origin: "all", source: "" });
   };
 
-  const planName = subscription?.planId?.name || subscription?.plan?.name;
-  const applyLimit = subscription?.planId?.jobApplyLimit || subscription?.plan?.jobApplyLimit;
-  const remainingApply = subscription?.remainingApplyLimit;
-
   return (
     <div
       className="min-h-screen bg-gray-50 pb-16 overflow-x-hidden"
       onClick={() => setShowMatchesDropdown(false)}
     >
-      {/* Header */}
       <div className="bg-gradient-to-r from-emerald-800 to-teal-900 px-6 py-10 shadow-inner">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -967,20 +862,10 @@ const ProviderJobs = () => {
             <p className="text-emerald-50 text-sm md:text-base opacity-90 max-w-xl">{t(
               "Discover and apply to top jobs perfectly tailored to your skills, experience, and preferences."
             )}</p>
-            {planName && (
-              <div className="mt-4 inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 text-xs text-white font-medium border border-white/20 shadow-sm">
-                <HiSparkles className="w-4 h-4 text-emerald-200" />
-                {planName}{t("Plan")}{applyLimit !== -1 && remainingApply !== undefined && (
-                  <span className="text-emerald-100/80 ml-1">
-                    · {remainingApply}{t("applications remaining")}</span>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>
       <div className="max-w-5xl mx-auto px-4 py-6">
-        {/* Tabs */}
         <div className="flex gap-1 bg-white rounded-xl border border-gray-100 p-1.5 mb-6 w-fit shadow-xs">
           {[
             ["browse", "Browse Jobs"],
@@ -998,7 +883,6 @@ const ProviderJobs = () => {
 
         {tab === "browse" && (
           <>
-            {/* Income Path Context Banner — shown when arriving from Dashboard income cards */}
             {incomePathBanner && (
               <div className="flex items-center justify-between bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-100 rounded-xl px-4 py-3 mb-4 shadow-sm">
                 <div className="flex items-center gap-2">
@@ -1020,7 +904,6 @@ const ProviderJobs = () => {
             )}
 
 
-            {/* Search Bar */}
             <div className="relative">
               <form
                 onSubmit={handleSearch}
@@ -1044,7 +927,6 @@ const ProviderJobs = () => {
                     />
                   </div>
 
-                  {/* AI Top Matches Dropdown */}
                   {showMatchesDropdown && topMatches.length > 0 && (
                     <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 z-50 max-h-[350px] overflow-y-auto animate-fadeInUp">
                       <div className="p-3 border-b border-gray-50 bg-emerald-50/50 sticky top-0">
@@ -1182,7 +1064,6 @@ const ProviderJobs = () => {
               </form>
             </div>
 
-            {/* Results */}
             {loading ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 {[1, 2, 3, 4].map((n) => (
@@ -1224,7 +1105,7 @@ const ProviderJobs = () => {
                       key={job._id}
                       job={job}
                       onViewDetails={() => navigate(`/provider/job/${job._id}`)}
-                      onApplyNow={() => setApplyTarget(job)}
+                      onApplyNow={() => navigate(`/provider/job/${job._id}/apply`)}
                       aiInsights={aiInsightsMap[job._id]}
                       onRecruiterClick={handleRecruiterClick}
                       hasActivePlan={aiInsightsMap[job._id]?._isMock !== true}
@@ -1254,25 +1135,7 @@ const ProviderJobs = () => {
                   </div>
                 )}
                 
-                {/* Subscription CTA Banner */}
-                <div className="mt-8 bg-blue-50/80 rounded-2xl border border-blue-100 p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-white p-3 rounded-xl shadow-sm border border-blue-50">
-                      <span className="text-2xl text-purple-500">👑</span>
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-bold text-gray-900">{t("Want to see deeper insights & boost your chances?")}</h4>
-                      <p className="text-sm text-gray-600">{t(
-                        "Unlock detailed analytics, skill gap reports, and personalized career guidance."
-                      )}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <Link to="/provider/plans" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition shadow-md flex items-center gap-2">{t("Explore Subscription Plans")}<span className="text-sm">👑</span>
-                    </Link>
-                    <span className="text-[10px] text-gray-500 mt-2 font-medium">{t("Starting at just ₹299/month")}</span>
-                  </div>
-                </div>
+
               </>
             )}
           </>
@@ -1283,14 +1146,7 @@ const ProviderJobs = () => {
         )}
       </div>
       {/* View Details navigates to dedicated page — no modal here */}
-      {/* Apply Modal */}
-      {applyTarget && (
-        <ApplyModal
-          job={applyTarget}
-          onClose={() => setApplyTarget(null)}
-          onSuccess={handleApplySuccess}
-        />
-      )}
+
       {/* Recruiter Profile Modal */}
       {recruiterProfileTarget && (
         <RecruiterProfileModal

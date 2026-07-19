@@ -648,10 +648,10 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
               </div>
 
               {/* In-Demand Skills & Market Insights */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 md:col-span-2 flex flex-col md:flex-row gap-6">
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 md:col-span-2 flex flex-col md:flex-row gap-6 min-w-0">
                 
                 {/* In Demand */}
-                <div className="flex-1 border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-6">
+                <div className="flex-1 min-w-0 border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-6">
                   <h3 className="font-semibold text-slate-800 mb-1">{t("In-Demand Skills for")}{targetRole}</h3>
                   <p className="text-xs text-slate-500 mb-4">{t("Skills in high demand in the market")}</p>
                   
@@ -667,15 +667,15 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                 </div>
 
                 {/* Market Insights */}
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 min-w-0 flex flex-col">
                   <h3 className="font-semibold text-slate-800 mb-1">{t("Market Insights")}</h3>
-                  <p className="text-xs text-slate-500 mb-4">{targetRole}{t("• India")}</p>
+                  <p className="text-xs text-slate-500 mb-4 truncate">{targetRole} {t("• India")}</p>
 
                   <div className="space-y-4 mb-auto">
                     <div className="flex items-start gap-3">
-                      <div className="mt-1"><BiBriefcase className="w-5 h-5 text-emerald-600" /></div>
-                      <div>
-                        <div className="text-xs text-slate-500">{t("Jobs in demand")}</div>
+                      <div className="mt-1 shrink-0"><BiBriefcase className="w-5 h-5 text-emerald-600" /></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-slate-500 truncate">{t("Jobs in demand")}</div>
                         <div className="flex items-baseline gap-2 flex-wrap">
                           <span className="text-lg font-bold text-slate-800 truncate">{marketInsights.jobsInDemand}</span>
                           <span className="text-xs font-semibold text-emerald-600 whitespace-nowrap">{marketInsights.jobsGrowth}</span>
@@ -683,9 +683,9 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="mt-1"><FiAlertCircle className="w-5 h-5 text-emerald-600" /></div>
-                      <div>
-                        <div className="text-xs text-slate-500">{t("Avg. Salary")}</div>
+                      <div className="mt-1 shrink-0"><FiAlertCircle className="w-5 h-5 text-emerald-600" /></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-slate-500 truncate">{t("Avg. Salary")}</div>
                         <div className="flex items-baseline gap-2 flex-wrap">
                           <span className="text-lg font-bold text-slate-800 truncate">{marketInsights.avgSalary}</span>
                           <span className="text-xs font-semibold text-emerald-600 whitespace-nowrap">{marketInsights.salaryGrowth}</span>
@@ -693,10 +693,10 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="mt-1"><BiLineChart className="w-5 h-5 text-emerald-600" /></div>
-                      <div>
-                        <div className="text-xs text-slate-500">{t("Top Cities")}</div>
-                        <div className="text-sm font-medium text-slate-700 leading-tight mt-1">
+                      <div className="mt-1 shrink-0"><BiLineChart className="w-5 h-5 text-emerald-600" /></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-slate-500 truncate">{t("Top Cities")}</div>
+                        <div className="text-sm font-medium text-slate-700 leading-tight mt-1 truncate">
                           {marketInsights.topCities}
                         </div>
                       </div>

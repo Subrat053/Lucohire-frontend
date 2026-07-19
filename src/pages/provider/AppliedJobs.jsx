@@ -164,7 +164,7 @@ export default function AppliedJobs() {
                     <div className="flex flex-col lg:flex-row gap-6">
                       
                       {/* Left: Job Info */}
-                      <div className="flex flex-col gap-4 min-w-[240px] xl:min-w-[280px]">
+                      <div className="flex flex-col gap-4 min-w-[200px] xl:min-w-[240px]">
                         <div className="flex items-start gap-4">
                           <div className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
                             {job.companyLogo ? (
@@ -225,7 +225,7 @@ export default function AppliedJobs() {
                                     {isCompleted && <HiCheckCircle className="w-3.5 h-3.5 text-white shrink-0 absolute" />}
                                     {isFailed && <HiX className="w-2.5 h-2.5 text-red-500 shrink-0 absolute" />}
                                   </div>
-                                  <span className={`absolute top-6 whitespace-nowrap ${isCurrent || isCompleted ? 'text-slate-800' : isFailed ? 'text-red-600' : 'text-slate-400'}`}>
+                                  <span className={`absolute top-6 text-center left-1/2 -translate-x-1/2 w-16 text-[9px] xl:text-[10px] leading-tight ${isCurrent || isCompleted ? 'text-slate-800' : isFailed ? 'text-red-600' : 'text-slate-400'}`}>
                                     {step}
                                   </span>
                                 </div>
@@ -274,20 +274,9 @@ export default function AppliedJobs() {
                       </div>
 
                       {/* Right: Actions */}
-                      <div className="shrink-0 flex flex-row lg:flex-col items-center lg:items-end justify-between border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6 mt-2 lg:mt-0">
-                        <div className="w-full flex items-center justify-between mb-8 mt-2 lg:mt-0 relative dropdown-container">
-                          <Link to={`/provider/job/${job._id}`} target="_blank" className="py-1.5 px-4 text-[11px] font-bold text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition shadow-sm">View Job</Link>
-                          <button onClick={() => setOpenMenuId(openMenuId === app._id ? null : app._id)} className="text-slate-400 hover:text-slate-600 p-1 border border-slate-200 rounded-md">
-                            <HiOutlineDotsVertical className="w-4 h-4" />
-                          </button>
-                          {openMenuId === app._id && (
-                            <div className="absolute top-8 right-0 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-10 py-1">
-                              <button onClick={() => { setOpenMenuId(null); navigator.clipboard.writeText(window.location.origin + "/provider/job/" + job._id); toast.success("Job link copied!"); }} className="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">Copy Job Link</button>
-                              <button onClick={() => { setOpenMenuId(null); if (job.recruiter?._id) { /* We don't have recruiter profile modal in this component yet, so just link */ window.open("/provider/profile/" + job.recruiter._id, "_blank"); } else { toast.error("Recruiter info not available"); } }} className="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">View Recruiter</button>
-                              <button onClick={() => handleWithdraw(job._id, app._id)} className="w-full text-left px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50 transition">Withdraw</button>
-                            </div>
-                          )}
-                        </div>
+                      <div className="shrink-0 w-full lg:w-40 flex flex-col items-stretch gap-2 border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6 mt-4 lg:mt-0">
+                        <Link to={`/provider/job/${job._id}`} className="text-center py-2 px-4 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm">View Job</Link>
+                        <Link to={`/provider/application-success/${app._id}`} state={{ job, application: app }} className="text-center py-2 px-4 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition shadow-sm">View Application</Link>
                       </div>
 
                     </div>

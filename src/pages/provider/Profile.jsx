@@ -636,7 +636,27 @@ const ProviderProfile = () => {
       toast.success("Verification code sent to your mobile");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to send OTP. Please try again.");
+      
+      // Clear recaptcha on error so a fresh one is generated next time
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+        } catch (e) {
+          console.error("Error clearing recaptcha", e);
+        }
+        window.recaptchaVerifier = null;
+        // Clean up the DOM node content just in case
+        const container = document.getElementById('profile-recaptcha-container');
+        if (container) container.innerHTML = '';
+      }
+
+      if (err.code === 'auth/invalid-app-credential') {
+        toast.error("Verification failed (Invalid App Credential). Ensure 'localhost' is authorized in Firebase Console -> Authentication -> Settings -> Authorized Domains.");
+      } else if (err.code === 'auth/too-many-requests') {
+        toast.error("Too many requests. Please try again later or use a test phone number.");
+      } else {
+        toast.error("Failed to send OTP. Please try again.");
+      }
       setIsOtpModalOpen(false);
     } finally {
       setSendingOtp(false);
