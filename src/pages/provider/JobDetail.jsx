@@ -276,9 +276,9 @@ export default function JobDetail() {
                   </li>
                 </ul>
 
-                <button className="text-[13px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-lg transition flex items-center gap-1.5">
+                {/* <button className="text-[13px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-lg transition flex items-center gap-1.5">
                   View AI Match Report {!hasActivePlan && <HiLockClosed className="w-3 h-3" />}
-                </button>
+                </button> */}
               </div>
 
               {/* Right Metrics */}
@@ -396,7 +396,7 @@ export default function JobDetail() {
 
             {/* Tabs */}
             <div className="border-t border-gray-100 flex items-center gap-8 px-6 pt-1">
-              {['Overview', 'About Company', 'Reviews (1.2K)', 'Team', 'FAQs'].map(tab => (
+              {['Overview', 'About Company', 'Reviews', 'Team', 'FAQs'].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -581,9 +581,9 @@ export default function JobDetail() {
                 {hasActivePlan ? (aiInsights?.improve || "Improve your missing skills to increase match score") : "Improve Design Systems to increase match to 97%"}
               </li>
             </ul>
-            <button className="w-full text-[13px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+            {/* <button className="w-full text-[13px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
               View Full AI Analysis {!hasActivePlan && <HiLockClosed className="w-3.5 h-3.5" />}
-            </button>
+            </button> */}
           </div>
 
           {/* About the Company */}

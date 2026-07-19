@@ -34,14 +34,14 @@ import { recruiterAPI } from '../../services/api';
 
 // NEW TABS (from image)
 const navItems = [
-  { label: 'Dashboard', fallback: 'Dashboard', path: '/recruiter/dashboard', icon: HiHome },
-  { label: 'Jobs', fallback: 'Jobs', path: '/recruiter/jobs', icon: HiBriefcase },
-  { label: 'Candidates', fallback: 'Candidates', path: '/recruiter/candidates', icon: HiUsers },
+  { label: 'Hiring Workspace', fallback: 'Hiring Workspace', path: '/recruiter/dashboard', icon: HiHome },
+  { label: 'Post Jobs', fallback: 'Post Jobs', path: '/recruiter/jobs', icon: HiBriefcase },
+  { label: 'AI Talent Search', fallback: 'AI Talent Search', path: '/recruiter/candidates', icon: HiUsers },
   { label: 'Talent Pool', fallback: 'Talent Pool', path: '/recruiter/talent-pool', icon: HiCollection },
   { label: 'Outreach', fallback: 'Outreach', path: '/recruiter/outreach', icon: HiChatAlt },
-  { label: 'Tasks', fallback: 'Tasks', path: '/recruiter/tasks', icon: HiClipboardCheck },
-  { label: 'Reports', fallback: 'Reports', path: '/recruiter/reports', icon: HiChartBar },
-  { label: 'AI Copilot', fallback: 'AI Copilot', path: '/recruiter/ai', icon: HiSparkles },
+  { label: 'Set Reminder', fallback: 'Set Reminder', path: '/recruiter/tasks', icon: HiClipboardCheck },
+  { label: 'Reports & Analytics', fallback: 'Reports & Analytics', path: '/recruiter/reports', icon: HiChartBar },
+  { label: 'AI Recruiter Workspace', fallback: 'AI Recruiter Workspace', path: '/recruiter/ai', icon: HiSparkles },
   { label: 'Plans & Billing', fallback: 'Plans & Billing', path: '/recruiter/plans', icon: HiCurrencyRupee },
   { label: 'Settings', fallback: 'Settings', path: '/recruiter/settings', icon: HiCog },
 ];

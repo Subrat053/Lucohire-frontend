@@ -239,7 +239,7 @@ const JobPostings = () => {
                         <th className="py-4 pl-6 pr-3">{t("Job Title")}</th>
                         <th className="py-4 px-3 text-center">{t("Applicants")}</th>
                         <th className="py-4 px-3 text-center">{t("Interviews")}</th>
-                        <th className="py-4 px-3 text-center">{t("Top AI Match")}</th>
+                        <th className="py-4 px-3 text-center">{t("AI Health")}</th>
                         <th className="py-4 px-3 text-center">{t("Status")}</th>
                         <th className="py-4 px-3">{t("Created On")}</th>
                         <th className="py-4 pr-6 pl-3 text-right">{t("Actions")}</th>

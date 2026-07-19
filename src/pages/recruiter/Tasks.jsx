@@ -262,7 +262,7 @@ const Tasks = () => {
       {/* HEADER SECTION */}
       <div className="bg-white border-b border-gray-100 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-20">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">{t("Task Workspace")}</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900">{t("Reminders")}</h1>
           <p className="text-sm text-gray-500 mt-1">{t("Manage your hiring workflow by job role.")}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -280,7 +280,7 @@ const Tasks = () => {
             onClick={openNewTaskModal}
             className="bg-[#1E293B] text-white px-5 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-800 transition flex items-center gap-2 whitespace-nowrap"
           >
-            <FiPlus className="w-4 h-4" />{t("New Task")}</button>
+            <FiPlus className="w-4 h-4" />{t("Set Reminder")}</button>
         </div>
       </div>
       {loading ? (

@@ -112,7 +112,7 @@ const Candidates = () => {
       {/* HEADER */}
       <div className="bg-white border-b border-gray-100 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-20">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">{t("Global Talent Search")}</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900">{t("AI Talent Search")}</h1>
           <p className="text-sm text-gray-500 mt-1">{t("Find the right talent, faster with AI")}</p>
         </div>
       </div>

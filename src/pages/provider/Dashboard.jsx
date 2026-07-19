@@ -551,8 +551,12 @@ const ProviderDashboard = () => {
               </div>
             </div>
             
-            <button className="w-full bg-[#0f766e] hover:bg-teal-800 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
-              <Lock className="w-4 h-4" />{t("Unlock to View")}</button>
+            <button 
+              onClick={() => navigate('/provider/plans')}
+              className="w-full bg-[#0f766e] hover:bg-teal-800 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm"
+            >
+              <Lock className="w-4 h-4" />{t("Unlock to View")}
+            </button>
           </div>
           
           {/* Recent Activities Widget */}

@@ -41,8 +41,8 @@ const navItems = [
     icon: HiSparkles,
   },
   { 
-    label: 'Resume Toolkit', 
-    fallback: 'Resume Toolkit', 
+    label: 'Resume & Profile Toolkit', 
+    fallback: 'Resume & Profile Toolkit', 
     path: '/provider/resume-toolkit',
     icon: HiClipboardList,
   },
