@@ -466,74 +466,7 @@ const ProviderDashboard = () => {
               View Full Analysis <ArrowRight className="w-3.5 h-3.5" />
             </button>
 
-              <div className="space-y-4">
-                {topJobs.length > 0 ? topJobs.slice(0, 3).map((job, idx) => {
-                  const role = job.title || 'Professional';
-                  const company = job.company || 'Company';
-                  const location = job.city || job.location?.city || 'Remote';
-                  const mode = job.workMode || 'Flexible';
-                  const salary = job.budgetMin ? `₹${job.budgetMin} - ${job.budgetMax} ${job.budgetType === 'yearly' ? 'LPA' : '/mo'}` : 'Not specified';
-                  const tags = job.skills || [];
-                  const displayedTags = tags.slice(0, 3);
-                  const extraTags = tags.length > 3 ? tags.length - 3 : 0;
-                  
-                  return (
-                    <div key={job._id || idx} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-md transition-shadow">
-                      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                        <div className="flex gap-4">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shadow-sm border border-gray-100 bg-gray-50 text-gray-700`}>
-                            {company.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <Link to="/provider/job-for-me" className="font-bold text-gray-900 text-base hover:text-teal-600 transition-colors">{role}</Link>
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1.5 font-medium">
-                              <span className="text-blue-600 flex items-center gap-1">{company} <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /></span>
-                              <span className="text-gray-300">•</span>
-                              <span>{location}</span>
-                              <span className="text-gray-300 hidden sm:inline">•</span>
-                              <span className="text-gray-600">{mode}</span>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-3 mt-3">
-                              <span className="font-bold text-gray-700 text-sm">{salary}</span>
-                              <div className="flex gap-1.5">
-                                {displayedTags.map((tag, i) => (
-                                  <span key={i} className="bg-gray-50 text-gray-500 border border-gray-100 px-2.5 py-1 rounded-md text-[10px] font-bold">{tag}</span>
-                                ))}
-                                {extraTags > 0 && <span className="bg-gray-50 text-gray-500 border border-gray-100 px-2.5 py-1 rounded-md text-[10px] font-bold">+{extraTags}</span>}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex sm:flex-col items-center sm:items-end justify-between h-full space-y-0 sm:space-y-4 w-full sm:w-auto mt-2 sm:mt-0">
-                          <div className="text-left sm:text-right">
-                            <div className="text-teal-700 font-extrabold text-sm">{t("95% Match")}</div>
-                            <div className="text-teal-600/70 text-[11px] font-bold mt-0.5">{t("Great Match")}</div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <button 
-                              onClick={(e) => handleToggleSave(job._id || job.id, job.isExternal || job.source !== 'internal', e)}
-                              className={`${job.isSaved ? "text-[#10b981] bg-[#ecfdf5] border-[#10b981]" : "text-gray-300 hover:text-gray-500 border-transparent hover:bg-gray-50"} transition-colors w-9 h-9 rounded-xl border flex items-center justify-center`}
-                            >
-                              <svg className="w-5 h-5" fill={job.isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                            </button>
-                            <Link to="/provider/job-for-me" className="bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm inline-block text-center">{t("View Job")}</Link>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }) : (
-                  <div className="p-8 text-center bg-gray-50 rounded-xl border border-gray-100 border-dashed">
-                    <p className="text-gray-500 text-sm font-medium">{t("No matching jobs found right now.")}</p>
-                  </div>
-                  )}
-              
-              <div className="text-center pt-2 pb-6">
-                <Link to="/provider/job-for-me" className="text-teal-700 font-bold text-sm hover:underline flex items-center justify-center gap-1.5">{t("View All Matching Jobs")}<ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
+
           </div>
 
           {/* Freelance Alert */}

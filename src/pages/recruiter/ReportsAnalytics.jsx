@@ -54,6 +54,18 @@ const ReportsAnalytics = () => {
               <p className="text-sm text-gray-500">{t("Track performance, measure impact and make data-driven hiring decisions.")}</p>
             </div>
             <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:bg-gray-50 transition whitespace-nowrap">
+                <FiCalendar className="w-4 h-4 text-gray-400 shrink-0" />
+                <span className="hidden sm:inline">{t("20 Apr – 20 May 2026")}</span>
+                <span className="sm:hidden">{t("Apr – May")}</span>
+                <FiChevronDown className="w-3.5 h-3.5" />
+              </button>
+              <button 
+                onClick={handleFilters}
+                className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:bg-gray-50 transition"
+              >
+                <FiFilter className="w-4 h-4" />{t("Filters")}
+              </button>
               <button 
                 onClick={handleExport}
                 className="group flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-sm hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
