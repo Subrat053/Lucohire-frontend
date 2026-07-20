@@ -329,7 +329,7 @@ export default function ReportsOverview() {
       {/* Footer */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px] font-medium text-gray-400 border-t border-gray-200 pt-4 px-1">
         <div className="flex items-center gap-1.5">
-          <FiClock className="w-3.5 h-3.5" />{t("All data is updated daily. Last updated on 20 May 2026, 09:30 AM")}</div>
+          <FiClock className="w-3.5 h-3.5" />{t(`All data is updated daily. Last updated on ${new Date().toLocaleString()}`)}</div>
         <div>{t("Data shown in India Standard Time (IST)")}</div>
       </div>
     </div>

@@ -181,32 +181,32 @@ const RecruiterPlans = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-        <div className="flex flex-col lg:flex-row justify-between gap-12 mb-16">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <div className="flex flex-col lg:flex-row justify-between gap-6 mb-8">
           <div className="max-w-xl">
-            <h1 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight mb-4 tracking-tight">{t("Hire Faster.")}<br />{t("Let")}<span className="text-indigo-600">{t("AI")}</span>{t("Do the Hard Work.")}</h1>
-            <p className="text-slate-500 text-lg mb-8 font-medium">{t(
+            <h1 className="text-2xl lg:text-3xl font-black text-slate-900 leading-tight mb-2 tracking-tight">{t("Hire Faster.")}<br />{t("Let")}<span className="text-indigo-600">{t("AI")}</span>{t("Do the Hard Work.")}</h1>
+            <p className="text-slate-500 text-base mb-4 font-medium">{t(
               "The AI-Powered Recruitment Platform for Startups, Teams, Agencies & Enterprises."
             )}</p>
             
           </div>
 
-          <div className="flex flex-col gap-6">
-            <div className="flex gap-4">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col items-center justify-center w-40">
-                <FaRegClock className="text-indigo-500 text-3xl mb-3" />
-                <div className="text-3xl font-black text-slate-900">92%</div>
-                <div className="text-xs text-slate-500 font-bold">{t("Time Saved")}</div>
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-3">
+              <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col items-center justify-center w-32">
+                <FaRegClock className="text-indigo-500 text-2xl mb-2" />
+                <div className="text-2xl font-black text-slate-900">92%</div>
+                <div className="text-[10px] text-slate-500 font-bold">{t("Time Saved")}</div>
               </div>
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col items-center justify-center w-40">
-                <FaChartLine className="text-indigo-500 text-3xl mb-3" />
-                <div className="text-3xl font-black text-slate-900">{t("5X")}</div>
-                <div className="text-xs text-slate-500 font-bold text-center">{t("More Qualified")}<br/>{t("Applicants")}</div>
+              <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col items-center justify-center w-32">
+                <FaChartLine className="text-indigo-500 text-2xl mb-2" />
+                <div className="text-2xl font-black text-slate-900">{t("5X")}</div>
+                <div className="text-[10px] text-slate-500 font-bold text-center">{t("More Qualified")}<br/>{t("Applicants")}</div>
               </div>
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col items-center justify-center w-40">
-                <FaWallet className="text-indigo-500 text-3xl mb-3" />
-                <div className="text-3xl font-black text-slate-900">80%</div>
-                <div className="text-xs text-slate-500 font-bold">{t("Lower Hiring Cost")}</div>
+              <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col items-center justify-center w-32">
+                <FaWallet className="text-indigo-500 text-2xl mb-2" />
+                <div className="text-2xl font-black text-slate-900">80%</div>
+                <div className="text-[10px] text-slate-500 font-bold">{t("Lower Hiring Cost")}</div>
               </div>
             </div>
             

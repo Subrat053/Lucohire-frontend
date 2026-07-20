@@ -213,13 +213,6 @@ export default function Settings() {
           <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
             {[
               { id: 'company-profile', label: 'Company Profile', icon: <HiOfficeBuilding />, active: true },
-              { id: 'team', label: 'Team Management', icon: <FiUsers /> },
-              { id: 'subscription', label: 'Subscription & Credits', icon: <FiCreditCard /> },
-              { id: 'billing', label: 'Billing & Invoices', icon: <FiFileText /> },
-              { id: 'integrations', label: 'Integrations', icon: <FiLink /> },
-              { id: 'notifications', label: 'Notifications', icon: <FiBell /> },
-              { id: 'security', label: 'Security', icon: <FiShield /> },
-              { id: 'support', label: 'Support', icon: <FiHelpCircle /> },
             ].map((tab) => (
               <button 
                 key={tab.id}
