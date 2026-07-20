@@ -2,6 +2,7 @@ import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect } from 'react';
 import { FiPlus, FiMinus, FiCalendar, FiMessageSquare, FiPaperclip, FiSearch, FiX, FiBriefcase, FiList } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
+import { DndContext, closestCorners, useSensor, useSensors, PointerSensor, useDroppable, useDraggable } from '@dnd-kit/core';
 import { recruiterAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -27,6 +28,17 @@ const TaskCard = ({ task, isOverlay, jobs, onMoveTask }) => {
     t
   } = useTranslation();
 
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: task._id || task.id,
+    data: task
+  });
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    zIndex: isDragging ? 999 : undefined,
+    opacity: isDragging ? 0.5 : 1
+  } : undefined;
+
   const getInitials = (name) => {
     if (!name) return '??';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -47,7 +59,11 @@ const TaskCard = ({ task, isOverlay, jobs, onMoveTask }) => {
 
   return (
     <div 
-      className={`bg-white p-4 rounded-xl border ${isOverlay ? 'border-indigo-500 shadow-xl scale-105' : 'border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-1'} transition-all group flex flex-col gap-3`}
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`bg-white p-4 rounded-xl border ${isOverlay ? 'border-indigo-500 shadow-xl scale-105' : 'border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-1'} transition-all group flex flex-col gap-3 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
     >
       <div className="flex justify-between items-start">
         <div className="flex gap-2 items-center flex-wrap">
@@ -121,9 +137,14 @@ const Column = ({ title, count, colorClass, status, tasks, jobs, onMoveTask }) =
     t
   } = useTranslation();
 
+  const { isOver, setNodeRef } = useDroppable({
+    id: status,
+  });
+
   return (
     <div 
-      className={`${status === 'todo' ? 'bg-gray-50/50 border-gray-100' : status === 'in-progress' ? 'bg-indigo-50/30 border-indigo-100/50' : 'bg-emerald-50/30 border-emerald-100/50'} rounded-2xl border p-4 flex flex-col h-full overflow-hidden transition-colors`}
+      ref={setNodeRef}
+      className={`${status === 'todo' ? 'bg-gray-50/50 border-gray-100' : status === 'in-progress' ? 'bg-indigo-50/30 border-indigo-100/50' : 'bg-emerald-50/30 border-emerald-100/50'} rounded-2xl border p-4 flex flex-col h-full overflow-hidden transition-colors ${isOver ? 'ring-2 ring-indigo-400 bg-indigo-50/50' : ''}`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -166,6 +187,14 @@ const Tasks = () => {
     dueDate: ''
   });
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  );
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -184,6 +213,15 @@ const Tasks = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const taskId = active.id;
+    const newStatus = over.id;
+    await handleMoveTask(taskId, newStatus);
   };
 
   const handleMoveTask = async (taskId, newStatus) => {
@@ -336,12 +374,13 @@ const Tasks = () => {
               </h2>
               <span className="text-sm font-medium text-gray-500">{filteredTasks.length}{t("total tasks")}</span>
             </div>
-            
+            <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100%-40px)]">
                 <Column title="To Do" count={todoTasks.length} colorClass="bg-gray-400" status="todo" tasks={todoTasks} jobs={jobs} onMoveTask={handleMoveTask} />
                 <Column title="In Progress" count={inProgressTasks.length} colorClass="bg-indigo-500" status="in-progress" tasks={inProgressTasks} jobs={jobs} onMoveTask={handleMoveTask} />
                 <Column title="Done" count={doneTasks.length} colorClass="bg-emerald-500" status="done" tasks={doneTasks} jobs={jobs} onMoveTask={handleMoveTask} />
               </div>
+            </DndContext>
           </div>
 
         </div>
