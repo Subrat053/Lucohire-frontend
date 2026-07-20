@@ -528,6 +528,9 @@ const Candidates = () => {
                 to get better matches.
               </div>
               
+              <button onClick={() => toast.success('AI Search coming soon')} className="w-full bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-100 transition flex items-center justify-center gap-2">
+                <HiSparkles className="w-3.5 h-3.5" /> Ask AI to Improve Search <FiArrowUpRight className="w-3 h-3" />
+              </button>
             </div>
 
           </div>
