@@ -488,33 +488,8 @@ const ProviderPlans = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-emerald-950 tracking-tight mb-3">{t("Choose the Right Plan for Your")}<span className="text-emerald-600">{t("Career Growth")}</span>
-          </h1>
-          <p className="text-slate-500 text-base">{t(
-            "Unlock powerful AI insights, personalized reports, and smart alerts to get hired faster."
-          )}</p>
-        </div>
-
-        {/* Feature Badges */}
-        <div className="flex flex-wrap justify-center gap-3 sm:gap-6 mb-10">
-          {[
-            { icon: <Zap className="w-4 h-4" />, text: 'AI-Powered Insights' },
-            { icon: <Target className="w-4 h-4" />, text: 'Smart Job Matching' },
-            { icon: <BadgeCheck className="w-4 h-4" />, text: 'Verified Jobs' },
-            { icon: <MessageCircle className="w-4 h-4" />, text: 'WhatsApp & Email Alerts' },
-            { icon: <ShieldCheck className="w-4 h-4" />, text: 'Bank-Level Security' },
-          ].map((item, idx) => (
-            <div key={idx} className="flex items-center gap-1.5 text-xs font-semibold text-emerald-950 bg-white border border-emerald-100 px-3 py-1.5 rounded-full shadow-sm">
-              <span className="text-emerald-600">{item.icon}</span>
-              {item.text}
-            </div>
-          ))}
-        </div>
-
-        {/* Active Plan Display */}
+      <div className="max-w-7xl mx-auto relative">
+        {/* Active Plan Display Top Left */}
         {(() => {
           if (!activePlanData || !activePlanData.subscription || activePlanData.subscription.subscriptionStatus !== 'active' || activePlanData.plan?.slug === 'free') return null;
 
@@ -535,21 +510,32 @@ const ProviderPlans = () => {
           if (days <= 0) return null;
 
           return (
-            <div className="mb-10 max-w-2xl mx-auto bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="lg:absolute lg:top-2 lg:left-2 mb-6 lg:mb-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-3 text-white shadow-md flex items-center justify-between gap-3 z-10 w-full lg:w-auto">
               <div>
-                <h2 className="text-xs font-semibold text-emerald-100 uppercase tracking-wider mb-1">{t("Current Active Plan")}</h2>
-                <div className="text-2xl font-bold flex items-center gap-2">
-                  <Crown className="w-6 h-6 text-yellow-300" />
+                <h2 className="text-[9px] font-semibold text-emerald-100 uppercase tracking-wider mb-0.5">{t("Current Active Plan")}</h2>
+                <div className="text-sm font-bold flex items-center gap-1.5">
+                  <Crown className="w-3.5 h-3.5 text-yellow-300" />
                   {planName}
                 </div>
               </div>
-              <div className="bg-white/20 px-6 py-3 rounded-xl backdrop-blur-sm text-center min-w-[140px] border border-white/10 shadow-inner">
-                <div className="text-3xl font-extrabold">{days}</div>
-                <div className="text-[10px] font-bold text-emerald-100 uppercase tracking-wider mt-0.5">{t("Days Remaining")}</div>
+              <div className="bg-white/20 px-2.5 py-1 rounded-md backdrop-blur-sm text-center border border-white/10 shadow-inner">
+                <div className="text-base font-extrabold leading-none">{days}</div>
+                <div className="text-[7px] font-bold text-emerald-100 uppercase tracking-wider mt-0.5">{t("Days Left")}</div>
               </div>
             </div>
           );
         })()}
+
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-emerald-950 tracking-tight mb-3">{t("Choose the Right Plan for Your")}<span className="text-emerald-600">{t("Career Growth")}</span>
+          </h1>
+          <p className="text-slate-500 text-base">{t(
+            "Unlock powerful AI insights, personalized reports, and smart alerts to get hired faster."
+          )}</p>
+        </div>
+
+
 
         {/* Duration Toggles */}
         <div className="flex justify-center mb-10 relative">

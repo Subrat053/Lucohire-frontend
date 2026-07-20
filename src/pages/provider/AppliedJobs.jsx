@@ -436,7 +436,7 @@ export default function AppliedJobs() {
              <div className="flex-1 relative z-10">
                <h3 className="font-bold text-sm mb-1">Need Help?</h3>
                <p className="text-[11px] font-medium text-blue-100 mb-3 leading-relaxed">Chat with us on WhatsApp.<br/>We're here to help you 9 AM - 9 PM</p>
-               <button className="text-[11px] font-bold text-blue-900 bg-white rounded-full px-4 py-2 flex items-center gap-1.5 hover:bg-blue-50 shadow-sm transition w-fit">
+               <button onClick={() => toast('Feature in progress')} className="text-[11px] font-bold text-blue-900 bg-white rounded-full px-4 py-2 flex items-center gap-1.5 hover:bg-blue-50 shadow-sm transition w-fit">
                  Chat Now on WhatsApp <FaWhatsapp className="w-3.5 h-3.5 text-[#25D366]" />
                </button>
              </div>

@@ -172,8 +172,8 @@ const AdminPlans = () => {
 
   const fetchCountries = async () => {
     try {
-      const res = await fetch("https://restcountries.com/v3.1/all?fields=name,cca2,currencies,flag", {
-        signal: AbortSignal.timeout(6000)
+      const res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://restcountries.com/v3.1/all?fields=name,cca2,currencies,flag"), {
+        signal: AbortSignal.timeout(10000)
       });
       
       let apiCountries = [];
