@@ -49,15 +49,19 @@ const Candidates = () => {
 
   const suggestedSearches = ['React Developer', 'Redux', 'TypeScript', 'Next.js', 'More'];
 
-  const handleSearch = useCallback(async (query = searchQuery) => {
+  const handleSearch = useCallback(async (query) => {
+    const term = query !== undefined ? query : searchQuery;
     try {
       setLoading(true);
-      const res = await recruiterAPI.aiSearchCandidates({ q: query });
-      const data = res.data?.results || res.data?.candidates || res.data;
+      const res = await recruiterAPI.aiSearchCandidates({ q: term });
+      // backend returns { candidates: [...] } or { results: [...] }
+      const data = res.data?.candidates || res.data?.results || (Array.isArray(res.data) ? res.data : []);
       if (Array.isArray(data)) {
         const realCandidates = data.filter(c => {
           const name = (c.name || c.user?.name || '').toLowerCase();
-          return !name.includes('mock') && !name.includes('test candidate') && !name.includes('demo');
+          const email = (c.email || c.emailForSorting || '').toLowerCase();
+          return !name.includes('mock') && !name.includes('test candidate') && !name.includes('demo') &&
+            !name.includes('seed') && !email.includes('seed_') && !email.includes('@example.');
         });
         setCandidates(realCandidates);
       } else {
@@ -69,11 +73,11 @@ const Candidates = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery]);
+  }, []); // no deps — query is always passed as argument
 
   useEffect(() => {
     handleSearch('');
-  }, [handleSearch]);
+  }, []); // only on mount
 
   // AI Profile Rating Queue
   useEffect(() => {
@@ -154,9 +158,19 @@ const Candidates = () => {
   // Derive display candidates by applying active filters in memory
   const displayCandidates = useMemo(() => {
     let list = [...candidates];
-    
-    // 1. Text Search matching is handled by backend AI search now.
 
+    // Client-side text filtering: if user has typed something, filter locally too
+    // (backend already did it, but guard against stale results)
+    if (searchQuery.trim()) {
+      const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+      list = list.filter(c => {
+        const name = (c.name || '').toLowerCase();
+        const skills = Array.isArray(c.skills) ? c.skills.join(' ').toLowerCase() : String(c.skills || '').toLowerCase();
+        const bio = (c.shortBio || c.description || c.highlight || c.headline || '').toLowerCase();
+        return terms.some(t => name.includes(t) || skills.includes(t) || bio.includes(t));
+      });
+    }
+    
     if (filters.location.length > 0) {
       list = list.filter(c => {
         const loc = (c.location || c.city || c.userProfile?.location || '').toLowerCase();
@@ -167,7 +181,6 @@ const Candidates = () => {
     if (filters.experience.length > 0) {
       list = list.filter(c => {
         const exp = (c.experience || c.userProfile?.experience || '').toLowerCase();
-        // Simple mock matching for experience string
         return filters.experience.some(f => {
           if (f === '0-2 years' && (exp.includes('1') || exp.includes('2'))) return true;
           if (f === '4-8 years' && (exp.includes('4') || exp.includes('5') || exp.includes('6') || exp.includes('7') || exp.includes('8'))) return true;
@@ -199,7 +212,7 @@ const Candidates = () => {
     }
 
     return list;
-  }, [candidates, filters]);
+  }, [candidates, filters, searchQuery]);
 
   const topSkills = ['TypeScript', 'Next.js', 'Redux Toolkit', 'Tailwind CSS', 'Node.js'];
   const topCompanies = [
@@ -515,9 +528,6 @@ const Candidates = () => {
                 to get better matches.
               </div>
               
-              <button onClick={() => toast.success('AI Search coming soon')} className="w-full bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-100 transition flex items-center justify-center gap-2">
-                <HiSparkles className="w-3.5 h-3.5" /> Ask AI to Improve Search <FiArrowUpRight className="w-3 h-3" />
-              </button>
             </div>
 
           </div>

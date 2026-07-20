@@ -13,8 +13,8 @@ import { recruiterAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 
-const SCard = ({ children, className = '' }) => (
-  <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
+const SCard = ({ children, className = '', ...props }) => (
+  <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`} {...props}>{children}</div>
 );
 
 export default function AIRecruiterWorkspace() {
@@ -282,7 +282,7 @@ export default function AIRecruiterWorkspace() {
               <SCard className="p-6 flex items-center">
                 <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
                   {smartTools.map((tool, idx) => (
-                    <div key={idx} className="flex flex-col items-center text-center group cursor-pointer">
+                    <div key={idx} onClick={() => handleActionClick(tool.title)} className="flex flex-col items-center text-center group cursor-pointer">
                       <div className={`w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mb-3 group-hover:bg-indigo-50 transition ${tool.icColor}`}>
                         <span className="text-xl">{tool.icon}</span>
                       </div>
@@ -293,7 +293,7 @@ export default function AIRecruiterWorkspace() {
                 </div>
               </SCard>
               <div className="mt-4 text-center">
-                <button className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center justify-center gap-1 mx-auto transition">{t("Explore All Tools")}<FiArrowRight />
+                <button onClick={() => handleActionClick("Explore All Tools")} className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center justify-center gap-1 mx-auto transition">{t("Explore All Tools")}<FiArrowRight />
                 </button>
               </div>
             </div>
@@ -389,9 +389,9 @@ export default function AIRecruiterWorkspace() {
             <SCard className="p-5">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-sm font-extrabold text-gray-900">{t("Recent Conversations")}</h3>
-                <button className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t("View all")}<FiArrowRight /></button>
+                <button onClick={() => handleActionClick("View all Recent Conversations")} className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t("View all")}<FiArrowRight /></button>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
                 {conversations.length === 0 ? (
                   <div className="text-xs text-gray-500 text-center py-4">{t("No recent conversations")}</div>
                 ) : (
@@ -419,7 +419,7 @@ export default function AIRecruiterWorkspace() {
             <SCard className="p-5">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-sm font-extrabold text-gray-900">{t("AI Insights for You")}</h3>
-                <button className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t("View all")}<FiArrowRight /></button>
+                <button onClick={() => handleActionClick("View all AI Insights")} className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t("View all")}<FiArrowRight /></button>
               </div>
               <div className="space-y-4">
                 <div className="flex gap-3">
@@ -456,7 +456,7 @@ export default function AIRecruiterWorkspace() {
             <SCard className="p-5">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-sm font-extrabold text-gray-900">{t("Copilot Usage This Week")}</h3>
-                <button className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t("View usage")}<FiArrowRight /></button>
+                <button onClick={() => handleActionClick("View Copilot Usage details")} className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t("View usage")}<FiArrowRight /></button>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 rounded-xl border border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center text-center">
