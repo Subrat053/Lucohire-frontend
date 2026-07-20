@@ -37,6 +37,8 @@ const Navbar = () => {
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
   const dropdownRef = useRef(null);
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [signupModalRole, setSignupModalRole] = useState("recruiter");
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -269,7 +271,7 @@ const Navbar = () => {
 
                 <button
                   type="button"
-                  onClick={() => navigate("/signup")}
+                  onClick={() => setShowSignupModal(true)}
                   className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-700 transition shadow-sm"
                 >
                   {t("navbar.startEarning", "Start Earning")}
@@ -513,7 +515,7 @@ const Navbar = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          navigate("/signup");
+                          setShowSignupModal(true);
                           setMobileOpen(false);
                         }}
                         className="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-100"
@@ -528,6 +530,68 @@ const Navbar = () => {
           </aside>
         </div>
       </div>
+      {/* Signup Modal */}
+      {showSignupModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+            <button 
+              onClick={() => setShowSignupModal(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <HiX className="w-6 h-6" />
+            </button>
+
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Join Luco</h3>
+            <p className="text-gray-600 mb-6">How would you like to use Luco?</p>
+
+            <div className="space-y-4 mb-6">
+              {/* Recruiter Option */}
+              <label className={`w-full flex items-center p-4 border rounded-xl cursor-pointer transition-all ${signupModalRole === 'recruiter' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300 hover:bg-gray-50'}`}>
+                <div className="flex-1">
+                  <div className="font-bold text-gray-900">I want to hire</div>
+                  <div className="text-sm text-gray-500">Find top talent for your company</div>
+                </div>
+                <input 
+                  type="radio" 
+                  name="signupRole" 
+                  className="w-5 h-5 text-blue-600 focus:ring-blue-500"
+                  checked={signupModalRole === 'recruiter'}
+                  onChange={() => setSignupModalRole('recruiter')}
+                />
+              </label>
+
+              {/* Candidate Option */}
+              <label className={`w-full flex items-center p-4 border rounded-xl cursor-pointer transition-all ${signupModalRole === 'candidate' ? 'border-green-500 bg-green-50' : 'hover:border-green-300 hover:bg-gray-50'}`}>
+                <div className="flex-1">
+                  <div className="font-bold text-gray-900">I want to work</div>
+                  <div className="text-sm text-gray-500">Find freelance or full-time jobs</div>
+                </div>
+                <input 
+                  type="radio" 
+                  name="signupRole" 
+                  className="w-5 h-5 text-green-600 focus:ring-green-500"
+                  checked={signupModalRole === 'candidate'}
+                  onChange={() => setSignupModalRole('candidate')}
+                />
+              </label>
+            </div>
+
+            <button 
+              onClick={() => {
+                setShowSignupModal(false);
+                if (signupModalRole === 'recruiter') {
+                  navigate('/recruiter-discovery');
+                } else {
+                  navigate('/candidate-landing');
+                }
+              }}
+              className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
