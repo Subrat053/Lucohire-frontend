@@ -27,6 +27,7 @@ export default function ResumeToolkit() {
   const [missingData, setMissingData] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const fileInputRef = useRef(null);
 
   // Re-fetch whenever profile is saved (same trigger as GrowWithAI)
@@ -106,6 +107,13 @@ export default function ResumeToolkit() {
   const handleDownloadResume = () => {
     let url = profile?.resumeApproval?.pendingUrl || profile?.resumeUrl;
     if (!url) { toast.error(t('No resume uploaded yet')); return; }
+
+    // Resolve local /uploads paths to full backend URL
+    if (!url.startsWith('http')) {
+      const backendOrigin = import.meta.env.VITE_API_URL?.replace('/api', '')
+        || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
+      url = `${backendOrigin}${url}`;
+    }
     
     // If it's a legacy Cloudinary raw URL missing the .pdf extension, force download as PDF
     if (url.includes('res.cloudinary.com') && url.includes('/raw/upload/') && !url.includes('fl_attachment')) {
@@ -464,14 +472,37 @@ export default function ResumeToolkit() {
             </div>
             <div className="flex flex-wrap gap-2">
               {resumeUrl && (
-                <a
-                  href={resumeUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-1.5 shadow-sm transition"
+                <button
+                  onClick={async () => {
+                    try {
+                      setPreviewLoading(true);
+                      // Fetch the PDF through our backend proxy (handles all storage types)
+                      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+                      const apiBase = import.meta.env.VITE_API_URL || '/api';
+                      const res = await fetch(`${apiBase}/provider/profile/resume/preview`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                      });
+                      if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.message || `Server error ${res.status}`);
+                      }
+                      const blob = await res.blob();
+                      const blobUrl = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+                      window.open(blobUrl, '_blank');
+                      // Clean up after a short delay
+                      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+                    } catch (err) {
+                      toast.error(err.message || t('Failed to load resume preview'));
+                    } finally {
+                      setPreviewLoading(false);
+                    }
+                  }}
+                  disabled={previewLoading}
+                  className="px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-1.5 shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <Eye className="w-3.5 h-3.5" /> {t('Preview Resume')}
-                </a>
+                  <Eye className="w-3.5 h-3.5" />
+                  {previewLoading ? t('Loading...') : t('Preview Resume')}
+                </button>
               )}
               <button
                 onClick={() => navigate('/provider/profile?tab=Resume')}
