@@ -123,9 +123,6 @@ const SavedJobCard = ({ job, onUnsave, onViewDetails }) => {
           >
             <HiBookmark className="w-[18px] h-[18px]" />
           </button>
-          <button className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-          </button>
         </div>
         
         <button
@@ -279,7 +276,8 @@ const SavedJobs = () => {
     
     if (filterWorkMode && filterWorkMode !== 'All') {
       const mode = (job.workMode || '').toLowerCase();
-      const fMode = filterWorkMode.toLowerCase();
+      let fMode = filterWorkMode.toLowerCase();
+      if (fMode === 'on-site') fMode = 'onsite';
       if (!mode.includes(fMode)) return false;
     }
     return true;
@@ -287,7 +285,7 @@ const SavedJobs = () => {
 
   filteredJobs.sort((a, b) => {
     if (sortBy === 'recent') {
-      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      return new Date(b.savedAt || b.createdAt || 0) - new Date(a.savedAt || a.createdAt || 0);
     } else if (sortBy === 'match') {
       return (b.matchScore || 0) - (a.matchScore || 0);
     }
@@ -507,7 +505,11 @@ const SavedJobs = () => {
               
               <div className="space-y-3">
                 {recommendations.map((rec, idx) => (
-                  <div key={rec._id || idx} className="flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-blue-50/50 cursor-pointer transition">
+                  <div 
+                    key={rec._id || idx} 
+                    onClick={() => rec._id && navigate(`/provider/job/${rec._id}`)}
+                    className="flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-blue-50/50 cursor-pointer transition"
+                  >
                     <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center font-bold text-gray-700 shrink-0">
                       {rec.title?.substring(0, 2).toUpperCase() || 'JB'}
                     </div>
@@ -519,7 +521,7 @@ const SavedJobs = () => {
                   </div>
                 ))}
               </div>
-              <button className="w-full mt-4 py-2 text-sm font-bold text-[#1d4ed8] hover:bg-blue-50 rounded-lg transition">View all recommendations</button>
+              <button onClick={() => navigate('/provider/job-for-me')} className="w-full mt-4 py-2 text-sm font-bold text-[#1d4ed8] hover:bg-blue-50 rounded-lg transition">View all recommendations</button>
             </div>
 
             {/* Get Notified First Widget */}
@@ -549,9 +551,7 @@ const SavedJobs = () => {
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs">
               <h3 className="font-bold text-gray-900 mb-3 text-sm">Quick Actions</h3>
               <div className="space-y-2">
-                <Link to="/provider/alerts" className="block text-sm text-gray-600 hover:text-[#1d4ed8] hover:bg-gray-50 px-3 py-2 rounded-lg transition font-medium">
-                  Manage Alerts
-                </Link>
+
                 <Link to="/provider/applied-jobs" className="block text-sm text-gray-600 hover:text-[#1d4ed8] hover:bg-gray-50 px-3 py-2 rounded-lg transition font-medium">
                   View Application History
                 </Link>

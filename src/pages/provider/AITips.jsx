@@ -61,6 +61,19 @@ export default function AITips() {
     }
   };
 
+  const handleSaveJob = async (e, job, idx) => {
+    e.preventDefault();
+    if (!job || (!job._id && !job.id)) return;
+    try {
+      await providerAPI.toggleSaveJob(job._id || job.id, job.isExternal || false);
+      setTopJobs(prev => prev.map((j, i) => i === idx ? { ...j, isSaved: !j.isSaved } : j));
+      toast.success(job.isSaved ? "Job removed from saved" : "Job saved successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Could not save job");
+    }
+  };
+
   const fetchUsage = async () => {
     try {
       setUsageLoading(true);
@@ -449,9 +462,11 @@ export default function AITips() {
                     </div>
                     
                     <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
-                      <Link to="/provider/job-for-me" className="text-[12px] font-bold text-[#0f766e] flex items-center gap-1.5 hover:underline">{t("View Job")}<ArrowRight className="w-3.5 h-3.5" />
+                      <Link to={job._id || job.id ? `/provider/job/${job._id || job.id}` : `/provider/jobs`} className="text-[12px] font-bold text-[#0f766e] flex items-center gap-1.5 hover:underline">{t("View Job")}<ArrowRight className="w-3.5 h-3.5" />
                       </Link>
-                      <button className="text-gray-300 hover:text-gray-500 transition"><Bookmark className="w-4 h-4" /></button>
+                      <button onClick={(e) => handleSaveJob(e, job, idx)} className={`transition ${job.isSaved ? "text-emerald-600" : "text-gray-300 hover:text-gray-500"}`}>
+                        <Bookmark className="w-4 h-4" fill={job.isSaved ? "currentColor" : "none"} />
+                      </button>
                     </div>
 
                     {/* Right Arrow on the last card */}
@@ -474,8 +489,6 @@ export default function AITips() {
                   "Candidates with strong Design Systems skills are getting 40% more interview calls."
                 )}</span>
               </div>
-              <button onClick={() => navigate('/provider/career-health')} className="text-[11px] font-bold bg-white text-[#166534] border border-[#bcf0cf] px-4 py-2 rounded-lg hover:bg-green-50 flex items-center gap-1.5 shadow-sm transition">{t("Learn This Skill")}<ArrowRight className="w-3.5 h-3.5" />
-              </button>
             </div>
 
           </div>

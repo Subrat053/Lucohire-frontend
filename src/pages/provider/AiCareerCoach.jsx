@@ -39,6 +39,7 @@ export default function AiCareerCoach() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [goalModalOpen, setGoalModalOpen] = useState(false);
+  const [fullPlanModalOpen, setFullPlanModalOpen] = useState(false);
   const [goalRole, setGoalRole] = useState('');
   const [goalTimeline, setGoalTimeline] = useState('');
   const [goalLoading, setGoalLoading] = useState(false);
@@ -606,7 +607,7 @@ export default function AiCareerCoach() {
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-base font-bold">Career Roadmap</h3>
-          <button onClick={() => setActiveTab('Career Plan')} className="text-sm font-bold text-[#0f766e] flex items-center gap-1">
+          <button onClick={() => { setActiveTab('Career Plan'); setFullPlanModalOpen(true); }} className="text-sm font-bold text-[#0f766e] flex items-center gap-1">
             Full Plan <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -826,6 +827,19 @@ export default function AiCareerCoach() {
               className="w-full mt-4 py-2.5 bg-[#0f766e] hover:bg-teal-800 text-white font-bold text-base rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
               {goalLoading ? <><div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generating...</> : <><Check className="w-6 h-6" /> Save & Regenerate Roadmap</>}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Full Plan Modal */}
+      {fullPlanModalOpen && (
+        <div className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4" onClick={() => setFullPlanModalOpen(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-xl text-gray-900">Full Career Plan</h3>
+              <button onClick={() => setFullPlanModalOpen(false)}><X className="w-5 h-5 text-gray-400 hover:text-gray-600" /></button>
+            </div>
+            {renderCareerPlan()}
           </div>
         </div>
       )}

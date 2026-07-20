@@ -1,5 +1,6 @@
 import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authAPI, providerAPI, aiAPI, profileShareAPI, userAPI } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
@@ -971,6 +972,7 @@ const ProviderProfile = () => {
           noticePeriod: data.noticePeriod || "",
           previousExperience: data.previousExperience || [],
           education: data.education || [],
+          projects: data.projects || [],
           contactVisibility: data.contactVisibility || "both",
           resumeUrl: data.resumeUrl || "",
           jobType: data.jobType || [],
@@ -1649,7 +1651,6 @@ const ProviderProfile = () => {
       if (localStorage.getItem('lastResumeHash')) {
         // Refresh resume-toolkit data on next visit by setting a flag
         localStorage.setItem('resumeToolkitRefresh', Date.now().toString());
-        navigate('/provider/resume-toolkit', { state: { fileHash: localStorage.getItem('lastResumeHash'), parsedData: rawPayload } });
       }
     } catch (err) {
       if (err.response?.data?.upgradeRequired) {
@@ -2338,7 +2339,10 @@ const ProviderProfile = () => {
                            </div>
                          </div>
                        ))}
-                       <button type="button" onClick={() => setForm({ ...form, projects: [...(form.projects || []), { name: '', link: '', description: '', visibleForAll: true }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">{t("+ Add Project")}</button>
+                       <div className="flex items-center justify-between mt-2 border-t border-slate-100 pt-4">
+                         <button type="button" onClick={() => setForm({ ...form, projects: [...(form.projects || []), { name: '', link: '', description: '', visibleForAll: true }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">{t("+ Add Project")}</button>
+                         <button type="button" onClick={handleSave} disabled={saving} className="text-white text-[13px] font-bold py-2 px-5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-xl shadow-sm transition-all active:scale-95 flex items-center gap-1">{saving ? t("Saving...") : t("Save Projects")}</button>
+                       </div>
                      </div>
                   </div>
 
@@ -2482,16 +2486,11 @@ const ProviderProfile = () => {
                       <div className="flex items-center gap-3">
                         <FileText className="w-8 h-8 text-rose-500" />
                         <div>
-                          <p className="text-[13px] font-bold text-slate-800">{t("Current Resume")}</p>
+                          <p className="text-[13px] font-bold text-slate-800 break-all" title={decodeURIComponent(form.resumeUrl.split('/').pop())}>
+                            {decodeURIComponent(form.resumeUrl.split('/').pop().replace(/-\\d+(\\.[a-zA-Z0-9]+)$/, '$1')) || t("Current Resume")}
+                          </p>
                           <p className="text-[11px] text-slate-500">{t("Uploaded successfully")}</p>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <button 
-                          type="button"
-                          onClick={() => setIsResumeModalOpen(true)}
-                          className="text-[12px] font-bold text-emerald-600 hover:text-emerald-700"
-                        >{t("View Resume")}</button>
                       </div>
                     </div>
                   )}
@@ -3057,42 +3056,6 @@ const ProviderProfile = () => {
           </div>
         </div>
       )}
-      {/* Resume Preview Modal */}
-      {isResumeModalOpen && form.resumeUrl && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden relative">
-            <div className="flex items-center justify-between p-4 border-b border-slate-100 shrink-0">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-emerald-600" />{t("Resume Preview")}</h3>
-              <div className="flex items-center gap-3">
-                <a 
-                  href={toAbsoluteMediaUrl(form.resumeUrl)} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[12px] font-bold transition-colors"
-                >{t("Download")}</a>
-                <button 
-                  onClick={() => setIsResumeModalOpen(false)} 
-                  className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            <div className="flex-1 bg-slate-100 w-full relative">
-              <iframe
-                src={
-                  form.resumeUrl?.toLowerCase().endsWith('.pdf') 
-                    ? toAbsoluteMediaUrl(form.resumeUrl)
-                    : `https://docs.google.com/viewer?url=${encodeURIComponent(toAbsoluteMediaUrl(form.resumeUrl))}&embedded=true`
-                }
-                className="absolute inset-0 w-full h-full border-0"
-                title="Resume Preview"
-              />
-            </div>
-          </div>
-        </div>
-      )}
       {/* Parsed Resume Data Review Modal */}
       {parsedResumeData && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
@@ -3244,7 +3207,8 @@ const ProviderProfile = () => {
                       {parsedResumeData.projects?.length > 0 ? parsedResumeData.projects.map((p, i) => (
                         <div key={i} className="mb-3 last:mb-0 border border-slate-100 p-2 rounded-lg relative">
                           <input type="text" value={p.name || ''} onChange={ev => { const np = [...parsedResumeData.projects]; np[i].name = ev.target.value; setParsedResumeData({...parsedResumeData, projects: np}); }} className="w-full text-sm font-bold text-slate-800 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-1" placeholder={t("Project Name")} />
-                          <input type="text" value={p.link || ''} onChange={ev => { const np = [...parsedResumeData.projects]; np[i].link = ev.target.value; setParsedResumeData({...parsedResumeData, projects: np}); }} className="w-full text-[13px] text-emerald-600 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400" placeholder={t("Project Link")} />
+                          <input type="text" value={p.link || ''} onChange={ev => { const np = [...parsedResumeData.projects]; np[i].link = ev.target.value; setParsedResumeData({...parsedResumeData, projects: np}); }} className="w-full text-[13px] text-emerald-600 bg-transparent outline-none border-b border-slate-200 focus:border-indigo-400 mb-2" placeholder={t("Project Link")} />
+                          <textarea value={p.description || ''} onChange={ev => { const np = [...parsedResumeData.projects]; np[i].description = ev.target.value; setParsedResumeData({...parsedResumeData, projects: np}); }} className="w-full text-[12px] text-slate-600 bg-transparent outline-none border border-slate-200 rounded p-1.5 focus:border-indigo-400 resize-none h-16" placeholder={t("Project Description")} />
                         </div>
                       )) : <p className="text-sm text-slate-400 italic">{t("Not found")}</p>}
                     </div>

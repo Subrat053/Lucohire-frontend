@@ -652,7 +652,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                 
                 {/* In Demand */}
                 <div className="flex-1 min-w-0 border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-6">
-                  <h3 className="font-semibold text-slate-800 mb-1">{t("In-Demand Skills for")}{targetRole}</h3>
+                  <h3 className="font-semibold text-slate-800 mb-1 break-words">{t("In-Demand Skills for")} {targetRole}</h3>
                   <p className="text-xs text-slate-500 mb-4">{t("Skills in high demand in the market")}</p>
                   
                   <div className="flex flex-wrap gap-2 mb-6">
@@ -676,9 +676,9 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                       <div className="mt-1 shrink-0"><BiBriefcase className="w-5 h-5 text-emerald-600" /></div>
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-slate-500 truncate">{t("Jobs in demand")}</div>
-                        <div className="flex items-baseline gap-2 flex-wrap">
-                          <span className="text-lg font-bold text-slate-800 truncate">{marketInsights.jobsInDemand}</span>
-                          <span className="text-xs font-semibold text-emerald-600 whitespace-nowrap">{marketInsights.jobsGrowth}</span>
+                        <div className="flex flex-col mt-0.5">
+                          <span className="text-sm font-bold text-slate-800 break-words">{marketInsights.jobsInDemand}</span>
+                          <span className="text-xs font-semibold text-emerald-600">{marketInsights.jobsGrowth}</span>
                         </div>
                       </div>
                     </div>
@@ -686,9 +686,9 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                       <div className="mt-1 shrink-0"><FiAlertCircle className="w-5 h-5 text-emerald-600" /></div>
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-slate-500 truncate">{t("Avg. Salary")}</div>
-                        <div className="flex items-baseline gap-2 flex-wrap">
-                          <span className="text-lg font-bold text-slate-800 truncate">{marketInsights.avgSalary}</span>
-                          <span className="text-xs font-semibold text-emerald-600 whitespace-nowrap">{marketInsights.salaryGrowth}</span>
+                        <div className="flex flex-col mt-0.5">
+                          <span className="text-sm font-bold text-slate-800 break-words">{marketInsights.avgSalary}</span>
+                          <span className="text-xs font-semibold text-emerald-600">{marketInsights.salaryGrowth}</span>
                         </div>
                       </div>
                     </div>
@@ -763,7 +763,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                 <div className="absolute left-[15px] top-2 bottom-2 w-px bg-slate-200"></div>
                 
                 <ul className="space-y-6">
-                  {timelineRoles.map((role, i) => (
+                  {timelineRoles.slice(0, 3).map((role, i) => (
                     <li key={i} className="relative flex items-center gap-4">
                       {role.current ? (
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-600 shrink-0 z-10 shadow-[0_0_0_4px_white]"></div>
@@ -920,7 +920,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
               {activeModal === 'roadmap' && (
                 <div className="relative pl-4 py-4">
                   <div className="absolute left-[23px] top-4 bottom-4 w-0.5 bg-slate-200"></div>
-                  <ul className="space-y-8">
+                  <ul className="space-y-4">
                     {displayData.career_growth_path?.map((role, i) => (
                       <li key={i} className="relative flex gap-4">
                         {role.current ? (
@@ -928,8 +928,8 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                         ) : (
                           <div className="w-4 h-4 rounded-full border-2 border-slate-300 bg-white shrink-0 z-10 shadow-[0_0_0_4px_white] mt-1"></div>
                         )}
-                        <div className="flex-1 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                          <div className="flex justify-between items-start mb-2">
+                        <div className="flex-1 bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2">
+                          <div className="flex justify-between items-center">
                             <span className={`text-base font-bold ${role.current ? 'text-emerald-700' : 'text-slate-800'}`}>
                               {role.title}
                             </span>
@@ -940,10 +940,11 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                               {role.status}
                             </span>
                           </div>
-                          <p className="text-sm text-slate-500 leading-relaxed font-medium">
-                            {t("Estimated timeline: ")}{role.status === 'Current' ? t("Now") : role.status === 'Next Step' ? t("1-2 Years") : t("3-5 Years")}<br/>
-                            {t("Develop skills required to advance to this stage.")}
-                          </p>
+                          {role.description && (
+                            <p className="text-sm text-slate-600 leading-relaxed">
+                              {role.description}
+                            </p>
+                          )}
                         </div>
                       </li>
                     ))}

@@ -92,16 +92,8 @@ export default function ResumeToolkit() {
     };
   }
 
-  const handleEnableWhatsApp = async () => {
-    const phone = profile?.whatsappNumber || profile?.phone;
-    if (!phone) {
-      toast.error(t('Please add a WhatsApp number in your profile first'));
-      navigate('/provider/profile');
-      return;
-    }
-    const cleaned = phone.replace(/\D/g, '');
-    window.open(`https://wa.me/${cleaned}?text=${encodeURIComponent(t('Hi! I want to enable resume & job updates on WhatsApp.'))}`, '_blank');
-    setWhatsappEnabled(true);
+  const handleEnableWhatsApp = () => {
+    setWhatsappEnabled(!whatsappEnabled);
   };
 
   const handleOpenWhatsAppHelp = () => {
@@ -416,10 +408,10 @@ export default function ResumeToolkit() {
           </div>
           <button
             onClick={handleEnableWhatsApp}
-            className={`w-full font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition ${whatsappEnabled ? 'bg-green-50 border border-green-200 text-green-700' : 'border border-gray-200 text-teal-800 hover:bg-gray-50'}`}
+            className={`w-full font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition ${whatsappEnabled ? 'bg-red-50 border border-red-200 text-red-700 hover:bg-red-100' : 'border border-gray-200 text-teal-800 hover:bg-gray-50'}`}
           >
             {whatsappEnabled
-              ? <><Check className="w-4 h-4" /> {t('WhatsApp Enabled')}</>
+              ? <>{t('Disable WhatsApp Updates')}</>
               : <>{t('Enable WhatsApp Updates')} <FaWhatsapp className="w-4 h-4 text-green-500" /></>
             }
           </button>

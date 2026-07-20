@@ -5,7 +5,7 @@ import {
   Lock, Sparkles, Briefcase, TrendingUp, AlertCircle, CheckCircle2, ArrowRight, FileSearch, Search, Check, Info, Bot, MapPin, Heart, ChevronRight, Bookmark
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
-import { getCareerGPS, getHiringBarriers, getSkillGap, getAtsOptimizer, getAiUsage, improveCareerGPS, improveHiringBarriers, improveSkillGap } from '../../services/providerAIService';
+import { getCareerGPS, getHiringBarriers, getSkillGap, getAtsOptimizer, getAiUsage, improveCareerGPS, improveHiringBarriers, improveSkillGap, getAICareerReport } from '../../services/providerAIService';
 import AiCareerReportModal from '../../components/provider/AiCareerReportModal';
 import AICoachModal from '../../components/provider/AICoachModal';
 import { useAuth } from '../../context/AuthContext';
@@ -37,6 +37,12 @@ export default function GrowWithAIDashboard() {
   const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
   const [usageLoading, setUsageLoading] = useState(true);
   const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
+  
+  const [reportData, setReportData] = useState(null);
+  const [reportLoading, setReportLoading] = useState(true);
+  
+  const [freelanceEnabled, setFreelanceEnabled] = useState(false);
+  const [whatsappEnabled, setWhatsappEnabled] = useState(false);
 
   const { state } = location;
   const fileHash = state?.fileHash || localStorage.getItem('lastResumeHash');
@@ -46,7 +52,22 @@ export default function GrowWithAIDashboard() {
     fetchUsage();
     fetchGPS();
     fetchBarriers();
+    fetchReport();
   }, [fileHash, parsedData]);
+
+  const fetchReport = async () => {
+    try {
+      setReportLoading(true);
+      const { data } = await getAICareerReport({ fileHash, parsedData });
+      if (data?.success && data?.data) {
+        setReportData(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch AI report', error);
+    } finally {
+      setReportLoading(false);
+    }
+  };
 
   const fetchUsage = async () => {
     try {
@@ -278,14 +299,26 @@ export default function GrowWithAIDashboard() {
             <p className="text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">{t("Here's what AI thinks about your job search progress.")}</p>
             
             <ul className="space-y-3.5 mb-6">
-              <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Your profile is well optimized")}</li>
-              <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("You have strong skills for your roles")}</li>
-              <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Keep applying consistently")}</li>
-              <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Improve these skills to get more interviews")}</li>
+              {reportLoading ? (
+                <div className="flex justify-center py-4"><div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div></div>
+              ) : reportData?.top_strengths ? (
+                reportData.top_strengths.slice(0, 4).map((strength, i) => (
+                  <li key={i} className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                    <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{strength}
+                  </li>
+                ))
+              ) : (
+                <>
+                  <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                    <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Your profile is well optimized")}</li>
+                  <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                    <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("You have strong skills for your roles")}</li>
+                  <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                    <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Keep applying consistently")}</li>
+                  <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                    <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Improve these skills to get more interviews")}</li>
+                </>
+              )}
             </ul>
             <button 
               onClick={() => setIsAiReportModalOpen(true)}
@@ -321,39 +354,78 @@ export default function GrowWithAIDashboard() {
 
           {/* WhatsApp AI Alerts */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative overflow-hidden group">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-6 h-6 rounded-full bg-[#25D366] flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
-              <h3 className="font-bold text-gray-900 text-[14px]">{t("WhatsApp AI Alerts")}</h3>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-[#25D366] flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
+                <h3 className="font-bold text-gray-900 text-[14px]">{t("WhatsApp AI Alerts")}</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setWhatsappEnabled(!whatsappEnabled);
+                  toast.success(whatsappEnabled ? "WhatsApp alerts disabled" : "WhatsApp alerts enabled!");
+                }}
+                className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out flex items-center ${whatsappEnabled ? 'bg-[#25D366]' : 'bg-gray-200'}`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out ${whatsappEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
+              </button>
             </div>
-            <p className="text-[11px] text-gray-500 mb-4 font-medium">{t("Stay updated on the go!")}</p>
+            <p className="text-[11px] text-gray-500 mb-4 font-medium">
+              {whatsappEnabled ? t("You will receive updates on your phone.") : t("Stay updated on the go!")}
+            </p>
             
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" />{t("New job matches")}</li>
-              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" />{t("Application status updates")}</li>
-              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" />{t("Interview reminders")}</li>
-              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" />{t("Salary drops & more")}</li>
+            <ul className={`space-y-3 mb-6 transition-opacity duration-200 ${whatsappEnabled ? 'opacity-100' : 'opacity-60'}`}>
+              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#25D366]' : 'text-gray-400'}`} />{t("New job matches")}</li>
+              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#25D366]' : 'text-gray-400'}`} />{t("Application status updates")}</li>
+              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#25D366]' : 'text-gray-400'}`} />{t("Interview reminders")}</li>
+              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#25D366]' : 'text-gray-400'}`} />{t("Salary drops & more")}</li>
             </ul>
             
-            <button className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition flex justify-center items-center gap-2">{t("Enable WhatsApp Alerts")}<FaWhatsapp className="w-4 h-4 text-[#25D366]" />
+            <button 
+              onClick={() => {
+                setWhatsappEnabled(!whatsappEnabled);
+                toast.success(whatsappEnabled ? "WhatsApp alerts disabled" : "WhatsApp alerts enabled!");
+              }}
+              className={`w-full py-2.5 border rounded-xl text-[11px] font-bold transition flex justify-center items-center gap-2 ${whatsappEnabled ? 'border-[#25D366]/20 bg-[#25D366]/10 text-[#128C7E] hover:bg-[#25D366]/20' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+            >
+              {whatsappEnabled ? t("Manage Alert Settings") : t("Enable WhatsApp Alerts")}<FaWhatsapp className={`w-4 h-4 ${whatsappEnabled ? 'text-[#128C7E]' : 'text-[#25D366]'}`} />
             </button>
           </div>
 
           {/* Earn Extra Income */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 bg-orange-50 border border-orange-100 rounded-lg flex items-center justify-center text-[10px]">💰</div>
-              <h3 className="font-bold text-gray-900 text-[14px]">{t("Earn Extra Income")}</h3>
-              <span className="bg-orange-50 text-orange-600 border border-orange-100 text-[9px] font-bold px-1.5 py-0.5 rounded-full">{t("New")}</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-orange-50 border border-orange-100 rounded-lg flex items-center justify-center text-[10px]">💰</div>
+                <h3 className="font-bold text-gray-900 text-[14px]">{t("Earn Extra Income")}</h3>
+                <span className="bg-orange-50 text-orange-600 border border-orange-100 text-[9px] font-bold px-1.5 py-0.5 rounded-full hidden sm:inline-block">{t("New")}</span>
+              </div>
+              <button
+                onClick={() => {
+                  setFreelanceEnabled(!freelanceEnabled);
+                  toast.success(freelanceEnabled ? "Freelance discovery paused" : "Freelance mode activated!");
+                }}
+                className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out flex items-center ${freelanceEnabled ? 'bg-[#0f766e]' : 'bg-gray-200'}`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out ${freelanceEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
+              </button>
             </div>
             
             <div className="flex items-center justify-between gap-2 mb-5 mt-4">
-              <p className="text-[11px] text-gray-600 leading-relaxed max-w-[130px] font-medium">{t("Discover freelance projects matching your skills.")}</p>
-              <div className="w-10 h-10 bg-[#0f766e]/10 rounded-xl flex items-center justify-center border border-[#0f766e]/20">
-                <Briefcase className="w-5 h-5 text-[#0f766e]" />
+              <p className="text-[11px] text-gray-600 leading-relaxed max-w-[130px] font-medium">
+                {freelanceEnabled 
+                  ? t("We are actively finding freelance projects for you.") 
+                  : t("Discover freelance projects matching your skills.")}
+              </p>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-colors ${freelanceEnabled ? 'bg-[#0f766e] border-[#0f766e]' : 'bg-[#0f766e]/10 border-[#0f766e]/20'}`}>
+                <Briefcase className={`w-5 h-5 transition-colors ${freelanceEnabled ? 'text-white' : 'text-[#0f766e]'}`} />
               </div>
             </div>
 
-            <button className="w-full py-2.5 border border-[#0f766e]/20 bg-[#0f766e]/5 rounded-xl text-[11px] font-bold text-[#0f766e] hover:bg-[#0f766e]/10 transition flex justify-center items-center gap-1.5 shadow-sm">{t("Explore Freelance Jobs")}<ArrowRight className="w-3.5 h-3.5" />
+            <button 
+              onClick={() => navigate('/provider/jobs?type=freelance')}
+              className={`w-full py-2.5 border rounded-xl text-[11px] font-bold transition flex justify-center items-center gap-1.5 shadow-sm ${freelanceEnabled ? 'border-[#0f766e] bg-[#0f766e] text-white hover:bg-[#115e59]' : 'border-[#0f766e]/20 bg-[#0f766e]/5 text-[#0f766e] hover:bg-[#0f766e]/10'}`}
+            >
+              {t("Explore Freelance Jobs")}<ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

@@ -92,8 +92,8 @@ async function fetchAllCountries() {
   _fetchPromise = (async () => {
     try {
       const res = await fetch(
-        "https://restcountries.com/v3.1/all?fields=name,idd,cca2,flag",
-        { signal: AbortSignal.timeout(6000) }
+        "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://restcountries.com/v3.1/all?fields=name,idd,cca2,flag"),
+        { signal: AbortSignal.timeout(10000) }
       );
       if (!res.ok) throw new Error("API error");
       const data = await res.json();
