@@ -202,6 +202,19 @@ const ProviderDashboard = () => {
     }
   };
 
+  const handleToggleSave = async (jobId, isExternal, e) => {
+    e.preventDefault();
+    try {
+      await providerAPI.toggleSaveJob(jobId, isExternal);
+      setTopJobs(prev => prev.map(job => 
+        (job._id === jobId || job.id === jobId) ? { ...job, isSaved: !job.isSaved } : job
+      ));
+      toast.success("Job saved status updated");
+    } catch (error) {
+      toast.error("Failed to update saved status");
+    }
+  };
+
   const profile = dashboard?.profile || {};
   const stats = dashboard?.stats || {};
   const hasPremiumInsights = dashboard?.subscription && !dashboard.subscription.isDefault;
@@ -442,8 +455,11 @@ const ProviderDashboard = () => {
                             <div className="text-teal-600/70 text-[11px] font-bold mt-0.5">{t("Great Match")}</div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <button className="text-gray-300 hover:text-gray-500 transition-colors">
-                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                            <button 
+                              onClick={(e) => handleToggleSave(job._id || job.id, job.isExternal || job.source !== 'internal', e)}
+                              className={`${job.isSaved ? "text-[#10b981] bg-[#ecfdf5] border-[#10b981]" : "text-gray-300 hover:text-gray-500 border-transparent hover:bg-gray-50"} transition-colors w-9 h-9 rounded-xl border flex items-center justify-center`}
+                            >
+                              <svg className="w-5 h-5" fill={job.isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
                             </button>
                             <Link to="/provider/job-for-me" className="bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm inline-block text-center">{t("View Job")}</Link>
                           </div>
