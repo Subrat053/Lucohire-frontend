@@ -102,8 +102,6 @@ const CandidateDetails = () => {
     }
   };
 
-  const tabs = ['Overview', 'Experience', 'Skills', 'Education'];
-
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
       <div className="flex flex-col items-center gap-3">
@@ -284,13 +282,6 @@ const CandidateDetails = () => {
                 <StatChip label="Notice Period" value={cData.noticePeriod}/>
                 <StatChip label="Availability" value={cData.availability}/>
               </div>
-
-              {/* Tabs */}
-              {/* <div className="flex mt-5 border-b border-gray-100 overflow-x-auto">
-                {tabs.map(tab => (
-                  <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-3.5 px-4 text-[13px] font-bold whitespace-nowrap border-b-2 -mb-px transition ${activeTab===tab ? 'text-indigo-600 border-indigo-600' : 'text-gray-500 border-transparent hover:text-gray-800'}`}>{tab}</button>
-                ))}
-              </div> */}
             </div>
 
             {/* Content Grid */}
