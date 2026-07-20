@@ -219,8 +219,8 @@ export default function GrowWithAIDashboard() {
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex space-x-6 border-b border-gray-100 overflow-x-auto scrollbar-hide pb-0.5">
+          {/* Eye-Catchy Button Tabs */}
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 pt-1">
             {[
               { id: 'gps', icon: TrendingUp, label: 'AI Career GPS' },
               { id: 'barriers', icon: AlertCircle, label: 'Why Am I Not Getting Hired?' },
@@ -230,13 +230,14 @@ export default function GrowWithAIDashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`pb-3 px-1 text-[13px] font-bold border-b-2 transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+                className={`py-2 px-5 text-[13.5px] font-bold transition-all duration-300 whitespace-nowrap flex items-center gap-2 rounded-full border ${
                   activeTab === tab.id 
-                    ? 'border-[#0f766e] text-[#0f766e]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-800'
+                    ? 'bg-gradient-to-r from-[#0f766e] to-[#0d5c56] text-white border-transparent shadow-md shadow-[#0f766e]/25 transform scale-[1.02]' 
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-[#0f766e]/30 hover:bg-[#f8fcfb]'
                 }`}
               >
-                <tab.icon className="w-4 h-4" /> {tab.label}
+                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-gray-400'}`} /> 
+                {tab.label}
               </button>
             ))}
           </div>
