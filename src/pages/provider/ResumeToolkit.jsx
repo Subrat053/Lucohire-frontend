@@ -150,6 +150,31 @@ export default function ResumeToolkit() {
     }
   };
 
+  const handlePreviewResume = async (e) => {
+    if (e) e.preventDefault();
+    try {
+      setPreviewLoading(true);
+      // Fetch the PDF through our backend proxy (handles all storage types)
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      const apiBase = import.meta.env.VITE_API_URL || '/api';
+      const res = await fetch(`${apiBase}/provider/profile/resume/preview`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `Server error ${res.status}`);
+      }
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      window.open(blobUrl, '_blank');
+      // Clean up after a short delay
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+    } catch (err) {
+      toast.error(err.message || t('Failed to load resume preview'));
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
 
   if (loading || uploading) {
     return (
@@ -431,18 +456,39 @@ export default function ResumeToolkit() {
         <h3 className="text-base font-bold text-gray-900 mb-5">{t('Your Resume')}</h3>
         <div className="flex flex-col md:flex-row gap-6 mb-5">
           {/* PDF preview thumbnail */}
-          <div className="w-28 h-36 bg-gray-50 rounded-xl border border-gray-200 shrink-0 flex flex-col items-center justify-center gap-1 shadow-inner overflow-hidden relative">
+          <div className="w-28 h-36 bg-white rounded-xl border border-gray-200 shrink-0 shadow-sm overflow-hidden relative group">
             {resumeUrl ? (
-              <a href={resumeUrl} target="_blank" rel="noreferrer" className="absolute inset-0 flex flex-col items-center justify-center gap-2 group">
-                <FileText className="w-8 h-8 text-teal-500 group-hover:scale-110 transition" />
-                <span className="text-[9px] text-teal-600 font-bold uppercase tracking-wide">PDF</span>
-                <span className="text-[8px] text-gray-400">{t('Click to view')}</span>
-              </a>
+              <button type="button" onClick={handlePreviewResume} disabled={previewLoading} className="block w-full h-full text-left focus:outline-none">
+                {/* Mini Resume Skeleton (Resume in short) */}
+                <div className="absolute inset-0 p-3 flex flex-col gap-1.5 opacity-70 group-hover:opacity-30 transition-opacity duration-300 bg-slate-50">
+                  <div className="h-1.5 w-14 bg-teal-600/60 rounded-full mx-auto mb-1"></div>
+                  <div className="h-0.5 w-full bg-gray-200 mb-1"></div>
+                  <div className="h-1 w-full bg-gray-300 rounded-full"></div>
+                  <div className="h-1 w-11/12 bg-gray-300 rounded-full"></div>
+                  <div className="h-1 w-4/5 bg-gray-300 rounded-full mb-1.5"></div>
+                  
+                  <div className="h-1 w-10 bg-teal-600/40 rounded-full"></div>
+                  <div className="h-1 w-full bg-gray-200 rounded-full"></div>
+                  <div className="h-1 w-5/6 bg-gray-200 rounded-full"></div>
+                  <div className="h-1 w-full bg-gray-200 rounded-full mb-1"></div>
+
+                  <div className="h-1 w-12 bg-teal-600/40 rounded-full"></div>
+                  <div className="h-1 w-11/12 bg-gray-200 rounded-full"></div>
+                </div>
+                
+                {/* Overlay Hover State */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-95 group-hover:scale-100 bg-white/30 backdrop-blur-[2px]">
+                  <div className="w-8 h-8 bg-teal-600 text-white rounded-full flex items-center justify-center mb-1.5 shadow-lg">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] text-teal-800 font-bold bg-white/95 px-2 py-0.5 rounded shadow-sm">{t('View PDF')}</span>
+                </div>
+              </button>
             ) : (
-              <>
-                <FileText className="w-8 h-8 text-gray-300" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50">
+                <FileText className="w-8 h-8 text-gray-300 mb-1" />
                 <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wide">{t('No File')}</span>
-              </>
+              </div>
             )}
           </div>
           <div className="flex-1">
@@ -473,30 +519,8 @@ export default function ResumeToolkit() {
             <div className="flex flex-wrap gap-2">
               {resumeUrl && (
                 <button
-                  onClick={async () => {
-                    try {
-                      setPreviewLoading(true);
-                      // Fetch the PDF through our backend proxy (handles all storage types)
-                      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-                      const apiBase = import.meta.env.VITE_API_URL || '/api';
-                      const res = await fetch(`${apiBase}/provider/profile/resume/preview`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                      });
-                      if (!res.ok) {
-                        const err = await res.json().catch(() => ({}));
-                        throw new Error(err.message || `Server error ${res.status}`);
-                      }
-                      const blob = await res.blob();
-                      const blobUrl = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-                      window.open(blobUrl, '_blank');
-                      // Clean up after a short delay
-                      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
-                    } catch (err) {
-                      toast.error(err.message || t('Failed to load resume preview'));
-                    } finally {
-                      setPreviewLoading(false);
-                    }
-                  }}
+                  type="button"
+                  onClick={handlePreviewResume}
                   disabled={previewLoading}
                   className="px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-1.5 shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >

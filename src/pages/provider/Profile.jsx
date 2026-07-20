@@ -1783,24 +1783,21 @@ const ProviderProfile = () => {
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="border-b border-slate-200 mb-8 overflow-x-auto hide-scrollbar">
-            <div className="flex gap-10 min-w-max">
+          {/* Tab Navigation - Pill Style */}
+          <div className="mb-8 overflow-x-auto hide-scrollbar pb-2 pt-1">
+            <div className="flex gap-2.5 min-w-max">
               {["Personal", "Details", "Education", "Portfolio", "Resume", "Generate Resume", "Preferences", "Privacy"].map((tab) => (
                 <button
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className={`pb-4 text-[15px] transition-all relative ${
+                  className={`py-2 px-6 text-[14.5px] transition-all duration-200 rounded-full border ${
                     activeTab === tab
-                      ? "text-[#047857] font-bold"
-                      : "text-slate-500 hover:text-slate-700 font-medium"
+                      ? "bg-[#047857] text-white font-bold border-transparent shadow-[inset_0px_4px_8px_rgba(0,0,0,0.25)] scale-[0.96]"
+                      : "bg-white text-slate-600 font-medium border-slate-200 hover:border-[#047857]/30 hover:bg-slate-50"
                   }`}
                 >
                   {tab}
-                  {activeTab === tab && (
-                    <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#047857] rounded-t-full" />
-                  )}
                 </button>
               ))}
             </div>
@@ -2482,16 +2479,46 @@ const ProviderProfile = () => {
                   </div>
                   
                   {form.resumeUrl && (
-                    <div className="mt-6 border border-slate-200 rounded-lg p-4 flex items-center justify-between">
+                    <div className="mt-6 border border-slate-200 rounded-lg p-4 flex items-center justify-between bg-slate-50/50">
                       <div className="flex items-center gap-3">
                         <FileText className="w-8 h-8 text-rose-500" />
                         <div>
                           <p className="text-[13px] font-bold text-slate-800 break-all" title={decodeURIComponent(form.resumeUrl.split('/').pop())}>
-                            {decodeURIComponent(form.resumeUrl.split('/').pop().replace(/-\\d+(\\.[a-zA-Z0-9]+)$/, '$1')) || t("Current Resume")}
+                            {decodeURIComponent(form.resumeUrl.split('/').pop().replace(/-\d+(\.[a-zA-Z0-9]+)$/, '$1')) || t("Current Resume")}
                           </p>
                           <p className="text-[11px] text-slate-500">{t("Uploaded successfully")}</p>
                         </div>
                       </div>
+                      
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            const toastId = toast.loading(t('Loading preview...'));
+                            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+                            const apiBase = import.meta.env.VITE_API_URL || '/api';
+                            const res = await fetch(`${apiBase}/provider/profile/resume/preview`, {
+                              headers: { Authorization: `Bearer ${token}` }
+                            });
+                            if (!res.ok) {
+                              const err = await res.json().catch(() => ({}));
+                              throw new Error(err.message || `Server error ${res.status}`);
+                            }
+                            const blob = await res.blob();
+                            const blobUrl = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+                            window.open(blobUrl, '_blank');
+                            setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+                            toast.dismiss(toastId);
+                          } catch (err) {
+                            toast.dismiss();
+                            toast.error(err.message || t('Failed to load resume preview'));
+                          }
+                        }}
+                        className="px-4 py-2 text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded-lg transition-colors flex items-center gap-2 font-bold text-[13px] shrink-0"
+                      >
+                        <Eye className="w-4 h-4" />
+                        {t('View Resume')}
+                      </button>
                     </div>
                   )}
                 </div>
