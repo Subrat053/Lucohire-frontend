@@ -42,8 +42,8 @@ const navItems = [
   { label: 'Set Reminder', fallback: 'Set Reminder', path: '/recruiter/tasks', icon: HiClipboardCheck },
   { label: 'Reports & Analytics', fallback: 'Reports & Analytics', path: '/recruiter/reports', icon: HiChartBar },
   { label: 'AI Recruiter Workspace', fallback: 'AI Recruiter Workspace', path: '/recruiter/ai', icon: HiSparkles },
-  { label: 'Plans & Billing', fallback: 'Plans & Billing', path: '/recruiter/plans', icon: HiCurrencyRupee },
-  { label: 'Settings', fallback: 'Settings', path: '/recruiter/settings', icon: HiCog },
+  { label: 'Plans', fallback: 'Plans', path: '/recruiter/plans', icon: HiCurrencyRupee },
+  { label: 'Settings & Billing', fallback: 'Settings & Billing', path: '/recruiter/settings', icon: HiCog },
 ];
 
 const RecruiterLayout = ({ children }) => {

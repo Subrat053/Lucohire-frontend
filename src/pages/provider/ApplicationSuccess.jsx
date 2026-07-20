@@ -271,16 +271,20 @@ const ApplicationSuccess = () => {
         </div>
 
         {/* Earn extra income */}
-        <div className="bg-emerald-50 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden border border-emerald-100">
-          <div className="z-10 relative">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Earn extra income in<br/>your free time</h2>
-            <p className="text-sm text-gray-600 mb-6 max-w-sm">Enable Freelance Alerts and get notified about nearby projects that match your skills.</p>
-            <button onClick={handleWhatsappCheckout} className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold rounded-xl transition flex items-center gap-2 w-max shadow-md">
-              <FaWhatsapp className="w-4 h-4" /> Enable Freelance Alerts
+        <div 
+          className="rounded-3xl p-6 md:p-10 flex flex-col items-start justify-center relative overflow-hidden border border-emerald-50 w-full min-h-[300px] md:min-h-[350px]"
+          style={{ backgroundImage: "url('/freelance-banner-bg.png')", backgroundSize: "cover", backgroundPosition: "center right", backgroundRepeat: "no-repeat" }}
+        >
+          {/* Gradient overlay to ensure text is readable on the left */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#f2faf7] via-[#f2faf7]/90 to-transparent w-[80%] md:w-2/3 z-0"></div>
+          
+          <div className="z-10 relative w-full md:w-1/2">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-[#1a1b41] mb-4 leading-tight">Earn extra income in<br/>your free time</h2>
+            <p className="text-base text-gray-800 md:text-gray-600 mb-8 max-w-sm font-medium">Enable Freelance Alerts and get notified about nearby projects that match your skills.</p>
+            <button onClick={handleWhatsappCheckout} className="px-6 py-3 bg-[#0d8765] hover:bg-[#096c4f] text-white text-sm font-bold rounded-xl transition flex items-center gap-2 w-max shadow-md">
+               Enable Freelance Alerts <FaWhatsapp className="w-5 h-5 ml-1" />
             </button>
           </div>
-          {/* Subtle background illustration element */}
-          <div className="absolute right-[-20px] bottom-[-20px] w-64 h-64 bg-emerald-200/40 rounded-full blur-3xl pointer-events-none"></div>
         </div>
 
       </div>
