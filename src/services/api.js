@@ -253,6 +253,8 @@ export const recruiterAPI = {
   getAiInsights: () => API.get("/recruiter/reports/ai-insights"),
   getCustomExportsData: () => API.get("/recruiter/reports/custom-exports"),
   getDashboard: () => API.get("/recruiter/dashboard"),
+  getJobPostings: () => API.get("/recruiter/jobs"),
+  getJobs: () => API.get("/recruiter/jobs"),
   updateProfile: (data) => API.put("/recruiter/profile", data),
   generateJobDescription: (data) =>
     API.post("/recruiter/ai/job-description", data),

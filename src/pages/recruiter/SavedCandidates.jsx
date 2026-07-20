@@ -369,6 +369,7 @@ const Candidates = () => {
                   const scoreData = candidateScores[id] || { score: Math.max(70, 95 - index * 3) };
                   const user = candidate.user || {};
                   const userProfile = candidate.userProfile || {};
+                  const email = user.email || candidate.email || '';
                   const name = candidate.name || user.name || "Candidate";
                   const avatar = candidate.profilePhoto || toOptimizedMediaUrl(user.profilePhoto || user.avatar, 'profile', 150) || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
                   const title = candidate.title || candidate.role || candidate.headline || candidate.skills?.[0] || 'Professional';
@@ -386,9 +387,6 @@ const Candidates = () => {
 
                   return (
                     <div key={id} className={`bg-white rounded-2xl border ${isSelected ? 'border-indigo-400 ring-1 ring-indigo-400' : 'border-gray-200'} p-5 transition flex items-start gap-4 shadow-sm hover:shadow-md`}>
-                      <button onClick={() => toggleCandidateSelection(id)} className="mt-1 text-gray-300 hover:text-indigo-600 transition">
-                        {isSelected ? <FiCheckSquare className="w-5 h-5 text-indigo-600" /> : <FiSquare className="w-5 h-5" />}
-                      </button>
                       <div className={`flex-1 flex ${layout === 'grid' ? 'flex-col' : 'flex-col md:flex-row'} gap-6`}>
                         
                         {/* Profile Info */}
@@ -449,10 +447,7 @@ const Candidates = () => {
                             <Link to={`/recruiter/candidates/${user._id || id}`} className="w-full flex items-center justify-center gap-2 border border-indigo-200 text-indigo-700 bg-indigo-50/30 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-50 transition shadow-sm">
                               <FiEye className="w-3.5 h-3.5" /> View Profile
                             </Link>
-                            <button onClick={() => toast.success('Added to Shortlist')} className="w-full flex items-center justify-center gap-2 border border-gray-200 text-gray-700 bg-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-50 transition shadow-sm">
-                              <FiStar className="w-3.5 h-3.5" /> Shortlist
-                            </button>
-                            <button onClick={() => toast.success('Contacted candidate')} className="w-full flex items-center justify-center gap-2 border border-gray-200 text-gray-700 bg-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-50 transition shadow-sm">
+                            <button onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}`, '_blank', 'noopener,noreferrer')} className="w-full flex items-center justify-center gap-2 border border-gray-200 text-gray-700 bg-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-50 transition shadow-sm">
                               <FiSend className="w-3.5 h-3.5" /> Contact
                             </button>
                           </div>

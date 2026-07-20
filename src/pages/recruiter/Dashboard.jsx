@@ -5,7 +5,8 @@ import {
   FiCalendar, FiUsers, FiCheckSquare, FiUserPlus,
   FiMessageSquare, FiTrendingUp,
   FiChevronDown, FiChevronRight, FiCheckCircle,
-  FiAlertCircle, FiMoreVertical, FiClock, FiCode, FiArrowRight, FiPaperclip
+  FiAlertCircle, FiMoreVertical, FiClock, FiCode, FiArrowRight, FiPaperclip,
+  FiMail, FiMessageCircle
 } from 'react-icons/fi';
 import { HiSparkles, HiBriefcase } from 'react-icons/hi2';
 import { recruiterAPI, notificationAPI, aiAPI } from "../../services/api";
@@ -104,13 +105,13 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [jobsRes, tasksRes, notifRes] = await Promise.all([
-        recruiterAPI.getJobPostings().catch(() => ({ data: { jobs: [] }})),
-        recruiterAPI.getTasks().catch(() => ({ data: { tasks: [] }})),
+        recruiterAPI.getJobPostings().catch(() => ({ data: [] })),
+        recruiterAPI.getTasks().catch(() => ({ data: [] })),
         notificationAPI.getMyNotifications({ page: 1, limit: 5 }).catch(() => ({ data: { notifications: [] }}))
       ]);
       
-      setActiveJobs(jobsRes?.data?.jobs || []);
-      setTasks(tasksRes?.data?.tasks || []);
+      setActiveJobs(Array.isArray(jobsRes?.data) ? jobsRes.data : jobsRes?.data?.jobs || []);
+      setTasks(Array.isArray(tasksRes?.data) ? tasksRes.data : tasksRes?.data?.tasks || []);
       const notifData = notifRes?.data?.notifications || notifRes?.data?.data || [];
       setNotifications(Array.isArray(notifData) ? notifData : []);
     } catch (err) {
@@ -399,23 +400,50 @@ const Dashboard = () => {
           
           {/* Hiring Snapshot */}
           {/* Follow-ups Pending */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition">
+            <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-bold text-gray-900">{t("Follow-ups Pending")}</h2>
-              <Link to="/recruiter/tasks" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View all →")}</Link>
+              <Link to="/recruiter/tasks" className="text-sm font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700 transition">
+                {t("View all")} <FiArrowRight className="w-4 h-4" />
+              </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {tasks.filter(t => t.status !== 'done').slice(0, 8).map(task => (
-                <Link to="/recruiter/tasks" key={task._id || Math.random()} className="block h-full">
-                  <DashboardTaskCard task={task} jobs={activeJobs} t={t} />
-                </Link>
-              ))}
+
+            <div className="space-y-5">
+              {tasks.filter(t => t.status !== 'done').slice(0, 5).map((task, idx) => {
+                const iconStyle = idx % 3 === 0 
+                  ? "bg-purple-50 text-purple-600 border-purple-100" 
+                  : idx % 3 === 1 
+                    ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
+                    : "bg-orange-50 text-orange-600 border-orange-100";
+                const Icon = idx % 3 === 0 ? FiMail : idx % 3 === 1 ? FiMessageCircle : FiCalendar;
+                const actionLabel = idx % 3 === 0 ? "Respond" : idx % 3 === 1 ? "Reply" : "Provide Feedback";
+
+                return (
+                  <div key={task._id || idx} className="flex items-center justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-sm ${iconStyle}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-gray-900 mb-0.5">{task.title}</div>
+                        <div className="text-xs font-medium text-gray-500">
+                          {task.candidateName ? `Candidate: ${task.candidateName}` : (task.dueDate ? `Due: ${task.dueDate}` : 'Pending action')}
+                        </div>
+                      </div>
+                    </div>
+                    <Link to="/recruiter/tasks" className="px-4 py-2 rounded-lg border border-gray-200 text-indigo-700 bg-white text-xs font-bold hover:bg-gray-50 transition shadow-sm">
+                      {actionLabel}
+                    </Link>
+                  </div>
+                );
+              })}
+              
+              {(!tasks || tasks.filter(t => t.status !== 'done').length === 0) && (
+                <div className="text-sm text-gray-500 text-center py-4 border-2 border-dashed border-gray-100 rounded-xl">
+                  {t("No pending follow-ups or tasks right now. You're all caught up!")}
+                </div>
+              )}
             </div>
-            {tasks.filter(t => t.status !== 'done').length === 0 && (
-              <div className="text-center text-sm text-gray-500 py-6">
-                {t("No pending follow ups right now. You're all caught up!")}
-              </div>
-            )}
           </div>
         </div>
       </div>

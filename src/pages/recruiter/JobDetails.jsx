@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { 
   FiMapPin, FiClock, FiCalendar, FiExternalLink, FiMoreHorizontal, 
   FiSearch, FiFilter, FiChevronDown, FiFileText, FiMessageSquare, 
-  FiLoader, FiChevronRight, FiCheckCircle, FiEye, FiUsers, FiTrendingUp, FiBarChart2, FiUser
+  FiLoader, FiChevronRight, FiCheckCircle, FiEye, FiUsers, FiTrendingUp, FiBarChart2, FiUser, FiPlus, FiMinus
 } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
 import { useParams, Link } from 'react-router-dom';
-import { recruiterAPI } from '../../services/api';
+import { recruiterAPI, jobsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow, format } from 'date-fns';
 import CandidateProfileModal from '../../components/recruiter/CandidateProfileModal';
@@ -40,6 +40,10 @@ export default function JobDetails() {
   const [draggedAppId, setDraggedAppId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  
+  const [boostModalOpen, setBoostModalOpen] = useState(false);
+  const [boostDays, setBoostDays] = useState(1);
+  const [isBoosting, setIsBoosting] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -100,6 +104,50 @@ export default function JobDetails() {
     }
   };
 
+  const handleMoveCandidate = async (appId, newStatus) => {
+    const appToMove = applications.find(a => a._id === appId);
+    if (!appToMove || appToMove.status === newStatus) {
+      return;
+    }
+
+    const previousApps = [...applications];
+    setApplications(apps => apps.map(a => 
+      a._id === appId ? { ...a, status: newStatus } : a
+    ));
+
+    try {
+      await recruiterAPI.updateApplicationStatus(appId, { status: newStatus });
+      toast.success('Status updated');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to update status');
+      setApplications(previousApps);
+    }
+  };
+
+  const executeBoost = async () => {
+    if (!boostDays || boostDays <= 0) {
+      return toast.error("Please enter a valid number of days");
+    }
+
+    setIsBoosting(true);
+    try {
+      await jobsAPI.boostJob(jobId, boostDays);
+      toast.success("Job boosted successfully!");
+      setBoostModalOpen(false);
+      fetchData();
+    } catch (error) {
+      if (error.response?.status === 403) {
+        toast.error(error.response.data.message || "You need an active premium plan to boost jobs.");
+      } else {
+        console.error("Boost error:", error);
+        toast.error("Failed to boost job. Please try again.");
+      }
+    } finally {
+      setIsBoosting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center pb-24">
@@ -151,12 +199,16 @@ export default function JobDetails() {
             <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0 w-full md:w-auto justify-start md:justify-end">
               <Link to={`/job/${job._id}`} target="_blank" className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-white border border-gray-200 text-indigo-600 hover:bg-gray-50 px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition">{t("View Job Page")}<FiExternalLink />
               </Link>
-              <button onClick={() => toast('Promote job feature coming soon!', { icon: '🚀' })} className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition">
-                <HiSparkles />{t("Promote Job")}<FiChevronDown />
-              </button>
-              <button onClick={() => toast('More actions coming soon!')} className="p-2.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition shadow-sm shrink-0">
-                <FiMoreHorizontal />
-              </button>
+              {job.isBoosted && (
+                <span className="inline-flex items-center px-4 py-2.5 rounded-lg text-xs font-bold bg-purple-50 text-purple-600 border border-purple-100">
+                  <HiSparkles className="mr-1" />{t("BOOSTED")}
+                </span>
+              )}
+              {!job.isBoosted && (
+                <button onClick={() => setBoostModalOpen(true)} className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition">
+                  <HiSparkles />{t("Boost Job")}
+                </button>
+              )}
             </div>
           </div>
           
@@ -190,17 +242,17 @@ export default function JobDetails() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full md:w-auto">
             <div className="relative w-full sm:w-72">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500" />
               <input 
                 type="text" 
                 placeholder={t("Search candidates...")} 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-lg pl-9 pr-4 py-2.5 text-sm font-medium focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all" 
+                className="w-full bg-indigo-50/30 border-2 border-indigo-100 rounded-xl pl-9 pr-4 py-2.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 shadow-sm transition-all text-indigo-900 placeholder:text-indigo-300" 
               />
             </div>
-            <button onClick={() => toast('Advanced filters coming soon!')} className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors">
-              <FiFilter className="text-gray-400" />{t("Filters")}</button>
+            <button onClick={() => toast('Advanced filters coming soon!')} className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-indigo-50 border-2 border-indigo-100 px-4 py-2.5 rounded-xl text-sm font-bold text-indigo-700 shadow-sm hover:bg-indigo-100 transition-colors">
+              <FiFilter className="text-indigo-500" />{t("Filters")}</button>
           </div>
         </div>
 
@@ -228,24 +280,42 @@ export default function JobDetails() {
                 )}
                 {col.candidates.map((cand) => {
                   const initial = cand.provider?.name ? cand.provider.name.charAt(0).toUpperCase() : 'U';
+                  const currentStatusIndex = STATUS_COLUMNS.findIndex(c => c.id === cand.status);
                   
                   return (
                     <div 
                       key={cand._id} 
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, cand._id)}
-                      className={`bg-white rounded-xl border p-3 shadow-sm hover:shadow-md transition cursor-grab relative 
-                        ${draggedAppId === cand._id ? 'opacity-50 border-indigo-300' : 'border-gray-100'}`}
+                      className={`bg-white rounded-xl border p-3 shadow-sm hover:shadow-md transition relative group border-gray-100`}
                     >
-                      <div className="flex gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0">
-                          {initial}
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex gap-3">
+                          <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0">
+                            {initial}
+                          </div>
+                          <div className="truncate w-full max-w-[120px]">
+                            <h4 className="text-xs font-bold text-gray-900 truncate">{cand.provider?.name || 'Unknown User'}</h4>
+                            <p className="text-[10px] text-gray-500 mt-0.5">
+                              {cand.appliedAt ? formatDistanceToNow(new Date(cand.appliedAt), { addSuffix: true }) : ''}
+                            </p>
+                          </div>
                         </div>
-                        <div className="truncate w-full">
-                          <h4 className="text-xs font-bold text-gray-900 truncate">{cand.provider?.name || 'Unknown User'}</h4>
-                          <p className="text-[10px] text-gray-500 mt-0.5">
-                            {cand.appliedAt ? formatDistanceToNow(new Date(cand.appliedAt), { addSuffix: true }) : ''}
-                          </p>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => handleMoveCandidate(cand._id, STATUS_COLUMNS[currentStatusIndex - 1].id)}
+                            disabled={currentStatusIndex <= 0}
+                            className={`p-1 rounded-full ${currentStatusIndex <= 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
+                            title="Move back"
+                          >
+                            <FiMinus className="w-3 h-3" />
+                          </button>
+                          <button 
+                            onClick={() => handleMoveCandidate(cand._id, STATUS_COLUMNS[currentStatusIndex + 1].id)}
+                            disabled={currentStatusIndex >= STATUS_COLUMNS.length - 1}
+                            className={`p-1 rounded-full ${currentStatusIndex >= STATUS_COLUMNS.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
+                            title="Move forward"
+                          >
+                            <FiPlus className="w-3 h-3" />
+                          </button>
                         </div>
                       </div>
                       
@@ -254,7 +324,7 @@ export default function JobDetails() {
                           <button onClick={() => setSelectedCandidate(cand)} className="w-6 h-6 flex items-center justify-center rounded border border-gray-100 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition" title="View Profile">
                             <FiUser className="w-3 h-3" />
                           </button>
-                          <button onClick={() => window.location.href = `mailto:${cand.provider?.email}`} className="w-6 h-6 flex items-center justify-center rounded border border-gray-100 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition" title="Contact">
+                          <button onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${cand.provider?.email}`, '_blank', 'noopener,noreferrer')} className="w-6 h-6 flex items-center justify-center rounded border border-gray-100 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition" title="Contact">
                             <FiMessageSquare className="w-3 h-3" />
                           </button>
                         </div>
@@ -460,6 +530,46 @@ export default function JobDetails() {
         candidateProfile={selectedCandidate?.provider}
         candidateUser={selectedCandidate?.provider}
       />
+      {/* Boost Modal */}
+      {boostModalOpen && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Boost Job Post</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Boosting <span className="font-semibold text-gray-700">{job.title}</span> will increase its visibility and reach more candidates.
+              Each day of boost costs 1 credit.
+            </p>
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-gray-700 mb-2">Duration (Days)</label>
+              <input 
+                type="number" 
+                min="1" 
+                max="30"
+                value={boostDays}
+                onChange={(e) => setBoostDays(parseInt(e.target.value) || '')}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setBoostModalOpen(false)}
+                disabled={isBoosting}
+                className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={executeBoost}
+                disabled={isBoosting || !boostDays || boostDays <= 0}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-bold hover:bg-purple-700 flex items-center gap-2 disabled:opacity-50"
+              >
+                {isBoosting && <FiLoader className="w-4 h-4 animate-spin" />}
+                Confirm Boost ({boostDays} Credit{boostDays > 1 ? 's' : ''})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,10 +1,7 @@
 import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiCalendar, FiMessageSquare, FiPaperclip, FiSearch, FiX, FiBriefcase, FiList } from 'react-icons/fi';
+import { FiPlus, FiMinus, FiCalendar, FiMessageSquare, FiPaperclip, FiSearch, FiX, FiBriefcase, FiList } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
-import { DndContext, closestCorners, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
-import { useDroppable } from '@dnd-kit/core';
-import { useDraggable } from '@dnd-kit/core';
 import { recruiterAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -25,21 +22,10 @@ const PriorityBadge = ({ priority }) => {
   );
 };
 
-const TaskCard = ({ task, isOverlay, jobs }) => {
+const TaskCard = ({ task, isOverlay, jobs, onMoveTask }) => {
   const {
     t
   } = useTranslation();
-
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: task._id || task.id,
-    data: task
-  });
-
-  const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    zIndex: isDragging ? 999 : undefined,
-    opacity: isDragging ? 0.5 : 1
-  } : undefined;
 
   const getInitials = (name) => {
     if (!name) return '??';
@@ -48,13 +34,20 @@ const TaskCard = ({ task, isOverlay, jobs }) => {
 
   const associatedJob = jobs.find(j => j._id === task.jobId);
 
+  const statusOrder = ['todo', 'in-progress', 'done'];
+  const currentIndex = statusOrder.indexOf(task.status);
+  
+  const moveBack = () => {
+    if (currentIndex > 0) onMoveTask(task._id || task.id, statusOrder[currentIndex - 1]);
+  };
+  
+  const moveForward = () => {
+    if (currentIndex < statusOrder.length - 1) onMoveTask(task._id || task.id, statusOrder[currentIndex + 1]);
+  };
+
   return (
     <div 
-      ref={setNodeRef} 
-      style={style} 
-      {...attributes} 
-      {...listeners}
-      className={`bg-white p-4 rounded-xl border ${isOverlay ? 'border-indigo-500 shadow-xl scale-105' : 'border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-1'} transition-all cursor-grab active:cursor-grabbing group flex flex-col gap-3`}
+      className={`bg-white p-4 rounded-xl border ${isOverlay ? 'border-indigo-500 shadow-xl scale-105' : 'border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-1'} transition-all group flex flex-col gap-3`}
     >
       <div className="flex justify-between items-start">
         <div className="flex gap-2 items-center flex-wrap">
@@ -63,6 +56,24 @@ const TaskCard = ({ task, isOverlay, jobs }) => {
             <span className="flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
               <HiSparkles className="w-3 h-3" />{t("AI Pick")}</span>
           )}
+        </div>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button 
+            onClick={moveBack}
+            disabled={currentIndex === 0}
+            className={`p-1 rounded-full ${currentIndex === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
+            title="Move back"
+          >
+            <FiMinus className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={moveForward}
+            disabled={currentIndex === statusOrder.length - 1}
+            className={`p-1 rounded-full ${currentIndex === statusOrder.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
+            title="Move forward"
+          >
+            <FiPlus className="w-4 h-4" />
+          </button>
         </div>
       </div>
       <h4 className="text-sm font-bold text-gray-900 leading-snug">{task.title}</h4>
@@ -105,19 +116,14 @@ const TaskCard = ({ task, isOverlay, jobs }) => {
   );
 };
 
-const Column = ({ title, count, colorClass, status, tasks, jobs }) => {
+const Column = ({ title, count, colorClass, status, tasks, jobs, onMoveTask }) => {
   const {
     t
   } = useTranslation();
 
-  const { isOver, setNodeRef } = useDroppable({
-    id: status,
-  });
-
   return (
     <div 
-      ref={setNodeRef} 
-      className={`${status === 'todo' ? 'bg-gray-50/50 border-gray-100' : status === 'in-progress' ? 'bg-indigo-50/30 border-indigo-100/50' : 'bg-emerald-50/30 border-emerald-100/50'} rounded-2xl border p-4 flex flex-col h-full overflow-hidden transition-colors ${isOver ? 'ring-2 ring-indigo-400 bg-indigo-50/50' : ''}`}
+      className={`${status === 'todo' ? 'bg-gray-50/50 border-gray-100' : status === 'in-progress' ? 'bg-indigo-50/30 border-indigo-100/50' : 'bg-emerald-50/30 border-emerald-100/50'} rounded-2xl border p-4 flex flex-col h-full overflow-hidden transition-colors`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -128,7 +134,7 @@ const Column = ({ title, count, colorClass, status, tasks, jobs }) => {
       </div>
       <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar pb-10">
         {tasks.map(task => (
-          <TaskCard key={task._id || task.id} task={task} jobs={jobs} />
+          <TaskCard key={task._id || task.id} task={task} jobs={jobs} onMoveTask={onMoveTask} />
         ))}
         {tasks.length === 0 && (
           <div className="text-center p-6 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-sm font-medium">
@@ -160,14 +166,6 @@ const Tasks = () => {
     dueDate: ''
   });
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    })
-  );
-
   useEffect(() => {
     fetchData();
   }, []);
@@ -188,12 +186,7 @@ const Tasks = () => {
     }
   };
 
-  const handleDragEnd = async (event) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const taskId = active.id;
-    const newStatus = over.id;
+  const handleMoveTask = async (taskId, newStatus) => {
     const task = tasks.find(t => (t._id || t.id) === taskId);
 
     if (task && task.status !== newStatus) {
@@ -344,13 +337,11 @@ const Tasks = () => {
               <span className="text-sm font-medium text-gray-500">{filteredTasks.length}{t("total tasks")}</span>
             </div>
             
-            <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100%-40px)]">
-                <Column title="To Do" count={todoTasks.length} colorClass="bg-gray-400" status="todo" tasks={todoTasks} jobs={jobs} />
-                <Column title="In Progress" count={inProgressTasks.length} colorClass="bg-indigo-500" status="in-progress" tasks={inProgressTasks} jobs={jobs} />
-                <Column title="Done" count={doneTasks.length} colorClass="bg-emerald-500" status="done" tasks={doneTasks} jobs={jobs} />
+                <Column title="To Do" count={todoTasks.length} colorClass="bg-gray-400" status="todo" tasks={todoTasks} jobs={jobs} onMoveTask={handleMoveTask} />
+                <Column title="In Progress" count={inProgressTasks.length} colorClass="bg-indigo-500" status="in-progress" tasks={inProgressTasks} jobs={jobs} onMoveTask={handleMoveTask} />
+                <Column title="Done" count={doneTasks.length} colorClass="bg-emerald-500" status="done" tasks={doneTasks} jobs={jobs} onMoveTask={handleMoveTask} />
               </div>
-            </DndContext>
           </div>
 
         </div>
