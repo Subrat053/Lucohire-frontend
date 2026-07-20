@@ -1,9 +1,11 @@
 import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   FiSearch, FiFileText, FiUsers, FiMail, FiHelpCircle, FiCode, 
   FiZap, FiDollarSign, FiTrendingUp, FiBarChart2, FiMessageSquare, 
-  FiClock, FiArrowRight, FiPlus, FiChevronRight, FiSend, FiLoader, FiUser, FiArrowLeft
+  FiClock, FiArrowRight, FiPlus, FiChevronRight, FiSend, FiLoader, FiUser, FiArrowLeft,
+  FiCalendar, FiTarget, FiArrowUpRight, FiMessageCircle
 } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
 import { FaRobot } from 'react-icons/fa';
@@ -28,8 +30,12 @@ export default function AIRecruiterWorkspace() {
   const [activeConversationId, setActiveConversationId] = useState(null);
   const messagesEndRef = useRef(null);
 
+  const [jobs, setJobs] = useState([]);
+  const [tasks, setTasks] = useState([]);
+
   useEffect(() => {
     fetchConversations();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -37,6 +43,19 @@ export default function AIRecruiterWorkspace() {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  const fetchData = async () => {
+    try {
+      const [jobsRes, tasksRes] = await Promise.all([
+        recruiterAPI.getJobPostings().catch(() => ({ data: { jobs: [] } })),
+        recruiterAPI.getTasks().catch(() => ({ data: [] }))
+      ]);
+      setJobs(jobsRes.data?.jobs || []);
+      setTasks(tasksRes.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchConversations = async () => {
     try {
@@ -463,6 +482,122 @@ export default function AIRecruiterWorkspace() {
               </div>
             </SCard>
 
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-8">
+          {/* HIRING SNAPSHOT */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-gray-900">Hiring Snapshot (This Week)</h2>
+              <Link to="/recruiter/analytics" className="text-sm font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700 transition">
+                View full report <FiArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+            
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 divide-x divide-gray-100">
+              <div className="pl-0 pr-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <FiUsers className="w-4 h-4" />
+                  </div>
+                  <div className="text-xs font-bold text-gray-600 leading-tight">New Applications</div>
+                </div>
+                <div className="text-3xl font-extrabold text-gray-900 mb-1">
+                  {jobs.reduce((sum, job) => sum + (job.interestedCount || 0), 0)}
+                </div>
+                <div className="flex items-center gap-1 text-xs">
+                  <span className="font-bold text-emerald-600 flex items-center"><FiArrowUpRight className="w-3 h-3 mr-0.5" /> 18%</span>
+                  <span className="text-gray-400 font-medium">vs last week</span>
+                </div>
+              </div>
+              
+              <div className="px-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <FiCalendar className="w-4 h-4" />
+                  </div>
+                  <div className="text-xs font-bold text-gray-600 leading-tight">Interviews</div>
+                </div>
+                <div className="text-3xl font-extrabold text-gray-900 mb-1">0</div>
+                <div className="flex items-center gap-1 text-xs">
+                  <span className="text-gray-400 font-medium">No recent changes</span>
+                </div>
+              </div>
+
+              <div className="px-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+                    <FiCalendar className="w-4 h-4" />
+                  </div>
+                  <div className="text-xs font-bold text-gray-600 leading-tight">Offers Made</div>
+                </div>
+                <div className="text-3xl font-extrabold text-gray-900 mb-1">0</div>
+                <div className="flex items-center gap-1 text-xs">
+                  <span className="text-gray-400 font-medium">No recent changes</span>
+                </div>
+              </div>
+
+              <div className="pl-4 pr-0">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <FiTarget className="w-4 h-4" />
+                  </div>
+                  <div className="text-xs font-bold text-gray-600 leading-tight">Hires</div>
+                </div>
+                <div className="text-3xl font-extrabold text-gray-900 mb-1">0</div>
+                <div className="flex items-center gap-1 text-xs">
+                  <span className="text-gray-400 font-medium">No recent changes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* FOLLOW-UPS PENDING */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-gray-900">Follow-ups Pending</h2>
+              <Link to="/recruiter/tasks" className="text-sm font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700 transition">
+                View all <FiArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="space-y-5">
+              {tasks.slice(0, 3).map((task, idx) => {
+                const iconStyle = idx % 3 === 0 
+                  ? "bg-purple-50 text-purple-600 border-purple-100" 
+                  : idx % 3 === 1 
+                    ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
+                    : "bg-orange-50 text-orange-600 border-orange-100";
+                const Icon = idx % 3 === 0 ? FiMail : idx % 3 === 1 ? FiMessageCircle : FiCalendar;
+                const actionLabel = idx % 3 === 0 ? "Respond" : idx % 3 === 1 ? "Reply" : "Provide Feedback";
+
+                return (
+                  <div key={task._id || idx} className="flex items-center justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-sm ${iconStyle}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-gray-900 mb-0.5">{task.title}</div>
+                        <div className="text-xs font-medium text-gray-500">
+                          {task.candidateName ? `Candidate: ${task.candidateName}` : (task.dueDate ? `Due: ${task.dueDate}` : 'Pending action')}
+                        </div>
+                      </div>
+                    </div>
+                    <Link to="/recruiter/tasks" className="px-4 py-2 rounded-lg border border-gray-200 text-indigo-700 bg-white text-xs font-bold hover:bg-gray-50 transition shadow-sm">
+                      {actionLabel}
+                    </Link>
+                  </div>
+                );
+              })}
+              
+              {(!tasks || tasks.length === 0) && (
+                <div className="text-sm text-gray-500 text-center py-4 border-2 border-dashed border-gray-100 rounded-xl">
+                  No pending follow-ups or tasks right now.
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

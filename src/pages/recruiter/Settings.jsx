@@ -1,5 +1,6 @@
 import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import API, { authAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { 
@@ -19,6 +20,7 @@ export default function Settings() {
   const {
     t
   } = useTranslation();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -190,8 +192,8 @@ export default function Settings() {
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header Section */}
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">{t("Settings & Billing")}</h1>
               <p className="text-sm font-medium text-gray-500">{t("Manage your account, team, subscriptions and preferences.")}</p>
@@ -206,11 +208,37 @@ export default function Settings() {
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
+          
+          {/* Top Tabs */}
+          <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
+            {[
+              { id: 'company-profile', label: 'Company Profile', icon: <HiOfficeBuilding />, active: true },
+              { id: 'team', label: 'Team Management', icon: <FiUsers /> },
+              { id: 'subscription', label: 'Subscription & Credits', icon: <FiCreditCard /> },
+              { id: 'billing', label: 'Billing & Invoices', icon: <FiFileText /> },
+              { id: 'integrations', label: 'Integrations', icon: <FiLink /> },
+              { id: 'notifications', label: 'Notifications', icon: <FiBell /> },
+              { id: 'security', label: 'Security', icon: <FiShield /> },
+              { id: 'support', label: 'Support', icon: <FiHelpCircle /> },
+            ].map((tab) => (
+              <button 
+                key={tab.id}
+                className={`flex items-center gap-2 pb-3 text-sm font-bold whitespace-nowrap transition-colors border-b-2 ${
+                  tab.active 
+                    ? 'text-indigo-600 border-indigo-600' 
+                    : 'text-gray-500 border-transparent hover:text-gray-900'
+                }`}
+              >
+                {React.cloneElement(tab.icon, { className: 'w-4 h-4' })}
+                {t(tab.label)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       {/* Main Content */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col 2xl:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-6">
             
             {/* Left Column (Forms) */}
             <div className="flex-1 min-w-0 space-y-6">
@@ -441,28 +469,33 @@ export default function Settings() {
           </div>
 
           {/* Right Sidebar (Subscription & Links) */}
-          <div className="w-full 2xl:w-[360px] shrink-0 space-y-6">
+          <div className="w-full lg:w-[320px] xl:w-[360px] shrink-0 space-y-6">
             
             {/* Your Subscription */}
             <SCard className="p-6">
-              <h2 className="text-sm font-bold text-gray-900 mb-4 flex items-center justify-between">{t("Your Subscription")}<span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-bold text-gray-900">{t("Your Subscription")}</h2>
+                <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
                   <HiSparkles className="w-3 h-3" /> {stats?.subscriptionPlan || 'Free Plan'}
                 </span>
-              </h2>
+              </div>
               <div className="mb-4">
-                <div className="flex items-end gap-1 mb-1">
-                  <span className="text-2xl font-black text-gray-900">{stats?.subscriptionPlan === 'None' || !stats?.subscriptionPlan ? 'Free' : 'Active'}</span>
+                <div className="flex items-end gap-1 mb-2">
+                  <span className="text-2xl font-black text-gray-900">
+                    {stats?.planPrice ? `$${stats.planPrice}` : '$0'}
+                  </span>
+                  <span className="text-xs text-gray-500 font-medium mb-1">/ month</span>
                 </div>
                 <div className="flex items-center justify-between text-xs mt-2">
                   <span className="text-gray-500 font-medium">
-                    {stats?.planEndDate ? `Valid until ${new Date(stats.planEndDate).toLocaleDateString()}` : 'No expiration'}
+                    {stats?.planEndDate ? `Renews on ${new Date(stats.planEndDate).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}` : 'No expiration'}
                   </span>
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${stats?.planStatus === 'active' ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-gray-600 bg-gray-50 border-gray-200'}`}>
-                    {stats?.planStatus ? stats.planStatus.charAt(0).toUpperCase() + stats.planStatus.slice(1) : 'Inactive'}
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${stats?.planStatus === 'active' || !stats?.planStatus ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-gray-600 bg-gray-50 border-gray-200'}`}>
+                    {stats?.planStatus ? stats.planStatus.charAt(0).toUpperCase() + stats.planStatus.slice(1) : 'Active'}
                   </span>
                 </div>
               </div>
-              <button className="w-full bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 py-2 rounded-lg text-xs font-bold transition">{t("Manage Subscription")}</button>
+              <button onClick={() => navigate('/recruiter/plans-billing')} className="w-full bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 py-2 rounded-lg text-xs font-bold transition">{t("Manage Subscription")}</button>
             </SCard>
 
             {/* Credits & Usage */}
@@ -473,12 +506,14 @@ export default function Settings() {
               
               <div className="space-y-5">
                 {[
-                  { label: 'Job Posts', current: stats?.totalJobsPosted || 0, max: stats?.remainingPostLimit === 'unlimited' ? '∞' : (stats?.totalJobsPosted || 0) + (stats?.remainingPostLimit || 0), color: 'bg-purple-600', icon: <FiFileText />, iconColor: 'text-purple-600 bg-purple-50' },
-                  { label: 'Resume Unlocks', current: stats?.totalUnlocks || 0, max: (stats?.totalUnlocks || 0) + (stats?.unlocksRemaining || 0), color: 'bg-emerald-500', icon: <FiUsers />, iconColor: 'text-emerald-500 bg-emerald-50' },
+                  { label: 'Featured Job Credits', current: stats?.featuredJobsUsed || 0, max: stats?.featuredJobsLimit || 20, color: 'bg-indigo-600', icon: <FiFileText />, iconColor: 'text-indigo-600 bg-indigo-50' },
+                  { label: 'Urgent Hiring Credits', current: stats?.urgentHiringUsed || 0, max: stats?.urgentHiringLimit || 10, color: 'bg-orange-500', icon: <HiOfficeBuilding />, iconColor: 'text-orange-500 bg-orange-50' },
+                  { label: 'Resume Unlock Credits', current: stats?.totalUnlocks || 0, max: (stats?.totalUnlocks || 0) + (stats?.unlocksRemaining || 500), color: 'bg-emerald-500', icon: <FiUsers />, iconColor: 'text-emerald-500 bg-emerald-50' },
+                  { label: 'Outreach Credits', current: stats?.outreachUsed || 0, max: stats?.outreachLimit || 2000, color: 'bg-blue-500', icon: <FiUploadCloud />, iconColor: 'text-blue-500 bg-blue-50' },
                 ].map((credit, i) => {
                   const max = credit.max === '∞' ? 100 : (credit.max || 1);
                   const current = credit.max === '∞' ? 0 : credit.current;
-                  const percentage = credit.max === '∞' ? 0 : (current / max) * 100;
+                  const percentage = credit.max === '∞' ? 0 : Math.min(100, (current / max) * 100);
                   return (
                   <div key={i}>
                     <div className="flex justify-between text-[11px] font-bold mb-1.5">
@@ -502,14 +537,36 @@ export default function Settings() {
                 <div className="pt-2 border-t border-gray-100">
                   <div className="flex justify-between text-[11px] font-bold mb-1.5">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-5 h-5 rounded flex items-center justify-center text-indigo-600 bg-indigo-50">
+                      <div className="w-5 h-5 rounded flex items-center justify-center text-purple-600 bg-purple-50">
                         <HiSparkles className="w-3 h-3" />
                       </div>
                       <span className="text-gray-700">{t("AI Copilot Usage")}</span>
                     </div>
-                    <span className="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded text-[10px]">{t("Unlimited")}</span>
+                    <span className="text-gray-900">{t("Unlimited")}</span>
                   </div>
                 </div>
+              </div>
+            </SCard>
+
+            {/* Quick Links */}
+            <SCard className="p-6">
+              <h2 className="text-sm font-bold text-gray-900 mb-4">{t("Quick Links")}</h2>
+              <div className="space-y-1">
+                {[
+                  { label: 'Download Invoice', icon: <FiFileText /> },
+                  { label: 'Payment Methods', icon: <FiCreditCard /> },
+                  { label: 'Billing History', icon: <FiClock />, action: () => navigate('/recruiter/plans-billing') },
+                  { label: 'GST Details', icon: <FiShield /> },
+                  { label: 'Apply Coupon Code', icon: <FiCheck /> },
+                ].map((link, i) => (
+                  <button key={i} onClick={link.action} className="w-full flex items-center justify-between py-2.5 text-[13px] font-bold text-gray-600 hover:text-indigo-600 group">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-gray-400 group-hover:text-indigo-600">{link.icon}</span>
+                      {link.label}
+                    </div>
+                    <FiChevronRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-600" />
+                  </button>
+                ))}
               </div>
             </SCard>
 
@@ -519,15 +576,16 @@ export default function Settings() {
               <p className="text-[11px] font-medium text-gray-500 mb-4">{t("Our support team is here to help you.")}</p>
               
               <button className="w-full flex items-center justify-center gap-2 bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 py-2 rounded-lg text-[13px] font-bold transition mb-4">
-                <FiPhone className="w-3.5 h-3.5" />{t("Contact Support")}</button>
+                <FiHelpCircle className="w-3.5 h-3.5" />{t("Contact Support")}
+              </button>
               
               <div className="space-y-1">
                 {[
                   { label: 'Book a Demo', icon: <FiCamera /> },
                   { label: 'Visit Help Center', icon: <FiExternalLink /> },
                 ].map((link, i) => (
-                  <button key={i} className="w-full flex items-center justify-between py-2 text-[13px] font-bold text-gray-600 hover:text-indigo-600 group">
-                    <div className="flex items-center gap-2">
+                  <button key={i} className="w-full flex items-center justify-between py-2.5 text-[13px] font-bold text-gray-600 hover:text-indigo-600 group">
+                    <div className="flex items-center gap-2.5">
                       <span className="text-gray-400 group-hover:text-indigo-600">{link.icon}</span>
                       {link.label}
                     </div>

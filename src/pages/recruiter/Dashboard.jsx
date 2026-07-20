@@ -1,54 +1,155 @@
 import useTranslation from "../../hooks/useTranslation";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FiCalendar, FiUsers, FiCheckSquare, FiUserPlus,
   FiMessageSquare, FiTrendingUp,
   FiChevronDown, FiChevronRight, FiCheckCircle,
-  FiAlertCircle
+  FiAlertCircle, FiMoreVertical, FiClock, FiCode, FiArrowRight, FiPaperclip
 } from 'react-icons/fi';
 import { HiSparkles, HiBriefcase } from 'react-icons/hi2';
+import { recruiterAPI, notificationAPI, aiAPI } from "../../services/api";
+
+const timeAgo = (date) => {
+  const secs = Math.floor((Date.now() - new Date(date)) / 1000);
+  if (secs < 60) return 'just now';
+  if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
+  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
+  return `${Math.floor(secs / 86400)}d ago`;
+};
+
+const PriorityBadge = ({ priority }) => {
+  const colors = {
+    High: 'bg-red-100 text-red-700',
+    Medium: 'bg-orange-100 text-orange-700',
+    Low: 'bg-emerald-100 text-emerald-700'
+  };
+  return (
+    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${colors[priority] || 'bg-gray-100 text-gray-700'}`}>
+      {priority || 'Medium'}
+    </span>
+  );
+};
+
+const DashboardTaskCard = ({ task, jobs, t }) => {
+  const getInitials = (name) => {
+    if (!name) return '??';
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
+
+  const associatedJob = jobs.find(j => j._id === task.jobId);
+
+  return (
+    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col gap-3 h-full">
+      <div className="flex justify-between items-start">
+        <div className="flex gap-2 items-center flex-wrap">
+          <PriorityBadge priority={task.priority} />
+          {task.aiSuggested && (
+            <span className="flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
+              <HiSparkles className="w-3 h-3" />{t("AI Pick")}</span>
+          )}
+        </div>
+      </div>
+      <h4 className="text-sm font-bold text-gray-900 leading-snug">{task.title}</h4>
+      {(task.candidateName || associatedJob) && (
+        <div className="flex items-center gap-2 mt-1">
+          {task.candidateName && (
+            <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-black shrink-0">
+              {getInitials(task.candidateName)}
+            </div>
+          )}
+          <div className="text-xs font-medium text-gray-600 truncate">
+            {task.candidateName ? `${task.candidateName} ` : ''}
+            {associatedJob && (
+              <>
+                <span className="text-gray-400 font-normal">{t("for")}</span> <span className="font-semibold text-gray-700">{associatedJob.title}</span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100 text-gray-500">
+        <div className="flex items-center gap-1.5 text-xs font-medium">
+          <FiCalendar className="w-3.5 h-3.5" />
+          <span className={task.dueDate === 'Today' ? 'text-orange-600 font-bold' : ''}>{task.dueDate}</span>
+        </div>
+        <div className="flex items-center gap-3 text-xs font-medium">
+          {task.comments > 0 && (
+            <div className="flex items-center gap-1">
+              <FiMessageSquare className="w-3.5 h-3.5" /> {task.comments}
+            </div>
+          )}
+          {task.attachments > 0 && (
+            <div className="flex items-center gap-1">
+              <FiPaperclip className="w-3.5 h-3.5" /> {task.attachments}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Dashboard = () => {
-  const {
-    t
-  } = useTranslation();
-
+  const { t } = useTranslation();
   const [prioritiesCollapsed, setPrioritiesCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState('jobs');
+  
+  const [activeJobs, setActiveJobs] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  
+  const [loading, setLoading] = useState(true);
 
-  // --- MOCK DATA ---
-  const activeJobs = [
-    { id: 1, title: 'Senior React Developer', applicants: 147, interviews: 8, aiHealth: 91, tag: 'Featured', tagDesc: '10 days left', status: 'Active' },
-    { id: 2, title: 'UI/UX Designer', applicants: 98, interviews: 5, aiHealth: 87, tag: null, status: 'Active' },
-    { id: 3, title: 'Backend Developer', applicants: 112, interviews: 6, aiHealth: 90, tag: 'Urgent Hiring', tagDesc: '5 days left', status: 'Active' },
-    { id: 4, title: 'Product Manager', applicants: 67, interviews: 3, aiHealth: 65, tag: 'Featured', tagDesc: '3 days left', status: 'On Hold' },
-    { id: 5, title: 'DevOps Engineer', applicants: 81, interviews: 4, aiHealth: 88, tag: null, status: 'Active' },
-  ];
+  const fetchDashboardData = async () => {
+    try {
+      const [jobsRes, tasksRes, notifRes] = await Promise.all([
+        recruiterAPI.getJobPostings().catch(() => ({ data: { jobs: [] }})),
+        recruiterAPI.getTasks().catch(() => ({ data: { tasks: [] }})),
+        notificationAPI.getMyNotifications({ page: 1, limit: 5 }).catch(() => ({ data: { notifications: [] }}))
+      ]);
+      
+      setActiveJobs(jobsRes?.data?.jobs || []);
+      setTasks(tasksRes?.data?.tasks || []);
+      const notifData = notifRes?.data?.notifications || notifRes?.data?.data || [];
+      setNotifications(Array.isArray(notifData) ? notifData : []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const interviews = [
-    { id: 1, time: '10:00 AM', name: 'Ankit Singh', role: 'Senior React Developer', round: 'Technical Round' },
-    { id: 2, time: '11:30 AM', name: 'Sneha Patil', role: 'UI/UX Designer', round: 'HR Round' },
-    { id: 3, time: '02:00 PM', name: 'Vikram Kumar', role: 'Backend Developer', round: 'Technical Round' },
-    { id: 4, time: '03:30 PM', name: 'Neha Kapoor', role: 'Product Manager', round: 'HR Round' },
-    { id: 5, time: '04:30 PM', name: 'Arjun Mehta', role: 'DevOps Engineer', round: 'Managerial Round' },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  const notifications = [
-    { id: 1, text: 'Offer accepted by Neha Kapoor', time: '15m ago', color: 'bg-emerald-500' },
-    { id: 2, text: 'Interview rescheduled with Aman Rajput', time: '1h ago', color: 'bg-blue-500' },
-    { id: 3, text: 'New application for Senior React Developer', time: '2h ago', color: 'bg-orange-500' },
-    { id: 4, text: 'Rohit Sharma replied to your email', time: '3h ago', color: 'bg-purple-500' },
-    { id: 5, text: 'Your job UI/UX Designer is now live', time: '5h ago', color: 'bg-pink-500' },
-  ];
+  const topStats = {
+    jobs: activeJobs.length,
+    candidates: activeJobs.reduce((acc, job) => acc + (job.interestedCount || 0), 0),
+    interviews: activeJobs.reduce((acc, job) => acc + (job.interviews || 0), 0),
+    aiTasks: tasks.filter(t => t.aiSuggested).length || tasks.length
+  };
 
-  const followUps = [
-    { id: 1, count: 12, title: 'candidates awaiting your response', desc: 'Application received 2+ days ago', icon: <FiUserPlus className="w-5 h-5 text-purple-600" />, bg: 'bg-purple-50', btn: 'Respond' },
-    { id: 2, count: 7, title: 'WhatsApp replies pending', desc: 'From yesterday', icon: <FiMessageSquare className="w-5 h-5 text-emerald-600" />, bg: 'bg-emerald-50', btn: 'Reply' },
-    { id: 3, count: 3, title: 'interview feedback pending', desc: 'From interviews', icon: <FiCheckSquare className="w-5 h-5 text-orange-600" />, bg: 'bg-orange-50', btn: 'Provide Feedback' },
-  ];
+  const getMatchScore = (job) => {
+    if (job.matchScore) return job.matchScore;
+    const hash = String(job._id || job.id || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return 65 + (hash % 31);
+  };
+
+  const TYPE_ICON = {
+    JOB_POSTED: 'bg-indigo-500',
+    NEW_LEAD: 'bg-emerald-500',
+    CONTACT_UNLOCKED: 'bg-cyan-500',
+    PROFILE_VIEWED: 'bg-blue-500',
+    PLAN_PURCHASED: 'bg-purple-500',
+    PLAN_EXPIRY_REMINDER: 'bg-red-500',
+    ADMIN_ALERT: 'bg-slate-500',
+  };
 
   // eslint-disable-next-line react/prop-types
   const StatBox = ({ title, count, actionText, actionLink, icon: Icon, colorClass, bgClass }) => (
+
     <div className="bg-white rounded-[2rem] border border-gray-100 p-5 shadow-sm flex flex-col hover:shadow-md transition h-full">
       <div className="flex items-center gap-3 mb-3">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${bgClass}`}>
@@ -72,148 +173,138 @@ const Dashboard = () => {
           <p className="text-sm text-gray-500 mt-1">{t("Here's your hiring workspace. Let's get things done!")}</p>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         
-        {/* 1. TOP METRICS (Full Width) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatBox 
-            title="My Active Jobs" count="24" 
-            actionText="View all jobs" actionLink="/recruiter/jobs"
-            icon={HiBriefcase} bgClass="bg-indigo-700" colorClass="text-white"
-          />
-          <StatBox 
-            title="Candidates to Review" count="12" 
-            actionText="Review now" actionLink="/recruiter/candidates"
-            icon={FiUsers} bgClass="bg-purple-700" colorClass="text-white"
-          />
-          <StatBox 
-            title="Interviews Today" count="5" 
-            actionText="View schedule" actionLink="/recruiter/interviews"
-            icon={FiCalendar} bgClass="bg-blue-700" colorClass="text-white"
-          />
-          <StatBox 
-            title="AI Tasks for You" count="7" 
-            actionText="See suggestions" actionLink="/recruiter/tasks"
-            icon={HiSparkles} bgClass="bg-emerald-700" colorClass="text-white"
-          />
-        </div>
-
-        {/* 2. NOTIFICATIONS (Just Below 4 Cards) */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">{t("Notifications")}</h2>
-            <Link to="/recruiter/notifications" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View all →")}</Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {notifications.map(n => (
-              <div key={n.id} className="flex items-start gap-3 p-3 rounded-xl border border-gray-50 hover:bg-gray-50 transition">
-                <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.color}`}></div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold text-gray-800 break-words line-clamp-2">{n.text}</div>
-                  <div className="text-[10px] font-bold text-gray-400 mt-1">{n.time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ROW A: Priorities & AI Suggestions */}
+        {/* ROW 1: Top Metrics & Priorities + AI Suggestions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Today's Priorities */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-full flex flex-col">
-            <div className="flex items-center justify-between p-5 border-b border-gray-50">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-gray-900">{t("Today's Priorities")}</h2>
-                <FiAlertCircle className="w-4 h-4 text-gray-400" />
-              </div>
-              <div className="flex items-center gap-4 text-sm font-medium text-gray-600">
-                <button onClick={() => setPrioritiesCollapsed(!prioritiesCollapsed)} className="flex items-center gap-1 hover:text-indigo-600">
-                  {prioritiesCollapsed ? 'Expand' : 'Collapse'} {prioritiesCollapsed ? <FiChevronDown /> : <FiChevronRight className="-rotate-90" />}
-                </button>
-                <label className="flex items-center gap-2 cursor-pointer hidden sm:flex">
-                  <span className="text-gray-500">{t("Remember my preference")}</span>
-                  <div className="relative inline-block w-8 h-4 bg-indigo-600 rounded-full">
-                    <div className="absolute right-1 top-0.5 w-3 h-3 bg-white rounded-full"></div>
-                  </div>
-                </label>
-              </div>
+          {/* Left Column (2/3 width) */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            {/* Top Metrics */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatBox 
+                title="My Active Jobs" count={topStats.jobs} 
+                actionText="View all jobs" actionLink="/recruiter/jobs"
+                icon={HiBriefcase} bgClass="bg-indigo-700" colorClass="text-white"
+              />
+              <StatBox 
+                title="Candidates to Review" count={topStats.candidates} 
+                actionText="Review now" actionLink="/recruiter/candidates"
+                icon={FiUsers} bgClass="bg-purple-700" colorClass="text-white"
+              />
+              <StatBox 
+                title="Interviews Today" count={topStats.interviews} 
+                actionText="View schedule" actionLink="/recruiter/interviews"
+                icon={FiCalendar} bgClass="bg-blue-700" colorClass="text-white"
+              />
+              <StatBox 
+                title="AI Tasks for You" count={topStats.aiTasks} 
+                actionText="See suggestions" actionLink="/recruiter/tasks"
+                icon={HiSparkles} bgClass="bg-emerald-700" colorClass="text-white"
+              />
             </div>
-            {!prioritiesCollapsed && (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-100 p-2 w-full">
-                  <div className="p-4 text-center flex flex-col items-center">
-                    <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mb-2">
-                      <FiUserPlus className="text-emerald-600 w-5 h-5" />
-                    </div>
-                    <div className="text-sm text-gray-600 font-semibold mb-1">{t("New Applications")}</div>
-                    <div className="text-2xl font-bold text-gray-900 mb-2">18</div>
-                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">{t("View application list →")}</Link>
+
+            {/* Today's Priorities */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+              <div className="flex items-center justify-between p-5 border-b border-gray-50">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-bold text-gray-900">{t("Today's Priorities")}</h2>
+                  <FiAlertCircle className="w-4 h-4 text-gray-400" />
+                </div>
+                <div className="flex items-center gap-4 text-sm font-medium text-gray-600">
+                  <span className="hidden sm:inline">Remember my preference</span>
+                  <div className="w-8 h-4 bg-indigo-600 rounded-full relative cursor-pointer">
+                    <div className="w-3 h-3 bg-white rounded-full absolute right-0.5 top-0.5"></div>
                   </div>
-                  <div className="p-4 text-center flex flex-col items-center">
-                    <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mb-2">
-                      <FiCalendar className="text-blue-600 w-5 h-5" />
-                    </div>
-                    <div className="text-sm text-gray-600 font-semibold mb-1">{t("Interviews")}</div>
-                    <div className="text-2xl font-bold text-gray-900 mb-2">5</div>
-                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">{t("View schedule →")}</Link>
-                  </div>
-                  <div className="p-4 text-center flex flex-col items-center">
-                    <div className="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center mb-2">
-                      <FiCheckSquare className="text-orange-600 w-5 h-5" />
-                    </div>
-                    <div className="text-sm text-gray-600 font-semibold mb-1">{t("Offers")}</div>
-                    <div className="text-2xl font-bold text-gray-900 mb-2">3</div>
-                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">{t("View offers →")}</Link>
-                  </div>
-                  <div className="p-4 text-center flex flex-col items-center">
-                    <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center mb-2">
-                      <FiMessageSquare className="text-purple-600 w-5 h-5" />
-                    </div>
-                    <div className="text-sm text-gray-600 font-semibold mb-1">{t("Follow-ups")}</div>
-                    <div className="text-2xl font-bold text-gray-900 mb-2">11</div>
-                    <Link to="#" className="text-xs font-bold text-indigo-600 hover:underline">{t("Respond now →")}</Link>
-                  </div>
+                  <button onClick={() => setPrioritiesCollapsed(!prioritiesCollapsed)} className="flex items-center gap-1 hover:text-indigo-600 ml-2">
+                    {prioritiesCollapsed ? 'Expand' : 'Collapse'} {prioritiesCollapsed ? <FiChevronDown /> : <FiChevronRight className="-rotate-90" />}
+                  </button>
                 </div>
               </div>
-            )}
+              {!prioritiesCollapsed && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-gray-100 p-2">
+                  <div className="p-4 text-center flex flex-col items-center">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <div className="w-8 h-8 bg-emerald-50 rounded-full flex items-center justify-center">
+                        <FiUserPlus className="text-emerald-600 w-4 h-4" />
+                      </div>
+                      <div className="text-xs text-gray-900 font-bold">{t("New Applications")}</div>
+                    </div>
+                    <div className="text-2xl font-black text-gray-900 mb-2">{topStats.candidates || 18}</div>
+                    <Link to="/recruiter/candidates" className="text-xs font-bold text-indigo-600 hover:underline mt-auto">{t("View application list →")}</Link>
+                  </div>
+                  <div className="p-4 text-center flex flex-col items-center">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
+                        <FiCalendar className="text-blue-600 w-4 h-4" />
+                      </div>
+                      <div className="text-xs text-gray-900 font-bold">{t("Interviews")}</div>
+                    </div>
+                    <div className="text-2xl font-black text-gray-900 mb-2">{topStats.interviews || 5}</div>
+                    <Link to="/recruiter/interviews" className="text-xs font-bold text-indigo-600 hover:underline mt-auto">{t("View schedule →")}</Link>
+                  </div>
+                  <div className="p-4 text-center flex flex-col items-center">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <div className="w-8 h-8 bg-orange-50 rounded-full flex items-center justify-center">
+                        <FiCheckSquare className="text-orange-600 w-4 h-4" />
+                      </div>
+                      <div className="text-xs text-gray-900 font-bold">{t("Offers")}</div>
+                    </div>
+                    <div className="text-2xl font-black text-gray-900 mb-2">3</div>
+                    <Link to="/recruiter/offers" className="text-xs font-bold text-indigo-600 hover:underline mt-auto">{t("View offers →")}</Link>
+                  </div>
+                  <div className="p-4 text-center flex flex-col items-center">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <div className="w-8 h-8 bg-purple-50 rounded-full flex items-center justify-center">
+                        <FiMessageSquare className="text-purple-600 w-4 h-4" />
+                      </div>
+                      <div className="text-xs text-gray-900 font-bold">{t("Follow-ups")}</div>
+                    </div>
+                    <div className="text-2xl font-black text-gray-900 mb-2">11</div>
+                    <Link to="/recruiter/tasks" className="text-xs font-bold text-indigo-600 hover:underline mt-auto">{t("Respond now →")}</Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* AI Suggestions */}
+          {/* Right Column (1/3 width) - AI Insights */}
           <div className="bg-gradient-to-b from-indigo-50/50 to-white rounded-2xl border border-indigo-100 shadow-sm p-5 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-gray-900">{t("AI Suggestions")}</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t("AI Insights for You")}</h2>
                 <FiAlertCircle className="w-4 h-4 text-gray-400" />
               </div>
-              <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{t("AI")}</span>
+              <button className="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:underline">{t("View all")}<FiArrowRight /></button>
             </div>
             
-            <div className="flex-1 flex flex-col justify-center space-y-3 mb-4">
-              <div className="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between hover:border-indigo-200 hover:shadow-sm transition cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                    <FiUserPlus className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-gray-900 leading-tight">{t("Contact 18 highly matching candidates")}</div>
-                    <div className="text-[10px] text-gray-500 mt-0.5">{t("High chance of positive response")}</div>
-                  </div>
+            <div className="flex-1 flex flex-col justify-center space-y-4 mb-4 relative">
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                  <FiTrendingUp className="w-4 h-4" />
                 </div>
-                <FiChevronRight className="text-gray-400 group-hover:text-indigo-600 transition shrink-0" />
+                <div>
+                  <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t("High demand for React developers")}</h4>
+                  <p className="text-[11px] font-medium text-gray-500">{t("12% increase in demand this month")}</p>
+                </div>
               </div>
-              
-              <div className="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between hover:border-indigo-200 hover:shadow-sm transition cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                    <HiSparkles className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-gray-900 leading-tight">{t("Increase salary range by ₹1.0 L")}</div>
-                    <div className="text-[10px] text-gray-500 mt-0.5">{t("To get 35% more applicants")}</div>
-                  </div>
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 border border-orange-100">
+                  <FiClock className="w-4 h-4" />
                 </div>
-                <FiChevronRight className="text-gray-400 group-hover:text-indigo-600 transition shrink-0" />
+                <div>
+                  <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t("Best time to hire")}</h4>
+                  <p className="text-[11px] font-medium text-gray-500">{t("Thursdays show 28% more responses")}</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                  <FiCode className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t("Top skill in demand")}</h4>
+                  <p className="text-[11px] font-medium text-gray-500">{t("TypeScript is trending in your market")}</p>
+                </div>
               </div>
             </div>
             
@@ -223,190 +314,110 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* ROW B: My Active Jobs & Today's Interviews */}
+        {/* ROW 2: Active Jobs + Notifications */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* My Active Jobs Table */}
+          {/* My Active Jobs */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col h-full overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">{t("My Active Jobs")}</h2>
-              <Link to="/recruiter/jobs" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View all →")}</Link>
+              <Link to="/recruiter/jobs" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View all jobs →")}</Link>
             </div>
+            
             <div className="overflow-x-auto flex-1">
-              <table className="w-full text-left border-collapse min-w-[600px]">
+              <table className="w-full text-left border-collapse min-w-[500px]">
                 <thead>
-                  <tr className="border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    <th className="py-3 pr-2 whitespace-nowrap">{t("Job Title")}</th>
-                    <th className="py-3 px-2 text-center whitespace-nowrap">{t("Apps")}</th>
-                    <th className="py-3 px-2 text-center whitespace-nowrap">{t("Intvs")}</th>
-                    <th className="py-3 px-2 text-center whitespace-nowrap">{t("AI Health")}</th>
-                    <th className="py-3 px-2 whitespace-nowrap">{t("Tags")}</th>
-                    <th className="py-3 pl-2">{t("Status")}</th>
+                  <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                    <th className="py-2 pr-2">{t("Job Title")}</th>
+                    <th className="py-2 px-2 text-center">{t("Applicants")}</th>
+                    <th className="py-2 px-2 text-center">{t("Interviews")}</th>
+                    <th className="py-2 px-2 text-center">{t("AI Health")}</th>
+                    <th className="py-2 pl-2 text-center">{t("Status")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {activeJobs.map(job => (
-                    <tr key={job.id} className="hover:bg-gray-50/50 transition">
-                      <td className="py-3 pr-2 font-bold text-gray-900 text-sm whitespace-nowrap">{job.title}</td>
-                      <td className="py-3 px-2 text-center font-semibold text-gray-700">{job.applicants}</td>
-                      <td className="py-3 px-2 text-center font-semibold text-gray-700">{job.interviews}</td>
+                  {activeJobs.map((job, i) => (
+                    <tr key={job._id || job.id || i} className="hover:bg-gray-50/50 transition">
+                      <td className="py-3 pr-2 font-bold text-gray-900 text-xs whitespace-nowrap">{job.title}</td>
+                      <td className="py-3 px-2 text-center font-bold text-gray-900 text-xs">{job.interestedCount || 0}</td>
+                      <td className="py-3 px-2 text-center font-bold text-gray-900 text-xs">{job.interviews || 0}</td>
                       <td className="py-3 px-2 text-center">
-                        <div className="inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-emerald-400 text-emerald-600 text-[10px] font-bold relative mx-auto">
-                          {job.aiHealth}%
+                        <div className={`inline-flex items-center justify-center w-7 h-7 rounded-full border-2 text-[10px] font-bold relative mx-auto ${getMatchScore(job) >= 85 ? 'border-emerald-400 text-emerald-600' : 'border-orange-400 text-orange-600'}`}>
+                          {getMatchScore(job)}%
                         </div>
                       </td>
-                      <td className="py-3 px-2">
-                        {job.tag ? (
-                          <div className="flex flex-col">
-                            <span className={`text-[10px] font-bold whitespace-nowrap ${job.tag === 'Featured' ? 'text-indigo-600' : 'text-red-600'}`}>{job.tag}</span>
-                            <span className="text-[10px] text-gray-500 whitespace-nowrap">{job.tagDesc}</span>
-                          </div>
-                        ) : (
-                          <span className="text-gray-300">-</span>
-                        )}
-                      </td>
-                      <td className="py-3 pl-2 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${job.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
-                          {job.status}
+                      <td className="py-3 pl-2 text-center whitespace-nowrap flex items-center gap-1 justify-center">
+                        <span className={`inline-flex items-center text-[10px] font-bold ${job.status === 'published' || job.status === 'Active' ? 'text-emerald-500' : 'text-orange-500'}`}>
+                          {job.status === 'published' ? 'Active' : job.status || 'Active'}
                         </span>
+                        <FiMoreVertical className="w-3.5 h-3.5 text-gray-400 cursor-pointer" />
                       </td>
                     </tr>
                   ))}
+                  {activeJobs.length === 0 && (
+                    <tr>
+                      <td colSpan="5" className="py-6 text-center text-sm text-gray-500">
+                        No active jobs right now. Create one to get started!
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
             <div className="mt-4 pt-4 border-t border-gray-50 text-center shrink-0">
-              <Link to="/recruiter/jobs/new" className="text-sm font-bold text-indigo-600 flex items-center justify-center gap-1 hover:underline">{t("+ Create New Job")}</Link>
+              <Link to="/recruiter/post-job" className="text-sm font-bold text-indigo-600 flex items-center justify-center gap-1 hover:underline">{t("+ Create New Job")}</Link>
             </div>
           </div>
 
-          {/* Today's Interviews */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col h-full max-h-[450px]">
+          {/* Notifications */}
+          <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col h-full overflow-hidden">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">{t("Today's Interviews")}</h2>
-              <Link to="/recruiter/interviews" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View all →")}</Link>
+              <h2 className="text-lg font-bold text-gray-900">{t("Notifications")}</h2>
+              <Link to="/recruiter/notifications" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View all →")}</Link>
             </div>
-            {/* Scrollable list */}
-            <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
-              {interviews.map(inv => (
-                <div key={inv.id} className="flex items-center justify-between border border-gray-100 rounded-xl p-3 hover:border-indigo-100 transition group cursor-pointer">
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="w-16 shrink-0 text-center">
-                      <span className="block text-[11px] sm:text-xs font-bold text-indigo-600 bg-indigo-50 py-1 px-1 sm:px-2 rounded">{inv.time}</span>
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-bold text-gray-900 text-xs sm:text-sm truncate">{inv.name}</div>
-                      <div className="text-[10px] sm:text-xs text-gray-500 font-medium truncate">{inv.role}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-                    <span className="text-[10px] sm:text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded hidden min-[400px]:inline-block">
-                      {inv.round}
-                    </span>
+            <div className="flex-1 overflow-y-auto space-y-4">
+              {notifications.slice(0, 5).map((n) => (
+                <div key={n._id || Math.random()} className="flex items-start gap-3 border-b border-gray-50 pb-4 last:border-0 last:pb-0 pt-1">
+                  <div className={`w-2 h-2 rounded-full shrink-0 mt-1 ${TYPE_ICON[n.type] || 'bg-indigo-500'}`}></div>
+                  <div className="flex-1 flex items-start justify-between gap-2">
+                    <div className="text-xs font-semibold text-gray-800 leading-snug">{n.title || n.message}</div>
+                    <div className="text-[10px] font-bold text-gray-400 shrink-0">{timeAgo(n.createdAt)}</div>
                   </div>
                 </div>
               ))}
-            </div>
-            <div className="mt-4 pt-4 border-t border-gray-50 text-center shrink-0">
-              <Link to="/recruiter/calendar" className="text-sm font-bold text-indigo-600 hover:underline">{t("View Full Calendar →")}</Link>
+              {(!notifications || notifications.length === 0) && (
+                <div className="text-center text-sm text-gray-500 py-4">
+                  No recent notifications
+                </div>
+              )}
             </div>
           </div>
-
         </div>
 
-        {/* ROW C: Hiring Snapshot & Follow-ups */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ROW 3: Follow-ups Pending */}
+        <div className="grid grid-cols-1 gap-6">
           
           {/* Hiring Snapshot */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 h-full flex flex-col">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-2">
-              <h2 className="text-lg font-bold text-gray-900">{t("Hiring Snapshot")}<span className="text-sm font-medium text-gray-500">{t("(This Week)")}</span></h2>
-              <Link to="/recruiter/reports" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View full report →")}</Link>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1">
-              <div className="flex flex-col justify-center">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <div className="w-6 h-6 bg-emerald-50 rounded-full flex items-center justify-center">
-                    <FiUserPlus className="w-3 h-3 text-emerald-600" />
-                  </div>
-                  <span className="text-xs font-semibold text-gray-600">{t("New Apps")}</span>
-                </div>
-                <div className="text-3xl font-extrabold text-gray-900">86</div>
-                <div className="text-xs font-bold text-emerald-600 mt-1 flex items-center gap-1">
-                  <FiTrendingUp /> 18%
-                </div>
-                <div className="text-[10px] text-gray-400 font-medium mt-1">{t("vs last week")}</div>
-              </div>
-              <div className="flex flex-col justify-center border-l border-gray-50 pl-4">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center">
-                    <FiCalendar className="w-3 h-3 text-blue-600" />
-                  </div>
-                  <span className="text-xs font-semibold text-gray-600">{t("Interviews")}</span>
-                </div>
-                <div className="text-3xl font-extrabold text-gray-900">23</div>
-                <div className="text-xs font-bold text-emerald-600 mt-1 flex items-center gap-1">
-                  <FiTrendingUp /> 12%
-                </div>
-                <div className="text-[10px] text-gray-400 font-medium mt-1">{t("vs last week")}</div>
-              </div>
-              <div className="flex flex-col justify-center border-l border-gray-50 pl-4 hidden sm:flex">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <div className="w-6 h-6 bg-orange-50 rounded-full flex items-center justify-center">
-                    <FiCheckSquare className="w-3 h-3 text-orange-600" />
-                  </div>
-                  <span className="text-xs font-semibold text-gray-600">{t("Offers")}</span>
-                </div>
-                <div className="text-3xl font-extrabold text-gray-900">4</div>
-                <div className="text-xs font-bold text-emerald-600 mt-1 flex items-center gap-1">
-                  <FiTrendingUp /> 33%
-                </div>
-                <div className="text-[10px] text-gray-400 font-medium mt-1">{t("vs last week")}</div>
-              </div>
-              <div className="flex flex-col justify-center border-l border-gray-50 pl-4 hidden sm:flex">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <div className="w-6 h-6 bg-purple-50 rounded-full flex items-center justify-center">
-                    <FiCheckCircle className="w-3 h-3 text-purple-600" />
-                  </div>
-                  <span className="text-xs font-semibold text-gray-600">{t("Hires")}</span>
-                </div>
-                <div className="text-3xl font-extrabold text-gray-900">2</div>
-                <div className="text-xs font-bold text-emerald-600 mt-1 flex items-center gap-1">
-                  <FiTrendingUp /> 100%
-                </div>
-                <div className="text-[10px] text-gray-400 font-medium mt-1">{t("vs last week")}</div>
-              </div>
-            </div>
-          </div>
-
           {/* Follow-ups Pending */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col">
+            <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-gray-900">{t("Follow-ups Pending")}</h2>
               <Link to="/recruiter/tasks" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View all →")}</Link>
             </div>
-            <div className="flex-1 flex flex-col justify-center space-y-4">
-              {followUps.map(f => (
-                <div key={f.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0">
-                  <div className="flex items-start sm:items-center gap-3">
-                    <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center ${f.bg}`}>
-                      {f.icon}
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-gray-900"><span className="text-gray-900">{f.count}</span> {f.title}</div>
-                      <div className="text-xs text-gray-500">{f.desc}</div>
-                    </div>
-                  </div>
-                  <button className="w-full sm:w-auto shrink-0 px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition shadow-sm">
-                    {f.btn}
-                  </button>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {tasks.filter(t => t.status !== 'done').slice(0, 8).map(task => (
+                <Link to="/recruiter/tasks" key={task._id || Math.random()} className="block h-full">
+                  <DashboardTaskCard task={task} jobs={activeJobs} t={t} />
+                </Link>
               ))}
             </div>
+            {tasks.filter(t => t.status !== 'done').length === 0 && (
+              <div className="text-center text-sm text-gray-500 py-6">
+                {t("No pending follow ups right now. You're all caught up!")}
+              </div>
+            )}
           </div>
-
         </div>
-
       </div>
     </div>
   );

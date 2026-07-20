@@ -180,13 +180,7 @@ const RecruiterPlans = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="bg-white border-b border-gray-200 py-3 px-6 hidden md:flex items-center justify-between text-xs font-bold text-slate-600">
-        <div className="flex items-center gap-2"><HiCheck className="text-green-500 text-lg"/>{t("Free Job Posting Forever")}</div>
-        <div className="flex items-center gap-2"><FaWallet className="text-indigo-500"/>{t("14 Days Money Back Guarantee")}</div>
-        <div className="flex items-center gap-2"><FaRegClock className="text-orange-500"/>{t("Cancel Anytime No Questions Asked")}</div>
-        <div className="flex items-center gap-2"><FaShieldAlt className="text-green-600"/>{t("100% Secure Payments")}</div>
-        <div className="flex items-center gap-2"><FaHeadset className="text-blue-500"/>{t("24/7 Priority Support")}</div>
-      </div>
+      
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mt-12">
         <div className="flex flex-col lg:flex-row justify-between gap-12 mb-16">
           <div className="max-w-xl">
@@ -194,16 +188,7 @@ const RecruiterPlans = () => {
             <p className="text-slate-500 text-lg mb-8 font-medium">{t(
               "The AI-Powered Recruitment Platform for Startups, Teams, Agencies & Enterprises."
             )}</p>
-            <ul className="space-y-4">
-              {['Post Jobs for Free Forever', 'Unlimited Candidate Search', 'AI Screening & Smart Shortlisting', 'Automate Outreach & Follow-ups', 'Make Data-Driven Hiring Decisions'].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-slate-700 font-bold">
-                  <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-                    <HiCheck className="w-4 h-4"/>
-                  </div>
-                  {item}
-                </li>
-              ))}
-            </ul>
+            
           </div>
 
           <div className="flex flex-col gap-6">
@@ -224,9 +209,7 @@ const RecruiterPlans = () => {
                 <div className="text-xs text-slate-500 font-bold">{t("Lower Hiring Cost")}</div>
               </div>
             </div>
-            <div className="self-end text-right mt-4">
-              <div className="text-xs font-bold text-slate-600">{t("Trusted by")}<br/><span className="text-slate-900 font-black">10,000+</span><br/>{t("Recruiters & Companies")}</div>
-            </div>
+            
           </div>
         </div>
 
