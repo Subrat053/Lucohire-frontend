@@ -632,6 +632,13 @@ const ProviderJobs = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Parse URL search parameters and navigation state
+  const searchParams = new URLSearchParams(location.search);
+  const navState = location.state;
+  const initialSkill = searchParams.get("skills") || navState?.formData?.skills || "";
+  const initialCity = searchParams.get("location") || navState?.formData?.location || "";
+
   const [tab, setTab] = useState("browse"); // 'browse' | 'applications'
   const [jobs, setJobs] = useState([]);
   const [topMatches, setTopMatches] = useState([]);
@@ -639,8 +646,8 @@ const ProviderJobs = () => {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState(null);
-  const [filters, setFilters] = useState({ skill: "", city: "", origin: "all", source: "" });
-  const [search, setSearch] = useState({ skill: "", city: "", origin: "all", source: "" });
+  const [filters, setFilters] = useState({ skill: initialSkill, city: initialCity, origin: "all", source: "" });
+  const [search, setSearch] = useState({ skill: initialSkill, city: initialCity, origin: "all", source: "" });
   const [recruiterProfileTarget, setRecruiterProfileTarget] = useState(null);
 
   const [aiMatchResults, setAiMatchResults] = useState(null);
@@ -648,7 +655,6 @@ const ProviderJobs = () => {
   const [resumeMissing, setResumeMissing] = useState(false);
 
   // ── Income Path Filter ──────────────────────────────────────────────
-  const navState = location.state;
   const initialIncomeFilter = (() => {
     if (!navState?.fromIncomePath) return null;
     const f = { pathTitle: navState.pathTitle || navState.pathType || 'Related Jobs' };

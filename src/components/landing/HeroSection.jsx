@@ -4,53 +4,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import DualPathwayCards from './DualPathwayCards';
 import LiveJobsCarousel from './LiveJobsCarousel';
 import useTranslation from '../../hooks/useTranslation';
+import JobSearchAutocomplete from '../common/JobSearchAutocomplete';
+import LocationSearch from '../LocationSearch';
 
 export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation, setJobLocation, handleJobSearch, isLoadingJobs, liveJobsList, onJobClick }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-  const [apiLocations, setApiLocations] = useState([]);
-  const [isFetchingLocations, setIsFetchingLocations] = useState(false);
-  const locationRef = useRef(null);
-  const debounceTimerRef = useRef(null);
-
-  const fetchLocations = async (query) => {
-    if (!query || query.length < 2) {
-      setApiLocations([]);
-      return;
-    }
-    setIsFetchingLocations(true);
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5`);
-      const data = await res.json();
-      setApiLocations(data || []);
-    } catch (err) {
-      console.error('Error fetching locations:', err);
-    } finally {
-      setIsFetchingLocations(false);
-    }
-  };
-
-  useEffect(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-    debounceTimerRef.current = setTimeout(() => {
-      fetchLocations(jobLocation);
-    }, 500);
-    
-    return () => clearTimeout(debounceTimerRef.current);
-  }, [jobLocation]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (locationRef.current && !locationRef.current.contains(event.target)) {
-        setShowLocationDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const getPopularSearchLink = (term) => {
     if (user?.activeRole === 'provider') {
@@ -82,63 +41,25 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
         
         {/* Main Job Search Bar */}
         <form onSubmit={handleJobSearch} className="w-full max-w-3xl bg-white border border-gray-200 rounded-2xl shadow-sm p-1.5 flex flex-col sm:flex-row items-center relative z-10 hover:shadow-md transition gap-1.5 sm:gap-0 mt-1">
-          <div className="flex-1 flex items-center px-4 py-1 sm:py-0 w-full sm:w-auto bg-transparent border-none">
-            <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 shrink-0" />
-            <input 
-              type="text" 
-              placeholder={t("Search jobs by title, skills, or company")} 
-              className="w-full bg-transparent border-none focus:ring-0 text-gray-700 ml-2 py-1.5 sm:py-2 outline-none text-[11px] sm:text-sm font-medium"
-              value={jobSearch}
-              onChange={(e) => setJobSearch(e.target.value)}
-            />
-          </div>
+          <JobSearchAutocomplete
+            value={jobSearch}
+            onChange={setJobSearch}
+            onSelect={setJobSearch}
+            placeholder={t("Search jobs by title, skills, or company")}
+            liveJobsList={liveJobsList}
+          />
           <div className="hidden sm:block w-px h-6 bg-gray-200 mx-1"></div>
-          <div ref={locationRef} className="flex-1 flex items-center px-4 py-1 sm:py-0 w-full sm:w-auto bg-transparent border-none relative">
-            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 shrink-0" />
-            <input 
-              type="text" 
-              placeholder={t("All Locations")} 
-              className="w-full bg-transparent border-none focus:ring-0 text-gray-700 ml-2 py-1.5 sm:py-2 outline-none text-[11px] sm:text-sm font-medium"
+          <div className="flex-1 flex items-center px-4 py-1 sm:py-0 w-full sm:w-auto bg-transparent border-none relative">
+            <LocationSearch
               value={jobLocation}
-              onChange={(e) => {
-                setJobLocation(e.target.value);
-                setShowLocationDropdown(true);
-              }}
-              onFocus={() => setShowLocationDropdown(true)}
+              onChange={setJobLocation}
+              onSelect={(loc) => setJobLocation(loc ? loc.name || loc.city || loc.label : '')}
+              placeholder={t("All Locations")}
+              className="w-full flex-1"
+              iconClassName="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+              inputClassName="!border-none !rounded-none !bg-transparent !ring-0 focus:!ring-0 w-full focus:!bg-transparent hover:!bg-transparent !shadow-none !text-[11px] sm:!text-sm text-gray-700 !py-1.5 sm:!py-2"
             />
-            {showLocationDropdown && (jobLocation.length > 1 || apiLocations.length > 0 || isFetchingLocations) && (
-              <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto">
-                {isFetchingLocations ? (
-                  <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                    Searching...
-                  </div>
-                ) : apiLocations.length > 0 ? (
-                  apiLocations.map((loc) => {
-                    // Extract a shorter name for display if possible, or use display_name
-                    const nameParts = loc.display_name.split(',');
-                    const shortName = nameParts.slice(0, 3).join(',');
-                    return (
-                      <div 
-                        key={loc.place_id}
-                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm text-gray-700 flex items-start gap-3 border-b border-gray-50 last:border-none"
-                        onClick={() => {
-                          setJobLocation(shortName.trim());
-                          setShowLocationDropdown(false);
-                        }}
-                      >
-                        <MapPin className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
-                        <span className="leading-tight">{shortName.trim()}</span>
-                      </div>
-                    );
-                  })
-                ) : jobLocation.length > 1 ? (
-                  <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                    No matching locations found
-                  </div>
-                ) : null}
-              </div>
-            )}
-            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 ml-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+            <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 shrink-0 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
           </div>
           <button 
             type="submit"

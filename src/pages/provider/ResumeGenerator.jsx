@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { HiOutlineDownload, HiOutlineLightningBolt } from "react-icons/hi";
 import { FiCheck } from "react-icons/fi";
 import toast from "react-hot-toast";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Edit3 } from "lucide-react";
 import AtsOptimizerPanel from "../../components/provider/AtsOptimizerPanel";
 
 export default function ResumeGenerator({ profileData }) {
@@ -30,6 +30,8 @@ export default function ResumeGenerator({ profileData }) {
     previousExperience = [],
     portfolioLinks = [],
     projects: rawProjects = [],
+    certifications = [],
+    achievements = [],
   } = dataToUse;
 
   const projects = rawProjects.filter((p) => p.visibleForAll !== false);
@@ -54,14 +56,9 @@ export default function ResumeGenerator({ profileData }) {
   const templates = [
     { id: "minimalist", name: "Minimalist" },
     { id: "executive", name: "Executive" },
-    { id: "creative", name: "Creative Portfolio" },
-    { id: "tech", name: "Tech Focused" },
-    { id: "timeline", name: "Timeline Flow" },
     { id: "compact", name: "Compact ATS" },
-    { id: "bold", name: "Modern Bold" },
-    { id: "modern-split", name: "Modern Split Column" },
     { id: "academic", name: "Academic Elegant" },
-    { id: "startup", name: "Startup Grid" },
+    { id: "classic-pro", name: "Classic Professional" },
   ];
 
   const handleDownload = async () => {
@@ -268,6 +265,35 @@ export default function ResumeGenerator({ profileData }) {
                 </div>
               </div>
             )}
+            
+            {certifications.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-widest">{t("Certifications")}</h2>
+                <div className="space-y-3">
+                  {certifications.map((cert, i) => (
+                    <div key={i}>
+                      <span className="font-semibold text-sm text-slate-900">{cert.name || cert}</span>
+                      {cert.issuer && <span className="text-sm text-slate-600 ml-1">({cert.issuer})</span>}
+                      {cert.date && <div className="text-xs text-slate-500 mt-0.5">{cert.date}</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {achievements.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-widest">{t("Achievements")}</h2>
+                <div className="space-y-3">
+                  {achievements.map((ach, i) => (
+                    <div key={i}>
+                      <div className="font-semibold text-sm text-slate-900">{ach.title || ach}</div>
+                      {ach.description && <div className="text-sm text-slate-600 mt-0.5">{ach.description}</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -376,6 +402,37 @@ export default function ResumeGenerator({ profileData }) {
                 </div>
               )}
             </div>
+            
+            {certifications.length > 0 && (
+              <>
+                <h2 className="text-base font-bold uppercase tracking-widest mb-5 mt-8 border-b-2 border-slate-900 pb-2 text-slate-900">{t("Certifications")}</h2>
+                <div className="space-y-3 mb-8">
+                  {certifications.map((cert, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <div>
+                        <span className="font-bold text-slate-900">{cert.name || cert}</span>
+                        {cert.issuer && ` — ${cert.issuer}`}
+                      </div>
+                      <span className="font-semibold text-slate-600">{cert.date}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {achievements.length > 0 && (
+              <>
+                <h2 className="text-base font-bold uppercase tracking-widest mb-5 mt-8 border-b-2 border-slate-900 pb-2 text-slate-900">{t("Achievements")}</h2>
+                <div className="space-y-3 mb-8">
+                  {achievements.map((ach, i) => (
+                    <div key={i} className="text-sm">
+                      <div className="font-bold text-slate-900">{ach.title || ach}</div>
+                      {ach.description && <div className="text-slate-700 mt-1">{ach.description}</div>}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         );
 
@@ -505,6 +562,40 @@ export default function ResumeGenerator({ profileData }) {
                           <span className="text-emerald-500 mx-1">•</span>{" "}
                           {edu.year}
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {certifications.length > 0 && (
+                <>
+                  <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-3 mt-10">
+                    <span className="w-8 h-1 bg-emerald-500 rounded-full"></span>{" "}{t("Certifications")}</h2>
+                  <div className="grid gap-4">
+                    {certifications.map((cert, i) => (
+                      <div key={i} className="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                        <div className="font-bold text-slate-800">{cert.name || cert}</div>
+                        <div className="text-sm text-slate-500 font-medium mt-1">
+                          {cert.issuer && <span>{cert.issuer}</span>}
+                          {cert.issuer && cert.date && <span className="text-emerald-500 mx-1">•</span>}
+                          {cert.date && <span>{cert.date}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {achievements.length > 0 && (
+                <>
+                  <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-3 mt-10">
+                    <span className="w-8 h-1 bg-emerald-500 rounded-full"></span>{" "}{t("Achievements")}</h2>
+                  <div className="grid gap-4">
+                    {achievements.map((ach, i) => (
+                      <div key={i} className="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                        <div className="font-bold text-slate-800">{ach.title || ach}</div>
+                        {ach.description && <div className="text-sm text-slate-500 font-medium mt-1">{ach.description}</div>}
                       </div>
                     ))}
                   </div>
@@ -670,6 +761,42 @@ export default function ResumeGenerator({ profileData }) {
                 )}
               </div>
             </div>
+
+            {(certifications.length > 0 || achievements.length > 0) && (
+              <div className="grid grid-cols-12 gap-8 mt-10">
+                <div className="col-span-8 space-y-10">
+                  {certifications.length > 0 && (
+                    <div>
+                      <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-5 font-bold tracking-wide">{t("Certifications.json")}</h2>
+                      <div className="grid gap-4">
+                        {certifications.map((cert, i) => (
+                          <div key={i} className="bg-slate-800/40 p-5 rounded-xl border border-slate-700/50">
+                            <div className="text-emerald-400 font-bold mb-1.5">{cert.name || cert}</div>
+                            {cert.issuer && <div className="text-xs text-slate-400 mb-1">{cert.issuer}</div>}
+                            {cert.date && <div className="text-xs text-blue-400/80 font-medium">{cert.date}</div>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="col-span-4 space-y-10">
+                  {achievements.length > 0 && (
+                    <div>
+                      <h2 className="text-slate-200 text-lg border-l-4 border-emerald-500 pl-4 mb-5 font-bold tracking-wide">{t("Achievements.log")}</h2>
+                      <div className="space-y-3">
+                        {achievements.map((ach, i) => (
+                          <div key={i} className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
+                            <div className="text-slate-200 font-bold text-sm mb-1">{ach.title || ach}</div>
+                            {ach.description && <div className="text-xs text-slate-400">{ach.description}</div>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -775,6 +902,35 @@ export default function ResumeGenerator({ profileData }) {
                     </div>
                   ))}
                 </div>
+
+                {certifications.length > 0 && (
+                  <>
+                    <h2 className="text-2xl font-black text-slate-900 mb-8 mt-12">{t("Certifications")}</h2>
+                    <div className="grid grid-cols-2 gap-4">
+                      {certifications.map((cert, i) => (
+                        <div key={i} className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm">
+                          <div className="font-bold text-slate-900 mb-1">{cert.name || cert}</div>
+                          <div className="text-sm text-slate-500 font-medium">{cert.issuer}</div>
+                          <div className="text-xs font-bold text-indigo-500 mt-2">{cert.date}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+                
+                {achievements.length > 0 && (
+                  <>
+                    <h2 className="text-2xl font-black text-slate-900 mb-8 mt-12">{t("Achievements")}</h2>
+                    <div className="space-y-4">
+                      {achievements.map((ach, i) => (
+                        <div key={i} className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm">
+                          <div className="font-bold text-slate-900 mb-1">{ach.title || ach}</div>
+                          {ach.description && <div className="text-sm text-slate-500">{ach.description}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -899,6 +1055,40 @@ export default function ResumeGenerator({ profileData }) {
                 )}
               </div>
             </div>
+            
+            {(certifications.length > 0 || achievements.length > 0) && (
+              <div className="grid grid-cols-2 gap-6 mt-4">
+                {certifications.length > 0 && (
+                  <div>
+                    <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-3 text-slate-800">{t("Certifications")}</h2>
+                    <div className="space-y-2">
+                      {certifications.map((cert, i) => (
+                        <div key={i} className="text-xs">
+                          <div className="font-bold">{cert.name || cert}</div>
+                          <div className="text-slate-600 flex justify-between mt-0.5">
+                            <span>{cert.issuer}</span>
+                            <span className="font-semibold">{cert.date}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {achievements.length > 0 && (
+                  <div>
+                    <h2 className="text-sm font-black uppercase tracking-widest border-b border-slate-300 pb-1 mb-3 text-slate-800">{t("Achievements")}</h2>
+                    <div className="space-y-2">
+                      {achievements.map((ach, i) => (
+                        <div key={i} className="text-xs">
+                          <div className="font-bold">{ach.title || ach}</div>
+                          {ach.description && <div className="text-slate-600 mt-0.5">{ach.description}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
 
@@ -1025,6 +1215,41 @@ export default function ResumeGenerator({ profileData }) {
                   </div>
                 </div>
               </div>
+
+              {(certifications.length > 0 || achievements.length > 0) && (
+                <div className="grid grid-cols-2 gap-10 mt-12">
+                  {certifications.length > 0 && (
+                    <div>
+                      <h2 className="text-2xl font-black text-rose-950 mb-6 flex items-center gap-4">
+                        <div className="w-10 h-1.5 bg-rose-500 rounded-full" />{" "}{t("Certifications")}</h2>
+                      <div className="space-y-4">
+                        {certifications.map((cert, i) => (
+                          <div key={i} className="bg-white p-6 rounded-3xl shadow-sm border border-rose-100/50">
+                            <div className="font-black text-slate-900 mb-1">{cert.name || cert}</div>
+                            <div className="text-sm font-semibold text-slate-500">{cert.issuer}</div>
+                            <div className="text-xs font-black text-rose-400 mt-2">{cert.date}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {achievements.length > 0 && (
+                    <div>
+                      <h2 className="text-2xl font-black text-rose-950 mb-6 flex items-center gap-4">
+                        <div className="w-10 h-1.5 bg-rose-500 rounded-full" />{" "}{t("Achievements")}</h2>
+                      <div className="space-y-4">
+                        {achievements.map((ach, i) => (
+                          <div key={i} className="bg-white p-6 rounded-3xl shadow-sm border border-rose-100/50">
+                            <div className="font-black text-slate-900 mb-1">{ach.title || ach}</div>
+                            {ach.description && <div className="text-sm font-semibold text-slate-500">{ach.description}</div>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -1152,6 +1377,47 @@ export default function ResumeGenerator({ profileData }) {
                   </div>
                 </>
               )}
+
+              {certifications.length > 0 && (
+                <>
+                  <h2 className="text-xl font-black text-slate-800 mb-6 mt-10">{t("Certifications")}</h2>
+                  <div className="grid gap-4 mb-8">
+                    {certifications.map((cert, i) => (
+                      <div key={i} className="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                        <div className="flex justify-between items-center mb-2">
+                          <h3 className="font-bold text-slate-900">{cert.name || cert}</h3>
+                          {cert.date && (
+                            <span className="text-xs font-bold text-emerald-600">{cert.date}</span>
+                          )}
+                        </div>
+                        {cert.issuer && (
+                          <p className="text-sm text-slate-600 font-medium">
+                            {cert.issuer}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {achievements.length > 0 && (
+                <>
+                  <h2 className="text-xl font-black text-slate-800 mb-6 mt-10">{t("Achievements")}</h2>
+                  <div className="grid gap-4 mb-8">
+                    {achievements.map((ach, i) => (
+                      <div key={i} className="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                        <h3 className="font-bold text-slate-900 mb-2">{ach.title || ach}</h3>
+                        {ach.description && (
+                          <p className="text-sm text-slate-600 leading-relaxed">
+                            {ach.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         );
@@ -1269,6 +1535,39 @@ export default function ResumeGenerator({ profileData }) {
                     ))}
                   </ul>
                 </div>
+              )}
+
+              {(certifications.length > 0 || achievements.length > 0) && (
+                <>
+                  {certifications.length > 0 && (
+                    <div className="mt-6">
+                      <h2 className="text-sm font-bold uppercase tracking-widest border-b border-black pb-1 mb-3">{t("Certifications")}</h2>
+                      <ul className="text-sm space-y-1 list-disc list-inside">
+                        {certifications.map((cert, i) => (
+                          <li key={i}>
+                            <span className="font-bold mr-2">{cert.name || cert}</span>
+                            {cert.issuer && <span className="text-gray-700 italic">{cert.issuer}</span>}
+                            {cert.date && <span className="text-gray-600 ml-2">({cert.date})</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {achievements.length > 0 && (
+                    <div className="mt-6">
+                      <h2 className="text-sm font-bold uppercase tracking-widest border-b border-black pb-1 mb-3">{t("Achievements")}</h2>
+                      <ul className="text-sm space-y-1 list-disc list-inside">
+                        {achievements.map((ach, i) => (
+                          <li key={i}>
+                            <span className="font-bold mr-2">{ach.title || ach}</span>
+                            {ach.description && <span className="text-gray-700 italic">{ach.description}</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -1430,8 +1729,190 @@ export default function ResumeGenerator({ profileData }) {
                     </div>
                   </div>
                 )}
+
+                {certifications.length > 0 && (
+                  <div className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-200">
+                    <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-teal-100 flex items-center justify-center text-teal-600">🎓</div>
+                      {t("Certifications")}
+                    </h2>
+                    <div className="grid gap-4">
+                      {certifications.map((cert, i) => (
+                        <div key={i} className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                          <h3 className="font-bold text-slate-900">{cert.name || cert}</h3>
+                          <div className="text-sm text-slate-500 font-medium mt-1">{cert.issuer}</div>
+                          {cert.date && <div className="text-xs font-bold text-teal-600 mt-2">{cert.date}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {achievements.length > 0 && (
+                  <div className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-200">
+                    <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600">🏆</div>
+                      {t("Achievements")}
+                    </h2>
+                    <div className="grid gap-4">
+                      {achievements.map((ach, i) => (
+                        <div key={i} className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                          <h3 className="font-bold text-slate-900 mb-2">{ach.title || ach}</h3>
+                          {ach.description && <div className="text-sm text-slate-600 font-medium leading-relaxed">{ach.description}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
+          </div>
+        );
+
+      case "classic-pro":
+        return (
+          <div
+            className="bg-white p-12 text-slate-900 h-full w-full box-border focus:outline-none overflow-hidden"
+            style={{ fontFamily: '"Calibri", "Arial", "Helvetica", sans-serif' }}
+            contentEditable
+            suppressContentEditableWarning
+          >
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-[32px] leading-tight font-black uppercase tracking-wider mb-2">
+                {profileName || "YOUR NAME"}
+              </h1>
+              <div className="flex justify-center flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-medium">
+                {city && <span>{city}</span>}
+                {phone && <><span>|</span><span>{phone}</span></>}
+                {email && <><span>|</span><a href={`mailto:${email}`} className="text-blue-600 hover:underline">{email}</a></>}
+                {approvedPortfolioLinks.map(l => (
+                  <React.Fragment key={l.url}>
+                    <span>|</span>
+                    <a href={l.url} className="text-blue-600 hover:underline">{l.platform}</a>
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+
+            {/* Summary */}
+            {about && (
+              <div className="mb-6">
+                <h2 className="text-[16px] font-bold uppercase tracking-wider border-b-[1.5px] border-black pb-1 mb-3">{t("Summary")}</h2>
+                <div className="text-[14px] leading-relaxed text-justify">
+                  {about}
+                </div>
+              </div>
+            )}
+
+            {/* Technical Skills */}
+            {skills.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-[16px] font-bold uppercase tracking-wider border-b-[1.5px] border-black pb-1 mb-3">{t("Skills")}</h2>
+                <div className="text-[14px] leading-relaxed">
+                  <span className="font-bold">{t("Skills")}:</span> {skills.map((s) => s.skill || s).join(", ")}
+                </div>
+              </div>
+            )}
+
+            {/* Experience */}
+            {allExp.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-[16px] font-bold uppercase tracking-wider border-b-[1.5px] border-black pb-1 mb-3">{t("Work Experience")}</h2>
+                <div className="space-y-4">
+                  {allExp.map((exp, i) => (
+                    <div key={i} className="text-[14px]">
+                      <div className="flex justify-between items-baseline mb-1.5">
+                        <span className="font-bold">{exp.role ? `${exp.role} - ` : ''}{exp.company}</span>
+                        <span>{exp.duration}</span>
+                      </div>
+                      {exp.description && (
+                        <ul className="leading-relaxed space-y-1 list-disc list-outside ml-5">
+                          {exp.description.split('\n').map((line, j) => line.trim() ? (
+                            <li key={j}>{line}</li>
+                          ) : null)}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Projects */}
+            {projects?.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-[16px] font-bold uppercase tracking-wider border-b-[1.5px] border-black pb-1 mb-3">{t("Projects")}</h2>
+                <div className="space-y-4">
+                  {projects.map((proj, i) => (
+                    <div key={i} className="text-[14px]">
+                      <div className="flex justify-between items-baseline mb-1.5">
+                        <span>
+                          <span className="font-bold">{proj.name}</span>
+                          {proj.link && <span className="mx-1">|</span>}
+                          {proj.link && <a href={proj.link} className="text-blue-600 hover:underline">{t("Link")}</a>}
+                        </span>
+                      </div>
+                      {proj.description && (
+                        <ul className="leading-relaxed space-y-1 list-disc list-outside ml-5 mt-1">
+                          {proj.description.split('\n').map((line, j) => line.trim() ? (
+                            <li key={j}>{line}</li>
+                          ) : null)}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Education */}
+            {education.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-[16px] font-bold uppercase tracking-wider border-b-[1.5px] border-black pb-1 mb-3">{t("Education")}</h2>
+                <div className="space-y-4">
+                  {education.map((edu, i) => (
+                    <div key={i} className="text-[14px]">
+                      <div className="flex justify-between items-baseline mb-0.5">
+                        <span className="font-bold">{edu.degree}</span>
+                        <span>{edu.year}</span>
+                      </div>
+                      <div className="text-slate-800">{edu.institution}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Certifications */}
+            {certifications.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-[16px] font-bold uppercase tracking-wider border-b-[1.5px] border-black pb-1 mb-3">{t("Certifications")}</h2>
+                <div className="space-y-2">
+                  {certifications.map((cert, i) => (
+                    <div key={i} className="text-[14px] flex justify-between">
+                      <span className="font-medium">{cert.name || cert} {cert.issuer ? `(${cert.issuer})` : ''}</span>
+                      {cert.date && <span>{cert.date}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Achievements */}
+            {achievements.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-[16px] font-bold uppercase tracking-wider border-b-[1.5px] border-black pb-1 mb-3">{t("Achievements")}</h2>
+                <div className="space-y-2">
+                  {achievements.map((ach, i) => (
+                    <div key={i} className="text-[14px]">
+                      <span className="font-medium">{ach.title || ach}</span>
+                      {ach.description && <p className="text-slate-700 text-[13px] mt-0.5">{ach.description}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -1508,10 +1989,14 @@ export default function ResumeGenerator({ profileData }) {
           {/* Fixed Horizontal Clipping by forcing a minimum width inside a scrollable container */}
           <div className="w-full lg:flex-1 bg-slate-100/50 rounded-2xl p-6 lg:p-8 flex overflow-x-auto overflow-y-auto custom-scrollbar border border-slate-200 shadow-inner max-h-[85vh]">
             {/* This wrapper ensures the content never shrinks below A4 width, enabling safe horizontal scroll on smaller screens */}
-            <div className="mx-auto flex justify-center min-w-[794px]">
+            <div className="mx-auto flex flex-col justify-center min-w-[794px] gap-4">
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 shadow-sm animate-pulse">
+                <Edit3 className="w-4 h-4" />
+                {t("Click anywhere on the resume below to edit the text directly before downloading.")}
+              </div>
               <div
                 id="resume-preview-content"
-                className="bg-white shadow-2xl rounded-sm overflow-hidden text-left ring-1 ring-slate-900/5"
+                className="bg-white shadow-2xl rounded-sm overflow-hidden text-left ring-1 ring-slate-900/5 focus-within:ring-2 focus-within:ring-blue-500 transition-all cursor-text"
                 style={{ width: "794px", minHeight: "1123px" }}
               >
                 {renderTemplate()}

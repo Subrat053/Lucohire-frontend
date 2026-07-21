@@ -108,3 +108,9 @@ export function improveCareerHealth(payload) {
     timeout: 90000,
   });
 }
+
+export function optimizeFullResume(payload) {
+  return API.post('/provider/ai/optimize-full-resume', payload, {
+    timeout: 120000, // It takes a while to rewrite the whole JSON
+  });
+}

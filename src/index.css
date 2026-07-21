@@ -153,3 +153,104 @@
     padding-bottom: 10px !important;
   }
 }
+@layer utilities {
+  .theme-classic-pro {
+    --resume-main: #0f172a;
+    --resume-sub: #1e293b;
+    --resume-muted: #334155;
+    --resume-light: #475569;
+    --resume-lighter: #64748b;
+    --resume-accent: #94a3b8;
+    --resume-divider: #cbd5e1;
+    --resume-link: #2563eb;
+    --resume-font: "Georgia", "Times New Roman", serif;
+  }
+  .theme-modern {
+    --resume-main: #111827;
+    --resume-sub: #374151;
+    --resume-muted: #4b5563;
+    --resume-light: #6b7280;
+    --resume-lighter: #9ca3af;
+    --resume-accent: #10b981;
+    --resume-divider: #e5e7eb;
+    --resume-link: #10b981;
+    --resume-font: "Inter", "Roboto", sans-serif;
+  }
+  .theme-executive {
+    --resume-main: #1e3a8a;
+    --resume-sub: #1e40af;
+    --resume-muted: #475569;
+    --resume-light: #64748b;
+    --resume-lighter: #94a3b8;
+    --resume-accent: #93c5fd;
+    --resume-divider: #bfdbfe;
+    --resume-link: #1d4ed8;
+    --resume-font: "Garamond", "Times New Roman", serif;
+  }
+  .theme-minimalist {
+    --resume-main: #000000;
+    --resume-sub: #262626;
+    --resume-muted: #525252;
+    --resume-light: #737373;
+    --resume-lighter: #a3a3a3;
+    --resume-accent: #d4d4d4;
+    --resume-divider: #e5e5e5;
+    --resume-link: #000000;
+    --resume-font: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  }
+  .theme-creative {
+    --resume-main: #4c1d95;
+    --resume-sub: #5b21b6;
+    --resume-muted: #475569;
+    --resume-light: #64748b;
+    --resume-lighter: #94a3b8;
+    --resume-accent: #c4b5fd;
+    --resume-divider: #ddd6fe;
+    --resume-link: #7c3aed;
+    --resume-font: "Poppins", "Nunito", sans-serif;
+  }
+  .theme-corporate {
+    --resume-main: #111827;
+    --resume-sub: #1f2937;
+    --resume-muted: #4b5563;
+    --resume-light: #6b7280;
+    --resume-lighter: #9ca3af;
+    --resume-accent: #cbd5e1;
+    --resume-divider: #d1d5db;
+    --resume-link: #2563eb;
+    --resume-font: "Arial", sans-serif;
+  }
+  .theme-elegant {
+    --resume-main: #7f1d1d;
+    --resume-sub: #991b1b;
+    --resume-muted: #4b5563;
+    --resume-light: #6b7280;
+    --resume-lighter: #9ca3af;
+    --resume-accent: #fecaca;
+    --resume-divider: #fee2e2;
+    --resume-link: #b91c1c;
+    --resume-font: "Playfair Display", "Georgia", serif;
+  }
+  .theme-tech {
+    --resume-main: #164e63;
+    --resume-sub: #155e75;
+    --resume-muted: #334155;
+    --resume-light: #475569;
+    --resume-lighter: #64748b;
+    --resume-accent: #67e8f9;
+    --resume-divider: #a5f3fc;
+    --resume-link: #0891b2;
+    --resume-font: "Fira Code", "Courier New", monospace;
+  }
+  .theme-startup {
+    --resume-main: #065f46;
+    --resume-sub: #047857;
+    --resume-muted: #374151;
+    --resume-light: #4b5563;
+    --resume-lighter: #9ca3af;
+    --resume-accent: #6ee7b7;
+    --resume-divider: #a7f3d0;
+    --resume-link: #059669;
+    --resume-font: "Outfit", "Inter", sans-serif;
+  }
+}

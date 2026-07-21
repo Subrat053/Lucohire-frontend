@@ -28,7 +28,9 @@ import ClientResumeGenerator from "../../components/provider/ClientResumeGenerat
 import SkillGapReportModal from "../../components/provider/SkillGapReportModal";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from "../../config/firebase";
-import ResumeGenerator from "./ResumeGenerator";
+import AdvancedResumeGenerator from "../../components/resume-builder/AdvancedResumeGenerator";
+import SkillAutocomplete from "../../components/common/SkillAutocomplete";
+import PlatformAutocomplete from "../../components/common/PlatformAutocomplete";
 import {
   User as UserIcon,
   Phone as PhoneIcon,
@@ -553,7 +555,8 @@ const ProviderProfile = () => {
   const [verifyingPhone, setVerifyingPhone] = useState("");
   const [emailOtp, setEmailOtp] = useState("");
   const [sendingOtp, setSendingOtp] = useState(false);
-  const [resendCountdown, setResendCountdown] = useState(0);
+  const [resendCountdown, setResendCountdown] = 
+    useState(0);
 
   const [isEmailOtpModalOpen, setIsEmailOtpModalOpen] = useState(false);
   const [emailToVerify, setEmailToVerify] = useState("");
@@ -1786,7 +1789,7 @@ const ProviderProfile = () => {
           {/* Tab Navigation - Pill Style */}
           <div className="mb-8 overflow-x-auto hide-scrollbar pb-2 pt-1">
             <div className="flex gap-2.5 min-w-max">
-              {["Personal", "Details", "Education", "Portfolio", "Resume", "Generate Resume", "Preferences", "Privacy"].map((tab) => (
+              {["Personal", "Details", "Education & Credentials", "Portfolio", "Resume", "Generate Resume", "Preferences"].map((tab) => (
                 <button
                   key={tab}
                   type="button"
@@ -1977,7 +1980,7 @@ const ProviderProfile = () => {
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-[280px]">
                        <div className="flex items-center gap-2 mb-2">
                          <UserIcon className="w-5 h-5 text-emerald-600" />
-                         <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("About Yourself")}</h3>
+                         <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Professional Summary")}</h3>
                        </div>
                        <p className="text-[13px] text-slate-500 mb-4">{t("Write a short summary about yourself")}</p>
                        
@@ -2038,30 +2041,35 @@ const ProviderProfile = () => {
                             />
                           </div>
                           <div className="col-span-2 sm:col-span-1">
-                            <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Total Experience")}</label>
-                            <div className="relative">
-                              <select 
-                                value={form.experience}
-                                onChange={(e) => setForm({ ...form, experience: e.target.value })}
-                                className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white appearance-none text-slate-700 font-medium cursor-pointer">
-                                <option value="Fresher">{t("Fresher")}</option>
-                                <option value="1-3 years">{t("1-3 Years")}</option>
-                                <option value="3-5 years">{t("3-5 Years")}</option>
-                                <option value="5-10 years">{t("5-10 Years")}</option>
-                              </select>
-                              <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
-                            </div>
+                            <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Experience (Years)")}</label>
+                            <input 
+                              type="number" 
+                              value={form.experience === 'Fresher' ? 0 : parseFloat(form.experience) || ''} 
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '' || val === '0') setForm({ ...form, experience: 'Fresher' });
+                                else setForm({ ...form, experience: `${val} years` });
+                              }} 
+                              className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white"
+                              placeholder={t("e.g. 2.5 (0 for Fresher)")}
+                              min="0"
+                              step="0.5"
+                            />
                           </div>
                           <div className="col-span-2 sm:col-span-1">
-                            <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Notice Period")}</label>
-                            <div className="relative">
-                              <select className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white appearance-none text-slate-700 font-medium cursor-pointer">
-                                <option>{t("30 Days")}</option>
-                                <option>{t("15 Days")}</option>
-                                <option>{t("Immediate")}</option>
-                              </select>
-                              <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
-                            </div>
+                            <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Notice Period (Days)")}</label>
+                            <input 
+                              type="number" 
+                              value={parseInt(form.noticePeriod) === 0 || form.noticePeriod === 'Immediate' ? 0 : parseInt(form.noticePeriod) || ''} 
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '' || val === '0') setForm({ ...form, noticePeriod: 'Immediate' });
+                                else setForm({ ...form, noticePeriod: `${val} Days` });
+                              }} 
+                              className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white"
+                              placeholder={t("e.g. 15 (0 for Immediate)")}
+                              min="0"
+                            />
                           </div>
                        </div>
                     </div>
@@ -2174,32 +2182,57 @@ const ProviderProfile = () => {
                      
                      <div className="grid grid-cols-2 gap-4">
                        <div className="col-span-2 sm:col-span-1">
-                         <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Total Experience")}</label>
-                         <div className="relative">
-                           <select value={form.experience} onChange={(e) => setForm({ ...form, experience: e.target.value })} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white appearance-none cursor-pointer">
-                             <option value="">{t("Select Experience")}</option>
-                             <option value="Fresher">{t("Fresher")}</option>
-                             <option value="1-3 years">{t("1-3 Years")}</option>
-                             <option value="3-5 years">{t("3-5 Years")}</option>
-                             <option value="5-10 years">{t("5-10 Years")}</option>
-                             <option value="10+ years">{t("10+ Years")}</option>
-                           </select>
-                           <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
-                         </div>
+                         <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Experience (Years)")}</label>
+                         <input 
+                           type="text" 
+                           list="experience-options"
+                           value={form.experience ? form.experience.replace(' years', '') : ''} 
+                           onChange={(e) => setForm({ ...form, experience: e.target.value })}
+                           onBlur={(e) => {
+                             const val = e.target.value;
+                             if (val === '0' || val.toLowerCase().includes('fresh')) {
+                               setForm({ ...form, experience: 'Fresher' });
+                             } else if (val !== '' && !isNaN(val)) {
+                               setForm({ ...form, experience: `${val} years` });
+                             }
+                           }}
+                           className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white"
+                           placeholder={t("e.g. 2.5 or select Fresher")}
+                         />
+                         <datalist id="experience-options">
+                           <option value="Fresher" />
+                           <option value="1" />
+                           <option value="2" />
+                           <option value="3" />
+                           <option value="4" />
+                           <option value="5" />
+                         </datalist>
                        </div>
                        <div className="col-span-2 sm:col-span-1">
-                         <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Notice Period / Availability")}</label>
-                         <div className="relative">
-                           <select value={form.noticePeriod} onChange={(e) => setForm({ ...form, noticePeriod: e.target.value })} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white appearance-none cursor-pointer">
-                             <option value="">{t("Select Availability")}</option>
-                             <option value="Immediate">{t("Can join immediately")}</option>
-                             <option value="15 Days">{t("15 Days Notice")}</option>
-                             <option value="30 Days">{t("30 Days Notice")}</option>
-                             <option value="60 Days">{t("60 Days Notice")}</option>
-                             <option value="90 Days">{t("90 Days Notice")}</option>
-                           </select>
-                           <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
-                         </div>
+                         <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Notice Period (Days)")}</label>
+                          <input 
+                            type="text"
+                            list="notice-options"
+                            value={form.noticePeriod ? form.noticePeriod.replace(' Days', '') : ''} 
+                            onChange={(e) => setForm({ ...form, noticePeriod: e.target.value })}
+                            onBlur={(e) => {
+                              const val = e.target.value;
+                              if (val === '0' || val.toLowerCase().includes('immed')) {
+                                setForm({ ...form, noticePeriod: 'Immediate' });
+                              } else if (val !== '' && !isNaN(val)) {
+                                setForm({ ...form, noticePeriod: `${val} Days` });
+                              }
+                            }}
+                            className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white"
+                            placeholder={t("e.g. 15 or select Immediate")}
+                          />
+                          <datalist id="notice-options">
+                            <option value="Immediate" />
+                            <option value="15" />
+                            <option value="30" />
+                            <option value="60" />
+                            <option value="90" />
+                          </datalist>
                        </div>
 
                        {form.experience !== 'Fresher' && (
@@ -2229,33 +2262,14 @@ const ProviderProfile = () => {
                      <p className="text-[13px] text-slate-500 mb-4">{t("Add skills relevant to your profession.")}</p>
                      
                      <div className="flex flex-col gap-3">
-                       <div className="flex gap-2">
-                         <input 
-                           type="text" 
-                           placeholder={t("Add a skill (e.g. React, Carpentry)")} 
-                           id="newSkillInput"
-                           className="flex-1 px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500"
-                           onKeyDown={(e) => {
-                             if (e.key === 'Enter' && e.target.value.trim()) {
-                               e.preventDefault();
-                               if (!form.skills.includes(e.target.value.trim())) {
-                                 setForm({ ...form, skills: [...form.skills, e.target.value.trim()] });
-                               }
-                               e.target.value = '';
-                             }
-                           }}
-                         />
-                         <button 
-                           type="button" 
-                           onClick={() => {
-                             const el = document.getElementById('newSkillInput');
-                             if (el.value.trim() && !form.skills.includes(el.value.trim())) {
-                               setForm({ ...form, skills: [...form.skills, el.value.trim()] });
-                             }
-                             el.value = '';
-                           }}
-                           className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-[13px] font-bold hover:bg-emerald-700">{t("Add")}</button>
-                       </div>
+                       <SkillAutocomplete 
+                         placeholder={t("Add a skill (e.g. React, Carpentry)")}
+                         onAddSkill={(skill) => {
+                           if (!form.skills.includes(skill)) {
+                             setForm({ ...form, skills: [...form.skills, skill] });
+                           }
+                         }}
+                       />
                        <div className="flex flex-wrap gap-2">
                          {form.skills.map((skill, i) => (
                            <div key={i} className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-xs font-semibold">
@@ -2303,13 +2317,13 @@ const ProviderProfile = () => {
                      </div>
                   </div>
 
-                  {/* Projects Section (Moved to Details) */}
+                  {/* Projects Section */}
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
                      <div className="flex items-center gap-2 mb-4">
                        <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Projects")}</h3>
                      </div>
                      <p className="text-[13px] text-slate-500 mb-4">{t(
-                       "Add your notable technical or design projects and choose if they are visible for all."
+                       "Add your notable technical or design projects."
                      )}</p>
                      
                      <div className="space-y-4">
@@ -2322,7 +2336,7 @@ const ProviderProfile = () => {
                                <input type="text" value={proj.name || ''} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].name = e.target.value; setForm({ ...form, projects: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. E-Commerce Dashboard")} />
                              </div>
                              <div className="col-span-2">
-                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Live Link (Optional)")}</label>
+                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("GitHub or Live Project Link (Optional)")}</label>
                                <input type="text" value={proj.link || ''} onChange={(e) => { const nx = [...(form.projects || [])]; nx[i].link = e.target.value; setForm({ ...form, projects: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. https://github.com/... or https://...")} />
                              </div>
                              <div className="col-span-2">
@@ -2346,7 +2360,7 @@ const ProviderProfile = () => {
                 </div>
               )}
 
-              {activeTab === "Education" && (
+              {activeTab === "Education & Credentials" && (
                 <div className="space-y-6">
                   {/* Education Section */}
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
@@ -2382,6 +2396,64 @@ const ProviderProfile = () => {
                        <button type="button" onClick={() => setForm({ ...form, education: [...(form.education || []), { institution: '', degree: '', year: '', grade: '' }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">{t("+ Add Education")}</button>
                      </div>
                   </div>
+
+                 {/* Certifications Section */}
+                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col mt-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Certifications")}</h3>
+                    </div>
+                    <p className="text-[13px] text-slate-500 mb-4">{t("Add your professional certifications or licenses.")}</p>
+                    
+                    <div className="space-y-4">
+                      {form.certifications?.map((cert, i) => (
+                        <div key={i} className="border border-slate-200 rounded-xl p-4 relative">
+                          <button type="button" onClick={() => setForm({ ...form, certifications: form.certifications.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Certification Name")}</label>
+                              <input type="text" value={cert.name || ''} onChange={(e) => { const nx = [...(form.certifications || [])]; nx[i].name = e.target.value; setForm({ ...form, certifications: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. AWS Certified Developer")} />
+                            </div>
+                            <div>
+                              <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Issuer")}</label>
+                              <input type="text" value={cert.issuer || ''} onChange={(e) => { const nx = [...(form.certifications || [])]; nx[i].issuer = e.target.value; setForm({ ...form, certifications: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. Amazon Web Services")} />
+                            </div>
+                            <div className="col-span-2">
+                              <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Date / Year")}</label>
+                              <input type="text" value={cert.date || ''} onChange={(e) => { const nx = [...(form.certifications || [])]; nx[i].date = e.target.value; setForm({ ...form, certifications: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. 2023 or Valid till 2025")} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => setForm({ ...form, certifications: [...(form.certifications || []), { name: '', issuer: '', date: '' }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">{t("+ Add Certification")}</button>
+                    </div>
+                 </div>
+
+                 {/* Achievements Section */}
+                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col mt-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Achievements")}</h3>
+                    </div>
+                    <p className="text-[13px] text-slate-500 mb-4">{t("Add your notable achievements, awards, or recognitions.")}</p>
+                    
+                    <div className="space-y-4">
+                      {form.achievements?.map((ach, i) => (
+                        <div key={i} className="border border-slate-200 rounded-xl p-4 relative">
+                          <button type="button" onClick={() => setForm({ ...form, achievements: form.achievements.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
+                          <div className="grid grid-cols-1 gap-4">
+                            <div>
+                              <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Title")}</label>
+                              <input type="text" value={ach.title || ''} onChange={(e) => { const nx = [...(form.achievements || [])]; nx[i].title = e.target.value; setForm({ ...form, achievements: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. Employee of the Year")} />
+                            </div>
+                            <div>
+                              <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Description (Optional)")}</label>
+                              <textarea value={ach.description || ''} onChange={(e) => { const nx = [...(form.achievements || [])]; nx[i].description = e.target.value; setForm({ ...form, achievements: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 resize-none h-20" placeholder={t("Briefly describe the achievement...")} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => setForm({ ...form, achievements: [...(form.achievements || []), { title: '', description: '' }] })} className="text-emerald-600 text-[13px] font-bold py-2 hover:text-emerald-700 flex items-center gap-1">{t("+ Add Achievement")}</button>
+                    </div>
+                 </div>
                 </div>
               )}
 
@@ -2413,7 +2485,15 @@ const ProviderProfile = () => {
                            <div className="grid grid-cols-2 gap-4">
                              <div className="col-span-2 md:col-span-1">
                                <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Platform")}</label>
-                               <input type="text" value={link.platform || ''} onChange={(e) => { const nx = [...(form.portfolioLinks || [])]; nx[i].platform = e.target.value; setForm({ ...form, portfolioLinks: nx }); }} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. GitHub, Behance")} />
+                               <PlatformAutocomplete 
+                                 value={link.platform || ''} 
+                                 onChange={(val) => { 
+                                   const nx = [...(form.portfolioLinks || [])]; 
+                                   nx[i].platform = val; 
+                                   setForm({ ...form, portfolioLinks: nx }); 
+                                 }} 
+                                 placeholder={t("e.g. GitHub, Behance")} 
+                               />
                              </div>
                              <div className="col-span-2 md:col-span-1">
                                <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("URL")}</label>
@@ -2525,7 +2605,7 @@ const ProviderProfile = () => {
               )}
 
               {activeTab === "Generate Resume" && (
-                <ResumeGenerator profileData={form} />
+                <AdvancedResumeGenerator profileData={form} />
               )}
 
               {activeTab === "Preferences" && (
@@ -2573,9 +2653,17 @@ const ProviderProfile = () => {
                             <button
                               key={mode}
                               type="button"
-                              onClick={() => setForm({ ...form, workMode: mode })}
+                              onClick={() => {
+                                const currentModes = form.workMode || [];
+                                // For backwards compatibility, if it's a string, convert it
+                                const currentArray = Array.isArray(currentModes) ? currentModes : [currentModes].filter(Boolean);
+                                const newModes = currentArray.includes(mode)
+                                  ? currentArray.filter(m => m !== mode)
+                                  : [...currentArray, mode];
+                                setForm({ ...form, workMode: newModes });
+                              }}
                               className={`px-3 py-1.5 text-[12px] font-bold rounded-full border transition-colors ${
-                                form.workMode === mode
+                                (Array.isArray(form.workMode) ? form.workMode : [form.workMode]).includes(mode)
                                   ? "bg-emerald-50 border-emerald-500 text-emerald-700"
                                   : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
                               }`}
@@ -2648,76 +2736,6 @@ const ProviderProfile = () => {
             {activeTab !== "Generate Resume" && (
               <div className="lg:col-span-4 space-y-6">
                 
-                {/* Profile Strength */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                  <h3 className="font-extrabold text-slate-800 text-base tracking-tight mb-5">{t("Profile Strength")}</h3>
-                  
-                  <div className="flex items-center gap-5 mb-7">
-                    <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
-                      <svg className="w-full h-full transform -rotate-90">
-                        <circle
-                          cx="40"
-                          cy="40"
-                          r="34"
-                          className="text-slate-100"
-                          strokeWidth="6"
-                          stroke="currentColor"
-                          fill="transparent"
-                        />
-                        <circle
-                          cx="40"
-                          cy="40"
-                          r="34"
-                          className="text-[#047857] transition-all duration-1000 ease-out"
-                          strokeWidth="6"
-                          strokeDasharray={2 * Math.PI * 34}
-                          strokeDashoffset={2 * Math.PI * 34 - ((profileData?.profileCompletion || 0) / 100) * (2 * Math.PI * 34)}
-                          strokeLinecap="round"
-                          stroke="currentColor"
-                          fill="transparent"
-                        />
-                      </svg>
-                      <div className="absolute flex flex-col items-center justify-center mt-1">
-                        <span className="font-black text-slate-800 text-[18px] leading-none">{profileData?.profileCompletion || 0}%</span>
-                        <span className="text-[10px] font-bold text-[#047857] uppercase mt-0.5 tracking-wider">{t("Good")}</span>
-                      </div>
-                    </div>
-                    <p className="text-[13px] text-slate-600 font-medium leading-relaxed flex-1">{t(
-                      "Almost there! Complete the remaining sections to unlock better opportunities."
-                    )}</p>
-                  </div>
-
-                  <div className="space-y-4 text-[13px] mb-8">
-                    {[
-                      { label: "Basic Information", done: profileData?.profileCompletionDetails?.basicInformation },
-                      { label: "Work Experience", done: profileData?.profileCompletionDetails?.workExperience },
-                      { label: "Skills", done: profileData?.profileCompletionDetails?.skills },
-                      { label: "Education", done: profileData?.profileCompletionDetails?.education },
-                      { label: "Projects", done: profileData?.profileCompletionDetails?.projects },
-                      { label: "Resume", done: profileData?.profileCompletionDetails?.resume },
-                      { label: "Preferences", done: profileData?.profileCompletionDetails?.preferences },
-                      { label: "Career Goals", done: profileData?.profileCompletionDetails?.careerGoals },
-                    ]
-                    .filter(item => item.done !== 'notApplicable')
-                    .map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between group cursor-default">
-                        <div className="flex items-center gap-3">
-                          {item.done ? (
-                            <div className="bg-emerald-100 rounded-full p-0.5 text-emerald-600">
-                               <Check className="w-3.5 h-3.5 stroke-3" />
-                            </div>
-                          ) : (
-                            <div className="w-4.5 h-4.5 border-2 border-slate-200 rounded-full bg-white group-hover:border-slate-300 transition-colors" />
-                          )}
-                          <span className={item.done ? "text-slate-800 font-medium" : "text-slate-500 font-medium"}>{item.label}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <button type="button" onClick={() => { setActiveTab("Details"); window.scrollTo(0, 0); }} className="w-full py-2.5 bg-white text-emerald-700 border border-emerald-200 rounded-lg text-sm font-bold hover:bg-emerald-50 transition flex items-center justify-center gap-2">
-                     <TrendingUp className="w-4 h-4" />{t("Improve Profile")}</button>
-                </div>
 
                 {/* AI Tip Card */}
                 <div className="bg-emerald-50/70 rounded-2xl p-6 border border-emerald-100 shadow-sm relative overflow-hidden">
