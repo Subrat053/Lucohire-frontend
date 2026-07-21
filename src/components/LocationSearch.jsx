@@ -7,11 +7,13 @@ const LocationSearch = ({
   placeholder = 'Type location...',
   className = 'mt-2',
   minChars = 3,
-  iconClassName
+  iconClassName,
+  inputClassName
 }) => {
   return (
     <LocationAutocomplete
       iconClassName={iconClassName}
+      inputClassName={inputClassName}
       value={value}
       onChange={(text) => {
         if (onChange) onChange(text);

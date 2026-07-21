@@ -74,12 +74,19 @@ export default function LandingPage() {
 
   const handleJobSearch = (e) => {
     e.preventDefault();
+    
+    // Create query string for search params
+    const queryParams = new URLSearchParams();
+    if (jobSearch) queryParams.append('skills', jobSearch);
+    if (jobLocation) queryParams.append('location', jobLocation);
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+
     if (user?.activeRole === 'provider') {
-      navigate('/provider/job-for-me', { state: { formData: { skills: jobSearch, location: jobLocation } } });
+      navigate(`/provider/job-for-me${queryString}`, { state: { formData: { skills: jobSearch, location: jobLocation } } });
     } else if (user?.activeRole === 'recruiter') {
       navigate('/recruiter/dashboard');
     } else {
-      navigate(`/candidate-landing`, { state: { formData: { skills: jobSearch, location: jobLocation } } });
+      navigate(`/candidate-landing${queryString}`, { state: { formData: { skills: jobSearch, location: jobLocation } } });
     }
   };
 
