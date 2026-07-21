@@ -195,7 +195,7 @@ export default function Settings() {
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-5">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">{t("Settings & Billing")}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">{t("Company Profile Settings & Billing")}</h1>
               <p className="text-sm font-medium text-gray-500">{t("Manage your account, team, subscriptions and preferences.")}</p>
             </div>
             

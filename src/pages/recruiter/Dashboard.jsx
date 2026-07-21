@@ -129,7 +129,8 @@ const Dashboard = () => {
     jobs: activeJobs.length,
     candidates: activeJobs.reduce((acc, job) => acc + (job.interestedCount || 0), 0),
     interviews: activeJobs.reduce((acc, job) => acc + (job.interviews || 0), 0),
-    aiTasks: tasks.filter(t => t.aiSuggested).length || tasks.length
+    aiTasks: tasks.filter(t => t.aiSuggested).length || tasks.length,
+    pendingTasks: tasks.filter(t => t.status !== 'done').length || 0
   };
 
   const getMatchScore = (job) => {
@@ -213,10 +214,6 @@ const Dashboard = () => {
                   <FiAlertCircle className="w-4 h-4 text-gray-400" />
                 </div>
                 <div className="flex items-center gap-4 text-sm font-medium text-gray-600">
-                  <span className="hidden sm:inline">Remember my preference</span>
-                  <div className="w-8 h-4 bg-indigo-600 rounded-full relative cursor-pointer">
-                    <div className="w-3 h-3 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-                  </div>
                   <button onClick={() => setPrioritiesCollapsed(!prioritiesCollapsed)} className="flex items-center gap-1 hover:text-indigo-600 ml-2">
                     {prioritiesCollapsed ? 'Expand' : 'Collapse'} {prioritiesCollapsed ? <FiChevronDown /> : <FiChevronRight className="-rotate-90" />}
                   </button>
@@ -261,7 +258,7 @@ const Dashboard = () => {
                       </div>
                       <div className="text-xs text-gray-900 font-bold">{t("Follow-ups")}</div>
                     </div>
-                    <div className="text-2xl font-black text-gray-900 mb-2">11</div>
+                    <div className="text-2xl font-black text-gray-900 mb-2">{topStats.pendingTasks}</div>
                     <Link to="/recruiter/tasks" className="text-xs font-bold text-indigo-600 hover:underline mt-auto">{t("Respond now →")}</Link>
                   </div>
                 </div>
@@ -276,7 +273,6 @@ const Dashboard = () => {
                 <h2 className="text-lg font-bold text-gray-900">{t("AI Insights for You")}</h2>
                 <FiAlertCircle className="w-4 h-4 text-gray-400" />
               </div>
-              <button className="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:underline">{t("View all")}<FiArrowRight /></button>
             </div>
             
             <div className="flex-1 flex flex-col justify-center space-y-4 mb-4 relative">
@@ -374,7 +370,6 @@ const Dashboard = () => {
           <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col h-full overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">{t("Notifications")}</h2>
-              <Link to="/recruiter/notifications" className="text-sm font-semibold text-indigo-600 hover:underline">{t("View all →")}</Link>
             </div>
             <div className="flex-1 overflow-y-auto space-y-4">
               {notifications.slice(0, 5).map((n) => (

@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { providerAPI } from '../services/api';
-import { MapPin, Star, MessageCircle, Phone, ArrowLeft, CheckCircle2 } from 'lucide-react';
-import Navbar from '../components/common/Navbar';
-import Footer from '../components/common/Footer';
+import { MapPin, BadgeCheck, MoreVertical, Clock, Briefcase, Calendar, Zap, Wallet, CheckCircle2, MessageCircle, Phone, Eye, ArrowLeft } from 'lucide-react';
 import Seo from '../components/common/Seo';
 
 export default function TopTalentPage() {
@@ -33,13 +31,12 @@ export default function TopTalentPage() {
   }, [page]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+    <div className="flex flex-col font-sans w-full min-h-[calc(100vh-64px)]">
       <Seo 
         title="Top Talent Available for Hourly Work" 
         description="Browse our curated list of verified freelancers and professionals ready to take on your hourly projects immediately. Connect with them directly via WhatsApp or Call."
         canonicalPath="/top-talent"
       />
-      <Navbar />
       
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <button 
@@ -70,72 +67,153 @@ export default function TopTalentPage() {
                 <p className="text-gray-500 text-lg">No top talent found at the moment.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {topTalent.map(candidate => (
-                  <div key={candidate._id} className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col relative overflow-hidden group">
+                  <div key={candidate._id} className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col relative overflow-hidden w-full">
                     
-                    {/* Top right floating badge */}
-                    <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm z-10">
-                      Top Rated
-                    </div>
-
-                    {/* Profile Header */}
-                    <div className="flex items-start gap-3 mb-4 mt-2">
-                      {candidate.profilePhoto ? (
-                        <img src={candidate.profilePhoto} alt={candidate.profileName} className="w-14 h-14 rounded-full flex-shrink-0 object-cover ring-2 ring-gray-100" />
-                      ) : (
-                        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0 ring-2 ring-gray-100 ${candidate.avatarBg || 'bg-blue-100 text-blue-700'}`}>
-                          {candidate.profileName?.substring(0, 2).toUpperCase() || 'UN'}
+                    {/* Top Section */}
+                    <div className="flex gap-4 mb-5">
+                      {/* Left: Avatar with Available Now pill */}
+                      <div className="relative shrink-0">
+                        {candidate.profilePhoto ? (
+                          <img src={candidate.profilePhoto} alt={candidate.profileName} className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-1 ring-gray-100" />
+                        ) : (
+                          <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center text-3xl font-bold ring-1 ring-gray-100 ${candidate.avatarBg || 'bg-blue-100 text-blue-700'}`}>
+                            {candidate.profileName?.substring(0, 2).toUpperCase() || 'UN'}
+                          </div>
+                        )}
+                        <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
+                          <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+                          Available
                         </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-[15px] text-gray-900 truncate" title={candidate.profileName}>
-                          {candidate.profileName}
-                        </h3>
-                        <p className="text-xs text-gray-500 font-medium truncate">{candidate.primaryRole || 'Freelancer'} · {candidate.city || 'India'}</p>
+                      </div>
+                      
+                      {/* Right: Info */}
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <div className="flex justify-between items-start mb-1">
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="text-lg font-bold text-gray-900 tracking-tight truncate">{candidate.profileName}</h3>
+                            <BadgeCheck className="w-5 h-5 text-blue-600 fill-blue-600/10" strokeWidth={2.5} />
+                          </div>
+                          <MoreVertical className="w-4 h-4 text-gray-400 cursor-pointer" />
+                        </div>
+                        
+                        <p className="text-[13px] font-bold text-indigo-700 mb-2 truncate">
+                          {candidate.primaryRole || 'Freelancer'}
+                        </p>
+                        
+                        <div className="flex flex-col gap-1.5 text-[12px] text-gray-600 font-medium">
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                            <span className="truncate">{candidate.city || 'India'}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-gray-400" />
+                            Last active: <span className="text-green-600 font-bold ml-0.5">Today</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Trust Badges */}
-                    <div className="flex gap-2 mb-4">
-                      <div className="flex-1 bg-blue-50 text-blue-700 rounded-lg p-2 text-center border border-blue-100/50">
-                        <CheckCircle2 className="w-3.5 h-3.5 mx-auto mb-1 text-blue-600" />
-                        <div className="text-[9px] font-bold uppercase tracking-wider">Verified</div>
+                    {/* 3 Stats Row */}
+                    <div className="grid grid-cols-3 gap-2 mb-5">
+                      <div className="flex items-center gap-2 bg-indigo-50/50 p-2 rounded-xl">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                          <Briefcase className="w-4 h-4 text-indigo-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-[12px] font-bold text-gray-900 truncate">{candidate.experienceYears || 0}+ Yrs</div>
+                          <div className="text-[10px] text-gray-500 font-medium truncate">Experience</div>
+                        </div>
                       </div>
-                      <div className="flex-1 bg-amber-50 text-amber-700 rounded-lg p-2 text-center border border-amber-100/50">
-                        <Star className="w-3.5 h-3.5 mx-auto mb-1 text-amber-500 fill-amber-500" />
-                        <div className="text-[9px] font-bold uppercase tracking-wider">100% Satisfaction</div>
+                      <div className="flex items-center gap-2 bg-blue-50/50 p-2 rounded-xl">
+                        <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <Calendar className="w-4 h-4 text-blue-500" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-[12px] font-bold text-gray-900 truncate">25h/wk</div>
+                          <div className="text-[10px] text-gray-500 font-medium truncate">Availability</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 bg-green-50/50 p-2 rounded-xl">
+                        <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                          <Zap className="w-4 h-4 text-green-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-[12px] font-bold text-gray-900 truncate">Ready</div>
+                          <div className="text-[10px] text-gray-500 font-medium truncate">To Start</div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Stats List */}
-                    <div className="space-y-1.5 mb-5 flex-1">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-gray-500 font-medium">Starting from</span>
-                        <span className="font-bold text-gray-900">₹{candidate.hourlyRate || 'Negotiable'}/hr</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-gray-500 font-medium">Job Success</span>
-                        <span className="font-bold text-gray-900">100%</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-gray-500 font-medium">Total earned</span>
-                        <span className="font-bold text-gray-900">₹ 1,00,000+</span>
+                    {/* Top Skills */}
+                    <div className="mb-5">
+                      <div className="flex flex-wrap gap-1.5">
+                        {candidate.skills?.slice(0, 4).map((tag, idx) => (
+                          <span key={idx} className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-[11px] font-bold">
+                            {tag}
+                          </span>
+                        ))}
+                        {(candidate.skills?.length || 0) > 4 && (
+                          <span className="bg-gray-50 text-gray-500 px-2.5 py-1 rounded-lg text-[11px] font-bold">
+                            +{candidate.skills.length - 4} More
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    {/* Action Button */}
-                    <div className="mt-auto">
+                    {/* Rate & Verifications */}
+                    <div className="flex gap-4 mb-5 border-t border-gray-100 pt-5">
+                      <div className="flex-1 bg-[#f0fdf4] rounded-xl p-3 flex flex-col justify-center border border-green-100">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Wallet className="w-4 h-4 text-green-700" />
+                          <span className="text-[11px] text-green-800 font-bold uppercase tracking-wider">Hourly Rate</span>
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xl font-black text-gray-900">₹{candidate.hourlyRate || '1200'}</span>
+                          <span className="text-[12px] font-bold text-gray-500">/hr</span>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 flex flex-col justify-center space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 fill-green-500/10" />
+                          <span className="text-[11px] text-gray-700 font-medium">Resume Verified</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 fill-green-500/10" />
+                          <span className="text-[11px] text-gray-700 font-medium">Mobile Verified</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 fill-green-500/10" />
+                          <span className="text-[11px] text-gray-700 font-medium">Email Verified</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="mt-auto flex flex-col gap-2.5">
+                      <div className="flex gap-2.5">
+                        <a 
+                          href={candidate._id ? `${import.meta.env.VITE_API_URL}/provider/public/${candidate._id}/whatsapp-redirect` : '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-[1.5] py-2.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] transition-colors text-[13px] flex items-center justify-center gap-2 shadow-sm"
+                        >
+                          <MessageCircle className="w-4 h-4" fill="currentColor" strokeWidth={0} /> Chat on WhatsApp
+                        </a>
+                        <a 
+                          href={candidate.user?.whatsappNumber ? `tel:${candidate.user.whatsappNumber}` : '#'}
+                          className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors text-[13px] flex items-center justify-center gap-1.5 shadow-sm"
+                        >
+                          <Phone className="w-4 h-4" /> Call
+                        </a>
+                      </div>
                       <button 
-                        onClick={() => {
-                          if (candidate.user?.whatsappNumber) {
-                            window.open(`https://wa.me/${candidate.user.whatsappNumber}`, '_blank');
-                          }
-                        }}
-                        className="w-full py-2.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] hover:shadow-lg hover:shadow-green-500/20 transition-all text-sm flex items-center justify-center gap-2 transform active:scale-95"
+                        onClick={() => navigate(`/p/${candidate._id}`)}
+                        className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-colors text-[13px] flex items-center justify-center gap-2"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-                        Chat on WhatsApp
+                        <Eye className="w-4 h-4" strokeWidth={2.5} /> View Full Profile
                       </button>
                     </div>
                   </div>
@@ -180,8 +258,6 @@ export default function TopTalentPage() {
           </>
         )}
       </main>
-      
-      <Footer />
     </div>
   );
 }

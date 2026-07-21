@@ -25,6 +25,7 @@ const GuestDiscovery = lazy(() => import("../pages/candidate/GuestDiscovery"));
 const LockedResults = lazy(() => import("../pages/candidate/LockedResults"));
 const RecruiterDiscovery = lazy(() => import("../pages/recruiter/RecruiterDiscovery"));
 const RecruiterLockedResults = lazy(() => import("../pages/recruiter/RecruiterLockedResults"));
+const PublicJobDetail = lazy(() => import("../pages/PublicJobDetail"));
 
 function MainLayout({ children }) {
   const location = useLocation();
@@ -57,7 +58,8 @@ function MainLayout({ children }) {
   const showFooter =
     publicPaths.includes(location.pathname) ||
     isPublicProviderProfile ||
-    isSharedProfile;
+    isSharedProfile ||
+    location.pathname.startsWith("/job/");
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -79,6 +81,7 @@ export default function PublicRoutes() {
       <Route path="search" element={wrap(<SearchPage />)} />
       <Route path="external-match" element={wrap(<ExternalMatch />)} />
       <Route path="p/:id" element={wrap(<ProviderPublicProfile />)} />
+      <Route path="job/:id" element={wrap(<PublicJobDetail />)} />
       <Route path="faq" element={wrap(<FaqPage />)} />
       <Route path="terms" element={wrap(<TermsPage />)} />
       <Route path="privacy" element={wrap(<PrivacyPage />)} />

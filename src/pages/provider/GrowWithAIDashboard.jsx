@@ -127,7 +127,7 @@ export default function GrowWithAIDashboard() {
       <div className="p-6 max-w-4xl mx-auto">
         <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center mt-10">
           <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-red-800 mb-2">{t("Grow with AI")}</h2>
+          <h2 className="text-xl font-bold text-red-800 mb-2">{t("Interview Preparation")}</h2>
           <p className="text-red-600 mb-6 max-w-md mx-auto">{errorMessage}</p>
           <Link
             to="/provider/profile"
@@ -175,7 +175,7 @@ export default function GrowWithAIDashboard() {
           {/* Header Section */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">{t("Grow with AI")}<span className="bg-teal-50 text-teal-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-teal-100">{t("Pro")}</span>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">{t("Interview Preparation")}<span className="bg-teal-50 text-teal-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-teal-100">{t("Pro")}</span>
               </h1>
               <p className="text-sm text-gray-500 mt-1 font-medium">{t("Data-driven insights to accelerate your career trajectory.")}</p>
             </div>

@@ -23,8 +23,8 @@ const navItems = [
     icon: HiTrendingUp,
   },
   { 
-    label: 'Grow with AI', 
-    fallback: 'Grow with AI', 
+    label: 'Interview Preparation', 
+    fallback: 'Interview Preparation', 
     path: '/provider/grow-with-ai',
     icon: HiSparkles,
   },

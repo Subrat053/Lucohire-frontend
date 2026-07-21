@@ -264,6 +264,8 @@ export const recruiterAPI = {
     API.get("/recruiter/ai/workspace/conversations"),
   getWorkspaceConversation: (id) =>
     API.get(`/recruiter/ai/workspace/conversations/${id}`),
+  generateCandidateInterviewKit: (id) =>
+    API.get(`/recruiter/candidates/${id}/interview-kit`),
   publicSearch: (params) => API.get("/recruiter/public-search", { params }),
   search: (params) => API.get("/recruiter/search", { params }),
   viewProvider: (id) => API.get(`/recruiter/view-provider/${id}`),
@@ -725,6 +727,7 @@ export const chatAPI = {
 // Jobs APIs (provider browses / applies; recruiter views applications)
 export const jobsAPI = {
   getAvailableJobs: (params) => API.get("/jobs", { params }),
+  getPublicJobById: (jobId) => API.get(`/jobs/public/${jobId}`),
   applyToJob: (jobId, data) => API.post(`/jobs/${jobId}/apply`, data),
   getMyApplications: () => API.get("/jobs/my-applications"),
   getJobApplications: (jobId) => API.get(`/jobs/${jobId}/applications`),

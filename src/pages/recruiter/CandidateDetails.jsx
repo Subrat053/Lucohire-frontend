@@ -32,6 +32,9 @@ const CandidateDetails = () => {
   const [newTag, setNewTag] = useState('');
   const [addingNote, setAddingNote] = useState(false);
   const [addingTag, setAddingTag] = useState(false);
+  const [interviewKit, setInterviewKit] = useState(null);
+  const [generatingKit, setGeneratingKit] = useState(false);
+  const [showKitModal, setShowKitModal] = useState(false);
 
   useEffect(() => {
     const h = (e) => { if (moreActionsRef.current && !moreActionsRef.current.contains(e.target)) setShowMoreActions(false); };
@@ -101,6 +104,23 @@ const CandidateDetails = () => {
       toast.success('Please unlock contact first to send interview invite.');
     }
   };
+
+  const handleGenerateInterviewKit = async () => {
+    setGeneratingKit(true);
+    try {
+      const { data } = await recruiterAPI.generateCandidateInterviewKit(id);
+      if (data.success) {
+        setInterviewKit(data.data);
+        setShowKitModal(true);
+        toast.success('Interview Kit generated successfully!');
+      }
+    } catch (error) {
+      toast.error('Failed to generate interview kit');
+    } finally {
+      setGeneratingKit(false);
+    }
+  };
+
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
@@ -303,7 +323,6 @@ const CandidateDetails = () => {
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-[14px] font-bold text-gray-900">Key Skills</h3>
-                    <button onClick={() => toast.success('Edit coming soon')} className="flex items-center gap-1 text-[12px] font-bold text-indigo-600 hover:text-indigo-700"><FiEdit2 className="w-3.5 h-3.5"/> Edit</button>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {skills.length > 0 ? skills.map((s,i) => <span key={i} className="text-[12px] font-bold text-gray-700 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg">{s}</span>) : <span className="text-[13px] text-gray-400 italic">No skills listed</span>}
@@ -346,17 +365,17 @@ const CandidateDetails = () => {
 
                 {projects.length > 0 && (
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <h3 className="text-[14px] font-bold text-gray-900 mb-5">Projects (Top 2)</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                      {projects.slice(0,2).map((p,idx) => (
+                    <h3 className="text-[14px] font-bold text-gray-900 mb-5">Projects ({projects.length})</h3>
+                    <div className="grid grid-cols-1 gap-4 mb-2">
+                      {projects.map((p,idx) => (
                         <div key={idx} className="p-4 rounded-xl border border-gray-100 bg-gray-50">
                           <h4 className="text-[13px] font-bold text-gray-900 mb-1">{p.title||p.name||'Project'}</h4>
                           <div className="text-[11px] text-gray-600 mb-3">{p.technologies||p.tech||(Array.isArray(p.skills)?p.skills.join(', '):'')}</div>
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-green-700"><FiStar className="w-3 h-3 fill-current"/> Featured</div>
+                          <p className="text-[12px] text-gray-700 whitespace-pre-line leading-relaxed mb-3">{p.description || p.desc || 'No description provided.'}</p>
+                          {(p.link || p.url) && <a href={p.link||p.url} target="_blank" rel="noreferrer" className="text-[11px] font-bold text-indigo-600 hover:underline inline-flex items-center gap-1">View Project <FiArrowUpRight className="w-3 h-3"/></a>}
                         </div>
                       ))}
                     </div>
-                    {projects.length > 2 && <button onClick={() => setActiveTab('Projects')} className="text-[12px] font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1">View All Projects <FiArrowRight className="w-3.5 h-3.5"/></button>}
                   </div>
                 )}
               </div>
@@ -370,12 +389,6 @@ const CandidateDetails = () => {
                     </button>
                     <button onClick={contactUnlocked ? () => contactInfo?.email && openGmail(contactInfo.email) : handleUnlock} disabled={unlocking} className="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-gray-50 shadow-sm disabled:opacity-60">
                       <FiPhoneCall className="w-4 h-4"/> {contactUnlocked ? 'Contact Candidate' : 'Unlock Contact'}
-                    </button>
-                    <button onClick={() => toast.success('Added to Shortlist!')} className="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-gray-50 shadow-sm">
-                      <FiBookmark className="w-4 h-4"/> Add to Shortlist
-                    </button>
-                    <button onClick={() => setShowMoreActions(!showMoreActions)} className="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-gray-50 shadow-sm">
-                      More Actions <FiChevronDown className="w-4 h-4"/>
                     </button>
                   </div>
                 </div>
@@ -398,8 +411,9 @@ const CandidateDetails = () => {
                   <p className="text-[12px] text-gray-600 leading-relaxed mb-4">
                     {cData.name.split(' ')[0]} is a {score >= 90 ? 'strong' : 'good'} match. We recommend {score >= 85 ? 'a technical interview' : 'a screening call first'}.
                   </p>
-                  <button onClick={() => toast.success('Interview Kit generating...')} className="w-full bg-white border border-indigo-200 text-indigo-700 rounded-xl py-2.5 text-[12px] font-bold flex items-center justify-center gap-2 hover:bg-indigo-50">
-                    <HiSparkles className="w-4 h-4"/> Generate Interview Kit
+                  <button onClick={handleGenerateInterviewKit} disabled={generatingKit} className="w-full bg-white border border-indigo-200 text-indigo-700 rounded-xl py-2.5 text-[12px] font-bold flex items-center justify-center gap-2 hover:bg-indigo-50 disabled:opacity-50">
+                    {generatingKit ? <FiLoader className="w-4 h-4 animate-spin"/> : <HiSparkles className="w-4 h-4"/>}
+                    {generatingKit ? 'Generating...' : 'Generate Interview Kit'}
                   </button>
                 </div>
               </div>
@@ -410,13 +424,10 @@ const CandidateDetails = () => {
           <div className="xl:col-span-4 sticky top-6 h-[calc(100vh-3rem)]">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm h-full flex flex-col overflow-hidden">
               <div className="flex border-b border-gray-100 shrink-0">
-                {['AI Insights','Activity'].map(tab => (
-                  <button key={tab} onClick={() => setActiveSidebarTab(tab)} className={`flex-1 py-3.5 text-[13px] font-bold border-b-2 -mb-px transition ${activeSidebarTab===tab ? 'text-indigo-600 border-indigo-600' : 'text-gray-500 border-transparent hover:text-gray-700'}`}>{tab}</button>
-                ))}
+                <div className="flex-1 py-3.5 text-center text-[13px] font-bold border-b-2 -mb-px text-indigo-600 border-indigo-600">AI Insights</div>
               </div>
 
-              {activeSidebarTab === 'AI Insights' && (
-                <div className="p-5 space-y-5 flex-1 overflow-y-auto bg-gray-50/30">
+              <div className="p-5 space-y-5 flex-1 overflow-y-auto bg-gray-50/30">
                   <div>
                     <h4 className="text-[12px] font-bold text-gray-900 mb-2.5 flex items-center gap-1.5"><HiSparkles className="w-3.5 h-3.5 text-indigo-500"/> AI Summary</h4>
                     <p className="text-[12px] text-gray-700 leading-relaxed mb-3">
@@ -447,16 +458,20 @@ const CandidateDetails = () => {
                   <div className="h-px bg-gray-100"/>
                   <div>
                     <h4 className="text-[12px] font-bold text-gray-900 mb-2.5">Resume</h4>
-                    {cData.hasResume ? (
-                      <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-white shadow-sm">
+                    {cData.hasResume || cData.resumeUrl ? (
+                      <div 
+                        onClick={() => {
+                          if (contactUnlocked && cData.resumeUrl) window.open(toOptimizedMediaUrl(cData.resumeUrl), '_blank');
+                          else if (!contactUnlocked) handleUnlock();
+                          else toast.error('Resume URL not available');
+                        }}
+                        className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-white shadow-sm cursor-pointer hover:border-indigo-200 hover:shadow-md transition-all group"
+                      >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="text-red-500 bg-red-50 p-2 rounded-lg border border-red-100 shrink-0"><FiFileText className="w-4 h-4"/></div>
-                          <div className="min-w-0"><div className="text-[12px] font-bold text-gray-900 truncate">{cData.name.replace(/s+/g,'_')}_Resume.pdf</div><div className="text-[10px] text-gray-500">Uploaded resume</div></div>
+                          <div className="text-red-500 bg-red-50 p-2 rounded-lg border border-red-100 shrink-0 group-hover:bg-red-100"><FiFileText className="w-4 h-4"/></div>
+                          <div className="min-w-0"><div className="text-[12px] font-bold text-gray-900 truncate">{cData.name.replace(/\\s+/g,'_')}_Resume.pdf</div><div className="text-[10px] text-gray-500">Uploaded resume</div></div>
                         </div>
-                        {contactUnlocked && cData.resumeUrl
-                          ? <a href={cData.resumeUrl} target="_blank" rel="noreferrer" className="p-2 text-gray-400 hover:text-indigo-600 bg-gray-50 hover:bg-indigo-50 border border-gray-100 rounded-lg transition"><FiDownload className="w-3.5 h-3.5"/></a>
-                          : <button onClick={handleUnlock} className="p-2 text-gray-400 hover:text-indigo-600 bg-gray-50 hover:bg-indigo-50 border border-gray-100 rounded-lg transition"><FiDownload className="w-3.5 h-3.5"/></button>
-                        }
+                        <button className="p-2 text-gray-400 group-hover:text-indigo-600 bg-gray-50 group-hover:bg-indigo-50 border border-gray-100 rounded-lg transition"><FiDownload className="w-3.5 h-3.5"/></button>
                       </div>
                     ) : <div className="text-[11px] text-gray-400 italic bg-white border border-gray-200 rounded-xl p-3">No resume uploaded</div>}
                   </div>
@@ -503,33 +518,70 @@ const CandidateDetails = () => {
                     </div>
                   </div>
                   </div>
-              )}
-
-              {activeSidebarTab === 'Activity' && (
-                <div className="p-5 flex-1 overflow-y-auto">
-                  <div className="text-[12px] font-bold text-gray-500 uppercase tracking-wide mb-4">Recent Activity</div>
-                  {reviews.length > 0 ? (
-                    <div className="space-y-4">
-                      {reviews.map((r,i) => (
-                        <div key={i} className="flex gap-3">
-                          <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-[11px] shrink-0">{(r.recruiter?.name||'R').charAt(0)}</div>
-                          <div><div className="text-[12px] font-bold text-gray-800 mb-0.5">{r.recruiter?.name||'Recruiter'}</div><div className="text-[12px] text-gray-600">{r.comment||r.text||'Left a review'}</div><div className="text-[10px] text-gray-400 mt-1">{r.createdAt?new Date(r.createdAt).toLocaleDateString():''}</div></div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <FiMessageSquare className="w-8 h-8 text-gray-200 mx-auto mb-2"/>
-                      <p className="text-[12px] text-gray-400 font-medium">No activity yet</p>
-                    </div>
-                  )}
                 </div>
-              )}
             </div>
           </div>
-
         </div>
-      </div>
+      {/* INTERVIEW KIT MODAL */}
+      {showKitModal && interviewKit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-indigo-50/30">
+              <div>
+                <h3 className="text-[15px] font-bold text-gray-900 flex items-center gap-2"><HiSparkles className="w-5 h-5 text-indigo-600"/> Interview Kit: {cData.name}</h3>
+                <p className="text-[12px] text-gray-500 mt-0.5">AI-generated questions tailored to this candidate's profile</p>
+              </div>
+              <button onClick={() => setShowKitModal(false)} className="text-gray-400 hover:bg-gray-100 p-2 rounded-full transition-colors">
+                <FiX className="w-5 h-5"/>
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Technical Questions */}
+              <div>
+                <h4 className="text-[13px] font-bold text-gray-900 mb-3 flex items-center gap-2"><FiCheckCircle className="text-emerald-500"/> Technical & Domain Questions</h4>
+                <div className="space-y-4">
+                  {(interviewKit.technicalQuestions || []).map((q, idx) => (
+                    <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                      <div className="text-[13px] font-bold text-gray-800 mb-2">Q{idx + 1}: {q.question}</div>
+                      <div className="text-[12px] text-gray-600 bg-white p-3 rounded-lg border border-gray-100"><span className="font-semibold text-indigo-600">Look for:</span> {q.expectedInsight}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Behavioral Questions */}
+              <div>
+                <h4 className="text-[13px] font-bold text-gray-900 mb-3 flex items-center gap-2"><HiOutlineUser className="text-orange-500"/> Behavioral & Cultural Fit</h4>
+                <div className="space-y-4">
+                  {(interviewKit.behavioralQuestions || []).map((q, idx) => (
+                    <div key={idx} className="bg-orange-50/30 rounded-xl p-4 border border-orange-100">
+                      <div className="text-[13px] font-bold text-gray-800 mb-2">Q{idx + 1}: {q.question}</div>
+                      <div className="text-[12px] text-gray-600 bg-white p-3 rounded-lg border border-gray-100"><span className="font-semibold text-orange-600">Look for:</span> {q.expectedInsight}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Scoring Rubric */}
+              <div className="bg-indigo-50/50 p-5 rounded-xl border border-indigo-100">
+                <h4 className="text-[13px] font-bold text-indigo-900 mb-2">Scoring Rubric (5-Star Answer)</h4>
+                <p className="text-[12px] text-indigo-800 leading-relaxed">{interviewKit.scoringRubric}</p>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+              <button onClick={() => setShowKitModal(false)} className="px-5 py-2 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50">Close</button>
+              <button onClick={() => {
+                navigator.clipboard.writeText(JSON.stringify(interviewKit, null, 2));
+                toast.success('Copied to clipboard!');
+              }} className="px-5 py-2 text-[13px] font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 flex items-center gap-2">
+                <FiDownload className="w-4 h-4"/> Copy Kit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
