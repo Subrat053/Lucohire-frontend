@@ -220,7 +220,7 @@ const Support = () => {
                 <HiSparkles className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{t("Support Assistant")}</h1>
+                <h1 className="text-xl font-bold text-gray-900">{t("Luco Support Assistant")}</h1>
                 <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-green-500 inline-block animate-pulse"></span>{t("Online and ready to help")}</p>
               </div>
