@@ -8,10 +8,15 @@ import { getAtsOptimizer, optimizeFullResume } from "../../services/providerAISe
 import { Sparkles, X, CheckCircle2, Bot } from "lucide-react";
 import toast from "react-hot-toast";
 import ClassicProTemplate from "./ClassicProTemplate";
+import TemplateJane from "./templates/TemplateJane";
+import TemplateRichard from "./templates/TemplateRichard";
+import TemplateHarvard from "./templates/TemplateHarvard";
+import TemplateOlivia from "./templates/TemplateOlivia";
 import AtsOptimizerPanel from "../provider/AtsOptimizerPanel";
 import html2pdf from "html2pdf.js";
 
 const templates = [
+  // Base themeable layouts
   { id: "classic-pro", name: "Classic Professional", desc: "ATS optimized, traditional layout." },
   { id: "modern", name: "Modern Clear", desc: "Clean lines, good for tech." },
   { id: "executive", name: "Executive Pro", desc: "Deep blue accents, Garamond font." },
@@ -21,6 +26,11 @@ const templates = [
   { id: "elegant", name: "Elegant Serif", desc: "Playfair Display, burgundy touches." },
   { id: "tech", name: "Tech Monospace", desc: "Fira Code, cyan/blue developer vibe." },
   { id: "startup", name: "Startup Vibe", desc: "Modern green, Outfit font family." },
+  // Custom structural layouts
+  { id: "jane", name: "Jane Structured", desc: "Clean 2-column layout." },
+  { id: "richard", name: "Richard Sidebar", desc: "Dark blue sidebar with timeline." },
+  { id: "harvard", name: "Harvard Academic", desc: "Strict, professional single column." },
+  { id: "olivia", name: "Olivia Elegant", desc: "Pink bordered 2-column layout." },
 ];
 
 function AdvancedResumeBuilderInner({ profileData }) {
@@ -231,8 +241,18 @@ function AdvancedResumeBuilderInner({ profileData }) {
                 className="bg-white shadow-2xl rounded-sm text-left ring-1 ring-slate-900/5 transition-all flex flex-col"
                 style={{ width: "794px", minHeight: "1123px" }}
               >
-                {/* Dynamically render the active template component via CSS variable themes */}
-                <ClassicProTemplate themeId={activeTemplate} />
+                {/* Dynamically render the active template component */}
+                {activeTemplate === 'jane' ? (
+                  <TemplateJane />
+                ) : activeTemplate === 'richard' ? (
+                  <TemplateRichard />
+                ) : activeTemplate === 'harvard' ? (
+                  <TemplateHarvard />
+                ) : activeTemplate === 'olivia' ? (
+                  <TemplateOlivia />
+                ) : (
+                  <ClassicProTemplate themeId={activeTemplate} />
+                )}
               </div>
             </div>
           </div>
@@ -304,9 +324,19 @@ function AdvancedResumeBuilderInner({ profileData }) {
                       activeElementId: null,
                       setActiveElementId: () => {}
                     }}>
-                      <div className="scale-75 origin-top-left w-[133.33%] pointer-events-none bg-white min-h-[533px]">
-                        <ClassicProTemplate />
-                      </div>
+                        <div className="scale-75 origin-top-left w-[133.33%] pointer-events-none bg-white min-h-[533px] flex flex-col">
+                          {activeTemplate === 'jane' ? (
+                            <TemplateJane />
+                          ) : activeTemplate === 'richard' ? (
+                            <TemplateRichard />
+                          ) : activeTemplate === 'harvard' ? (
+                            <TemplateHarvard />
+                          ) : activeTemplate === 'olivia' ? (
+                            <TemplateOlivia />
+                          ) : (
+                            <ClassicProTemplate themeId={activeTemplate} />
+                          )}
+                        </div>
                     </ResumeContext.Provider>
                   </div>
                   <div className="flex gap-4 pt-2">

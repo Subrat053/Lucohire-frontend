@@ -11,6 +11,7 @@ export function ResumeProvider({ children, initialProfileData }) {
       email: '',
       phone: '',
       city: '',
+      photo: '',
       links: []
     },
     sections: []
@@ -26,6 +27,8 @@ export function ResumeProvider({ children, initialProfileData }) {
     const links = (initialProfileData.portfolioLinks || [])
       .filter(l => l.status === 'approved' || !l.status)
       .map(l => ({ platform: l.platform, url: l.url }));
+
+    const photoUrl = initialProfileData.photo || initialProfileData.profilePhoto || initialProfileData.user?.profilePhotoApproval?.pendingUrl || '';
 
     // Standard ATS-friendly sections
     const defaultSections = [
@@ -122,6 +125,7 @@ export function ResumeProvider({ children, initialProfileData }) {
         email: initialProfileData.email || '',
         phone: initialProfileData.phone || '',
         city: initialProfileData.city || '',
+        photo: photoUrl,
         links: links
       },
       sections: defaultSections
