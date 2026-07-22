@@ -13,9 +13,11 @@ const GuestDiscovery = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [otherExperience, setOtherExperience] = useState('');
-  const [otherRole, setOtherRole] = useState('');
   const [jobRoles, setJobRoles] = useState([]);
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const [focusedRoleIndex, setFocusedRoleIndex] = useState(-1);
   const fileInputRef = useRef(null);
+  const roleDropdownRef = useRef(null);
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -32,6 +34,16 @@ const GuestDiscovery = () => {
       }
     };
     fetchRoles();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target)) {
+        setIsRoleDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const [formData, setFormData] = useState({
@@ -120,6 +132,38 @@ const GuestDiscovery = () => {
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (e.target.name === 'role') {
+      setFocusedRoleIndex(-1);
+    }
+  };
+
+  const handleRoleKeyDown = (e) => {
+    const filteredRoles = jobRoles.filter(r => r.toLowerCase().includes((formData.role || '').toLowerCase()));
+    if (!isRoleDropdownOpen) {
+      if (e.key === 'ArrowDown') {
+        setIsRoleDropdownOpen(true);
+      }
+      return;
+    }
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setFocusedRoleIndex(prev => (prev < filteredRoles.length - 1 ? prev + 1 : prev));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setFocusedRoleIndex(prev => (prev > 0 ? prev - 1 : -1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (focusedRoleIndex >= 0 && focusedRoleIndex < filteredRoles.length) {
+        setFormData(prev => ({ ...prev, role: filteredRoles[focusedRoleIndex] }));
+        setIsRoleDropdownOpen(false);
+        setFocusedRoleIndex(-1);
+      } else {
+        setIsRoleDropdownOpen(false);
+      }
+    } else if (e.key === 'Escape') {
+      setIsRoleDropdownOpen(false);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -135,10 +179,6 @@ const GuestDiscovery = () => {
       return toast.error('Please enter your experience in years.');
     }
 
-    if (role === 'Other' && !otherRole) {
-      return toast.error('Please enter your custom role.');
-    }
-
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailId)) {
       return toast.error('Please enter a valid email address.');
     }
@@ -146,7 +186,7 @@ const GuestDiscovery = () => {
     const finalFormData = {
       ...formData,
       experience: experience === 'Other' ? otherExperience : experience,
-      role: role === 'Other' ? otherRole : role
+      role: role
     };
 
     navigate('/unlock-matches', { state: { file, formData: finalFormData } });
@@ -161,10 +201,10 @@ const GuestDiscovery = () => {
         </button>
       </div>
 
-      <div className="w-full max-w-5xl bg-white shadow sm:rounded-lg flex flex-col md:flex-row overflow-hidden border border-gray-200">
+      <div className="w-full max-w-5xl bg-gradient-to-br from-blue-50/90 via-indigo-50/40 to-blue-100/90 shadow-2xl shadow-blue-900/10 sm:rounded-[24px] flex flex-col md:flex-row border border-blue-200/60 relative">
         
         {/* Option 1: Upload Resume */}
-        <div className="flex-1 p-6 border-b md:border-b-0 md:border-r border-gray-200 bg-blue-50/30">
+        <div className="flex-1 p-6 border-b md:border-b-0 md:border-r border-blue-100/60 bg-blue-50/20 backdrop-blur-sm sm:rounded-t-[24px] md:rounded-tr-none md:rounded-l-[24px]">
           <div className="flex flex-col items-center justify-center text-center h-full">
             <div className="bg-blue-100 p-2 rounded-full mb-3">
               <FiUpload className="text-blue-600 text-xl" />
@@ -220,9 +260,9 @@ const GuestDiscovery = () => {
         </div>
 
         {/* Option 2: Fill Details Manually */}
-        <div className="flex-1 p-6 relative">
+        <div className="flex-1 p-6 relative bg-white/40 backdrop-blur-sm sm:rounded-b-[24px] md:rounded-bl-none md:rounded-r-[24px]">
           {/* OR Divider for Desktop */}
-          <div className="hidden md:flex absolute top-1/2 -left-4 transform -translate-y-1/2 items-center justify-center bg-white border border-gray-200 h-8 w-8 rounded-full shadow-sm z-10">
+          <div className="hidden md:flex absolute top-1/2 -left-4 transform -translate-y-1/2 items-center justify-center bg-white border border-blue-100/60 h-8 w-8 rounded-full shadow-sm z-10">
             <span className="text-[10px] font-bold text-gray-500">OR</span>
           </div>
 
@@ -246,7 +286,7 @@ const GuestDiscovery = () => {
                   value={formData.emailId}
                   onChange={handleInputChange}
                   placeholder="Enter your email id" 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2.5 bg-white shadow-sm border border-blue-200/80 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-blue-300 transition-all"
                 />
               </div>
               <div>
@@ -257,34 +297,52 @@ const GuestDiscovery = () => {
                   value={formData.phone}
                   onChange={handleInputChange}
                   placeholder="+919876543210" 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2.5 bg-white shadow-sm border border-blue-200/80 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-blue-300 transition-all"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
+              <div ref={roleDropdownRef} className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Role / Profession *</label>
-                <select 
+                <input 
+                  type="text"
                   name="role"
                   value={formData.role}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white"
-                >
-                  <option value="">Select a role</option>
-                  {jobRoles.map((r) => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
-                  <option value="Other">Other</option>
-                </select>
-                {formData.role === 'Other' && (
-                  <input 
-                    type="text"
-                    value={otherRole}
-                    onChange={(e) => setOtherRole(e.target.value)}
-                    placeholder="Enter your custom role"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 mt-2"
-                  />
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    setIsRoleDropdownOpen(true);
+                  }}
+                  onFocus={() => setIsRoleDropdownOpen(true)}
+                  onKeyDown={handleRoleKeyDown}
+                  placeholder="e.g. Software Engineer"
+                  className="w-full px-4 py-2.5 bg-white shadow-sm border border-blue-200/80 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700 hover:border-blue-300 transition-all"
+                  autoComplete="off"
+                />
+                {isRoleDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                    {jobRoles.filter(r => r.toLowerCase().includes((formData.role || '').toLowerCase())).length > 0 ? (
+                      jobRoles.filter(r => r.toLowerCase().includes((formData.role || '').toLowerCase())).map((r, idx) => (
+                        <div 
+                          key={idx}
+                          className={`px-4 py-2 cursor-pointer text-sm text-gray-700 border-b border-gray-50 last:border-0 ${idx === focusedRoleIndex ? 'bg-blue-100' : 'hover:bg-blue-50'}`}
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, role: r }));
+                            setIsRoleDropdownOpen(false);
+                            setFocusedRoleIndex(-1);
+                          }}
+                        >
+                          {r}
+                        </div>
+                      ))
+                    ) : (
+                      formData.role.length > 0 && (
+                        <div className="px-4 py-3 text-sm text-gray-500 bg-gray-50/50">
+                          Use <span className="font-semibold text-gray-800">"{formData.role}"</span> as custom role.
+                        </div>
+                      )
+                    )}
+                  </div>
                 )}
               </div>
               <div>
@@ -293,7 +351,7 @@ const GuestDiscovery = () => {
                   name="experience"
                   value={formData.experience}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white"
+                  className="w-full px-4 py-2.5 bg-white shadow-sm border border-blue-200/80 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700 hover:border-blue-300 transition-all"
                 >
                   <option value="">Select experience</option>
                   <option value="0-1">0 - 1 Year</option>
@@ -308,7 +366,7 @@ const GuestDiscovery = () => {
                     value={otherExperience}
                     onChange={(e) => setOtherExperience(e.target.value)}
                     placeholder="Enter experience in years"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 mt-2"
+                    className="w-full px-4 py-2.5 bg-white shadow-sm border border-blue-200/80 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 mt-2 hover:border-blue-300 transition-all"
                   />
                 )}
               </div>

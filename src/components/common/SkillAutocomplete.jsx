@@ -13,7 +13,7 @@ const commonSkills = [
   "Accounting", "Finance", "Bookkeeping", "HR", "Recruiting"
 ];
 
-const SkillAutocomplete = ({ onAddSkill, placeholder = "Add a skill (e.g. React, Carpentry)" }) => {
+const SkillAutocomplete = ({ onAddSkill, placeholder = "Add a skill (e.g. React, Carpentry)", suggestionsList = commonSkills, showOnFocus = false }) => {
   const [inputValue, setInputValue] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -29,13 +29,10 @@ const SkillAutocomplete = ({ onAddSkill, placeholder = "Add a skill (e.g. React,
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleInputChange = (e) => {
-    const text = e.target.value;
-    setInputValue(text);
-    
+  const updateSuggestions = (text) => {
     if (text.trim().length > 0) {
       const lowerText = text.toLowerCase();
-      const filtered = commonSkills.filter(item => 
+      const filtered = suggestionsList.filter(item => 
         item.toLowerCase().includes(lowerText)
       );
 
@@ -50,10 +47,19 @@ const SkillAutocomplete = ({ onAddSkill, placeholder = "Add a skill (e.g. React,
 
       setSuggestions(filtered.slice(0, 10));
       setIsOpen(true);
+    } else if (showOnFocus) {
+      setSuggestions(suggestionsList.slice(0, 10));
+      setIsOpen(true);
     } else {
       setSuggestions([]);
       setIsOpen(false);
     }
+  };
+
+  const handleInputChange = (e) => {
+    const text = e.target.value;
+    setInputValue(text);
+    updateSuggestions(text);
   };
 
   const handleAdd = (skillToAdd) => {
@@ -86,6 +92,8 @@ const SkillAutocomplete = ({ onAddSkill, placeholder = "Add a skill (e.g. React,
           onFocus={() => {
             if (inputValue.trim().length > 0 && suggestions.length > 0) {
               setIsOpen(true);
+            } else if (showOnFocus) {
+              updateSuggestions(inputValue);
             }
           }}
           autoComplete="off"

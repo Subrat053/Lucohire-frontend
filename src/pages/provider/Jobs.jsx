@@ -444,7 +444,7 @@ const JobCard = ({
                 {!hasActivePlan
                   ? "React, UI/UX Design, JavaScript"
                   : aiInsights
-                    ? (aiInsights.matchingSkills?.length > 0 ? aiInsights.matchingSkills.join(", ") : "General experience")
+                    ? (aiInsights.matchedSkills?.length > 0 ? aiInsights.matchedSkills.join(", ") : "General experience")
                     : "Generating..."}
               </span>
             </div>
@@ -459,7 +459,7 @@ const JobCard = ({
                 {!hasActivePlan
                   ? "₹12L - ₹18L per annum"
                   : aiInsights
-                    ? (aiInsights.salaryBenchmark || "Data not available")
+                    ? (aiInsights.salaryInsight || "Data not available")
                     : "Generating..."}
               </span>
             </div>
@@ -690,7 +690,8 @@ const ProviderJobs = () => {
             title: j.title,
             skill: j.skill,
             requirements: j.requirements,
-            experienceRequired: j.experienceRequired
+            experienceRequired: j.experienceRequired,
+            location: j.city || j.workLocation || j.location || 'Unknown'
           }]);
           if (res.data?.success && res.data.data.length > 0) {
             const item = res.data.data[0];

@@ -328,7 +328,7 @@ const ProviderDashboard = () => {
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
                           <span className="w-4 flex justify-center text-gray-400">💰</span>
-                          <span>{job.budgetMin ? `₹${job.budgetMin} - ${job.budgetMax} LPA` : '₹12 - 18 LPA'}</span>
+                          <span>{job.budgetMin ? `₹${job.budgetMin} - ${job.budgetMax} LPA` : (job.salaryInsight || 'Salary not disclosed')}</span>
                         </div>
                       </div>
                     </div>

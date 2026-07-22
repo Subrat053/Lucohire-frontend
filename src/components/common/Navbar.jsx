@@ -122,12 +122,14 @@ const Navbar = () => {
             <Link to="/" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
               {t("navbar.home")}
             </Link>
-            <Link to="/jobs-for-me" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
+            <Link to={isAuthenticated ? "/provider/job-for-me" : "/candidate-landing"} className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
               {t("navbar.findJobs", "Find Jobs")}
             </Link>
-            <Link to="/search" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
-              {t("navbar.findProviders")}
-            </Link>
+            {(!isAuthenticated || activeRole !== "provider") && (
+              <Link to="/search" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
+                {t("navbar.findProviders")}
+              </Link>
+            )}
 
 
             {/* <LanguageDropdown /> */}

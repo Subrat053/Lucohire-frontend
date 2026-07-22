@@ -164,6 +164,17 @@ const ProviderLayout = ({ children }) => {
     }
   };
 
+  const handleLinkClick = (e, path, callback) => {
+    if (window.lucodeProfileIsDirty && typeof window.lucodeProfileShowWarning === 'function') {
+      e.preventDefault();
+      window.lucodeProfileShowWarning(path);
+      // We don't call the callback (e.g. closing mobile sidebar) until they confirm, 
+      // but it's fine, the modal will pop up over it.
+      return;
+    }
+    if (callback) callback(e);
+  };
+
   const renderSidebarContent = (onNavClick) => (
     <div className="flex flex-col h-full">
       {/* Brand */}
@@ -198,7 +209,7 @@ const ProviderLayout = ({ children }) => {
               {path ? (
                 <Link
                   to={path}
-                  onClick={onNavClick}
+                  onClick={(e) => handleLinkClick(e, path, onNavClick)}
                   title={collapsed ? label : undefined}
                   className={`flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all group
                     ${active && !subItems
@@ -231,7 +242,7 @@ const ProviderLayout = ({ children }) => {
                       <Link
                         key={sub.path}
                         to={sub.path}
-                        onClick={onNavClick}
+                        onClick={(e) => handleLinkClick(e, sub.path, onNavClick)}
                         className={`text-xs px-3 py-2 rounded-md font-medium transition-colors ${
                           subActive ? 'bg-emerald-100 text-emerald-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                         }`}

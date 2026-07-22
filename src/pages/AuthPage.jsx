@@ -353,7 +353,7 @@ const LeftPanel = ({ mode }) => {
       <div className="relative z-10 animate-fade-in">
         <div className="flex items-center gap-3 mb-12">
           <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
-            <svg className="w-6 h-6 text-indigo-600" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="w-6 h-6 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
             </svg>
           </div>
@@ -754,7 +754,7 @@ const AuthPage = () => {
         navigate("/provider/job-for-me", { replace: true });
         break;
       case "recruiter":
-        navigate("/recruiter/job-postings", { replace: true });
+        navigate("/recruiter/ai-smart-search", { replace: true });
         break;
 
       case "manager":
@@ -1536,7 +1536,7 @@ const AuthPage = () => {
                   }}
                   className={`p-4 rounded-2xl border-2 text-center transition flex flex-col items-center justify-center gap-1.5 ${
                     form.selectedRole === v
-                      ? "border-emerald-600 bg-emerald-50/50 ring-2 ring-indigo-200 text-indigo-700"
+                      ? "border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-200 text-emerald-700"
                       : "border-gray-200 hover:border-gray-300 bg-gray-50 text-gray-600"
                   }`}
                 >
@@ -2465,11 +2465,11 @@ const AuthPage = () => {
             <button 
               onClick={() => {
                 setShowSignupModal(false);
-                if (signupModalRole === 'recruiter') {
-                  navigate('/recruiter-discovery');
-                } else {
-                  navigate('/candidate-landing');
-                }
+                const backendRole = signupModalRole === 'recruiter' ? 'recruiter' : 'provider';
+                setForm((prev) => ({ ...prev, selectedRole: backendRole }));
+                setSelectedRoles([backendRole]);
+                setActiveRole(backendRole);
+                setMode("register");
               }}
               className="w-full bg-emerald-800 text-white font-bold py-3 px-4 rounded-xl hover:bg-emerald-900 transition-colors"
             >
