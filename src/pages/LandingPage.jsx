@@ -106,7 +106,7 @@ export default function LandingPage() {
         handleJobSearch={handleJobSearch}
         isLoadingJobs={isLoadingJobs}
         liveJobsList={liveJobsList}
-        onJobClick={(job) => setSelectedJob(job)}
+        onJobClick={(job) => navigate(`/job/${job._id || job.id}`)}
       />
       
       <TopTalentCarousel 
@@ -118,64 +118,11 @@ export default function LandingPage() {
       />
       
       <FeaturesSection />
-      
+
       <CandidateModal 
         selectedCandidate={selectedCandidate}
         setSelectedCandidate={setSelectedCandidate}
       />
-
-      {/* Guest Job Details Modal */}
-      {selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 sm:p-8 relative">
-            <button 
-              onClick={() => setSelectedJob(null)} 
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 p-2 rounded-full transition"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-2xl border border-blue-100">
-                {(selectedJob.companyName || selectedJob.recruiter?.name || selectedJob.recruiter?.companyName || 'C').charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">{selectedJob.title}</h2>
-                <p className="text-gray-500 font-medium">{selectedJob.companyName || selectedJob.recruiter?.name || selectedJob.recruiter?.companyName || 'Confidential'}</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Location</p>
-                <p className="font-semibold text-gray-800 text-sm">{selectedJob.city || selectedJob.location?.city || 'Remote'}</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Salary / Budget</p>
-                <p className="font-semibold text-gray-800 text-sm">{selectedJob.budget?.perMonth ? `₹${selectedJob.budget.perMonth.toLocaleString()}` : selectedJob.budget?.perHour ? `₹${selectedJob.budget.perHour.toLocaleString()}/hr` : (selectedJob.budgetMin || selectedJob.budgetMax) ? `₹${(selectedJob.budgetMin||0).toLocaleString()} – ${(selectedJob.budgetMax||0).toLocaleString()}` : 'Competitive'}</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Experience</p>
-                <p className="font-semibold text-gray-800 text-sm">{selectedJob.experienceRequired || 'Not specified'}</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Type</p>
-                <p className="font-semibold text-gray-800 text-sm">{selectedJob.workMode || 'Full-time'}</p>
-              </div>
-            </div>
-
-            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div className="text-center sm:text-left">
-                <p className="text-sm font-bold text-blue-900 mb-1">Ready to apply?</p>
-                <p className="text-xs text-blue-700">Sign in as a candidate to view the full description and submit your application.</p>
-              </div>
-              <button onClick={() => navigate('/login')} className="w-full sm:w-auto whitespace-nowrap bg-blue-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-blue-700 transition shadow-md">
-                Sign In
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

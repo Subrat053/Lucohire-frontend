@@ -1,11 +1,121 @@
-import { useRef } from 'react';
-import { Search, MapPin, ChevronLeft, ChevronRight, BadgeCheck, MoreVertical, Clock, Briefcase, Calendar, Zap, Wallet, CheckCircle2, MessageCircle, Phone, Eye, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { Search, MapPin, ChevronLeft, ChevronRight, BadgeCheck, MoreVertical, Clock, Briefcase, Calendar, Zap, Wallet, CheckCircle2, MessageCircle, Phone, Eye, ArrowRight, ChevronDown } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import useTranslation from '../../hooks/useTranslation';
+import { POPULAR_SKILLS, ALL_SKILLS } from '../../data/skillsData';
+
+const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+        if (searchTerm && !options.some(opt => opt.toLowerCase() === searchTerm.toLowerCase())) {
+          setValue(searchTerm);
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchTerm, options, setValue]);
+
+  const filteredOptions = options.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  return (
+    <div className="relative" ref={wrapperRef}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center text-xs bg-white border rounded-lg px-3 py-2 cursor-pointer transition whitespace-nowrap ${isOpen ? 'border-blue-500 shadow-sm' : 'border-gray-200 hover:bg-gray-50 text-gray-600'}`}
+      >
+        {Icon && <Icon className="w-3 h-3 mr-1 text-gray-400" />}
+        <span className={value ? "text-gray-900 font-medium" : ""}>
+          {value || label}
+        </span>
+        <ChevronDown className={`w-3.5 h-3.5 ml-1.5 transition-transform ${isOpen ? 'rotate-180 text-blue-500' : 'text-gray-400'}`} />
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 top-full mt-1 left-0 w-48 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden flex flex-col">
+          <div className="p-2 border-b border-gray-50">
+            <input
+              type="text"
+              autoFocus
+              className="w-full text-sm border border-gray-200 rounded-md px-2 py-1.5 focus:outline-none focus:border-blue-500"
+              placeholder={placeholder || `Type...`}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  setValue(searchTerm);
+                  setIsOpen(false);
+                }
+              }}
+            />
+          </div>
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt, i) => (
+                <li 
+                  key={i}
+                  className="px-3 py-1.5 text-sm text-gray-700 hover:bg-blue-50 cursor-pointer"
+                  onClick={() => {
+                    setValue(opt);
+                    setSearchTerm('');
+                    setIsOpen(false);
+                  }}
+                >
+                  {opt}
+                </li>
+              ))
+            ) : (
+              <li className="px-3 py-2 text-sm text-gray-400 text-center">Press Enter to use "{searchTerm}"</li>
+            )}
+            {value && (
+              <li 
+                className="px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1"
+                onClick={() => {
+                  setValue('');
+                  setSearchTerm('');
+                  setIsOpen(false);
+                }}
+              >
+                Clear selection
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function TopTalentCarousel({ displayTalent, talentSearch, setTalentSearch, handleTalentSearch, setSelectedCandidate }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const carouselRef = useRef(null);
+
+  const [skillFilter, setSkillFilter] = useState('');
+  const [experienceFilter, setExperienceFilter] = useState('');
+  const [rateFilter, setRateFilter] = useState('');
+  const [availabilityFilter, setAvailabilityFilter] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
+
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+  const searchContainerRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setSearchDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const scrollCarousel = (direction) => {
     if (carouselRef.current) {
@@ -17,6 +127,20 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
     }
   };
 
+  const onSearchSubmit = (e) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (talentSearch) params.append('query', talentSearch);
+    if (skillFilter) params.append('skill', skillFilter);
+    if (experienceFilter) params.append('experience', experienceFilter);
+    if (rateFilter) params.append('rate', rateFilter);
+    if (availabilityFilter) params.append('availability', availabilityFilter);
+    if (locationFilter) params.append('location', locationFilter);
+    navigate(`/search?${params.toString()}`);
+  };
+
+  const matchingSkills = Array.from(new Set(talentSearch ? ALL_SKILLS.filter(s => s.toLowerCase().includes(talentSearch.toLowerCase())) : POPULAR_SKILLS)).slice(0, 30);
+
   return (
     <div className="bg-white py-12 sm:py-16 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -25,30 +149,103 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
         </h2>
       
         {/* Filters Bar */}
-        <form onSubmit={handleTalentSearch} className="bg-white p-2.5 sm:p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 mb-8 sm:mb-10">
-          <div className="flex-1 min-w-[180px] flex items-center bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
-            <Search className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
-            <input 
-              type="text" 
-              placeholder={t("Search talent by skills or name")} 
-              className="bg-transparent border-none focus:ring-0 text-sm w-full outline-none"
-              value={talentSearch}
-              onChange={(e) => setTalentSearch(e.target.value)}
+        <form onSubmit={onSearchSubmit} className="bg-white p-2.5 sm:p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 mb-8 sm:mb-10">
+          <div className="flex-1 min-w-[180px] relative" ref={searchContainerRef}>
+            <div className="flex items-center bg-gray-50 rounded-lg px-3 py-2 border border-gray-100 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+              <Search className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
+              <input 
+                type="text" 
+                placeholder={t("Search talent by skills or name")} 
+                className="bg-transparent border-none focus:ring-0 text-sm w-full outline-none"
+                value={talentSearch}
+                onChange={(e) => {
+                  setTalentSearch(e.target.value);
+                  setSearchDropdownOpen(true);
+                }}
+                onFocus={() => setSearchDropdownOpen(true)}
+              />
+            </div>
+            
+            {/* Smart Dropdown */}
+            {searchDropdownOpen && matchingSkills.length > 0 && (
+              <div className="absolute top-[calc(100%+8px)] left-0 w-[calc(100vw-32px)] sm:w-[480px] bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden">
+                <div className="bg-gray-50/80 border-b border-gray-100 px-4 py-3 flex justify-between items-center backdrop-blur-sm">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    {talentSearch ? t("Matching Skills") : t("Trending Skills")}
+                  </span>
+                  <span className="text-[10px] text-gray-400 font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200">Select to search</span>
+                </div>
+                <div className="p-4 max-h-[300px] overflow-y-auto">
+                  <div className="flex flex-wrap gap-2">
+                    {matchingSkills.map((skill, idx) => {
+                      const colors = [
+                        'bg-blue-50/80 text-blue-700 border-blue-200/60 hover:bg-blue-600 hover:text-white hover:border-blue-600 hover:shadow-md hover:shadow-blue-500/20',
+                        'bg-purple-50/80 text-purple-700 border-purple-200/60 hover:bg-purple-600 hover:text-white hover:border-purple-600 hover:shadow-md hover:shadow-purple-500/20',
+                        'bg-emerald-50/80 text-emerald-700 border-emerald-200/60 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 hover:shadow-md hover:shadow-emerald-500/20',
+                        'bg-orange-50/80 text-orange-700 border-orange-200/60 hover:bg-orange-500 hover:text-white hover:border-orange-500 hover:shadow-md hover:shadow-orange-500/20',
+                        'bg-pink-50/80 text-pink-700 border-pink-200/60 hover:bg-pink-500 hover:text-white hover:border-pink-500 hover:shadow-md hover:shadow-pink-500/20',
+                        'bg-indigo-50/80 text-indigo-700 border-indigo-200/60 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 hover:shadow-md hover:shadow-indigo-500/20',
+                      ];
+                      const colorClass = colors[idx % colors.length];
+                      
+                      return (
+                        <div 
+                          key={idx}
+                          className={`px-3 py-1.5 border rounded-xl text-sm font-medium cursor-pointer transition-all duration-300 ${colorClass}`}
+                          onClick={() => {
+                            setTalentSearch(skill);
+                            setSearchDropdownOpen(false);
+                          }}
+                        >
+                          {skill}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="hidden lg:flex flex-wrap items-center gap-2">
+            <FilterDropdown 
+              label={t('Skills')} 
+              value={skillFilter} 
+              setValue={setSkillFilter} 
+              options={POPULAR_SKILLS} 
+            />
+            <FilterDropdown 
+              label={t('Experience')} 
+              value={experienceFilter} 
+              setValue={setExperienceFilter} 
+              options={['Fresher', '1-3 Years', '3-5 Years', '5-10 Years', '10+ Years']} 
+            />
+            <FilterDropdown 
+              label={t('Hourly Rate')} 
+              value={rateFilter} 
+              setValue={setRateFilter} 
+              options={['Under ₹500/hr', '₹500 - ₹1000/hr', '₹1000 - ₹2000/hr', '₹2000+/hr']} 
+            />
+            <FilterDropdown 
+              label={t('Availability')} 
+              value={availabilityFilter} 
+              setValue={setAvailabilityFilter} 
+              options={['Full-time', 'Part-time', 'Contract', 'Freelance']} 
+            />
+            <FilterDropdown 
+              label={t('All Locations')} 
+              icon={MapPin}
+              value={locationFilter} 
+              setValue={setLocationFilter} 
+              options={['Remote', 'Bengaluru', 'Mumbai', 'Delhi', 'Hyderabad', 'Pune']} 
             />
           </div>
-          <div className="hidden lg:flex items-center gap-2">
-            {[t('Skills'), t('Experience'), t('Hourly Rate'), t('Availability'), t('All Locations')].map((filter, i) => (
-              <div key={i} className="flex items-center text-xs text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-50 whitespace-nowrap">
-                {filter === t('All Locations') && <MapPin className="w-3 h-3 mr-1 text-gray-400" />}
-                {filter}
-                <svg className="w-3.5 h-3.5 ml-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </div>
-            ))}
-          </div>
+          
           <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg sm:ml-auto transition whitespace-nowrap">
             {t("Search Talent")}
           </button>
         </form>
+
 
         {/* Candidate Cards Carousel */}
         <div className="relative">

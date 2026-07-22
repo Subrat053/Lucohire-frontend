@@ -21,7 +21,7 @@ export default function DualPathwayCards({ user }) {
                 <User className="w-5 h-5" strokeWidth={2.5} />
               </div>
               <div>
-                <h2 className="text-2xl lg:text-3xl font-extrabold text-blue-600 mb-2 leading-normal tracking-tight">{t("I'm a Candidate")}</h2>
+                <h2 className="text-2xl lg:text-3xl font-bold text-blue-600 mb-2 leading-normal tracking-tight">{t("I'm a Candidate")}</h2>
                 <p className="text-sm lg:text-base font-semibold text-gray-700 leading-[1.6]">{t("Find jobs that match your skills and goals.")}</p>
               </div>
             </div>
@@ -66,7 +66,7 @@ export default function DualPathwayCards({ user }) {
                 <Briefcase className="w-5 h-5" strokeWidth={2.5} />
               </div>
               <div>
-                <h2 className="text-2xl lg:text-3xl font-extrabold text-green-600 mb-2 leading-normal tracking-tight">{t("I'm a Recruiter")}</h2>
+                <h2 className="text-2xl lg:text-3xl font-bold text-green-600 mb-2 leading-normal tracking-tight">{t("I'm a Recruiter")}</h2>
                 <p className="text-sm lg:text-base font-semibold text-gray-700 leading-[1.6]">{t("Hire verified talent faster and build teams.")}</p>
               </div>
             </div>

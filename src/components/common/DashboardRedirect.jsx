@@ -15,7 +15,7 @@ export default function DashboardRedirect() {
 
   const activeRole = user?.activeRole || user?.role;
   if (activeRole === "provider") {
-    return <Navigate to="/provider/dashboard" replace />;
+    return <Navigate to="/provider/job-for-me" replace />;
   }
   if (activeRole === "recruiter") {
     return <Navigate to="/recruiter/job-postings" replace />;

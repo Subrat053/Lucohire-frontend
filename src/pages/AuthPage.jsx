@@ -339,154 +339,48 @@ const StarRating = () => {
 */
 
 const LeftPanel = ({ mode }) => {
-  const { t } = useTranslation();
-  const isLogin = mode === "login" || mode === "whatsapp-login";
   return (
-    <div
-      className="hidden lg:flex flex-col justify-between relative overflow-hidden rounded-l-3xl p-10 min-h-full"
-      style={{
-        background:
-          "linear-gradient(145deg,#1d4ed8 0%,#4f46e5 50%,#7c3aed 100%)",
-      }}
-    >
-      {/* Ambient orbs */}
-      <div
-        className="absolute w-64 h-64 rounded-full bg-white/10 blur-3xl"
-        style={{ top: "-10%", left: "-15%" }}
+    <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 bg-gray-900 overflow-hidden min-h-screen">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-50 transition-transform duration-1000 hover:scale-105"
+        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')" }}
       />
-      <div
-        className="absolute w-48 h-48 rounded-full bg-purple-300/20 blur-3xl"
-        style={{ bottom: "5%", right: "-10%" }}
-      />
-      <div
-        className="absolute w-32 h-32 rounded-full bg-blue-200/20 blur-2xl"
-        style={{ top: "45%", left: "60%" }}
-      />
+      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-gray-900/60 to-transparent" />
 
-      {/* Floating social chips */}
-      <FloatingSocialChip
-        icon={FcGoogle}
-        color=""
-        style={{ top: "42%", right: "8%", animationDelay: "0s" }}
-      />
-      <FloatingSocialChip
-        icon={FaFacebook}
-        color="text-blue-600"
-        style={{ top: "54%", right: "19%", animationDelay: "0.3s" }}
-      />
-      <FloatingSocialChip
-        icon={FaApple}
-        color="text-gray-800"
-        style={{ top: "49%", left: "6%", animationDelay: "0.6s" }}
-      />
-      <FloatingSocialChip
-        icon={FaLinkedin}
-        color="text-blue-500"
-        style={{ top: "68%", right: "2%", animationDelay: "0.9s" }}
-      />
-      <FloatingSocialChip
-        icon={FaWhatsapp}
-        color="text-green-500"
-        style={{ top: "65%", left: "9%", animationDelay: "1.2s" }}
-      />
-
-      {/* Dashed arrows */}
-      <DashedArrow color="#fff" className="top-16 right-8" rotate={30} />
-      <DashedArrow color="#a5f3fc" className="bottom-32 left-16" rotate={220} />
-
-      {/* Floating trust badges */}
-      <FloatingBadge
-        icon={HiShieldCheck}
-        label={t("auth.secure100", "100% Secure")}
-        color="text-green-500"
-        className="top-6 right-6 animate-float"
-        style={{ animationDelay: "0.5s" }}
-      />
-      <FloatingBadge
-        icon={MdVerified}
-        label={t("auth.verified2Step", "2-Step Verified")}
-        color="text-blue-500"
-        className="bottom-8 right-4 animate-float"
-        style={{ animationDelay: "1s" }}
-      />
-
-      {/* Top: brand */}
-      <div className="relative z-10">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg">
-            <FaRocket className="w-6 h-6 text-indigo-600" />
+      {/* Content */}
+      <div className="relative z-10 animate-fade-in">
+        <div className="flex items-center gap-3 mb-12">
+          <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
+            <svg className="w-6 h-6 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+            </svg>
           </div>
-          <div>
-            <p className="text-white font-extrabold text-2xl tracking-tight">
-              ServiceHub
-            </p>
-            <p className="text-blue-200 text-xs">
-              {t("auth.connectHireGrow", "Connect. Hire. Grow.")}
-            </p>
-          </div>
-        </div>
-
-        <h2 className="text-white text-3xl font-extrabold leading-tight mb-3">
-          {isLogin
-            ? t("auth.welcomeBackTitle", "Welcome\nBack!")
-            : t("auth.growthStartsTitle", "Your Growth\nStarts Here.")}
-        </h2>
-        <p className="text-blue-100 text-sm leading-relaxed mb-6">
-          {isLogin
-            ? t(
-                "auth.loginSubtitle",
-                "Sign in to access your dashboard, manage leads, and grow your business.",
-              )
-            : t(
-                "auth.signupSubtitle",
-                "Join thousands of service providers and recruiters building their network.",
-              )}
-        </p>
-        <StarRating />
-      </div>
-
-      {/* Center: illustration */}
-      <div className="relative z-10 flex justify-center items-end my-4">
-        <div className="relative">
-          {/* <PersonAtLaptop /> */}
-          {/* Shield badge overlay */}
-          <picture>
-            <source srcSet="/laptop.webp" type="image/webp" />
-            <img
-              src="/laptop.webp"
-              alt="Illustration: person using laptop"
-              width={240}
-              height={240}
-              decoding="async"
-              fetchpriority="high"
-              className="h-60"
-            />
-          </picture>
-          <div className="absolute -top-4 -right-2">
-            <ShieldIcon />
-          </div>
+          <span className="text-white font-extrabold text-2xl tracking-tight">Lucohire</span>
         </div>
       </div>
-      {/* Bottom: stats */}
-      <div className="relative z-10">
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { n: "10K+", l: t("auth.providers", "Providers") },
-            { n: "5K+", l: t("auth.recruiters", "Recruiters") },
-            { n: "50K+", l: t("auth.connections", "Connections") },
-          ].map(({ n, l }) => (
-            <div
-              key={l}
-              className="text-center bg-white/15 backdrop-blur-sm rounded-2xl py-3 border border-white/20"
-            >
-              <p className="text-white font-extrabold text-lg">{n}</p>
-              <p className="text-blue-200 text-xs">{l}</p>
-            </div>
-          ))}
-        </div>
-        <p className="text-center text-white/40 text-xs mt-6">
-          © 2025 ServiceHub • All rights reserved
+
+      <div className="relative z-10 max-w-lg mb-10">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6">
+          Connect.<br/><span className="text-blue-400">Hire.</span><br/>Grow.
+        </h1>
+        <p className="text-lg text-gray-300 font-medium leading-relaxed mb-8 italic">
+          "Join thousands of service providers and recruiters building their network and accelerating their growth today."
         </p>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex -space-x-4">
+            <img className="w-10 h-10 rounded-full border-2 border-gray-800" src="https://i.pravatar.cc/100?img=1" alt="User" />
+            <img className="w-10 h-10 rounded-full border-2 border-gray-800" src="https://i.pravatar.cc/100?img=2" alt="User" />
+            <img className="w-10 h-10 rounded-full border-2 border-gray-800" src="https://i.pravatar.cc/100?img=3" alt="User" />
+            <img className="w-10 h-10 rounded-full border-2 border-gray-800" src="https://i.pravatar.cc/100?img=4" alt="User" />
+          </div>
+          <div className="text-sm">
+            <div className="text-white font-bold">15,000+</div>
+            <div className="text-gray-400">Active professionals</div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -497,7 +391,7 @@ const ProgressBar = ({ filled = 1, total = 2 }) => (
     {Array.from({ length: total }).map((_, i) => (
       <div
         key={i}
-        className={`flex-1 h-1 rounded-full transition-all duration-300 ${i < filled ? "bg-blue-600" : "bg-gray-200"}`}
+        className={`flex-1 h-1 rounded-full transition-all duration-300 ${i < filled ? "bg-emerald-800" : "bg-gray-200"}`}
       />
     ))}
   </div>
@@ -508,9 +402,9 @@ const TrustRow = () => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-b border-gray-100 py-3 mb-6">
       <div className="flex items-center gap-1.5 text-xs text-gray-600">
-        <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
+        <div className="w-7 h-7 bg-emerald-100 rounded-full flex items-center justify-center">
           <svg
-            className="w-4 h-4 text-blue-600"
+            className="w-4 h-4 text-emerald-800"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -673,7 +567,7 @@ const RolePicker = ({
                 key={r}
                 type="button"
                 onClick={() => setActiveRole(r)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${activeRole === r ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700"}`}
+                className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${activeRole === r ? "bg-emerald-800 text-white" : "bg-gray-100 text-gray-700"}`}
               >
                 {t(`common.${r}`, r)}
               </button>
@@ -857,10 +751,10 @@ const AuthPage = () => {
 
     switch (userRole) {
       case "provider":
-        navigate("/provider/dashboard", { replace: true });
+        navigate("/provider/job-for-me", { replace: true });
         break;
       case "recruiter":
-        navigate("/recruiter/job-postings", { replace: true });
+        navigate("/recruiter/ai-smart-search", { replace: true });
         break;
 
       case "manager":
@@ -1606,7 +1500,7 @@ const AuthPage = () => {
             </h2>
             <p className="text-gray-500 text-sm">
               {t("auth.getStarted")}{" "}
-              <span className="text-blue-600 font-semibold">
+              <span className="text-emerald-800 font-semibold">
                 {t("auth.quickEasy")}
               </span>
             </p>
@@ -1642,7 +1536,7 @@ const AuthPage = () => {
                   }}
                   className={`p-4 rounded-2xl border-2 text-center transition flex flex-col items-center justify-center gap-1.5 ${
                     form.selectedRole === v
-                      ? "border-indigo-500 bg-indigo-50/50 ring-2 ring-indigo-200 text-indigo-700"
+                      ? "border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-200 text-emerald-700"
                       : "border-gray-200 hover:border-gray-300 bg-gray-50 text-gray-600"
                   }`}
                 >
@@ -1677,7 +1571,7 @@ const AuthPage = () => {
               onClick={() => setStep(2)}
               className="flex items-center justify-center gap-2 border-2 border-gray-200 bg-white py-3.5 rounded-2xl text-sm font-semibold hover:bg-gray-50 transition shadow-sm"
             >
-              <HiMail className="w-5 h-5 text-blue-500" />{" "}
+              <HiMail className="w-5 h-5 text-emerald-600" />{" "}
               {t("auth.continueEmail")}
             </button>
           </div>
@@ -1686,7 +1580,7 @@ const AuthPage = () => {
             {t("auth.alreadyAccount")}{" "}
             <Link
               to={loginHref}
-              className="text-blue-600 font-bold hover:underline"
+              className="text-emerald-800 font-bold hover:underline"
             >
               {t("navbar.login")}
             </Link>
@@ -1703,7 +1597,7 @@ const AuthPage = () => {
         <form onSubmit={handleEmailRegister} className="space-y-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <HiUser className="w-5 h-5 text-blue-500" />
+              <HiUser className="w-5 h-5 text-emerald-600" />
               <h2 className="text-2xl font-extrabold text-gray-900">
                 {t("auth.tellAboutYourself", "Tell us about yourself")}
               </h2>
@@ -1747,7 +1641,7 @@ const AuthPage = () => {
                   setErrors((prev) => ({ ...prev, whatsappNumber: "" }));
                 }
               }}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+              className="h-4 w-4 text-emerald-800 focus:ring-emerald-600 border-gray-300 rounded cursor-pointer"
             />
             <label
               htmlFor="isWhatsappSameAsMobile-email"
@@ -1949,7 +1843,7 @@ const AuthPage = () => {
           <button
             type="button"
             onClick={() => setStep(1)}
-            className="w-full text-xs text-gray-400 hover:text-blue-500 transition"
+            className="w-full text-xs text-gray-400 hover:text-emerald-600 transition"
           >
             &#8592; {t("auth.backToOptions")}
           </button>
@@ -1962,7 +1856,7 @@ const AuthPage = () => {
         <div className="space-y-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <HiUser className="w-5 h-5 text-blue-500" />
+              <HiUser className="w-5 h-5 text-emerald-600" />
               <h2 className="text-2xl font-extrabold text-gray-900">
                 {t("auth.registerPhone", "Register with Phone OTP")}
               </h2>
@@ -2067,7 +1961,7 @@ const AuthPage = () => {
             {t("auth.alreadyAccount")}{" "}
             <Link
               to={loginHref}
-              className="text-blue-600 font-bold hover:underline"
+              className="text-emerald-800 font-bold hover:underline"
             >
               {t("navbar.login")}
             </Link>
@@ -2075,7 +1969,7 @@ const AuthPage = () => {
 
           <button
             onClick={() => setMode("register")}
-            className="w-full text-xs text-gray-400 hover:text-blue-500 transition"
+            className="w-full text-xs text-gray-400 hover:text-emerald-600 transition"
           >
             &#8592; {t("auth.backToOptions")}
           </button>
@@ -2154,8 +2048,8 @@ const AuthPage = () => {
       return (
         <div className="space-y-6">
           <div className="text-center">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg">
-              <HiMail className="w-10 h-10 text-blue-600" />
+            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg">
+              <HiMail className="w-10 h-10 text-emerald-800" />
             </div>
 
             <h2 className="text-2xl font-extrabold text-gray-900 mb-2">
@@ -2214,7 +2108,7 @@ const AuthPage = () => {
                   setStep(2);
                 }
               }}
-              className="text-gray-500 hover:text-blue-600 transition"
+              className="text-gray-500 hover:text-emerald-800 transition"
             >
               &#8592;{" "}
               {emailOtpSource === "login"
@@ -2225,7 +2119,7 @@ const AuthPage = () => {
             <button
               onClick={handleEmailResend}
               disabled={resendTimer > 0 || loading}
-              className="text-blue-600 font-bold disabled:text-gray-400 transition"
+              className="text-emerald-800 font-bold disabled:text-gray-400 transition"
             >
               {resendTimer > 0
                 ? `${t("auth.resendIn")} ${resendTimer}s`
@@ -2288,7 +2182,7 @@ const AuthPage = () => {
 
             <p className="text-gray-500 text-sm">
               {t("auth.signinSeamless")}{" "}
-              <span className="text-blue-600 font-semibold">
+              <span className="text-emerald-800 font-semibold">
                 {t("auth.quickEasy")}
               </span>
             </p>
@@ -2326,7 +2220,7 @@ const AuthPage = () => {
 
           <div className="mb-5">
             <div className="flex items-center gap-2 mb-1">
-              <HiUser className="w-5 h-5 text-blue-500" />
+              <HiUser className="w-5 h-5 text-emerald-600" />
               <h3 className="text-base font-bold text-gray-800">
                 {t("auth.yourCredentials", "Your Credentials")}
               </h3>
@@ -2358,7 +2252,7 @@ const AuthPage = () => {
               <div className="flex justify-end px-1">
                 <Link
                   to="/forgot-password"
-                  className="text-xs font-bold text-blue-600 hover:text-blue-500 transition-colors"
+                  className="text-xs font-bold text-emerald-800 hover:text-emerald-600 transition-colors"
                 >
                   Forgot Password?
                 </Link>
@@ -2382,7 +2276,7 @@ const AuthPage = () => {
             <button
               type="button"
               onClick={() => setShowSignupModal(true)}
-              className="text-blue-600 font-bold hover:underline"
+              className="text-emerald-800 font-bold hover:underline"
             >
               {t("navbar.signup")}
             </button>
@@ -2395,13 +2289,7 @@ const AuthPage = () => {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center py-10 px-4"
-      style={{
-        background:
-          "linear-gradient(135deg,#dbeafe 0%,#ede9fe 45%,#fce7f3 100%)",
-      }}
-    >
+    <div className="min-h-screen flex flex-col lg:flex-row bg-white relative">
       <Seo
         title={pageTitle}
         description={t(
@@ -2411,51 +2299,34 @@ const AuthPage = () => {
         canonicalPath={isLoginRoute ? "/login" : "/signup"}
         robots="noindex, nofollow"
       />
-      <div
-        className="fixed rounded-full blur-3xl opacity-40 pointer-events-none bg-blue-200 w-96 h-96"
-        style={{ top: "-8%", left: "-8%" }}
-      />
 
-      <div
-        className="fixed rounded-full blur-3xl opacity-30 pointer-events-none bg-purple-300 w-72 h-72"
-        style={{ bottom: "-5%", right: "-5%" }}
-      />
-
+      {/* Back button */}
       <Link
         to="/"
-        className="fixed top-3 left-3 sm:top-5 sm:left-5 flex items-center gap-2 text-gray-600 hover:text-blue-600 transition text-xs sm:text-sm font-medium z-20 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1.5 sm:px-4 sm:py-2 shadow-md"
+        className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-gray-800 lg:text-white transition text-xs sm:text-sm font-medium z-30 bg-black/10 lg:bg-black/30 hover:bg-black/20 lg:hover:bg-black/50 backdrop-blur-md rounded-full px-4 py-2 shadow-lg"
       >
         <HiArrowLeft className="w-4 h-4" /> {t("navbar.home")}
       </Link>
 
-      <div className="relative w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden auth-page-card min-h-[530px] sm:min-h-[600px]">
-        <div className="flex flex-col lg:grid lg:grid-cols-[480px_1fr] min-h-[560px] sm:min-h-[620px]">
-          <LeftPanel mode={mode} />
+      {/* Left panel (Image + Quote) */}
+      <LeftPanel mode={mode} />
 
-          <div className="flex flex-col justify-center px-8 sm:px-12 py-10 relative overflow-hidden">
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle at 90% 10%, #eff6ff 0%, transparent 50%), radial-gradient(circle at 10% 90%, #f0fdf4 0%, transparent 40%)",
-              }}
-            />
-
-            <div className="lg:hidden flex items-center gap-2 mb-6">
-              <div className="w-9 h-9 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow">
-                <FaRocket className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-lg font-extrabold text-gray-800">
-                ServiceHub
-              </span>
-            </div>
-
-            <div className="relative z-10 max-w-md mx-auto w-full">
-              {renderForm()}
-            </div>
+      {/* Right panel (Form) */}
+      <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-12 relative overflow-y-auto">
+        <div className="lg:hidden flex items-center gap-2 mb-8">
+          <div className="w-10 h-10 bg-emerald-800 rounded-xl flex items-center justify-center shadow">
+            <FaRocket className="w-5 h-5 text-white" />
           </div>
+          <span className="text-xl font-extrabold text-gray-900">
+            Lucohire
+          </span>
+        </div>
+
+        <div className="w-full max-w-md mx-auto relative z-10 auth-page-card">
+          {renderForm()}
         </div>
       </div>
+
 
       <div id="recaptcha-container"></div>
 
@@ -2505,9 +2376,9 @@ const AuthPage = () => {
               <button
                 onClick={() => handleRoleSelection("recruiter")}
                 disabled={loading}
-                className="w-full py-4 px-6 rounded-2xl border border-white/60 bg-white/40 hover:border-indigo-400 hover:bg-white/70 shadow-sm transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 px-6 rounded-2xl border border-white/60 bg-white/40 hover:border-emerald-500 hover:bg-white/70 shadow-sm transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <svg
                     className="w-6 h-6"
                     fill="none"
@@ -2551,10 +2422,10 @@ const AuthPage = () => {
             
             <div className="space-y-4 mb-6">
               <label 
-                className={`w-full flex items-center p-4 border rounded-xl cursor-pointer transition-all ${signupModalRole === 'recruiter' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300 hover:bg-gray-50'}`}
+                className={`w-full flex items-center p-4 border rounded-xl cursor-pointer transition-all ${signupModalRole === 'recruiter' ? 'border-emerald-600 bg-emerald-50' : 'hover:border-emerald-400 hover:bg-gray-50'}`}
               >
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4 shrink-0">
-                  <HiUser className="text-blue-600 w-5 h-5" />
+                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mr-4 shrink-0">
+                  <HiUser className="text-emerald-800 w-5 h-5" />
                 </div>
                 <div className="flex-1">
                   <h4 className="font-bold text-gray-900">Recruiter</h4>
@@ -2566,7 +2437,7 @@ const AuthPage = () => {
                   value="recruiter" 
                   checked={signupModalRole === 'recruiter'}
                   onChange={() => setSignupModalRole('recruiter')}
-                  className="w-5 h-5 text-blue-600 focus:ring-blue-500"
+                  className="w-5 h-5 text-emerald-800 focus:ring-emerald-600"
                 />
               </label>
               
@@ -2594,13 +2465,13 @@ const AuthPage = () => {
             <button 
               onClick={() => {
                 setShowSignupModal(false);
-                if (signupModalRole === 'recruiter') {
-                  navigate('/recruiter-discovery');
-                } else {
-                  navigate('/candidate-landing');
-                }
+                const backendRole = signupModalRole === 'recruiter' ? 'recruiter' : 'provider';
+                setForm((prev) => ({ ...prev, selectedRole: backendRole }));
+                setSelectedRoles([backendRole]);
+                setActiveRole(backendRole);
+                setMode("register");
               }}
-              className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors"
+              className="w-full bg-emerald-800 text-white font-bold py-3 px-4 rounded-xl hover:bg-emerald-900 transition-colors"
             >
               Okay
             </button>

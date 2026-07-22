@@ -452,7 +452,7 @@ export default function AITips() {
                         <MapPin className="w-3.5 h-3.5 text-gray-400" /> {job.city || 'Remote'}
                       </div>
                       <div className="flex items-center gap-1.5 text-[11px] text-gray-500 font-medium">
-                        <Briefcase className="w-3.5 h-3.5 text-gray-400" /> ₹{job.budgetMin || 12} - {job.budgetMax || 18}{t("LPA")}</div>
+                        <Briefcase className="w-3.5 h-3.5 text-gray-400" /> {job.budgetMin ? `₹${job.budgetMin} - ${job.budgetMax} LPA` : 'Salary not disclosed'}</div>
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 mb-5">

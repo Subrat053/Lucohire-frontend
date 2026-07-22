@@ -429,6 +429,8 @@ const ProviderProfile = () => {
   const [uploading, setUploading] = useState(false);
   const [plan, setPlan] = useState("free");
   const [activeTab, setActiveTab] = useState("Personal");
+  const [pendingTab, setPendingTab] = useState(null);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
 
   const [profileData, setProfileData] = useState(null);
@@ -480,6 +482,7 @@ const ProviderProfile = () => {
     designation: "",
     company: "",
     name: "",
+    roles: [],
     skills: [],
     locations: [],
     city: "",
@@ -773,6 +776,12 @@ const ProviderProfile = () => {
     );
   }, [form, profileData]);
 
+  const handleTabChange = (newTab) => {
+    if (activeTab === newTab) return;
+    setActiveTab(newTab);
+    window.scrollTo(0, 0);
+  };
+
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (isDirty) {
@@ -783,7 +792,19 @@ const ProviderProfile = () => {
       }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+
+    // Setup global window overrides for sidebar interception
+    window.lucodeProfileIsDirty = isDirty;
+    window.lucodeProfileShowWarning = (pendingPath) => {
+      setPendingTab(pendingPath);
+      setShowUnsavedWarning(true);
+    };
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.lucodeProfileIsDirty = false;
+      window.lucodeProfileShowWarning = null;
+    };
   }, [isDirty]);
 
   useEffect(() => {
@@ -947,6 +968,7 @@ const ProviderProfile = () => {
           name: data.user?.name || "",
           designation: data.designation || "",
           company: data.company || "",
+          roles: data.roles || [],
           skills: data.skills || [],
           locations: locs,
           city: data.city || "",
@@ -1548,13 +1570,13 @@ const ProviderProfile = () => {
       );
     }
 
-    if (String(plan).toLowerCase() === "free" && form.skills.length > 1) {
+    if (String(plan).toLowerCase() === "free" && form.roles.length > 1) {
       const card = document.getElementById("role-skills-card");
       if (card) {
         card.scrollIntoView({ behavior: "smooth", block: "center" });
       }
       return toast.error(
-        "For free plan you can only use one skill. Please upgrade your plan or remove extra roles.",
+        "For free plan you can only use one role. Please upgrade your plan or remove extra roles.",
       );
     }
 
@@ -1793,7 +1815,7 @@ const ProviderProfile = () => {
                 <button
                   key={tab}
                   type="button"
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => handleTabChange(tab)}
                   className={`py-2 px-6 text-[14.5px] transition-all duration-200 rounded-full border ${
                     activeTab === tab
                       ? "bg-[#047857] text-white font-bold border-transparent shadow-[inset_0px_4px_8px_rgba(0,0,0,0.25)] scale-[0.96]"
@@ -2254,16 +2276,45 @@ const ProviderProfile = () => {
                      </div>
                   </div>
 
+                  {/* Roles Section */}
+                  <div id="role-skills-card" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
+                     <div className="flex items-center gap-2 mb-4">
+                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Roles")}</h3>
+                     </div>
+                     <p className="text-[13px] text-slate-500 mb-4">{t("Add roles relevant to your profession (e.g. Developer, Designer). Free plan is limited to 1 role.")}</p>
+                     
+                     <div className="flex flex-col gap-4">
+                       <SkillAutocomplete 
+                         placeholder={t("Add a role (e.g. Frontend Developer)")}
+                         onAddSkill={(role) => {
+                           if (!form.roles.includes(role)) {
+                             setForm({ ...form, roles: [...form.roles, role] });
+                           }
+                         }}
+                       />
+                       <div className="flex flex-wrap gap-2">
+                         {form.roles.map((role, i) => (
+                           <div key={i} className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-full text-xs font-semibold">
+                             {role}
+                             <button type="button" onClick={() => setForm({ ...form, roles: form.roles.filter(r => r !== role) })} className="hover:text-indigo-900">
+                               &times;
+                             </button>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                  </div>
+
                   {/* Skills Section */}
-                  <div id="skills-section" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
                      <div className="flex items-center gap-2 mb-4">
                        <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Skills")}</h3>
                      </div>
-                     <p className="text-[13px] text-slate-500 mb-4">{t("Add skills relevant to your profession.")}</p>
+                     <p className="text-[13px] text-slate-500 mb-4">{t("Add specific skills (e.g. React, Node.js). No limit.")}</p>
                      
-                     <div className="flex flex-col gap-3">
+                     <div className="flex flex-col gap-4">
                        <SkillAutocomplete 
-                         placeholder={t("Add a skill (e.g. React, Carpentry)")}
+                         placeholder={t("Add a skill (e.g. React, JavaScript)")}
                          onAddSkill={(skill) => {
                            if (!form.skills.includes(skill)) {
                              setForm({ ...form, skills: [...form.skills, skill] });
@@ -2752,7 +2803,7 @@ const ProviderProfile = () => {
                      <p className="text-[12px] text-emerald-700/80 mb-4 leading-relaxed font-medium">{t(
                        "Add your portfolio link to increase your chances of getting noticed by recruiters."
                      )}</p>
-                     <button type="button" onClick={() => { setActiveTab("Portfolio"); window.scrollTo(0, 0); }} className="bg-white px-4 py-2 rounded-lg text-emerald-700 text-[12px] font-bold border border-emerald-200 hover:bg-emerald-50 transition flex items-center justify-center w-max gap-2 shadow-sm">{t("Add Portfolio Link")}<Link2 className="w-3.5 h-3.5" />
+                     <button type="button" onClick={() => handleTabChange("Portfolio")} className="bg-white px-4 py-2 rounded-lg text-emerald-700 text-[12px] font-bold border border-emerald-200 hover:bg-emerald-50 transition flex items-center justify-center w-max gap-2 shadow-sm">{t("Add Portfolio Link")}<Link2 className="w-3.5 h-3.5" />
                      </button>
                    </div>
               </div>
@@ -2768,14 +2819,14 @@ const ProviderProfile = () => {
                      </div>
                      <ChevronDown className="w-4 h-4 text-slate-300 transform -rotate-90 group-hover:text-emerald-600 transition-colors" />
                    </button>
-                   <button type="button" onClick={() => { setActiveTab("Generate Resume"); window.scrollTo(0, 0); }} className="flex items-center justify-between py-3.5 border-b border-slate-100 hover:bg-slate-50 -mx-6 px-6 transition-colors group">
+                   <button type="button" onClick={() => handleTabChange("Generate Resume")} className="flex items-center justify-between py-3.5 border-b border-slate-100 hover:bg-slate-50 -mx-6 px-6 transition-colors group">
                      <div className="flex items-center gap-3">
                        <FileText className="w-[18px] h-[18px] text-slate-400 group-hover:text-emerald-600 transition-colors" />
                        <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{t("Download Resume")}</span>
                      </div>
                      <ChevronDown className="w-4 h-4 text-slate-300 transform -rotate-90 group-hover:text-emerald-600 transition-colors" />
                    </button>
-                   <button type="button" onClick={() => { setActiveTab("Portfolio"); window.scrollTo(0, 0); }} className="flex items-center justify-between py-3.5 border-b border-slate-100 hover:bg-slate-50 -mx-6 px-6 transition-colors group">
+                   <button type="button" onClick={() => handleTabChange("Portfolio")} className="flex items-center justify-between py-3.5 border-b border-slate-100 hover:bg-slate-50 -mx-6 px-6 transition-colors group">
                      <div className="flex items-center gap-3">
                        <Briefcase className="w-[18px] h-[18px] text-slate-400 group-hover:text-emerald-600 transition-colors" />
                        <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{t("Manage Portfolio")}</span>
@@ -3276,6 +3327,43 @@ const ProviderProfile = () => {
               <button onClick={() => setParsedResumeData(null)} className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">{t("Cancel")}</button>
               <button onClick={confirmParsedData} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-colors shadow-sm flex items-center gap-2">
                 <Check className="w-4 h-4" />{t("Confirm & Auto-fill Profile")}</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Unsaved Changes Warning Modal for Sidebar Links */}
+      {showUnsavedWarning && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">{t("Unsaved Changes")}</h3>
+            <p className="text-[14px] text-slate-600 mb-6">
+              {t("You have unsaved changes on your profile. Do you want to discard them and leave, or stay and save?")}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUnsavedWarning(false);
+                  setPendingTab(null);
+                }}
+                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors border border-slate-200"
+              >
+                {t("Stay and Save")}
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  await fetchProfile(); // This resets the local isDirty state effectively!
+                  window.lucodeProfileIsDirty = false; // Override immediately just in case
+                  setShowUnsavedWarning(false);
+                  navigate(pendingTab);
+                  setPendingTab(null);
+                  window.scrollTo(0, 0);
+                }}
+                className="px-4 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
+              >
+                {t("Discard and Leave")}
+              </button>
             </div>
           </div>
         </div>

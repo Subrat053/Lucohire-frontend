@@ -43,7 +43,7 @@ const navItems = [
   { label: 'Reports & Analytics', fallback: 'Reports & Analytics', path: '/recruiter/reports', icon: HiChartBar },
   { label: 'AI Recruiter Workspace', fallback: 'AI Recruiter Workspace', path: '/recruiter/ai', icon: HiSparkles },
   { label: 'Plans', fallback: 'Plans', path: '/recruiter/plans', icon: HiCurrencyRupee },
-  { label: 'Settings & Billing', fallback: 'Settings & Billing', path: '/recruiter/settings', icon: HiCog },
+  { label: 'Company Profile Settings & Billing', fallback: 'Company Profile Settings & Billing', path: '/recruiter/settings', icon: HiCog },
 ];
 
 const RecruiterLayout = ({ children }) => {
@@ -127,7 +127,6 @@ const RecruiterLayout = ({ children }) => {
           <div className="mt-8 mb-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm mx-1 shrink-0">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-bold text-gray-900">{t("Subscription Usage")}</p>
-              <HiChevronRight className="w-3 h-3 text-gray-400" />
             </div>
             
             <div className="space-y-3">

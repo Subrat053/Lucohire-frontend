@@ -84,7 +84,7 @@ const Navbar = () => {
     if (!user) return "/";
     switch (activeRole) {
       case "provider":
-        return "/provider/dashboard";
+        return "/provider/job-for-me";
       case "recruiter":
         return "/recruiter/job-postings";
       case "admin":
@@ -122,12 +122,14 @@ const Navbar = () => {
             <Link to="/" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
               {t("navbar.home")}
             </Link>
-            <Link to="/jobs-for-me" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
+            <Link to={isAuthenticated ? "/provider/job-for-me" : "/candidate-landing"} className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
               {t("navbar.findJobs", "Find Jobs")}
             </Link>
-            <Link to="/search" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
-              {t("navbar.findProviders")}
-            </Link>
+            {(!isAuthenticated || activeRole !== "provider") && (
+              <Link to="/search" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
+                {t("navbar.findProviders")}
+              </Link>
+            )}
 
 
             {/* <LanguageDropdown /> */}
@@ -386,7 +388,7 @@ const Navbar = () => {
                     { label: "Dashboard",        path: "/provider/dashboard",        icon: HiTrendingUp },
                     { label: "Profile",           path: "/provider/profile",           icon: HiCog },
                     { label: "Career Analysis",   path: "/provider/career-health",    icon: HiTrendingUp },
-                    { label: "Grow with AI",      path: "/provider/grow-with-ai",     icon: HiSparkles },
+                    { label: "Interview Preparation",      path: "/provider/grow-with-ai",     icon: HiSparkles },
                     { label: "AI Career Coach",   path: "/provider/ai-career-coach",  icon: HiSparkles },
                     { label: "AI Dashboard",      path: "/provider/ai-tips",          icon: HiSparkles },
                     { label: "Resume Toolkit",    path: "/provider/resume-toolkit",   icon: HiClipboardList },

@@ -732,7 +732,7 @@ export default function JobDetail() {
                 <div>
                   <p className="text-[10px] font-bold text-gray-500 mb-0.5">Salary insight</p>
                   <p className={`text-[13px] font-extrabold text-gray-900 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
-                    {hasActivePlan ? (aiInsights?.salaryInsight || budgetText) : "₹14 – 18 LPA"}
+                    {hasActivePlan ? (aiInsights?.salaryInsight || budgetText || "Salary not disclosed") : (aiInsights?.salaryInsight || budgetText || "₹14 – 18 LPA")}
                   </p>
                 </div>
                 {!hasActivePlan ? (

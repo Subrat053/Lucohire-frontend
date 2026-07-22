@@ -291,7 +291,7 @@ export default function FeaturesSection() {
               </div>
             </Link>
             <Link 
-              to="/signup"
+              to="/recruiter-discovery"
               className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 sm:px-8 rounded-xl flex justify-center items-center gap-2 transition whitespace-nowrap text-sm block text-center"
             >
               <div className="flex items-center justify-center gap-2">

@@ -73,11 +73,11 @@ const TaskCard = ({ task, isOverlay, jobs, onMoveTask }) => {
               <HiSparkles className="w-3 h-3" />{t("AI Pick")}</span>
           )}
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 transition-opacity">
           <button 
             onClick={moveBack}
             disabled={currentIndex === 0}
-            className={`p-1 rounded-full ${currentIndex === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
+            className={`p-1 rounded-full ${currentIndex === 0 ? 'text-gray-300 bg-gray-50 cursor-not-allowed' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'}`}
             title="Move back"
           >
             <FiMinus className="w-4 h-4" />
@@ -85,7 +85,7 @@ const TaskCard = ({ task, isOverlay, jobs, onMoveTask }) => {
           <button 
             onClick={moveForward}
             disabled={currentIndex === statusOrder.length - 1}
-            className={`p-1 rounded-full ${currentIndex === statusOrder.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
+            className={`p-1 rounded-full ${currentIndex === statusOrder.length - 1 ? 'text-gray-300 bg-gray-50 cursor-not-allowed' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'}`}
             title="Move forward"
           >
             <FiPlus className="w-4 h-4" />
