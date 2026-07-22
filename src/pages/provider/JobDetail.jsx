@@ -33,6 +33,16 @@ import toast from "react-hot-toast";
 
 const BUDGET_LABELS = { fixed: "Fixed", hourly: "/hr", monthly: "/mo", negotiable: "Negotiable" };
 
+const getSafeHtml = (htmlStr) => {
+  if (!htmlStr) return '';
+  // Remove image tags as a precaution
+  let cleaned = htmlStr.replace(/<img[^>]*>/g, '');
+  // Decode HTML entities (e.g. &lt;p&gt; -> <p>)
+  const textArea = document.createElement('textarea');
+  textArea.innerHTML = cleaned;
+  return textArea.value;
+};
+
 /* ── Full Report Modal ───────────────────────────────────────────────────── */
 const FullReportModal = ({ job, aiInsights, onClose }) => {
   if (!job || !aiInsights) return null;
@@ -451,7 +461,7 @@ export default function JobDetail() {
                 {job.description && (
                   <div
                     className="text-[14px] text-gray-600 leading-relaxed prose prose-sm max-w-none px-1"
-                    dangerouslySetInnerHTML={{ __html: job.description.replace(/<img[^>]*>/g, '') }}
+                    dangerouslySetInnerHTML={{ __html: getSafeHtml(job.description) }}
                   />
                 )}
               </section>
@@ -588,33 +598,87 @@ export default function JobDetail() {
               <h3 className="font-extrabold text-[15px] text-gray-900">AI Summary</h3>
               <span className="text-[10px] font-bold px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-full flex items-center gap-1"><HiSparkles className="w-3 h-3" /> AI</span>
             </div>
-            <p className={`text-[13px] font-medium text-gray-600 leading-relaxed mb-4 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
-              You're a strong match for this role. Here's why:
-            </p>
-            <ul className="space-y-2 mb-5">
-              {(hasActivePlan ? (aiInsights?.whyMatch || ["Strong skill alignment"]) : ["Figma skills match 90%", "UX Research experience", "Strong portfolio alignment"]).slice(0, 3).map((pt, i) => (
-                <li key={i} className={`flex items-start gap-2.5 text-[13px] font-medium text-gray-700 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
-                  <HiCheckCircle className="w-[18px] h-[18px] text-emerald-500 shrink-0" />
-                  {pt}
-                </li>
-              ))}
-              <li className={`flex items-start gap-2.5 text-[13px] font-medium text-amber-700 ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}>
-                <HiArrowRight className="w-[18px] h-[18px] text-amber-500 -rotate-45 shrink-0" />
-                {hasActivePlan ? (aiInsights?.improve || "Improve your missing skills to increase match score") : "Improve Design Systems to increase match to 97%"}
-              </li>
-            </ul>
-            <button 
-              onClick={() => {
-                if (hasActivePlan) {
-                  setShowFullReport(true);
-                } else {
-                  navigate('/provider/plans');
-                }
-              }}
-              className="w-full text-[13px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5"
-            >
-              View Full AI Analysis {!hasActivePlan && <HiLockClosed className="w-3.5 h-3.5" />}
-            </button>
+            <div className="space-y-4">
+              {/* AI Match Score */}
+              <div className="flex items-start gap-2 w-full">
+                <HiSparkles className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[13px] text-gray-700 whitespace-nowrap shrink-0">AI Match Score</span>
+                <span className="text-gray-300 shrink-0 text-[13px]">•</span>
+                <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
+                  <span className="text-[13px] font-bold text-gray-900 leading-snug">
+                    {matchScore}% match based on your profile
+                  </span>
+                </div>
+              </div>
+
+              {/* Top Strength */}
+              <div className="flex items-start gap-2 w-full">
+                <HiCheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[13px] text-gray-700 whitespace-nowrap shrink-0">Top Strength</span>
+                <span className="text-gray-300 shrink-0 text-[13px]">•</span>
+                <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
+                  <span className="text-[13px] text-gray-500 leading-snug">
+                    {!hasActivePlan ? "React, UI/UX Design, JavaScript" : aiInsights ? (aiInsights.matchedSkills?.length > 0 ? aiInsights.matchedSkills.join(", ") : "General experience") : "Generating..."}
+                  </span>
+                </div>
+              </div>
+              {/* Interview Probability */}
+              <div className="flex items-start gap-2 w-full">
+                <HiPhone className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[13px] text-gray-700 whitespace-nowrap shrink-0">Interview Probability</span>
+                <span className="text-gray-300 shrink-0 text-[13px]">•</span>
+                <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
+                  <span className="text-[13px] font-bold text-gray-900 leading-snug">
+                    {!hasActivePlan ? "Good Chance (78%)" : aiInsights ? `${aiInsights.interviewProbability >= 70 ? "Good Chance" : aiInsights.interviewProbability >= 40 ? "Fair Chance" : "Low Chance"} (${aiInsights.interviewProbability}%)` : "Generating..."}
+                  </span>
+                </div>
+              </div>
+
+              {/* Missing Skills */}
+              <div className="flex items-start gap-2 w-full">
+                <HiExclamationCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[13px] text-gray-700 whitespace-nowrap shrink-0">Missing Skills</span>
+                <span className="text-gray-300 shrink-0 text-[13px]">•</span>
+                <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
+                  <span className="text-[13px] text-gray-500 leading-snug">
+                    {!hasActivePlan ? "Figma, Bootstrap, HTML5" : aiInsights ? (aiInsights.missingSkills?.length > 0 ? aiInsights.missingSkills.join(", ") : "None") : "Generating..."}
+                  </span>
+                </div>
+              </div>
+
+              {/* Why you may get rejected */}
+              <div className="flex items-start gap-2 w-full">
+                <HiOutlineMail className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[13px] text-gray-700 whitespace-nowrap shrink-0">Why you may get rejected</span>
+                <span className="text-gray-300 shrink-0 text-[13px]">•</span>
+                <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
+                  <span className="text-[13px] text-gray-500 leading-snug">
+                    {!hasActivePlan ? "Portfolio lacks strong mobile UI/UX examples." : aiInsights ? (aiInsights.hireBlocker || "No major blockers found.") : "Generating..."}
+                  </span>
+                </div>
+              </div>
+
+              {/* Salary Benchmark */}
+              <div className="flex items-start gap-2 w-full">
+                <HiCurrencyRupee className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[13px] text-gray-700 whitespace-nowrap shrink-0">Salary Benchmark</span>
+                <span className="text-gray-300 shrink-0 text-[13px]">•</span>
+                <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
+                  <span className="text-[13px] text-gray-500 leading-snug">
+                    {!hasActivePlan ? "₹12L - ₹18L per annum" : aiInsights ? (aiInsights.salaryInsight || budgetText || "Data not available") : "Generating..."}
+                  </span>
+                </div>
+              </div>
+              
+              {!hasActivePlan && (
+                <button
+                  onClick={() => navigate('/provider/plans')}
+                  className="w-full mt-4 text-[13px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5"
+                >
+                  Unlock AI Insights <HiLockClosed className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* About the Company */}

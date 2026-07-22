@@ -53,7 +53,8 @@ const JobSearchAutocomplete = ({
   onChange,
   onSelect,
   placeholder = "Search jobs by title, skills, or company",
-  liveJobsList = []
+  liveJobsList = [],
+  className = "bg-transparent border-none"
 }) => {
   const [inputValue, setInputValue] = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
@@ -119,7 +120,7 @@ const JobSearchAutocomplete = ({
   };
 
   return (
-    <div ref={containerRef} className="flex-1 flex items-center px-4 py-1 sm:py-0 w-full sm:w-auto bg-transparent border-none relative">
+    <div ref={containerRef} className={`flex-1 flex items-center px-4 py-1 sm:py-0 w-full sm:w-auto relative ${className}`}>
       <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 shrink-0" />
       <input 
         type="text" 
