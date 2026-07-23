@@ -31,12 +31,11 @@ export default function useStripePayment() {
 
         const successParams = new URLSearchParams(params.toString());
         successParams.set('payment', 'success');
-        successParams.set('session_id', '{CHECKOUT_SESSION_ID}');
+        // Do not use set() for session_id because it URL-encodes {} which breaks Stripe replacement
+        const successUrl = `${origin}${pathname}?${successParams.toString()}&session_id={CHECKOUT_SESSION_ID}`;
 
         const cancelParams = new URLSearchParams(params.toString());
         cancelParams.set('payment', 'cancelled');
-
-        const successUrl = `${origin}${pathname}?${successParams.toString()}`;
         const cancelUrl = `${origin}${pathname}?${cancelParams.toString()}`;
         const preferredCurrency = localStorage.getItem('locale_currency') || undefined;
         const preferredCountry = localStorage.getItem('locale_country') || undefined;

@@ -284,6 +284,8 @@ export const recruiterAPI = {
     API.get(`/recruiter/unlock-status/${providerId}`),
   createCustomPlanRequest: (data) =>
     API.post("/recruiter/custom-plan-request", data),
+  getMyCustomPlanRequests: () => API.get("/recruiter/custom-plan-request"),
+  cancelCustomPlanRequest: (id) => API.delete(`/recruiter/custom-plan-request/${id}`),
   getTasks: () => API.get("/recruiter/tasks"),
   createTask: (data) => API.post("/recruiter/tasks", data),
   updateTask: (id, data) => API.put(`/recruiter/tasks/${id}`, data),
@@ -378,8 +380,15 @@ export const adminAPI = {
   getDashboardStats: (params) =>
     ADMIN_API.get("/admin/partners/dashboard/stats", { params }),
   getCustomPlanRequests: () => ADMIN_API.get("/admin/custom-plans"),
+  clearAllCustomPlanRequests: () => ADMIN_API.delete("/admin/custom-plans"),
   updateCustomPlanRequestStatus: (id, status) =>
     ADMIN_API.patch(`/admin/custom-plans/${id}/status`, { status }),
+  generateCustomPlanOffer: (id, data) =>
+    ADMIN_API.post(`/admin/custom-plans/${id}/offer`, data),
+  getCustomPlanPricingSettings: () =>
+    ADMIN_API.get("/admin/custom-plans/pricing-settings"),
+  updateCustomPlanPricingSettings: (pricing) =>
+    ADMIN_API.put("/admin/custom-plans/pricing-settings", { pricing }),
   getUsers: (params) => ADMIN_API.get("/admin/users", { params }),
   uploadProviders: (formData) =>
     ADMIN_API.post("/admin/providers/upload", formData, {

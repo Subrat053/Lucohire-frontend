@@ -138,7 +138,7 @@ const RecruiterLayout = ({ children }) => {
                 </div>
                 <div className="text-sm font-bold text-gray-900 mb-1">
                   {stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit}
-                  {stats.remainingPostLimit !== 'unlimited' && <span className="text-gray-400 font-medium">{t("left")}</span>}
+                  {stats.remainingPostLimit !== 'unlimited' && <span className="text-gray-400 font-medium ml-1">{t("left")}</span>}
                 </div>
                 {stats.remainingPostLimit !== 'unlimited' && (
                   <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -159,9 +159,37 @@ const RecruiterLayout = ({ children }) => {
                   <div className="bg-green-600 h-1.5 rounded-full" style={{ width: `${stats.unlocksRemaining > 0 ? 100 : 0}%` }}></div>
                 </div>
               </div>
-            </div>
 
-            <Link to="/recruiter/plans" className="mt-4 w-full rounded-xl border border-indigo-100 bg-white text-indigo-600 hover:bg-indigo-50 text-xs font-bold py-2 transition flex justify-center items-center">{t("Manage Subscription")}</Link>
+              {(stats.boostJobsRemaining > 0 || stats.currentPlan === 'custom') && (
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <HiLightningBolt className="w-3 h-3 text-amber-500" />
+                    <span className="text-[10px] font-semibold text-gray-600">{t("Job Boosts")}</span>
+                  </div>
+                  <div className="text-sm font-bold text-gray-900 mb-1">
+                    {stats.boostJobsRemaining || 0} <span className="text-gray-400 font-medium">{t("left")}</span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-1.5">
+                    <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${stats.boostJobsRemaining > 0 ? 100 : 0}%` }}></div>
+                  </div>
+                </div>
+              )}
+
+              {(stats.boostDaysRemaining > 0 || stats.currentPlan === 'custom') && (
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <HiCalendar className="w-3 h-3 text-purple-500" />
+                    <span className="text-[10px] font-semibold text-gray-600">{t("Boost Days")}</span>
+                  </div>
+                  <div className="text-sm font-bold text-gray-900 mb-1">
+                    {stats.boostDaysRemaining || 0} <span className="text-gray-400 font-medium">{t("left")}</span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-1.5">
+                    <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: `${stats.boostDaysRemaining > 0 ? 100 : 0}%` }}></div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </nav>

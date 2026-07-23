@@ -197,7 +197,7 @@ const Navbar = () => {
                     <Link
                       to={
                         activeRole === 'provider' ? '/provider/job-for-me' :
-                        activeRole === 'recruiter' ? '/recruiter/ai-smart-search' :
+                        activeRole === 'recruiter' ? '/recruiter/candidates' :
                         getDashboardLink()
                       }
                       onClick={() => setDropdownOpen(false)}
@@ -218,7 +218,7 @@ const Navbar = () => {
                     </Link>
                     {activeRole !== "manager" && (
                       <Link
-                        to={`/${activeRole}/profile`}
+                        to={activeRole === "recruiter" ? "/recruiter/settings" : `/${activeRole}/profile`}
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       >
