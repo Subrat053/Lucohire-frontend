@@ -22,6 +22,7 @@ import { compressImage } from "../../utils/fileCompressionService";
 import { validateUploadFile } from "../../utils/fileValidationService";
 import SkillSearchSelect from "../../components/common/SkillSearchSelect";
 import SmartMultiSelect from "../../components/common/SmartMultiSelect";
+import CreatableAutocomplete from "../../components/common/CreatableAutocomplete";
 import CountryPhoneInput, { parsePhoneString } from "../../components/common/CountryPhoneInput";
 import OtpVerificationModal from "../../components/otp/OtpVerificationModal";
 import ClientResumeGenerator from "../../components/provider/ClientResumeGenerator";
@@ -1507,77 +1508,58 @@ const ProviderProfile = () => {
     }
   };
 
+  const goToError = (tab, id, msg) => {
+    if (activeTab !== tab) {
+      setActiveTab(tab);
+    }
+    setTimeout(() => {
+      const card = document.getElementById(id);
+      if (card) {
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+        card.classList.add("ring-2", "ring-red-500", "animate-pulse");
+        setTimeout(() => card.classList.remove("ring-2", "ring-red-500", "animate-pulse"), 3000);
+      }
+      toast.error(msg);
+    }, 100);
+  };
+
   const handleSave = withSaveLock(async (e, overrideToken = null) => {
     if (e && typeof e.preventDefault === "function") e.preventDefault();
     if (!form.city && form.locations.length === 0) {
-      const card = document.getElementById("locations-card");
-      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
-      return toast.error(
-        "Please add at least one service location / city (Location is mandatory)",
-      );
+      return goToError("Personal", "basic-info-card", "Please add at least one service location / city (Location is mandatory)");
     }
     if (form.skills.length === 0) {
-      const card = document.getElementById("role-skills-card");
-      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
-      return toast.error("Please select at least one role (Role is mandatory)");
+      return goToError("Personal", "role-skills-card", "Please select at least one role (Role is mandatory)");
     }
     const cleanPhone = form.phone || "";
     const nationalDigits = String(form.nationalNumber || "").replace(/\D/g, "");
     if (!nationalDigits || nationalDigits.length < 7) {
-      const card = document.getElementById("basic-info-card");
-      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
-      return toast.error(
-        "Please enter a valid WhatsApp/Contact number (Contact number is mandatory)",
-      );
+      return goToError("Personal", "basic-info-card", "Please enter a valid WhatsApp/Contact number (Contact number is mandatory)");
     }
     if (form.isWhatsappSameAsMobile === false && form.whatsappNationalNumber) {
       const whatsappDigits = String(form.whatsappNationalNumber || "").replace(/\D/g, "");
       if (whatsappDigits.length < 7) {
-        const card = document.getElementById("basic-info-card");
-        if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
-        return toast.error("Please enter a valid WhatsApp number.");
+        return goToError("Personal", "basic-info-card", "Please enter a valid WhatsApp number.");
       }
     }
     if (!form.pricing) {
-      const card = document.getElementById("rate-payout-card");
-      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
-      return toast.error(
-        "Please enter a valid payout / pricing rate (Payout is mandatory)",
-      );
+      return goToError("Preferences", "rate-payout-card", "Please enter a valid payout / pricing rate (Payout is mandatory)");
     }
     if (!form.pricingType) {
-      const card = document.getElementById("rate-payout-card");
-      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
-      return toast.error(
-        "Please select a pricing unit (Pricing Unit is mandatory)",
-      );
+      return goToError("Preferences", "rate-payout-card", "Please select a pricing unit (Pricing Unit is mandatory)");
     }
     if (!form.jobType || form.jobType.length === 0) {
-      const card = document.getElementById("rate-payout-card");
-      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
-      return toast.error(
-        "Please select a job type (Job Type is mandatory)",
-      );
+      return goToError("Preferences", "rate-payout-card", "Please select a job type (Job Type is mandatory)");
     }
     if (
       !form.tier ||
       !["unskilled", "semi-skilled", "skilled"].includes(form.tier)
     ) {
-      const card = document.getElementById("role-skills-card");
-      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
-      return toast.error(
-        "Please select a skill tier (Skill tier is mandatory)",
-      );
+      return goToError("Personal", "role-skills-card", "Please select a skill tier (Skill tier is mandatory)");
     }
 
     if (String(plan).toLowerCase() === "free" && form.roles.length > 1) {
-      const card = document.getElementById("role-skills-card");
-      if (card) {
-        card.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-      return toast.error(
-        "For free plan you can only use one role. Please upgrade your plan or remove extra roles.",
-      );
+      return goToError("Personal", "role-skills-card", "For free plan you can only use one role. Please upgrade your plan or remove extra roles.");
     }
 
     const nextPhone = form.phone || (form.countryCode + form.nationalNumber);
@@ -1834,7 +1816,7 @@ const ProviderProfile = () => {
               {activeTab === "Personal" && (
                 <>
                   {/* Basic Information Card */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6 relative">
+                  <div id="basic-info-card" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6 relative">
                     <h3 className="font-extrabold text-slate-800 text-lg tracking-tight">{t("Basic Information")}</h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
@@ -2064,33 +2046,38 @@ const ProviderProfile = () => {
                           </div>
                           <div className="col-span-2 sm:col-span-1">
                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Experience (Years)")}</label>
-                            <input 
-                              type="number" 
-                              value={form.experience === 'Fresher' ? 0 : parseFloat(form.experience) || ''} 
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === '' || val === '0') setForm({ ...form, experience: 'Fresher' });
-                                else setForm({ ...form, experience: `${val} years` });
-                              }} 
-                              className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white"
-                              placeholder={t("e.g. 2.5 (0 for Fresher)")}
-                              min="0"
-                              step="0.5"
-                            />
+                            <CreatableAutocomplete 
+                             value={form.experience || ''} 
+                             onChange={(val) => {
+                               setForm({ ...form, experience: val });
+                             }}
+                             onBlur={(val) => {
+                               if (val === '0' || val.toLowerCase() === 'fresher') {
+                                 setForm({ ...form, experience: 'Fresher' });
+                               } else if (!isNaN(val) && val.trim() !== '') {
+                                 setForm({ ...form, experience: val === '1' ? '1 Year' : `${val} Years` });
+                               }
+                             }}
+                             options={["Fresher", "1 Year", "2 Years", "3 Years", "4 Years", "5 Years", "6 Years", "7 Years", "8 Years", "9 Years", "10+ Years"]}
+                             placeholder={t("e.g. 2.5 Years or select Fresher")}
+                           />
                           </div>
                           <div className="col-span-2 sm:col-span-1">
                             <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Notice Period (Days)")}</label>
-                            <input 
-                              type="number" 
-                              value={parseInt(form.noticePeriod) === 0 || form.noticePeriod === 'Immediate' ? 0 : parseInt(form.noticePeriod) || ''} 
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === '' || val === '0') setForm({ ...form, noticePeriod: 'Immediate' });
-                                else setForm({ ...form, noticePeriod: `${val} Days` });
-                              }} 
-                              className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white"
-                              placeholder={t("e.g. 15 (0 for Immediate)")}
-                              min="0"
+                            <CreatableAutocomplete 
+                              value={form.noticePeriod || ''} 
+                              onChange={(val) => {
+                                setForm({ ...form, noticePeriod: val });
+                              }}
+                              onBlur={(val) => {
+                                if (val === '0' || val.toLowerCase() === 'immediate') {
+                                  setForm({ ...form, noticePeriod: 'Immediate' });
+                                } else if (!isNaN(val) && val.trim() !== '') {
+                                  setForm({ ...form, noticePeriod: `${val} Days` });
+                                }
+                              }}
+                              options={["Immediate", "15 Days", "30 Days", "45 Days", "60 Days", "90 Days"]}
+                              placeholder={t("e.g. 15 Days or select Immediate")}
                             />
                           </div>
                        </div>
@@ -2205,63 +2192,57 @@ const ProviderProfile = () => {
                      <div className="grid grid-cols-2 gap-4">
                        <div className="col-span-2 sm:col-span-1">
                          <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Experience (Years)")}</label>
-                         <input 
-                           type="text" 
-                           list="experience-options"
-                           value={form.experience ? form.experience.replace(' years', '') : ''} 
-                           onChange={(e) => setForm({ ...form, experience: e.target.value })}
-                           onBlur={(e) => {
-                             const val = e.target.value;
-                             if (val === '0' || val.toLowerCase().includes('fresh')) {
+                         <CreatableAutocomplete 
+                           value={form.experience || ''} 
+                           onChange={(val) => {
+                             setForm({ ...form, experience: val });
+                           }}
+                           onBlur={(val) => {
+                             if (val === '0' || val.toLowerCase() === 'fresher') {
                                setForm({ ...form, experience: 'Fresher' });
-                             } else if (val !== '' && !isNaN(val)) {
-                               setForm({ ...form, experience: `${val} years` });
+                             } else if (!isNaN(val) && val.trim() !== '') {
+                               setForm({ ...form, experience: val === '1' ? '1 Year' : `${val} Years` });
                              }
                            }}
-                           className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white"
-                           placeholder={t("e.g. 2.5 or select Fresher")}
+                           options={["Fresher", "1 Year", "2 Years", "3 Years", "4 Years", "5 Years", "6 Years", "7 Years", "8 Years", "9 Years", "10+ Years"]}
+                           placeholder={t("e.g. 2.5 Years or select Fresher")}
                          />
-                         <datalist id="experience-options">
-                           <option value="Fresher" />
-                           <option value="1" />
-                           <option value="2" />
-                           <option value="3" />
-                           <option value="4" />
-                           <option value="5" />
-                         </datalist>
                        </div>
                        <div className="col-span-2 sm:col-span-1">
                          <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Notice Period (Days)")}</label>
-                          <input 
-                            type="text"
-                            list="notice-options"
-                            value={form.noticePeriod ? form.noticePeriod.replace(' Days', '') : ''} 
-                            onChange={(e) => setForm({ ...form, noticePeriod: e.target.value })}
-                            onBlur={(e) => {
-                              const val = e.target.value;
-                              if (val === '0' || val.toLowerCase().includes('immed')) {
+                          <CreatableAutocomplete 
+                            value={form.noticePeriod || ''} 
+                            onChange={(val) => {
+                              setForm({ ...form, noticePeriod: val });
+                            }}
+                            onBlur={(val) => {
+                              if (val === '0' || val.toLowerCase() === 'immediate') {
                                 setForm({ ...form, noticePeriod: 'Immediate' });
-                              } else if (val !== '' && !isNaN(val)) {
+                              } else if (!isNaN(val) && val.trim() !== '') {
                                 setForm({ ...form, noticePeriod: `${val} Days` });
                               }
                             }}
-                            className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white"
-                            placeholder={t("e.g. 15 or select Immediate")}
+                            options={["Immediate", "15 Days", "30 Days", "45 Days", "60 Days", "90 Days"]}
+                            placeholder={t("e.g. 15 Days or select Immediate")}
                           />
-                          <datalist id="notice-options">
-                            <option value="Immediate" />
-                            <option value="15" />
-                            <option value="30" />
-                            <option value="60" />
-                            <option value="90" />
-                          </datalist>
                        </div>
 
                        {form.experience !== 'Fresher' && (
                          <>
                            <div className="col-span-2 sm:col-span-1">
                              <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Current Designation / Role")}</label>
-                             <input type="text" value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} className="w-full px-3 py-2 text-[13px] rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder={t("e.g. UI/UX Designer")} />
+                             <CreatableAutocomplete 
+                               value={form.designation || ''} 
+                               onChange={(val) => setForm({ ...form, designation: val })}
+                               options={[
+                                 "Frontend Developer", "Backend Developer", "Full Stack Developer", 
+                                 "UI/UX Designer", "Graphic Designer", "Product Manager", 
+                                 "Project Manager", "Data Scientist", "Data Analyst", 
+                                 "DevOps Engineer", "QA Engineer", "Mobile Developer (Android)", 
+                                 "Mobile Developer (iOS)", "Software Engineer", "Marketing Specialist"
+                               ]}
+                               placeholder={t("e.g. UI/UX Designer")}
+                             />
                            </div>
                            <div className="col-span-2 sm:col-span-1">
                              <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Company")}</label>
@@ -2661,7 +2642,7 @@ const ProviderProfile = () => {
 
               {activeTab === "Preferences" && (
                 <div className="space-y-6">
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                  <div id="rate-payout-card" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                     <div className="flex items-center gap-2 mb-4">
                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Job Preferences")}</h3>
                     </div>
@@ -2764,20 +2745,6 @@ const ProviderProfile = () => {
                       </div>
 
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab !== "Personal" && activeTab !== "Details" && activeTab !== "Education" && activeTab !== "Projects" && activeTab !== "Resume" && activeTab !== "Preferences" && activeTab !== "Generate Resume" && (
-                <div className="bg-white rounded-2xl p-10 shadow-sm border border-slate-100 min-h-[500px] flex items-center justify-center">
-                  <div className="text-center flex flex-col items-center">
-                    <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
-                       <FileText className="w-8 h-8 text-emerald-600" />
-                    </div>
-                    <h3 className="font-bold text-slate-800 text-lg mb-1">{activeTab}{t("Details")}</h3>
-                    <p className="text-sm text-slate-500 max-w-sm leading-relaxed">{t(
-                      "This section is currently using existing dynamic data behind the scenes. Add more functionality here."
-                    )}</p>
                   </div>
                 </div>
               )}
@@ -3016,15 +2983,21 @@ const ProviderProfile = () => {
       )}
       {/* Share Profile Modal */}
       {isShareModalOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-100 relative overflow-hidden animate-in zoom-in-95 duration-200">
+        <div 
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+          onClick={() => setIsShareModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-100 relative overflow-hidden animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Close Button */}
             <button
               type="button"
               onClick={() => setIsShareModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-650 p-1.5 hover:bg-slate-50 rounded-full transition-colors outline-none"
+              className="absolute top-4 right-4 text-slate-500 bg-slate-100 hover:text-slate-800 hover:bg-slate-200 p-2 rounded-full transition-all outline-none z-10 shadow-sm flex items-center justify-center"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 stroke-[2.5]" />
             </button>
 
             <div className="flex flex-col items-center text-center">
