@@ -411,6 +411,8 @@ const TagPicker = ({ available, selected, onAdd, onRemove, placeholder }) => {
 };
 
 // ─── ProviderProfile ─────────────────────────────────────────────────────────
+export const PROFILE_TABS = ["Personal", "Details", "Education & Credentials", "Portfolio", "Resume", "Generate Resume", "Preferences"];
+
 const ProviderProfile = () => {
   const {
     t
@@ -1793,15 +1795,15 @@ const ProviderProfile = () => {
           {/* Tab Navigation - Pill Style */}
           <div className="mb-8 overflow-x-auto hide-scrollbar pb-2 pt-1">
             <div className="flex gap-2.5 min-w-max">
-              {["Personal", "Details", "Education & Credentials", "Portfolio", "Resume", "Generate Resume", "Preferences"].map((tab) => (
+              {PROFILE_TABS.map((tab) => (
                 <button
                   key={tab}
                   type="button"
                   onClick={() => handleTabChange(tab)}
                   className={`py-2 px-6 text-[14.5px] transition-all duration-200 rounded-full border ${
                     activeTab === tab
-                      ? "bg-[#047857] text-white font-bold border-transparent shadow-[inset_0px_4px_8px_rgba(0,0,0,0.25)] scale-[0.96]"
-                      : "bg-white text-slate-600 font-medium border-slate-200 hover:border-[#047857]/30 hover:bg-slate-50"
+                      ? "bg-linear-to-r from-emerald-600 to-emerald-500 text-white font-bold border-transparent shadow-md shadow-emerald-500/30 scale-[1.02]"
+                      : "bg-white text-slate-700 font-bold border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 hover:text-emerald-700"
                   }`}
                 >
                   {tab}
@@ -2171,7 +2173,7 @@ const ProviderProfile = () => {
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" className="sr-only peer" checked={form.whatsappConsent} onChange={(e) => setForm({ ...form, whatsappConsent: e.target.checked })} />
-                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                         </label>
                       </div>
                     </div>
@@ -2748,6 +2750,44 @@ const ProviderProfile = () => {
                   </div>
                 </div>
               )}
+
+              {/* Bottom Navigation */}
+              {activeTab !== "Generate Resume" && (
+                <div className="mt-8 flex items-center justify-end gap-3 pt-6 border-t border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const idx = PROFILE_TABS.indexOf(activeTab);
+                      if (idx > 0) handleTabChange(PROFILE_TABS[idx - 1]);
+                    }}
+                    disabled={PROFILE_TABS.indexOf(activeTab) === 0}
+                    className="px-5 py-2.5 rounded-xl text-[14px] font-bold text-slate-600 hover:bg-slate-50 border border-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {t("Previous")}
+                  </button>
+                  {PROFILE_TABS.indexOf(activeTab) < PROFILE_TABS.length - 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const idx = PROFILE_TABS.indexOf(activeTab);
+                        if (idx < PROFILE_TABS.length - 1) handleTabChange(PROFILE_TABS[idx + 1]);
+                      }}
+                      className="px-6 py-2.5 rounded-xl text-[14px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                    >
+                      {t("Next")}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="px-6 py-2.5 rounded-xl text-[14px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                    >
+                      {saving ? t("Saving...") : t("Save Profile")}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Right Sidebar (span 4) */}
@@ -2823,7 +2863,7 @@ const ProviderProfile = () => {
           />
           
           {/* Modal Container */}
-          <div className="relative bg-white/95 backdrop-blur-md rounded-[24px] p-6 shadow-2xl border border-slate-100 max-w-sm w-full text-center overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          <div className="relative font-bold bg-white/95 backdrop-blur-md rounded-[24px] p-6 shadow-2xl border border-slate-100 max-w-sm w-full text-center overflow-hidden animate-in fade-in zoom-in-95 duration-300">
             {/* Decorative glow */}
             <div className="absolute -top-10 -left-10 w-24 h-24 bg-violet-400/20 rounded-full blur-2xl pointer-events-none" />
             <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-indigo-400/20 rounded-full blur-2xl pointer-events-none" />
@@ -2834,8 +2874,8 @@ const ProviderProfile = () => {
                 <ShieldCheck className="w-6 h-6" />
               </div>
 
-              <h3 className="text-base font-black text-slate-800 tracking-tight">{t("Verify Mobile Number")}</h3>
-              <p className="text-xs text-slate-500 mt-2 leading-relaxed">{t("We sent a 6-digit verification code to")}<strong className="text-slate-800">{verifyingPhone || "your mobile number"}</strong>{t(". Enter it below to save your profile.")}</p>
+              <h3 className="text-base font-semibold text-slate-800 tracking-tight">{t("Verify Mobile Number")}</h3>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed font-normal">{t("We sent a 6-digit verification code to")} <strong className="text-slate-800 font-medium">{verifyingPhone || "your mobile number"}</strong>{t(". Enter it below to save your profile.")}</p>
 
               {/* Input */}
               <div className="my-5">
@@ -2845,21 +2885,21 @@ const ProviderProfile = () => {
                   value={emailOtp}
                   onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ""))}
                   placeholder={t("Enter 6-digit OTP")}
-                  className="w-full text-center tracking-widest text-lg font-black py-2.5 px-4 rounded-xl border border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 outline-none bg-slate-50/50 shadow-inner transition placeholder:tracking-normal placeholder:font-bold placeholder:text-xs placeholder:text-slate-400"
+                  className="w-full text-center tracking-widest text-lg font-medium py-2.5 px-4 rounded-xl border border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 outline-none bg-slate-50/50 shadow-inner transition placeholder:tracking-normal placeholder:font-normal placeholder:text-xs placeholder:text-slate-400"
                 />
               </div>
 
               {/* Resend */}
               <div className="mb-5">
                 {resendCountdown > 0 ? (
-                  <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">{t("Resend code in")}<span className="text-violet-600">{resendCountdown}{t("s")}</span>
+                  <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{t("Resend code in")} <span className="text-violet-600 font-semibold">{resendCountdown}{t("s")}</span>
                   </p>
                 ) : (
                   <button
                     type="button"
                     onClick={handleResendOtp}
                     disabled={sendingOtp}
-                    className="text-[10px] font-extrabold text-violet-600 hover:text-violet-700 uppercase tracking-wider underline outline-none"
+                    className="text-[10px] font-semibold text-violet-600 hover:text-violet-700 uppercase tracking-wider underline outline-none"
                   >{t("Resend Code")}</button>
                 )}
               </div>
@@ -2869,7 +2909,7 @@ const ProviderProfile = () => {
                 <button
                   type="button"
                   onClick={handleCancelOtp}
-                  className="flex-1 px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-extrabold text-xs transition active:scale-95 outline-none"
+                  className="flex-1 px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 font-medium text-xs transition active:scale-95 outline-none"
                 >{t("Cancel")}</button>
                 <button
                   type="button"

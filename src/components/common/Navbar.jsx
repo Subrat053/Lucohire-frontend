@@ -8,6 +8,7 @@ import {
   HiLogout,
   HiCog,
   HiHome,
+  HiSearch,
   HiTrendingUp,
   HiCreditCard,
   HiBriefcase,
@@ -194,12 +195,26 @@ const Navbar = () => {
                       </span>
                     </div>
                     <Link
-                      to={getDashboardLink()}
+                      to={
+                        activeRole === 'provider' ? '/provider/job-for-me' :
+                        activeRole === 'recruiter' ? '/recruiter/ai-smart-search' :
+                        getDashboardLink()
+                      }
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <HiHome className="text-gray-400" aria-hidden="true" />
-                      <span>{t("navbar.dashboard")}</span>
+                      {activeRole === 'provider' ? (
+                        <HiBriefcase className="text-gray-400" aria-hidden="true" />
+                      ) : activeRole === 'recruiter' ? (
+                        <HiSearch className="text-gray-400" aria-hidden="true" />
+                      ) : (
+                        <HiHome className="text-gray-400" aria-hidden="true" />
+                      )}
+                      <span>
+                        {activeRole === 'provider' ? "Matching Jobs" :
+                         activeRole === 'recruiter' ? "Find Candidates" :
+                         t("navbar.dashboard")}
+                      </span>
                     </Link>
                     {activeRole !== "manager" && (
                       <Link
