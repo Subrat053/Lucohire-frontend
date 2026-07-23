@@ -204,6 +204,8 @@ export const providerAPI = {
     API.get("/provider/ai/pricing-suggestion", { params }),
   getDashboard: () => API.get("/provider/dashboard"),
   getMatches: () => API.get("/provider/matches"), // Module 2 UI
+  requestRefund: (data) => API.post("/refunds/request", data),
+  getMyRefunds: () => API.get("/refunds/my"),
   getPlans: () => API.get("/provider/plans"),
   getCurrentSubscription: () => API.get("/provider/subscription/current"),
   purchasePlan: (data) => API.post("/provider/plans/purchase", data),
@@ -666,6 +668,9 @@ export const adminAPI = {
     ADMIN_API.get("/admin/staging-candidates", { params }),
   updateStagingCandidateToggle: (id, type, value) =>
     ADMIN_API.put(`/admin/staging-candidates/${id}/toggle`, { type, value }),
+
+  getAllRefunds: () => API.get("/refunds/admin"),
+  processRefund: (id, data) => API.put(`/refunds/admin/${id}`, data),
 
   // =================================================================
 };

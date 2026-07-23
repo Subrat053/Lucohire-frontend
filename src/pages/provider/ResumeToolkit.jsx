@@ -6,10 +6,10 @@ import 'react-circular-progressbar/dist/styles.css';
 import {
   ArrowLeft, RefreshCw, Upload, CheckCircle2, FileText, Layout,
   Link2, Download, Edit, Zap, ShieldCheck, MoreVertical, Info,
-  Star, PenTool, Check, Eye
+  Star, PenTool, Check, Eye, Sparkles, Crown
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
-import { getResumeToolkit, uploadResume } from '../../services/providerAIService';
+import { getResumeToolkit, uploadResume, getAiUsage } from '../../services/providerAIService';
 import { getCurrentSubscription } from '../../services/providerPlanService';
 import { providerAPI } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -28,6 +28,7 @@ export default function ResumeToolkit() {
   const [refreshing, setRefreshing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [aiUsage, setAiUsage] = useState({ limits: { resumeToolkit: 10 }, usage: { resumeToolkit: 0 } });
   const fileInputRef = useRef(null);
 
   // Re-fetch whenever profile is saved (same trigger as GrowWithAI)
@@ -36,7 +37,15 @@ export default function ResumeToolkit() {
   useEffect(() => { fetchAll(false); }, [fileHash]);
 
   const handleRefresh = async () => {
+    if (!isPro) {
+      navigate('/provider/plans');
+      return;
+    }
     setRefreshing(true);
+    setAiUsage(prev => ({
+      ...prev,
+      usage: { ...prev.usage, resumeToolkit: (prev.usage.resumeToolkit || 0) + 1 }
+    }));
     await fetchAll(true);
     setRefreshing(false);
     toast.success(t('AI analysis refreshed'));
@@ -45,37 +54,59 @@ export default function ResumeToolkit() {
   const fetchAll = async (force = false) => {
     try {
       setLoading(true);
-      const [toolkitRes, planRes, profileRes] = await Promise.allSettled([
-        getResumeToolkit(force),
+      
+      const [planRes, profileRes, usageRes] = await Promise.allSettled([
         getCurrentSubscription(),
         providerAPI.getProfile(),
+        getAiUsage(),
       ]);
 
-      if (toolkitRes.status === 'fulfilled' && toolkitRes.value?.data?.data) {
-        setData(toolkitRes.value.data.data);
-        setMissingData(false);
-      } else if (
-        toolkitRes.status === 'rejected' ||
-        toolkitRes.value?.data?.code === 'REQUIRED_DATA_MISSING' ||
-        !toolkitRes.value?.data?.success
-      ) {
-        // Backend says profile/resume is incomplete — show prompt
-        setMissingData(true);
-        setData(fallback());
-      } else {
-        setData(fallback());
-      }
-
+      let userIsPro = false;
       if (planRes.status === 'fulfilled') {
-        const tier = planRes.value?.plan || planRes.value?.subscription?.tier || 'free';
-        setIsPro(['pro', 'premium', 'beta'].includes(String(tier).toLowerCase()));
+        const tier = planRes.value?.planSnapshot?.slug || planRes.value?.planName || planRes.value?.plan || planRes.value?.subscription?.tier || 'free';
+        userIsPro = ['basic', 'pro', 'premium', 'beta'].some(p => String(tier).toLowerCase().includes(p));
+        setIsPro(userIsPro);
       }
 
+      let p = null;
       if (profileRes.status === 'fulfilled') {
-        const p = profileRes.value?.data?.data || profileRes.value?.data || null;
+        p = profileRes.value?.data?.data || profileRes.value?.data || null;
         setProfile(p);
         setWhatsappEnabled(!!(p?.whatsappAlerts));
       }
+
+      if (usageRes.status === 'fulfilled') {
+        const usageData = usageRes.value?.data;
+        if (usageData?.success) {
+          setAiUsage(prev => ({ 
+            limits: { ...usageData.limits, resumeToolkit: 10 }, 
+            usage: { ...usageData.usage, resumeToolkit: prev.usage.resumeToolkit } 
+          }));
+        }
+      }
+
+      const hasResume = p?.resumeApproval?.pendingUrl || p?.resumeUrl;
+
+      if (userIsPro) {
+        const toolkitRes = await getResumeToolkit(force).catch(() => null);
+        if (toolkitRes?.data?.data) {
+          setData(toolkitRes.data.data);
+          setMissingData(false);
+        } else if (
+          toolkitRes?.data?.code === 'REQUIRED_DATA_MISSING' ||
+          !toolkitRes?.data?.success
+        ) {
+          setMissingData(true);
+          setData(fallback());
+        } else {
+          setData(fallback());
+        }
+      } else {
+        setData(fallback());
+        setMissingData(!hasResume);
+      }
+
+
     } catch (err) {
       console.error('ResumeToolkit fetch error', err);
       setData(fallback());
@@ -86,10 +117,13 @@ export default function ResumeToolkit() {
 
   function fallback() {
     return {
-      resumeScore: { overall: 0, content: 0, structure: 0, ats: 0 },
+      resumeScore: { overall: 76, content: 70, structure: 82, ats: 78 },
       profileCompletion: 0,
-      aiSuggestions: [],
-      resumeStats: { atsScore: 0, readability: 'N/A', sections: '0/10', keywords: '0/24' },
+      aiSuggestions: [
+        { title: 'Add More Quantifiable Achievements', impact: 'High Impact', metric: 'Improve your content score by quantifying your bullets.' },
+        { title: 'Optimize for Target Keywords', impact: 'High Impact', metric: 'Missing key technical skills found in standard job descriptions.' }
+      ],
+      resumeStats: { atsScore: 78, readability: 'Good', sections: '6/10', keywords: '12/24' },
     };
   }
 
@@ -274,8 +308,12 @@ export default function ResumeToolkit() {
         </div>
       )}
 
-      {/* ── Row 1: Score / Completion / AI Suggestions ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* ── Main Content Area ── */}
+      <div className="relative">
+        <div className="space-y-6">
+
+          {/* ── Row 1: Score / Completion / AI Suggestions ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Resume Score */}
         <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col">
@@ -285,12 +323,14 @@ export default function ResumeToolkit() {
           </div>
           <div className="flex items-center gap-5 mb-6">
             <div className="w-28 shrink-0">
-              <CircularProgressbar
-                value={resumeScore.overall}
-                text={`${resumeScore.overall}%`}
-                styles={buildStyles({ pathColor: '#0f766e', textColor: '#0f766e', trailColor: '#f1f5f9', textSize: '22px', pathTransitionDuration: 1.5 })}
-              />
-              <p className="text-center text-xs font-bold text-teal-700 mt-1">
+              <div className={!isPro ? 'blur-[6px] select-none opacity-70' : ''}>
+                <CircularProgressbar
+                  value={resumeScore.overall}
+                  text={`${resumeScore.overall}%`}
+                  styles={buildStyles({ pathColor: '#0f766e', textColor: '#0f766e', trailColor: '#f1f5f9', textSize: '22px', pathTransitionDuration: 1.5 })}
+                />
+              </div>
+              <p className={`text-center text-xs font-bold text-teal-700 mt-1 ${!isPro ? 'blur-[5px] select-none opacity-70' : ''}`}>
                 {resumeScore.overall >= 80 ? t('Very Good') : resumeScore.overall >= 50 ? t('Average') : t('Needs Work')}
               </p>
             </div>
@@ -299,19 +339,19 @@ export default function ResumeToolkit() {
               {[['Content', resumeScore.content], ['Structure', resumeScore.structure], ['ATS Readability', resumeScore.ats]].map(([label, val]) => (
                 <div key={label} className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-gray-700 w-24 shrink-0">{t(label)}</span>
-                  <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className={`flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden ${!isPro ? 'blur-[4px] opacity-80' : ''}`}>
                     <div className="h-full bg-teal-600 rounded-full" style={{ width: `${val}%` }} />
                   </div>
-                  <span className="text-xs font-bold text-gray-500 w-8 text-right">{val}%</span>
+                  <span className={`text-xs font-bold text-gray-500 w-8 text-right ${!isPro ? 'blur-[5px] select-none opacity-70' : ''}`}>{val}%</span>
                 </div>
               ))}
             </div>
           </div>
           <button
-            onClick={() => navigate('/provider/grow-with-ai')}
-            className="mt-auto w-full py-2.5 rounded-xl border border-gray-100 text-teal-700 text-sm font-bold hover:bg-teal-50 transition"
+            onClick={() => isPro ? navigate('/provider/grow-with-ai') : navigate('/provider/plans')}
+            className={`mt-auto w-full py-2.5 rounded-xl border font-bold text-sm transition ${!isPro ? 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100' : 'border-gray-100 text-teal-700 hover:bg-teal-50'}`}
           >
-            {t('View Detailed Analysis')} →
+            {!isPro ? t('Unlock with Premium') : t('View Detailed Analysis')} →
           </button>
         </div>
 
@@ -323,12 +363,14 @@ export default function ResumeToolkit() {
           </div>
           <div className="flex items-center gap-5 mb-6">
             <div className="w-28 shrink-0">
-              <CircularProgressbar
-                value={dynamicCompletion}
-                text={`${dynamicCompletion}%`}
-                styles={buildStyles({ pathColor: '#0f766e', textColor: '#0f766e', trailColor: '#f1f5f9', textSize: '22px', pathTransitionDuration: 1.5 })}
-              />
-              <p className="text-center text-xs font-bold text-teal-700 mt-1">
+              <div className={!isPro ? 'blur-[6px] select-none opacity-70' : ''}>
+                <CircularProgressbar
+                  value={dynamicCompletion}
+                  text={`${dynamicCompletion}%`}
+                  styles={buildStyles({ pathColor: '#0f766e', textColor: '#0f766e', trailColor: '#f1f5f9', textSize: '22px', pathTransitionDuration: 1.5 })}
+                />
+              </div>
+              <p className={`text-center text-xs font-bold text-teal-700 mt-1 ${!isPro ? 'blur-[5px] select-none opacity-70' : ''}`}>
                 {dynamicCompletion === 100 ? t('Complete') : dynamicCompletion >= 67 ? t('Almost Complete') : t('In Progress')}
               </p>
             </div>
@@ -336,9 +378,11 @@ export default function ResumeToolkit() {
               {profileCheckList.map((item) => (
                 <div key={item.label} className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-gray-700">{t(item.label)}</span>
-                  {item.done
-                    ? <CheckCircle2 className="w-4 h-4 text-teal-600" />
-                    : <div className="w-4 h-4 rounded-full border-2 border-gray-200" />}
+                  <div className={!isPro ? 'blur-[4px] opacity-80' : ''}>
+                    {item.done
+                      ? <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                      : <div className="w-4 h-4 rounded-full border-2 border-gray-200" />}
+                  </div>
                 </div>
               ))}
             </div>
@@ -366,7 +410,7 @@ export default function ResumeToolkit() {
           </p>
           <div className="space-y-3 mb-5 flex-1">
             {aiSuggestions.length > 0 ? aiSuggestions.map((sug, idx) => (
-              <div key={idx} className="flex gap-3 items-start bg-blue-50 p-3 rounded-2xl border border-blue-100">
+              <div key={idx} className={`flex gap-3 items-start bg-blue-50 p-3 rounded-2xl border border-blue-100 ${!isPro ? 'blur-[2.5px] select-none opacity-80' : ''}`}>
                 <div className="w-8 h-8 rounded-xl bg-white border border-blue-100 flex items-center justify-center shrink-0 shadow-sm">
                   <FileText className="w-3.5 h-3.5 text-blue-600" />
                 </div>
@@ -385,10 +429,10 @@ export default function ResumeToolkit() {
             )}
           </div>
           <button
-            onClick={() => navigate('/provider/grow-with-ai')}
-            className="mt-auto w-full py-2.5 rounded-xl border border-gray-100 text-teal-700 text-sm font-bold hover:bg-teal-50 transition"
+            onClick={() => isPro ? navigate('/provider/grow-with-ai') : navigate('/provider/plans')}
+            className={`mt-auto w-full py-2.5 rounded-xl border font-bold text-sm transition ${!isPro ? 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100' : 'border-gray-100 text-teal-700 hover:bg-teal-50'}`}
           >
-            {t('Apply All Suggestions')} →
+            {!isPro ? t('Unlock AI Suggestions') : t('Apply All Suggestions')} →
           </button>
         </div>
       </div>
@@ -512,7 +556,7 @@ export default function ResumeToolkit() {
               ].map(({ label, val, color }) => (
                 <div key={label} className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
                   <div className="text-[10px] text-gray-500 font-bold mb-1">{t(label)}</div>
-                  <div className={`text-lg font-black ${color}`}>{val}</div>
+                  <div className={`text-lg font-black ${color} ${!isPro ? 'blur-[2.5px] select-none opacity-80' : ''}`}>{val}</div>
                 </div>
               ))}
             </div>
@@ -602,6 +646,9 @@ export default function ResumeToolkit() {
             <span className="text-3xl translate-y-1">👩🏻‍💻</span>
           </div>
         </div>
+        </div>
+        </div>
+
       </div>
 
     </div>

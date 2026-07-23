@@ -71,6 +71,7 @@ const LiveTester = lazy(() => import("../pages/admin/LiveTester"));
 const BulkCrawlerPanel = lazy(() => import("../pages/admin/components/BulkCrawlerPanel"));
 const NightlyEngineSettings = lazy(() => import("../pages/admin/components/NightlyEngineSettings"));
 const StagingCandidates = lazy(() => import("../pages/admin/StagingCandidates"));
+const AdminRefundRequests = lazy(() => import("../pages/admin/RefundRequests"));
 
 const SeoCommandCenter = lazy(() => import("../pages/admin/pipeline/SeoCommandCenter"));
 const SelfHealingCenter = lazy(() => import("../pages/admin/pipeline/SelfHealingCenter"));
@@ -96,6 +97,7 @@ export default function AdminRoutes() {
     <Routes>
       <Route path="" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="dashboard" element={wrap(<AdminDashboard />)} />
+      <Route path="refunds" element={wrap(<AdminRefundRequests />)} />
       <Route path="withdrawals" element={wrap(<AdminWithdrawals />)} />
       <Route path="commission-settings" element={wrap(<AdminCommissionSettings />)} />
       <Route path="partners" element={wrap(<Partners />)} />

@@ -290,6 +290,12 @@ const navItems = [
     icon: HiCreditCard,
   },
   {
+    labelKey: "admin.navRefunds",
+    fallback: "Refund Requests",
+    path: "/admin/refunds",
+    icon: HiCreditCard,
+  },
+  {
     labelKey: "admin.paymentIssues",
     fallback: "Payment Issues",
     path: "/admin/support-issues",

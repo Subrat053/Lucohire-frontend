@@ -67,3 +67,8 @@ export const confirmPaymentSuccess = async (payload) => {
   return data || {};
 };
 
+export const cancelSubscription = async (payload) => {
+  const { data } = await API.post('/payment/cancel-subscription', payload);
+  return data || {};
+};
+
