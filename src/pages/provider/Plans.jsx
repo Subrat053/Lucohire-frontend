@@ -28,11 +28,12 @@ import {
   getProviderUsageMetrics,
   purchaseFixedPlan,
   confirmPaymentSuccess,
+  cancelSubscription,
 } from '../../services/providerPlanService';
 import { useAuth } from '../../context/AuthContext';
 import useTranslation from '../../hooks/useTranslation';
 import GuaranteeModal from '../../components/common/GuaranteeModal';
-import { API } from '../../services/api';
+import { API, providerAPI, providerWalletAPI } from '../../services/api';
 import LocationSearch from '../../components/LocationSearch';
 import SkillSearchSelect from '../../components/common/SkillSearchSelect';
 import { safeReturnPath } from '../../utils/navigation';
@@ -103,6 +104,9 @@ const ProviderPlans = () => {
   const [showGuaranteeModal, setShowGuaranteeModal] = useState(false);
   const [isAutoSubscription, setIsAutoSubscription] = useState(true);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelConfirmed, setCancelConfirmed] = useState(false);
+  const [cancelBankMethod, setCancelBankMethod] = useState(null);
 
   const [availableSkills, setAvailableSkills] = useState([]);
   const [skillsLoading, setSkillsLoading] = useState(false);
@@ -370,6 +374,78 @@ const ProviderPlans = () => {
     };
   }, [pricingPreview, selectedDuration, selectedPlan, selectedSkills, selectedPincodes, selectedCities]);
 
+  const handleCancelPlan = async () => {
+    try {
+      toast.loading('Checking refund requirements...', { id: 'cancel-sub' });
+      const { data } = await providerWalletAPI.getWallet();
+      const bankMethod = data?.payoutMethods?.find(m => m.type === 'bank');
+      
+      if (!bankMethod || !bankMethod.bankDetails || !bankMethod.bankDetails.accountNumber) {
+        toast.error('Please add your bank details first to process the refund.', { id: 'cancel-sub' });
+        navigate('/provider/payout-settings');
+        return;
+      }
+
+      toast.dismiss('cancel-sub');
+      
+      setCancelBankMethod(bankMethod);
+      setShowCancelModal(true);
+      setCancelConfirmed(false);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to process request', { id: 'cancel-sub' });
+    }
+  };
+
+  const proceedCancelPlan = async () => {
+    try {
+      setShowCancelModal(false);
+      toast.loading('Processing cancellation and refund...', { id: 'cancel-sub' });
+      await providerAPI.requestRefund({ bankDetails: cancelBankMethod.bankDetails });
+      toast.success('Subscription cancelled and refund requested successfully!', { id: 'cancel-sub' });
+      
+      const myPlan = await getMyPlan().catch(() => null);
+      if (myPlan) setActivePlanData(myPlan);
+      navigate('/provider/refunds');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to process request', { id: 'cancel-sub' });
+    }
+  };
+
+  const handleDirectCheckout = async (planToCheckout) => {
+    setSelectedPlan(planToCheckout);
+    setCheckoutLoading(true);
+    try {
+      const response = await purchaseFixedPlan({
+        planId: planToCheckout._id,
+        durationMonths: selectedDuration,
+        selectedSkills: [],
+        selectedPincodes: [],
+        selectedCities: [],
+        isAutoSubscription,
+      });
+
+      const { checkout, queueWarning } = response || {};
+
+      if (queueWarning) {
+        const confirmQueue = window.confirm(queueWarning + '\n\nDo you want to proceed to payment?');
+        if (!confirmQueue) {
+          setCheckoutLoading(false);
+          return;
+        }
+      }
+
+      if (checkout?.url) {
+        window.location.href = checkout.url;
+      } else {
+        toast.error('Failed to initiate checkout.');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Error processing request.');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
   const handleCheckout = async () => {
     if (!selectedPlan) {
       toast.error('Select a plan to continue.');
@@ -510,7 +586,7 @@ const ProviderPlans = () => {
           if (days <= 0) return null;
 
           return (
-            <div className="lg:absolute lg:top-2 lg:left-2 mb-6 lg:mb-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-3 text-white shadow-md flex items-center justify-between gap-3 z-10 w-full lg:w-auto">
+            <div className="lg:absolute lg:top-2 lg:left-2 mb-6 lg:mb-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-3 text-white shadow-md flex items-center justify-between gap-4 z-10 w-full lg:w-auto">
               <div>
                 <h2 className="text-[9px] font-semibold text-emerald-100 uppercase tracking-wider mb-0.5">{t("Current Active Plan")}</h2>
                 <div className="text-sm font-bold flex items-center gap-1.5">
@@ -518,9 +594,17 @@ const ProviderPlans = () => {
                   {planName}
                 </div>
               </div>
-              <div className="bg-white/20 px-2.5 py-1 rounded-md backdrop-blur-sm text-center border border-white/10 shadow-inner">
-                <div className="text-base font-extrabold leading-none">{days}</div>
-                <div className="text-[7px] font-bold text-emerald-100 uppercase tracking-wider mt-0.5">{t("Days Left")}</div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={handleCancelPlan}
+                  className="text-[10px] font-bold bg-white/10 hover:bg-red-500/80 transition-colors px-2 py-1.5 rounded text-white border border-white/20"
+                >
+                  {t("Cancel")}
+                </button>
+                <div className="bg-white/20 px-2.5 py-1 rounded-md backdrop-blur-sm text-center border border-white/10 shadow-inner">
+                  <div className="text-base font-extrabold leading-none">{days}</div>
+                  <div className="text-[7px] font-bold text-emerald-100 uppercase tracking-wider mt-0.5">{t("Days Left")}</div>
+                </div>
               </div>
             </div>
           );
@@ -573,7 +657,15 @@ const ProviderPlans = () => {
             if (selectedDuration === 12) displayMonthly = displayPrice * 0.8;
             
             return (
-              <div key={plan._id} className={`bg-white rounded-3xl p-6 relative flex flex-col ${isPro ? 'border-2 border-teal-600 shadow-xl scale-105 z-10' : 'border border-emerald-100 shadow-md'}`}>
+              <div 
+                key={plan._id} 
+                onClick={(e) => {
+                  if (!e.target.closest('button')) {
+                    document.getElementById(`plan-btn-${plan._id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                }}
+                className="bg-white rounded-3xl p-6 relative flex flex-col border border-emerald-100 shadow-md transition-all duration-300 hover:border-2 hover:border-teal-600 hover:shadow-xl hover:scale-105 hover:z-10 cursor-pointer"
+              >
                 {isPro && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-teal-600 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">{t("MOST POPULAR")}</div>
                 )}
@@ -613,18 +705,40 @@ const ProviderPlans = () => {
                 </div>
                 <div className="mt-8 pt-4">
                   <button
-                    onClick={() => {
-                      setSelectedPlan(plan);
-                      setShowConfigModal(true);
+                    id={`plan-btn-${plan._id}`}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent card onClick from scrolling if they click the button directly
+                      const isActivePlan = activePlanData?.subscription?.subscriptionStatus === 'active' && String(activePlanData?.subscription?.planId) === String(plan._id) && Number(activePlanData?.subscription?.durationMonths || 1) === selectedDuration;
+                      if (isActivePlan) {
+                        handleCancelPlan();
+                        return;
+                      }
+
+                      if (['basic-ai', 'pro-ai', 'premium-ai'].includes(plan.slug)) {
+                        handleDirectCheckout(plan);
+                      } else {
+                        setSelectedPlan(plan);
+                        setShowConfigModal(true);
+                      }
                     }}
+                    disabled={checkoutLoading}
                     className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-sm ${
-                      isPro 
+                      (activePlanData?.subscription?.subscriptionStatus === 'active' && String(activePlanData?.subscription?.planId) === String(plan._id) && Number(activePlanData?.subscription?.durationMonths || 1) === selectedDuration)
+                        ? 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
+                        : isPro 
                         ? 'bg-teal-600 hover:bg-teal-700 text-white' 
                         : isPremium
                           ? 'bg-amber-500 hover:bg-amber-600 text-white'
                           : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
                     }`}
-                  >{t("Get Started with")}{plan.name.split(' ')[0]}
+                  >
+                    {checkoutLoading && selectedPlan?._id === plan._id ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <RefreshCw className="w-4 h-4 animate-spin" /> {t("Processing...")}
+                      </span>
+                    ) : (
+                      <>{(activePlanData?.subscription?.subscriptionStatus === 'active' && String(activePlanData?.subscription?.planId) === String(plan._id) && Number(activePlanData?.subscription?.durationMonths || 1) === selectedDuration) ? t("Cancel Subscription") : `${t("Get Started with")} ${plan.name.split(' ')[0]}`}</>
+                    )}
                   </button>
                   <p className="text-[10px] text-center text-slate-500 mt-3 flex items-center justify-center gap-1">
                     <ShieldCheck className="w-3 h-3 text-emerald-500" />{t("Cancel anytime. No hidden charges.")}</p>
@@ -828,6 +942,46 @@ const ProviderPlans = () => {
               >
                 {checkoutLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
                 <Wallet className="w-4 h-4" />{t("Proceed to Payment")}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-6">
+            <h2 className="text-xl font-extrabold text-emerald-950 mb-2">{t("Cancel Subscription")}</h2>
+            <p className="text-sm text-slate-500 mb-6">
+              {t("Are you sure you want to cancel your active subscription? This will cancel your plan immediately and process a refund to your bank account.")}
+            </p>
+            
+            <label className="flex items-start gap-3 cursor-pointer p-4 bg-red-50 border border-red-100 rounded-xl mb-6">
+              <input
+                type="checkbox"
+                checked={cancelConfirmed}
+                onChange={(e) => setCancelConfirmed(e.target.checked)}
+                className="mt-0.5 w-4 h-4 text-red-600 rounded border-red-300 focus:ring-red-500 cursor-pointer"
+              />
+              <span className="text-sm text-red-800 font-medium leading-tight">
+                {t("I understand that my plan will be cancelled immediately and I will lose access to premium features.")}
+              </span>
+            </label>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+              >
+                {t("Keep My Plan")}
+              </button>
+              <button
+                onClick={proceedCancelPlan}
+                disabled={!cancelConfirmed}
+                className="px-5 py-2.5 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors"
+              >
+                {t("Cancel Subscription")}
+              </button>
             </div>
           </div>
         </div>

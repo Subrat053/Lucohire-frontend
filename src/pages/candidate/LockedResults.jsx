@@ -502,8 +502,6 @@ const LockedResults = () => {
                 </>
               )}
             </div>
-            
-            <div id="recaptcha-container-guest"></div>
           </div>
         </div>
       )}

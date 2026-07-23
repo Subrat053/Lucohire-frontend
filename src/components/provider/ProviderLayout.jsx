@@ -50,6 +50,7 @@ const navItems = [
   { label: 'Applied Jobs', fallback: 'Applied Jobs', path: '/provider/applied-jobs', icon: HiClipboardList },
   { label: 'Saved Jobs', fallback: 'Saved Jobs', path: '/provider/saved-jobs', icon: HiOutlineBookmark },
   { label: 'My Plan', fallback: 'My Plan', path: '/provider/my-plan',          icon: HiPhone },
+  { label: 'My Refunds', fallback: 'My Refunds', path: '/provider/refunds',      icon: HiClock },
   { label: 'Refer & Earn', fallback: 'Refer & Earn', path: '/provider/referrals', icon: HiPlusCircle },
   { label: 'Add Member', fallback: 'Add Member', path: '/provider/add-member', icon: HiUserAdd },
   { label: 'Messages', fallback: 'Messages', path: '/provider/contacted',      icon: HiMail },
