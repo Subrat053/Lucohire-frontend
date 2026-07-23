@@ -2863,7 +2863,7 @@ const ProviderProfile = () => {
           />
           
           {/* Modal Container */}
-          <div className="relative font-bold bg-white/95 backdrop-blur-md rounded-[24px] p-6 shadow-2xl border border-slate-100 max-w-sm w-full text-center overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          <div className="relative font-bold bg-white/95 backdrop-blur-md rounded-3xl p-6 shadow-2xl border border-slate-100 max-w-sm w-full text-center overflow-hidden animate-in fade-in zoom-in-95 duration-300">
             {/* Decorative glow */}
             <div className="absolute -top-10 -left-10 w-24 h-24 bg-violet-400/20 rounded-full blur-2xl pointer-events-none" />
             <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-indigo-400/20 rounded-full blur-2xl pointer-events-none" />
