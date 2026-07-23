@@ -612,7 +612,7 @@ const ProviderPlans = () => {
 
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-emerald-950 tracking-tight mb-3">{t("Choose the Right Plan for Your")}<span className="text-emerald-600">{t("Career Growth")}</span>
+          <h1 className="text-3xl sm:text-4xl font-bold text-emerald-950  mb-3">{t("Choose the Right Plan for Your")}<span className="text-emerald-600">{t(" Career Growth")}</span>
           </h1>
           <p className="text-slate-500 text-base">{t(
             "Unlock powerful AI insights, personalized reports, and smart alerts to get hired faster."
@@ -667,7 +667,7 @@ const ProviderPlans = () => {
                 className="bg-white rounded-3xl p-6 relative flex flex-col border border-emerald-100 shadow-md transition-all duration-300 hover:border-2 hover:border-teal-600 hover:shadow-xl hover:scale-105 hover:z-10 cursor-pointer"
               >
                 {isPro && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-teal-600 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">{t("MOST POPULAR")}</div>
+                  <></>
                 )}
                 {isPremium && (
                   <div className="absolute top-4 right-4 text-amber-500">

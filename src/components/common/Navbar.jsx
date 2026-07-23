@@ -449,7 +449,7 @@ const Navbar = () => {
                     { label: "Post a Job", path: "/recruiter/post-job", icon: HiPlusCircle },
                     { label: "Job Postings", path: "/recruiter/job-postings", icon: HiBriefcase },
                     { label: "Find Providers", path: "/recruiter/find-providers", icon: HiUsers },
-                    { label: "Shortlisted", path: "/recruiter/shortlisted", icon: HiBookmark },
+                    { label: "Shortlisted", path: "/recruiter/shortlisted-candidates", icon: HiBookmark },
                     { label: "Profile", path: "/recruiter/profile", icon: HiCog },
                   ].map(({ label, path, icon: Icon }) => {
                     const active = window.location.pathname === path;

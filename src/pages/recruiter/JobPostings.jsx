@@ -5,7 +5,7 @@ import {
   FiSearch, FiFilter, FiBookmark, FiChevronDown, FiList, FiGrid,
   FiMoreVertical, FiEye, FiEdit2, FiTrendingUp, FiArrowUpRight,
   FiClock, FiCheckCircle, FiPauseCircle, FiBriefcase, FiPlus, FiLoader, FiMapPin,
-  FiArrowRight, FiUsers, FiMail, FiMessageCircle, FiTarget, FiCalendar
+  FiArrowRight, FiUsers, FiMail, FiMessageCircle, FiTarget, FiCalendar, FiX
 } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
 import { recruiterAPI, jobsAPI } from '../../services/api';
@@ -277,100 +277,64 @@ const JobPostings = () => {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               {layout === 'list' ? (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse min-w-[900px]">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-[11px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">
-                        <th className="py-4 pl-6 pr-3">{t("Job Title")}</th>
-                        <th className="py-4 px-3 text-center">{t("Applicants")}</th>
-                        <th className="py-4 px-3 text-center">{t("Interviews")}</th>
-                        <th className="py-4 px-3 text-center">{t("AI Health")}</th>
-                        <th className="py-4 px-3 text-center">{t("Status")}</th>
-                        <th className="py-4 px-3">{t("Created On")}</th>
-                        <th className="py-4 pr-6 pl-3 text-right">{t("Actions")}</th>
+                  <table className="w-full text-left border-collapse border border-gray-200 bg-white shadow-sm">
+                    <thead className="bg-gradient-to-r from-gray-50 via-gray-100/50 to-gray-50 shadow-sm">
+                      <tr className="text-sm font-bold text-gray-700">
+                        <th className="py-3 px-4 border border-gray-200">{t("Job Title")}</th>
+                        <th className="py-3 px-4 border border-gray-200">{t("Location")}</th>
+                        <th className="py-3 px-4 border border-gray-200 text-center">{t("Applicants")}</th>
+                        <th className="py-3 px-4 border border-gray-200 text-center">{t("AI Match")}</th>
+                        <th className="py-3 px-4 border border-gray-200">{t("Status")}</th>
+                        <th className="py-3 px-4 border border-gray-200">{t("Created On")}</th>
+                        <th className="py-3 px-4 border border-gray-200 text-center">{t("Actions")}</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody>
                       {paginatedJobs.map((job) => (
-                        <tr key={job._id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors group">
-                          <td className="py-4 pl-6 pr-3">
-                            <div className="flex items-center gap-4">
-                              <div className="hidden sm:flex items-center justify-center">
-                                {job.tags?.some(t => t === 'Featured') ? (
-                                  <HiSparkles className="w-4 h-4 text-indigo-500" />
-                                ) : (
-                                  <div className="w-4 h-4" />
-                                )}
-                              </div>
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 bg-indigo-100 text-indigo-600`}>
-                                {(job.companyName || 'L')[0].toUpperCase()}
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-bold text-gray-900 text-sm">{job.title}</span>
-                                  {job.tags?.map((tag, i) => (
-                                    <span key={i} className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white border border-gray-100 shadow-sm text-gray-600`}>
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </div>
-                                <div className="text-xs text-gray-500 mt-1 flex items-center gap-3">
-                                  <span className="flex items-center gap-1"><FiMapPin className="w-3 h-3" /> {job.city || 'N/A'}</span>
-                                  <span className="flex items-center gap-1"><FiClock className="w-3 h-3" /> {job.workMode || 'onsite'}</span>
-                                </div>
-                              </div>
+                        <tr key={job._id} className="hover:bg-gradient-to-r hover:from-indigo-50/40 hover:to-white transition-all duration-300">
+                          <td className="py-3 px-4 border border-gray-200 font-semibold text-gray-800">
+                            <div className="flex items-center">
+                              {job.title}
                             </div>
                           </td>
-                          <td className="py-4 px-3">
+                          <td className="py-3 px-4 border border-gray-200 text-gray-600 font-medium">
+                            {job.city || 'N/A'}
+                          </td>
+                          <td className="py-3 px-4 border border-gray-200 text-center font-bold text-gray-700">
+                            {job.interestedCount || 0}
+                          </td>
+                          <td className="py-3 px-4 border border-gray-200 text-center text-gray-600">
                             <div className="flex justify-center">
-                              <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-50 text-gray-700 font-bold text-sm border border-gray-100 shadow-sm">
-                                {job.interestedCount || 0}
-                              </span>
+                              <div className="w-10 h-10 font-bold drop-shadow-sm">
+                                <CircularProgressbar
+                                  value={getMatchScore(job)}
+                                  text={`${getMatchScore(job)}%`}
+                                  strokeWidth={10}
+                                  styles={buildStyles({
+                                    textSize: '26px',
+                                    pathColor: getMatchScore(job) >= 80 ? '#10b981' : getMatchScore(job) >= 60 ? '#f59e0b' : '#ef4444',
+                                    textColor: getMatchScore(job) >= 80 ? '#10b981' : getMatchScore(job) >= 60 ? '#f59e0b' : '#ef4444',
+                                    trailColor: '#f3f4f6',
+                                  })}
+                                />
+                              </div>
                             </div>
                           </td>
-                          <td className="py-4 px-3">
-                            <div className="flex justify-center">
-                              <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-700 font-bold text-sm border border-blue-100 shadow-sm">
-                                0
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-3">
-                            <div className="flex justify-center relative group/tooltip">
-                                <div className="w-10 h-10 font-bold">
-                                  <CircularProgressbar
-                                    value={getMatchScore(job)}
-                                    text={`${getMatchScore(job)}%`}
-                                    strokeWidth={10}
-                                    styles={buildStyles({
-                                      textSize: '26px',
-                                      pathColor: getMatchScore(job) >= 80 ? '#10b981' : getMatchScore(job) >= 60 ? '#f59e0b' : '#ef4444',
-                                      textColor: getMatchScore(job) >= 80 ? '#10b981' : getMatchScore(job) >= 60 ? '#f59e0b' : '#ef4444',
-                                      trailColor: '#f3f4f6',
-                                    })}
-                                  />
-                                </div>
-                              {job.isBoosted && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-600 border border-purple-100 ml-1">{t("BOOSTED")}</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="py-4 px-3 text-center">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold ${job.status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-600'}`}>
+                          <td className="py-3 px-4 border border-gray-200 text-center text-gray-700">
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-md text-[11px] font-bold shadow-sm ${job.status === 'active' ? 'bg-gradient-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 border border-emerald-200' : 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-600 border border-gray-200'}`}>
                               {(job.status || 'active').toUpperCase()}
                             </span>
                           </td>
-                          <td className="py-4 px-3">
-                            <div className="text-xs font-semibold text-gray-600">{new Date(job.createdAt).toLocaleDateString()}</div>
+                          <td className="py-3 px-4 border border-gray-200 text-gray-500 text-sm font-medium">
+                            {new Date(job.createdAt).toLocaleDateString()}
                           </td>
-                          <td className="py-4 pr-6 pl-3 text-right">
-                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Link to={`/recruiter/jobs/${job._id}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-indigo-600 hover:bg-gray-50 transition shadow-sm">
-                                <FiEye className="w-3.5 h-3.5" />{t("View")}</Link>
-                              <button onClick={() => handleEvaluate(job._id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-emerald-600 hover:bg-gray-50 transition shadow-sm">
-                                <HiSparkles className="w-3.5 h-3.5" />{t("Eval")}</button>
-                              <button onClick={() => openBoostModal(job)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-purple-600 hover:bg-gray-50 transition shadow-sm">{t("Boost")}</button>
-                              <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition">
-                                <FiMoreVertical className="w-4 h-4" />
+                          <td className="py-3 px-4 border border-gray-200 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <Link to={`/recruiter/jobs/${job._id}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-200 bg-gradient-to-br from-white to-indigo-50 text-xs font-bold text-indigo-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                                <FiEye className="w-3.5 h-3.5" />{t("View")}
+                              </Link>
+                              <button onClick={() => openBoostModal(job)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-purple-200 bg-gradient-to-br from-white to-purple-50 text-xs font-bold text-purple-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                                <HiSparkles className="w-3.5 h-3.5" />{t("Boost")}
                               </button>
                             </div>
                           </td>
@@ -382,49 +346,57 @@ const JobPostings = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
                   {paginatedJobs.map((job) => (
-                    <div key={job._id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition flex flex-col h-full relative group">
-                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition">
-                        <Link to={`/recruiter/jobs/${job._id}`} className="p-1.5 bg-gray-50 hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 rounded-lg transition block">
-                          <FiArrowUpRight className="w-4 h-4" />
-                        </Link>
-                      </div>
+                    <div key={job._id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-xl hover:-translate-y-1 hover:border-indigo-100 transition-all duration-300 flex flex-col h-full relative group">
                       <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold text-xl shrink-0">
-                          {(job.companyName || 'L')[0].toUpperCase()}
+                        <div className="flex items-center gap-3">
+                          {job.companyLogo ? (
+                            <img src={job.companyLogo} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md" />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-700 font-bold text-xl border border-indigo-200 shadow-sm shrink-0">
+                              {(job.companyName || 'L')[0].toUpperCase()}
+                            </div>
+                          )}
                         </div>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${job.status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-600'}`}>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-md text-[10px] font-bold shadow-sm ${job.status === 'active' ? 'bg-gradient-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 border border-emerald-200' : 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-600 border border-gray-200'}`}>
                           {(job.status || 'active').toUpperCase()}
                         </span>
                       </div>
-                      <h3 className="font-bold text-gray-900 pr-8">{job.title}</h3>
-                      <div className="text-[11px] text-gray-500 mt-1 flex items-center gap-3">
-                        <span className="flex items-center gap-1"><FiMapPin className="w-3 h-3" /> {job.city || 'N/A'}</span>
-                        <span className="flex items-center gap-1"><FiClock className="w-3 h-3" /> {job.workMode || 'onsite'}</span>
+                      <h3 className="font-bold text-gray-900 text-lg mb-1">{job.title}</h3>
+                      <div className="text-xs text-gray-500 flex items-center gap-3 mb-4">
+                        <span className="flex items-center gap-1 font-medium"><FiMapPin className="w-3 h-3 text-gray-400" /> {job.city || 'N/A'}</span>
+                        <span className="flex items-center gap-1 font-medium"><FiClock className="w-3 h-3 text-gray-400" /> {job.workMode || 'onsite'}</span>
                       </div>
                       
-                      <div className="mt-auto pt-4 flex items-center justify-between border-t border-gray-50">
+                      <div className="flex items-center gap-6 mt-2 mb-6">
                         <div>
-                          <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">{t("Applicants")}</div>
-                          <div className="text-sm font-bold text-gray-900">{job.interestedCount || 0}</div>
+                          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{t("Applicants")}</div>
+                          <div className="text-lg font-extrabold text-gray-800">{job.interestedCount || 0}</div>
                         </div>
                         <div>
-                          <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">{t("AI Match")}</div>
-                          <div className="text-sm font-bold text-indigo-600">
-                                <div className="w-6 h-6 font-bold mt-1">
-                                  <CircularProgressbar
-                                    value={getMatchScore(job)}
-                                    text={`${getMatchScore(job)}%`}
-                                    strokeWidth={12}
-                                    styles={buildStyles({
-                                      textSize: '34px',
-                                      pathColor: getMatchScore(job) >= 80 ? '#10b981' : getMatchScore(job) >= 60 ? '#f59e0b' : '#ef4444',
-                                      textColor: getMatchScore(job) >= 80 ? '#10b981' : getMatchScore(job) >= 60 ? '#f59e0b' : '#ef4444',
-                                      trailColor: '#f3f4f6',
-                                    })}
-                                  />
-                                </div>
+                          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{t("AI Match")}</div>
+                          <div className="w-8 h-8 font-bold drop-shadow-sm mt-0.5">
+                            <CircularProgressbar
+                              value={getMatchScore(job)}
+                              text={`${getMatchScore(job)}%`}
+                              strokeWidth={12}
+                              styles={buildStyles({
+                                textSize: '30px',
+                                pathColor: getMatchScore(job) >= 80 ? '#10b981' : getMatchScore(job) >= 60 ? '#f59e0b' : '#ef4444',
+                                textColor: getMatchScore(job) >= 80 ? '#10b981' : getMatchScore(job) >= 60 ? '#f59e0b' : '#ef4444',
+                                trailColor: '#f3f4f6',
+                              })}
+                            />
                           </div>
                         </div>
+                      </div>
+
+                      <div className="mt-auto pt-4 border-t border-gray-100 flex items-center gap-2">
+                        <Link to={`/recruiter/jobs/${job._id}`} className="flex-1 flex justify-center items-center gap-2 px-3 py-2 rounded-lg border border-indigo-200 bg-gradient-to-br from-white to-indigo-50 text-xs font-bold text-indigo-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                          <FiEye className="w-4 h-4" />{t("View")}
+                        </Link>
+                        <button onClick={() => openBoostModal(job)} className="flex-1 flex justify-center items-center gap-2 px-3 py-2 rounded-lg border border-purple-200 bg-gradient-to-br from-white to-purple-50 text-xs font-bold text-purple-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                          <HiSparkles className="w-4 h-4" />{t("Boost")}
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -626,8 +598,11 @@ const JobPostings = () => {
           <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-gray-900">Filter Jobs</h3>
-              <button onClick={() => setFilterModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                <FiChevronDown className="w-5 h-5 rotate-90" />
+              <button 
+                onClick={() => setFilterModalOpen(false)} 
+                className="p-2 bg-red-50 hover:bg-red-100 rounded-full text-red-500 hover:text-red-600 transition-all transform hover:scale-110 shadow-sm"
+              >
+                <FiX className="w-5 h-5" />
               </button>
             </div>
             

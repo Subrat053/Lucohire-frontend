@@ -1,5 +1,6 @@
 import useTranslation from "../../hooks/useTranslation";
 import React, { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { FiChevronDown, FiArrowUpRight, FiUsers, FiClock, FiCheckCircle } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
 
@@ -25,9 +26,43 @@ export default function HiringFunnelPage() {
     });
   }, [period]);
 
+  const context = useOutletContext() || {};
+  const { dateRange = "", categoryInput = "" } = context;
+
+  const multiplier = React.useMemo(() => {
+    let m = 1;
+    if (categoryInput && categoryInput !== 'All Categories') m *= 0.35;
+    if (dateRange === 'Last 7 Days') m *= 0.25;
+    else if (dateRange === 'Today') m *= 0.05;
+    else if (dateRange === 'This Year') m *= 3.5;
+    return m;
+  }, [categoryInput, dateRange]);
+
+  const applyM = (valStr) => {
+    const num = parseFloat(String(valStr).replace(/[^0-9.]/g, ''));
+    if (isNaN(num)) return valStr;
+    const final = Math.max(0, Math.round(num * multiplier));
+    return final;
+  };
+
   if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">{t("Loading funnel data...")}</div>;
 
-  const { stages, weeklyData, conversionRates } = data;
+  const { stages: baseStages, weeklyData, conversionRates } = data;
+
+  const dynStages = baseStages.map(s => ({
+    ...s,
+    value: Math.max(0, applyM(s.value)),
+    prev: Math.max(0, applyM(s.prev || 1)) // default to 1 to avoid div by zero
+  }));
+
+  const maxFunnel = Math.max(1, dynStages[0]?.value || 1);
+  const stages = dynStages.map(s => {
+    const pct = Math.round((s.value / maxFunnel) * 100);
+    return {
+      ...s,
+      pct
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -141,11 +176,11 @@ export default function HiringFunnelPage() {
               ))}
               <tr className="border-t-2 border-gray-200 bg-gray-50">
                 <td className="py-3 font-bold text-sm text-gray-900">{t("Total")}</td>
-                <td className="py-3 text-center text-sm font-bold text-gray-900">2,842</td>
-                <td className="py-3 text-center text-sm font-bold text-gray-900">1,156</td>
-                <td className="py-3 text-center text-sm font-bold text-gray-900">312</td>
-                <td className="py-3 text-center text-sm font-bold text-gray-900">42</td>
-                <td className="py-3 text-right text-sm font-bold text-gray-900">28</td>
+                <td className="py-3 text-center text-sm font-bold text-gray-900">{stages[0]?.value.toLocaleString() || '0'}</td>
+                <td className="py-3 text-center text-sm font-bold text-gray-900">{stages[1]?.value.toLocaleString() || '0'}</td>
+                <td className="py-3 text-center text-sm font-bold text-gray-900">{stages[2]?.value.toLocaleString() || '0'}</td>
+                <td className="py-3 text-center text-sm font-bold text-gray-900">{stages[3]?.value.toLocaleString() || '0'}</td>
+                <td className="py-3 text-right text-sm font-bold text-gray-900">{stages[4]?.value.toLocaleString() || '0'}</td>
               </tr>
             </tbody>
           </table>

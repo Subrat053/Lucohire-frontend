@@ -332,7 +332,7 @@ const Tasks = () => {
                 onClick={() => setSelectedJob('All')}
                 className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-between ${selectedJob === 'All' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
               >
-                <div className="flex items-center gap-2"><FiList className="w-4 h-4" />{t("All Tasks")}</div>
+                <div className="flex items-center gap-2"><FiList className="w-4 h-4" />{t("All Reminders")}</div>
                 <span className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full">{tasks.length}</span>
               </button>
               
@@ -370,7 +370,7 @@ const Tasks = () => {
           <div className="flex-1 h-full min-w-0">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-800">
-                {selectedJob === 'All' ? 'All Tasks' : selectedJob === 'General' ? 'General Tasks' : `${jobs.find(j => j._id === selectedJob)?.title || 'Job'} Pipeline`}
+                {selectedJob === 'All' ? 'All Reminders' : selectedJob === 'General' ? 'General Tasks' : `${jobs.find(j => j._id === selectedJob)?.title || 'Job'} Pipeline`}
               </h2>
               <span className="text-sm font-medium text-gray-500">{filteredTasks.length}{t("total tasks")}</span>
             </div>

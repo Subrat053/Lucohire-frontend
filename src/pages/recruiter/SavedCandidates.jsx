@@ -7,7 +7,8 @@ import {
   FiMoreVertical, FiEye, FiArrowUpRight, FiLoader, FiSend,
   FiCheckSquare, FiSquare
 } from 'react-icons/fi';
-import { HiSparkles } from 'react-icons/hi2';
+import { HiSparkles, HiBookmark } from 'react-icons/hi2';
+import LocationAutocomplete from '../../components/common/LocationAutocomplete';
 import { recruiterAPI, aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { toOptimizedMediaUrl } from '../../utils/media';
@@ -16,13 +17,19 @@ const Candidates = () => {
   const { t } = useTranslation();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const searchQueryRef = useRef('');
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [aiParsing, setAiParsing] = useState(false);
+  const [searchMessage, setSearchMessage] = useState(null);
   const [layout, setLayout] = useState('list');
   const [candidateScores, setCandidateScores] = useState({});
   const [selectedCandidates, setSelectedCandidates] = useState([]);
+  const [shortlistedIds, setShortlistedIds] = useState(new Set());
+  const [shortlistingId, setShortlistingId] = useState(null); // id being toggled
 
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [dropdownSearch, setDropdownSearch] = useState('');
   const filtersRef = useRef(null);
 
   useEffect(() => {
@@ -50,11 +57,60 @@ const Candidates = () => {
   const suggestedSearches = ['React Developer', 'Redux', 'TypeScript', 'Next.js', 'More'];
 
   const handleSearch = useCallback(async (query) => {
-    const term = query !== undefined ? query : searchQuery;
+    const term = query !== undefined ? query : searchQueryRef.current;
     try {
       setLoading(true);
-      const res = await recruiterAPI.aiSearchCandidates({ q: term });
-      // backend returns { candidates: [...] } or { results: [...] }
+      setSearchMessage(null);
+
+      // Step 1: AI parse the raw text if there is a meaningful query
+      let parsedFilters = {};
+      if (term.trim().length > 2) {
+        setAiParsing(true);
+        try {
+          const parseRes = await recruiterAPI.parseSearchQuery(term);
+          parsedFilters = parseRes.data?.parsed || {};
+        } catch (_) { /* graceful — continue without AI parse */ }
+        setAiParsing(false);
+
+        // Step 2: Auto-apply extracted filters to UI chips
+        if (Object.keys(parsedFilters).length > 0) {
+          setFilters(prev => {
+            const next = { ...prev };
+            if (parsedFilters.experience && !next.experience.includes(parsedFilters.experience)) {
+              next.experience = [...next.experience, parsedFilters.experience];
+            }
+            if (parsedFilters.location && !next.location.includes(parsedFilters.location)) {
+              next.location = [...next.location, parsedFilters.location];
+            }
+            if (parsedFilters.noticePeriod && !next.noticePeriod.includes(parsedFilters.noticePeriod)) {
+              next.noticePeriod = [...next.noticePeriod, parsedFilters.noticePeriod];
+            }
+            if (parsedFilters.employmentType && !next.employmentType.includes(parsedFilters.employmentType)) {
+              next.employmentType = [...next.employmentType, parsedFilters.employmentType];
+            }
+            // CTC range as readable label
+            if (parsedFilters.ctcMin || parsedFilters.ctcMax) {
+              const ctcLabel = parsedFilters.ctcMin && parsedFilters.ctcMax
+                ? `${parsedFilters.ctcMin}-${parsedFilters.ctcMax} LPA`
+                : parsedFilters.ctcMax ? `Up to ${parsedFilters.ctcMax} LPA` : `${parsedFilters.ctcMin}+ LPA`;
+              if (!next.ctc.includes(ctcLabel)) next.ctc = [...next.ctc, ctcLabel];
+            }
+            return next;
+          });
+        }
+      }
+
+      // Step 3: Build structured params for backend
+      const params = {};
+      const role = parsedFilters.role || '';
+      const skills = Array.isArray(parsedFilters.skills) ? parsedFilters.skills.join(' ') : '';
+      params.q = [role, skills, term].filter(Boolean).join(' ').trim() || term;
+      if (parsedFilters.location) params.location = parsedFilters.location;
+      if (parsedFilters.experience) params.experience = parsedFilters.experience;
+      if (parsedFilters.ctcMax) params.maxFee = parsedFilters.ctcMax;
+      if (parsedFilters.ctcMin) params.minFee = parsedFilters.ctcMin;
+
+      const res = await recruiterAPI.aiSearchCandidates(params);
       const data = res.data?.candidates || res.data?.results || (Array.isArray(res.data) ? res.data : []);
       if (Array.isArray(data)) {
         const realCandidates = data.filter(c => {
@@ -64,6 +120,15 @@ const Candidates = () => {
             !name.includes('seed') && !email.includes('seed_') && !email.includes('@example.');
         });
         setCandidates(realCandidates);
+        sessionStorage.setItem('currentCandidateList', JSON.stringify(realCandidates.map(c => c._id || c.id)));
+
+        // Step 4: Surface a message if search was specific but results are thin
+        const hasSpecificQuery = term.trim().length > 2 && Object.keys(parsedFilters).some(k => parsedFilters[k]);
+        if (hasSpecificQuery && realCandidates.length === 0) {
+          setSearchMessage({ type: 'none', role: parsedFilters.role || term });
+        } else if (hasSpecificQuery && realCandidates.length < 5 && realCandidates.length > 0) {
+          setSearchMessage({ type: 'partial', role: parsedFilters.role || term, count: realCandidates.length });
+        }
       } else {
         setCandidates([]);
       }
@@ -72,12 +137,18 @@ const Candidates = () => {
       toast.error('Failed to fetch candidates');
     } finally {
       setLoading(false);
+      setAiParsing(false);
     }
   }, []); // no deps — query is always passed as argument
 
   useEffect(() => {
     handleSearch('');
-  }, []); // only on mount
+    // Fetch already-shortlisted IDs
+    recruiterAPI.getShortlistedCandidates().then(res => {
+      const list = res.data?.shortlisted || res.data?.candidates || (Array.isArray(res.data) ? res.data : []);
+      setShortlistedIds(new Set(list.map(c => String(c.providerProfileId || c._id || c.id))));
+    }).catch(() => {});
+  }, []);
 
   // AI Profile Rating Queue
   useEffect(() => {
@@ -131,9 +202,11 @@ const Candidates = () => {
   };
 
   const clearAllFilters = () => {
-    setFilters({
-      skills: [], experience: [], location: [], ctc: [], noticePeriod: [], employmentType: []
-    });
+    setFilters({ skills: [], experience: [], location: [], ctc: [], noticePeriod: [], employmentType: [] });
+    setSearchQuery('');
+    searchQueryRef.current = '';
+    setSearchMessage(null);
+    handleSearch(''); // re-fetch all candidates from backend
   };
 
   const toggleCandidateSelection = (id) => {
@@ -226,118 +299,164 @@ const Candidates = () => {
     <div className="min-h-screen bg-[#F8FAFC] pb-24 relative font-sans font-medium" style={{ fontFamily: "'Inter', sans-serif" }}>
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* HEADER & SEARCH BLOCK */}
-        <div className="bg-white rounded-2xl border border-indigo-100 shadow-sm p-5 space-y-5">
-          <div className="flex flex-col md:flex-row items-center gap-4">
+        {/* SEARCH + FILTERS CARD */}
+        <div className="bg-white rounded-2xl border border-indigo-100 shadow-sm p-5 space-y-4">
+
+          {/* Search row */}
+          <div className="flex flex-col md:flex-row items-center gap-3">
             <div className="flex-1 relative w-full">
               <HiSparkles className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500 w-5 h-5" />
               <input 
                 type="text" 
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); searchQueryRef.current = e.target.value; }}
                 onKeyDown={handleKeyDown}
-                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 font-bold focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                className="w-full pl-12 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-medium text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:bg-white transition"
+                placeholder="e.g. Senior React developer in Bangalore, 5+ years, notice period 30 days..."
               />
             </div>
-            <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
-              <button onClick={() => handleSearch()} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition">
-                <FiSearch className="w-4 h-4" /> Search
+            <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
+              <button onClick={() => handleSearch()} disabled={loading || aiParsing} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-medium text-sm hover:bg-indigo-700 transition disabled:opacity-70">
+                {aiParsing ? <><FiLoader className="w-4 h-4 animate-spin" /> Analyzing...</> : <><FiSearch className="w-4 h-4" /> Search</>}
               </button>
             </div>
           </div>
-          
-        </div>
 
-        {/* FILTERS BAR */}
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-[#F8FAFC]">
-          <div ref={filtersRef} className="flex flex-wrap items-center gap-3 relative">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-indigo-100 rounded-xl font-bold text-gray-700 shadow-sm">
-              <FiFilter className="text-indigo-600" /> Filters <span className="bg-indigo-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full">{totalActiveFilters}</span>
+          {/* Divider */}
+          <div className="border-t border-gray-100" />
+
+          {/* Filters row */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div ref={filtersRef} className="flex flex-wrap items-center gap-2 relative">
+              <button className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-lg font-medium text-gray-700 text-sm">
+                <FiFilter className="text-indigo-600 w-3.5 h-3.5" /> Filters <span className="bg-indigo-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">{totalActiveFilters}</span>
+              </button>
+
+              <div className="relative">
+                <button onClick={() => { setActiveDropdown(activeDropdown === 'experience' ? null : 'experience'); setDropdownSearch(''); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg font-medium text-gray-700 text-sm hover:bg-gray-50">
+                  <span className="text-indigo-600">Experience:</span> {filters.experience.length ? filters.experience.join(', ') : 'Any'} <FiChevronDown className="text-gray-400 w-3.5 h-3.5" />
+                </button>
+                {activeDropdown === 'experience' && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                    <div className="p-2 border-b border-gray-100 bg-gray-50">
+                      <input autoFocus type="text" value={dropdownSearch} onChange={(e) => setDropdownSearch(e.target.value)} placeholder="Search or type custom..." className="w-full text-sm border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                        onKeyDown={(e) => { if(e.key === 'Enter' && dropdownSearch.trim()) { toggleFilter('experience', dropdownSearch.trim()); setDropdownSearch(''); } }} />
+                    </div>
+                    <div className="max-h-48 overflow-y-auto p-2">
+                      {['0-2 years', '4-8 years', '8+ years'].filter(exp => exp.toLowerCase().includes(dropdownSearch.toLowerCase())).map(exp => (
+                        <label key={exp} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                          <input type="checkbox" checked={filters.experience.includes(exp)} onChange={() => toggleFilter('experience', exp)} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                          <span className="text-sm font-medium text-gray-700">{exp}</span>
+                        </label>
+                      ))}
+                      {dropdownSearch.trim() && !['0-2 years', '4-8 years', '8+ years'].some(e => e.toLowerCase() === dropdownSearch.toLowerCase()) && (
+                        <div className="p-2 text-xs text-indigo-600 font-medium">Press Enter to add "{dropdownSearch}"</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <button onClick={() => { setActiveDropdown(activeDropdown === 'location' ? null : 'location'); setDropdownSearch(''); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg font-medium text-gray-700 text-sm hover:bg-gray-50">
+                  <span className="text-indigo-600">Location:</span> {filters.location.length ? filters.location.join(', ') : 'Any'} <FiChevronDown className="text-gray-400 w-3.5 h-3.5" />
+                </button>
+                {activeDropdown === 'location' && (
+                  <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-lg z-50">
+                    <div className="p-2 border-b border-gray-100 bg-gray-50">
+                      <LocationAutocomplete value={dropdownSearch} onChange={(val) => setDropdownSearch(typeof val === 'string' ? val : '')}
+                        onSelect={(locObj) => { toggleFilter('location', locObj?.city || locObj?.description || ''); setDropdownSearch(''); setActiveDropdown(null); }}
+                        placeholder="Smart location search..." className="w-full" inputClassName="w-full text-sm border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white" />
+                    </div>
+                    <div className="max-h-48 overflow-y-auto p-2">
+                      {['Bangalore', 'Mumbai', 'Delhi NCR', 'Hyderabad', 'Pune'].filter(loc => loc.toLowerCase().includes(dropdownSearch.toLowerCase())).map(loc => (
+                        <label key={loc} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                          <input type="checkbox" checked={filters.location.includes(loc)} onChange={() => toggleFilter('location', loc)} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                          <span className="text-sm font-medium text-gray-700">{loc}</span>
+                        </label>
+                      ))}
+                      {dropdownSearch.trim() && !['Bangalore', 'Mumbai', 'Delhi NCR', 'Hyderabad', 'Pune'].some(l => l.toLowerCase() === dropdownSearch.toLowerCase()) && (
+                        <div className="p-2 text-xs text-indigo-600 font-medium cursor-pointer hover:bg-gray-50 rounded" onClick={() => { toggleFilter('location', dropdownSearch.trim()); setDropdownSearch(''); }}>Click to add "{dropdownSearch}"</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <button onClick={() => { setActiveDropdown(activeDropdown === 'ctc' ? null : 'ctc'); setDropdownSearch(''); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg font-medium text-gray-700 text-sm hover:bg-gray-50">
+                  CTC {filters.ctc.length ? `(${filters.ctc.length})` : ''} <FiChevronDown className="text-gray-400 w-3.5 h-3.5" />
+                </button>
+                {activeDropdown === 'ctc' && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                    <div className="p-2 border-b border-gray-100 bg-gray-50">
+                      <input autoFocus type="text" value={dropdownSearch} onChange={(e) => setDropdownSearch(e.target.value)} placeholder="Search or type custom..." className="w-full text-sm border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                        onKeyDown={(e) => { if(e.key === 'Enter' && dropdownSearch.trim()) { toggleFilter('ctc', dropdownSearch.trim()); setDropdownSearch(''); } }} />
+                    </div>
+                    <div className="max-h-48 overflow-y-auto p-2">
+                      {['0-10 LPA', '10-20 LPA', '20-30 LPA', '30+ LPA'].filter(opt => opt.toLowerCase().includes(dropdownSearch.toLowerCase())).map(opt => (
+                        <label key={opt} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                          <input type="checkbox" checked={filters.ctc.includes(opt)} onChange={() => toggleFilter('ctc', opt)} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                          <span className="text-sm font-medium text-gray-700">{opt}</span>
+                        </label>
+                      ))}
+                      {dropdownSearch.trim() && !['0-10 LPA', '10-20 LPA', '20-30 LPA', '30+ LPA'].some(o => o.toLowerCase() === dropdownSearch.toLowerCase()) && (
+                        <div className="p-2 text-xs text-indigo-600 font-medium">Press Enter to add "{dropdownSearch}"</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <button onClick={() => { setActiveDropdown(activeDropdown === 'notice' ? null : 'notice'); setDropdownSearch(''); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg font-medium text-gray-700 text-sm hover:bg-gray-50">
+                  Notice Period {filters.noticePeriod.length ? `(${filters.noticePeriod.length})` : ''} <FiChevronDown className="text-gray-400 w-3.5 h-3.5" />
+                </button>
+                {activeDropdown === 'notice' && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                    <div className="p-2 border-b border-gray-100 bg-gray-50">
+                      <input autoFocus type="text" value={dropdownSearch} onChange={(e) => setDropdownSearch(e.target.value)} placeholder="Search or type custom..." className="w-full text-sm border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                        onKeyDown={(e) => { if(e.key === 'Enter' && dropdownSearch.trim()) { toggleFilter('noticePeriod', dropdownSearch.trim()); setDropdownSearch(''); } }} />
+                    </div>
+                    <div className="max-h-48 overflow-y-auto p-2">
+                      {['Immediate', '15 Days', '30 Days', '60 Days'].filter(opt => opt.toLowerCase().includes(dropdownSearch.toLowerCase())).map(opt => (
+                        <label key={opt} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                          <input type="checkbox" checked={filters.noticePeriod.includes(opt)} onChange={() => toggleFilter('noticePeriod', opt)} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                          <span className="text-sm font-medium text-gray-700">{opt}</span>
+                        </label>
+                      ))}
+                      {dropdownSearch.trim() && !['Immediate', '15 Days', '30 Days', '60 Days'].some(o => o.toLowerCase() === dropdownSearch.toLowerCase()) && (
+                        <div className="p-2 text-xs text-indigo-600 font-medium">Press Enter to add "{dropdownSearch}"</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <button onClick={() => setActiveDropdown(activeDropdown === 'more' ? null : 'more')} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg font-medium text-indigo-600 text-sm hover:bg-gray-50">
+                  More {filters.employmentType.length ? `(${filters.employmentType.length})` : ''}
+                </button>
+                {activeDropdown === 'more' && (
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-2">
+                    <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2 mt-1 ml-2">Employment Type</div>
+                    {['Full-time', 'Part-time', 'Contract', 'Remote'].map(opt => (
+                      <label key={opt} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                        <input type="checkbox" checked={filters.employmentType.includes(opt)} onChange={() => toggleFilter('employmentType', opt)} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                        <span className="text-sm font-medium text-gray-700">{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <button onClick={clearAllFilters} className="text-sm font-medium text-rose-500 hover:text-rose-700 transition">
+              Clear All
             </button>
-            
-            <div className="relative">
-              <button onClick={() => setActiveDropdown(activeDropdown === 'experience' ? null : 'experience')} className="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 rounded-xl font-semibold text-gray-700 text-sm hover:bg-gray-50">
-                <span className="text-indigo-600">Experience:</span> {filters.experience.length ? filters.experience.join(', ') : 'Any'} <FiChevronDown className="text-gray-400" />
-              </button>
-              {activeDropdown === 'experience' && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-2">
-                  {['0-2 years', '4-8 years', '8+ years'].map(exp => (
-                    <label key={exp} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                      <input type="checkbox" checked={filters.experience.includes(exp)} onChange={() => toggleFilter('experience', exp)} className="rounded text-indigo-600 focus:ring-indigo-500" />
-                      <span className="text-sm font-medium text-gray-700">{exp}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="relative">
-              <button onClick={() => setActiveDropdown(activeDropdown === 'location' ? null : 'location')} className="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 rounded-xl font-semibold text-gray-700 text-sm hover:bg-gray-50">
-                <span className="text-indigo-600">Location:</span> {filters.location.length ? filters.location.join(', ') : 'Any'} <FiChevronDown className="text-gray-400" />
-              </button>
-              {activeDropdown === 'location' && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-2">
-                  {['Bangalore', 'Mumbai', 'Delhi NCR', 'Hyderabad', 'Pune'].map(loc => (
-                    <label key={loc} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                      <input type="checkbox" checked={filters.location.includes(loc)} onChange={() => toggleFilter('location', loc)} className="rounded text-indigo-600 focus:ring-indigo-500" />
-                      <span className="text-sm font-medium text-gray-700">{loc}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="relative">
-              <button onClick={() => setActiveDropdown(activeDropdown === 'ctc' ? null : 'ctc')} className="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 rounded-xl font-semibold text-gray-700 text-sm hover:bg-gray-50">
-                Current CTC {filters.ctc.length ? `(${filters.ctc.length})` : ''} <FiChevronDown className="text-gray-400" />
-              </button>
-              {activeDropdown === 'ctc' && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-2">
-                  {['0-10 LPA', '10-20 LPA', '20-30 LPA', '30+ LPA'].map(opt => (
-                    <label key={opt} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                      <input type="checkbox" checked={filters.ctc.includes(opt)} onChange={() => toggleFilter('ctc', opt)} className="rounded text-indigo-600 focus:ring-indigo-500" />
-                      <span className="text-sm font-medium text-gray-700">{opt}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="relative">
-              <button onClick={() => setActiveDropdown(activeDropdown === 'notice' ? null : 'notice')} className="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 rounded-xl font-semibold text-gray-700 text-sm hover:bg-gray-50">
-                Notice Period {filters.noticePeriod.length ? `(${filters.noticePeriod.length})` : ''} <FiChevronDown className="text-gray-400" />
-              </button>
-              {activeDropdown === 'notice' && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-2">
-                  {['Immediate', '15 Days', '30 Days', '60 Days'].map(opt => (
-                    <label key={opt} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                      <input type="checkbox" checked={filters.noticePeriod.includes(opt)} onChange={() => toggleFilter('noticePeriod', opt)} className="rounded text-indigo-600 focus:ring-indigo-500" />
-                      <span className="text-sm font-medium text-gray-700">{opt}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="relative">
-              <button onClick={() => setActiveDropdown(activeDropdown === 'more' ? null : 'more')} className="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 rounded-xl font-semibold text-gray-700 text-sm hover:bg-gray-50">
-                <span className="text-indigo-600">More Filters</span> {filters.employmentType.length ? `(${filters.employmentType.length})` : ''}
-              </button>
-              {activeDropdown === 'more' && (
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-2">
-                  <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-1 ml-2">Employment Type</div>
-                  {['Full-time', 'Part-time', 'Contract', 'Remote'].map(opt => (
-                    <label key={opt} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                      <input type="checkbox" checked={filters.employmentType.includes(opt)} onChange={() => toggleFilter('employmentType', opt)} className="rounded text-indigo-600 focus:ring-indigo-500" />
-                      <span className="text-sm font-medium text-gray-700">{opt}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
-          <button onClick={clearAllFilters} className="text-sm font-bold text-gray-500 hover:text-gray-700">Clear All</button>
+
         </div>
+
         
         {/* MAIN GRID */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
@@ -370,6 +489,23 @@ const Candidates = () => {
               </div>
             </div>
 
+            {/* AI Search Message Banner */}
+            {searchMessage && (
+              <div className={`rounded-xl p-4 flex items-start gap-3 border ${
+                searchMessage.type === 'none'
+                  ? 'bg-amber-50 border-amber-200 text-amber-800'
+                  : 'bg-indigo-50 border-indigo-200 text-indigo-800'
+              }`}>
+                <HiSparkles className="w-5 h-5 mt-0.5 shrink-0" />
+                <div>
+                  {searchMessage.type === 'none' ? (
+                    <><span className="font-bold">No exact match</span> for <span className="italic">"{searchMessage.role}"</span>. Showing related candidates that may be a good fit.</>                  ) : (
+                    <><span className="font-bold">Partial match</span> — only {searchMessage.count} candidate{searchMessage.count !== 1 ? 's' : ''} exactly match <span className="italic">"{searchMessage.role}"</span>. Showing related candidates below.</>                  )}
+                </div>
+                <button onClick={() => setSearchMessage(null)} className="ml-auto shrink-0 text-current opacity-60 hover:opacity-100"><FiX /></button>
+              </div>
+            )}
+
             {/* Candidates Cards */}
             {loading ? (
               <div className="flex justify-center items-center py-20">
@@ -399,7 +535,7 @@ const Candidates = () => {
                   const isSelected = selectedCandidates.includes(id);
 
                   return (
-                    <div key={id} className={`bg-white rounded-2xl border ${isSelected ? 'border-indigo-400 ring-1 ring-indigo-400' : 'border-gray-200'} p-5 transition flex items-start gap-4 shadow-sm hover:shadow-md`}>
+                    <div key={id} className={`bg-white rounded-2xl border ${isSelected ? 'border-indigo-400 ring-1 ring-indigo-400' : 'border-gray-200'} p-5 transition-all duration-200 flex items-start gap-4 shadow-sm`}>
                       <div className={`flex-1 flex ${layout === 'grid' ? 'flex-col' : 'flex-col md:flex-row'} gap-6`}>
                         
                         {/* Profile Info */}
@@ -462,6 +598,36 @@ const Candidates = () => {
                             </Link>
                             <button onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}`, '_blank', 'noopener,noreferrer')} className="w-full flex items-center justify-center gap-2 border border-gray-200 text-gray-700 bg-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-50 transition shadow-sm">
                               <FiSend className="w-3.5 h-3.5" /> Contact
+                            </button>
+                            <button
+                              disabled={shortlistingId === id}
+                              onClick={async () => {
+                                setShortlistingId(id);
+                                try {
+                                  const isShortlisted = shortlistedIds.has(String(id));
+                                  if (isShortlisted) {
+                                    await recruiterAPI.removeShortlistedCandidate(id);
+                                    setShortlistedIds(prev => { const n = new Set(prev); n.delete(String(id)); return n; });
+                                    toast.success('Removed from shortlist');
+                                  } else {
+                                    await recruiterAPI.shortlistCandidate({ providerProfileId: id, name, role: title });
+                                    setShortlistedIds(prev => new Set([...prev, String(id)]));
+                                    toast.success('Shortlisted!');
+                                  }
+                                } catch { toast.error('Action failed'); }
+                                finally { setShortlistingId(null); }
+                              }}
+                              className={`w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm border ${
+                                shortlistedIds.has(String(id))
+                                  ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
+                                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                              }`}
+                            >
+                              {shortlistingId === id
+                                ? <FiLoader className="w-3.5 h-3.5 animate-spin" />
+                                : shortlistedIds.has(String(id))
+                                  ? <><HiBookmark className="w-3.5 h-3.5" /> Shortlisted</>
+                                  : <><FiBookmark className="w-3.5 h-3.5" /> Shortlist</>}
                             </button>
                           </div>
                         </div>

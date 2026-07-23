@@ -40,9 +40,14 @@ export default function AIRecruiterWorkspace() {
 
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        const parent = messagesEndRef.current?.parentElement;
+        if (parent) {
+          parent.scrollTo({ top: parent.scrollHeight, behavior: 'smooth' });
+        }
+      }, 100);
     }
-  }, [messages]);
+  }, [messages, loading]);
 
   const fetchData = async () => {
     try {

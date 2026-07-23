@@ -754,7 +754,7 @@ const AuthPage = () => {
         navigate("/provider/job-for-me", { replace: true });
         break;
       case "recruiter":
-        navigate("/recruiter/ai-smart-search", { replace: true });
+        navigate("/recruiter/candidates", { replace: true });
         break;
 
       case "manager":

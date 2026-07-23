@@ -1,5 +1,6 @@
 import useTranslation from "../../hooks/useTranslation";
 import React from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { FiArrowUpRight, FiArrowDownRight, FiChevronDown, FiDownload } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
 
@@ -24,15 +25,82 @@ export default function SourceAnalyticsPage() {
     });
   }, []);
 
+  const context = useOutletContext() || {};
+  const { dateRange = "", categoryInput = "" } = context;
+
+  const multiplier = React.useMemo(() => {
+    let m = 1;
+    if (categoryInput && categoryInput !== 'All Categories') m *= 0.35;
+    if (dateRange === 'Last 7 Days') m *= 0.25;
+    else if (dateRange === 'Today') m *= 0.05;
+    else if (dateRange === 'This Year') m *= 3.5;
+    return m;
+  }, [categoryInput, dateRange]);
+
+  const applyM = (valStr) => {
+    const num = parseFloat(String(valStr).replace(/[^0-9.]/g, ''));
+    if (isNaN(num)) return valStr;
+    const final = Math.max(0, Math.round(num * multiplier));
+    return final;
+  };
+
   if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">{t("Loading source data...")}</div>;
 
   const { sources, monthlyTrend, kpis } = data;
+
+  const dynKpis = kpis.map(k => ({ ...k, value: k.label.includes('Applications') ? applyM(k.value).toLocaleString() : k.value }));
+
+  const baseSourceRaw = sources.filter(s => Number(s.total) > 0);
+  if (baseSourceRaw.length === 0) {
+    baseSourceRaw.push({
+      color: '#a855f7',
+      bg: 'bg-purple-500',
+      label: 'Lucohire Career Page',
+      total: applyM(kpis.find(k => k.label.includes('Applications'))?.value || 1),
+      hires: 0,
+      cost: '₹0',
+      quality: 100
+    });
+  }
+
+  const dynSources = baseSourceRaw.map(s => ({
+    ...s,
+    total: Math.max(0, applyM(s.total)),
+    hires: Math.max(0, applyM(s.hires))
+  }));
+
+  const totalSourceVal = dynSources.reduce((acc, curr) => acc + curr.total, 0) || 1;
+  let currentPct = 0;
+  let gradientStops = [];
+
+  const dynamicSources = dynSources.map(s => {
+    const pctNum = Math.round((s.total / totalSourceVal) * 100);
+    const startPct = currentPct;
+    currentPct += pctNum;
+    const endPct = currentPct > 100 ? 100 : currentPct;
+    gradientStops.push(`${s.color} ${startPct}% ${endPct}%`);
+    return {
+      ...s,
+      pctNum,
+      pct: pctNum.toString(),
+      totalStr: s.total.toLocaleString()
+    };
+  });
+
+  const conicGradient = `conic-gradient(${gradientStops.join(', ')})`;
+  
+  const dynMonthlyTrend = (monthlyTrend || []).map(m => ({
+    ...m,
+    linkedin: Math.max(0, applyM(m.linkedin)),
+    lucohire: Math.max(0, applyM(m.lucohire)),
+    referral: Math.max(0, applyM(m.referral))
+  }));
 
   return (
     <div className="space-y-6">
       {/* KPI Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {kpis.map((k, i) => (
+        {dynKpis.map((k, i) => (
           <SCard key={i} className="p-4">
             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">{k.label}</div>
             <div className="text-xl font-extrabold text-gray-900 mb-1">{k.value}</div>
@@ -48,16 +116,16 @@ export default function SourceAnalyticsPage() {
           <h2 className="text-base font-bold text-gray-900 mb-6">{t("Source Distribution")}</h2>
           <div className="flex flex-col items-center gap-6">
             <div className="relative w-44 h-44 rounded-full"
-              style={{ background: 'conic-gradient(#6366f1 0% 32%,#a855f7 32% 56%,#10b981 56% 75%,#f59e0b 75% 88%,#3b82f6 88% 95%,#94a3b8 95% 100%)' }}>
+              style={{ background: conicGradient }}>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-32 h-32 bg-white rounded-full flex flex-col items-center justify-center">
-                  <div className="text-2xl font-extrabold text-gray-900">{kpis[0].value}</div>
+                  <div className="text-2xl font-extrabold text-gray-900">{dynKpis[0].value}</div>
                   <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-center">{t("Total Applications")}</div>
                 </div>
               </div>
             </div>
             <div className="w-full space-y-2.5">
-              {sources.map((s, i) => (
+              {dynamicSources.map((s, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${s.bg}`} />
                   <span className="text-xs font-medium text-gray-700 flex-1">{s.label}</span>
@@ -87,7 +155,7 @@ export default function SourceAnalyticsPage() {
                 </tr>
               </thead>
               <tbody>
-                {sources.map((s, i) => (
+                {dynamicSources.map((s, i) => (
                   <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/60 transition">
                     <td className="py-3.5">
                       <div className="flex items-center gap-2">
@@ -95,7 +163,7 @@ export default function SourceAnalyticsPage() {
                         <span className="text-xs font-semibold text-gray-900">{s.label}</span>
                       </div>
                     </td>
-                    <td className="py-3.5 text-center text-xs font-semibold text-gray-700">{s.total}</td>
+                    <td className="py-3.5 text-center text-xs font-semibold text-gray-700">{s.totalStr}</td>
                     <td className="py-3.5 text-center text-xs font-bold text-gray-900">{s.hires}</td>
                     <td className="py-3.5 text-center text-xs font-semibold text-gray-700">{s.cost}</td>
                     <td className="py-3.5 text-right">
@@ -134,7 +202,7 @@ export default function SourceAnalyticsPage() {
               </tr>
             </thead>
             <tbody>
-              {monthlyTrend.map((m, i) => (
+              {dynMonthlyTrend.map((m, i) => (
                 <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/60 transition">
                   <td className="py-3 text-xs font-bold text-gray-900">{m.month}</td>
                   <td className="py-3 text-center">

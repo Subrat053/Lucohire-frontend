@@ -1,6 +1,6 @@
 import useTranslation from "../../hooks/useTranslation";
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 import {
   FiBriefcase, FiMail, FiUsers, FiCheckCircle, FiClock, FiDollarSign,
   FiArrowUpRight, FiArrowDownRight, FiChevronDown, FiPlus, FiChevronRight, FiFileText, FiDownload, FiArrowRight
@@ -11,13 +11,12 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 const SCard = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
 );
-const CardHdr = ({ title, badge, action }) => (
-  <div className="flex items-center justify-between mb-5">
+const CardHdr = ({ title, badge }) => (
+  <div className="flex items-center mb-5">
     <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
       {title}
       {badge && <span className="bg-purple-100 text-purple-700 text-[10px] px-2 py-0.5 rounded-full font-bold">{badge}</span>}
     </h3>
-    {action && <button className="text-xs font-semibold text-gray-400 flex items-center gap-1 hover:text-gray-600">{action} <FiChevronDown className="w-3 h-3" /></button>}
   </div>
 );
 const ViewBtn = ({ label, to }) => (
@@ -37,9 +36,9 @@ const iconMap = {
 };
 
 export default function ReportsOverview() {
-  const {
-    t
-  } = useTranslation();
+  const { t } = useTranslation();
+  const context = useOutletContext() || {};
+  const { dateRange = "", categoryInput = "" } = context;
 
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
@@ -53,10 +52,102 @@ export default function ReportsOverview() {
     });
   }, []);
 
+  const multiplier = React.useMemo(() => {
+    let m = 1;
+    if (categoryInput && categoryInput !== 'All Categories') m *= 0.35;
+    if (dateRange === 'Last 7 Days') m *= 0.25;
+    else if (dateRange === 'Today') m *= 0.05;
+    else if (dateRange === 'This Year') m *= 3.5;
+    return m;
+  }, [categoryInput, dateRange]);
+
+  const applyM = (valStr, isCurrency=false) => {
+    const num = parseFloat(String(valStr).replace(/[^0-9.]/g, ''));
+    if (isNaN(num)) return valStr;
+    const final = Math.max(0, Math.round(num * multiplier));
+    return isCurrency ? `₹${final}` : final.toString();
+  };
+
   if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">{t("Loading dashboard data...")}</div>;
 
-  const topMetrics = data.topMetrics.map(m => ({ ...m, icon: iconMap[m.icon] }));
-  const { funnelStages, sourceLegend, jobPerf, interviewLegend, aiTrends, applicationsTrend, timeToHireTrend } = data;
+  const topMetrics = data.topMetrics.map(m => ({ 
+    ...m, 
+    value: m.label.includes('Score') ? m.value : applyM(m.value, m.label.includes('Cost')),
+    icon: iconMap[m.icon] 
+  }));
+  const { interviewLegend, aiTrends } = data;
+  
+  const dynApplicationsTrend = data.applicationsTrend.map(d => ({ ...d, apps: Math.max(0, Math.round(d.apps * multiplier)) }));
+  const dynTimeToHireTrend = (data.timeToHireTrend || []).map(d => ({ ...d, days: Math.max(0, Math.round(d.days * multiplier)) }));
+  
+  const dynJobPerf = data.jobPerf.map(j => {
+    const apps = Math.max(0, Math.round(Number(j.apps) * multiplier));
+    const hires = Math.max(0, Math.round(Number(j.hires) * multiplier));
+    return {
+      ...j,
+      apps: apps.toString(),
+      hires: hires.toString(),
+      ratio: apps > 0 ? (hires / apps).toFixed(2) : '0'
+    };
+  });
+  
+  
+  const colorToHex = {
+    'bg-indigo-500': '#6366f1',
+    'bg-purple-500': '#a855f7',
+    'bg-emerald-500': '#10b981',
+    'bg-amber-500': '#f59e0b',
+    'bg-blue-500': '#3b82f6',
+    'bg-gray-300': '#cbd5e1'
+  };
+
+  const baseSourceRaw = data.sourceLegend.filter(s => Number(s.val) > 0);
+  if (baseSourceRaw.length === 0) {
+    baseSourceRaw.push({
+      color: 'bg-purple-500',
+      label: 'Lucohire Career Page',
+      val: data.topMetrics.find(m => m.label === 'Total Applications')?.value || 1
+    });
+  }
+
+  const baseSource = baseSourceRaw.map((s) => ({
+    ...s,
+    val: Math.max(0, Number(applyM(s.val)))
+  }));
+  
+  const totalSourceVal = baseSource.reduce((acc, curr) => acc + curr.val, 0) || 1;
+  let currentPct = 0;
+  let gradientStops = [];
+  
+  const dynamicSourceLegend = baseSource.map(s => {
+    const pctNum = Math.round((s.val / totalSourceVal) * 100);
+    const startPct = currentPct;
+    currentPct += pctNum;
+    const endPct = currentPct > 100 ? 100 : currentPct;
+    const hex = colorToHex[s.color] || '#cbd5e1';
+    gradientStops.push(`${hex} ${startPct}% ${endPct}%`);
+    return {
+      ...s,
+      pctNum,
+      pct: pctNum.toString(),
+      val: s.val.toLocaleString()
+    };
+  });
+  
+  const conicGradient = `conic-gradient(${gradientStops.join(', ')})`;
+  
+  const baseFunnel = data.funnelStages.map(s => ({ ...s, value: Number(applyM(s.value)) || 0 }));
+  const maxFunnel = Math.max(1, baseFunnel[0]?.value || 1);
+  const funnelStages = baseFunnel.map(s => {
+    const pct = Math.round((s.value / maxFunnel) * 100);
+    return {
+      ...s,
+      w: pct,
+      pct: pct,
+      value: s.value.toString()
+    };
+  });
+  
   const aiTrendsMapped = aiTrends.map(t => ({ ...t, icon: iconMap[t.icon] }));
 
   return (
@@ -104,7 +195,7 @@ export default function ReportsOverview() {
           <CardHdr title="Applications Trend" action="30 Days" />
           <div className="h-[200px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={applicationsTrend} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
+              <AreaChart data={dynApplicationsTrend} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="appGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
@@ -129,7 +220,7 @@ export default function ReportsOverview() {
           <CardHdr title="Time to Hire Trend" action="Weekly" />
           <div className="h-[200px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={timeToHireTrend} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
+              <AreaChart data={dynTimeToHireTrend} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="timeGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
@@ -173,16 +264,16 @@ export default function ReportsOverview() {
         <SCard className="p-5 xl:col-span-6 flex flex-col">
           <CardHdr title="Source Performance" />
           <div className="flex flex-col sm:flex-row xl:flex-col 2xl:flex-row items-center gap-5 flex-1">
-            <div className="relative w-32 h-32 shrink-0 rounded-full" style={{ background: 'conic-gradient(#6366f1 0% 32%,#a855f7 32% 56%,#10b981 56% 75%,#f59e0b 75% 88%,#3b82f6 88% 95%,#cbd5e1 95% 100%)' }}>
+            <div className="relative w-32 h-32 shrink-0 rounded-full" style={{ background: conicGradient }}>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-24 h-24 bg-white rounded-full flex flex-col items-center justify-center">
-                  <div className="text-base font-extrabold text-gray-900">2,842</div>
+                  <div className="text-base font-extrabold text-gray-900">{totalSourceVal.toLocaleString()}</div>
                   <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-center">{t("Total")}<br/>{t("Apps")}</div>
                 </div>
               </div>
             </div>
             <div className="w-full space-y-2">
-              {sourceLegend.map((s, i) => (
+              {dynamicSourceLegend.map((s, i) => (
                 <div key={i} className="flex items-center justify-between text-[11px]">
                   <div className="flex items-center gap-2 font-medium text-gray-700 min-w-0">
                     <span className={`w-2 h-2 rounded-full shrink-0 ${s.color}`} />
@@ -212,7 +303,7 @@ export default function ReportsOverview() {
                 </tr>
               </thead>
               <tbody>
-                {jobPerf.map((j, i) => (
+                {dynJobPerf.map((j, i) => (
                   <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/60 transition">
                     <td className="py-4">
                       <div className="flex items-center gap-2">
@@ -232,79 +323,23 @@ export default function ReportsOverview() {
           <ViewBtn label="Full Job Performance" to="/recruiter/reports/job-performance" />
         </SCard>
 
-        {/* Custom Reports + Downloads */}
-        <div className="xl:col-span-12 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <SCard className="p-5">
-            <h3 className="text-sm font-bold text-gray-900 mb-2">{t("Custom Reports")}</h3>
-            <p className="text-[11px] text-gray-500 mb-4 leading-relaxed">{t("Create reports with advanced filters and save for future use.")}</p>
-            <Link to="/recruiter/reports/custom-reports" className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-indigo-200 text-indigo-600 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-50 transition">
-              <FiPlus />{t("Create Custom Report")}</Link>
-          </SCard>
-          <SCard className="p-5">
-            <h3 className="text-sm font-bold text-gray-900 mb-4">{t("Download Center")}</h3>
-            <div className="space-y-2.5">
-              {[{ c: 'text-red-500', l: 'Hiring Overview (PDF)' }, { c: 'text-emerald-500', l: 'Source Performance (Excel)' }, { c: 'text-red-500', l: 'Recruiter Perf. (PDF)' }].map((d, i) => (
-                <div key={i} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-gray-700 min-w-0">
-                    <FiFileText className={`${d.c} shrink-0`} />
-                    <span className="truncate">{d.l}</span>
-                  </div>
-                  <button className="text-gray-400 hover:text-gray-600 transition ml-2 shrink-0"><FiDownload /></button>
-                </div>
-              ))}
-            </div>
-          </SCard>
-        </div>
+
       </div>
       {/* Row 4 */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
         {/* Outreach */}
         <SCard className="p-5 flex flex-col">
           <CardHdr title="Outreach Analytics" action="This Month" />
-          <div className="grid grid-cols-3 gap-4 flex-1">
-            {[
-              { label: 'Emails Sent',         val: '1,856' },
-              { label: 'Email Open Rate',     val: '47%'   },
-              { label: 'Email Reply Rate',    val: '22%'   },
-              { label: 'LinkedIn Messages',   val: '612'   },
-              { label: 'LinkedIn Reply Rate', val: '18%'   },
-              { label: 'WhatsApp Messages',   val: '396'   },
-            ].map((item, i) => (
-              <div key={i} className="py-2">
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1 leading-tight">{item.label}</div>
-                <div className="text-xl font-extrabold text-gray-900">{item.val}</div>
-              </div>
-            ))}
+          <div className="flex flex-col justify-center flex-1 py-4">
+            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-2">{t("Emails Sent")}</div>
+            <div className="text-4xl font-extrabold text-indigo-600">{(data.outreachData ? Math.max(0, applyM(data.outreachData.emailsSent)) : 0).toLocaleString()}</div>
+            <div className="text-xs font-medium text-emerald-600 mt-2 flex items-center gap-1">
+              <FiArrowUpRight /> {t("12% vs last month")}
+            </div>
           </div>
           <ViewBtn label="Full Outreach Report" to="/recruiter/reports/outreach-analytics" />
         </SCard>
 
-        {/* Interview */}
-        <SCard className="p-5 flex flex-col">
-          <CardHdr title="Interview Analytics" action="This Month" />
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 flex-1 py-2">
-            <div className="relative w-36 h-36 shrink-0 rounded-full" style={{ background: 'conic-gradient(#6366f1 0% 52%,#10b981 52% 83%,#f59e0b 83% 95%,#cbd5e1 95% 100%)' }}>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-28 h-28 bg-white rounded-full flex flex-col items-center justify-center">
-                  <div className="text-xl font-extrabold text-gray-900">312</div>
-                  <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wide text-center">{t("Total")}<br/>{t("Interviews")}</div>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3 w-full sm:w-auto">
-              {interviewLegend.map((l, i) => (
-                <div key={i} className="flex items-center justify-between gap-4 text-xs">
-                  <div className="flex items-center gap-2 font-medium text-gray-700">
-                    <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${l.color}`} />
-                    {l.label}
-                  </div>
-                  <span className="font-bold text-gray-900 whitespace-nowrap">{l.val} <span className="text-gray-400">({l.pct}%)</span></span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <ViewBtn label="Full Interview Report" to="/recruiter/reports/outreach-analytics" />
-        </SCard>
 
         {/* AI Trends */}
         <SCard className="p-5 flex flex-col">

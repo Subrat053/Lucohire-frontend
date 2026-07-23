@@ -180,40 +180,46 @@ export default function JobDetails() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header Section */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div className="bg-white border-b border-gray-100 shadow-sm relative overflow-hidden">
+        {/* Subtle background gradient and patterns */}
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/40 via-transparent to-purple-50/40 pointer-events-none"></div>
+        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+        
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-gray-900">{job.title}</h1>
-                <span className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>{t("Active")}</span>
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight drop-shadow-sm">{job.title}</h1>
+                <span className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 border border-emerald-200 text-emerald-700 text-xs font-bold px-3 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>{t("Active")}
+                </span>
               </div>
-              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-gray-500">
-                <div className="flex items-center gap-1"><FiMapPin className="text-gray-400" /> {job.city || job.location?.city || 'Location N/A'}</div>
-                <div className="flex items-center gap-1"><FiClock className="text-gray-400" /> {job.workMode || 'Full-time'}</div>
-                <div className="flex items-center gap-1"><FiCalendar className="text-gray-400" />{t("Created on")}{format(new Date(job.createdAt), 'dd MMM yyyy')}</div>
-                <div className="flex items-center gap-1 text-gray-400">{t("Job ID:")}{job._id.slice(-6).toUpperCase()}</div>
+              <div className="flex flex-wrap items-center gap-5 text-xs font-semibold text-gray-500 mt-3">
+                <div className="flex items-center gap-1.5 bg-white/60 px-2.5 py-1 rounded-md border border-gray-100 shadow-sm"><FiMapPin className="text-indigo-400" /> {job.city || job.location?.city || 'Location N/A'}</div>
+                <div className="flex items-center gap-1.5 bg-white/60 px-2.5 py-1 rounded-md border border-gray-100 shadow-sm"><FiClock className="text-indigo-400" /> {job.workMode || 'Full-time'}</div>
+                <div className="flex items-center gap-1.5 bg-white/60 px-2.5 py-1 rounded-md border border-gray-100 shadow-sm"><FiCalendar className="text-indigo-400" />{t("Created on")}{format(new Date(job.createdAt), 'dd MMM yyyy')}</div>
+                <div className="flex items-center gap-1.5 bg-white/60 px-2.5 py-1 rounded-md border border-gray-100 shadow-sm text-gray-400"><span className="text-indigo-400 font-bold">ID:</span>{job._id.slice(-6).toUpperCase()}</div>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0 w-full md:w-auto justify-start md:justify-end">
-              <Link to={`/job/${job._id}`} target="_blank" className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-white border border-gray-200 text-indigo-600 hover:bg-gray-50 px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition">{t("View Job Page")}<FiExternalLink />
+            <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0 w-full md:w-auto justify-start md:justify-end">
+              <Link to={`/job/${job._id}`} target="_blank" className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-white border border-gray-200 text-indigo-600 hover:text-indigo-700 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200">
+                <FiExternalLink className="w-4 h-4" /> {t("View Job Page")}
               </Link>
               {job.isBoosted && (
-                <span className="inline-flex items-center px-4 py-2.5 rounded-lg text-xs font-bold bg-purple-50 text-purple-600 border border-purple-100">
-                  <HiSparkles className="mr-1" />{t("BOOSTED")}
+                <span className="inline-flex items-center px-5 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-purple-50 to-purple-100/50 text-purple-700 border border-purple-200 shadow-sm">
+                  <HiSparkles className="mr-1.5 w-4 h-4" />{t("BOOSTED")}
                 </span>
               )}
               {!job.isBoosted && (
-                <button onClick={() => setBoostModalOpen(true)} className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition">
-                  <HiSparkles />{t("Boost Job")}
+                <button onClick={() => setBoostModalOpen(true)} className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+                  <HiSparkles className="w-4 h-4" />{t("Boost Job")}
                 </button>
               )}
             </div>
           </div>
           
           {/* Tabs */}
-          <div className="flex gap-6 mt-6 border-b border-gray-100 overflow-x-auto whitespace-nowrap custom-scrollbar pb-0.5">
+          <div className="flex gap-8 mt-8 overflow-x-auto whitespace-nowrap custom-scrollbar pb-0">
             {[
               { id: 'pipeline', label: 'Pipeline' },
               { id: 'details', label: 'Job Details' },
@@ -223,13 +229,16 @@ export default function JobDetails() {
               <button 
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`pb-3 text-sm font-bold border-b-2 transition-colors ${
+                className={`pb-4 text-sm font-extrabold border-b-2 transition-all duration-200 relative ${
                   activeTab === tab.id 
-                    ? 'border-indigo-600 text-indigo-600' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-indigo-600 text-indigo-700' 
+                    : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300'
                 }`}
               >
                 {tab.label}
+                {activeTab === tab.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 shadow-[0_-2px_10px_rgba(79,70,229,0.5)]"></div>
+                )}
               </button>
             ))}
           </div>
@@ -251,8 +260,6 @@ export default function JobDetails() {
                 className="w-full bg-indigo-50/30 border-2 border-indigo-100 rounded-xl pl-9 pr-4 py-2.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 shadow-sm transition-all text-indigo-900 placeholder:text-indigo-300" 
               />
             </div>
-            <button onClick={() => toast('Advanced filters coming soon!')} className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-indigo-50 border-2 border-indigo-100 px-4 py-2.5 rounded-xl text-sm font-bold text-indigo-700 shadow-sm hover:bg-indigo-100 transition-colors">
-              <FiFilter className="text-indigo-500" />{t("Filters")}</button>
           </div>
         </div>
 
@@ -261,7 +268,7 @@ export default function JobDetails() {
           {groupedApps.map((col) => (
             <div 
               key={col.id} 
-              className={`shrink-0 w-[280px] flex flex-col rounded-2xl border ${col.border} ${col.bg} p-2.5 transition-colors duration-200`}
+              className={`shrink-0 w-[340px] flex flex-col rounded-2xl border ${col.border} ${col.bg} p-2.5 transition-colors duration-200`}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, col.id)}
             >
@@ -285,70 +292,61 @@ export default function JobDetails() {
                   return (
                     <div 
                       key={cand._id} 
-                      className={`bg-white rounded-xl border p-3 shadow-sm hover:shadow-md transition relative group border-gray-100`}
+                      className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-lg hover:border-indigo-300 transition-all duration-300 relative group flex flex-col gap-4 overflow-hidden"
                     >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex gap-3">
-                          <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0">
+                      {/* Left accent border */}
+                      <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-400 to-purple-500"></div>
+                      
+                      {/* Top section: Avatar & Details */}
+                      <div className="flex justify-between items-start pl-1 pr-16">
+                        <div className="flex gap-3 items-center">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-50 to-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold shrink-0 border border-indigo-100">
                             {initial}
                           </div>
-                          <div className="truncate w-full max-w-[120px]">
-                            <h4 className="text-xs font-bold text-gray-900 truncate">{cand.provider?.name || 'Unknown User'}</h4>
-                            <p className="text-[10px] text-gray-500 mt-0.5">
+                          <div className="truncate">
+                            <h4 className="text-sm font-bold text-gray-900 truncate">{cand.provider?.name || 'Unknown User'}</h4>
+                            <p className="text-[11px] font-medium text-gray-500 mt-0.5">
                               {cand.appliedAt ? formatDistanceToNow(new Date(cand.appliedAt), { addSuffix: true }) : ''}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => handleMoveCandidate(cand._id, STATUS_COLUMNS[currentStatusIndex - 1].id)}
-                            disabled={currentStatusIndex <= 0}
-                            className={`p-1 rounded-full ${currentStatusIndex <= 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
-                            title="Move back"
-                          >
-                            <FiMinus className="w-3 h-3" />
-                          </button>
-                          <button 
-                            onClick={() => handleMoveCandidate(cand._id, STATUS_COLUMNS[currentStatusIndex + 1].id)}
-                            disabled={currentStatusIndex >= STATUS_COLUMNS.length - 1}
-                            className={`p-1 rounded-full ${currentStatusIndex >= STATUS_COLUMNS.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
-                            title="Move forward"
-                          >
-                            <FiPlus className="w-3 h-3" />
-                          </button>
-                        </div>
+                      </div>
+
+                      {/* Move Buttons (Absolute positioned so they don't push content) */}
+                      <div className="absolute top-4 right-3 flex items-center gap-1.5">
+                        <button 
+                          onClick={() => handleMoveCandidate(cand._id, STATUS_COLUMNS[currentStatusIndex - 1].id)}
+                          disabled={currentStatusIndex <= 0}
+                          className={`p-1.5 rounded-md shadow-sm transition-all duration-200 ${currentStatusIndex <= 0 ? 'bg-gray-50 text-gray-300 cursor-not-allowed border border-gray-100' : 'bg-white text-red-500 border border-red-100 hover:bg-red-50 hover:border-red-200'}`}
+                          title="Move back"
+                        >
+                          <FiMinus className="w-3 h-3" />
+                        </button>
+                        <button 
+                          onClick={() => handleMoveCandidate(cand._id, STATUS_COLUMNS[currentStatusIndex + 1].id)}
+                          disabled={currentStatusIndex >= STATUS_COLUMNS.length - 1}
+                          className={`p-1.5 rounded-md shadow-sm transition-all duration-200 ${currentStatusIndex >= STATUS_COLUMNS.length - 1 ? 'bg-gray-50 text-gray-300 cursor-not-allowed border border-gray-100' : 'bg-white text-indigo-600 border border-indigo-100 hover:bg-indigo-50 hover:border-indigo-200'}`}
+                          title="Move forward"
+                        >
+                          <FiPlus className="w-3 h-3" />
+                        </button>
                       </div>
                       
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <button onClick={() => setSelectedCandidate(cand)} className="w-6 h-6 flex items-center justify-center rounded border border-gray-100 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition" title="View Profile">
-                            <FiUser className="w-3 h-3" />
+                      {/* Bottom section: Actions & Match */}
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-50 pl-1">
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setSelectedCandidate(cand)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-gray-200 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors text-xs font-semibold shadow-sm" title="View Profile">
+                            <FiUser className="w-3.5 h-3.5" /> View
                           </button>
-                          <button onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${cand.provider?.email}`, '_blank', 'noopener,noreferrer')} className="w-6 h-6 flex items-center justify-center rounded border border-gray-100 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition" title="Contact">
-                            <FiMessageSquare className="w-3 h-3" />
+                          <button onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${cand.provider?.email}`, '_blank', 'noopener,noreferrer')} className="p-1.5 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors shadow-sm" title="Contact">
+                            <FiMessageSquare className="w-3.5 h-3.5" />
                           </button>
                         </div>
                         
                         {cand.aiMatch !== undefined && cand.aiMatch !== null && (
-                          <div className="relative w-8 h-8 flex items-center justify-center" title="AI Match Score">
-                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                              <path
-                                className="text-gray-100"
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="3"
-                              />
-                              <path
-                                className={cand.aiMatch >= 80 ? 'text-emerald-500' : cand.aiMatch >= 60 ? 'text-emerald-400' : 'text-amber-400'}
-                                strokeDasharray={`${cand.aiMatch}, 100`}
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="3"
-                              />
-                            </svg>
-                            <span className="absolute text-[9px] font-bold text-gray-700">{cand.aiMatch}%</span>
+                          <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-md border border-gray-100" title="AI Match Score">
+                             <span className="text-[10px] font-bold text-gray-400 uppercase">Match</span>
+                             <span className={`text-xs font-bold ${cand.aiMatch >= 80 ? 'text-emerald-600' : cand.aiMatch >= 60 ? 'text-emerald-500' : 'text-amber-500'}`}>{cand.aiMatch}%</span>
                           </div>
                         )}
                       </div>
@@ -421,35 +419,83 @@ export default function JobDetails() {
         )}
 
         {activeTab === 'details' && (
-          <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">{t("Job Details")}</h2>
-            <div className="prose text-sm text-gray-600 max-w-none">
-              <p><strong>{t("Title:")}</strong> {job.title}</p>
-              <p><strong>{t("Location:")}</strong> {job.city || job.location?.city}</p>
-              <p><strong>{t("Work Mode:")}</strong> {job.workMode}</p>
-              <p><strong>{t("Description:")}</strong></p>
-              <div className="whitespace-pre-wrap">{job.description || 'No description provided.'}</div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
+            <h2 className="text-xl font-extrabold text-gray-900 mb-6">{t("Job Details")}</h2>
+            <div className="prose text-sm text-gray-600 max-w-none space-y-4">
+              <div className="flex flex-wrap gap-x-8 gap-y-4 p-4 bg-gray-50 rounded-lg border border-gray-100 mb-6 text-sm">
+                <div>
+                  <span className="text-gray-500 block text-xs mb-0.5">{t("Title")}</span>
+                  <span className="font-medium text-gray-900">{job.title}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block text-xs mb-0.5">{t("Location")}</span>
+                  <span className="font-medium text-gray-900">{job.city || job.location?.city}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block text-xs mb-0.5">{t("Work Mode")}</span>
+                  <span className="font-medium text-gray-900">{job.workMode}</span>
+                </div>
+              </div>
+              
+              <div>
+                <p className="font-semibold text-gray-900 mb-2">{t("Description")}</p>
+                <div className="whitespace-pre-wrap leading-relaxed text-gray-600">{job.description || 'No description provided.'}</div>
+              </div>
             </div>
           </div>
         )}
 
         {activeTab === 'applicants' && (
-          <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">{t("All Applicants")}</h2>
-            <div className="space-y-4">
-              {applications.map(app => (
-                <div key={app._id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg">
-                  <div>
-                    <p className="font-bold text-gray-900 text-sm">{app.provider?.name || 'Unknown User'}</p>
-                    <p className="text-xs text-gray-500">{t("Applied")}{app.appliedAt ? formatDistanceToNow(new Date(app.appliedAt), { addSuffix: true }) : ''}</p>
-                  </div>
-                  <div className="text-sm font-semibold capitalize px-3 py-1 bg-gray-50 rounded-md border border-gray-200">
-                    {app.status}
-                  </div>
-                </div>
-              ))}
-              {applications.length === 0 && <p className="text-gray-500 text-sm">{t("No applicants yet.")}</p>}
+          <div className="space-y-6">
+            <div className="flex justify-between items-center bg-white px-6 py-4 rounded-xl border border-gray-100 shadow-sm">
+              <h2 className="text-lg font-bold text-gray-900">{t("All Applicants")}</h2>
+              <span className="text-sm font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-lg border border-gray-200">{applications.length} {t("Total")}</span>
             </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {applications.map(app => {
+                const initial = app.provider?.name ? app.provider.name.charAt(0).toUpperCase() : 'U';
+                return (
+                  <div key={app._id} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-indigo-200 transition-all duration-300 relative group flex flex-col h-full overflow-hidden">
+                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    
+                    <div className="flex items-start gap-4 mb-5">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-700 flex items-center justify-center text-lg font-extrabold shrink-0 border border-indigo-100 shadow-sm">
+                        {initial}
+                      </div>
+                      <div className="truncate pt-1">
+                        <h4 className="text-base font-bold text-gray-900 truncate">{app.provider?.name || 'Unknown User'}</h4>
+                        <p className="text-xs font-medium text-gray-500 mt-0.5">{t("Applied")} {app.appliedAt ? formatDistanceToNow(new Date(app.appliedAt), { addSuffix: true }) : ''}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      <span className="text-xs font-bold capitalize px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-200 text-gray-700 shadow-sm">
+                        {app.status}
+                      </span>
+                      {app.aiMatch !== undefined && app.aiMatch !== null && (
+                        <span className="text-xs font-bold px-3 py-1.5 bg-white rounded-lg border border-gray-200 text-gray-700 shadow-sm flex items-center gap-1.5">
+                           Match <span className={app.aiMatch >= 80 ? 'text-emerald-600' : app.aiMatch >= 60 ? 'text-emerald-500' : 'text-amber-500'}>{app.aiMatch}%</span>
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="mt-auto pt-4 border-t border-gray-50 flex gap-2">
+                      <button onClick={() => setSelectedCandidate(app)} className="flex-1 flex justify-center items-center gap-2 bg-white border border-gray-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors">
+                        <FiUser className="w-4 h-4" /> View Profile
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {applications.length === 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
+                <FiUsers className="w-16 h-16 text-gray-200 mx-auto mb-4" />
+                <p className="text-gray-400 font-bold text-lg">{t("No applicants yet.")}</p>
+              </div>
+            )}
           </div>
         )}
 

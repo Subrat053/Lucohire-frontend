@@ -37,6 +37,7 @@ const navItems = [
   { label: 'Hiring Workspace', fallback: 'Hiring Workspace', path: '/recruiter/dashboard', icon: HiHome },
   { label: 'Post Jobs', fallback: 'Post Jobs', path: '/recruiter/jobs', icon: HiBriefcase },
   { label: 'AI Talent Search', fallback: 'AI Talent Search', path: '/recruiter/candidates', icon: HiUsers },
+  { label: 'Shortlisted Candidates', fallback: 'Shortlisted Candidates', path: '/recruiter/shortlisted-candidates', icon: HiBookmark },
   { label: 'Talent Pool', fallback: 'Talent Pool', path: '/recruiter/talent-pool', icon: HiCollection },
   { label: 'Outreach', fallback: 'Outreach', path: '/recruiter/outreach', icon: HiChatAlt },
   { label: 'Set Reminder', fallback: 'Set Reminder', path: '/recruiter/tasks', icon: HiClipboardCheck },
@@ -105,12 +106,12 @@ const RecruiterLayout = ({ children }) => {
               className={`flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all group
                 ${active
                   ? 'bg-[#0066FF] text-white shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  : 'text-black hover:bg-gray-200'
                 }
                 ${collapsed ? 'justify-center' : 'space-x-3'}
               `}
             >
-              <Icon className={`w-5 h-5 shrink-0 ${active ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} />
+              <Icon className={`w-5 h-5 shrink-0 ${active ? 'text-white' : 'text-gray-600 group-hover:text-black'}`} />
               {!collapsed && (
                 <div className="flex items-center justify-between w-full">
                   <span>{t(label, fallback)}</span>
@@ -192,7 +193,7 @@ const RecruiterLayout = ({ children }) => {
           onClick={() => setCollapsed(!collapsed)}
           className="absolute -right-3 top-15 w-6 h-6 bg-cyan-200 border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition z-10"
         >
-          {collapsed ? <HiChevronRight className="w-4 h-4 text-gray-500" /> : <HiChevronLeft className="w-4 h-4 text-gray-500" />}
+          {collapsed ? <HiChevronRight className="w-4 h-4 text-gray-900" /> : <HiChevronLeft className="w-4 h-4 text-gray-900" />}
         </button>
       </aside>
 
@@ -200,7 +201,7 @@ const RecruiterLayout = ({ children }) => {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <aside className="relative w-56 h-full bg-white shadow-xl flex flex-col">
+          <aside className="relative w-56 h-full bg-slate-50 shadow-xl flex flex-col">
             {renderSidebarContent(() => setMobileOpen(false))}
           </aside>
         </div>

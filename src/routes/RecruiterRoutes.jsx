@@ -21,6 +21,7 @@ const TopMatches = lazy(() => import("../pages/recruiter/TopMatches"));
 const RecruiterShortlistedCandidates = lazy(() => import("../pages/recruiter/ShortlistedCandidates"));
 const RecruiterSavedCandidates = lazy(() => import("../pages/recruiter/SavedCandidates"));
 const CandidateDetails = lazy(() => import("../pages/recruiter/CandidateDetails"));
+const CandidateInterviewKit = lazy(() => import("../pages/recruiter/CandidateInterviewKit"));
 const ReportsAnalytics = lazy(() => import("../pages/recruiter/ReportsAnalytics"));
 const ReportsOverview = lazy(() => import("../pages/recruiter/ReportsOverview"));
 const ReportsHiringFunnel = lazy(() => import("../pages/recruiter/ReportsHiringFunnel"));
@@ -78,6 +79,7 @@ export default function RecruiterRoutes() {
       <Route path="shortlisted-candidates" element={wrap(<RecruiterShortlistedCandidates />)} />
       <Route path="candidates" element={wrap(<RecruiterSavedCandidates />)} />
       <Route path="candidates/:id" element={wrap(<CandidateDetails />)} />
+      <Route path="candidates/:id/interview-kit" element={wrap(<CandidateInterviewKit />)} />
       <Route path="reports" element={wrap(<ReportsAnalytics />)}>
         <Route index element={<ReportsOverview />} />
         <Route path="hiring-funnel" element={<ReportsHiringFunnel />} />

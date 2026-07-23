@@ -1,10 +1,11 @@
 import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { recruiterAPI } from '../../services/api';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { recruiterAPI, profileShareAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { FiArrowLeft, FiArrowRight, FiChevronDown, FiBookmark, FiShare2, FiMail, FiMoreHorizontal, FiEdit2, FiArrowUpRight, FiCalendar, FiPhoneCall, FiStar, FiFileText, FiDownload, FiCheckCircle, FiPlus, FiInbox, FiMessageSquare, FiX, FiLoader, FiAlertCircle } from 'react-icons/fi';
-import { HiSparkles, HiOutlineLocationMarker, HiOutlineUser, HiOutlineGlobeAlt, HiOutlineBriefcase, HiOutlineExclamationCircle } from 'react-icons/hi';
+import { HiSparkles, HiOutlineUser, HiOutlineGlobeAlt, HiOutlineBriefcase, HiOutlineExclamationCircle, HiBookmark } from 'react-icons/hi2';
+import { HiOutlineLocationMarker } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { toOptimizedMediaUrl } from '../../utils/media';
 import { useAuth } from '../../context/AuthContext';
@@ -32,9 +33,23 @@ const CandidateDetails = () => {
   const [newTag, setNewTag] = useState('');
   const [addingNote, setAddingNote] = useState(false);
   const [addingTag, setAddingTag] = useState(false);
-  const [interviewKit, setInterviewKit] = useState(null);
-  const [generatingKit, setGeneratingKit] = useState(false);
-  const [showKitModal, setShowKitModal] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+
+  const listStr = sessionStorage.getItem('currentCandidateList');
+  const candidateList = listStr ? JSON.parse(listStr) : [];
+  const currentIndex = candidateList.findIndex(cid => String(cid) === String(id));
+  const hasPrevious = currentIndex > 0;
+  const hasNext = currentIndex !== -1 && currentIndex < candidateList.length - 1;
+
+  const goToPrevious = () => {
+    if (hasPrevious) navigate(`/recruiter/candidates/${candidateList[currentIndex - 1]}`);
+  };
+  const goToNext = () => {
+    if (hasNext) navigate(`/recruiter/candidates/${candidateList[currentIndex + 1]}`);
+  };
+
+  const [isShortlisted, setIsShortlisted] = useState(false);
+  const [shortlisting, setShortlisting] = useState(false);
 
   useEffect(() => {
     const h = (e) => { if (moreActionsRef.current && !moreActionsRef.current.contains(e.target)) setShowMoreActions(false); };
@@ -47,10 +62,17 @@ const CandidateDetails = () => {
     recruiterAPI.viewProvider(id).then(res => {
       const p = res.data.provider || res.data.profile || res.data;
       setCandidate(p); setReviews(res.data.reviews || []);
+      setNotes(res.data.notes || []);
+      setTags(res.data.tags || []);
       if (res.data.isUnlocked && res.data.contactInfo) { setContactUnlocked(true); setContactInfo(res.data.contactInfo); }
       setLoading(false);
       recruiterAPI.checkUnlockStatus(id).then(({ data }) => {
         if (data.isUnlocked) { setContactUnlocked(true); setContactInfo(data.contactInfo || null); }
+      }).catch(() => {});
+      // Check shortlist status
+      recruiterAPI.getShortlistedCandidates().then(r => {
+        const list = r.data?.shortlisted || r.data?.candidates || (Array.isArray(r.data) ? r.data : []);
+        setIsShortlisted(list.some(c => String(c.providerProfileId || c._id || c.id) === String(id)));
       }).catch(() => {});
     }).catch(err => {
       if (err.response?.status === 403 && err.response?.data?.limitReached)
@@ -72,16 +94,26 @@ const CandidateDetails = () => {
     finally { setUnlocking(false); }
   };
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (!newNote.trim()) return;
-    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setNotes(prev => [...prev, { text: newNote.trim(), author: user?.name || 'You', time: `Today, ${timeStr}` }]);
-    setNewNote(''); setAddingNote(false); toast.success('Note added!');
+    try {
+      const res = await recruiterAPI.addCandidateNote(id, { noteText: newNote.trim() });
+      setNotes(res.data.notes || []);
+      setNewNote(''); setAddingNote(false); toast.success('Note added!');
+    } catch (error) {
+      toast.error('Failed to add note');
+    }
   };
 
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
     if (!newTag.trim() || tags.includes(newTag.trim())) return;
-    setTags(prev => [...prev, newTag.trim()]); setNewTag(''); setAddingTag(false);
+    try {
+      const res = await recruiterAPI.addCandidateTag(id, { tag: newTag.trim() });
+      setTags(res.data.tags || []);
+      setNewTag(''); setAddingTag(false);
+    } catch (error) {
+      toast.error('Failed to add tag');
+    }
   };
 
   const openGmail = (email, subject = '', body = '') => {
@@ -105,22 +137,52 @@ const CandidateDetails = () => {
     }
   };
 
-  const handleGenerateInterviewKit = async () => {
-    setGeneratingKit(true);
+  const handleGenerateInterviewKit = () => {
+    navigate(`/recruiter/candidates/${id}/interview-kit`);
+  };
+
+  const handleToggleShortlist = async () => {
     try {
-      const { data } = await recruiterAPI.generateCandidateInterviewKit(id);
-      if (data.success) {
-        setInterviewKit(data.data);
-        setShowKitModal(true);
-        toast.success('Interview Kit generated successfully!');
+      setShortlisting(true);
+      if (isShortlisted) {
+        await recruiterAPI.removeShortlistedCandidate(id);
+        setIsShortlisted(false);
+        toast.success(t('Removed from shortlist'));
+      } else {
+        await recruiterAPI.shortlistCandidate({ providerProfileId: id });
+        setIsShortlisted(true);
+        toast.success(t('Added to shortlist'));
       }
     } catch (error) {
-      toast.error('Failed to generate interview kit');
+      console.error('Shortlist error:', error);
+      toast.error(t('Failed to update shortlist'));
     } finally {
-      setGeneratingKit(false);
+      setShortlisting(false);
     }
   };
 
+  const handleShare = async () => {
+    try {
+      setIsSharing(true);
+      const candidateUserId = candidate?.user?._id || candidate?.user || id;
+      const res = await profileShareAPI.generateToken(candidateUserId, { expiresDays: 30 });
+      if (res.data?.token) {
+        const shareUrl = `${window.location.origin}/profile/share/${res.data.token}`;
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('Secure public link copied!');
+      } else {
+        throw new Error('No token returned');
+      }
+    } catch (err) {
+      console.error('Share error:', err);
+      // Fallback for recruiters without permission or error
+      const shareUrl = `${window.location.origin}/recruiter/candidates/${id}`;
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Internal link copied! Note: Generating public link failed.');
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
@@ -213,10 +275,21 @@ const CandidateDetails = () => {
                 <FiArrowLeft className="w-4 h-4"/> Back to search
               </Link>
               <div className="flex items-center gap-2">
-                <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-[13px] font-bold text-gray-700 bg-white border border-gray-200 px-3.5 py-2 rounded-xl hover:bg-gray-50 shadow-sm">
+                {currentIndex !== -1 && (
+                  <span className="text-[12px] font-medium text-gray-500 mr-2">
+                    Candidate {currentIndex + 1} of {candidateList.length}
+                  </span>
+                )}
+                <button 
+                  onClick={goToPrevious} 
+                  disabled={!hasPrevious}
+                  className={`flex items-center gap-1.5 text-[13px] font-bold px-3.5 py-2 rounded-xl border shadow-sm transition ${hasPrevious ? 'text-gray-700 bg-white border-gray-200 hover:bg-gray-50' : 'text-gray-400 bg-gray-50 border-gray-100 cursor-not-allowed'}`}>
                   <FiArrowLeft className="w-3.5 h-3.5"/> Previous
                 </button>
-                <button onClick={() => navigate(1)} className="flex items-center gap-1.5 text-[13px] font-bold text-gray-700 bg-white border border-gray-200 px-3.5 py-2 rounded-xl hover:bg-gray-50 shadow-sm">
+                <button 
+                  onClick={goToNext} 
+                  disabled={!hasNext}
+                  className={`flex items-center gap-1.5 text-[13px] font-bold px-3.5 py-2 rounded-xl border shadow-sm transition ${hasNext ? 'text-gray-700 bg-white border-gray-200 hover:bg-gray-50' : 'text-gray-400 bg-gray-50 border-gray-100 cursor-not-allowed'}`}>
                   Next <FiArrowRight className="w-3.5 h-3.5"/>
                 </button>
                 <div className="relative" ref={moreActionsRef}>
@@ -225,17 +298,27 @@ const CandidateDetails = () => {
                   </button>
                   {showMoreActions && (
                     <div className="absolute top-full right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 p-2 z-30">
-                      <button onClick={() => { toast.success('Moved to Talent Pool'); setShowMoreActions(false); }} className="w-full flex items-center gap-3 p-2.5 hover:bg-gray-50 rounded-lg text-left text-[12px] font-bold text-gray-700">
-                        <FiInbox className="w-4 h-4 text-gray-400"/> Move to Talent Pool
-                      </button>
                       <button onClick={() => { if (contactInfo?.email) openGmail(contactInfo.email); else toast.error('Unlock contact first'); setShowMoreActions(false); }} className="w-full flex items-center gap-3 p-2.5 hover:bg-gray-50 rounded-lg text-left text-[12px] font-bold text-gray-700">
                         <FiMessageSquare className="w-4 h-4 text-gray-400"/> Send Message
                       </button>
-                      <button onClick={() => { setAddingNote(true); setShowMoreActions(false); }} className="w-full flex items-center gap-3 p-2.5 hover:bg-gray-50 rounded-lg text-left text-[12px] font-bold text-gray-700">
+                      <button onClick={() => { 
+                        setShowMoreActions(false);
+                        setAddingNote(true);
+                        setTimeout(() => {
+                          document.getElementById('notes-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          document.getElementById('note-textarea')?.focus();
+                        }, 100);
+                      }} className="w-full flex items-center gap-3 p-2.5 hover:bg-gray-50 rounded-lg text-left text-[12px] font-bold text-gray-700">
                         <FiEdit2 className="w-4 h-4 text-gray-400"/> Add Note
                       </button>
                       <div className="my-1 h-px bg-gray-100"/>
-                      <button onClick={() => { toast.error('Candidate rejected'); setShowMoreActions(false); }} className="w-full flex items-center gap-3 p-2.5 hover:bg-red-50 rounded-lg text-left text-[12px] font-bold text-red-600">
+                      <button onClick={async () => { 
+                        setShowMoreActions(false);
+                        try {
+                          await recruiterAPI.rejectCandidate(id);
+                          toast.success('Candidate rejected');
+                        } catch { toast.error('Failed to reject'); }
+                      }} className="w-full flex items-center gap-3 p-2.5 hover:bg-red-50 rounded-lg text-left text-[12px] font-bold text-red-600">
                         <FiX className="w-4 h-4"/> Reject Candidate
                       </button>
                     </div>
@@ -274,21 +357,25 @@ const CandidateDetails = () => {
                           </a>
                           {contactInfo.whatsappNumber && <button onClick={() => handleWhatsApp(contactInfo.whatsappNumber)} className="p-2 text-green-600 bg-white hover:bg-green-50 rounded-lg border border-green-100 shadow-sm transition"><FaWhatsapp className="w-4 h-4"/></button>}
                           {contactInfo.email && <button onClick={() => openGmail(contactInfo.email)} className="p-2 text-blue-600 bg-white hover:bg-blue-50 rounded-lg border border-blue-100 shadow-sm transition"><FiMail className="w-4 h-4"/></button>}
-                          <button onClick={() => { navigator.clipboard.writeText([contactInfo.phone,contactInfo.email].filter(Boolean).join(' | ')); toast.success('Copied!'); }} className="p-2 text-gray-600 bg-white hover:bg-gray-50 rounded-lg border border-gray-200 shadow-sm transition"><FiMoreHorizontal className="w-4 h-4"/></button>
                         </>) : (<>
                           <button onClick={handleUnlock} disabled={unlocking} className="flex items-center gap-1.5 bg-white text-indigo-700 px-3.5 py-2 rounded-lg text-[13px] font-bold hover:bg-indigo-50 border border-indigo-100 shadow-sm disabled:opacity-60">
                             <FiPhoneCall className="w-3.5 h-3.5"/>{unlocking ? 'Unlocking...' : t('Contact')}
                           </button>
                           <button onClick={handleUnlock} className="p-2 text-green-600 bg-white hover:bg-green-50 rounded-lg border border-green-100 shadow-sm"><FaWhatsapp className="w-4 h-4"/></button>
                           <button onClick={handleUnlock} className="p-2 text-blue-600 bg-white hover:bg-blue-50 rounded-lg border border-blue-100 shadow-sm"><FiMail className="w-4 h-4"/></button>
-                          <button className="p-2 text-gray-600 bg-white hover:bg-gray-50 rounded-lg border border-gray-200 shadow-sm"><FiMoreHorizontal className="w-4 h-4"/></button>
                         </>)}
                       </div>
                     </div>
-                    {/* Bookmark / Share — top right, in normal flow */}
+                    {/* Share Button — top right */}
                     <div className="flex items-center gap-2 shrink-0">
-                      <button onClick={() => toast.success('Saved!')} className="p-2 text-gray-400 hover:text-indigo-600 bg-white rounded-xl border border-gray-100 shadow-sm transition"><FiBookmark className="w-4 h-4"/></button>
-                      <button onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); }} className="p-2 text-gray-400 hover:text-indigo-600 bg-white rounded-xl border border-gray-100 shadow-sm transition"><FiShare2 className="w-4 h-4"/></button>
+                      <button 
+                        onClick={handleShare}
+                        disabled={isSharing}
+                        className="px-3.5 py-2 bg-indigo-600 text-white hover:bg-indigo-700 font-bold rounded-xl shadow-md transition flex items-center gap-2 text-[12px] disabled:opacity-70 disabled:cursor-not-allowed"
+                      >
+                        {isSharing ? <FiLoader className="w-4 h-4 animate-spin"/> : <FiShare2 className="w-4 h-4"/>} 
+                        {isSharing ? 'Generating...' : 'Share'}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -305,8 +392,7 @@ const CandidateDetails = () => {
             </div>
 
             {/* Content Grid */}
-            <div className="grid grid-cols-1 2xl:grid-cols-3 gap-5">
-              <div className="2xl:col-span-2 space-y-5">
+            <div className="space-y-5">
 
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                   <h3 className="text-[14px] font-bold text-gray-900 mb-3">About {cData.name.split(' ')[0]}</h3>
@@ -379,209 +465,122 @@ const CandidateDetails = () => {
                   </div>
                 )}
               </div>
-
-              <div className="2xl:col-span-1 space-y-5">
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                  <h3 className="text-[13px] font-bold text-gray-900 mb-4">Quick Actions</h3>
-                  <div className="space-y-2.5">
-                    <button onClick={handleScheduleInterview} className="w-full bg-indigo-600 text-white rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 shadow-sm">
-                      <FiCalendar className="w-4 h-4"/> Schedule Interview
-                    </button>
-                    <button onClick={contactUnlocked ? () => contactInfo?.email && openGmail(contactInfo.email) : handleUnlock} disabled={unlocking} className="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-gray-50 shadow-sm disabled:opacity-60">
-                      <FiPhoneCall className="w-4 h-4"/> {contactUnlocked ? 'Contact Candidate' : 'Unlock Contact'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                  <h3 className="text-[13px] font-bold text-gray-900 mb-4">Candidate Fit</h3>
-                  <div className="flex items-center gap-4 mb-5">
-                    <div className={`w-[64px] h-[64px] rounded-full border-4 flex items-center justify-center text-[15px] font-extrabold shrink-0 ${scoreColor}`}>{score}%</div>
-                    <div><div className={`text-[14px] font-bold mb-0.5 ${scoreLabelColor}`}>{scoreLabel}</div><div className="text-[11px] text-gray-500">Based on skills and experience</div></div>
-                  </div>
-                  <div className="text-[11px] font-bold text-gray-700 mb-2">Top Matching Skills</div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4">
-                    {skills.slice(0,4).map((s,i) => <div key={i} className="flex items-center gap-1 text-[12px] font-semibold text-gray-700"><FiCheckCircle className="w-3.5 h-3.5 text-green-500"/> {s}</div>)}
-                  </div>
-                  <button onClick={() => toast.success('AI Match Breakdown coming soon')} className="text-[12px] font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1">AI Match Breakdown <FiArrowRight className="w-3 h-3"/></button>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                  <h3 className="text-[12px] font-bold text-gray-900 mb-2">AI Recommended Next Step</h3>
-                  <p className="text-[12px] text-gray-600 leading-relaxed mb-4">
-                    {cData.name.split(' ')[0]} is a {score >= 90 ? 'strong' : 'good'} match. We recommend {score >= 85 ? 'a technical interview' : 'a screening call first'}.
-                  </p>
-                  <button onClick={handleGenerateInterviewKit} disabled={generatingKit} className="w-full bg-white border border-indigo-200 text-indigo-700 rounded-xl py-2.5 text-[12px] font-bold flex items-center justify-center gap-2 hover:bg-indigo-50 disabled:opacity-50">
-                    {generatingKit ? <FiLoader className="w-4 h-4 animate-spin"/> : <HiSparkles className="w-4 h-4"/>}
-                    {generatingKit ? 'Generating...' : 'Generate Interview Kit'}
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* SIDEBAR */}
-          <div className="xl:col-span-4 sticky top-6 h-[calc(100vh-3rem)]">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm h-full flex flex-col overflow-hidden">
-              <div className="flex border-b border-gray-100 shrink-0">
-                <div className="flex-1 py-3.5 text-center text-[13px] font-bold border-b-2 -mb-px text-indigo-600 border-indigo-600">AI Insights</div>
+          <div className="xl:col-span-4 space-y-4 pb-10">
+            {/* Quick Actions */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="space-y-2.5">
+                <button onClick={handleToggleShortlist} disabled={shortlisting} className={`w-full border rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 shadow-sm transition disabled:opacity-60 ${isShortlisted ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+                  {isShortlisted ? <><FiCheckCircle className="w-4 h-4"/> Shortlisted</> : <><FiStar className="w-4 h-4"/> Shortlist Candidate</>}
+                </button>
+                <button onClick={handleScheduleInterview} className="w-full bg-indigo-600 text-white rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 shadow-sm transition">
+                  <FiCalendar className="w-4 h-4"/> Schedule Interview
+                </button>
+                <button onClick={contactUnlocked ? () => contactInfo?.email && openGmail(contactInfo.email) : handleUnlock} disabled={unlocking} className="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-gray-50 shadow-sm disabled:opacity-60 transition">
+                  <FiPhoneCall className="w-4 h-4"/> {contactUnlocked ? 'Contact Candidate' : 'Unlock Contact'}
+                </button>
               </div>
+            </div>
 
-              <div className="p-5 space-y-5 flex-1 overflow-y-auto bg-gray-50/30">
-                  <div>
-                    <h4 className="text-[12px] font-bold text-gray-900 mb-2.5 flex items-center gap-1.5"><HiSparkles className="w-3.5 h-3.5 text-indigo-500"/> AI Summary</h4>
-                    <p className="text-[12px] text-gray-700 leading-relaxed mb-3">
-                      {cData.name.split(' ')[0]} is a {cData.tier || 'professional'} with expertise in {skills.slice(0,2).join(' and ') || 'their domain'}. {prevExp.length > 0 ? `Has worked at ${prevExp.length} organisation${prevExp.length>1?'s':''}.` : ''} Shows {score>=85?'strong':'good'} profile alignment.
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {score>=85 && <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-md">Strong Technical Fit</span>}
-                      {score>=80 && <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-md">Good Culture Fit</span>}
-                      {(cData.noticePeriod?.toLowerCase().includes('immediate')||cData.availability==='Immediate') && <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-md">Immediate Joiner</span>}
-                    </div>
-                  </div>
-                  <div className="h-px bg-gray-100"/>
-                  <div>
-                    <h4 className="text-[12px] font-bold text-gray-900 mb-3">Strengths</h4>
-                    <div className="space-y-2">
-                      {strengths.map((s,i) => <div key={i} className="flex items-start gap-2"><FiCheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5"/><span className="text-[12px] text-gray-700">{s}</span></div>)}
-                    </div>
-                  </div>
-                  {concerns.length > 0 && (<>
-                    <div className="h-px bg-gray-100"/>
-                    <div>
-                      <h4 className="text-[12px] font-bold text-gray-900 mb-3">Potential Concerns</h4>
-                      <div className="space-y-2">
-                        {concerns.map((c,i) => <div key={i} className="flex items-start gap-2"><HiOutlineExclamationCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5"/><div><div className="text-[12px] text-gray-700">{c.text}</div>{c.sub&&<div className="text-[11px] text-gray-400">({c.sub})</div>}</div></div>)}
-                      </div>
-                    </div>
-                  </>)}
-                  <div className="h-px bg-gray-100"/>
-                  <div>
-                    <h4 className="text-[12px] font-bold text-gray-900 mb-2.5">Resume</h4>
-                    {cData.hasResume || cData.resumeUrl ? (
-                      <div 
-                        onClick={() => {
-                          if (contactUnlocked && cData.resumeUrl) window.open(toOptimizedMediaUrl(cData.resumeUrl), '_blank');
-                          else if (!contactUnlocked) handleUnlock();
-                          else toast.error('Resume URL not available');
-                        }}
-                        className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-white shadow-sm cursor-pointer hover:border-indigo-200 hover:shadow-md transition-all group"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="text-red-500 bg-red-50 p-2 rounded-lg border border-red-100 shrink-0 group-hover:bg-red-100"><FiFileText className="w-4 h-4"/></div>
-                          <div className="min-w-0"><div className="text-[12px] font-bold text-gray-900 truncate">{cData.name.replace(/\\s+/g,'_')}_Resume.pdf</div><div className="text-[10px] text-gray-500">Uploaded resume</div></div>
-                        </div>
-                        <button className="p-2 text-gray-400 group-hover:text-indigo-600 bg-gray-50 group-hover:bg-indigo-50 border border-gray-100 rounded-lg transition"><FiDownload className="w-3.5 h-3.5"/></button>
-                      </div>
-                    ) : <div className="text-[11px] text-gray-400 italic bg-white border border-gray-200 rounded-xl p-3">No resume uploaded</div>}
-                  </div>
-                  <div className="h-px bg-gray-100"/>
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-[12px] font-bold text-gray-900">Notes</h4>
-                      <button onClick={() => setAddingNote(true)} className="text-[11px] font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700"><FiPlus className="w-3 h-3"/> Add Note</button>
-                    </div>
-                    {addingNote && (
-                      <div className="mb-3 space-y-2">
-                        <textarea value={newNote} onChange={e => setNewNote(e.target.value)} placeholder="Type your note..." rows={2} className="w-full text-[12px] border border-gray-200 rounded-xl p-2.5 focus:outline-none focus:border-indigo-400 resize-none"/>
-                        <div className="flex gap-2">
-                          <button onClick={handleAddNote} className="flex-1 bg-indigo-600 text-white text-[12px] font-bold py-1.5 rounded-lg hover:bg-indigo-700">Save</button>
-                          <button onClick={() => setAddingNote(false)} className="px-3 text-[12px] text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
-                        </div>
-                      </div>
-                    )}
-                    <div className="space-y-2">
-                      {notes.map((n,i) => <div key={i} className="bg-indigo-50/30 border border-indigo-100/50 rounded-xl p-3"><p className="text-[12px] text-gray-700 leading-relaxed mb-1.5">{n.text}</p><div className="text-[10px] font-semibold text-gray-400">— {n.author} ({n.time})</div></div>)}
-                      {notes.length===0&&!addingNote&&<div className="text-[11px] text-gray-400 italic">No notes yet</div>}
-                    </div>
-                  </div>
-                  <div className="h-px bg-gray-100"/>
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-[12px] font-bold text-gray-900">Tags</h4>
-                      <button onClick={() => setAddingTag(true)} className="text-[11px] font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700"><FiPlus className="w-3 h-3"/> Add Tag</button>
-                    </div>
-                    {addingTag && (
-                      <div className="mb-3 flex gap-2 items-center">
-                        <input value={newTag} onChange={e => setNewTag(e.target.value)} onKeyDown={e => e.key==='Enter'&&handleAddTag()} placeholder="e.g. React Developer" className="flex-1 text-[12px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-400"/>
-                        <button onClick={handleAddTag} className="bg-indigo-600 text-white text-[12px] font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-700">Add</button>
-                        <button onClick={() => setAddingTag(false)} className="text-[12px] text-gray-500 hover:text-gray-700">✕</button>
-                      </div>
-                    )}
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map((tag,i) => (
-                        <div key={i} className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md border ${TAG_COLORS[i%TAG_COLORS.length]}`}>
-                          {tag}<button onClick={() => setTags(prev=>prev.filter((_,idx)=>idx!==i))} className="ml-0.5 hover:opacity-70"><FiX className="w-2.5 h-2.5"/></button>
-                        </div>
-                      ))}
-                      {tags.length===0&&<div className="text-[11px] text-gray-400 italic">No tags yet</div>}
-                    </div>
-                  </div>
+            {/* AI Match */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="flex items-center gap-4 mb-4">
+                <div className={`w-[52px] h-[52px] rounded-full border-4 flex items-center justify-center text-[14px] font-extrabold shrink-0 ${scoreColor}`}>{score}%</div>
+                <div>
+                  <div className={`text-[13px] font-bold mb-0.5 ${scoreLabelColor}`}>{scoreLabel} Match</div>
+                  <div className="text-[11px] text-gray-500">Based on skills & experience</div>
+                </div>
+              </div>
+              <div className="text-[11px] font-bold text-gray-700 mb-2 flex items-center gap-1.5">Top Matching Skills</div>
+              <div className="flex flex-wrap gap-1.5">
+                {skills.slice(0,4).map((s,i) => <span key={i} className="inline-flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-50 border border-green-100 px-2 py-1 rounded-md"><FiCheckCircle className="w-3 h-3 text-green-500 shrink-0"/> {s}</span>)}
+              </div>
+            </div>
+
+            {/* Recommended Next Step */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <h4 className="text-[12px] font-bold text-gray-900 mb-2">AI Recommended Next Step</h4>
+              <p className="text-[11px] text-gray-600 leading-relaxed mb-3">
+                {cData.name.split(' ')[0]} is a {score >= 90 ? 'strong' : 'good'} match. We recommend {score >= 85 ? 'a technical interview' : 'a screening call first'}.
+              </p>
+              <button onClick={handleGenerateInterviewKit} className="w-full bg-white border border-indigo-200 text-indigo-700 rounded-xl py-2 text-[12px] font-bold flex items-center justify-center gap-2 hover:bg-indigo-50 transition">
+                <HiSparkles className="w-4 h-4"/> Generate Interview Kit
+              </button>
+            </div>
+
+            {/* AI Summary & Strengths */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <h4 className="text-[12px] font-bold text-gray-900 mb-2.5 flex items-center gap-1.5"><HiSparkles className="w-3.5 h-3.5 text-indigo-500"/> AI Summary</h4>
+              <p className="text-[12px] text-gray-700 leading-relaxed mb-3">
+                {cData.name.split(' ')[0]} is a {cData.tier || 'professional'} with expertise in {skills.slice(0,2).join(' and ') || 'their domain'}. {prevExp.length > 0 ? `Has worked at ${prevExp.length} organisation${prevExp.length>1?'s':''}.` : ''} Shows {score>=85?'strong':'good'} profile alignment.
+              </p>
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                {score>=85 && <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-md">Strong Technical Fit</span>}
+                {score>=80 && <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-md">Good Culture Fit</span>}
+                {(cData.noticePeriod?.toLowerCase().includes('immediate')||cData.availability==='Immediate') && <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-md">Immediate Joiner</span>}
+              </div>
+              
+              <h4 className="text-[12px] font-bold text-gray-900 mb-3 border-t border-gray-100 pt-3">Strengths</h4>
+              <div className="space-y-2">
+                {strengths.map((s,i) => <div key={i} className="flex items-start gap-2"><FiCheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5"/><span className="text-[12px] text-gray-700">{s}</span></div>)}
+              </div>
+              
+              {concerns.length > 0 && (<>
+                <h4 className="text-[12px] font-bold text-gray-900 mb-3 mt-4 border-t border-gray-100 pt-3">Potential Concerns</h4>
+                <div className="space-y-2">
+                  {concerns.map((c,i) => <div key={i} className="flex items-start gap-2"><HiOutlineExclamationCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5"/><div><div className="text-[12px] text-gray-700">{c.text}</div>{c.sub&&<div className="text-[11px] text-gray-400">({c.sub})</div>}</div></div>)}
+                </div>
+              </>)}
+            </div>
+
+            {/* Notes */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5" id="notes-section">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-[12px] font-bold text-gray-900">Notes</h4>
+                <button onClick={() => setAddingNote(true)} className="text-[11px] font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700"><FiPlus className="w-3 h-3"/> Add Note</button>
+              </div>
+              {addingNote && (
+                <div className="mb-3 space-y-2">
+                  <textarea id="note-textarea" value={newNote} onChange={e => setNewNote(e.target.value)} placeholder="Type your note..." rows={2} className="w-full text-[12px] border border-gray-200 rounded-xl p-2.5 focus:outline-none focus:border-indigo-400 resize-none"/>
+                  <div className="flex gap-2">
+                    <button onClick={handleAddNote} className="flex-1 bg-indigo-600 text-white text-[12px] font-bold py-1.5 rounded-lg hover:bg-indigo-700">Save</button>
+                    <button onClick={() => setAddingNote(false)} className="px-3 text-[12px] text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
                   </div>
                 </div>
+              )}
+              <div className="space-y-2">
+                {notes.map((n,i) => <div key={i} className="bg-indigo-50/30 border border-indigo-100/50 rounded-xl p-3"><p className="text-[12px] text-gray-700 leading-relaxed mb-1.5">{n.text}</p><div className="text-[10px] font-semibold text-gray-400">— {n.author} ({n.time || new Date(n.createdAt).toLocaleDateString()})</div></div>)}
+                {notes.length===0&&!addingNote&&<div className="text-[11px] text-gray-400 italic">No notes yet</div>}
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-[12px] font-bold text-gray-900">Tags</h4>
+                <button onClick={() => setAddingTag(true)} className="text-[11px] font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700"><FiPlus className="w-3 h-3"/> Add Tag</button>
+              </div>
+              {addingTag && (
+                <div className="mb-3 flex gap-2 items-center">
+                  <input value={newTag} onChange={e => setNewTag(e.target.value)} onKeyDown={e => e.key==='Enter'&&handleAddTag()} placeholder="e.g. React Developer" className="flex-1 text-[12px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-400"/>
+                  <button onClick={handleAddTag} className="bg-indigo-600 text-white text-[12px] font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-700">Add</button>
+                  <button onClick={() => setAddingTag(false)} className="text-[12px] text-gray-500 hover:text-gray-700">✕</button>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag,i) => (
+                  <div key={i} className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md border ${TAG_COLORS[i%TAG_COLORS.length]}`}>
+                    {tag}<button onClick={() => setTags(prev=>prev.filter((_,idx)=>idx!==i))} className="ml-0.5 hover:opacity-70"><FiX className="w-2.5 h-2.5"/></button>
+                  </div>
+                ))}
+                {tags.length===0&&<div className="text-[11px] text-gray-400 italic">No tags yet</div>}
+              </div>
             </div>
           </div>
         </div>
-      {/* INTERVIEW KIT MODAL */}
-      {showKitModal && interviewKit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-indigo-50/30">
-              <div>
-                <h3 className="text-[15px] font-bold text-gray-900 flex items-center gap-2"><HiSparkles className="w-5 h-5 text-indigo-600"/> Interview Kit: {cData.name}</h3>
-                <p className="text-[12px] text-gray-500 mt-0.5">AI-generated questions tailored to this candidate's profile</p>
-              </div>
-              <button onClick={() => setShowKitModal(false)} className="text-gray-400 hover:bg-gray-100 p-2 rounded-full transition-colors">
-                <FiX className="w-5 h-5"/>
-              </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Technical Questions */}
-              <div>
-                <h4 className="text-[13px] font-bold text-gray-900 mb-3 flex items-center gap-2"><FiCheckCircle className="text-emerald-500"/> Technical & Domain Questions</h4>
-                <div className="space-y-4">
-                  {(interviewKit.technicalQuestions || []).map((q, idx) => (
-                    <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                      <div className="text-[13px] font-bold text-gray-800 mb-2">Q{idx + 1}: {q.question}</div>
-                      <div className="text-[12px] text-gray-600 bg-white p-3 rounded-lg border border-gray-100"><span className="font-semibold text-indigo-600">Look for:</span> {q.expectedInsight}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Behavioral Questions */}
-              <div>
-                <h4 className="text-[13px] font-bold text-gray-900 mb-3 flex items-center gap-2"><HiOutlineUser className="text-orange-500"/> Behavioral & Cultural Fit</h4>
-                <div className="space-y-4">
-                  {(interviewKit.behavioralQuestions || []).map((q, idx) => (
-                    <div key={idx} className="bg-orange-50/30 rounded-xl p-4 border border-orange-100">
-                      <div className="text-[13px] font-bold text-gray-800 mb-2">Q{idx + 1}: {q.question}</div>
-                      <div className="text-[12px] text-gray-600 bg-white p-3 rounded-lg border border-gray-100"><span className="font-semibold text-orange-600">Look for:</span> {q.expectedInsight}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Scoring Rubric */}
-              <div className="bg-indigo-50/50 p-5 rounded-xl border border-indigo-100">
-                <h4 className="text-[13px] font-bold text-indigo-900 mb-2">Scoring Rubric (5-Star Answer)</h4>
-                <p className="text-[12px] text-indigo-800 leading-relaxed">{interviewKit.scoringRubric}</p>
-              </div>
-            </div>
-            
-            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-              <button onClick={() => setShowKitModal(false)} className="px-5 py-2 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50">Close</button>
-              <button onClick={() => {
-                navigator.clipboard.writeText(JSON.stringify(interviewKit, null, 2));
-                toast.success('Copied to clipboard!');
-              }} className="px-5 py-2 text-[13px] font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 flex items-center gap-2">
-                <FiDownload className="w-4 h-4"/> Copy Kit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
