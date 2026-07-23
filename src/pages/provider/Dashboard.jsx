@@ -298,7 +298,11 @@ const ProviderDashboard = () => {
               {topJobs.length > 0 ? topJobs.slice(0, 4).map((job, idx) => {
                 const company = job.company || 'Company';
                 return (
-                  <div key={job._id || idx} className="min-w-[260px] w-[260px] bg-white rounded-2xl border border-gray-100 p-5 shadow-sm shrink-0 hover:shadow-md transition-all flex flex-col justify-between">
+                  <div 
+                    key={job._id || idx} 
+                    onClick={() => navigate(`/provider/job/${job._id || job.id}`)}
+                    className="min-w-[260px] w-[260px] bg-white rounded-2xl border border-gray-100 p-5 shadow-sm shrink-0 hover:shadow-md group transition-all flex flex-col justify-between cursor-pointer"
+                  >
                     <div>
                       <div className="flex items-start gap-3 mb-4">
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold border border-gray-100 bg-white shrink-0 overflow-hidden shadow-sm">
@@ -309,7 +313,7 @@ const ProviderDashboard = () => {
                            company.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <Link to="/provider/job-for-me" className="font-extrabold text-[#1a1b41] text-sm leading-tight line-clamp-1 hover:text-[#0d8765]">{job.title || 'Professional'}</Link>
+                          <span className="font-extrabold text-[#1a1b41] text-sm leading-tight line-clamp-1 group-hover:text-[#0d8765]">{job.title || 'Professional'}</span>
                           <div className="flex items-center gap-1 text-xs text-gray-500 font-medium mt-1">
                             {company} <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" />
                           </div>
