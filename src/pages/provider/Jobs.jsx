@@ -482,6 +482,21 @@ const JobCard = ({
           </div>
 
           <div className="flex items-start gap-2 w-full">
+            <HiOutlineBriefcase className="w-4 h-4 text-pink-500 shrink-0 mt-0.5" />
+            <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Most Demanded Skill</span>
+            <span className="text-gray-300 shrink-0 text-xs">•</span>
+            <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
+              <span className="text-xs text-gray-500 leading-snug">
+                {!hasActivePlan
+                  ? "Java / Spring Boot"
+                  : aiInsights
+                    ? (aiInsights.most_demanded_skill || "Generating...")
+                    : (job.skill || (job.requirements && job.requirements.length > 0 ? job.requirements[0] : "Not specified"))}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2 w-full">
             <HiOutlineMail className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
             <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Why you may get rejected?</span>
             <span className="text-gray-300 shrink-0 text-xs">•</span>
@@ -729,9 +744,9 @@ const ProviderJobs = () => {
     const fileHash = null;
 
     const currentJobsHash = jobs.map(j => j._id || j.title).join(',');
-    const cachedHash = localStorage.getItem('cachedScrapeJobsHash');
+    const cachedHash = localStorage.getItem('cachedScrapeJobsHash_v2');
     if (cachedHash && currentJobsHash === cachedHash) {
-      const cachedData = localStorage.getItem('cachedAiMatchResults');
+      const cachedData = localStorage.getItem('cachedAiMatchResults_v2');
       if (cachedData) {
          setAiMatchResults(JSON.parse(cachedData));
          toast.success("AI Analysis Complete!");
@@ -743,13 +758,13 @@ const ProviderJobs = () => {
     setResumeMissing(false);
     
     try {
-      const jobsToAnalyze = jobs.slice(0, 100);
+      const jobsToAnalyze = jobs.slice(0, 10);
       const res = await getJobMatchingEngine({ fileHash, jobs: jobsToAnalyze });
       if (res.data?.success && res.data?.data?.matched_jobs) {
         setAiMatchResults(res.data.data.matched_jobs);
         
-        localStorage.setItem('cachedScrapeJobsHash', currentJobsHash);
-        localStorage.setItem('cachedAiMatchResults', JSON.stringify(res.data.data.matched_jobs));
+        localStorage.setItem('cachedScrapeJobsHash_v2', currentJobsHash);
+        localStorage.setItem('cachedAiMatchResults_v2', JSON.stringify(res.data.data.matched_jobs));
         
         toast.success("AI Analysis Complete!");
       } else {
@@ -791,6 +806,16 @@ const ProviderJobs = () => {
         setNearbyOnly(true);
       } else {
         setLoading(true);
+        if (navigator.permissions) {
+          navigator.permissions.query({ name: 'geolocation' }).then(result => {
+            if (result.state === 'prompt') {
+              toast("Please allow location access in your browser to see nearby jobs", { icon: '📍' });
+            } else if (result.state === 'denied') {
+              toast.error("Location access is denied. Please enable it in your browser settings.");
+            }
+          }).catch(console.error);
+        }
+
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const coords = {

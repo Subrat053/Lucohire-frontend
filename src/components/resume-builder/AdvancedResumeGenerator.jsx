@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import * as htmlToImage from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import useTranslation from "../../hooks/useTranslation";
@@ -12,6 +12,10 @@ import TemplateJane from "./templates/TemplateJane";
 import TemplateRichard from "./templates/TemplateRichard";
 import TemplateHarvard from "./templates/TemplateHarvard";
 import TemplateOlivia from "./templates/TemplateOlivia";
+import TemplateDavid from "./templates/TemplateDavid";
+import TemplateAnaisha from "./templates/TemplateAnaisha";
+import TemplateTech from "./templates/TemplateTech";
+import TemplateIvana from "./templates/TemplateIvana";
 import AtsOptimizerPanel from "../provider/AtsOptimizerPanel";
 import html2pdf from "html2pdf.js";
 
@@ -19,18 +23,15 @@ const templates = [
   // Base themeable layouts
   { id: "classic-pro", name: "Classic Professional", desc: "ATS optimized, traditional layout." },
   { id: "modern", name: "Modern Clear", desc: "Clean lines, good for tech." },
-  { id: "executive", name: "Executive Pro", desc: "Deep blue accents, Garamond font." },
-  { id: "minimalist", name: "Minimalist", desc: "High contrast, pure B&W, Helvetica." },
-  { id: "creative", name: "Creative Tech", desc: "Vibrant purple accents, Poppins font." },
-  { id: "corporate", name: "Corporate Standard", desc: "Standard Arial, dark gray themes." },
-  { id: "elegant", name: "Elegant Serif", desc: "Playfair Display, burgundy touches." },
-  { id: "tech", name: "Tech Monospace", desc: "Fira Code, cyan/blue developer vibe." },
-  { id: "startup", name: "Startup Vibe", desc: "Modern green, Outfit font family." },
   // Custom structural layouts
   { id: "jane", name: "Jane Structured", desc: "Clean 2-column layout." },
   { id: "richard", name: "Richard Sidebar", desc: "Dark blue sidebar with timeline." },
   { id: "harvard", name: "Harvard Academic", desc: "Strict, professional single column." },
   { id: "olivia", name: "Olivia Elegant", desc: "Pink bordered 2-column layout." },
+  { id: "david", name: "David Anderson", desc: "Clean minimalistic, 2-column." },
+  { id: "anaisha", name: "Anaisha Parvati", desc: "Centered header, single column." },
+  { id: "tech", name: "Tech Professional", desc: "Computer Science Resume layout." },
+  { id: "ivana", name: "Ivana Johnson", desc: "Professional HR layout." },
 ];
 
 function AdvancedResumeBuilderInner({ profileData }) {
@@ -44,6 +45,18 @@ function AdvancedResumeBuilderInner({ profileData }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [jd, setJd] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState(null);
+
+  useEffect(() => {
+    if (sessionStorage.getItem('scroll_to_ats') === 'true') {
+      sessionStorage.removeItem('scroll_to_ats');
+      setTimeout(() => {
+        const el = document.getElementById('ats-optimizer-panel');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 800);
+    }
+  }, []);
 
   const handleAiOptimize = async () => {
     try {
@@ -238,7 +251,7 @@ function AdvancedResumeBuilderInner({ profileData }) {
               </div>
               <div
                 id="resume-preview-content"
-                className="bg-white shadow-2xl rounded-sm text-left ring-1 ring-slate-900/5 transition-all flex flex-col"
+                className="bg-white shadow-2xl rounded-sm text-left ring-1 ring-slate-900/5 transition-all flex flex-col h-fit"
                 style={{ width: "794px", minHeight: "1123px" }}
               >
                 {/* Dynamically render the active template component */}
@@ -250,6 +263,14 @@ function AdvancedResumeBuilderInner({ profileData }) {
                   <TemplateHarvard />
                 ) : activeTemplate === 'olivia' ? (
                   <TemplateOlivia />
+                ) : activeTemplate === 'david' ? (
+                  <TemplateDavid />
+                ) : activeTemplate === 'anaisha' ? (
+                  <TemplateAnaisha />
+                ) : activeTemplate === 'tech' ? (
+                  <TemplateTech />
+                ) : activeTemplate === 'ivana' ? (
+                  <TemplateIvana />
                 ) : (
                   <ClassicProTemplate themeId={activeTemplate} />
                 )}
@@ -259,7 +280,7 @@ function AdvancedResumeBuilderInner({ profileData }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div id="ats-optimizer-panel" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
         <AtsOptimizerPanel fileHash={profileData?.fileHash || undefined} parsedData={profileData} />
       </div>
 

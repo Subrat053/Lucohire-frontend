@@ -292,7 +292,7 @@ export default function ClassicProTemplate({ themeId = "classic-pro" }) {
 
   return (
     <div 
-      className={`bg-[#ffffff] px-10 py-8 text-[var(--resume-main)] flex-1 w-full box-border break-words theme-${themeId}`}
+      className={`bg-[#ffffff] px-10 py-8 text-[var(--resume-main)] grow w-full box-border break-words theme-${themeId}`}
       style={{ fontFamily: 'var(--resume-font, "Georgia", "Times New Roman", serif)', wordBreak: 'break-word', overflowWrap: 'break-word' }}
     >
       {/* Header */}

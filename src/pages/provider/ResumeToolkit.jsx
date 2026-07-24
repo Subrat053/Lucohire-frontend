@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import useTranslation from '../../hooks/useTranslation';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
@@ -36,17 +36,62 @@ export default function ResumeToolkit() {
 
   useEffect(() => { fetchAll(false); }, [fileHash]);
 
+  useEffect(() => {
+    if (window.location.hash === '#enhance-resume' || sessionStorage.getItem('scroll_to_enhance') === 'true') {
+      sessionStorage.removeItem('scroll_to_enhance');
+      setTimeout(() => {
+        const el = document.getElementById('enhance-resume');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 800);
+    }
+  }, [location.hash]);
+
+  const handleNavigateWithBack = (url) => {
+    window.history.replaceState(null, '', '/provider/resume-toolkit#enhance-resume');
+    sessionStorage.setItem('scroll_to_enhance', 'true');
+    navigate(url);
+  };
+
+  const handleNavigateToAts = () => {
+    window.history.replaceState(null, '', '/provider/resume-toolkit#enhance-resume');
+    sessionStorage.setItem('scroll_to_enhance', 'true');
+    sessionStorage.setItem('scroll_to_ats', 'true');
+    navigate('/provider/profile?tab=Generate%20Resume');
+  };
+
   const handleRefresh = async () => {
     if (!isPro) {
       navigate('/provider/plans');
       return;
     }
+    
+    const limit = aiUsage.limits?.resumeImprovement || 0;
+    const used = aiUsage.usage?.resumeImprovement || 0;
+    
+    if (limit !== -1 && used >= limit) {
+      toast.error(t('Usage limit reached. Upgrade your plan for more requests.'));
+      return;
+    }
+
     setRefreshing(true);
-    setAiUsage(prev => ({
-      ...prev,
-      usage: { ...prev.usage, resumeToolkit: (prev.usage.resumeToolkit || 0) + 1 }
-    }));
     await fetchAll(true);
+    
+    // Wait for backend database increment to complete
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Re-fetch AI usage after the backend has potentially incremented it
+    try {
+      const usageRes = await getAiUsage();
+      if (usageRes?.data?.success) {
+        setAiUsage({ 
+          limits: { ...usageRes.data.limits }, 
+          usage: { ...usageRes.data.usage } 
+        });
+      }
+    } catch (e) {}
+
     setRefreshing(false);
     toast.success(t('AI analysis refreshed'));
   };
@@ -63,8 +108,10 @@ export default function ResumeToolkit() {
 
       let userIsPro = false;
       if (planRes.status === 'fulfilled') {
-        const tier = planRes.value?.planSnapshot?.slug || planRes.value?.planName || planRes.value?.plan || planRes.value?.subscription?.tier || 'free';
-        userIsPro = ['basic', 'pro', 'premium', 'beta'].some(p => String(tier).toLowerCase().includes(p));
+        const activePlan = planRes.value?.subscription || planRes.value || {};
+        const planStatus = activePlan?.subscriptionStatus || activePlan?.status || 'active';
+        const tier = activePlan?.planSnapshot?.slug || activePlan?.planName || activePlan?.plan || activePlan?.tier || 'free';
+        userIsPro = planStatus === 'active' && ['basic', 'pro', 'premium', 'beta'].some(p => String(tier).toLowerCase().includes(p));
         setIsPro(userIsPro);
       }
 
@@ -79,8 +126,8 @@ export default function ResumeToolkit() {
         const usageData = usageRes.value?.data;
         if (usageData?.success) {
           setAiUsage(prev => ({ 
-            limits: { ...usageData.limits, resumeToolkit: 10 }, 
-            usage: { ...usageData.usage, resumeToolkit: prev.usage.resumeToolkit } 
+            limits: { ...usageData.limits }, 
+            usage: { ...usageData.usage } 
           }));
         }
       }
@@ -132,9 +179,7 @@ export default function ResumeToolkit() {
   };
 
   const handleOpenWhatsAppHelp = () => {
-    const phone = profile?.whatsappNumber || profile?.phone || '';
-    const cleaned = phone.replace(/\D/g, '');
-    const supportNumber = cleaned || '919999999999';
+    const supportNumber = '919876543210';
     window.open(`https://wa.me/${supportNumber}?text=${encodeURIComponent(t('Hi! I need career help.'))}`, '_blank');
   };
 
@@ -240,19 +285,17 @@ export default function ResumeToolkit() {
   const dynamicCompletion = Math.round((completedCount / profileCheckList.length) * 100);
 
   const resumeTools = [
-    { icon: Zap, color: 'text-purple-600', bg: 'bg-purple-50', title: 'AI Resume Optimizer', desc: 'Get AI suggestions to improve content, keywords & impact.', btn: 'Optimize Now', pro: false, action: () => navigate('/provider/grow-with-ai') },
-    { icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50', title: 'ATS Check', desc: 'Check how well your resume passes ATS systems.', btn: 'Check ATS Score', pro: false, action: () => navigate('/provider/grow-with-ai') },
-    { icon: Link2, color: 'text-emerald-600', bg: 'bg-emerald-50', title: 'Keyword Match', desc: 'See missing keywords for your target roles.', btn: 'Analyze Keywords', pro: true, action: () => navigate('/provider/grow-with-ai') },
-    { icon: Layout, color: 'text-orange-500', bg: 'bg-orange-50', title: 'Resume Templates', desc: 'Professional templates trusted by recruiters.', btn: 'Browse Templates', pro: false, action: () => navigate('/provider/profile?tab=Generate+Resume') },
-    { icon: FileText, color: 'text-teal-600', bg: 'bg-teal-50', title: 'Resume Builder', desc: 'Create a new resume step by step.', btn: 'Build New', pro: false, action: () => navigate('/provider/profile?tab=Generate+Resume') },
+    { icon: Zap, color: 'text-purple-600', bg: 'bg-purple-50', title: 'AI Resume Optimizer', desc: 'Get AI suggestions to improve content, keywords & impact.', btn: 'Optimize Now', pro: false, action: handleNavigateToAts },
+    { icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50', title: 'ATS Check', desc: 'Check how well your resume passes ATS systems.', btn: 'Check ATS Score', pro: false, action: handleNavigateToAts },
+    { icon: Layout, color: 'text-orange-500', bg: 'bg-orange-50', title: 'Resume Templates', desc: 'Professional templates trusted by recruiters.', btn: 'Browse Templates', pro: false, action: () => handleNavigateWithBack('/provider/profile?tab=Generate%20Resume') },
+    { icon: FileText, color: 'text-teal-600', bg: 'bg-teal-50', title: 'Resume Builder', desc: 'Create a new resume step by step.', btn: 'Build New', pro: false, action: () => handleNavigateWithBack('/provider/profile?tab=Generate%20Resume') },
   ];
 
   const contentTools = [
-    { icon: PenTool, color: 'text-purple-600', title: 'About Me Generator', desc: 'Generate a professional summary for your profile.', btn: 'Generate Now', action: () => navigate('/provider/grow-with-ai') },
-    { icon: FileText, color: 'text-blue-600', title: 'Cover Letter Builder', desc: 'Create a tailored cover letter for any job.', btn: 'Create Letter', action: () => navigate('/provider/grow-with-ai') },
-    { icon: Edit, color: 'text-emerald-600', title: 'Experience Rewriter', desc: 'Make your experience more impactful with AI.', btn: 'Rewrite Now', action: () => navigate('/provider/grow-with-ai') },
-    { icon: Star, color: 'text-orange-500', title: 'Achievements Optimizer', desc: 'Add strong achievements that get you noticed.', btn: 'Add Achievements', action: () => navigate('/provider/profile?tab=Details') },
-    { icon: Link2, color: 'text-teal-600', title: 'Portfolio Link', desc: 'Add your portfolio to stand out.', btn: 'Add Portfolio', action: () => navigate('/provider/profile?tab=Portfolio') },
+    { icon: PenTool, color: 'text-purple-600', title: 'About Me Generator', desc: 'Generate a professional summary for your profile.', btn: 'Generate Now', action: () => handleNavigateWithBack('/provider/profile?tab=Personal#summary') },
+    { icon: FileText, color: 'text-blue-600', title: 'Cover Letter Builder', desc: 'Create a tailored cover letter for any job.', btn: 'Create Letter', action: () => handleNavigateWithBack('/provider/ai-career-coach?prompt=Write%20a%20cover%20letter') },
+    { icon: Edit, color: 'text-emerald-600', title: 'Experience Rewriter', desc: 'Make your experience more impactful with AI.', btn: 'Rewrite Now', action: () => handleNavigateWithBack('/provider/profile?tab=Details#experience') },
+    { icon: Star, color: 'text-orange-500', title: 'Achievements Optimizer', desc: 'Add strong achievements that get you noticed.', btn: 'Add Achievements', action: () => handleNavigateWithBack('/provider/profile?tab=Education%20%26%20Credentials#achievements') },
   ];
 
   return (
@@ -265,26 +308,46 @@ export default function ResumeToolkit() {
         onChange={handleFileUpload} 
       />
 
+      {/* Usage Limit Banner */}
+      {!loading && (
+        <div className="bg-indigo-50/50 border border-indigo-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-indigo-600" />
+            <span className="text-sm font-medium text-indigo-900">{t("Toolkit AI Refresh Limit:")}{(() => {
+                const limit = aiUsage.limits['resumeImprovement'] || 0;
+                const used = aiUsage.usage['resumeImprovement'] || 0;
+                if (limit === -1) return <span className="font-bold text-indigo-700 ml-1">{t("Unlimited")}</span>;
+                if (limit === 0) return <span className="font-bold text-red-600 ml-1">{t("Not included in free plan")}</span>;
+                return <span className="font-bold text-indigo-700 ml-1">{Math.max(0, limit - used)} / {limit} {t("requests remaining")}</span>;
+              })()}
+            </span>
+          </div>
+          <Link to="/provider/plans" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-white border border-indigo-200 px-4 py-1.5 rounded-full transition-colors hover:bg-indigo-50">{t("Upgrade Plan")}</Link>
+        </div>
+      )}
+
       {/* ── Header ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <button
-            onClick={() => navigate('/provider/ai-tips')}
+            onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition mb-2 font-medium"
           >
-            <ArrowLeft className="w-4 h-4" /> {t('Back to AI Dashboard')}
+            <ArrowLeft className="w-4 h-4" /> {t('Back')}
           </button>
           <h1 className="text-3xl font-extrabold text-gray-900">{t('Resume & Profile Toolkit')}</h1>
           <p className="text-gray-500 text-sm mt-1">{t('Build a stronger profile that gets you more interviews')}</p>
         </div>
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="px-4 py-2.5 rounded-xl bg-teal-700 text-white text-sm font-bold hover:bg-teal-800 transition flex items-center gap-2 shadow-md disabled:opacity-60"
-        >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          {refreshing ? t('Analyzing...') : t('Refresh AI Analysis')}
-        </button>
+        {isPro && (
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="px-4 py-2.5 rounded-xl bg-teal-700 text-white text-sm font-bold hover:bg-teal-800 transition flex items-center gap-2 shadow-md disabled:opacity-60"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? t('Analyzing...') : t('Refresh AI Analysis')}
+          </button>
+        )}
       </div>
 
       {/* Missing data banner */}
@@ -438,7 +501,7 @@ export default function ResumeToolkit() {
       </div>
 
       {/* ── Row 2: Enhance Tools + WhatsApp ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div id="enhance-resume" className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
           <h3 className="text-base font-bold text-gray-900 mb-4">{t('Enhance Your Resume')}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">

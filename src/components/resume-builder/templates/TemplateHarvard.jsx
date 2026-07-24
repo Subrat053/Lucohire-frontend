@@ -205,7 +205,7 @@ export default function TemplateHarvard() {
   };
 
   return (
-    <div className="bg-[#ffffff] px-12 py-12 flex-1 w-full box-border break-words font-serif text-black h-full" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+    <div className="bg-[#ffffff] px-12 py-12 grow w-full box-border break-words font-serif text-black" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
       
       {/* Header */}
       <div className="flex flex-col items-center justify-center mb-6">

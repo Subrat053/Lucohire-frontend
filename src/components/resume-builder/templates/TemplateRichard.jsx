@@ -99,7 +99,6 @@ export default function TemplateRichard() {
       case 'education':
         return (
           <div className="flex flex-col group relative">
-            <div className="absolute left-[39px] top-2 bottom-0 w-[1.5px] bg-gray-400"></div>
             {section.data.map((item, i) => {
               // Determine if it's education or experience based on fields
               const isEdu = item.degree !== undefined;
@@ -113,14 +112,18 @@ export default function TemplateRichard() {
                   onMoveUp={() => moveItem(section.id, section.data, i, -1)}
                   onMoveDown={() => moveItem(section.id, section.data, i, 1)}
                   renderPreview={() => (
-                    <div className="flex mb-6 relative group/item">
-                      <div className="w-20 shrink-0 text-right pr-4 font-bold text-[13px] text-gray-800 pt-0.5">
+                    <div className="flex pb-6 relative group/item">
+                      <div className="w-24 shrink-0 text-right pr-6 font-bold text-[13px] text-gray-800 pt-0.5">
                         {isEdu ? item.year : item.duration}
                       </div>
                       
-                      <div className="absolute left-[36px] top-1.5 w-2 h-2 rounded-full bg-gray-800 ring-4 ring-[#f4f5f6]"></div>
+                      <div className="absolute left-[91px] top-1.5 w-2 h-2 rounded-full bg-gray-800 ring-4 ring-[#f4f5f6] z-10"></div>
                       
-                      <div className="pl-7 flex-1 flex flex-col gap-1">
+                      {i !== section.data.length - 1 && (
+                        <div className="absolute left-[94px] top-2 h-[calc(100%+8px)] w-[2px] bg-gray-400"></div>
+                      )}
+                      
+                      <div className="pl-6 flex-1 flex flex-col gap-1">
                         <div className="flex items-center gap-3 flex-wrap">
                           <h3 className="font-bold text-[14.5px] text-gray-900">{title || "Title"}</h3>
                           <Show when={!isEdu && (item.githubUrl || item.liveUrl || item.link)}>
@@ -189,7 +192,7 @@ export default function TemplateRichard() {
   const rightSections = sections.filter(s => rightColumnTypes.includes(s.type) && s.visible);
 
   return (
-    <div className="bg-[#f4f5f6] flex flex-row flex-1 w-full box-border break-words font-sans h-full" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="bg-[#f4f5f6] flex flex-row grow w-full box-border break-words font-sans" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
       
       {/* Left Sidebar */}
       <div className="w-[33%] bg-[#1a365d] text-white flex flex-col pt-12 pb-8 px-8 shrink-0">

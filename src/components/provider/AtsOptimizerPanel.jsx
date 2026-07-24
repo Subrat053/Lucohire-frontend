@@ -4,13 +4,26 @@ import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import toast from 'react-hot-toast';
 import useTranslation from '../../hooks/useTranslation';
-import { getAtsOptimizer } from '../../services/providerAIService';
+import { getAtsOptimizer, getResumeToolkit } from '../../services/providerAIService';
 
 export default function AtsOptimizerPanel({ fileHash, parsedData }) {
   const { t } = useTranslation();
   const [jd, setJd] = useState('');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
+  const [toolkitAtsScore, setToolkitAtsScore] = useState(null);
+
+  React.useEffect(() => {
+    // Fetch the baseline ATS score that matches the Resume Toolkit page
+    getResumeToolkit()
+      .then(res => {
+        const stats = res?.data?.data?.resumeStats;
+        if (stats && stats.atsScore) {
+          setToolkitAtsScore(stats.atsScore);
+        }
+      })
+      .catch(err => console.error("Error fetching toolkit ATS score", err));
+  }, []);
 
   const handleOptimize = async () => {
     if (!jd.trim()) return;
@@ -30,29 +43,48 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
 
   return (
     <div className="p-6 space-y-8">
-      <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
-        <h3 className="text-[15px] font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <Search className="text-[#0f766e] w-5 h-5" />{t("ATS Resume Optimizer")}</h3>
-        <p className="text-gray-500 mb-5 text-[12px] font-medium">{t(
-          "Paste the target Job Description to see how an ATS evaluates your resume. We will suggest actionable improvements."
-        )}</p>
-        <textarea
-          value={jd}
-          onChange={(e) => setJd(e.target.value)}
-          className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0f766e] focus:border-[#0f766e] text-[12px] outline-none transition shadow-inner font-medium text-gray-700"
-          placeholder={t("Paste Target Job Description here...")}
-        />
-        <button
-          onClick={handleOptimize}
-          disabled={loading || !jd.trim()}
-          className="mt-4 bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-[12px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
-        >
-          {loading ? (
-            <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>{t("Optimizing...")}</>
-          ) : (
-            <><Sparkles className="w-4 h-4" />{t("Optimize for ATS")}</>
-          )}
-        </button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+          <h3 className="text-[15px] font-bold text-gray-900 mb-2 flex items-center gap-2">
+            <Search className="text-[#0f766e] w-5 h-5" />{t("ATS Resume Optimizer")}</h3>
+          <p className="text-gray-500 mb-5 text-[12px] font-medium">{t(
+            "Paste the target Job Description to see how an ATS evaluates your resume. We will suggest actionable improvements."
+          )}</p>
+          <textarea
+            value={jd}
+            onChange={(e) => setJd(e.target.value)}
+            className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0f766e] focus:border-[#0f766e] text-[12px] outline-none transition shadow-inner font-medium text-gray-700"
+            placeholder={t("Paste Target Job Description here...")}
+          />
+          <button
+            onClick={handleOptimize}
+            disabled={loading || !jd.trim()}
+            className="mt-4 bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-[12px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
+          >
+            {loading ? (
+              <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>{t("Optimizing...")}</>
+            ) : (
+              <><Sparkles className="w-4 h-4" />{t("Optimize for ATS")}</>
+            )}
+          </button>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 flex flex-col items-center justify-center text-center shadow-sm">
+          <h3 className="text-[14px] font-bold text-gray-800 mb-4">{t("Profile ATS Score")}</h3>
+          <div className="w-[100px] h-[100px] relative mb-4">
+            <CircularProgressbar 
+              value={toolkitAtsScore || parsedData?.profileCompletion || 65} 
+              strokeWidth={8} 
+              styles={buildStyles({ pathColor: '#0f766e', trailColor: '#ccfbf1' })}
+            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-[24px] font-black text-[#0f766e]">{toolkitAtsScore || parsedData?.profileCompletion || 65}</span>
+            </div>
+          </div>
+          <p className="text-[12px] text-gray-500 font-medium px-4">
+            {t("Baseline match based on your resume data and profile completeness.")}
+          </p>
+        </div>
       </div>
       {data && (
         <div className="animate-fadeIn space-y-8">

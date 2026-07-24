@@ -611,8 +611,8 @@ const ProviderPlans = () => {
         })()}
 
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-emerald-950  mb-3">{t("Choose the Right Plan for Your")}<span className="text-emerald-600">{t(" Career Growth")}</span>
+        <div className="text-center mb-10 lg:pl-32">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-emerald-950 tracking-tight mb-3">{t("Choose the Right Plan for Your")} <span className="text-emerald-600">{t("Career Growth")}</span>
           </h1>
           <p className="text-slate-500 text-base">{t(
             "Unlock powerful AI insights, personalized reports, and smart alerts to get hired faster."

@@ -175,6 +175,22 @@ export function ResumeProvider({ children, initialProfileData }) {
     });
   };
 
+  const moveSection = (sectionId, direction) => {
+    setResumeData(prev => {
+      const index = prev.sections.findIndex(s => s.id === sectionId);
+      if (index === -1) return prev;
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= prev.sections.length) return prev;
+      
+      const newSections = [...prev.sections];
+      const temp = newSections[index];
+      newSections[index] = newSections[newIndex];
+      newSections[newIndex] = temp;
+      
+      return { ...prev, sections: newSections };
+    });
+  };
+
   return (
     <ResumeContext.Provider value={{
       resumeData,
@@ -184,6 +200,7 @@ export function ResumeProvider({ children, initialProfileData }) {
       toggleSectionVisibility,
       updateSectionData,
       reorderSections,
+      moveSection,
       activeElementId,
       setActiveElementId
     }}>

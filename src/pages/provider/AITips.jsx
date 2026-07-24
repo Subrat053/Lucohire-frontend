@@ -10,8 +10,11 @@ import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { FaWhatsapp } from 'react-icons/fa';
 import AICoachModal from '../../components/provider/AICoachModal';
+import { useAuth } from '../../context/AuthContext';
+import { getCurrentSubscription } from '../../services/providerPlanService';
 
 export default function AITips() {
+  const { user } = useAuth();
   const {
     t
   } = useTranslation();
@@ -29,13 +32,29 @@ export default function AITips() {
   const [showAllSkills, setShowAllSkills] = useState(false);
   const [whatsappEnabled, setWhatsappEnabled] = useState(false);
   const [showFullAnalysis, setShowFullAnalysis] = useState(false);
+  const [isPro, setIsPro] = useState(false);
 
   useEffect(() => {
-    fetchUsage();
-    fetchAICareerReport();
-    fetchTopJobs();
-    fetchProfile();
-  }, []);
+    const init = async () => {
+      let isUserPro = false;
+      try {
+        const planRes = await getCurrentSubscription();
+        const activePlan = planRes?.subscription || planRes || {};
+        const planStatus = activePlan?.subscriptionStatus || activePlan?.status || 'active';
+        const tier = activePlan?.planSnapshot?.slug || activePlan?.planName || activePlan?.plan || activePlan?.tier || 'free';
+        isUserPro = planStatus === 'active' && ['basic', 'pro', 'premium', 'beta'].some(p => String(tier).toLowerCase().includes(p));
+      } catch {}
+      
+      const finalIsPro = isUserPro || user?.isPro || false;
+      setIsPro(finalIsPro);
+
+      fetchUsage();
+      fetchProfile();
+      fetchTopJobs();
+      fetchAICareerReport(finalIsPro);
+    };
+    init();
+  }, [user]);
 
   const fetchProfile = async () => {
     try {
@@ -88,10 +107,35 @@ export default function AITips() {
     }
   };
 
-  const fetchAICareerReport = async () => {
+  const fetchAICareerReport = async (isUserPro) => {
     try {
       setLoading(true);
       setError(null);
+      
+      if (!isUserPro) {
+        setReportData({
+          top_job_roles: [{ title: 'Locked Role', match_percentage: 92 }],
+          resume_score: { overall: 78, impact: 80, formatting: 85, keywords: 75 },
+          key_strengths: [
+            { strength: 'Premium feature locked', icon: '🔒' },
+            { strength: 'Premium feature locked', icon: '🔒' },
+            { strength: 'Premium feature locked', icon: '🔒' }
+          ],
+          areas_for_improvement: [
+            { area: 'Premium feature locked', suggestion: 'Upgrade your plan to see this' },
+            { area: 'Premium feature locked', suggestion: 'Upgrade your plan to see this' }
+          ],
+          missing_skills: ['Locked Skill', 'Locked Skill', 'Locked Skill'],
+          recommended_courses: [
+            { course_title: 'Premium Course', description: 'Upgrade to view' },
+            { course_title: 'Premium Course', description: 'Upgrade to view' }
+          ],
+          projected_salary: { min: 'Locked', max: 'Locked' },
+          skills_gap: ['Locked', 'Locked', 'Locked']
+        });
+        setLoading(false);
+        return;
+      }
       
       const { state } = location;
       const fileHash = state?.fileHash || localStorage.getItem('lastResumeHash');
@@ -149,8 +193,8 @@ export default function AITips() {
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-indigo-600" />
             <span className="text-sm font-medium text-indigo-900">{t("Career Report Limit:")}{(() => {
-                const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
-                const used = aiUsage.usage['aiCareerAnalysis'] || 0;
+                const limit = aiUsage.limits['careerReport'] || 0;
+                const used = aiUsage.usage['careerReport'] || 0;
                 if (limit === -1) return <span className="font-bold text-indigo-700 ml-1">{t("Unlimited")}</span>;
                 if (limit === 0) return <span className="font-bold text-red-600 ml-1">{t("Not included in plan")}</span>;
                 return <span className="font-bold text-indigo-700 ml-1">{Math.max(0, limit - used)} / {limit}{t("requests remaining")}</span>;
@@ -160,24 +204,20 @@ export default function AITips() {
           <Link to="/provider/plans" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-100 px-3 py-1 rounded-full transition-colors">{t("Upgrade Plan")}</Link>
         </div>
       )}
-      {/* UI Block Overlay */}
-      {!usageLoading && (() => {
-        const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
-        const used = aiUsage.usage['aiCareerAnalysis'] || 0;
+      {/* UI Block Overlay for Pro users who reached their limit */}
+      {isPro && !usageLoading && (() => {
+        const limit = aiUsage.limits['careerReport'] || 0;
+        const used = aiUsage.usage['careerReport'] || 0;
         
-        if (limit !== -1 && (limit === 0 || used >= limit)) {
+        if (limit !== -1 && used >= limit) {
           return (
             <div className="absolute inset-0 z-40 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center rounded-2xl">
               <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
                 <Lock className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {limit === 0 ? 'Feature Not Available' : 'Usage Limit Reached'}
-              </h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Usage Limit Reached</h3>
               <p className="text-gray-500 max-w-md mb-6">
-                {limit === 0 
-                  ? "Your current plan does not include access to AI Career Reports. Upgrade your plan to unlock."
-                  : `You have used all ${limit} requests for this feature in the current billing cycle.`}
+                You have used all {limit} requests for this feature in the current billing cycle.
               </p>
               <Link to="/provider/plans" className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">{t("Upgrade Plan")}</Link>
             </div>
@@ -185,10 +225,10 @@ export default function AITips() {
         }
         return null;
       })()}
-      <div className={!usageLoading && (() => {
-        const limit = aiUsage.limits['aiCareerAnalysis'] || 0;
-        const used = aiUsage.usage['aiCareerAnalysis'] || 0;
-        return (limit !== -1 && (limit === 0 || used >= limit)) ? 'opacity-30 pointer-events-none' : '';
+      <div className={isPro && !usageLoading && (() => {
+        const limit = aiUsage.limits['careerReport'] || 0;
+        const used = aiUsage.usage['careerReport'] || 0;
+        return (limit !== -1 && used >= limit) ? 'opacity-30 pointer-events-none' : '';
       })() ? 'opacity-30 pointer-events-none' : ''}>
         
         {/* Main 3 Column Grid */}
@@ -219,7 +259,7 @@ export default function AITips() {
                       if (data.success) {
                         setReportData(data.data);
                         toast.success("AI Career Report updated!");
-                        fetchUsage();
+                        setTimeout(() => fetchUsage(), 500);
                       }
                     } catch (err) {
                       toast.error(err.response?.data?.message || "Failed to improve insights");
@@ -227,10 +267,12 @@ export default function AITips() {
                       setLoading(false);
                     }
                   }}
-                  disabled={loading}
-                  className="bg-[#0f766e] hover:bg-teal-800 text-white px-4 py-2.5 rounded-xl text-[13px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
+                  disabled={loading || !isPro}
+                  className="bg-[#0f766e] hover:bg-teal-800 text-white px-4 py-2.5 rounded-xl text-[13px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />{t("Refresh Insights")}</button>
+                  {loading ? <RefreshCcw className="w-4 h-4 animate-spin" /> : !isPro ? <Lock className="w-4 h-4" /> : <RefreshCcw className="w-4 h-4" />}
+                  {t("Refresh Insights")}
+                </button>
               </div>
             </div>
 
@@ -248,8 +290,8 @@ export default function AITips() {
                 </div>
                 <div className="z-10 relative mt-2">
                   <div className="text-[11px] font-bold text-gray-500 flex items-center gap-1 whitespace-nowrap">{t("AI Match Score")}<Info className="w-3 h-3 text-gray-400" /></div>
-                  <div className="text-3xl font-black text-gray-900 mt-1 leading-none">{reportData?.top_job_roles?.[0]?.match_percentage || 92}%</div>
-                  <div className="text-[11px] font-bold text-teal-700 mt-1">{(reportData?.top_job_roles?.[0]?.match_percentage || 92) > 85 ? 'Excellent' : 'Good'}</div>
+                  <div className={`text-3xl font-black text-gray-900 mt-1 leading-none ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{reportData?.top_job_roles?.[0]?.match_percentage || 92}%</div>
+                  <div className={`text-[11px] font-bold text-teal-700 mt-1 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{(reportData?.top_job_roles?.[0]?.match_percentage || 92) > 85 ? 'Excellent' : 'Good'}</div>
                 </div>
               </div>
 
@@ -265,8 +307,8 @@ export default function AITips() {
                   </div>
                   <div>
                     <div className="text-[11px] font-bold text-gray-500 flex items-center gap-1 whitespace-nowrap">{t("Profile Strength")}<Info className="w-3 h-3 text-gray-400" /></div>
-                    <div className="text-3xl font-black text-gray-900 mt-1 leading-none">{reportData?.resume_score?.overall || 78}%</div>
-                    <div className="text-[11px] font-bold text-gray-600 mt-1">{(reportData?.resume_score?.overall || 78) > 80 ? 'Excellent' : 'Good'}</div>
+                    <div className={`text-3xl font-black text-gray-900 mt-1 leading-none ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{reportData?.resume_score?.overall || 78}%</div>
+                    <div className={`text-[11px] font-bold text-gray-600 mt-1 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{(reportData?.resume_score?.overall || 78) > 80 ? 'Excellent' : 'Good'}</div>
                   </div>
                 </div>
                 <div className="text-[10px] font-medium text-gray-500 mt-5 pt-1 border-t border-gray-50">{t("Complete more to reach 100%")}</div>
@@ -276,7 +318,7 @@ export default function AITips() {
               <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between">
                 <div>
                   <div className="text-[11px] font-bold text-gray-500 mb-2">{t("Better Matches")}</div>
-                  <div className="text-4xl font-black text-[#0f766e] mt-1 mb-1">{topJobs.length > 0 ? topJobs.length : 18}</div>
+                  <div className={`text-4xl font-black text-[#0f766e] mt-1 mb-1 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{topJobs.length > 0 ? topJobs.length : 18}</div>
                   <div className="text-[11px] font-bold text-teal-700 mt-1">{t("jobs found")}</div>
                 </div>
                 <div className="text-[10px] font-medium text-gray-500 mt-4 pt-1 border-t border-gray-50">{t("Updated today")}</div>
@@ -286,8 +328,8 @@ export default function AITips() {
               <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between">
                 <div>
                   <div className="text-[11px] font-bold text-gray-500 mb-2">{t("Interview Chance")}</div>
-                  <div className="text-3xl font-black text-[#0f766e] mt-2 mb-2">{(reportData?.resume_score?.impact || 80) > 85 ? 'High' : (reportData?.resume_score?.impact || 80) > 60 ? 'Medium' : 'Low'}</div>
-                  <div className="text-[10px] font-bold text-teal-700 mt-1.5 bg-teal-50 px-2.5 py-1 rounded-md inline-block w-full text-center">{t("You're in top")}{(reportData?.resume_score?.impact || 80) > 85 ? '10%' : '30%'}</div>
+                  <div className={`text-3xl font-black text-[#0f766e] mt-2 mb-2 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{(reportData?.resume_score?.impact || 80) > 85 ? 'High' : (reportData?.resume_score?.impact || 80) > 60 ? 'Medium' : 'Low'}</div>
+                  <div className={`text-[10px] font-bold text-teal-700 mt-1.5 bg-teal-50 px-2.5 py-1 rounded-md inline-block w-full text-center ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{t("You're in top")}{(reportData?.resume_score?.impact || 80) > 85 ? '10%' : '30%'}</div>
                 </div>
                 <div className="text-[10px] font-medium text-gray-500 mt-4 pt-1 border-t border-gray-50">{t("for similar roles")}</div>
               </div>
@@ -302,43 +344,55 @@ export default function AITips() {
                 
                 {/* Skills You Should Improve */}
                 <div className="border border-gray-100 rounded-xl p-4 flex flex-col h-full bg-gray-50/30">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="bg-teal-50 p-1.5 rounded-md"><Target className="w-4 h-4 text-teal-700" /></div>
-                    <span className="font-bold text-[13px] text-gray-900">{t("Skills You Should Improve")}</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-teal-50 p-1.5 rounded-md"><Target className="w-4 h-4 text-teal-700" /></div>
+                      <span className="font-bold text-[13px] text-gray-900">{t("Skills You Should Improve")}</span>
+                    </div>
+                    {!isPro && <Lock className="w-4 h-4 text-gray-300" />}
                   </div>
                   <p className="text-[11px] text-gray-500 mb-5 line-clamp-2 leading-relaxed">{t("These skills are in high demand for your target roles.")}</p>
                   
                   <div className="space-y-3.5 mb-auto">
                     {reportData?.missing_skills?.slice(0,3).map((skill, i) => (
                       <div key={i} className="flex justify-between items-center text-[11px]">
-                        <span className="font-bold text-gray-700 truncate max-w-[120px]">{skill}</span>
+                        <span className={`font-bold text-gray-700 truncate max-w-[120px] ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{skill}</span>
                         <span className={`font-bold px-1.5 py-0.5 rounded text-[9px] whitespace-nowrap ${i===0?'text-teal-700 bg-teal-50':'text-gray-500 bg-gray-100'}`}>{i===0?'High':'Medium'}{t("Impact")}</span>
                       </div>
                     )) || (
                       <>
                         <div className="flex justify-between items-center text-[11px]">
-                          <span className="font-bold text-gray-700">{t("Figma (Advanced)")}</span>
+                          <span className={`font-bold text-gray-700 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{t("Figma (Advanced)")}</span>
                           <span className="text-teal-700 font-bold bg-teal-50 px-1.5 py-0.5 rounded text-[9px]">{t("High Impact")}</span>
                         </div>
                         <div className="flex justify-between items-center text-[11px]">
-                          <span className="font-bold text-gray-700">{t("User Research")}</span>
+                          <span className={`font-bold text-gray-700 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{t("User Research")}</span>
                           <span className="text-gray-500 font-bold bg-gray-100 px-1.5 py-0.5 rounded text-[9px]">{t("Medium Impact")}</span>
                         </div>
                         <div className="flex justify-between items-center text-[11px]">
-                          <span className="font-bold text-gray-700">{t("Interaction Design")}</span>
+                          <span className={`font-bold text-gray-700 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{t("Interaction Design")}</span>
                           <span className="text-gray-500 font-bold bg-gray-100 px-1.5 py-0.5 rounded text-[9px]">{t("Medium Impact")}</span>
                         </div>
                       </>
                     )}
                   </div>
-                  <Link to="/provider/grow-with-ai?tab=skillgap" className="block w-full text-center py-2.5 mt-5 text-[11px] font-bold text-[#0f766e] border border-teal-100 rounded-lg hover:bg-teal-50 transition">{t("Improve Skills →")}</Link>
+                  {!isPro ? (
+                    <button disabled className="w-full py-2.5 mt-5 text-[11px] font-bold text-gray-400 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center gap-1 cursor-not-allowed">
+                      <Lock className="w-3 h-3"/> {t("Locked")}
+                    </button>
+                  ) : (
+                    <Link to="/provider/grow-with-ai?tab=skillgap" className="block w-full text-center py-2.5 mt-5 text-[11px] font-bold text-[#0f766e] border border-teal-100 rounded-lg hover:bg-teal-50 transition">{t("Improve Skills →")}</Link>
+                  )}
                 </div>
 
                 {/* Top Skills You Have */}
                 <div className="border border-gray-100 rounded-xl p-4 flex flex-col h-full bg-gray-50/30">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="bg-green-50 p-1.5 rounded-md"><CheckCircle2 className="w-4 h-4 text-[#0f766e]" /></div>
-                    <span className="font-bold text-[13px] text-gray-900">{t("Top Skills You Have")}</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-green-50 p-1.5 rounded-md"><CheckCircle2 className="w-4 h-4 text-[#0f766e]" /></div>
+                      <span className="font-bold text-[13px] text-gray-900">{t("Top Skills You Have")}</span>
+                    </div>
+                    {!isPro && <Lock className="w-4 h-4 text-gray-300" />}
                   </div>
                   <p className="text-[11px] text-gray-500 mb-5 line-clamp-2 leading-relaxed">{t("Great! These skills make you stand out.")}</p>
                   
@@ -348,49 +402,69 @@ export default function AITips() {
                         <div className="w-4 h-4 rounded-full bg-teal-600 text-white flex items-center justify-center shrink-0">
                            <Check className="w-2.5 h-2.5" strokeWidth={3} />
                         </div> 
-                        {typeof s === 'string' ? s : s?.name || 'Skill'}
+                        <span className={`${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>
+                          {typeof s === 'string' ? s : s?.name || 'Skill'}
+                        </span>
                       </li>
                     ))}
                   </ul>
-                  <button onClick={() => setShowAllSkills(!showAllSkills)} className="w-full text-center py-2.5 mt-5 text-[11px] font-bold text-[#0f766e] border border-teal-100 rounded-lg hover:bg-teal-50 transition">{showAllSkills ? t("Show Less ←") : t("View All Skills →")}</button>
+                  {!isPro ? (
+                    <button disabled className="w-full py-2.5 mt-5 text-[11px] font-bold text-gray-400 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center gap-1 cursor-not-allowed">
+                      <Lock className="w-3 h-3"/> {t("Locked")}
+                    </button>
+                  ) : (
+                    <button onClick={() => setShowAllSkills(!showAllSkills)} className="w-full text-center py-2.5 mt-5 text-[11px] font-bold text-[#0f766e] border border-teal-100 rounded-lg hover:bg-teal-50 transition">{showAllSkills ? t("Show Less ←") : t("View All Skills →")}</button>
+                  )}
                 </div>
 
                 {/* Resume Score */}
                 <div className="border border-gray-100 rounded-xl p-4 flex flex-col h-full bg-gray-50/30">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="bg-teal-50 p-1.5 rounded-md"><FileText className="w-4 h-4 text-teal-700" /></div>
-                    <span className="font-bold text-[13px] text-gray-900">{t("Resume Score")}</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-teal-50 p-1.5 rounded-md"><FileText className="w-4 h-4 text-teal-700" /></div>
+                      <span className="font-bold text-[13px] text-gray-900">{t("Resume Score")}</span>
+                    </div>
+                    {!isPro && <Lock className="w-4 h-4 text-gray-300" />}
                   </div>
                   <p className="text-[11px] text-gray-500 mb-5 line-clamp-2 leading-relaxed">{t("Your resume is good. Improve these areas to make it excellent.")}</p>
                   
                   <div className="space-y-4 mb-auto">
                     <div>
                       <div className="flex justify-between text-[11px] font-bold text-gray-700 mb-1.5">
-                        <span>{t("Format & Structure")}</span> <span className="text-[#0f766e]">{(reportData?.resume_score?.impact > 70) ? 'Good' : 'Average'}</span>
+                        <span>{t("Format & Structure")}</span> <span className={`text-[#0f766e] ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{(reportData?.resume_score?.impact > 70) ? 'Good' : 'Average'}</span>
                       </div>
-                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden"><div className="h-full bg-[#0f766e] rounded-full" style={{width: `${reportData?.resume_score?.impact || 80}%`}}></div></div>
+                      <div className={`h-1.5 bg-gray-200 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}><div className="h-full bg-[#0f766e] rounded-full" style={{width: `${reportData?.resume_score?.impact || 80}%`}}></div></div>
                     </div>
                     <div>
                       <div className="flex justify-between text-[11px] font-bold text-gray-700 mb-1.5">
-                        <span>{t("Content Depth")}</span> <span className="text-[#0f766e]">{(reportData?.resume_score?.brevity > 70) ? 'Good' : 'Average'}</span>
+                        <span>{t("Content Depth")}</span> <span className={`text-[#0f766e] ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{(reportData?.resume_score?.brevity > 70) ? 'Good' : 'Average'}</span>
                       </div>
-                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden"><div className="h-full bg-[#0f766e] rounded-full" style={{width: `${reportData?.resume_score?.brevity || 75}%`}}></div></div>
+                      <div className={`h-1.5 bg-gray-200 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}><div className="h-full bg-[#0f766e] rounded-full" style={{width: `${reportData?.resume_score?.brevity || 75}%`}}></div></div>
                     </div>
                     <div>
                       <div className="flex justify-between text-[11px] font-bold text-gray-700 mb-1.5">
-                        <span>{t("Keywords Optimization")}</span> <span className={reportData?.resume_score?.skills_match > 70 ? 'text-[#0f766e]' : 'text-orange-500'}>{(reportData?.resume_score?.skills_match > 70) ? 'Good' : 'Average'}</span>
+                        <span>{t("Keywords Optimization")}</span> <span className={`${reportData?.resume_score?.skills_match > 70 ? 'text-[#0f766e]' : 'text-orange-500'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{(reportData?.resume_score?.skills_match > 70) ? 'Good' : 'Average'}</span>
                       </div>
-                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden"><div className={`h-full ${reportData?.resume_score?.skills_match > 70 ? 'bg-[#0f766e]' : 'bg-orange-400'} rounded-full`} style={{width: `${reportData?.resume_score?.skills_match || 50}%`}}></div></div>
+                      <div className={`h-1.5 bg-gray-200 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}><div className={`h-full ${reportData?.resume_score?.skills_match > 70 ? 'bg-[#0f766e]' : 'bg-orange-400'} rounded-full`} style={{width: `${reportData?.resume_score?.skills_match || 50}%`}}></div></div>
                     </div>
                   </div>
-                  <Link to="/provider/resume-toolkit" className="block w-full text-center py-2.5 mt-5 text-[11px] font-bold text-[#0f766e] border border-teal-100 rounded-lg hover:bg-teal-50 transition">{t("Optimize Resume →")}</Link>
+                  {!isPro ? (
+                    <button disabled className="w-full py-2.5 mt-5 text-[11px] font-bold text-gray-400 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center gap-1 cursor-not-allowed">
+                      <Lock className="w-3 h-3"/> {t("Locked")}
+                    </button>
+                  ) : (
+                    <Link to="/provider/resume-toolkit" className="block w-full text-center py-2.5 mt-5 text-[11px] font-bold text-[#0f766e] border border-teal-100 rounded-lg hover:bg-teal-50 transition">{t("Optimize Resume →")}</Link>
+                  )}
                 </div>
 
                 {/* Top Job Roles */}
                 <div className="border border-gray-100 rounded-xl p-4 flex flex-col h-full bg-gray-50/30">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="bg-indigo-50 p-1.5 rounded-md"><Briefcase className="w-4 h-4 text-indigo-600" /></div>
-                    <span className="font-bold text-[13px] text-gray-900">{t("Top Job Roles for You")}</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-indigo-50 p-1.5 rounded-md"><Briefcase className="w-4 h-4 text-indigo-600" /></div>
+                      <span className="font-bold text-[13px] text-gray-900">{t("Top Job Roles for You")}</span>
+                    </div>
+                    {!isPro && <Lock className="w-4 h-4 text-gray-300" />}
                   </div>
                   <div className="mb-2 h-1"></div>
                   
@@ -401,13 +475,19 @@ export default function AITips() {
                       <div key={i} className="flex items-start gap-3">
                         <div className={`w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5 border ${i===0 ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : i===1 ? 'bg-teal-50 text-teal-700 border-teal-100' : 'bg-gray-50 text-gray-500 border-gray-100'}`}>{i+1}</div>
                         <div>
-                          <div className="text-[12px] font-bold text-gray-800 leading-tight">{jobRole.role}</div>
-                          <div className="text-[10px] font-bold text-teal-600 mt-1">{jobRole.match_percentage > 0 ? `${jobRole.match_percentage}% Match` : ''}</div>
+                          <div className={`text-[12px] font-bold text-gray-800 leading-tight ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{jobRole.role}</div>
+                          <div className={`text-[10px] font-bold text-teal-600 mt-1 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{jobRole.match_percentage > 0 ? `${jobRole.match_percentage}% Match` : ''}</div>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <Link to="/provider/job-for-me" className="block w-full text-center py-2.5 mt-5 text-[11px] font-bold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">{t("Explore Roles →")}</Link>
+                  {!isPro ? (
+                    <button disabled className="w-full py-2.5 mt-5 text-[11px] font-bold text-gray-400 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center gap-1 cursor-not-allowed">
+                      <Lock className="w-3 h-3"/> {t("Locked")}
+                    </button>
+                  ) : (
+                    <Link to="/provider/job-for-me" className="block w-full text-center py-2.5 mt-5 text-[11px] font-bold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">{t("Explore Roles →")}</Link>
+                  )}
                 </div>
 
               </div>
@@ -417,15 +497,29 @@ export default function AITips() {
             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-[15px] font-bold text-gray-900">{t("AI Recommended Jobs")}</h2>
+                  <h2 className="text-[15px] font-bold text-gray-900 flex items-center gap-2">{t("AI Recommended Jobs")}{!isPro && <Lock className="w-4 h-4 text-gray-300" />}</h2>
                   <p className="text-[11px] text-gray-500 mt-1 font-medium">{t("Jobs picked by AI based on your profile & activity")}</p>
                 </div>
-                <Link to="/provider/job-for-me" className="text-[11px] font-bold text-[#0f766e] flex items-center gap-1 hover:underline">{t("View All Matches")}<ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                {!isPro ? (
+                  <span className="text-[11px] font-bold text-gray-400 flex items-center gap-1"><Lock className="w-3 h-3"/> {t("Locked")}</span>
+                ) : (
+                  <Link to="/provider/job-for-me" className="text-[11px] font-bold text-[#0f766e] flex items-center gap-1 hover:underline">{t("View All Matches")}<ArrowRight className="w-3.5 h-3.5" /></Link>
+                )}
               </div>
 
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-6 px-6">
-                {(topJobs.length > 0 ? topJobs.slice(0, 5) : Array(4).fill({ title: 'UI/UX Designer', company: 'Google', budgetMin: 12, budgetMax: 18, city: 'Bengaluru, Karnataka (Hybrid)' })).map((job, idx) => (
+              <div className="relative">
+                {!isPro && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/50 backdrop-blur-[3px] rounded-xl">
+                    <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 mb-2">
+                      <Lock className="w-5 h-5" />
+                    </div>
+                    <h4 className="text-sm font-bold text-gray-900">{t("Premium Feature")}</h4>
+                    <p className="text-xs text-gray-500 mt-1 mb-3">{t("Purchase premium to see AI recommended jobs")}</p>
+                    <Link to="/provider/plans" className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition">{t("Upgrade Plan")}</Link>
+                  </div>
+                )}
+                <div className={`flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-6 px-6 ${!isPro ? 'pointer-events-none select-none' : ''}`}>
+                  {(topJobs.length > 0 ? topJobs.slice(0, 5) : Array(4).fill({ title: 'UI/UX Designer', company: 'Google', budgetMin: 12, budgetMax: 18, city: 'Bengaluru, Karnataka (Hybrid)' })).map((job, idx) => (
                   <div key={idx} className="min-w-[280px] bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition flex flex-col h-full relative">
                     <div className="flex items-start gap-3 mb-4">
                       <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center font-black text-gray-700 shadow-sm border border-gray-100 shrink-0 text-lg relative overflow-hidden">
@@ -477,6 +571,7 @@ export default function AITips() {
                     )}
                   </div>
                 ))}
+                </div>
               </div>
             </div>
 
@@ -485,10 +580,13 @@ export default function AITips() {
               <div className="flex items-center gap-3">
                 <div className="bg-[#dcfce7] p-2 rounded-lg"><Lightbulb className="w-5 h-5 text-[#166534]" /></div>
                 <span className="text-[13px] font-medium text-[#166534]">
-                  <strong className="font-bold text-[#14532d]">{t("AI Tip:")}</strong>{t(
-                  "Candidates with strong Design Systems skills are getting 40% more interview calls."
-                )}</span>
+                  <strong className="font-bold text-[#14532d] mr-1">{t("AI Tip:")}</strong>
+                  <span className={!isPro ? 'blur-[4px] opacity-80 select-none' : ''}>{t(
+                    "Candidates with strong Design Systems skills are getting 40% more interview calls."
+                  )}</span>
+                </span>
               </div>
+              {!isPro && <Lock className="w-4 h-4 text-[#166534]/30" />}
             </div>
 
           </div>
@@ -498,21 +596,24 @@ export default function AITips() {
             
             {/* AI Summary */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-5 h-5 text-[#0f766e]" />
-                <h3 className="font-bold text-gray-900 text-[14px]">{t("AI Summary")}</h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[#0f766e]" />
+                  <h3 className="font-bold text-gray-900 text-[14px]">{t("AI Summary")}</h3>
+                </div>
+                {!isPro && <Lock className="w-4 h-4 text-gray-300" />}
               </div>
               <p className="text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">{t("Here's what AI thinks about your job search progress.")}</p>
               
               <ul className="space-y-3.5 mb-6">
                 <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Your profile is well optimized")}</li>
+                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" /><span className={!isPro ? 'blur-[4px] opacity-80 select-none' : ''}>{t("Your profile is well optimized")}</span></li>
                 <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("You have strong skills for your roles")}</li>
+                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" /><span className={!isPro ? 'blur-[4px] opacity-80 select-none' : ''}>{t("You have strong skills for your roles")}</span></li>
                 <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Keep applying consistently")}</li>
+                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" /><span className={!isPro ? 'blur-[4px] opacity-80 select-none' : ''}>{t("Keep applying consistently")}</span></li>
                 <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Improve these skills to get more interviews")}</li>
+                  <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" /><span className={!isPro ? 'blur-[4px] opacity-80 select-none' : ''}>{t("Improve these skills to get more interviews")}</span></li>
               </ul>
             </div>
 
@@ -523,12 +624,12 @@ export default function AITips() {
                   <Bot className="w-5 h-5 text-gray-700" />
                   <h3 className="font-bold text-gray-900 text-[14px]">{t("AI Coach")}</h3>
                 </div>
-                <span className="bg-indigo-50 text-indigo-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-indigo-100">{t("Premium")}</span>
+                {!isPro ? <Lock className="w-4 h-4 text-gray-300" /> : <span className="bg-indigo-50 text-indigo-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-indigo-100">{t("Premium")}</span>}
               </div>
               <p className="text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">{t("Get personalized guidance to move ahead in your career.")}</p>
               
               <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl rounded-tr-sm mb-5 relative ml-6">
-                <p className="text-[11px] text-gray-700 leading-relaxed font-medium">{t(
+                <p className={`text-[11px] text-gray-700 leading-relaxed font-medium ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{t(
                   "Hi Ananya! I analyzed your profile and applications. Would you like me to suggest some ways to improve your chances?"
                 )}</p>
                 <div className="absolute -left-8 top-0 w-8 h-8 bg-[#0f766e] shadow-sm rounded-full flex items-center justify-center">
@@ -536,8 +637,14 @@ export default function AITips() {
                 </div>
               </div>
               
-              <button onClick={() => window.dispatchEvent(new CustomEvent('open-ai-coach'))} className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-[#0f766e] hover:bg-gray-50 transition flex justify-center items-center gap-1.5 cursor-pointer">{t("Chat with AI Coach")}<ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              {!isPro ? (
+                <button disabled className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-400 bg-gray-50 flex justify-center items-center gap-1.5 cursor-not-allowed">
+                  <Lock className="w-3.5 h-3.5" /> {t("Locked")}
+                </button>
+              ) : (
+                <button onClick={() => window.dispatchEvent(new CustomEvent('open-ai-coach'))} className="w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-[#0f766e] hover:bg-gray-50 transition flex justify-center items-center gap-1.5 cursor-pointer">{t("Chat with AI Coach")}<ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
 
             {/* WhatsApp AI Alerts */}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, Settings, Send, CheckCircle2, Circle,
@@ -8,18 +8,20 @@ import {
   ThumbsUp, ThumbsDown, Bot, Sparkles, Briefcase,
   TrendingUp, Award, Clock, RefreshCw, ChevronRight,
   BarChart2, BookOpen, Layers, Edit2, Check,
-  Folder, MousePointerClick, BrainCircuit, Banknote, Flag
+  Folder, MousePointerClick, BrainCircuit, Banknote, Flag, Lock
 } from 'lucide-react';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { getCurrentSubscription } from '../../services/providerPlanService';
 
 const TABS = ['Overview', 'Daily Tasks', 'Career Plan', 'Resources', 'Progress'];
 
 export default function AiCareerCoach() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Core data
   const [activeTab, setActiveTab] = useState('Overview');
@@ -45,9 +47,81 @@ export default function AiCareerCoach() {
   const [goalLoading, setGoalLoading] = useState(false);
   const [activeRecTab, setActiveRecTab] = useState('Focus Areas');
   const [tipFeedback, setTipFeedback] = useState(null); // 'up' | 'down' | null
-  const chatEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
+  const [isPro, setIsPro] = useState(false);
 
-  useEffect(() => { fetchDashboardData(); }, []);
+  useEffect(() => {
+    const fetchPlanAndData = async () => {
+      let isUserPro = false;
+      try {
+        const planRes = await getCurrentSubscription();
+        const activePlan = planRes?.subscription || planRes || null;
+        
+        if (activePlan && Object.keys(activePlan).length > 0) {
+          const planStatus = activePlan.subscriptionStatus || activePlan.status || 'active';
+          const tier = String(activePlan.planSnapshot?.slug || activePlan.planName || activePlan.plan || activePlan.tier || activePlan.currentPlan || user?.currentPlan || 'free').toLowerCase();
+          
+          const isFreeTier = ['free', 'provider-free-default', 'basic-free', 'null', 'undefined', ''].includes(tier);
+          isUserPro = (planStatus === 'active' && !isFreeTier);
+        }
+      } catch {
+        // fallback to context
+      }
+      
+      const userTier = String(user?.currentPlan || 'free').toLowerCase();
+      const isUserFreeTier = ['free', 'provider-free-default', 'basic-free', 'null', 'undefined', ''].includes(userTier);
+      const finalIsPro = isUserPro || user?.isPro || (!isUserFreeTier);
+      setIsPro(finalIsPro);
+
+      if (!finalIsPro) {
+        // Free user, skip API call to save cost
+        setData({
+          progressStats: { percentage: 45 },
+          currentGoal: { role: 'Premium Feature', time: 'N/A', completion: 45, currentMilestone: 'Locked' },
+          todaysTasks: [
+            { title: 'Locked Task 1', description: 'Premium only', type: 'resume', status: 'pending' },
+            { title: 'Locked Task 2', description: 'Premium only', type: 'job', status: 'pending' },
+            { title: 'Locked Task 3', description: 'Premium only', type: 'skill', status: 'pending' }
+          ],
+          careerRoadmap: [
+            { title: 'Locked Step 1', timeframe: 'Locked', status: 'Current' },
+            { title: 'Locked Step 2', timeframe: 'Locked', status: 'Next Step' },
+            { title: 'Locked Step 3', timeframe: 'Locked', status: 'Future' }
+          ],
+          dailyTip: 'Premium tips are locked for free users.',
+          recommended: [
+            { title: 'Locked Resource 1', description: 'Premium only' },
+            { title: 'Locked Resource 2', description: 'Premium only' }
+          ],
+          milestones: [
+            { title: 'Locked Milestone 1', date: 'Locked', done: true },
+            { title: 'Locked Milestone 2', date: 'Locked', done: false }
+          ],
+          aiInsights: [
+            { type: 'strength', message: 'Premium insight hidden.' },
+            { type: 'improvement', message: 'Premium insight hidden.' }
+          ],
+          skillsCount: 0
+        });
+        setLoading(false);
+      } else {
+        await fetchDashboardData();
+        
+        // Check if there's an initial prompt from URL
+        const searchParams = new URLSearchParams(location.search);
+        const initialPrompt = searchParams.get('prompt');
+        if (initialPrompt) {
+          // Remove the prompt from URL so it doesn't re-trigger on refresh
+          window.history.replaceState(null, '', location.pathname);
+          // Auto-submit the prompt after a slight delay to let UI settle
+          setTimeout(() => {
+            handleSendMessage(null, initialPrompt, true);
+          }, 500);
+        }
+      }
+    };
+    fetchPlanAndData();
+  }, [user]);
 
   useEffect(() => {
     if (data?.currentGoal) {
@@ -61,8 +135,10 @@ export default function AiCareerCoach() {
   }, [data?.todaysTasks]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatHistory]);
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatHistory, chatLoading]);
 
   // Check if all tasks done → refresh
   useEffect(() => {
@@ -84,18 +160,38 @@ export default function AiCareerCoach() {
     }
   };
 
-  const handleChatSubmit = async (e, overrideMsg) => {
-    e?.preventDefault();
-    const msg = overrideMsg || chatMessage;
-    if (!msg.trim()) return;
+  const handleSendMessage = async (e, forcedMessage = null, bypassProCheck = false) => {
+    if (e) e.preventDefault();
+    const msgToSend = forcedMessage || chatMessage;
+    if (!msgToSend.trim()) return;
 
-    const userMsg = { role: 'user', text: msg };
+    const userMsg = { role: 'user', text: msgToSend };
     setChatHistory(prev => [...prev, userMsg]);
     setChatMessage('');
+
+    if (!isPro && !bypassProCheck) {
+      setChatLoading(true);
+      setTimeout(() => {
+        setChatHistory(prev => [...prev, { 
+          role: 'ai', 
+          text: 'To get personalized responses and full AI coaching, please purchase a premium plan.',
+          isUpgradePrompt: true
+        }]);
+        setChatLoading(false);
+      }, 800);
+      return;
+    }
+
     setChatLoading(true);
+    
+    // Check if the chat container is hidden on small screens
+    const chatContainer = document.getElementById('chat-container');
+    if (chatContainer) {
+      chatContainer.scrollIntoView({ behavior: 'smooth' });
+    }
 
     try {
-      const res = await api.post('/provider/ai/ai-coach/chat', { message: msg });
+      const res = await api.post('/provider/ai/ai-coach/chat', { message: msgToSend });
       if (res.data?.success) {
         setChatHistory(prev => [...prev, { role: 'ai', text: res.data.data.message }]);
       }
@@ -108,7 +204,7 @@ export default function AiCareerCoach() {
   };
 
   const handleQuickChip = (text) => {
-    handleChatSubmit(null, text);
+    handleSendMessage(null, text);
   };
 
   const handleTaskToggle = async (idx) => {
@@ -147,14 +243,14 @@ export default function AiCareerCoach() {
     else {
       // skill/other — pre-fill chat and go to overview
       setActiveTab('Overview');
-      handleChatSubmit(null, `How can I improve my ${task.title.toLowerCase()}?`);
+      handleSendMessage(null, `How can I improve my ${task.title.toLowerCase()}?`);
     }
   };
 
   const handleRecommendedAction = (rec) => {
     setActiveTab('Overview');
     setTimeout(() => {
-      handleChatSubmit(null, `Tell me more about: ${rec.title}. ${rec.description}`);
+      handleSendMessage(null, `Tell me more about: ${rec.title}. ${rec.description}`);
     }, 100);
   };
 
@@ -234,12 +330,17 @@ export default function AiCareerCoach() {
 
         {/* Chat History */}
         {chatHistory.length > 0 && (
-          <div className="mb-4 space-y-3 max-h-52 overflow-y-auto pr-2">
+          <div ref={chatContainerRef} className="mb-4 space-y-4 max-h-60 overflow-y-auto pr-2 scroll-smooth">
             {chatHistory.map((msg, i) => (
-              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={i} className={`flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                 <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm font-medium ${msg.role === 'user' ? 'bg-[#0d8765] text-white rounded-br-sm' : 'bg-[#f8f9fc] text-[#1a1b41] rounded-bl-sm'}`}>
                   {msg.text}
                 </div>
+                {msg.isUpgradePrompt && (
+                  <Link to="/provider/plans" className="text-xs bg-[#0f766e] hover:bg-teal-800 text-white px-4 py-2 rounded-xl transition shadow-sm font-bold w-max">
+                    Purchase Plan to See Features
+                  </Link>
+                )}
               </div>
             ))}
             {chatLoading && (
@@ -249,12 +350,11 @@ export default function AiCareerCoach() {
                 </div>
               </div>
             )}
-            <div ref={chatEndRef} />
           </div>
         )}
 
         {/* Input Form */}
-        <form onSubmit={handleChatSubmit} className="relative mb-4">
+        <form onSubmit={handleSendMessage} className="relative mb-4">
           <input
             type="text" value={chatMessage} onChange={e => setChatMessage(e.target.value)}
             placeholder="Ask me anything about your career..."
@@ -271,7 +371,7 @@ export default function AiCareerCoach() {
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-bold text-gray-500 mr-2">Try asking:</span>
           {['How can I improve my resume?', 'What skills should I learn?', 'How do I prepare for a UI/UX interview?'].map((action, i) => (
-            <button key={i} onClick={() => { setChatMessage(action); handleChatSubmit({ preventDefault: () => {} }); }}
+            <button key={i} onClick={() => { setChatMessage(action); handleSendMessage({ preventDefault: () => {} }); }}
               className="px-3.5 py-1.5 bg-[#f4f5f8] hover:bg-gray-200 text-[#1a1b41] rounded-lg text-xs font-bold transition-colors">
               {action}
             </button>
@@ -293,7 +393,7 @@ export default function AiCareerCoach() {
         </div>
         <div className="space-y-2">
           {tasks.slice(0, 3).map((task, idx) => (
-            <TaskRow key={idx} task={task} idx={idx} onToggle={handleTaskToggle} onStart={handleTaskStart} />
+            <TaskRow key={idx} task={task} idx={idx} onToggle={handleTaskToggle} onStart={handleTaskStart} isPro={isPro} />
           ))}
         </div>
       </div>
@@ -308,25 +408,27 @@ export default function AiCareerCoach() {
             <div className="flex flex-wrap gap-8 items-center">
               <div>
                 <p className="text-base font-bold text-gray-500 uppercase tracking-wider">Target Role</p>
-                <p className="font-extrabold text-[#0f766e] text-base">{currentGoal.role || '—'}</p>
+                <p className={`font-extrabold text-[#0f766e] text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.role || '—'}</p>
               </div>
               <div>
                 <p className="text-base font-bold text-gray-500 uppercase tracking-wider">Timeline</p>
-                <p className="font-extrabold text-[#0f766e] text-base">{currentGoal.time || '—'}</p>
+                <p className={`font-extrabold text-[#0f766e] text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.time || '—'}</p>
               </div>
-              <button onClick={() => setGoalModalOpen(true)}
-                className="flex items-center gap-1 px-3 py-1.5 bg-white border border-teal-200 hover:border-[#0f766e] text-[#0f766e] font-bold text-sm rounded-lg transition-all">
-                <Edit2 className="w-4 h-4" /> Update Goal
-              </button>
+              {isPro && (
+                <button onClick={() => setGoalModalOpen(true)}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-white border border-teal-200 hover:border-[#0f766e] text-[#0f766e] font-bold text-sm rounded-lg transition-all">
+                  <Edit2 className="w-4 h-4" /> Update Goal
+                </button>
+              )}
             </div>
           </div>
           <div className="flex-1 sm:border-l border-teal-200/50 sm:pl-4 w-full">
             <p className="text-sm font-bold text-gray-900 mb-1">Next Milestone</p>
-            <p className="text-base font-medium text-gray-600 line-clamp-2 mb-2">{currentGoal.currentMilestone}</p>
-            <div className="h-1.5 w-full bg-teal-100/50 rounded-full overflow-hidden">
+            <p className={`text-base font-medium text-gray-600 line-clamp-2 mb-2 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.currentMilestone}</p>
+            <div className={`h-1.5 w-full bg-teal-100/50 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}>
               <div className="h-full bg-[#0f766e] rounded-full transition-all" style={{ width: `${currentGoal.completion || 0}%` }} />
             </div>
-            <p className="text-base font-bold text-gray-500 mt-1">{currentGoal.completion || 0}% Completed</p>
+            <p className={`text-base font-bold text-gray-500 mt-1 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.completion || 0}% Completed</p>
           </div>
         </div>
       </div>
@@ -352,7 +454,7 @@ export default function AiCareerCoach() {
         </div>
         <div className="space-y-2">
           {tasks.map((task, idx) => (
-            <TaskRow key={idx} task={task} idx={idx} onToggle={handleTaskToggle} onStart={handleTaskStart} expanded />
+            <TaskRow key={idx} task={task} idx={idx} onToggle={handleTaskToggle} onStart={handleTaskStart} expanded isPro={isPro} />
           ))}
         </div>
         {tasks.length === 0 && (
@@ -370,26 +472,28 @@ export default function AiCareerCoach() {
           <h3 className="text-base font-bold flex items-center gap-1.5">
             <Target className="w-6 h-6 text-red-500" /> Current Goal
           </h3>
-          <button onClick={() => setGoalModalOpen(true)}
-            className="flex items-center gap-1 px-2.5 py-1 bg-white border border-teal-200 hover:border-[#0f766e] text-[#0f766e] font-bold text-base rounded-lg transition-all">
-            <Edit2 className="w-4 h-4" /> Edit
-          </button>
+          {isPro && (
+            <button onClick={() => setGoalModalOpen(true)}
+              className="flex items-center gap-1 px-2.5 py-1 bg-white border border-teal-200 hover:border-[#0f766e] text-[#0f766e] font-bold text-base rounded-lg transition-all">
+              <Edit2 className="w-4 h-4" /> Edit
+            </button>
+          )}
         </div>
         <div className="flex gap-6 mb-3">
           <div>
             <p className="text-base font-bold text-gray-500 uppercase">Target Role</p>
-            <p className="font-extrabold text-[#0f766e] text-lg">{currentGoal.role}</p>
+            <p className={`font-extrabold text-[#0f766e] text-lg ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.role}</p>
           </div>
           <div>
             <p className="text-base font-bold text-gray-500 uppercase">Timeline</p>
-            <p className="font-extrabold text-[#0f766e] text-lg">{currentGoal.time}</p>
+            <p className={`font-extrabold text-[#0f766e] text-lg ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.time}</p>
           </div>
           <div>
             <p className="text-base font-bold text-gray-500 uppercase">Progress</p>
-            <p className="font-extrabold text-[#0f766e] text-lg">{currentGoal.completion || 0}%</p>
+            <p className={`font-extrabold text-[#0f766e] text-lg ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.completion || 0}%</p>
           </div>
         </div>
-        <p className="text-sm text-gray-600 font-medium">📌 {currentGoal.currentMilestone}</p>
+        <p className={`text-sm text-gray-600 font-medium ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>📌 {currentGoal.currentMilestone}</p>
       </div>
 
       {/* Full Roadmap */}
@@ -401,8 +505,8 @@ export default function AiCareerCoach() {
             <div key={i} className="flex items-start justify-between relative z-10 pl-6">
               <div className={`absolute left-0 w-4 h-4 rounded-full border-2 mt-0.5 ${i === 0 ? 'border-[#0f766e] bg-[#0f766e]' : i === 1 ? 'border-indigo-400 bg-white' : 'border-gray-300 bg-white'}`} style={{ left: '5px' }} />
               <div>
-                <p className={`font-bold text-sm ${i === 0 ? 'text-gray-900' : 'text-gray-500'}`}>{step.title}</p>
-                {step.timeframe && <p className="text-base text-gray-400">{step.timeframe}</p>}
+                <p className={`font-bold text-sm ${i === 0 ? 'text-gray-900' : 'text-gray-500'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{step.title}</p>
+                {step.timeframe && <p className={`text-base text-gray-400 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{step.timeframe}</p>}
               </div>
               <span className={`px-2 py-0.5 text-sm font-bold rounded-md shrink-0 ${step.status === 'Current' ? 'bg-teal-50 text-[#0f766e]' : step.status === 'Next Step' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-500'}`}>
                 {step.status}
@@ -425,9 +529,9 @@ export default function AiCareerCoach() {
             <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl border ${m.done ? 'bg-teal-50/40 border-teal-100' : 'bg-gray-50 border-gray-100'}`}>
               <div className="flex items-center gap-2.5">
                 {m.done ? <CheckCircle2 className="w-6 h-6 text-[#0f766e] shrink-0" /> : <Circle className="w-6 h-6 text-gray-300 shrink-0" />}
-                <span className={`text-sm font-bold ${m.done ? 'text-[#0f766e]' : 'text-gray-600'}`}>{m.title}</span>
+                <span className={`text-sm font-bold ${m.done ? 'text-[#0f766e]' : 'text-gray-600'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{m.title}</span>
               </div>
-              <span className="text-base font-semibold text-gray-400">{m.date}</span>
+              <span className={`text-base font-semibold text-gray-400 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{m.date}</span>
             </div>
           ))}
         </div>
@@ -448,8 +552,8 @@ export default function AiCareerCoach() {
                   <Sparkles className="w-6 h-6" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900 leading-tight mb-1">{rec.title}</p>
-                  <p className="text-base text-gray-500 line-clamp-2">{rec.description}</p>
+                  <p className={`text-sm font-bold text-gray-900 leading-tight mb-1 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{rec.title}</p>
+                  <p className={`text-base text-gray-500 line-clamp-2 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{rec.description}</p>
                   <div className="flex items-center gap-1 text-[#0f766e] font-bold text-base mt-2">
                     {rec.actionText || 'Learn How'} <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </div>
@@ -465,20 +569,26 @@ export default function AiCareerCoach() {
         <h3 className="text-sm font-bold flex items-center gap-1.5 mb-2 text-amber-800">
           <Sparkles className="w-5 h-5 text-amber-500" /> Daily Tip from AI Coach
         </h3>
-        <p className="text-sm font-medium text-amber-900 leading-relaxed mb-3">
+        <p className={`text-sm font-medium text-amber-900 leading-relaxed mb-3 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>
           {dailyTip || 'A strong portfolio with 3-4 case studies can increase your profile views by up to 60%.'}
         </p>
         <div className="flex items-center justify-between pt-2 border-t border-amber-200">
           <span className="text-base font-bold text-amber-700">Was this helpful?</span>
           <div className="flex items-center gap-1">
-            <button onClick={() => handleTipFeedback(true)}
-              className={`p-1.5 rounded-lg transition-colors ${tipFeedback === 'up' ? 'bg-teal-100 text-teal-700' : 'hover:bg-amber-100 text-amber-600'}`}>
-              <ThumbsUp className="w-5 h-5" />
-            </button>
-            <button onClick={() => handleTipFeedback(false)}
-              className={`p-1.5 rounded-lg transition-colors ${tipFeedback === 'down' ? 'bg-red-100 text-red-600' : 'hover:bg-amber-100 text-amber-600'}`}>
-              <ThumbsDown className="w-5 h-5" />
-            </button>
+            {isPro ? (
+              <>
+                <button onClick={() => handleTipFeedback(true)}
+                  className={`p-1.5 rounded-lg transition-colors ${tipFeedback === 'up' ? 'bg-teal-100 text-teal-700' : 'hover:bg-amber-100 text-amber-600'}`}>
+                  <ThumbsUp className="w-5 h-5" />
+                </button>
+                <button onClick={() => handleTipFeedback(false)}
+                  className={`p-1.5 rounded-lg transition-colors ${tipFeedback === 'down' ? 'bg-red-100 text-red-600' : 'hover:bg-amber-100 text-amber-600'}`}>
+                  <ThumbsDown className="w-5 h-5" />
+                </button>
+              </>
+            ) : (
+              <Lock className="w-5 h-5 text-amber-600/50" />
+            )}
           </div>
         </div>
       </div>
@@ -497,7 +607,7 @@ export default function AiCareerCoach() {
         ].map((stat, i) => (
           <div key={i} className={`${stat.color} border rounded-2xl p-3 text-center`}>
             <div className="flex justify-center mb-1">{stat.icon}</div>
-            <p className="text-2xl font-extrabold text-gray-900">{stat.value}</p>
+            <p className={`text-2xl font-extrabold text-gray-900 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{stat.value}</p>
             <p className="text-base font-bold text-gray-500">{stat.label}</p>
           </div>
         ))}
@@ -526,9 +636,9 @@ export default function AiCareerCoach() {
               ].map((bar, i) => (
                 <div key={i}>
                   <div className="flex justify-between text-base font-bold text-gray-500 mb-0.5">
-                    <span>{bar.label}</span><span>{bar.val}%</span>
+                    <span>{bar.label}</span><span className={`${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{bar.val}%</span>
                   </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className={`h-1.5 bg-gray-100 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}>
                     <div className="h-full bg-[#0f766e] rounded-full" style={{ width: `${bar.val}%` }} />
                   </div>
                 </div>
@@ -554,7 +664,7 @@ export default function AiCareerCoach() {
                 </div>
                 <div>
                   <p className="text-base font-bold uppercase tracking-wider mb-0.5 text-indigo-500">{insight.type}</p>
-                  <p className="text-sm font-medium text-indigo-950">{insight.message}</p>
+                  <p className={`text-sm font-medium text-indigo-950 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{insight.message}</p>
                 </div>
               </div>
             ))}
@@ -567,7 +677,7 @@ export default function AiCareerCoach() {
         <h3 className="text-base font-bold mb-3">Today's Tasks</h3>
         <div className="space-y-2">
           {tasks.map((task, idx) => (
-            <TaskRow key={idx} task={task} idx={idx} onToggle={handleTaskToggle} onStart={handleTaskStart} />
+            <TaskRow key={idx} task={task} idx={idx} onToggle={handleTaskToggle} onStart={handleTaskStart} isPro={isPro} />
           ))}
         </div>
       </div>
@@ -582,7 +692,7 @@ export default function AiCareerCoach() {
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         <h3 className="text-base font-bold mb-3">Coach Summary</h3>
         <div className="flex items-center gap-8 mb-4">
-          <div className="w-16 h-16 shrink-0">
+          <div className={`w-16 h-16 shrink-0 ${!isPro ? 'blur-[4px] opacity-80 select-none pointer-events-none' : ''}`}>
             <CircularProgressbar
               value={progressStats.percentage || 0}
               text={`${progressStats.percentage || 0}%`}
@@ -592,7 +702,7 @@ export default function AiCareerCoach() {
           </div>
           <div>
             <h4 className="font-bold text-[#0f766e] text-sm">Overall Progress</h4>
-            <p className="text-base text-gray-500 leading-tight">You're on the right track!</p>
+            <p className={`text-base text-gray-500 leading-tight ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>You're on the right track!</p>
             <button onClick={() => setActiveTab('Progress')}
               className="text-base font-bold text-[#0f766e] flex items-center gap-0.5 mt-1">
               View Details <ArrowRight className="w-4 h-4" />
@@ -616,9 +726,9 @@ export default function AiCareerCoach() {
           {careerRoadmap.map((step, i) => (
             <div key={i} className="flex items-center justify-between relative z-10 pl-7">
               <div className={`absolute w-4 h-4 rounded-full border-2 bg-white ${i === 0 ? 'border-[#0f766e] bg-[#0f766e]' : 'border-gray-300'}`} style={{ left: '3.5px' }} />
-              <span className={`font-bold text-sm ${i === 0 ? 'text-gray-900' : 'text-gray-500'}`}>{step.title}</span>
+              <span className={`font-bold text-sm ${i === 0 ? 'text-gray-900' : 'text-gray-500'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{step.title}</span>
               <span className={`px-2 py-0.5 text-sm font-bold rounded-md ${step.status === 'Current' ? 'bg-teal-50 text-[#0f766e]' : step.status === 'Next Step' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-500'}`}>
-                {step.status === 'Future' ? step.timeframe : step.status}
+                {step.status === 'Future' ? <span className={`${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{step.timeframe}</span> : step.status}
               </span>
             </div>
           ))}
@@ -630,18 +740,24 @@ export default function AiCareerCoach() {
         <h3 className="text-sm font-bold flex items-center gap-1.5 mb-2">
           <Sparkles className="w-5 h-5 text-amber-500" /> Daily Tip
         </h3>
-        <p className="text-sm text-gray-700 leading-relaxed mb-3">{dailyTip}</p>
+        <p className={`text-sm text-gray-700 leading-relaxed mb-3 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{dailyTip}</p>
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <span className="text-base font-bold text-gray-500">Helpful?</span>
           <div className="flex gap-1">
-            <button onClick={() => handleTipFeedback(true)}
-              className={`p-1.5 rounded-lg transition-colors ${tipFeedback === 'up' ? 'bg-teal-100 text-teal-700' : 'text-gray-400 hover:bg-gray-100'}`}>
-              <ThumbsUp className="w-5 h-5" />
-            </button>
-            <button onClick={() => handleTipFeedback(false)}
-              className={`p-1.5 rounded-lg transition-colors ${tipFeedback === 'down' ? 'bg-red-100 text-red-600' : 'text-gray-400 hover:bg-gray-100'}`}>
-              <ThumbsDown className="w-5 h-5" />
-            </button>
+            {isPro ? (
+              <>
+                <button onClick={() => handleTipFeedback(true)}
+                  className={`p-1.5 rounded-lg transition-colors ${tipFeedback === 'up' ? 'bg-teal-100 text-teal-700' : 'text-gray-400 hover:bg-gray-100'}`}>
+                  <ThumbsUp className="w-5 h-5" />
+                </button>
+                <button onClick={() => handleTipFeedback(false)}
+                  className={`p-1.5 rounded-lg transition-colors ${tipFeedback === 'down' ? 'bg-red-100 text-red-600' : 'text-gray-400 hover:bg-gray-100'}`}>
+                  <ThumbsDown className="w-5 h-5" />
+                </button>
+              </>
+            ) : (
+              <Lock className="w-5 h-5 text-gray-400/50" />
+            )}
           </div>
         </div>
       </div>
@@ -695,15 +811,25 @@ export default function AiCareerCoach() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {recommendedData[activeRecTab]?.map((card, idx) => (
-          <div key={idx} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
+          <div key={idx} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full relative">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${card.bg}`}>
               {card.icon}
             </div>
-            <h4 className="font-bold text-gray-900 text-sm mb-2 leading-tight">{card.title}</h4>
-            <p className="text-gray-500 text-xs mb-6 flex-1">{card.desc}</p>
-            <button onClick={() => navigate(card.link)} className="w-full py-2 border border-gray-200 text-[#0f766e] font-bold text-xs rounded-xl hover:bg-teal-50 flex items-center justify-center gap-1 mt-auto transition-colors">
-              {card.action} <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <h4 className="font-bold text-gray-900 text-sm mb-2 leading-tight">
+              {card.title}
+            </h4>
+            <p className={`text-gray-500 text-xs mb-6 flex-1 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>
+              {card.desc}
+            </p>
+            {isPro ? (
+              <button onClick={() => navigate(card.link)} className="w-full py-2 border border-gray-200 text-[#0f766e] font-bold text-xs rounded-xl hover:bg-teal-50 flex items-center justify-center gap-1 mt-auto transition-colors">
+                {card.action} <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <button disabled className="w-full py-2 bg-gray-50 border border-gray-200 text-gray-400 font-bold text-xs rounded-xl flex items-center justify-center gap-1 mt-auto transition-colors cursor-not-allowed">
+                <Lock className="w-3.5 h-3.5" /> Premium Required
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -714,20 +840,22 @@ export default function AiCareerCoach() {
     <div className="mt-6 bg-gradient-to-r from-emerald-50/80 to-teal-50/40 border border-emerald-200/80 rounded-2xl p-6 flex flex-col lg:flex-row gap-8 justify-between items-center relative overflow-hidden">
       <div className="flex-1 space-y-4">
         <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">Let's Achieve Your Goal <Target className="w-6 h-6 text-red-500" /></h3>
-        <p className="text-gray-600 text-sm">You want to become a Senior UI/UX Designer within 2 years.</p>
+        <p className={`text-gray-600 text-sm ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>You want to become a Senior UI/UX Designer within 2 years.</p>
         
         <div className="flex flex-wrap items-center gap-8 pt-2">
           <div>
             <p className="text-xs font-bold text-gray-500 mb-1">Target Role</p>
-            <p className="text-[#0f766e] font-extrabold text-base">Senior UI/UX Designer</p>
+            <p className={`text-[#0f766e] font-extrabold text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>Senior UI/UX Designer</p>
           </div>
           <div>
             <p className="text-xs font-bold text-gray-500 mb-1">Target Time</p>
-            <p className="text-[#0f766e] font-extrabold text-base">2 Years</p>
+            <p className={`text-[#0f766e] font-extrabold text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>2 Years</p>
           </div>
-          <button onClick={() => setGoalModalOpen(true)} className="px-5 py-2.5 rounded-xl border-2 border-[#0f766e] text-[#0f766e] font-bold text-sm hover:bg-teal-50 transition-colors ml-auto sm:ml-0 bg-white shadow-sm">
-            Update Goal
-          </button>
+          {isPro && (
+            <button onClick={() => setGoalModalOpen(true)} className="px-5 py-2.5 rounded-xl border-2 border-[#0f766e] text-[#0f766e] font-bold text-sm hover:bg-teal-50 transition-colors ml-auto sm:ml-0 bg-white shadow-sm">
+              Update Goal
+            </button>
+          )}
         </div>
       </div>
 
@@ -736,11 +864,11 @@ export default function AiCareerCoach() {
       <div className="flex-1 relative w-full flex items-center lg:pl-4">
         <div className="max-w-md relative z-10 w-full">
           <h4 className="font-bold text-[#0f766e] text-base mb-1">Next Milestone</h4>
-          <p className="text-gray-600 text-sm mb-4">Strengthen your portfolio and gain advanced UI interaction skills.</p>
-          <div className="w-3/4 bg-emerald-200/50 h-2.5 rounded-full mb-1">
+          <p className={`text-gray-600 text-sm mb-4 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>Strengthen your portfolio and gain advanced UI interaction skills.</p>
+          <div className={`w-3/4 bg-emerald-200/50 h-2.5 rounded-full mb-1 ${!isPro ? 'blur-[2px] opacity-80' : ''}`}>
             <div className="bg-[#0f766e] h-2.5 rounded-full" style={{ width: '60%' }} />
           </div>
-          <p className="text-xs font-bold text-gray-700">60% Completed</p>
+          <p className={`text-xs font-bold text-gray-700 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>60% Completed</p>
         </div>
         
         <div className="absolute -right-8 -bottom-10 text-emerald-100 opacity-60">
@@ -776,10 +904,10 @@ export default function AiCareerCoach() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-6 mt-3 border-b border-gray-100 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-3 mt-4 overflow-x-auto scrollbar-hide pb-2">
           {TABS.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`pb-2 text-sm font-bold whitespace-nowrap transition-colors ${activeTab === tab ? 'text-[#0f766e] border-b-2 border-[#0f766e] -mb-[1px]' : 'text-gray-500 hover:text-gray-700'}`}>
+              className={`px-5 py-2.5 text-[15px] font-bold rounded-xl whitespace-nowrap transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md ${activeTab === tab ? 'bg-[#0f766e] text-white shadow-[#0f766e]/20' : 'bg-white text-gray-600 border border-[#0f766e] hover:bg-[#0f766e]/5 hover:text-[#0f766e]'}`}>
               {tab}
             </button>
           ))}
@@ -860,10 +988,12 @@ export default function AiCareerCoach() {
                   <p className="text-teal-600">{currentGoal.time || ''}</p>
                 </div>
               </div>
-              <button onClick={() => { setSettingsOpen(false); setGoalModalOpen(true); }}
-                className="w-full py-2 border-2 border-[#0f766e] text-[#0f766e] font-bold text-base rounded-xl hover:bg-teal-50 transition-colors flex items-center justify-center gap-2">
-                <Edit2 className="w-5 h-5" /> Update Career Goal
-              </button>
+              {isPro && (
+                <button onClick={() => { setSettingsOpen(false); setGoalModalOpen(true); }}
+                  className="w-full py-2 border-2 border-[#0f766e] text-[#0f766e] font-bold text-base rounded-xl hover:bg-teal-50 transition-colors flex items-center justify-center gap-2">
+                  <Edit2 className="w-5 h-5" /> Update Career Goal
+                </button>
+              )}
               <button onClick={() => { setSettingsOpen(false); fetchDashboardData(); toast.success('Dashboard refreshed!'); }}
                 className="w-full py-2 border border-gray-200 text-gray-600 font-bold text-base rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
                 <RefreshCw className="w-5 h-5" /> Refresh Dashboard
@@ -877,11 +1007,11 @@ export default function AiCareerCoach() {
 }
 
 // ─── TASK ROW COMPONENT ───────────────────────────────────────────────────
-function TaskRow({ task, idx, onToggle, onStart, expanded }) {
+function TaskRow({ task, idx, onToggle, onStart, expanded, isPro = true }) {
   return (
     <div className={`flex items-center justify-between p-2.5 bg-gray-50/50 hover:bg-gray-50 border border-gray-100 rounded-xl transition-colors group ${task.status === 'completed' ? 'opacity-70' : ''}`}>
       <div className="flex items-center gap-3 min-w-0">
-        <button onClick={() => onToggle(idx)} className="text-gray-300 hover:text-[#0f766e] transition-colors shrink-0">
+        <button onClick={() => isPro && onToggle(idx)} className={`transition-colors shrink-0 ${isPro ? 'text-gray-300 hover:text-[#0f766e]' : 'text-gray-300 cursor-not-allowed'}`}>
           {task.status === 'completed'
             ? <CheckCircle2 className="w-5 h-5 text-[#0f766e]" />
             : <Circle className="w-5 h-5" />}
@@ -890,11 +1020,13 @@ function TaskRow({ task, idx, onToggle, onStart, expanded }) {
           {task.type === 'resume' ? <FileText className="w-4 h-4" /> : task.type === 'job' ? <Briefcase className="w-4 h-4" /> : <Award className="w-4 h-4" />}
         </div>
         <div className="min-w-0">
-          <p className={`font-bold text-sm truncate ${task.status === 'completed' ? 'line-through text-gray-400' : 'text-gray-900'}`}>{task.title}</p>
-          {expanded && <p className="text-base text-gray-500 truncate">{task.description}</p>}
+          <p className={`font-bold text-sm truncate ${task.status === 'completed' ? 'line-through text-gray-400' : 'text-gray-900'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{task.title}</p>
+          {expanded && <p className={`text-base text-gray-500 truncate ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{task.description}</p>}
         </div>
       </div>
-      {task.status === 'completed'
+      {!isPro ? (
+        <span className="shrink-0 ml-2 text-gray-400"><Lock className="w-4 h-4" /></span>
+      ) : task.status === 'completed'
         ? <span className="px-2 py-0.5 bg-teal-50 text-[#0f766e] font-bold text-base rounded-lg shrink-0 ml-2">Done</span>
         : <button onClick={() => onToggle(idx)} className="ml-2 px-3 py-1 bg-white border border-gray-200 group-hover:border-[#0f766e] text-gray-700 group-hover:text-[#0f766e] font-bold text-base rounded-lg transition-all shrink-0">Finish</button>
       }
