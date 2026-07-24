@@ -465,19 +465,25 @@ const ProviderProfile = () => {
   const [shareUrl, setShareUrl] = useState("");
   const [aiUsageData, setAiUsageData] = useState({ limits: {}, usage: {} });
 
+  const scrolledHashRef = useRef('');
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
-    if (tab) {
+    if (tab && tab !== activeTab) {
       setActiveTab(tab);
     }
-    if (location.hash) {
+    
+    if (!loading && location.hash && scrolledHashRef.current !== location.hash) {
       setTimeout(() => {
         const el = document.getElementById(location.hash.substring(1));
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 500); // Give it a bit of time to render the tab
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          scrolledHashRef.current = location.hash;
+        }
+      }, 500);
     }
-  }, [location.search, location.hash]);
+  }, [location.search, location.hash, loading, activeTab]);
 
   const [form, setForm] = useState({
     designation: "",
@@ -1915,7 +1921,7 @@ const ProviderProfile = () => {
                         </div>
                         <div>
                           <label className="block text-[13px] font-bold text-slate-700 mb-1.5">{t("Phone Number")}</label>
-                          <div className="border border-slate-200 rounded-lg overflow-hidden [&>div]:border-none [&_input]:text-[13px] focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
+                          <div className="border border-slate-200 rounded-lg [&>div]:border-none [&_input]:text-[13px] focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
                              <CountryPhoneInput
                                variant="profile"
                                countryCode={form.countryCode || "+91"}
@@ -1981,7 +1987,7 @@ const ProviderProfile = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* About Yourself */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-[280px]">
+                    <div id="summary" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-[280px]">
                        <div className="flex items-center gap-2 mb-2">
                          <UserIcon className="w-5 h-5 text-emerald-600" />
                          <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Professional Summary")}</h3>
@@ -2316,7 +2322,7 @@ const ProviderProfile = () => {
                   </div>
 
                   {/* Experience Section */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
+                  <div id="experience" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
                      <div className="flex items-center gap-2 mb-4">
                        <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Previous Work Experience")}</h3>
                      </div>
@@ -2461,7 +2467,7 @@ const ProviderProfile = () => {
                  </div>
 
                  {/* Achievements Section */}
-                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col mt-6">
+                 <div id="achievements" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col mt-6">
                     <div className="flex items-center gap-2 mb-4">
                       <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Achievements")}</h3>
                     </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import * as htmlToImage from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import useTranslation from "../../hooks/useTranslation";
@@ -44,6 +44,18 @@ function AdvancedResumeBuilderInner({ profileData }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [jd, setJd] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState(null);
+
+  useEffect(() => {
+    if (sessionStorage.getItem('scroll_to_ats') === 'true') {
+      sessionStorage.removeItem('scroll_to_ats');
+      setTimeout(() => {
+        const el = document.getElementById('ats-optimizer-panel');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 800);
+    }
+  }, []);
 
   const handleAiOptimize = async () => {
     try {
@@ -259,7 +271,7 @@ function AdvancedResumeBuilderInner({ profileData }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div id="ats-optimizer-panel" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
         <AtsOptimizerPanel fileHash={profileData?.fileHash || undefined} parsedData={profileData} />
       </div>
 

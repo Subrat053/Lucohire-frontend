@@ -25,6 +25,7 @@ import {
   HiOutlineBookmark,
   HiOutlineClock,
   HiTrendingUp,
+  HiOutlineBriefcase,
 } from "react-icons/hi";
 import { FaWhatsapp, FaLinkedin, FaTwitter } from "react-icons/fa";
 import { providerAPI, subscriptionAPI } from "../../services/api";
@@ -619,6 +620,22 @@ export default function JobDetail() {
                 <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
                   <span className="text-[13px] text-gray-500 leading-snug">
                     {!hasActivePlan ? "React, UI/UX Design, JavaScript" : aiInsights ? (aiInsights.matchedSkills?.length > 0 ? aiInsights.matchedSkills.join(", ") : "General experience") : "Generating..."}
+                  </span>
+                </div>
+              </div>
+
+              {/* Most Demanded Skill */}
+              <div className="flex items-start gap-2 w-full">
+                <HiOutlineBriefcase className="w-4 h-4 text-pink-500 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[13px] text-gray-700 whitespace-nowrap shrink-0">Most Demanded Skill</span>
+                <span className="text-gray-300 shrink-0 text-[13px]">•</span>
+                <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
+                  <span className="text-[13px] text-gray-500 leading-snug">
+                    {!hasActivePlan
+                      ? "Java / Spring Boot"
+                      : aiInsights
+                        ? (aiInsights.most_demanded_skill || "Generating...")
+                        : (job.skill || (job.requirements && job.requirements.length > 0 ? job.requirements[0] : "Not specified"))}
                   </span>
                 </div>
               </div>

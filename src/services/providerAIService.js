@@ -67,6 +67,16 @@ export function getJobMatchingEngine(payload) {
   });
 }
 
+export function getInterviewQuestions(payload) {
+  return API.post('/provider/ai/interview-questions', payload, {
+    timeout: 90000,
+  });
+}
+
+export function refreshInterviewQuestions() {
+  return API.post('/provider/ai/interview-questions-refresh');
+}
+
 export function getAICareerReport(payload) {
   return API.post('/provider/ai/career-report', payload, {
     timeout: 90000,
