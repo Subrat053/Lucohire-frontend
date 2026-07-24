@@ -74,6 +74,7 @@ const RecruiterPlans = () => {
   const [loading, setLoading] = useState(true);
   const [activePlanId, setActivePlanId] = useState(null);
   const [currentPlan, setCurrentPlan] = useState('free');
+  const [planEndDate, setPlanEndDate] = useState(null);
   const [activePeriod, setActivePeriod] = useState('Monthly');
   const { initiatePayment, loading: paymentLoading } = useStripePayment();
   const { formatPrice } = useLocale();
@@ -138,6 +139,7 @@ const RecruiterPlans = () => {
       setPlans(data || []);
       const dashboard = await recruiterAPI.getDashboard();
       setCurrentPlan(dashboard.data?.stats?.currentPlan || 'free');
+      setPlanEndDate(dashboard.data?.stats?.planEndDate || null);
       
       const customRes = await recruiterAPI.getMyCustomPlanRequests();
       if (customRes.data?.success) {
@@ -407,8 +409,19 @@ const RecruiterPlans = () => {
                     You are currently on a {acceptedCustomPlan.offerDetails?.durationMonths} Months Custom Plan ({acceptedCustomPlan.offerDetails?.jobsPerMonth} Jobs, {acceptedCustomPlan.offerDetails?.profileUnlocks} Unlocks, {acceptedCustomPlan.offerDetails?.boostJobs} Boosts).
                   </p>
                 </div>
-                <div className="relative z-10 px-4 py-2 bg-green-100 text-green-800 text-xs font-black rounded-xl border border-green-200 uppercase tracking-wide">
-                  Current Plan
+                <div className="relative z-10 px-4 py-2 bg-green-100 text-green-800 text-xs font-black rounded-xl border border-green-200 uppercase tracking-wide flex flex-col items-center justify-center">
+                  <span>Current Plan</span>
+                  {(() => {
+                    const purchased = new Date(acceptedCustomPlan.offerDetails?.purchasedAt || acceptedCustomPlan.updatedAt || Date.now());
+                    const expires = new Date(purchased);
+                    expires.setMonth(expires.getMonth() + (acceptedCustomPlan.offerDetails?.durationMonths || 1));
+                    const daysLeft = Math.max(0, Math.ceil((expires - new Date()) / (1000 * 60 * 60 * 24)));
+                    return (
+                      <span className="text-[9px] opacity-70 mt-0.5 lowercase tracking-normal font-medium">
+                        {daysLeft} days left
+                      </span>
+                    );
+                  })()}
                 </div>
               </div>
             )}

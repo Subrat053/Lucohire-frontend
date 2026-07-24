@@ -398,6 +398,8 @@ export const adminAPI = {
     ADMIN_API.post("/admin/recruiters/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
+  getMappedCompanies: (page = 1, limit = 10) =>
+    ADMIN_API.get(`/admin/crawlers/mapped-companies?page=${page}&limit=${limit}`),
   getUserDetail: (id) => ADMIN_API.get(`/admin/users/${id}`),
   getManagers: () => ADMIN_API.get("/admin/managers"),
   createManager: (data) => ADMIN_API.post("/admin/managers", data),
