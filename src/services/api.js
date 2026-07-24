@@ -376,7 +376,7 @@ export const adminAPI = {
   login: (data) => ADMIN_API.post("/admin/login", data),
   getMe: () => ADMIN_API.get("/admin/me"),
   getDashboard: () => ADMIN_API.get("/admin/dashboard"),
-  getHealthMetrics: () => ADMIN_API.get("/admin/health/metrics"),
+  getHealthMetrics: (params) => ADMIN_API.get("/admin/health/metrics", { params }),
   getDashboardStats: (params) =>
     ADMIN_API.get("/admin/partners/dashboard/stats", { params }),
   getCustomPlanRequests: () => ADMIN_API.get("/admin/custom-plans"),

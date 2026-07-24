@@ -187,7 +187,7 @@ const Dashboard = () => {
         />
         <DashboardStatsCard 
           icon={HiOfficeBuilding} 
-          label="Total Companies" 
+          label="Total Partners" 
           value={(stats.totalCompanySources || stats.activePartners || 0).toLocaleString('en-IN')} 
           trend={5.6}
           bgClass="bg-blue-50"
@@ -203,7 +203,7 @@ const Dashboard = () => {
           bgClass="bg-orange-50"
           colorClass="text-orange-500"
           sparklineColor="#F97316"
-          link="/admin/jobs"
+          link="/admin/data-pipeline/jobs"
         />
         <DashboardStatsCard 
           icon={HiDocumentText} 

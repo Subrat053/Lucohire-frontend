@@ -192,7 +192,8 @@ const AIControlCenter = () => {
   };
 
   const calculateCacheSavings = () => {
-    return (usageByFeature.reduce((acc, curr) => acc + (curr.requests || 0), 0) * 0.0005).toFixed(4);
+    const usdSavings = usageByFeature.reduce((acc, curr) => acc + (curr.requests || 0), 0) * 0.0005;
+    return (usdSavings * 86.5).toFixed(2);
   };
 
   if (loading) {
@@ -219,7 +220,7 @@ const AIControlCenter = () => {
           </div>
           <button
             onClick={() => loadAll()}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium shadow-sm transition-all text-sm self-start"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium shadow-sm transition-all text-sm self-start cursor-pointer"
           >
             <HiRefresh className="h-4 w-4" />
             Refresh Telemetry
@@ -230,7 +231,7 @@ const AIControlCenter = () => {
         <div className="flex border-b border-gray-200 gap-2">
           <button
             onClick={() => setActiveTab("telemetry")}
-            className={`py-3 px-6 text-sm font-semibold tracking-wide border-b-2 transition-all flex items-center gap-2 ${
+            className={`py-3 px-6 text-sm font-semibold tracking-wide border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === "telemetry"
                 ? "border-violet-600 text-violet-700 bg-violet-50"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100"
@@ -241,7 +242,7 @@ const AIControlCenter = () => {
           </button>
           <button
             onClick={() => setActiveTab("prompts")}
-            className={`py-3 px-6 text-sm font-semibold tracking-wide border-b-2 transition-all flex items-center gap-2 ${
+            className={`py-3 px-6 text-sm font-semibold tracking-wide border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === "prompts"
                 ? "border-violet-600 text-violet-700 bg-violet-50"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100"
@@ -252,7 +253,7 @@ const AIControlCenter = () => {
           </button>
           <button
             onClick={() => setActiveTab("audits")}
-            className={`py-3 px-6 text-sm font-semibold tracking-wide border-b-2 transition-all flex items-center gap-2 ${
+            className={`py-3 px-6 text-sm font-semibold tracking-wide border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === "audits"
                 ? "border-violet-600 text-violet-700 bg-violet-50"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100"
@@ -292,14 +293,14 @@ const AIControlCenter = () => {
               <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs relative overflow-hidden group hover:border-emerald-350 transition-all">
                 <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Total AI Cost</span>
                 <span className="text-3xl font-extrabold text-emerald-600 mt-2 block">
-                  ${Number(usageSummary.totalCostUsd || 0).toFixed(4)}
+                  ₹{Number(usageSummary.totalCostInr || (usageSummary.totalCostUsd || 0) * 86.5).toFixed(2)}
                 </span>
-                <span className="text-xs text-gray-400 mt-1 block">Calculated in USD</span>
+                <span className="text-xs text-gray-400 mt-1 block">Calculated in INR</span>
               </div>
               <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs relative overflow-hidden group hover:border-violet-350 transition-all">
                 <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Est. Cache Savings</span>
                 <span className="text-3xl font-extrabold text-violet-600 mt-2 block">
-                  ${calculateCacheSavings()}
+                  ₹{calculateCacheSavings()}
                 </span>
                 <span className="text-xs text-gray-400 mt-1 block">Free tier optimization</span>
               </div>
@@ -315,7 +316,7 @@ const AIControlCenter = () => {
                       <tr className="text-left text-gray-400 bg-gray-50">
                         <th className="py-2.5 px-4 font-semibold">Feature Name</th>
                         <th className="py-2.5 px-4 font-semibold">Total Requests</th>
-                        <th className="py-2.5 px-4 font-semibold text-right">Est. Cost (USD)</th>
+                        <th className="py-2.5 px-4 font-semibold text-right">Est. Cost (INR)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-gray-700">
@@ -324,7 +325,7 @@ const AIControlCenter = () => {
                           <td className="py-3 px-4 font-mono text-violet-600">{item._id || "general"}</td>
                           <td className="py-3 px-4">{item.requests}</td>
                           <td className="py-3 px-4 text-right font-mono text-emerald-600">
-                            ${Number(item.costUsd || 0).toFixed(5)}
+                            ₹{Number(item.costInr || (item.costUsd || 0) * 86.5).toFixed(2)}
                           </td>
                         </tr>
                       ))}
