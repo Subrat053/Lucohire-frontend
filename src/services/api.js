@@ -239,7 +239,8 @@ export const providerAPI = {
   getBenchmark: (id) => API.get(`/provider/benchmark/${id}`),
   getRecommendations: () => API.get("/candidate-matching/recommendations"),
   getSavedJobs: () => API.get("/provider/saved-jobs"),
-  toggleSaveJob: (jobId, isExternal) => API.post(`/provider/jobs/${jobId}/save`, { isExternal }),
+  toggleSaveJob: (jobId, isExternal) =>
+    API.post(`/provider/jobs/${jobId}/save`, { isExternal }),
   trackApplyClick: (jobId) =>
     API.post(`/candidate-matching/${jobId}/apply-click`),
   getTopTalent: (params) => API.get("/provider/top-talent", { params }),
@@ -254,6 +255,7 @@ export const recruiterAPI = {
   getOutreachAnalytics: () => API.get("/recruiter/reports/outreach-analytics"),
   getAiInsights: () => API.get("/recruiter/reports/ai-insights"),
   getCustomExportsData: () => API.get("/recruiter/reports/custom-exports"),
+  getDashboardInsights: () => API.post("/recruiter/ai/dashboard-insights"),
   getDashboard: () => API.get("/recruiter/dashboard"),
   getJobPostings: () => API.get("/recruiter/jobs"),
   getJobs: () => API.get("/recruiter/jobs"),
@@ -266,17 +268,24 @@ export const recruiterAPI = {
     API.get("/recruiter/ai/workspace/conversations"),
   getWorkspaceConversation: (id) =>
     API.get(`/recruiter/ai/workspace/conversations/${id}`),
-  generateCandidateInterviewKit: (id) =>
-    API.get(`/recruiter/candidates/${id}/interview-kit`),
+  generateCandidateInterviewKit: (id, options = {}) =>
+    API.post(`/recruiter/candidates/${id}/interview-kit`, options),
   publicSearch: (params) => API.get("/recruiter/public-search", { params }),
   search: (params) => API.get("/recruiter/search", { params }),
   viewProvider: (id) => API.get(`/recruiter/view-provider/${id}`),
   viewCv: (id) => API.get(`/recruiter/view-cv/${id}`),
+  addCandidateNote: (id, data) =>
+    API.post(`/recruiter/candidates/${id}/notes`, data),
+  addCandidateTag: (id, data) =>
+    API.post(`/recruiter/candidates/${id}/tags`, data),
+  rejectCandidate: (id) => API.put(`/recruiter/candidates/${id}/reject`),
   unlockContact: (providerId) => API.post(`/recruiter/unlock/${providerId}`),
   checkUnlockStatus: (providerId) =>
     API.get(`/recruiter/unlock-status/${providerId}`),
   createCustomPlanRequest: (data) =>
     API.post("/recruiter/custom-plan-request", data),
+  getMyCustomPlanRequests: () => API.get("/recruiter/custom-plan-request"),
+  cancelCustomPlanRequest: (id) => API.delete(`/recruiter/custom-plan-request/${id}`),
   getTasks: () => API.get("/recruiter/tasks"),
   createTask: (data) => API.post("/recruiter/tasks", data),
   updateTask: (id, data) => API.put(`/recruiter/tasks/${id}`, data),
@@ -315,6 +324,9 @@ export const recruiterAPI = {
 
   aiSearchCandidates: (params) => API.get("/recruiter/ai-search", { params }),
 
+  parseSearchQuery: (query) =>
+    API.post("/recruiter/parse-search-query", { query }),
+
   addCandidateToJob: (jobId, candidateId) =>
     API.post(`/recruiter/job-postings/${jobId}/candidates`, { candidateId }),
 
@@ -334,6 +346,12 @@ export const recruiterAPI = {
   saveCandidate: (data) => API.post("/recruiter/saved-candidates", data),
   removeSavedCandidate: (providerProfileId) =>
     API.delete(`/recruiter/saved-candidates/${providerProfileId}`),
+  // Shortlisted candidates
+  getShortlistedCandidates: () => API.get("/recruiter/shortlisted-candidates"),
+  shortlistCandidate: (data) =>
+    API.post("/recruiter/shortlisted-candidates", data),
+  removeShortlistedCandidate: (providerProfileId) =>
+    API.delete(`/recruiter/shortlisted-candidates/${providerProfileId}`),
   unlockProvider: (providerId, data) =>
     API.post(`/recruiter/provider/${providerId}/unlock`, data),
   getProviderProfile: (providerId) =>
@@ -362,8 +380,15 @@ export const adminAPI = {
   getDashboardStats: (params) =>
     ADMIN_API.get("/admin/partners/dashboard/stats", { params }),
   getCustomPlanRequests: () => ADMIN_API.get("/admin/custom-plans"),
+  clearAllCustomPlanRequests: () => ADMIN_API.delete("/admin/custom-plans"),
   updateCustomPlanRequestStatus: (id, status) =>
     ADMIN_API.patch(`/admin/custom-plans/${id}/status`, { status }),
+  generateCustomPlanOffer: (id, data) =>
+    ADMIN_API.post(`/admin/custom-plans/${id}/offer`, data),
+  getCustomPlanPricingSettings: () =>
+    ADMIN_API.get("/admin/custom-plans/pricing-settings"),
+  updateCustomPlanPricingSettings: (pricing) =>
+    ADMIN_API.put("/admin/custom-plans/pricing-settings", { pricing }),
   getUsers: (params) => ADMIN_API.get("/admin/users", { params }),
   uploadProviders: (formData) =>
     ADMIN_API.post("/admin/providers/upload", formData, {
@@ -889,7 +914,8 @@ export const pipelineAdminAPI = {
   getScans: () => AUTH_API.get("/pipeline/scans"),
   getRawImports: (params) => AUTH_API.get("/pipeline/raw-jobs", { params }),
   getReviewQueue: () => AUTH_API.get("/pipeline/review-queue"),
-  approveReviewJob: (id, data) => AUTH_API.post(`/pipeline/review-queue/${id}/approve`, data),
+  approveReviewJob: (id, data) =>
+    AUTH_API.post(`/pipeline/review-queue/${id}/approve`, data),
   getCategories: () => AUTH_API.get("/pipeline/categories"),
   getCompanies: () => AUTH_API.get("/pipeline/companies"),
   getLocations: () => AUTH_API.get("/pipeline/locations"),

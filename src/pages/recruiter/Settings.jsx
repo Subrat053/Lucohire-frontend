@@ -11,6 +11,20 @@ import {
 } from 'react-icons/fi';
 import { HiSparkles, HiOfficeBuilding } from 'react-icons/hi';
 import LocationAutocomplete from '../../components/common/LocationAutocomplete';
+import CreatableSelect from 'react-select/creatable';
+import InvoiceModal from '../../components/recruiter/InvoiceModal';
+
+const INDUSTRY_OPTIONS = [
+  { value: 'Information Technology', label: 'Information Technology' },
+  { value: 'Healthcare', label: 'Healthcare' },
+  { value: 'Finance', label: 'Finance' },
+  { value: 'Manufacturing', label: 'Manufacturing' },
+  { value: 'Retail', label: 'Retail' },
+  { value: 'E-commerce', label: 'E-commerce' },
+  { value: 'Education', label: 'Education' },
+  { value: 'Real Estate', label: 'Real Estate' },
+  { value: 'Other', label: 'Other' }
+];
 
 const SCard = ({ children, className = '' }) => (
   <div className={`bg-white rounded-xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
@@ -28,6 +42,14 @@ export default function Settings() {
   const [stats, setStats] = useState({});
   const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
   const [changingPassword, setChangingPassword] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [profileSuccess, setProfileSuccess] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState(null);
+  const [initialFormData, setInitialFormData] = useState(null);
   const [formData, setFormData] = useState({
     companyName: '',
     industry: 'Information Technology',
@@ -54,13 +76,61 @@ export default function Settings() {
     fetchProfile();
   }, []);
 
+  useEffect(() => {
+    const hasUnsavedChanges = initialFormData && JSON.stringify(formData) !== JSON.stringify(initialFormData);
+    
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    const handleLinkClick = (e) => {
+      if (!hasUnsavedChanges) return;
+      
+      const target = e.target.closest('a');
+      if (target && target.href && target.target !== '_blank') {
+        const targetUrl = new URL(target.href);
+        const currentUrl = new URL(window.location.href);
+        if (targetUrl.pathname !== currentUrl.pathname) {
+          e.preventDefault();
+          e.stopPropagation();
+          setPendingNavigation(targetUrl.pathname + targetUrl.search);
+          setShowUnsavedModal(true);
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('click', handleLinkClick, { capture: true });
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('click', handleLinkClick, { capture: true });
+    };
+  }, [formData, initialFormData]);
+
+  const handleConfirmLeave = () => {
+    setShowUnsavedModal(false);
+    setInitialFormData(formData); // This tricks the blocker into thinking there are no unsaved changes
+    if (pendingNavigation) {
+      setTimeout(() => navigate(pendingNavigation), 0);
+    }
+  };
+
+  const handleCancelLeave = () => {
+    setShowUnsavedModal(false);
+    setPendingNavigation(null);
+  };
+
   const fetchProfile = async () => {
     try {
       const res = await API.get('/recruiter/dashboard');
       const p = res.data.profile;
       setProfileData(p);
       setStats(res.data.stats || {});
-      setFormData({
+      const data = {
         companyName: p.companyName || '',
         industry: p.industry || 'Information Technology',
         companySize: p.companySize || '201 - 500 employees',
@@ -79,7 +149,9 @@ export default function Settings() {
           allowResumeDownload: true,
           anonymousApplications: false
         }
-      });
+      };
+      setFormData(data);
+      setInitialFormData(data);
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -116,6 +188,8 @@ export default function Settings() {
 
   const handleSave = async () => {
     setSaving(true);
+    setProfileError('');
+    setProfileSuccess('');
     try {
       const parts = formData.headquarters.split(',').map(s => s.trim());
       const city = parts[0] || '';
@@ -134,10 +208,12 @@ export default function Settings() {
         description: formData.description,
         careerPageSettings: formData.careerPageSettings
       });
-      toast.success('Settings saved successfully');
+      setProfileSuccess('Settings saved successfully');
+      setInitialFormData(formData);
+      setTimeout(() => setProfileSuccess(''), 3000);
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || 'Failed to save settings');
+      setProfileError(err.response?.data?.message || 'Failed to save settings');
     } finally {
       setSaving(false);
     }
@@ -145,11 +221,13 @@ export default function Settings() {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      return toast.error("Passwords do not match");
+      return setPasswordError("Passwords do not match");
     }
     if (passwordData.newPassword.length < 6) {
-      return toast.error("Password must be at least 6 characters long");
+      return setPasswordError("Password must be at least 6 characters long");
     }
     setChangingPassword(true);
     try {
@@ -157,10 +235,11 @@ export default function Settings() {
         newPassword: passwordData.newPassword,
         confirmPassword: passwordData.confirmPassword
       });
-      toast.success("Password changed successfully");
+      setPasswordSuccess("Password changed successfully");
       setPasswordData({ newPassword: '', confirmPassword: '' });
+      setTimeout(() => setPasswordSuccess(''), 3000);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to change password");
+      setPasswordError(err.response?.data?.message || "Failed to change password");
     } finally {
       setChangingPassword(false);
     }
@@ -208,25 +287,6 @@ export default function Settings() {
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
-          
-          {/* Top Tabs */}
-          <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
-            {[
-              { id: 'company-profile', label: 'Company Profile', icon: <HiOfficeBuilding />, active: true },
-            ].map((tab) => (
-              <button 
-                key={tab.id}
-                className={`flex items-center gap-2 pb-3 text-sm font-bold whitespace-nowrap transition-colors border-b-2 ${
-                  tab.active 
-                    ? 'text-indigo-600 border-indigo-600' 
-                    : 'text-gray-500 border-transparent hover:text-gray-900'
-                }`}
-              >
-                {React.cloneElement(tab.icon, { className: 'w-4 h-4' })}
-                {t(tab.label)}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
       {/* Main Content */}
@@ -237,13 +297,24 @@ export default function Settings() {
             <div className="flex-1 min-w-0 space-y-6">
             
             {/* Company Profile Card */}
-            <SCard className="p-6">
+            <SCard className="p-6 md:p-8">
               <div className="mb-6">
-                <h2 className="text-base font-bold text-gray-900 mb-1">{t("Company Profile")}</h2>
-                <p className="text-[13px] text-gray-500 font-medium">{t("Update your company details and career page settings.")}</p>
+                <h2 className="text-base font-black text-gray-900">{t("Company Profile")}</h2>
+                <p className="text-xs font-medium text-gray-500 mt-1">{t("Update your company details and public profile")}</p>
               </div>
-              
-              <div className="flex flex-col md:flex-row gap-8">
+
+              {profileError && (
+                <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-medium">
+                  {profileError}
+                </div>
+              )}
+              {profileSuccess && (
+                <div className="mb-6 p-3 bg-green-50 border border-green-200 text-green-600 rounded-lg text-sm font-medium">
+                  {profileSuccess}
+                </div>
+              )}
+
+              <div className="flex flex-col md:flex-row gap-8 mb-8">
                 {/* Logo Upload */}
                 <div className="flex flex-col items-center shrink-0">
                   <div className="w-32 h-32 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center mb-3 relative group overflow-hidden">
@@ -279,17 +350,34 @@ export default function Settings() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5">{t("Industry")}</label>
-                    <div className="relative">
-                      <select name="industry" value={formData.industry} onChange={handleChange} className="w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2.5 appearance-none focus:outline-none focus:border-indigo-500 shadow-sm">
-                        <option>{t("Information Technology")}</option>
-                        <option>{t("Healthcare")}</option>
-                        <option>{t("Finance")}</option>
-                        <option>{t("Manufacturing")}</option>
-                        <option>{t("Retail")}</option>
-                        <option>{t("Other")}</option>
-                      </select>
-                      <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    </div>
+                    <CreatableSelect
+                      name="industry"
+                      options={INDUSTRY_OPTIONS}
+                      className="text-sm font-medium text-gray-900 shadow-sm"
+                      classNamePrefix="select"
+                      placeholder={t("Search or type industry")}
+                      value={
+                        formData.industry
+                          ? { value: formData.industry, label: formData.industry }
+                          : null
+                      }
+                      onChange={(selectedOption) => {
+                        setFormData(prev => ({ ...prev, industry: selectedOption ? selectedOption.value : '' }));
+                      }}
+                      styles={{
+                        control: (baseStyles, state) => ({
+                          ...baseStyles,
+                          borderColor: state.isFocused ? '#6366f1' : '#e5e7eb',
+                          boxShadow: state.isFocused ? '0 0 0 1px #6366f1' : 'none',
+                          '&:hover': {
+                            borderColor: state.isFocused ? '#6366f1' : '#d1d5db',
+                          },
+                          borderRadius: '0.5rem',
+                          padding: '1px',
+                          minHeight: '42px',
+                        }),
+                      }}
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5">{t("Company Size")}</label>
@@ -343,85 +431,27 @@ export default function Settings() {
                   </div>
                 </div>
               </div>
-
-
-            </SCard>
-
-            {/* Career Page Settings Card */}
-            <SCard className="p-6">
-              <div className="mb-6">
-                <h2 className="text-base font-bold text-gray-900 mb-1">{t("Career Page Settings")}</h2>
-                <p className="text-[13px] text-gray-500 font-medium">{t("Customize your public career page and job application experience.")}</p>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                {/* Inputs & Colors */}
-                <div className="lg:col-span-1 space-y-5">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">{t("Career Page URL")}</label>
-                    <div className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-2.5 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
-                      <input type="text" name="url" value={formData.careerPageSettings.url} onChange={handleCareerSettingChange} placeholder={t("e.g. https://lucohire.com/careers/yourcompany")} className="w-full text-xs font-medium text-indigo-600 bg-transparent border-none focus:outline-none min-w-0" />
-                      <button className="text-gray-400 hover:text-indigo-600 ml-2 shrink-0"><FiExternalLink className="w-3.5 h-3.5" /></button>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1.5">{t("Primary Color")}</label>
-                      <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-2 py-1.5 shadow-sm focus-within:border-indigo-500 focus-within:ring-1">
-                        <input type="color" name="primaryColor" value={formData.careerPageSettings.primaryColor} onChange={handleCareerSettingChange} className="w-6 h-6 rounded cursor-pointer border-none bg-transparent p-0" />
-                        <input type="text" name="primaryColor" value={formData.careerPageSettings.primaryColor} onChange={handleCareerSettingChange} className="w-full text-[11px] font-bold text-gray-700 bg-transparent border-none focus:outline-none uppercase" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1.5">{t("Secondary Color")}</label>
-                      <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-2 py-1.5 shadow-sm focus-within:border-indigo-500 focus-within:ring-1">
-                        <input type="color" name="secondaryColor" value={formData.careerPageSettings.secondaryColor} onChange={handleCareerSettingChange} className="w-6 h-6 rounded cursor-pointer border-none bg-transparent p-0" />
-                        <input type="text" name="secondaryColor" value={formData.careerPageSettings.secondaryColor} onChange={handleCareerSettingChange} className="w-full text-[11px] font-bold text-gray-700 bg-transparent border-none focus:outline-none uppercase" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Toggles */}
-                <div className="lg:col-span-1 space-y-4 pt-1">
-                  {[
-                    { title: 'Show company logo on job posts', sub: 'Display your company logo on all job listings', name: 'showCompanyLogo' },
-                    { title: 'Show company culture section', sub: 'Highlight your culture on career page', name: 'showCultureSection' },
-                    { title: 'Allow resume download', sub: 'Allow recruiters to download resumes', name: 'allowResumeDownload' },
-                    { title: 'Anonymous applications', sub: 'Hide candidate identity until screening', name: 'anonymousApplications' },
-                  ].map((toggle, i) => {
-                    const isOn = formData.careerPageSettings[toggle.name];
-                    return (
-                      <div key={i} className="flex items-center justify-between">
-                        <div className="pr-4">
-                          <h4 className="text-[11px] font-bold text-gray-900">{toggle.title}</h4>
-                          <p className="text-[10px] text-gray-500 mt-0.5">{toggle.sub}</p>
-                        </div>
-                        <button 
-                          type="button"
-                          onClick={() => handleToggle(toggle.name)}
-                          className={`w-8 h-4 rounded-full relative shrink-0 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${isOn ? 'bg-indigo-600' : 'bg-gray-200'}`}
-                        >
-                          <div className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white shadow-sm transition-transform ${isOn ? 'translate-x-4' : 'translate-x-0'}`}></div>
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-
-              </div>
             </SCard>
 
             {/* Change Password Card */}
-            <SCard className="p-6">
+            <SCard className="p-6 md:p-8">
               <div className="mb-6">
-                <h2 className="text-base font-bold text-gray-900 mb-1">{t("Security Settings")}</h2>
-                <p className="text-[13px] text-gray-500 font-medium">{t("Update your password to keep your account secure.")}</p>
+                <h2 className="text-base font-black text-gray-900">{t("Change Password")}</h2>
+                <p className="text-xs font-medium text-gray-500 mt-1">{t("Update your account security credentials")}</p>
               </div>
 
-              <form onSubmit={handlePasswordChange} className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+              {passwordError && (
+                <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-medium">
+                  {passwordError}
+                </div>
+              )}
+              {passwordSuccess && (
+                <div className="mb-6 p-3 bg-green-50 border border-green-200 text-green-600 rounded-lg text-sm font-medium">
+                  {passwordSuccess}
+                </div>
+              )}
+
+              <form onSubmit={handlePasswordChange} className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">{t("New Password")}</label>
                   <div className="relative">
@@ -469,15 +499,26 @@ export default function Settings() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-bold text-gray-900">{t("Your Subscription")}</h2>
                 <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
-                  <HiSparkles className="w-3 h-3" /> {stats?.subscriptionPlan || 'Free Plan'}
+                  <HiSparkles className="w-3 h-3" /> 
+                  {stats?.currentPlan === 'custom'
+                    ? 'Custom Plan'
+                    : (stats?.subscriptionPlan && stats.subscriptionPlan !== "None" 
+                      ? stats.subscriptionPlan 
+                      : (stats?.currentPlan 
+                        ? stats.currentPlan.charAt(0).toUpperCase() + stats.currentPlan.slice(1) + " Plan" 
+                        : 'Free Plan'))}
                 </span>
               </div>
               <div className="mb-4">
                 <div className="flex items-end gap-1 mb-2">
                   <span className="text-2xl font-black text-gray-900">
-                    {stats?.planPrice ? `$${stats.planPrice}` : '$0'}
+                    {stats?.currentPlan === 'custom'
+                      ? 'Custom'
+                      : (stats?.planPrice > 0 ? `₹${stats.planPrice}` : '₹0')}
                   </span>
-                  <span className="text-xs text-gray-500 font-medium mb-1">/ month</span>
+                  <span className="text-xs text-gray-500 font-medium mb-1">
+                    {stats?.currentPlan === 'custom' ? 'Pricing' : '/ month'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-xs mt-2">
                   <span className="text-gray-500 font-medium">
@@ -499,11 +540,49 @@ export default function Settings() {
               
               <div className="space-y-5">
                 {[
-                  { label: 'Featured Job Credits', current: stats?.featuredJobsUsed || 0, max: stats?.featuredJobsLimit || 20, color: 'bg-indigo-600', icon: <FiFileText />, iconColor: 'text-indigo-600 bg-indigo-50' },
-                  { label: 'Urgent Hiring Credits', current: stats?.urgentHiringUsed || 0, max: stats?.urgentHiringLimit || 10, color: 'bg-orange-500', icon: <HiOfficeBuilding />, iconColor: 'text-orange-500 bg-orange-50' },
-                  { label: 'Resume Unlock Credits', current: stats?.totalUnlocks || 0, max: (stats?.totalUnlocks || 0) + (stats?.unlocksRemaining || 500), color: 'bg-emerald-500', icon: <FiUsers />, iconColor: 'text-emerald-500 bg-emerald-50' },
-                  { label: 'Outreach Credits', current: stats?.outreachUsed || 0, max: stats?.outreachLimit || 2000, color: 'bg-blue-500', icon: <FiUploadCloud />, iconColor: 'text-blue-500 bg-blue-50' },
+                  { 
+                    label: 'Job Posts (Monthly)', 
+                    current: stats?.remainingPostLimit === 'unlimited' || stats?.jobPostLimit === -1 ? 0 : Math.max(0, (stats?.jobPostLimit || 0) - (stats?.remainingPostLimit || 0)), 
+                    max: stats?.remainingPostLimit === 'unlimited' || stats?.jobPostLimit === -1 ? '∞' : (stats?.jobPostLimit || 0), 
+                    color: 'bg-indigo-600', icon: <FiFileText />, iconColor: 'text-indigo-600 bg-indigo-50' 
+                  },
+                  { 
+                    label: 'Resume Unlocks', 
+                    remaining: stats?.unlocksRemaining || 0,
+                    isRemainingOnly: true,
+                    color: 'bg-emerald-500', icon: <FiUsers />, iconColor: 'text-emerald-500 bg-emerald-50' 
+                  },
+                  { 
+                    label: 'Job Boosts', 
+                    remaining: stats?.boostJobsRemaining || 0, 
+                    isRemainingOnly: true,
+                    color: 'bg-orange-500', icon: <HiOfficeBuilding />, iconColor: 'text-orange-500 bg-orange-50' 
+                  },
+                  { 
+                    label: 'Boost Days', 
+                    remaining: stats?.boostDaysRemaining || 0, 
+                    isRemainingOnly: true,
+                    color: 'bg-blue-500', icon: <FiUploadCloud />, iconColor: 'text-blue-500 bg-blue-50' 
+                  },
                 ].map((credit, i) => {
+                  if (credit.isRemainingOnly) {
+                    return (
+                      <div key={i}>
+                        <div className="flex justify-between text-[11px] font-bold mb-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <div className={`w-5 h-5 rounded flex items-center justify-center ${credit.iconColor}`}>
+                              {React.cloneElement(credit.icon, { className: 'w-3 h-3' })}
+                            </div>
+                            <span className="text-gray-700">{credit.label}</span>
+                          </div>
+                          <div className="text-gray-900">
+                            {credit.remaining} <span className="text-gray-500 font-medium">Remaining</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   const max = credit.max === '∞' ? 100 : (credit.max || 1);
                   const current = credit.max === '∞' ? 0 : credit.current;
                   const percentage = credit.max === '∞' ? 0 : Math.min(100, (current / max) * 100);
@@ -517,12 +596,18 @@ export default function Settings() {
                         <span className="text-gray-700">{credit.label}</span>
                       </div>
                       <div className="text-gray-500">
-                        <span className="text-gray-900">{credit.current}</span> / {credit.max}
+                        {credit.max === '∞' ? (
+                          <span className="text-gray-900">Unlimited</span>
+                        ) : (
+                          <><span className="text-gray-900">{credit.current}</span> / {credit.max}</>
+                        )}
                       </div>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-1">
-                      <div className={`h-1 rounded-full ${credit.color}`} style={{ width: `${percentage}%` }}></div>
-                    </div>
+                    {credit.max !== '∞' && (
+                      <div className="w-full bg-gray-100 rounded-full h-1">
+                        <div className={`h-1 rounded-full ${credit.color}`} style={{ width: `${percentage}%` }}></div>
+                      </div>
+                    )}
                   </div>
                 )})}
                 
@@ -546,11 +631,7 @@ export default function Settings() {
               <h2 className="text-sm font-bold text-gray-900 mb-4">{t("Quick Links")}</h2>
               <div className="space-y-1">
                 {[
-                  { label: 'Download Invoice', icon: <FiFileText /> },
-                  { label: 'Payment Methods', icon: <FiCreditCard /> },
-                  { label: 'Billing History', icon: <FiClock />, action: () => navigate('/recruiter/plans-billing') },
-                  { label: 'GST Details', icon: <FiShield /> },
-                  { label: 'Apply Coupon Code', icon: <FiCheck /> },
+                  { label: 'Billing History & Invoices', icon: <FiFileText />, action: () => setIsInvoiceModalOpen(true) },
                 ].map((link, i) => (
                   <button key={i} onClick={link.action} className="w-full flex items-center justify-between py-2.5 text-[13px] font-bold text-gray-600 hover:text-indigo-600 group">
                     <div className="flex items-center gap-2.5">
@@ -568,30 +649,65 @@ export default function Settings() {
               <h2 className="text-sm font-bold text-gray-900 mb-1">{t("Need Help?")}</h2>
               <p className="text-[11px] font-medium text-gray-500 mb-4">{t("Our support team is here to help you.")}</p>
               
-              <button className="w-full flex items-center justify-center gap-2 bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 py-2 rounded-lg text-[13px] font-bold transition mb-4">
+              <a 
+                href="https://wa.me/+919916976859" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 py-2 rounded-lg text-[13px] font-bold transition"
+              >
                 <FiHelpCircle className="w-3.5 h-3.5" />{t("Contact Support")}
-              </button>
-              
-              <div className="space-y-1">
-                {[
-                  { label: 'Book a Demo', icon: <FiCamera /> },
-                  { label: 'Visit Help Center', icon: <FiExternalLink /> },
-                ].map((link, i) => (
-                  <button key={i} className="w-full flex items-center justify-between py-2.5 text-[13px] font-bold text-gray-600 hover:text-indigo-600 group">
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-gray-400 group-hover:text-indigo-600">{link.icon}</span>
-                      {link.label}
-                    </div>
-                    <FiChevronRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-600" />
-                  </button>
-                ))}
-              </div>
+              </a>
             </SCard>
 
           </div>
           
           </div>
       </div>
+      <InvoiceModal 
+        isOpen={isInvoiceModalOpen} 
+        onClose={() => setIsInvoiceModalOpen(false)} 
+        gstNumber={profileData?.gstNumber || formData?.gstNumber}
+        onUpdateGst={async (newGst) => {
+          try {
+            await API.put('/recruiter/profile', { gstNumber: newGst });
+            fetchProfile(); // Refresh to get updated GST
+            toast.success("GST Number updated successfully");
+          } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to update GST");
+          }
+        }}
+      />
+
+      {/* Unsaved Changes Modal */}
+      {showUnsavedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-4">
+                <span className="text-amber-600 text-xl">⚠️</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Unsaved Changes</h3>
+              <p className="text-sm text-gray-500 font-medium leading-relaxed mb-6">
+                You have unsaved changes in your company profile. If you leave this page, your changes will be lost.
+              </p>
+              <div className="flex gap-3 w-full">
+                <button 
+                  onClick={handleCancelLeave}
+                  className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-bold transition"
+                >
+                  Stay
+                </button>
+                <button 
+                  onClick={handleConfirmLeave}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold transition shadow-sm"
+                >
+                  Leave
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

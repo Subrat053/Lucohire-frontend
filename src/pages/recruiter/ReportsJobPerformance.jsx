@@ -80,11 +80,9 @@ export default function JobPerformancePage() {
             <h2 className="text-base font-bold text-gray-900">{t("Individual Job Performance")}</h2>
             <p className="text-xs text-gray-500 mt-0.5">{t("All job postings with detailed performance metrics")}</p>
           </div>
-          <button className="text-xs font-semibold text-gray-400 flex items-center gap-1 border border-gray-200 px-3 py-1.5 rounded-lg">{t("All Status")}<FiChevronDown className="w-3 h-3" />
-          </button>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left min-w-[680px]">
+          <table className="w-full text-left min-w-170">
             <thead>
               <tr className="text-[10px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">
                 <th className="pb-3">{t("Job Title")}</th>
@@ -131,18 +129,6 @@ export default function JobPerformancePage() {
               ))}
             </tbody>
           </table>
-        </div>
-      </SCard>
-      {/* AI Tip */}
-      <SCard className="p-5 bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-100">
-        <div className="flex items-start gap-4">
-          <div className="bg-orange-100 text-orange-600 p-2.5 rounded-xl shrink-0"><HiSparkles className="w-5 h-5" /></div>
-          <div>
-            <h3 className="text-sm font-bold text-orange-900 mb-2">{t("Job Optimization Insight")}</h3>
-            <p className="text-xs text-orange-800/80 leading-relaxed">{t(
-              "Your \"Data Analyst\" role has been open for 45 days with 0 hires. Consider reviewing the salary band (market shows ₹8–12 LPA) and skill requirements. Also, \"Content Marketing Specialist\" is paused but has 180 applications pending review — resuming it could yield quick hires."
-            )}</p>
-          </div>
         </div>
       </SCard>
     </div>

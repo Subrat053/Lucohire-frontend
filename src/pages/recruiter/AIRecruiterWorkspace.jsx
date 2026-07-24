@@ -1,6 +1,6 @@
 import useTranslation from "../../hooks/useTranslation";
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   FiSearch, FiFileText, FiUsers, FiMail, FiHelpCircle, FiCode, 
   FiZap, FiDollarSign, FiTrendingUp, FiBarChart2, FiMessageSquare, 
@@ -21,6 +21,7 @@ export default function AIRecruiterWorkspace() {
   const {
     t
   } = useTranslation();
+  const navigate = useNavigate();
 
   const [chatInput, setChatInput] = useState('');
   const [isChatting, setIsChatting] = useState(false);
@@ -32,17 +33,41 @@ export default function AIRecruiterWorkspace() {
 
   const [jobs, setJobs] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [aiInsights, setAiInsights] = useState([]);
+  const [aiInsightsLoading, setAiInsightsLoading] = useState(true);
 
   useEffect(() => {
     fetchConversations();
     fetchData();
   }, []);
 
+  // Restore scroll position
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem('ai_page_scroll');
+    if (savedScroll) {
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(savedScroll, 10));
+      }, 50);
+    }
+
+    const handleScroll = () => {
+      sessionStorage.setItem('ai_page_scroll', window.scrollY.toString());
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        const parent = messagesEndRef.current?.parentElement;
+        if (parent) {
+          parent.scrollTo({ top: parent.scrollHeight, behavior: 'smooth' });
+        }
+      }, 100);
     }
-  }, [messages]);
+  }, [messages, loading]);
 
   const fetchData = async () => {
     try {
@@ -52,6 +77,48 @@ export default function AIRecruiterWorkspace() {
       ]);
       setJobs(jobsRes.data?.jobs || []);
       setTasks(tasksRes.data || []);
+
+      // Fetch dynamic insights
+      const cachedInsights = sessionStorage.getItem('luco_ai_insights');
+      const cachedTime = sessionStorage.getItem('luco_ai_insights_time');
+      let shouldUseCache = false;
+      
+      if (cachedInsights && cachedTime && (Date.now() - parseInt(cachedTime)) < 3600000) { // 1 hour cache
+        try {
+          const parsedInsights = JSON.parse(cachedInsights);
+          setAiInsights(parsedInsights.map((item, i) => ({
+            ...item,
+            icon: i === 0 ? FiTrendingUp : i === 1 ? FiClock : FiCode
+          })));
+          setAiInsightsLoading(false);
+          shouldUseCache = true;
+        } catch (e) {
+          console.error('Failed to parse cached insights', e);
+        }
+      }
+      
+      if (!shouldUseCache) {
+        recruiterAPI.getDashboardInsights()
+          .then(res => {
+            try {
+              if (res.data && res.data.success && Array.isArray(res.data.insights) && res.data.insights.length > 0) {
+                setAiInsights(res.data.insights.map((item, i) => ({
+                  ...item,
+                  icon: i === 0 ? FiTrendingUp : i === 1 ? FiClock : FiCode
+                })));
+                sessionStorage.setItem('luco_ai_insights', JSON.stringify(res.data.insights));
+                sessionStorage.setItem('luco_ai_insights_time', Date.now().toString());
+              }
+            } catch (e) {
+              console.error('Failed to parse AI insights. Error:', e);
+            }
+          }).catch(err => {
+            console.error('Failed to fetch AI insights API error:', err);
+          }).finally(() => {
+            setAiInsightsLoading(false);
+          });
+      }
+
     } catch (err) {
       console.error(err);
     }
@@ -140,7 +207,8 @@ export default function AIRecruiterWorkspace() {
       title: 'AI Talent Search',
       desc: 'Find the best candidates using natural language or advanced filters.',
       tag: 'Popular', tagBg: 'bg-emerald-50 text-emerald-700',
-      link: 'Search Candidates'
+      link: 'Search Candidates',
+      path: '/recruiter/candidates'
     },
     {
       icon: <FiFileText />, icBg: 'bg-purple-50', icColor: 'text-purple-600',
@@ -154,7 +222,8 @@ export default function AIRecruiterWorkspace() {
       title: 'Candidate Recommendations',
       desc: 'Get AI recommended candidates for your open jobs.',
       tag: 'Recommended', tagBg: 'bg-emerald-50 text-emerald-700',
-      link: 'Get Recommendations'
+      link: 'Get Recommendations',
+      path: '/recruiter/candidates'
     },
     {
       icon: <FiMail />, icBg: 'bg-orange-50', icColor: 'text-orange-500',
@@ -255,7 +324,10 @@ export default function AIRecruiterWorkspace() {
               <h3 className="text-xl font-extrabold text-gray-900 mb-6">{t("What would you like to do today?")}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                 {actionCards.map((card, idx) => (
-                  <SCard key={idx} className="p-5 flex flex-col hover:border-indigo-200 transition group cursor-pointer" onClick={() => handleActionClick(card.title)}>
+                  <SCard key={idx} className="p-5 flex flex-col hover:border-indigo-200 transition group cursor-pointer" onClick={() => {
+                    if (card.path) navigate(card.path);
+                    else handleActionClick(card.title);
+                  }}>
                     <div className="flex items-start justify-between mb-4">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.icBg} ${card.icColor}`}>
                         <span className="text-lg">{card.icon}</span>
@@ -292,10 +364,7 @@ export default function AIRecruiterWorkspace() {
                   ))}
                 </div>
               </SCard>
-              <div className="mt-4 text-center">
-                <button onClick={() => handleActionClick("Explore All Tools")} className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center justify-center gap-1 mx-auto transition">{t("Explore All Tools")}<FiArrowRight />
-                </button>
-              </div>
+
             </div>
             </div>
             ) : (
@@ -389,7 +458,6 @@ export default function AIRecruiterWorkspace() {
             <SCard className="p-5">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-sm font-extrabold text-gray-900">{t("Recent Conversations")}</h3>
-                <button onClick={() => handleActionClick("View all Recent Conversations")} className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t("View all")}<FiArrowRight /></button>
               </div>
               <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
                 {conversations.length === 0 ? (
@@ -419,36 +487,38 @@ export default function AIRecruiterWorkspace() {
             <SCard className="p-5">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-sm font-extrabold text-gray-900">{t("AI Insights for You")}</h3>
-                <button onClick={() => handleActionClick("View all AI Insights")} className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t("View all")}<FiArrowRight /></button>
               </div>
               <div className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-                    <FiTrendingUp className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t("High demand for React developers")}</h4>
-                    <p className="text-[11px] font-medium text-gray-500">{t("12% increase in demand this month")}</p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 border border-orange-100">
-                    <FiClock className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t("Best time to hire")}</h4>
-                    <p className="text-[11px] font-medium text-gray-500">{t("Thursdays show 28% more responses")}</p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-                    <FiCode className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t("Top skill in demand")}</h4>
-                    <p className="text-[11px] font-medium text-gray-500">{t("TypeScript is trending in your market")}</p>
-                  </div>
-                </div>
+                {aiInsightsLoading ? (
+                  <>
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="flex gap-3 animate-pulse">
+                        <div className="w-8 h-8 rounded-full bg-indigo-50 shrink-0"></div>
+                        <div className="flex-1 space-y-2 py-1">
+                          <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                          <div className="h-2 bg-gray-100 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ) : aiInsights.length > 0 ? (
+                  aiInsights.map((insight, idx) => {
+                    const Icon = insight.icon || FiTrendingUp;
+                    return (
+                      <div key={idx} className="flex gap-3">
+                        <div className={`w-8 h-8 rounded-full bg-${insight.color || 'indigo'}-50 text-${insight.color || 'indigo'}-600 flex items-center justify-center shrink-0 border border-${insight.color || 'indigo'}-100`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t(insight.title)}</h4>
+                          <p className="text-[11px] font-medium text-gray-500">{t(insight.desc)}</p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-xs text-gray-500 text-center py-2">{t("No insights available.")}</div>
+                )}
               </div>
             </SCard>
 

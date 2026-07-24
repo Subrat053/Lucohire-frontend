@@ -37,6 +37,7 @@ const navItems = [
   { label: 'Hiring Workspace', fallback: 'Hiring Workspace', path: '/recruiter/dashboard', icon: HiHome },
   { label: 'Post Jobs', fallback: 'Post Jobs', path: '/recruiter/jobs', icon: HiBriefcase },
   { label: 'AI Talent Search', fallback: 'AI Talent Search', path: '/recruiter/candidates', icon: HiUsers },
+  { label: 'Shortlisted Candidates', fallback: 'Shortlisted Candidates', path: '/recruiter/shortlisted-candidates', icon: HiBookmark },
   { label: 'Talent Pool', fallback: 'Talent Pool', path: '/recruiter/talent-pool', icon: HiCollection },
   { label: 'Outreach', fallback: 'Outreach', path: '/recruiter/outreach', icon: HiChatAlt },
   { label: 'Set Reminder', fallback: 'Set Reminder', path: '/recruiter/tasks', icon: HiClipboardCheck },
@@ -105,12 +106,12 @@ const RecruiterLayout = ({ children }) => {
               className={`flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all group
                 ${active
                   ? 'bg-[#0066FF] text-white shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  : 'text-black hover:bg-gray-200'
                 }
                 ${collapsed ? 'justify-center' : 'space-x-3'}
               `}
             >
-              <Icon className={`w-5 h-5 shrink-0 ${active ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} />
+              <Icon className={`w-5 h-5 shrink-0 ${active ? 'text-white' : 'text-gray-600 group-hover:text-black'}`} />
               {!collapsed && (
                 <div className="flex items-center justify-between w-full">
                   <span>{t(label, fallback)}</span>
@@ -137,7 +138,7 @@ const RecruiterLayout = ({ children }) => {
                 </div>
                 <div className="text-sm font-bold text-gray-900 mb-1">
                   {stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit}
-                  {stats.remainingPostLimit !== 'unlimited' && <span className="text-gray-400 font-medium">{t("left")}</span>}
+                  {stats.remainingPostLimit !== 'unlimited' && <span className="text-gray-400 font-medium ml-1">{t("left")}</span>}
                 </div>
                 {stats.remainingPostLimit !== 'unlimited' && (
                   <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -158,9 +159,37 @@ const RecruiterLayout = ({ children }) => {
                   <div className="bg-green-600 h-1.5 rounded-full" style={{ width: `${stats.unlocksRemaining > 0 ? 100 : 0}%` }}></div>
                 </div>
               </div>
-            </div>
 
-            <Link to="/recruiter/plans" className="mt-4 w-full rounded-xl border border-indigo-100 bg-white text-indigo-600 hover:bg-indigo-50 text-xs font-bold py-2 transition flex justify-center items-center">{t("Manage Subscription")}</Link>
+              {(stats.boostJobsRemaining > 0 || stats.currentPlan === 'custom') && (
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <HiLightningBolt className="w-3 h-3 text-amber-500" />
+                    <span className="text-[10px] font-semibold text-gray-600">{t("Job Boosts")}</span>
+                  </div>
+                  <div className="text-sm font-bold text-gray-900 mb-1">
+                    {stats.boostJobsRemaining || 0} <span className="text-gray-400 font-medium">{t("left")}</span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-1.5">
+                    <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${stats.boostJobsRemaining > 0 ? 100 : 0}%` }}></div>
+                  </div>
+                </div>
+              )}
+
+              {(stats.boostDaysRemaining > 0 || stats.currentPlan === 'custom') && (
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <HiCalendar className="w-3 h-3 text-purple-500" />
+                    <span className="text-[10px] font-semibold text-gray-600">{t("Boost Days")}</span>
+                  </div>
+                  <div className="text-sm font-bold text-gray-900 mb-1">
+                    {stats.boostDaysRemaining || 0} <span className="text-gray-400 font-medium">{t("left")}</span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-1.5">
+                    <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: `${stats.boostDaysRemaining > 0 ? 100 : 0}%` }}></div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </nav>
@@ -192,7 +221,7 @@ const RecruiterLayout = ({ children }) => {
           onClick={() => setCollapsed(!collapsed)}
           className="absolute -right-3 top-15 w-6 h-6 bg-cyan-200 border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition z-10"
         >
-          {collapsed ? <HiChevronRight className="w-4 h-4 text-gray-500" /> : <HiChevronLeft className="w-4 h-4 text-gray-500" />}
+          {collapsed ? <HiChevronRight className="w-4 h-4 text-gray-900" /> : <HiChevronLeft className="w-4 h-4 text-gray-900" />}
         </button>
       </aside>
 
@@ -200,7 +229,7 @@ const RecruiterLayout = ({ children }) => {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <aside className="relative w-56 h-full bg-white shadow-xl flex flex-col">
+          <aside className="relative w-56 h-full bg-slate-50 shadow-xl flex flex-col">
             {renderSidebarContent(() => setMobileOpen(false))}
           </aside>
         </div>

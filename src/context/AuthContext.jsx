@@ -20,7 +20,7 @@ export const getDashboardByRole = (role) => {
     case "provider":
       return "/provider/dashboard";
     case "recruiter":
-      return "/recruiter/job-postings";
+      return "/recruiter/candidates";
     default:
       return "/";
   }

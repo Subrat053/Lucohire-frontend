@@ -667,7 +667,7 @@ const ProviderPlans = () => {
                 className="bg-white rounded-3xl p-6 relative flex flex-col border border-emerald-100 shadow-md transition-all duration-300 hover:border-2 hover:border-teal-600 hover:shadow-xl hover:scale-105 hover:z-10 cursor-pointer"
               >
                 {isPro && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-teal-600 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">{t("MOST POPULAR")}</div>
+                  <></>
                 )}
                 {isPremium && (
                   <div className="absolute top-4 right-4 text-amber-500">

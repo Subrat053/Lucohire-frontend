@@ -8,6 +8,7 @@ import {
   HiLogout,
   HiCog,
   HiHome,
+  HiSearch,
   HiTrendingUp,
   HiCreditCard,
   HiBriefcase,
@@ -194,16 +195,30 @@ const Navbar = () => {
                       </span>
                     </div>
                     <Link
-                      to={getDashboardLink()}
+                      to={
+                        activeRole === 'provider' ? '/provider/job-for-me' :
+                        activeRole === 'recruiter' ? '/recruiter/candidates' :
+                        getDashboardLink()
+                      }
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <HiHome className="text-gray-400" aria-hidden="true" />
-                      <span>{t("navbar.dashboard")}</span>
+                      {activeRole === 'provider' ? (
+                        <HiBriefcase className="text-gray-400" aria-hidden="true" />
+                      ) : activeRole === 'recruiter' ? (
+                        <HiSearch className="text-gray-400" aria-hidden="true" />
+                      ) : (
+                        <HiHome className="text-gray-400" aria-hidden="true" />
+                      )}
+                      <span>
+                        {activeRole === 'provider' ? "Matching Jobs" :
+                         activeRole === 'recruiter' ? "Find Candidates" :
+                         t("navbar.dashboard")}
+                      </span>
                     </Link>
                     {activeRole !== "manager" && (
                       <Link
-                        to={`/${activeRole}/profile`}
+                        to={activeRole === "recruiter" ? "/recruiter/settings" : `/${activeRole}/profile`}
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       >
@@ -434,7 +449,7 @@ const Navbar = () => {
                     { label: "Post a Job", path: "/recruiter/post-job", icon: HiPlusCircle },
                     { label: "Job Postings", path: "/recruiter/job-postings", icon: HiBriefcase },
                     { label: "Find Providers", path: "/recruiter/find-providers", icon: HiUsers },
-                    { label: "Shortlisted", path: "/recruiter/shortlisted", icon: HiBookmark },
+                    { label: "Shortlisted", path: "/recruiter/shortlisted-candidates", icon: HiBookmark },
                     { label: "Profile", path: "/recruiter/profile", icon: HiCog },
                   ].map(({ label, path, icon: Icon }) => {
                     const active = window.location.pathname === path;

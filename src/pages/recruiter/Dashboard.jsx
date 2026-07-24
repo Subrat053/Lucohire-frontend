@@ -9,6 +9,7 @@ import {
   FiMail, FiMessageCircle
 } from 'react-icons/fi';
 import { HiSparkles, HiBriefcase } from 'react-icons/hi2';
+import { HiBookmark } from 'react-icons/hi';
 import { recruiterAPI, notificationAPI, aiAPI } from "../../services/api";
 
 const timeAgo = (date) => {
@@ -99,21 +100,49 @@ const Dashboard = () => {
   const [activeJobs, setActiveJobs] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [shortlistedCount, setShortlistedCount] = useState(0);
+  
+  const [aiInsights, setAiInsights] = useState([]);
+  const [aiInsightsLoading, setAiInsightsLoading] = useState(true);
   
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
     try {
-      const [jobsRes, tasksRes, notifRes] = await Promise.all([
+      const [jobsRes, tasksRes, notifRes, shortlistRes] = await Promise.all([
         recruiterAPI.getJobPostings().catch(() => ({ data: [] })),
         recruiterAPI.getTasks().catch(() => ({ data: [] })),
-        notificationAPI.getMyNotifications({ page: 1, limit: 5 }).catch(() => ({ data: { notifications: [] }}))
+        notificationAPI.getMyNotifications({ page: 1, limit: 5 }).catch(() => ({ data: { notifications: [] }})),
+        recruiterAPI.getShortlistedCandidates().catch(() => ({ data: [] }))
       ]);
       
       setActiveJobs(Array.isArray(jobsRes?.data) ? jobsRes.data : jobsRes?.data?.jobs || []);
       setTasks(Array.isArray(tasksRes?.data) ? tasksRes.data : tasksRes?.data?.tasks || []);
       const notifData = notifRes?.data?.notifications || notifRes?.data?.data || [];
       setNotifications(Array.isArray(notifData) ? notifData : []);
+      
+      const shortlistData = shortlistRes?.data?.shortlisted || shortlistRes?.data?.candidates || (Array.isArray(shortlistRes?.data) ? shortlistRes.data : []);
+      setShortlistedCount(shortlistData.length || 0);
+
+      // Fetch dynamic insights
+      recruiterAPI.getDashboardInsights()
+        .then(res => {
+          try {
+            if (res.data && res.data.success && Array.isArray(res.data.insights) && res.data.insights.length > 0) {
+              setAiInsights(res.data.insights.map((item, i) => ({
+                ...item,
+                icon: i === 0 ? FiTrendingUp : i === 1 ? FiClock : FiCode
+              })));
+            }
+          } catch (e) {
+            console.error('Failed to parse AI insights. Error:', e, 'Response:', res.data);
+          }
+        }).catch(err => {
+          console.error('Failed to fetch AI insights API error:', err);
+        }).finally(() => {
+          setAiInsightsLoading(false);
+        });
+
     } catch (err) {
       console.error(err);
     } finally {
@@ -128,7 +157,7 @@ const Dashboard = () => {
   const topStats = {
     jobs: activeJobs.length,
     candidates: activeJobs.reduce((acc, job) => acc + (job.interestedCount || 0), 0),
-    interviews: activeJobs.reduce((acc, job) => acc + (job.interviews || 0), 0),
+    shortlisted: shortlistedCount,
     aiTasks: tasks.filter(t => t.aiSuggested).length || tasks.length,
     pendingTasks: tasks.filter(t => t.status !== 'done').length || 0
   };
@@ -183,24 +212,19 @@ const Dashboard = () => {
           {/* Left Column (2/3 width) */}
           <div className="lg:col-span-2 flex flex-col gap-6">
             {/* Top Metrics */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
               <StatBox 
                 title="My Active Jobs" count={topStats.jobs} 
                 actionText="View all jobs" actionLink="/recruiter/jobs"
                 icon={HiBriefcase} bgClass="bg-indigo-700" colorClass="text-white"
               />
               <StatBox 
-                title="Candidates to Review" count={topStats.candidates} 
-                actionText="Review now" actionLink="/recruiter/candidates"
-                icon={FiUsers} bgClass="bg-purple-700" colorClass="text-white"
+                title="Shortlisted Candidates" count={topStats.shortlisted} 
+                actionText="View list" actionLink="/recruiter/shortlisted-candidates"
+                icon={HiBookmark} bgClass="bg-blue-700" colorClass="text-white"
               />
               <StatBox 
-                title="Interviews Today" count={topStats.interviews} 
-                actionText="View schedule" actionLink="/recruiter/interviews"
-                icon={FiCalendar} bgClass="bg-blue-700" colorClass="text-white"
-              />
-              <StatBox 
-                title="AI Tasks for You" count={topStats.aiTasks} 
+                title="Set Reminders" count={topStats.aiTasks} 
                 actionText="See suggestions" actionLink="/recruiter/tasks"
                 icon={HiSparkles} bgClass="bg-emerald-700" colorClass="text-white"
               />
@@ -229,7 +253,7 @@ const Dashboard = () => {
                       <div className="text-xs text-gray-900 font-bold">{t("New Applications")}</div>
                     </div>
                     <div className="text-2xl font-black text-gray-900 mb-2">{topStats.candidates || 18}</div>
-                    <Link to="/recruiter/candidates" className="text-xs font-bold text-indigo-600 hover:underline mt-auto">{t("View application list →")}</Link>
+                    <Link to="/recruiter/jobs" className="text-xs font-bold text-indigo-600 hover:underline mt-auto">{t("View application list →")}</Link>
                   </div>
                   <div className="p-4 text-center flex flex-col items-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
@@ -276,33 +300,36 @@ const Dashboard = () => {
             </div>
             
             <div className="flex-1 flex flex-col justify-center space-y-4 mb-4 relative">
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-                  <FiTrendingUp className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t("High demand for React developers")}</h4>
-                  <p className="text-[11px] font-medium text-gray-500">{t("12% increase in demand this month")}</p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 border border-orange-100">
-                  <FiClock className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t("Best time to hire")}</h4>
-                  <p className="text-[11px] font-medium text-gray-500">{t("Thursdays show 28% more responses")}</p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-                  <FiCode className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t("Top skill in demand")}</h4>
-                  <p className="text-[11px] font-medium text-gray-500">{t("TypeScript is trending in your market")}</p>
-                </div>
-              </div>
+              {aiInsightsLoading ? (
+                <>
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex gap-3 animate-pulse">
+                      <div className="w-8 h-8 rounded-full bg-indigo-50 shrink-0"></div>
+                      <div className="flex-1 space-y-2 py-1">
+                        <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-2 bg-gray-100 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : aiInsights.length > 0 ? (
+                aiInsights.map((insight, idx) => {
+                  const Icon = insight.icon || FiTrendingUp;
+                  return (
+                    <div key={idx} className="flex gap-3">
+                      <div className={`w-8 h-8 rounded-full bg-${insight.color || 'indigo'}-50 text-${insight.color || 'indigo'}-600 flex items-center justify-center shrink-0 border border-${insight.color || 'indigo'}-100`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-gray-900 mb-0.5">{t(insight.title)}</h4>
+                        <p className="text-[11px] font-medium text-gray-500">{t(insight.desc)}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-sm text-gray-500 text-center">{t("No insights available at the moment.")}</div>
+              )}
             </div>
             
             <div className="text-center mt-auto pt-2">
