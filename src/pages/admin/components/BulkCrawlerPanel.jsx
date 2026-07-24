@@ -1,12 +1,35 @@
-import { useState } from 'react';
-import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, Globe } from 'lucide-react';
-import { adminAPI } from '../../../services/api';
+import { useState, useEffect } from 'react';
+import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, Globe, Clock, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ADMIN_API, adminAPI } from '../../../services/api';
 
 const BulkCrawlerPanel = () => {
   const [inputText, setInputText] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchHistory = async (pageNum = 1) => {
+    try {
+      setHistoryLoading(true);
+      const res = await ADMIN_API.get(`/admin/crawlers/mapped-companies?page=${pageNum}&limit=10`);
+      setHistory(res.data.companies || []);
+      setTotalPages(res.data.pagination?.pages || 1);
+      setPage(res.data.pagination?.page || 1);
+    } catch (err) {
+      console.error('Failed to fetch history', err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -83,10 +106,12 @@ const BulkCrawlerPanel = () => {
         }
       }
       setIsUploading(false);
+      fetchHistory(1); // Refresh history after stream completes
     } catch (err) {
       console.error(err);
       setError(err.message || 'Failed to trigger bulk upload.');
       setIsUploading(false);
+      fetchHistory(1);
     }
   };
 
@@ -273,6 +298,101 @@ const BulkCrawlerPanel = () => {
             {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
             {isUploading ? 'Processing...' : 'Start Mapping Engine'}
           </button>
+        </div>
+      </div>
+
+      {/* Crawling History */}
+      <div className="border-t border-gray-200 bg-gray-50 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-indigo-500" />
+            Crawling History
+          </h2>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100 text-left text-gray-500">
+                  <th className="py-3 px-4 font-medium">Company</th>
+                  <th className="py-3 px-4 font-medium">Career URL</th>
+                  <th className="py-3 px-4 font-medium">Status</th>
+                  <th className="py-3 px-4 font-medium">Jobs Found</th>
+                  <th className="py-3 px-4 font-medium">Last Scraped</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {historyLoading ? (
+                  <tr>
+                    <td colSpan="5" className="py-8 text-center text-gray-400">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                      Loading history...
+                    </td>
+                  </tr>
+                ) : history.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="py-8 text-center text-gray-400">
+                      No mapping history found.
+                    </td>
+                  </tr>
+                ) : (
+                  history.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                      <td className="py-3 px-4 font-medium text-gray-900">{item.companyName}</td>
+                      <td className="py-3 px-4">
+                        {item.careerUrl ? (
+                          <a href={item.careerUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 text-xs">
+                            {item.careerUrl} <ExternalLink className="w-3 h-3" />
+                          </a>
+                        ) : (
+                          <span className="text-gray-400 text-xs">N/A</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">
+                        {item.status === 'active' ? (
+                          <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full uppercase">Success</span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full uppercase">{item.status || 'Failed'}</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600 font-medium">
+                        {item.successCount || 0} Jobs
+                      </td>
+                      <td className="py-3 px-4 text-gray-500 text-xs">
+                        {item.lastSyncedAt ? new Date(item.lastSyncedAt).toLocaleString() : new Date(item.createdAt).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between bg-white">
+              <span className="text-sm text-gray-500">
+                Page {page} of {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => fetchHistory(page - 1)}
+                  disabled={page === 1}
+                  className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => fetchHistory(page + 1)}
+                  disabled={page === totalPages}
+                  className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

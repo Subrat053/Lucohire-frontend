@@ -431,7 +431,7 @@ const JobCard = ({
             <span className="text-gray-300 shrink-0 text-xs">•</span>
             <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
               <span className="text-xs text-gray-500 leading-snug">
-                {matchScore}% match based on your profile
+                {matchScore}% match
               </span>
             </div>
           </div>
@@ -443,7 +443,7 @@ const JobCard = ({
             <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
               <span className="text-xs text-gray-500 leading-snug">
                 {!hasActivePlan
-                  ? "React, UI/UX Design, JavaScript"
+                  ? "React"
                   : aiInsights
                     ? (aiInsights.matchedSkills?.length > 0 ? aiInsights.matchedSkills.join(", ") : "General experience")
                     : "Generating..."}
@@ -473,7 +473,7 @@ const JobCard = ({
             <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
               <span className="text-xs text-gray-500 leading-snug">
                 {!hasActivePlan
-                  ? "Figma, Bootstrap, HTML5, CSS, Web Design"
+                  ? "Figma"
                   : aiInsights
                     ? (aiInsights.missingSkills?.length > 0 ? aiInsights.missingSkills.join(", ") : "None")
                     : "Generating..."}
@@ -503,7 +503,7 @@ const JobCard = ({
             <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
               <span className="text-xs text-gray-500 leading-snug">
                 {!hasActivePlan
-                  ? "Portfolio lacks strong mobile UI/UX examples."
+                  ? "Portfolio."
                   : aiInsights
                     ? (aiInsights.hireBlocker || "No major blockers found.")
                     : "Generating..."}

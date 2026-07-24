@@ -40,6 +40,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [profileData, setProfileData] = useState({});
   const [stats, setStats] = useState({});
+  const [platformCompanyDetails, setPlatformCompanyDetails] = useState(null);
   const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
   const [changingPassword, setChangingPassword] = useState(false);
   const [profileError, setProfileError] = useState('');
@@ -130,6 +131,7 @@ export default function Settings() {
       const p = res.data.profile;
       setProfileData(p);
       setStats(res.data.stats || {});
+      setPlatformCompanyDetails(res.data.platformCompanyDetails || null);
       const data = {
         companyName: p.companyName || '',
         industry: p.industry || 'Information Technology',
@@ -666,7 +668,9 @@ export default function Settings() {
       <InvoiceModal 
         isOpen={isInvoiceModalOpen} 
         onClose={() => setIsInvoiceModalOpen(false)} 
-        gstNumber={profileData?.gstNumber || formData?.gstNumber}
+        profileData={profileData} 
+        fetchProfile={fetchProfile}
+        platformCompanyDetails={platformCompanyDetails}
         onUpdateGst={async (newGst) => {
           try {
             await API.put('/recruiter/profile', { gstNumber: newGst });

@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import API from '../../services/api';
 import { jsPDF } from 'jspdf';
 
-export default function InvoiceModal({ isOpen, onClose, profileData, fetchProfile }) {
+export default function InvoiceModal({ isOpen, onClose, profileData, fetchProfile, platformCompanyDetails }) {
   const [gstNumber, setGstNumber] = useState(profileData?.gstNumber || '');
   const [savingGst, setSavingGst] = useState(false);
   const [payments, setPayments] = useState([]);
@@ -59,13 +59,17 @@ export default function InvoiceModal({ isOpen, onClose, profileData, fetchProfil
       // Company details
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(14);
-      doc.text("Lucohire Inc.", 140, 22);
+      doc.text(platformCompanyDetails?.companyName || "Lucohire Inc.", 140, 22);
       
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
-      doc.text("123 Business Avenue", 140, 28);
-      doc.text("Tech District, Bangalore 560001", 140, 34);
-      doc.text("GSTIN: 29AABCU9603R1ZX", 140, 40);
+      doc.text(platformCompanyDetails?.addressLine1 || "123 Business Avenue", 140, 28);
+      if (platformCompanyDetails?.addressLine2) {
+        doc.text(platformCompanyDetails.addressLine2, 140, 34);
+      } else {
+        doc.text("Tech District, Bangalore 560001", 140, 34);
+      }
+      doc.text(`GSTIN: ${platformCompanyDetails?.gstNumber || "29AABCU9603R1ZX"}`, 140, 40);
       
       // Divider
       doc.setDrawColor(200, 200, 200);

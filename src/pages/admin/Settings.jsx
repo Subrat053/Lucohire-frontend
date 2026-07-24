@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { HiSave, HiRefresh, HiCog, HiPhotograph, HiDocumentText, HiEye, HiEyeOff, HiCloud, HiChip, HiCheckCircle, HiDatabase } from 'react-icons/hi';
+import { HiSave, HiRefresh, HiCog, HiPhotograph, HiDocumentText, HiEye, HiEyeOff, HiCloud, HiChip, HiCheckCircle, HiDatabase, HiLocationMarker } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import LocationAutocomplete from '../../components/common/LocationAutocomplete';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { toAbsoluteMediaUrl } from '../../utils/media';
@@ -13,6 +14,7 @@ const TABS = [
   { id: 'content',   label: 'Page Content',  icon: HiDocumentText },
   { id: 'rotation',  label: 'Rotation Pools',icon: HiChip },
   { id: 'ai-ops',    label: 'AI OPS',        icon: HiDatabase },
+  { id: 'company',   label: 'Company Details',icon: HiLocationMarker },
 ];
 
 const AdminSettings = () => {
@@ -47,6 +49,10 @@ const AdminSettings = () => {
   const [aboutContent, setAboutContent] = useState('');
   const [savingContent, setSavingContent] = useState('');
 
+  // Company details
+  const [companyDetails, setCompanyDetails] = useState({ companyName: 'Lucohire Inc.', addressLine1: '123 Business Avenue', addressLine2: 'Tech District, Bangalore 560001', gstNumber: '29AABCU9603R1ZX' });
+  const [savingCompanyDetails, setSavingCompanyDetails] = useState(false);
+
   useEffect(() => { fetchSettings(); fetchCloudinary(); fetchRotation(); fetchContent(); }, []);
 
   const fetchSettings = async () => {
@@ -55,7 +61,12 @@ const AdminSettings = () => {
       const list = Array.isArray(data) ? data : data.settings || [];
       setSettings(list);
       const vals = {};
-      list.forEach(s => { vals[s._id] = s.value; });
+      list.forEach(s => { 
+        vals[s._id] = s.value; 
+        if (s.key === 'admin_company_details' && s.value) {
+          setCompanyDetails(s.value);
+        }
+      });
       setEditValues(vals);
     } catch { toast.error('Failed to load settings'); }
     finally { setLoading(false); }
@@ -142,6 +153,22 @@ const AdminSettings = () => {
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} saved!`);
     } catch { toast.error('Failed to save content'); }
     finally { setSavingContent(''); }
+  };
+
+  const handleSaveCompanyDetails = async () => {
+    setSavingCompanyDetails(true);
+    try {
+      await adminAPI.updateSettings({
+        settings: [{
+          key: 'admin_company_details',
+          value: companyDetails,
+          description: 'Platform Company Billing Details for Invoices',
+          category: 'general'
+        }]
+      });
+      toast.success('Company details saved!');
+    } catch { toast.error('Failed to save company details'); }
+    finally { setSavingCompanyDetails(false); }
   };
 
   const getSettingIcon = (key) => {
@@ -629,6 +656,68 @@ const AdminSettings = () => {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Company Details ── */}
+      {activeTab === 'company' && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Platform Company Details</h2>
+              <p className="text-sm text-gray-500 mt-0.5">These details will be used on recruiter invoices and billing receipts.</p>
+            </div>
+            <button
+              onClick={handleSaveCompanyDetails}
+              disabled={savingCompanyDetails}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition text-sm font-medium disabled:opacity-50 shadow-sm"
+            >
+              <HiSave className="w-4 h-4" />
+              {savingCompanyDetails ? 'Saving...' : 'Save Details'}
+            </button>
+          </div>
+          <div className="p-6 space-y-6 max-w-2xl">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Company Name</label>
+              <input
+                type="text"
+                value={companyDetails.companyName || ''}
+                onChange={e => setCompanyDetails({...companyDetails, companyName: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm transition-shadow"
+                placeholder="e.g. Lucohire Inc."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Primary Address</label>
+              <LocationAutocomplete
+                value={companyDetails.addressLine1 || ''}
+                onChange={val => setCompanyDetails({...companyDetails, addressLine1: val})}
+                onSelect={(loc) => setCompanyDetails({...companyDetails, addressLine1: loc.label})}
+                mode="address"
+                placeholder="Search for your company address..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Address Line 2 (Optional)</label>
+              <input
+                type="text"
+                value={companyDetails.addressLine2 || ''}
+                onChange={e => setCompanyDetails({...companyDetails, addressLine2: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm transition-shadow"
+                placeholder="Suite, Unit, Building, etc."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">GST/Tax Number</label>
+              <input
+                type="text"
+                value={companyDetails.gstNumber || ''}
+                onChange={e => setCompanyDetails({...companyDetails, gstNumber: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm uppercase transition-shadow"
+                placeholder="e.g. 29AABCU9603R1ZX"
+              />
+            </div>
+          </div>
         </div>
       )}
 

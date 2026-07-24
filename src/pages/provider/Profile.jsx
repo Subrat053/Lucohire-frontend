@@ -3403,7 +3403,8 @@ const ProviderProfile = () => {
             <div className="flex flex-col sm:flex-row justify-end gap-3">
               <button
                 type="button"
-                onClick={() => {
+                onClick={async (e) => {
+                  await handleSave(e);
                   setShowUnsavedWarning(false);
                   setPendingTab(null);
                 }}
