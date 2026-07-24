@@ -5,7 +5,15 @@ const RewardProgramTable = ({ topPartners = [] }) => {
   const [period, setPeriod] = useState('monthly');
   const [tab, setTab] = useState('By Registrations');
 
-  const displayData = topPartners.slice(0, 5);
+  const sortedData = [...topPartners].sort((a, b) => {
+    if (tab === 'By Registrations') return (b.totalReferrals || 0) - (a.totalReferrals || 0);
+    if (tab === 'By Country') return (a.country || '').localeCompare(b.country || '');
+    if (tab === 'By State') return (a.state || '').localeCompare(b.state || '');
+    if (tab === 'By City') return (a.city || '').localeCompare(b.city || '');
+    return (b.totalCommissionEarned || 0) - (a.totalCommissionEarned || 0);
+  });
+
+  const displayData = sortedData.slice(0, 5);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm mt-6 h-full">
@@ -71,6 +79,8 @@ const RewardProgramTable = ({ topPartners = [] }) => {
             {displayData.length > 0 ? (
               displayData.map((partner, index) => {
                 const rank = (index + 1).toString().padStart(2, '0');
+                const locationStr = [partner.city, partner.state].filter(Boolean).join(', ') || 'Unknown Location';
+                
                 return (
                   <tr key={partner._id || index} className="hover:bg-[#F8F7FB] transition-colors">
                     <td className="px-2 py-4 whitespace-nowrap">
@@ -99,13 +109,13 @@ const RewardProgramTable = ({ topPartners = [] }) => {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <span className="text-xs text-gray-900">Mumbai, Maharashtra</span>
-                        <span className="text-[10px] text-gray-500">India</span>
+                        <span className="text-xs text-gray-900">{locationStr}</span>
+                        <span className="text-[10px] text-gray-500">{partner.country || 'Unknown Country'}</span>
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right">
                       <span className="inline-flex items-center justify-center px-3 py-1 bg-green-50 text-green-600 font-bold text-[10px] rounded-full">
-                        ₹{(Number(partner.totalReferrals || 0) * 500).toLocaleString('en-IN')}
+                        ₹{(Number(partner.totalCommissionEarned || 0)).toLocaleString('en-IN')}
                       </span>
                     </td>
                   </tr>

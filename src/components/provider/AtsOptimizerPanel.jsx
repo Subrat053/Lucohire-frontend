@@ -12,6 +12,7 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [toolkitAtsScore, setToolkitAtsScore] = useState(null);
+  const [toolkitTips, setToolkitTips] = useState([]);
 
   React.useEffect(() => {
     // Fetch the baseline ATS score that matches the Resume Toolkit page
@@ -20,6 +21,9 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
         const stats = res?.data?.data?.resumeStats;
         if (stats && stats.atsScore) {
           setToolkitAtsScore(stats.atsScore);
+        }
+        if (res?.data?.data?.aiSuggestions) {
+          setToolkitTips(res.data.data.aiSuggestions);
         }
       })
       .catch(err => console.error("Error fetching toolkit ATS score", err));
@@ -86,6 +90,32 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
           </p>
         </div>
       </div>
+
+      {toolkitTips && toolkitTips.length > 0 && !data && (
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm animate-fadeIn">
+          <h3 className="text-[14px] font-bold text-gray-800 flex items-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4 text-[#0f766e]" />
+            {t("Personalized Profile Improvements")}
+          </h3>
+          <p className="text-[12px] text-gray-500 font-medium mb-4">
+            {t("Our AI has analyzed your current profile data. Here are specific suggestions on how you can improve your ATS pass rate:")}
+          </p>
+          <ul className="space-y-3">
+            {toolkitTips.map((tip, idx) => {
+              // Ensure we display string if it's passed as a string, else use tip.title or a default message
+              let bulletText = typeof tip === 'string' ? tip : (tip?.title || JSON.stringify(tip));
+              if (typeof bulletText !== 'string') bulletText = String(bulletText);
+              
+              return (
+                <li key={idx} className="flex gap-3 text-[12px] text-gray-700 bg-gray-50/50 p-3 rounded-xl border border-gray-100 font-medium leading-relaxed">
+                  <CheckCircle2 className="text-[#0f766e] w-4 h-4 shrink-0 mt-0.5" />
+                  <span dangerouslySetInnerHTML={{ __html: bulletText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
       {data && (
         <div className="animate-fadeIn space-y-8">
           
@@ -172,14 +202,19 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
 
             <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
               <h4 className="text-[14px] font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Briefcase className="text-[#0f766e] w-4 h-4" />{t("Improved Experience Bullets")}</h4>
+                <Target className="text-[#0f766e] w-4 h-4" />
+                {t("Specific Recommendations (Bullet Points)")}
+              </h4>
               <ul className="space-y-3">
-                {(data.improved_experience_bullets || []).map((bullet, i) => (
-                  <li key={i} className="flex gap-3 text-[12px] text-gray-700 bg-gray-50/50 p-3 rounded-xl border border-gray-100 font-medium leading-relaxed">
-                    <CheckCircle2 className="text-[#0f766e] w-4 h-4 shrink-0 mt-0.5" />
-                    <span dangerouslySetInnerHTML={{ __html: bullet.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
-                  </li>
-                ))}
+                {(data.specific_recommendations || data.improved_experience_bullets || []).map((bullet, i) => {
+                  if (typeof bullet !== 'string') return null;
+                  return (
+                    <li key={i} className="flex gap-3 text-[12px] text-gray-700 bg-gray-50/50 p-3 rounded-xl border border-gray-100 font-medium leading-relaxed">
+                      <CheckCircle2 className="text-[#0f766e] w-4 h-4 shrink-0 mt-0.5" />
+                      <span dangerouslySetInnerHTML={{ __html: bullet.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>

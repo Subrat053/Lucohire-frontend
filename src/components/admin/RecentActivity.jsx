@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HiOutlineUserAdd, HiOutlineBriefcase, HiOutlineCurrencyRupee, HiOutlineDocumentText } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -27,12 +28,11 @@ const RecentActivity = ({ activities = [] }) => {
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 shrink-0">
         <h3 className="text-sm font-bold text-gray-900">Recent Activity</h3>
-        <Link to="/admin/dashboard" className="text-[10px] font-bold text-blue-500 hover:underline">View all →</Link>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 flex-1 overflow-y-auto pr-2" style={{ maxHeight: '400px' }}>
         {activities.map((activity, i) => (
           <div key={activity.id} className="flex gap-3">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${getBgColor(activity.icon)}`}>

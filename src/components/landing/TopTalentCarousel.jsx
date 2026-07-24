@@ -3,6 +3,7 @@ import { Search, MapPin, ChevronLeft, ChevronRight, BadgeCheck, MoreVertical, Cl
 import { Link, useNavigate } from 'react-router-dom';
 import useTranslation from '../../hooks/useTranslation';
 import { POPULAR_SKILLS, ALL_SKILLS } from '../../data/skillsData';
+import api from '../../services/api';
 
 const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -106,6 +107,18 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
 
   const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
   const searchContainerRef = useRef(null);
+  
+  const [adminRoles, setAdminRoles] = useState([]);
+
+  useEffect(() => {
+    api.get('/job-roles')
+      .then(res => {
+        if (res.data && res.data.length > 0) {
+          setAdminRoles(res.data.map(r => r.roleName));
+        }
+      })
+      .catch(err => console.error("Failed to fetch admin roles", err));
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -139,7 +152,9 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
     navigate(`/search?${params.toString()}`);
   };
 
-  const matchingSkills = Array.from(new Set(talentSearch ? ALL_SKILLS.filter(s => s.toLowerCase().includes(talentSearch.toLowerCase())) : POPULAR_SKILLS)).slice(0, 30);
+  const allAvailableSkills = [...adminRoles, ...ALL_SKILLS];
+  const popularAvailableSkills = [...new Set([...adminRoles, ...POPULAR_SKILLS])];
+  const matchingSkills = Array.from(new Set(talentSearch ? allAvailableSkills.filter(s => s.toLowerCase().includes(talentSearch.toLowerCase())) : popularAvailableSkills)).slice(0, 30);
 
   return (
     <div className="bg-white py-12 sm:py-16 w-full">
@@ -168,40 +183,27 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
             
             {/* Smart Dropdown */}
             {searchDropdownOpen && matchingSkills.length > 0 && (
-              <div className="absolute top-[calc(100%+8px)] left-0 w-[calc(100vw-32px)] sm:w-[480px] bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden">
+              <div className="absolute top-[calc(100%+8px)] left-0 w-full sm:w-[480px] bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden">
                 <div className="bg-gray-50/80 border-b border-gray-100 px-4 py-3 flex justify-between items-center backdrop-blur-sm">
                   <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    {talentSearch ? t("Matching Skills") : t("Trending Skills")}
+                    {talentSearch ? t("Matching Skills & Roles") : t("Trending Skills & Roles")}
                   </span>
                   <span className="text-[10px] text-gray-400 font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200">Select to search</span>
                 </div>
-                <div className="p-4 max-h-[300px] overflow-y-auto">
-                  <div className="flex flex-wrap gap-2">
-                    {matchingSkills.map((skill, idx) => {
-                      const colors = [
-                        'bg-blue-50/80 text-blue-700 border-blue-200/60 hover:bg-blue-600 hover:text-white hover:border-blue-600 hover:shadow-md hover:shadow-blue-500/20',
-                        'bg-purple-50/80 text-purple-700 border-purple-200/60 hover:bg-purple-600 hover:text-white hover:border-purple-600 hover:shadow-md hover:shadow-purple-500/20',
-                        'bg-emerald-50/80 text-emerald-700 border-emerald-200/60 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 hover:shadow-md hover:shadow-emerald-500/20',
-                        'bg-orange-50/80 text-orange-700 border-orange-200/60 hover:bg-orange-500 hover:text-white hover:border-orange-500 hover:shadow-md hover:shadow-orange-500/20',
-                        'bg-pink-50/80 text-pink-700 border-pink-200/60 hover:bg-pink-500 hover:text-white hover:border-pink-500 hover:shadow-md hover:shadow-pink-500/20',
-                        'bg-indigo-50/80 text-indigo-700 border-indigo-200/60 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 hover:shadow-md hover:shadow-indigo-500/20',
-                      ];
-                      const colorClass = colors[idx % colors.length];
-                      
-                      return (
-                        <div 
-                          key={idx}
-                          className={`px-3 py-1.5 border rounded-xl text-sm font-medium cursor-pointer transition-all duration-300 ${colorClass}`}
-                          onClick={() => {
-                            setTalentSearch(skill);
-                            setSearchDropdownOpen(false);
-                          }}
-                        >
-                          {skill}
-                        </div>
-                      )
-                    })}
-                  </div>
+                <div className="max-h-[300px] overflow-y-auto py-1.5">
+                  {matchingSkills.map((skill, idx) => (
+                    <div 
+                      key={idx}
+                      className="px-4 py-2.5 hover:bg-blue-50/50 cursor-pointer text-sm text-gray-700 border-b border-gray-50/60 last:border-none flex items-center gap-2.5 transition-colors duration-150"
+                      onClick={() => {
+                        setTalentSearch(skill);
+                        setSearchDropdownOpen(false);
+                      }}
+                    >
+                      <Search className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                      <span className="font-medium text-gray-700 truncate">{skill}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -290,7 +292,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                     </div>
                     
                     <p className="text-[13px] font-bold text-indigo-700 mb-2 truncate">
-                      {candidate.primaryRole || t('Freelancer')}
+                      {(candidate.roles && candidate.roles.length > 0) ? candidate.roles.join(', ') : (candidate.primaryRole || t('Freelancer'))}
                     </p>
                     
                     <div className="flex flex-col gap-1.5 text-[12px] text-gray-600 font-medium">

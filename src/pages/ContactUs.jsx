@@ -59,13 +59,6 @@ const ContactUs = () => {
 
   const contactCards = [
     {
-      icon: Phone,
-      title: t('contact.callUs', 'Call Us'),
-      value: t('contact.phoneNumber', '+91 98765 43210'),
-      bg: 'bg-indigo-50',
-      iconColor: 'text-indigo-600'
-    },
-    {
       icon: Mail,
       title: t('contact.emailUs', 'Email Us'),
       value: t('contact.emailAddressValue', 'support@servicehub.com'),

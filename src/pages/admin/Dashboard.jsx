@@ -57,7 +57,9 @@ const Dashboard = () => {
   });
 
   const loadDashboardStats = useCallback(async (forceRefresh = false, activeFilters = null) => {
-    setLoading(true);
+    // Only show full page loader if we have no data at all
+    if (!dashboardCache.data) setLoading(true);
+    
     const now = Date.now();
     const isFresh =
       !forceRefresh &&
@@ -65,7 +67,7 @@ const Dashboard = () => {
       now - dashboardCache.ts < DASHBOARD_CACHE_TTL;
 
     if (forceRefresh) {
-      dashboardCache.data = null;
+      // Intentionally DO NOT clear dashboardCache.data here to allow seamless background updates
       dashboardCache.ts = 0;
       dashboardCache.inflight = null;
     }
@@ -263,14 +265,20 @@ const Dashboard = () => {
       {/* Row 5: Automation Insights & Subscription Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <AutomationInsights data={stats.automationInsights} />
-        <SubscriptionOverview data={stats.subscriptionOverview} />
+        <SubscriptionOverview data={stats.subscriptionOverview} planSummary={stats.planSummary || {}} />
       </div>
 
       {/* Legacy/Extra Data (Kept as requested to not lose functionality) */}
       <div className="pt-8 border-t border-gray-200">
         <h2 className="text-sm font-bold text-gray-900 mb-4 px-1">Additional Reports & Summaries</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <PlatformSummary totalUsers={stats.totalUsers} totalProviders={stats.totalProviders} totalRecruiters={stats.totalRecruiters} />
+          <PlatformSummary 
+            totalUsers={stats.totalUsers} 
+            totalProviders={stats.totalProviders} 
+            totalRecruiters={stats.totalRecruiters}
+            totalCities={stats.totalCities || 0}
+            totalCountries={stats.countryOverview?.length || 0}
+          />
           <PlanSummary plans={stats.planSummary || {}} />
           <RewardPoolCard pool={stats.rewardPool} />
         </div>
