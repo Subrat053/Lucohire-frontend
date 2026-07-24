@@ -198,7 +198,7 @@ export default function TemplateOlivia() {
   const rightSections = sections.filter(s => rightColumnTypes.includes(s.type) && s.visible);
 
   return (
-    <div className="bg-[#ffffff] px-10 py-10 flex-1 w-full box-border break-words font-sans text-gray-900 h-full border-[10px] border-[#fdf2f8]" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="bg-[#ffffff] px-10 py-10 grow w-full box-border break-words font-sans text-gray-900 border-[10px] border-[#fdf2f8]" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
       
       {/* Header */}
       <div className="flex justify-center items-center pb-8 border-b border-[#fbcfe8] gap-4">

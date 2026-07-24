@@ -272,13 +272,35 @@ const AdminRefundRequests = () => {
                   {processStatus === 'Partial Refund' && (
                     <div>
                       <label className="block text-xs font-semibold text-gray-600 mb-1">Refund Amount (₹)</label>
-                      <input
-                        type="number"
-                        value={refundAmount}
-                        onChange={(e) => setRefundAmount(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                        placeholder="Enter amount"
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          value={refundAmount}
+                          onChange={(e) => setRefundAmount(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                          placeholder="Enter amount"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (selectedRefund.totalCredits > 0) {
+                              const calculated = (selectedRefund.planPrice / selectedRefund.totalCredits) * selectedRefund.remainingCredits;
+                              setRefundAmount(Math.max(0, Math.round(calculated * 100) / 100));
+                              toast.success("Amount auto-calculated based on remaining credits");
+                            } else {
+                              toast.error("Cannot auto-calculate for unlimited credits plan");
+                            }
+                          }}
+                          className="px-3 py-2 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg hover:bg-emerald-200 transition-colors whitespace-nowrap"
+                        >
+                          Auto Calc
+                        </button>
+                      </div>
+                      {selectedRefund.totalCredits > 0 && (
+                        <p className="text-[10px] text-gray-500 mt-1">
+                          Calc: (₹{selectedRefund.planPrice} / {selectedRefund.totalCredits}) × {selectedRefund.remainingCredits} remaining
+                        </p>
+                      )}
                     </div>
                   )}
 

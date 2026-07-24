@@ -209,7 +209,7 @@ export default function TemplateJane() {
   const rightSections = sections.filter(s => rightColumnTypes.includes(s.type) && s.visible);
 
   return (
-    <div className="bg-white p-12 flex-1 w-full box-border break-words font-sans text-gray-900" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="bg-white p-12 grow w-full box-border break-words font-sans text-gray-900" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
       <div className="flex justify-between items-start mb-6">
         <div className="flex-1">
           <InlineFormBlock
