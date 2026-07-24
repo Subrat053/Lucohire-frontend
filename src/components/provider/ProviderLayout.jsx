@@ -149,7 +149,13 @@ const ProviderLayout = ({ children }) => {
     fetchPlan();
   }, []);
 
-  const handleLogout = () => { logout(); };
+  const handleLogout = () => { 
+    if (window.lucodeProfileIsDirty && typeof window.lucodeProfileShowWarning === 'function') {
+      window.lucodeProfileShowWarning('LOGOUT');
+      return;
+    }
+    logout(); 
+  };
 
   const handleWhatsappCheckout = async () => {
     try {

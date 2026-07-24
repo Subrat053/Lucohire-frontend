@@ -26,11 +26,11 @@ const GuestDiscovery = () => {
         if (res.data && res.data.length > 0) {
           setJobRoles(res.data.map(r => r.roleName));
         } else {
-          setJobRoles(["Software Engineer", "Frontend Developer", "Backend Developer", "Product Manager", "Data Analyst"]);
+          setJobRoles([]);
         }
       } catch (err) {
         console.error('Error fetching job roles:', err);
-        setJobRoles(["Software Engineer", "Frontend Developer", "Backend Developer", "Product Manager", "Data Analyst"]);
+        setJobRoles([]);
       }
     };
     fetchRoles();
@@ -173,6 +173,13 @@ const GuestDiscovery = () => {
     const { emailId, phone, role, experience } = formData;
     if (!emailId || !phone || !role || !experience) {
       return toast.error('Please fill in all required fields.');
+    }
+
+    if (jobRoles.length > 0) {
+      const isValidRole = jobRoles.some(r => r.toLowerCase() === role.toLowerCase());
+      if (!isValidRole) {
+        return toast.error('Please select a valid role from the list.');
+      }
     }
 
     if (experience === 'Other' && !otherExperience) {
@@ -338,7 +345,7 @@ const GuestDiscovery = () => {
                     ) : (
                       formData.role.length > 0 && (
                         <div className="px-4 py-3 text-sm text-gray-500 bg-gray-50/50">
-                          Use <span className="font-semibold text-gray-800">"{formData.role}"</span> as custom role.
+                          No roles found matching "{formData.role}".
                         </div>
                       )
                     )}

@@ -75,7 +75,19 @@ const Navbar = () => {
   const navigate = useNavigate();
   const activeRole = user?.activeRole || user?.role;
 
+  const handleNavClick = (e, path, defaultHandler) => {
+    if (window.lucodeProfileIsDirty && typeof window.lucodeProfileShowWarning === 'function') {
+      e.preventDefault();
+      window.lucodeProfileShowWarning(path);
+      return;
+    }
+    if (defaultHandler) defaultHandler(e);
+  };
   const handleLogout = () => {
+    if (window.lucodeProfileIsDirty && typeof window.lucodeProfileShowWarning === 'function') {
+      window.lucodeProfileShowWarning('LOGOUT');
+      return;
+    }
     logout();
     setDropdownOpen(false);
     setMobileOpen(false);
@@ -105,7 +117,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2" onClick={(e) => handleNavClick(e, "/")}>
             <div className="w-9 h-9 rounded-md bg-[#081B3A] flex items-center justify-center">
               <span className="text-white font-bold text-lg scale-125">L</span>
             </div>
@@ -120,14 +132,14 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden md:flex items-center gap-3 lg:gap-5 ml-auto">
-            <Link to="/" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
+            <Link to="/" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm" onClick={(e) => handleNavClick(e, "/")}>
               {t("navbar.home")}
             </Link>
-            <Link to={isAuthenticated ? "/provider/job-for-me" : "/candidate-landing"} className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
+            <Link to={isAuthenticated ? "/provider/job-for-me" : "/candidate-landing"} className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm" onClick={(e) => handleNavClick(e, isAuthenticated ? "/provider/job-for-me" : "/candidate-landing")}>
               {t("navbar.findJobs", "Find Jobs")}
             </Link>
             {(!isAuthenticated || activeRole !== "provider") && (
-              <Link to="/search" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm">
+              <Link to="/search" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm" onClick={(e) => handleNavClick(e, "/search")}>
                 {t("navbar.findProviders")}
               </Link>
             )}
@@ -197,10 +209,10 @@ const Navbar = () => {
                     <Link
                       to={
                         activeRole === 'provider' ? '/provider/job-for-me' :
-                        activeRole === 'recruiter' ? '/recruiter/candidates' :
-                        getDashboardLink()
+                        activeRole === 'candidate' ? '/candidate/dashboard' :
+                        activeRole === 'recruiter' ? '/recruiter/dashboard' : '/'
                       }
-                      onClick={() => setDropdownOpen(false)}
+                      onClick={(e) => handleNavClick(e, activeRole === 'provider' ? '/provider/job-for-me' : activeRole === 'candidate' ? '/candidate/dashboard' : activeRole === 'recruiter' ? '/recruiter/dashboard' : '/', () => setDropdownOpen(false))}
                       className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
                       {activeRole === 'provider' ? (
@@ -219,7 +231,7 @@ const Navbar = () => {
                     {activeRole !== "manager" && (
                       <Link
                         to={activeRole === "recruiter" ? "/recruiter/settings" : `/${activeRole}/profile`}
-                        onClick={() => setDropdownOpen(false)}
+                        onClick={(e) => handleNavClick(e, activeRole === "recruiter" ? "/recruiter/settings" : `/${activeRole}/profile`, () => setDropdownOpen(false))}
                         className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         <HiCog className="text-gray-400" aria-hidden="true" />
@@ -276,7 +288,6 @@ const Navbar = () => {
                 )}
               </div>
             ) : (
-
               <div className="flex items-center gap-5">
                 <button
                   type="button"
@@ -285,7 +296,6 @@ const Navbar = () => {
                 >
                   {t("navbar.login")}
                 </button>
-
                 <button
                   type="button"
                   onClick={() => setShowSignupModal(true)}
@@ -296,16 +306,13 @@ const Navbar = () => {
               </div>
             )}
             <LanguageDropdown />
-            {/* <NotificationBell /> */}
           </div>
           <div className="lg:absolute hidden md:block right-4 top-4 border-gray-300">
             <NotificationBell />
           </div>
 
-          {/* Mobile controls */}
           <div className="md:hidden flex items-center gap-2">
             <NotificationBell />
-            {/* Quick toggle removed */}
             <button
               type="button"
               name="hamburger"
@@ -324,17 +331,13 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile menu - Left Slide Drawer */}
         <div
           className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
         >
-          {/* Backdrop overlay */}
           <div
             className="absolute inset-0 bg-black/55 backdrop-blur-xs"
             onClick={() => setMobileOpen(false)}
           />
-
-          {/* Drawer Panel */}
           <aside
             id="mobile-navigation"
             onTouchStart={onTouchStart}
@@ -342,7 +345,6 @@ const Navbar = () => {
             onTouchEnd={onTouchEnd}
             className={`relative w-[70%] max-w-sm h-full bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-out transform ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/50">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 rounded bg-[#081B3A] flex items-center justify-center">
@@ -368,32 +370,29 @@ const Navbar = () => {
               </button>
             </div>
 
-            {/* Menu Options Scroll Container */}
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 font-sans">
-              {/* Main Navigation */}
               <div className="space-y-1">
                 <p className="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
                   {t("navbar.navigation", "Navigation")}
                 </p>
                 <Link
                   to="/"
+                  onClick={(e) => handleNavClick(e, "/", () => setMobileOpen(false))}
                   className="flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition"
-                  onClick={() => setMobileOpen(false)}
                 >
                   <HiHome className="w-5 h-5 text-gray-400" />
                   <span>{t("navbar.home")}</span>
                 </Link>
                 <Link
                   to="/contact"
+                  onClick={(e) => handleNavClick(e, "/contact", () => setMobileOpen(false))}
                   className="flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition"
-                  onClick={() => setMobileOpen(false)}
                 >
                   <HiMail className="w-5 h-5 text-gray-400" />
                   <span>{t("navbar.contactUs", "Contact Us")}</span>
                 </Link>
               </div>
 
-              {/* Provider Options (Visible only when logged in as provider) */}
               {isAuthenticated && activeRole === "provider" && (
                 <div className="space-y-1 pt-2 border-t border-gray-100">
                   <p className="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
@@ -425,7 +424,7 @@ const Navbar = () => {
                       <Link
                         key={path}
                         to={path}
-                        onClick={() => setMobileOpen(false)}
+                        onClick={(e) => handleNavClick(e, path, () => setMobileOpen(false))}
                         className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-emerald-50 text-emerald-700" : "text-gray-600 hover:bg-gray-50"}`}
                       >
                         <Icon
@@ -438,7 +437,6 @@ const Navbar = () => {
                 </div>
               )}
 
-              {/* Recruiter Options (Visible only when logged in as recruiter) */}
               {isAuthenticated && activeRole === "recruiter" && (
                 <div className="space-y-1 pt-2 border-t border-gray-100">
                   <p className="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
@@ -457,7 +455,7 @@ const Navbar = () => {
                       <Link
                         key={path}
                         to={path}
-                        onClick={() => setMobileOpen(false)}
+                        onClick={(e) => handleNavClick(e, path, () => setMobileOpen(false))}
                         className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-amber-50 text-amber-700" : "text-gray-600 hover:bg-gray-50"}`}
                       >
                         <Icon className={`w-4 h-4 ${active ? "text-amber-600" : "text-gray-400"}`} />

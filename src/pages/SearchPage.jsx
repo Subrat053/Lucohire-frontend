@@ -16,7 +16,7 @@ import {
 } from "../data/skillsData";
 import { normalizeProviderData } from "../utils/providerData";
 import { getProviders as fetchProviderResults } from "../services/providerService";
-import { categoriesAPI } from "../services/api";
+import api, { categoriesAPI } from "../services/api";
 import SharedProviderCard from "../components/providers/ProviderCard";
 import useTranslation from "../hooks/useTranslation";
 import Seo from "../components/common/Seo";
@@ -89,18 +89,25 @@ const SearchPage = () => {
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [adminRoles, setAdminRoles] = useState([]);
   const [skillDropdownOpen, setSkillDropdownOpen] = useState(false);
   const skillDropdownRef = useRef(null);
 
   const allSkills = useMemo(() => {
-    return categories
+    const fromCategories = categories
       .filter((cat) => cat.isActive !== false)
       .flatMap((cat) =>
         (cat.skills || [])
           .filter((s) => s.isActive !== false)
           .map((s) => ({ name: s.name, tier: cat.tier, category: cat.name }))
       );
-  }, [categories]);
+      
+    const fromRoles = adminRoles
+      .filter(r => r.isActive !== false)
+      .map(r => ({ name: r.roleName, tier: 'pro', category: 'Roles' }));
+      
+    return [...fromCategories, ...fromRoles];
+  }, [categories, adminRoles]);
 
   const filteredSkills = useMemo(() => {
     const q = (queryText || "").trim().toLowerCase();
@@ -156,7 +163,18 @@ const SearchPage = () => {
         console.error("Failed to fetch categories", err);
       }
     };
+    const fetchRoles = async () => {
+      try {
+        const { data } = await api.get('/job-roles');
+        if (isMounted && Array.isArray(data)) {
+          setAdminRoles(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch admin roles", err);
+      }
+    };
     fetchCats();
+    fetchRoles();
     return () => { isMounted = false; };
   }, []);
 

@@ -113,6 +113,11 @@ export const AuthProvider = ({ children }) => {
     window.location.href = "/";
   }, [clearAuthStorage]);
 
+  useEffect(() => {
+    window.lucodeAuthLogout = logout;
+    return () => { window.lucodeAuthLogout = null; };
+  }, [logout]);
+
   const refreshUser = useCallback(async () => {
     let resolvedUser = null;
     const token = migrateLegacyToken();

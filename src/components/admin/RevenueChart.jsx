@@ -22,10 +22,10 @@ const RevenueChart = ({ data = [], onPeriodChange }) => {
             <button
               key={p.val}
               onClick={() => handlePeriodChange(p.val)}
-              className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all border ${
+              className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 border ${
                 period === p.val
-                  ? 'border-gray-200 text-gray-900 shadow-sm'
-                  : 'border-transparent text-gray-400 hover:text-gray-900'
+                  ? 'border-gray-200 bg-white text-gray-900 shadow-md transform -translate-y-0.5'
+                  : 'border-transparent text-gray-400 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               {p.label}

@@ -139,7 +139,9 @@ export default function TemplateIvana() {
                   renderPreview={() => (
                     <div className="flex flex-col relative group/item">
                       <h3 className="font-bold text-[16px] text-gray-900">{title || "Role Title"}</h3>
-                      <div className="text-[14px] text-[#56b196] font-bold">{subtitle || "Company Name"}</div>
+                      <Show when={subtitle}>
+                        <div className="text-[14px] text-[#56b196] font-bold">{subtitle}</div>
+                      </Show>
                       <div className="flex justify-between items-center text-[12px] text-[#7ba9c2] italic mb-2 mt-1">
                         <span>{duration || "06/2016 - Present"}</span>
                         <span>{item.location || ""}</span>

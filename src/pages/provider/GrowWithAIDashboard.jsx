@@ -73,7 +73,9 @@ export default function GrowWithAIDashboard() {
   const location = useLocation();
   const [isPro, setIsPro] = useState(user?.isPro || user?.plan?.name?.toLowerCase() === 'premium' || false);
 
-  const [activeTab, setActiveTab] = useState('interview'); // 'interview' or 'gps' or 'barriers' or 'skillgap' or 'ats'
+  const [activeTab, setActiveTab] = useState(
+    location.state?.tab || new URLSearchParams(location.search).get('tab') || 'interview'
+  ); // 'interview' or 'gps' or 'barriers' or 'skillgap' or 'ats'
 
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsData, setGpsData] = useState(null);
@@ -1225,10 +1227,10 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
                 {isPro && (
                   <button 
                     onClick={() => toggleReveal(globalIdx)}
-                    className="p-2 bg-gray-50 hover:bg-teal-50 text-gray-500 hover:text-teal-600 rounded-lg transition shrink-0"
-                    title={isRevealed ? "Hide Answer" : "Reveal Answer"}
+                    className="px-3 py-1.5 text-xs font-semibold bg-gray-50 hover:bg-teal-50 text-gray-600 hover:text-teal-700 rounded-lg transition shrink-0 flex items-center"
+                    title={isRevealed ? "Hide Answer" : "View Answer"}
                   >
-                    {isRevealed ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {isRevealed ? t("Hide Answer") : t("View Answer")}
                   </button>
                 )}
               </div>

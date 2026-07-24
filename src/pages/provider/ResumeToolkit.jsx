@@ -411,10 +411,10 @@ export default function ResumeToolkit() {
             </div>
           </div>
           <button
-            onClick={() => isPro ? navigate('/provider/grow-with-ai') : navigate('/provider/plans')}
+            onClick={() => isPro ? navigate('/provider/grow-with-ai?tab=gps') : navigate('/provider/plans')}
             className={`mt-auto w-full py-2.5 rounded-xl border font-bold text-sm transition ${!isPro ? 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100' : 'border-gray-100 text-teal-700 hover:bg-teal-50'}`}
           >
-            {!isPro ? t('Unlock with Premium') : t('View Detailed Analysis')} →
+            {!isPro ? t('Unlock with Premium') : t('Interview Preparation & AI Career GPS')} →
           </button>
         </div>
 
@@ -474,17 +474,23 @@ export default function ResumeToolkit() {
           <div className="space-y-3 mb-5 flex-1">
             {aiSuggestions.length > 0 ? aiSuggestions.map((sug, idx) => (
               <div key={idx} className={`flex gap-3 items-start bg-blue-50 p-3 rounded-2xl border border-blue-100 ${!isPro ? 'blur-[2.5px] select-none opacity-80' : ''}`}>
-                <div className="w-8 h-8 rounded-xl bg-white border border-blue-100 flex items-center justify-center shrink-0 shadow-sm">
+                <div className="w-8 h-8 rounded-xl bg-white border border-blue-100 flex items-center justify-center shrink-0 shadow-sm mt-1">
                   <FileText className="w-3.5 h-3.5 text-blue-600" />
                 </div>
-                <div>
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <h4 className="text-xs font-bold text-gray-900 leading-snug">{t(sug.title)}</h4>
-                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap ${sug.impact === 'High Impact' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
-                      {t(sug.impact)}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-gray-500">{t(sug.metric)}</p>
+                <div className="flex-1">
+                  {typeof sug === 'string' ? (
+                    <p className="text-xs font-medium text-gray-800 leading-relaxed">{t(sug)}</p>
+                  ) : (
+                    <>
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <h4 className="text-xs font-bold text-gray-900 leading-snug">{t(sug.title)}</h4>
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap ${sug.impact === 'High Impact' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                          {t(sug.impact)}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-500">{t(sug.metric)}</p>
+                    </>
+                  )}
                 </div>
               </div>
             )) : (
@@ -504,7 +510,7 @@ export default function ResumeToolkit() {
       <div id="enhance-resume" className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
           <h3 className="text-base font-bold text-gray-900 mb-4">{t('Enhance Your Resume')}</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {resumeTools.map((tool, idx) => {
               const locked = tool.pro && !isPro;
               return (
@@ -675,7 +681,7 @@ export default function ResumeToolkit() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
           <h3 className="text-base font-bold text-gray-900 mb-4">{t('Profile & Content Tools')}</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {contentTools.map((tool, idx) => (
               <div key={idx} className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm flex flex-col hover:shadow-md transition cursor-pointer" onClick={tool.action}>
                 <div className="flex items-center gap-2 mb-2">

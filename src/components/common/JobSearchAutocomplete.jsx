@@ -1,52 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
 
-const defaultSuggestions = [
-  "Software Engineer",
-  "React Developer",
-  "Frontend Developer",
-  "Backend Developer",
-  "Full Stack Developer",
-  "UI/UX Designer",
-  "Data Scientist",
-  "Data Analyst",
-  "Product Manager",
-  "Marketing Manager",
-  "Sales Representative",
-  "Customer Support",
-  "HR Manager",
-  "Project Manager",
-  "Python Developer",
-  "Java Developer",
-  "Node.js Developer",
-  "DevOps Engineer",
-  "Graphic Designer",
-  "Business Analyst",
-  "Salesforce Developer",
-  "SAP Consultant",
-  "Web Developer",
-  "Mobile App Developer",
-  "Flutter Developer",
-  "React Native Developer",
-  "Cybersecurity Analyst",
-  "Cloud Architect",
-  "Driver",
-  "Delivery Driver",
-  "Truck Driver",
-  "Doctor",
-  "Dentist",
-  "Draftsman",
-  "Accountant",
-  "Administrative Assistant",
-  "Nurse",
-  "Electrician",
-  "Plumber",
-  "Mechanic",
-  "Chef",
-  "Teacher",
-  "Cashier",
-  "Receptionist"
-];
+import api from '../../services/api';
+
+const defaultSuggestions = [];
 
 const JobSearchAutocomplete = ({
   value,
@@ -61,10 +18,25 @@ const JobSearchAutocomplete = ({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
-  // Combine default and live job titles, make unique
+  const [adminRoles, setAdminRoles] = useState([]);
+
+  useEffect(() => {
+    api.get('/job-roles')
+      .then(res => {
+        if (res.data && res.data.length > 0) {
+          setAdminRoles(res.data.map(r => r.roleName));
+        }
+      })
+      .catch(err => console.error("Failed to fetch admin roles", err));
+  }, []);
+
+  // Combine live job titles, companies, and skills, make unique
   const getCombinedSuggestions = () => {
     const liveTitles = (liveJobsList || []).map(job => job.title).filter(Boolean);
-    const combined = [...defaultSuggestions, ...liveTitles];
+    const liveCompanies = (liveJobsList || []).map(job => job.companyName || job.company).filter(Boolean);
+    const liveSkills = (liveJobsList || []).flatMap(job => job.skills || []).filter(Boolean);
+    
+    const combined = [...liveTitles, ...liveCompanies, ...liveSkills, ...adminRoles];
     return [...new Set(combined)];
   };
 
@@ -82,14 +54,11 @@ const JobSearchAutocomplete = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleInputChange = (e) => {
-    const text = e.target.value;
-    setInputValue(text);
-    if (onChange) onChange(text);
-    
-    if (text.trim().length > 0) {
-      const allSuggestions = getCombinedSuggestions();
-      const lowerText = text.toLowerCase();
+  const showRecommendations = (text = '') => {
+    const allSuggestions = getCombinedSuggestions();
+    const trimmed = text.trim();
+    if (trimmed.length > 0) {
+      const lowerText = trimmed.toLowerCase();
       
       const filtered = allSuggestions.filter(item => 
         item.toLowerCase().includes(lowerText)
@@ -105,11 +74,17 @@ const JobSearchAutocomplete = ({
       });
 
       setSuggestions(filtered.slice(0, 10)); // Top 10 results
-      setIsOpen(true);
     } else {
-      setSuggestions([]);
-      setIsOpen(false);
+      setSuggestions(allSuggestions.slice(0, 10)); // Default recommendations
     }
+    setIsOpen(true);
+  };
+
+  const handleInputChange = (e) => {
+    const text = e.target.value;
+    setInputValue(text);
+    if (onChange) onChange(text);
+    showRecommendations(text);
   };
 
   const handleSelect = (suggestion) => {
@@ -128,11 +103,7 @@ const JobSearchAutocomplete = ({
         className="w-full bg-transparent border-none focus:ring-0 text-gray-700 ml-2 py-1.5 sm:py-2 outline-none text-[11px] sm:text-sm font-medium"
         value={inputValue}
         onChange={handleInputChange}
-        onFocus={() => {
-          if (inputValue.trim().length > 0 && suggestions.length > 0) {
-            setIsOpen(true);
-          }
-        }}
+        onFocus={() => showRecommendations(inputValue)}
         autoComplete="off"
       />
       

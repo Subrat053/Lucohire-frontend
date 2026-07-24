@@ -767,9 +767,19 @@ const ProviderProfile = () => {
       form.description !== (profileData.description || "") ||
       String(form.pricing) !== String(profileData.pricing || "") ||
       form.pricingType !== (profileData.pricingType || "") ||
+      form.pricingReason !== (profileData.pricingReason || "") ||
       form.whatsappAlerts !== (profileData.whatsappAlerts !== false) ||
       form.nearestLocation !== (profileData.nearestLocation || "") ||
       form.photo !== initialPhoto ||
+      form.workMode !== (profileData.workMode || "") ||
+      form.relocationAvailable !== (profileData.relocationAvailable || false) ||
+      form.contactVisibility !== (profileData.contactVisibility || "both") ||
+      form.noticePeriod !== (profileData.noticePeriod || "") ||
+      JSON.stringify(form.jobType || []) !== JSON.stringify(profileData.jobType || []) ||
+      JSON.stringify(form.roles || []) !== JSON.stringify(profileData.roles || []) ||
+      JSON.stringify(form.previousExperience || []) !== JSON.stringify(profileData.previousExperience || []) ||
+      JSON.stringify(form.education || []) !== JSON.stringify(profileData.education || []) ||
+      JSON.stringify(form.projects || []) !== JSON.stringify(profileData.projects || []) ||
       !areArraysEqual(form.skills, profileData.skills || []) ||
       !areArraysEqual(
         form.locations
@@ -787,6 +797,11 @@ const ProviderProfile = () => {
 
   const handleTabChange = (newTab) => {
     if (activeTab === newTab) return;
+    if (isDirty) {
+      setPendingTab(`tab:${newTab}`);
+      setShowUnsavedWarning(true);
+      return;
+    }
     setActiveTab(newTab);
     window.scrollTo(0, 0);
   };
@@ -815,6 +830,35 @@ const ProviderProfile = () => {
       window.lucodeProfileShowWarning = null;
     };
   }, [isDirty]);
+
+  // Robust Back Button (popstate) block
+  const isDirtyRef = useRef(isDirty);
+  const lockedRef = useRef(false);
+
+  useEffect(() => {
+    isDirtyRef.current = isDirty;
+    if (isDirty && !lockedRef.current) {
+      window.history.pushState({ profileLocked: true }, '', window.location.href);
+      lockedRef.current = true;
+    } else if (!isDirty && lockedRef.current) {
+      lockedRef.current = false;
+      window.history.back(); // Pop the dummy state
+    }
+  }, [isDirty]);
+
+  useEffect(() => {
+    const handlePopState = (e) => {
+      if (isDirtyRef.current && lockedRef.current) {
+        // The user clicked back, popping the lock state. Show warning.
+        setPendingTab('POP_STATE_BACK');
+        setShowUnsavedWarning(true);
+        // Push the lock state again to keep them trapped until they decide
+        window.history.pushState({ profileLocked: true }, '', window.location.href);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   useEffect(() => {
     if (redirectCountdown === null) return;
@@ -1574,10 +1618,6 @@ const ProviderProfile = () => {
     const cleanNextPhone = String(nextPhone || "").replace(/\D/g, "");
 
     const finalToken = overrideToken || firebaseToken;
-    if (!finalToken) {
-      await startFirebaseVerification(nextPhone);
-      return;
-    }
 
     setSaving(true);
     try {
@@ -1607,6 +1647,7 @@ const ProviderProfile = () => {
         designation: form.designation,
         company: form.company,
         skills: form.skills,
+        roles: form.roles,
         tier: form.tier,
         experience: form.experience,
         city: form.city,
@@ -1644,6 +1685,7 @@ const ProviderProfile = () => {
       const payload = sanitizePayload(rawPayload);
       // Restore non-string array/object fields after sanitize
       payload.skills = rawPayload.skills;
+      payload.roles = rawPayload.roles;
       payload.jobType = rawPayload.jobType;
       payload.previousExperience = rawPayload.previousExperience;
       payload.education = rawPayload.education;
@@ -1809,7 +1851,7 @@ const ProviderProfile = () => {
                   className={`py-2 px-6 text-[14.5px] transition-all duration-200 rounded-full border ${
                     activeTab === tab
                       ? "bg-linear-to-r from-emerald-600 to-emerald-500 text-white font-bold border-transparent shadow-md shadow-emerald-500/30 scale-[1.02]"
-                      : "bg-white text-slate-700 font-bold border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 hover:text-emerald-700"
+                      : "bg-white text-emerald-700 font-bold border-emerald-300 shadow-md hover:bg-emerald-50"
                   }`}
                 >
                   {tab}
@@ -3356,18 +3398,18 @@ const ProviderProfile = () => {
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
             <h3 className="text-xl font-bold text-slate-800 mb-2">{t("Unsaved Changes")}</h3>
             <p className="text-[14px] text-slate-600 mb-6">
-              {t("You have unsaved changes on your profile. Do you want to discard them and leave, or stay and save?")}
+              {t("You have unsaved changes on your profile. Please choose how you want to proceed.")}
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
               <button
                 type="button"
                 onClick={() => {
                   setShowUnsavedWarning(false);
                   setPendingTab(null);
                 }}
-                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors border border-slate-200"
+                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors border border-slate-200 order-3 sm:order-1"
               >
-                {t("Stay and Save")}
+                {t("Keep Editing")}
               </button>
               <button
                 type="button"
@@ -3375,13 +3417,43 @@ const ProviderProfile = () => {
                   await fetchProfile(); // This resets the local isDirty state effectively!
                   window.lucodeProfileIsDirty = false; // Override immediately just in case
                   setShowUnsavedWarning(false);
-                  navigate(pendingTab);
+                  if (pendingTab === 'POP_STATE_BACK') {
+                    window.history.back();
+                  } else if (pendingTab === 'LOGOUT') {
+                    if (typeof window.lucodeAuthLogout === 'function') window.lucodeAuthLogout();
+                  } else if (pendingTab?.startsWith("tab:")) {
+                    setActiveTab(pendingTab.replace("tab:", ""));
+                  } else {
+                    navigate(pendingTab);
+                  }
                   setPendingTab(null);
                   window.scrollTo(0, 0);
                 }}
-                className="px-4 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors order-2 sm:order-2"
               >
-                {t("Discard and Leave")}
+                {t("Discard")}
+              </button>
+              <button
+                type="button"
+                onClick={async (e) => {
+                  await handleSave(e, null);
+                  window.lucodeProfileIsDirty = false;
+                  setShowUnsavedWarning(false);
+                  if (pendingTab === 'POP_STATE_BACK') {
+                    window.history.back();
+                  } else if (pendingTab === 'LOGOUT') {
+                    if (typeof window.lucodeAuthLogout === 'function') window.lucodeAuthLogout();
+                  } else if (pendingTab?.startsWith("tab:")) {
+                    setActiveTab(pendingTab.replace("tab:", ""));
+                  } else {
+                    navigate(pendingTab);
+                  }
+                  setPendingTab(null);
+                  window.scrollTo(0, 0);
+                }}
+                className="px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors order-1 sm:order-3"
+              >
+                {t("Save & Leave")}
               </button>
             </div>
           </div>
