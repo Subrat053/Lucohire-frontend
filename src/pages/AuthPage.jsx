@@ -2465,11 +2465,11 @@ const AuthPage = () => {
             <button 
               onClick={() => {
                 setShowSignupModal(false);
-                const backendRole = signupModalRole === 'recruiter' ? 'recruiter' : 'provider';
-                setForm((prev) => ({ ...prev, selectedRole: backendRole }));
-                setSelectedRoles([backendRole]);
-                setActiveRole(backendRole);
-                setMode("register");
+                if (signupModalRole === 'recruiter') {
+                  navigate('/recruiter-discovery');
+                } else {
+                  navigate('/candidate-landing');
+                }
               }}
               className="w-full bg-emerald-800 text-white font-bold py-3 px-4 rounded-xl hover:bg-emerald-900 transition-colors"
             >

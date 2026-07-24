@@ -1809,7 +1809,7 @@ const ProviderProfile = () => {
                   className={`py-2 px-6 text-[14.5px] transition-all duration-200 rounded-full border ${
                     activeTab === tab
                       ? "bg-linear-to-r from-emerald-600 to-emerald-500 text-white font-bold border-transparent shadow-md shadow-emerald-500/30 scale-[1.02]"
-                      : "bg-white text-slate-700 font-bold border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 hover:text-emerald-700"
+                      : "font-bold shadow-md border-emerald-300 text-emerald-700"
                   }`}
                 >
                   {tab}
@@ -3361,7 +3361,8 @@ const ProviderProfile = () => {
             <div className="flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => {
+                onClick={async (e) => {
+                  await handleSave(e);
                   setShowUnsavedWarning(false);
                   setPendingTab(null);
                 }}
