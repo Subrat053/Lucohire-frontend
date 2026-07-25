@@ -95,17 +95,21 @@ const Navbar = () => {
 
   const getDashboardLink = () => {
     if (!user) return "/";
-    switch (activeRole) {
+    const role = String(user?.activeRole || user?.role || (user?.roles && user?.roles[0]) || "").toLowerCase();
+    switch (role) {
       case "provider":
         return "/provider/job-for-me";
       case "recruiter":
-        return "/recruiter/job-postings";
+        return "/recruiter/dashboard";
       case "admin":
+      case "superadmin":
         return "/admin/dashboard";
       case "manager":
         return "/admin/providers";
+      case "candidate":
+      case "user":
       default:
-        return "/";
+        return "/candidate/dashboard";
     }
   };
 
@@ -207,12 +211,8 @@ const Navbar = () => {
                       </span>
                     </div>
                     <Link
-                      to={
-                        activeRole === 'provider' ? '/provider/job-for-me' :
-                        activeRole === 'candidate' ? '/candidate/dashboard' :
-                        activeRole === 'recruiter' ? '/recruiter/dashboard' : '/'
-                      }
-                      onClick={(e) => handleNavClick(e, activeRole === 'provider' ? '/provider/job-for-me' : activeRole === 'candidate' ? '/candidate/dashboard' : activeRole === 'recruiter' ? '/recruiter/dashboard' : '/', () => setDropdownOpen(false))}
+                      to={getDashboardLink()}
+                      onClick={(e) => handleNavClick(e, getDashboardLink(), () => setDropdownOpen(false))}
                       className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
                       {activeRole === 'provider' ? (

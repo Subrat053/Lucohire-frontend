@@ -244,6 +244,8 @@ export const providerAPI = {
   trackApplyClick: (jobId) =>
     API.post(`/candidate-matching/${jobId}/apply-click`),
   getTopTalent: (params) => API.get("/provider/top-talent", { params }),
+  respondToFollowBack: (data) => API.post("/provider/profile/follow-back/respond", data),
+  resubmitProfile: () => API.post("/provider/profile/resubmit"),
 };
 
 // Recruiter APIs
@@ -375,8 +377,12 @@ export const categoriesAPI = {
 export const adminAPI = {
   login: (data) => ADMIN_API.post("/admin/login", data),
   getMe: () => ADMIN_API.get("/admin/me"),
-  getDashboard: () => ADMIN_API.get("/admin/dashboard"),
+  getSeoHealthDashboard: () => ADMIN_API.get("/admin/seo-command-dashboard"),
+  updateSeoIntegration: (id, data) => ADMIN_API.post(`/admin/seo-command-dashboard/integrations/${id}`, data),
   getHealthMetrics: (params) => ADMIN_API.get("/admin/health/metrics", { params }),
+  updateFeatureStatus: (featureKey, status) => ADMIN_API.put(`/admin/health/features/${featureKey}/status`, { status }),
+  restartFeature: (featureKey) => ADMIN_API.post(`/admin/health/features/${featureKey}/restart`),
+  updateGlobalFeatureStatus: (audience, status) => ADMIN_API.put('/admin/health/features/global-status', { audience, status }),
   getDashboardStats: (params) =>
     ADMIN_API.get("/admin/partners/dashboard/stats", { params }),
   getCustomPlanRequests: () => ADMIN_API.get("/admin/custom-plans"),
@@ -394,6 +400,9 @@ export const adminAPI = {
     ADMIN_API.post("/admin/providers/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
+  getImportBatches: () => ADMIN_API.get("/admin/imports"),
+  getImportBatchStatus: (id) => ADMIN_API.get(`/admin/imports/${id}`),
+  updateImportBatchAction: (id, action) => ADMIN_API.put(`/admin/imports/${id}/action`, { action }),
   uploadRecruiters: (formData) =>
     ADMIN_API.post("/admin/recruiters/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -526,6 +535,8 @@ export const adminAPI = {
     ),
   sendProfileCorrectionEmail: (userId, data) =>
     ADMIN_API.post(`/admin/profile-reviews/${userId}/notify`, data),
+  requestFollowBack: (userId, data) =>
+    ADMIN_API.post(`/admin/profile-reviews/${userId}/follow-back`, data),
   bulkProfileAction: (data) =>
     ADMIN_API.post("/admin/profile-reviews/bulk", data),
 

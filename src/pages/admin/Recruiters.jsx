@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, UserPlus, ShieldCheck, Hourglass, Ban, 
   Search, Filter, Download, MoreVertical, Eye, X, 
-  MapPin, Calendar, Briefcase, ChevronLeft, ChevronRight, CheckCircle2, PauseCircle, Trash2
+  MapPin, Calendar, Briefcase, ChevronLeft, ChevronRight, CheckCircle2, PauseCircle, Trash2, Send, Mail
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { adminAPI } from '../../services/api';
@@ -64,17 +64,199 @@ const KPICard = ({ title, value, subtext, icon: Icon, colorClass, trend, trendUp
   </div>
 );
 
-const RecruiterDetailPanel = ({ recruiter, onClose, onDelete }) => {
+const RecruiterDetailPanel = ({ recruiter, onClose, onDelete, onApprove, onReject }) => {
   const [activeTab, setActiveTab] = useState('Overview');
   const user = recruiter.user || {};
   const isApproved = recruiter.isApproved;
   const status = isApproved ? 'Verified' : 'Pending';
-  
+
+  const [detailData, setDetailData] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [sectionDecisions, setSectionDecisions] = useState({
+    profilePhoto: { status: 'pending', label: 'Company Logo / Profile Photo' },
+    phone: { status: 'pending', label: 'Phone Number' },
+    email: { status: 'pending', label: 'Email Address' },
+    companyDetails: { status: 'pending', label: 'Company Details' },
+    companyWebsite: { status: 'pending', label: 'Website' }
+  });
+  const [showNotifyModal, setShowNotifyModal] = useState(false);
+  const [sendingNotify, setSendingNotify] = useState(false);
+  const [customNotifyMsg, setCustomNotifyMsg] = useState('');
+  const [activeRemarkSection, setActiveRemarkSection] = useState(null);
+  const [tempRemarkText, setTempRemarkText] = useState('');
+
+  useEffect(() => {
+    if (user._id) fetchDetail();
+  }, [user._id]);
+
+  const fetchDetail = async () => {
+    try {
+      setLoadingDetail(true);
+      const res = await adminAPI.getProfileReviewDetail(user._id);
+      if (res.data) {
+        setDetailData(res.data);
+        if (res.data.sections && Array.isArray(res.data.sections)) {
+          const map = { ...sectionDecisions };
+          res.data.sections.forEach(sec => {
+            if (map[sec.key]) {
+              map[sec.key] = {
+                ...map[sec.key],
+                status: sec.status || 'pending',
+                remarks: sec.remarks || [],
+                remark: sec.remarks?.slice(-1)[0]?.text || map[sec.key].remark
+              };
+            }
+          });
+          setSectionDecisions(map);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch recruiter detail', err);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  const handleStatusChange = async (secKey, targetStatus) => {
+    if (targetStatus === 'rejected') {
+      setActiveRemarkSection(secKey);
+      setTempRemarkText(sectionDecisions[secKey]?.remark || '');
+      return;
+    }
+    try {
+      setSectionDecisions(prev => ({
+        ...prev,
+        [secKey]: { ...prev[secKey], status: targetStatus, remark: '' }
+      }));
+      await adminAPI.approveProfileSection(user._id, secKey).catch(() => {});
+      toast.success('Section approved');
+    } catch (err) {
+      toast.error('Failed to update section status');
+    }
+  };
+
+  const handleBatchStatus = async (targetStatus) => {
+    const updated = { ...sectionDecisions };
+    for (const key of Object.keys(updated)) {
+      updated[key].status = targetStatus;
+      if (targetStatus === 'approved') {
+        await adminAPI.approveProfileSection(user._id, key).catch(() => {});
+      } else {
+        await adminAPI.rejectProfileSection(user._id, key, 'Requires update').catch(() => {});
+      }
+    }
+    setSectionDecisions(updated);
+    toast.success('All sections set to ' + targetStatus.toUpperCase());
+  };
+
+  const handleSaveRemark = async (secKey) => {
+    if (!tempRemarkText.trim()) return;
+    try {
+      setSectionDecisions(prev => ({
+        ...prev,
+        [secKey]: { ...prev[secKey], status: 'rejected', remark: tempRemarkText }
+      }));
+      await adminAPI.rejectProfileSection(user._id, secKey, tempRemarkText).catch(() => {});
+      toast.success('Remark saved for ' + sectionDecisions[secKey]?.label);
+      setActiveRemarkSection(null);
+      setTempRemarkText('');
+    } catch (err) {
+      toast.error('Failed to save remark');
+    }
+  };
+
+  const handleSendFinalDecision = async () => {
+    try {
+      setSendingNotify(true);
+      const sectionsPayload = Object.entries(sectionDecisions).map(([key, val]) => ({
+        key,
+        label: val.label,
+        status: val.status,
+        reason: val.status === 'rejected' ? (val.remark || 'Requires update') : ''
+      }));
+
+      await adminAPI.sendProfileCorrectionEmail(user._id, {
+        sections: sectionsPayload,
+        message: customNotifyMsg || 'Please review the updated verification notes on your profile.'
+      });
+
+      toast.success('Decision sent! Recruiter notified via email.', { duration: 4000 });
+      setShowNotifyModal(false);
+      onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send notification email');
+    } finally {
+      setSendingNotify(false);
+    }
+  };
+
+  const renderSectionControl = (secKey, content) => {
+    const sec = sectionDecisions[secKey];
+    if (!sec) return null;
+    return (
+      <div className="border border-gray-100 rounded-xl p-4 bg-white shadow-sm mb-4 relative overflow-hidden">
+        <div className="flex justify-between items-start mb-3">
+          <div>
+            <h4 className="text-sm font-bold text-gray-900">{sec.label}</h4>
+            <div className="mt-3 text-sm text-gray-700">
+              {content}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {sec.status === 'approved' ? (
+              <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">✓ Approved</span>
+            ) : sec.status === 'rejected' ? (
+              <button onClick={() => { setActiveRemarkSection(secKey); setTempRemarkText(sec.remark); }} className="text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded-full border border-red-200 transition">✕ Rejected (Edit Remark)</button>
+            ) : (
+              <span className="text-[11px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">Pending Review</span>
+            )}
+            
+            <div className="flex gap-1 border-l pl-2 ml-1 border-gray-100">
+              <button onClick={() => handleStatusChange(secKey, 'approved')} className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-emerald-50 hover:text-emerald-600 text-gray-400 transition">
+                <CheckCircle2 className="w-4 h-4" />
+              </button>
+              <button onClick={() => handleStatusChange(secKey, 'rejected')} className="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-red-50 hover:text-red-600 text-gray-400 transition">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {sec.remark && sec.status === 'rejected' && (
+          <div className="mt-3 p-2 bg-red-50 text-red-700 text-xs rounded-lg border border-red-100 font-medium">
+            <strong>Remark:</strong> {sec.remark}
+          </div>
+        )}
+
+        {activeRemarkSection === secKey && (
+          <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg animate-in slide-in-from-top-2">
+            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Rejection Remark / Requirement</label>
+            <textarea
+              autoFocus
+              className="w-full border-gray-300 rounded-md text-xs p-2 focus:ring-red-500 focus:border-red-500"
+              rows="2"
+              placeholder="E.g. Please upload a clearer image..."
+              value={tempRemarkText}
+              onChange={(e) => setTempRemarkText(e.target.value)}
+            ></textarea>
+            <div className="flex justify-end gap-2 mt-2">
+              <button onClick={() => setActiveRemarkSection(null)} className="px-3 py-1 text-xs font-bold text-gray-500 hover:text-gray-700">Cancel</button>
+              <button onClick={() => handleSaveRemark(secKey)} className="px-3 py-1 text-xs font-bold bg-red-600 text-white rounded hover:bg-red-700">Save Remark</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const approvedCount = Object.values(sectionDecisions).filter(s => s.status === 'approved').length;
+  const rejectedCount = Object.values(sectionDecisions).filter(s => s.status === 'rejected').length;
+  const pendingCount = Object.values(sectionDecisions).filter(s => s.status === 'pending').length;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 md:p-8">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
-        {/* Header Tabs */}
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-gray-50/50">
           <div className="flex gap-6 overflow-x-auto custom-scrollbar">
             {['Overview', 'Company Details'].map(tab => (
@@ -94,10 +276,8 @@ const RecruiterDetailPanel = ({ recruiter, onClose, onDelete }) => {
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 bg-white flex flex-col md:flex-row gap-8">
           
-          {/* Left Column (Profile Summary) */}
           <div className="w-full md:w-64 shrink-0 space-y-6">
             <div className="flex flex-col items-center text-center">
               <div className="w-24 h-24 rounded-full bg-teal-50 border-4 border-white shadow-sm flex items-center justify-center text-3xl font-black text-teal-600 mb-4 overflow-hidden relative">
@@ -112,106 +292,142 @@ const RecruiterDetailPanel = ({ recruiter, onClose, onDelete }) => {
               </div>
               <h2 className="text-lg font-black text-gray-900">{user.name || 'Unknown'}</h2>
               <p className="text-xs font-bold text-gray-400 mb-2">{recruiter.companyName || 'Unknown Company'}</p>
-              
-              <div className="flex flex-col gap-1.5 text-xs font-medium text-gray-500 mt-2">
-                <a href={`mailto:${user.email}`} className="text-blue-500 hover:underline">{user.email}</a>
-                <span>{user.phone || 'No phone'}</span>
+            </div>
+
+            <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2">
+              <div className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Quick Actions</div>
+              <div className="flex gap-2">
+                <button onClick={() => handleBatchStatus('approved')} className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition text-center">
+                  Approve All ✓
+                </button>
+                <button onClick={() => handleBatchStatus('rejected')} className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold rounded-lg transition text-center">
+                  Reject All ✕
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 text-xs font-medium text-gray-500 justify-center">
-               <span className="text-sm">🇮🇳</span> {recruiter.city || 'Unknown'}, {user.country || 'India'}
+            <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1.5">
+              <div className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Status Summary</div>
+              <div className="grid grid-cols-3 gap-1 text-center">
+                <div className="bg-emerald-50 p-1 rounded-lg border border-emerald-100">
+                  <span className="block text-xs font-black text-emerald-700">{approvedCount}</span>
+                  <span className="text-[8px] font-bold text-emerald-600 uppercase">Approved</span>
+                </div>
+                <div className="bg-rose-50 p-1 rounded-lg border border-rose-100">
+                  <span className="block text-xs font-black text-rose-700">{rejectedCount}</span>
+                  <span className="text-[8px] font-bold text-rose-600 uppercase">Rejected</span>
+                </div>
+                <div className="bg-amber-50 p-1 rounded-lg border border-amber-100">
+                  <span className="block text-xs font-black text-amber-700">{pendingCount}</span>
+                  <span className="text-[8px] font-bold text-amber-600 uppercase">Pending</span>
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center justify-center gap-4 text-xs font-bold text-gray-500">
-               <a href="#" className="flex items-center gap-1 hover:text-emerald-500"><Briefcase className="w-3.5 h-3.5" /> Website</a>
-               <a href="#" className="flex items-center gap-1 hover:text-emerald-500"><Calendar className="w-3.5 h-3.5" /> Joined {formatDate(user.createdAt)}</a>
-            </div>
           </div>
 
-          {/* Right Column (Details) */}
           <div className="flex-1 border-l border-gray-100 pl-0 md:pl-8">
             {activeTab === 'Overview' && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-2">Contact & Basic Verification</h3>
                 
-                {/* Company Information */}
-                <div>
-                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-4">Company Information</h3>
-                  <div className="space-y-4 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400 font-medium">Company Name</span>
-                      <span className="font-bold text-gray-800">{recruiter.companyName || 'Not specified'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400 font-medium">Website</span>
-                      <a href="#" className="font-bold text-emerald-600 hover:underline">{recruiter.website || 'Not specified'}</a>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400 font-medium">Company Size</span>
-                      <span className="font-bold text-gray-800">{recruiter.companySize || 'Not specified'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400 font-medium">Industry</span>
-                      <span className="font-bold text-gray-800">{recruiter.industry || 'Not specified'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400 font-medium">Headquarters</span>
-                      <span className="font-bold text-gray-800">{recruiter.city || 'Unknown'}, {user.country || 'India'}</span>
-                    </div>
+                {renderSectionControl('profilePhoto', 
+                  <div className="flex items-center gap-3">
+                    {recruiter.photo ? <img src={recruiter.photo} className="w-12 h-12 rounded object-cover" /> : 'No photo uploaded'}
                   </div>
-                </div>
-
-                {/* Account Status */}
-                <div>
-                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-4">Account Status</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2 text-gray-600 font-medium">
-                        <ShieldCheck className="w-4 h-4 text-gray-400" />
-                        Verification
-                      </div>
-                      <span className={`font-bold text-xs flex items-center gap-1 ${isApproved ? 'text-emerald-500' : 'text-amber-500'}`}>
-                        {isApproved ? <><CheckCircle2 className="w-3 h-3"/> Verified</> : 'Pending'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-500">Overall Status</span>
-                    <span className={`text-xs font-black uppercase ${isApproved ? 'text-emerald-500' : 'text-amber-500'}`}>
-                      {status}
-                    </span>
-                  </div>
-                </div>
-
+                )}
+                
+                {renderSectionControl('email', 
+                  <div className="font-medium">{user.email || 'Not provided'}</div>
+                )}
+                
+                {renderSectionControl('phone', 
+                  <div className="font-medium">{user.phone || 'Not provided'}</div>
+                )}
               </div>
             )}
             
-            {activeTab !== 'Overview' && (
-              <div className="h-full min-h-[300px] flex items-center justify-center text-gray-400 font-medium">
-                {activeTab} view coming soon.
+            {activeTab === 'Company Details' && (
+              <div className="space-y-4">
+                <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-2">Company Profile Verification</h3>
+                
+                {renderSectionControl('companyDetails', 
+                  <div className="space-y-2">
+                    <div><strong className="text-gray-500">Name:</strong> {recruiter.companyName || 'N/A'}</div>
+                    <div><strong className="text-gray-500">Industry:</strong> {recruiter.industry || 'N/A'}</div>
+                    <div><strong className="text-gray-500">Size:</strong> {recruiter.companySize || 'N/A'}</div>
+                    <div><strong className="text-gray-500">HQ:</strong> {recruiter.city || 'Unknown'}, {user.country || 'India'}</div>
+                  </div>
+                )}
+
+                {renderSectionControl('companyWebsite', 
+                  <div>
+                    {recruiter.website ? (
+                      <a href={recruiter.website} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline font-bold">{recruiter.website}</a>
+                    ) : 'No website provided'}
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="border-t border-gray-100 bg-gray-50/50 p-4 flex items-center justify-end gap-3 shrink-0">
+        <div className="border-t border-gray-100 bg-gray-50/50 p-4 flex items-center justify-between shrink-0">
           <button 
             onClick={() => { onDelete(recruiter._id, user.name); onClose(); }}
             className="px-4 py-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-2"
           >
             <Trash2 className="w-4 h-4" /> Delete Account
           </button>
-          <button className="px-3 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-1">
-            More <ChevronRight className="w-4 h-4 rotate-90" />
+          
+          <button 
+            onClick={() => setShowNotifyModal(true)}
+            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-2"
+          >
+            <Send className="w-4 h-4" /> Finalize & Send Decision
           </button>
         </div>
+
+        {/* Notify Modal */}
+        {showNotifyModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-indigo-600" /> Send Decision to Recruiter
+                </h3>
+                <button onClick={() => setShowNotifyModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4"/></button>
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="bg-indigo-50 text-indigo-700 p-3 rounded-lg text-xs font-medium border border-indigo-100">
+                  This will email the recruiter with their current verification status for each section.
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Additional Message (Optional)</label>
+                  <textarea
+                    className="w-full border-gray-200 rounded-lg text-xs p-3 focus:border-indigo-500 focus:ring-indigo-500"
+                    rows="3"
+                    placeholder="Add a custom note to the email..."
+                    value={customNotifyMsg}
+                    onChange={(e) => setCustomNotifyMsg(e.target.value)}
+                  ></textarea>
+                </div>
+              </div>
+              <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-2">
+                <button onClick={() => setShowNotifyModal(false)} className="px-4 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button onClick={handleSendFinalDecision} disabled={sendingNotify} className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center gap-2">
+                  {sendingNotify ? <Hourglass className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {sendingNotify ? 'Sending...' : 'Send Email'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
   );
 };
-
 
 // --- Main Component ---
 export default function AdminRecruiters() {

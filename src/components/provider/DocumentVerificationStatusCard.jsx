@@ -1,29 +1,92 @@
-import useTranslation from "../../hooks/useTranslation";
-export default function DocumentVerificationStatusCard({ verification }) {
-  const {
-    t
-  } = useTranslation();
+import React, { useState } from 'react';
+import { providerAPI } from "../../services/api";
+import toast from "react-hot-toast";
 
-  if (!verification) return null;
+const getTabForSection = (key) => {
+  switch (key) {
+    case 'profilePhoto':
+    case 'phone':
+    case 'email':
+      return 'Personal';
+    case 'businessDetails':
+    case 'skills':
+    case 'serviceAreas':
+      return 'Details';
+    case 'education':
+      return 'Education & Credentials';
+    case 'portfolio':
+      return 'Portfolio';
+    case 'resume':
+      return 'Resume';
+    default:
+      return 'Personal';
+  }
+};
 
-  const status = String(verification.status || 'pending').toLowerCase();
-  const colorClass =
-    status === 'verified'
-      ? 'bg-green-50 border-green-200 text-green-800'
-      : status === 'rejected'
-        ? 'bg-red-50 border-red-200 text-red-800'
-        : 'bg-amber-50 border-amber-200 text-amber-800';
+export default function DocumentVerificationStatusCard({ profile, onRefresh, onSaveAndResubmit, onTabChange }) {
+  const [resubmitting, setResubmitting] = useState(false);
+
+  const approvalSections = profile?.approvalSections || [];
+  const rejectedSections = approvalSections.filter(s => s.status === 'rejected');
+  const isProfileRejected = profile?.approvalAction === 'rejected' || rejectedSections.length > 0;
+
+  const handleResubmitProfile = async () => {
+    try {
+      setResubmitting(true);
+      if (onSaveAndResubmit) {
+        await onSaveAndResubmit();
+      } else {
+        await providerAPI.resubmitProfile();
+        toast.success('Profile resubmitted successfully!');
+      }
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to resubmit profile');
+    } finally {
+      setResubmitting(false);
+    }
+  };
+
+  if (!isProfileRejected) return null;
 
   return (
-    <div className={`rounded-xl border p-3 text-sm ${colorClass}`}>
-      <p className="font-semibold mb-1">{t("Document Verification")}</p>
-      <p className="capitalize">{t("Status:")}{status.replace('_', ' ')}</p>
-      {verification.reasons?.length > 0 && (
-        <p className="text-xs mt-1">{verification.reasons.join(', ')}</p>
-      )}
-      {typeof verification.confidence === 'number' && (
-        <p className="text-xs mt-1">{t("Confidence:")}{Math.round(verification.confidence * 100)}%</p>
-      )}
+    <div className="mb-6 p-4 border border-red-300 bg-red-50 rounded-lg">
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="text-red-700 font-bold text-lg">Update Required</h3>
+        <button
+          disabled={resubmitting}
+          onClick={handleResubmitProfile}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-semibold disabled:opacity-50 transition-colors"
+        >
+          {resubmitting ? 'Resubmitting...' : 'Save & Resubmit'}
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {rejectedSections.length > 0 ? (
+          rejectedSections.map((sec) => (
+            <div 
+              key={sec.key} 
+              onClick={() => onTabChange && onTabChange(getTabForSection(sec.key))}
+              className="bg-white p-3 rounded border border-red-200 cursor-pointer hover:border-red-400 hover:shadow-sm transition-all"
+            >
+              <div className="flex justify-between items-center">
+                <div className="font-bold text-red-900 capitalize">{sec.label || sec.key}</div>
+                <div className="text-xs text-red-500 underline">Fix Issue &rarr;</div>
+              </div>
+              <div className="text-red-700 mt-1">
+                {sec.remarks?.length > 0 ? sec.remarks[sec.remarks.length - 1]?.text : "Please update this field with correct details."}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="bg-white p-3 rounded border border-red-200">
+            <div className="text-red-700">
+              {profile?.approvalNote || "Your profile requires updates. Please check your details and resubmit."}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

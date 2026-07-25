@@ -224,7 +224,6 @@ const CandidateDetails = () => {
     city: candidate.city || candidate.location || 'Not specified',
     state: candidate.state || '',
     relocation: candidate.relocationAvailable || false,
-    resumeUrl: candidate.resumeUrl || '',
     hasResume: candidate.hasResume || false,
     desc: candidate.description || candidate.headline || candidate.highlight || '',
     photo: candidate.photo || candidate.profilePhoto || u.avatar || u.profilePhoto || '',
@@ -249,6 +248,12 @@ const CandidateDetails = () => {
   if (education.length > 0) strengths.push(`${education[0]?.degree || 'Degree'} – solid academic background`);
   if (cData.noticePeriod?.toLowerCase().includes('immediate') || cData.availability === 'Immediate') strengths.push('Immediate joiner');
   if (strengths.length === 0) { strengths.push('Professional background'); strengths.push('Relevant domain experience'); }
+
+  const uploadedAssets = candidate.uploadedAssets || u.uploadedAssets || [];
+  const documentAssets = uploadedAssets.filter(a => a.assetType === 'document' || a.assetType === 'resume' || a.fileUrl);
+  const latestResumeAsset = documentAssets.length > 0 ? documentAssets[documentAssets.length - 1] : null;
+  const finalResumeUrl = latestResumeAsset?.fileUrl || candidate.resumeUrl || candidate.resume || u.resumeUrl || '';
+  cData.resumeUrl = finalResumeUrl;
 
   const concerns = [];
   if (cData.expectedCtc && cData.expectedCtc !== 'N/A') concerns.push({ text: 'Salary expectation', sub: cData.expectedCtc });
@@ -480,6 +485,13 @@ const CandidateDetails = () => {
                 </button>
                 <button onClick={contactUnlocked ? () => contactInfo?.email && openGmail(contactInfo.email) : handleUnlock} disabled={unlocking} className="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-gray-50 shadow-sm disabled:opacity-60 transition">
                   <FiPhoneCall className="w-4 h-4"/> {contactUnlocked ? 'Contact Candidate' : 'Unlock Contact'}
+                </button>
+                <button 
+                  onClick={() => cData.resumeUrl ? window.open(cData.resumeUrl, '_blank') : null} 
+                  disabled={!cData.resumeUrl}
+                  className="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-gray-50 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  <FiDownload className="w-4 h-4"/> Download Resume
                 </button>
               </div>
             </div>

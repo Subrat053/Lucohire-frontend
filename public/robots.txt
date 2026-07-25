@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 
+# Private/internal routes
 Disallow: /admin
 Disallow: /dashboard
 Disallow: /provider-dashboard
@@ -20,4 +21,7 @@ Disallow: /private
 Disallow: /internal
 Disallow: /tmp
 
-Sitemap: https://lucohire.com/sitemap.xml
+# Be nice to crawlers
+Crawl-delay: 1
+
+Sitemap: https://luco.bangalorerapid.online/sitemap.xml

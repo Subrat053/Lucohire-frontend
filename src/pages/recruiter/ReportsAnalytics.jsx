@@ -1,8 +1,9 @@
 import useTranslation from "../../hooks/useTranslation";
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { FiCalendar, FiFilter, FiDownload, FiChevronDown, FiX, FiCheck } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 const tabs = [
   { label: 'Overview',           path: '/recruiter/reports'                    },
@@ -22,10 +23,28 @@ const ReportsAnalytics = () => {
   
   const [categoryInput, setCategoryInput] = useState('');
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [adminRoles, setAdminRoles] = useState([]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await api.get('/job-roles');
+        if (res.data && res.data.length > 0) {
+          setAdminRoles(res.data.map(r => r.roleName));
+        } else {
+          setAdminRoles(["Engineering", "Design", "Marketing", "Sales", "Product Management", "Human Resources", "Finance", "Operations", "Customer Support"]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch job roles', err);
+        setAdminRoles(["Engineering", "Design", "Marketing", "Sales", "Product Management", "Human Resources", "Finance", "Operations", "Customer Support"]);
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const ALL_CATEGORIES = [
-    "All Categories", "Engineering", "Design", "Marketing", "Sales", 
-    "Product Management", "Human Resources", "Finance", "Operations", "Customer Support"
+    "All Categories", 
+    ...adminRoles
   ];
   
   const filteredCategories = ALL_CATEGORIES.filter(c => c.toLowerCase().includes(categoryInput.toLowerCase()));

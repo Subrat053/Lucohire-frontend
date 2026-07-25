@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   HiArrowLeft,
@@ -30,24 +30,18 @@ import { FaWhatsapp, FaLinkedin, FaTwitter } from "react-icons/fa";
 import { providerAPI, jobsAPI } from "../services/api";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import toast from "react-hot-toast";
+import Seo from "../components/common/Seo";
+import { generateBreadcrumbSchema, generateJobPostingSchema } from "../utils/seoSchemas";
 
 const BUDGET_LABELS = { fixed: "Fixed", hourly: "/hr", monthly: "/mo", negotiable: "Negotiable" };
 
-
-
-/* ── Main Page ───────────────────────────────────────────────────────────── */
+/* â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function JobDetail() {
   const { id: jobId } = useParams();
   const navigate = useNavigate();
 
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  
-  
-  
-
-  
   const [activeTab, setActiveTab] = useState("Overview");
 
   useEffect(() => {
@@ -105,7 +99,7 @@ export default function JobDetail() {
 
   const budgetText = job.budgetType === "negotiable"
     ? "Negotiable"
-    : `₹${job.budgetMin?.toLocaleString()} – ₹${job.budgetMax?.toLocaleString()} ${BUDGET_LABELS[job.budgetType] || ""}`.trim();
+    : `â‚¹${job.budgetMin?.toLocaleString()} â€“ â‚¹${job.budgetMax?.toLocaleString()} ${BUDGET_LABELS[job.budgetType] || ""}`.trim();
 
   const postedAgo = (() => {
     const d = Math.floor((Date.now() - new Date(job.createdAt)) / 86400000);
@@ -114,6 +108,21 @@ export default function JobDetail() {
 
   return (
     <div className="min-h-screen bg-[#f5f6fa]">
+      <Seo 
+        title={job.title}
+        description={job.description || `Job posting for ${job.title} at ${job.companyName || 'Confidential'}`}
+        canonicalPath={`/jobs/${job._id}`}
+        image={job.companyLogo}
+        schema={[
+          generateBreadcrumbSchema([
+            { name: "Home", item: "https://lucohire.com" },
+            { name: "Jobs", item: "https://lucohire.com/jobs" },
+            { name: job.city || "Remote", item: `https://lucohire.com/jobs/${job.city ? job.city.toLowerCase() : "remote"}` },
+            { name: job.title, item: `https://lucohire.com/jobs/${job._id}` }
+          ]),
+          generateJobPostingSchema(job, "https://lucohire.com")
+        ]}
+      />
       {/* Back bar */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -122,12 +131,11 @@ export default function JobDetail() {
           </button>
         </div>
       </div>
-
       <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
-        {/* ── Left Column ── */}
+        {/* â”€â”€ Left Column â”€â”€ */}
         <div className="space-y-5">
 
-          {/* ── Company Header ── */}
+          {/* â”€â”€ Company Header â”€â”€ */}
           <div className="bg-white rounded-2xl border border-gray-100 p-0 shadow-sm overflow-hidden">
             <div className="p-6">
               <div className="flex items-start justify-between gap-4">
@@ -149,7 +157,7 @@ export default function JobDetail() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
-                      <span className="text-yellow-400">★</span>
+                      <span className="text-yellow-400">â˜…</span>
                       <span className="font-bold text-gray-700">4.6</span>
                       <span>(12.4K reviews)</span>
                     </div>
@@ -216,7 +224,7 @@ export default function JobDetail() {
             </div>
           </div>
 
-          {/* ── Tab Content ── */}
+          {/* â”€â”€ Tab Content â”€â”€ */}
           {activeTab === 'Overview' && (
             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-7">
               {/* Overview */}
@@ -298,7 +306,7 @@ export default function JobDetail() {
 
         </div>
 
-        {/* ── Right Column ── */}
+        {/* â”€â”€ Right Column â”€â”€ */}
         <div className="space-y-4">
 
           {/* Share this job */}
