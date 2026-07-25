@@ -5,9 +5,10 @@ import {
   HiUsers, HiX, HiCheck, HiMail, HiPhone, HiExclamation,
   HiCheckCircle, HiClock, HiCash, HiTrendingUp, HiGlobe,
 } from 'react-icons/hi';
-import { adminAPI } from '../../services/api';
+import { adminAPI, unlockProfileAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -253,7 +254,32 @@ const BreakdownTable = ({ title, rows, currency }) => {
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 const ProviderSubscriptions = () => {
+  const { saveUserSession } = useAuth();
   const [subscriptions, setSubscriptions] = useState([]);
+
+  const handleDirectImpersonate = async (email, targetPath = '/provider/my-plan') => {
+    if (!email) return toast.error('User email not available');
+    try {
+      const res = await unlockProfileAPI.directUnlock({ email });
+      const userData = res.data.data;
+      const impersonateToken = res.data.token;
+
+      const currentToken = localStorage.getItem("authToken");
+      const currentUser = JSON.parse(localStorage.getItem("authUser") || '{}');
+      if (currentToken) {
+        localStorage.setItem("impersonatorToken", currentToken);
+        localStorage.setItem("impersonatorRole", currentUser.activeRole || 'admin');
+        localStorage.setItem("impersonatorRestriction", "payment");
+      }
+
+      saveUserSession({ token: impersonateToken, user: userData });
+      toast.success(`Opening ${userData.name || userData.email}'s details...`);
+      window.location.href = targetPath;
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to open user plan details');
+    }
+  };
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -816,7 +842,8 @@ const ProviderSubscriptions = () => {
                             onChange={(e) => {
                               const val = e.target.value;
                               if (!val) return;
-                              if (val === 'activate') handleStatusUpdate(item.subscriptionId, 'active');
+                              if (val === 'view_plan') handleDirectImpersonate(item.userEmail, '/provider/my-plan');
+                              else if (val === 'activate') handleStatusUpdate(item.subscriptionId, 'active');
                               else if (val === 'cancel') handleStatusUpdate(item.subscriptionId, 'cancelled');
                               else if (val === 'expire') handleStatusUpdate(item.subscriptionId, 'expired');
                               else if (val === 'remind') { setSelectedIds([item.subscriptionId]); setShowReminder(true); }
@@ -825,6 +852,7 @@ const ProviderSubscriptions = () => {
                             className="px-2 py-1.5 text-xs font-semibold bg-gray-50 border border-gray-200 rounded-lg cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-gray-100 transition"
                           >
                             <option value="">Actions</option>
+                            <option value="view_plan">👁 View Plan & Payments</option>
                             {item.subscriptionStatus !== 'active' && <option value="activate">✓ Activate</option>}
                             {item.subscriptionStatus !== 'cancelled' && <option value="cancel">✕ Cancel</option>}
                             {canSendReminder && <option value="remind">📧 Send Reminder</option>}

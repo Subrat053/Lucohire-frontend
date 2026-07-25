@@ -31,8 +31,6 @@ const Footer = () => {
     fetchSocials();
   }, []);
 
-  if (user && user.role === 'admin') return null;
-
   const sections = [
     {
       title: t('footer.candidates', 'For Candidates'),

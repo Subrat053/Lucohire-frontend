@@ -1171,7 +1171,7 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
   };
 
   const toggleReveal = (idx) => {
-    setRevealed(prev => ({ ...prev, [idx]: !prev[idx] }));
+    setRevealed(prev => (prev[idx] ? {} : { [idx]: true }));
   };
 
   return (
@@ -1227,10 +1227,24 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
                 {isPro && (
                   <button 
                     onClick={() => toggleReveal(globalIdx)}
-                    className="px-3 py-1.5 text-xs font-semibold bg-gray-50 hover:bg-teal-50 text-gray-600 hover:text-teal-700 rounded-lg transition shrink-0 flex items-center"
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition shrink-0 flex items-center gap-1.5 shadow-xs ${
+                      isRevealed 
+                        ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200/80' 
+                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/80'
+                    }`}
                     title={isRevealed ? "Hide Answer" : "View Answer"}
                   >
-                    {isRevealed ? t("Hide Answer") : t("View Answer")}
+                    {isRevealed ? (
+                      <>
+                        <EyeOff className="w-3.5 h-3.5 text-rose-500" />
+                        <span>{t("Hide Answer")}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>{t("View Answer")}</span>
+                      </>
+                    )}
                   </button>
                 )}
               </div>

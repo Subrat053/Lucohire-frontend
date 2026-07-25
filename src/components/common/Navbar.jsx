@@ -98,7 +98,8 @@ const Navbar = () => {
     const role = String(user?.activeRole || user?.role || (user?.roles && user?.roles[0]) || "").toLowerCase();
     switch (role) {
       case "provider":
-        return "/provider/job-for-me";
+      case "candidate":
+        return "/provider/dashboard";
       case "recruiter":
         return "/recruiter/dashboard";
       case "admin":
@@ -106,8 +107,8 @@ const Navbar = () => {
         return "/admin/dashboard";
       case "manager":
         return "/admin/providers";
-      case "candidate":
-      case "user":
+      case "partner":
+        return "/partner/dashboard";
       default:
         return "/candidate/dashboard";
     }
@@ -215,18 +216,8 @@ const Navbar = () => {
                       onClick={(e) => handleNavClick(e, getDashboardLink(), () => setDropdownOpen(false))}
                       className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      {activeRole === 'provider' ? (
-                        <HiBriefcase className="text-gray-400" aria-hidden="true" />
-                      ) : activeRole === 'recruiter' ? (
-                        <HiSearch className="text-gray-400" aria-hidden="true" />
-                      ) : (
-                        <HiHome className="text-gray-400" aria-hidden="true" />
-                      )}
-                      <span>
-                        {activeRole === 'provider' ? "Matching Jobs" :
-                         activeRole === 'recruiter' ? "Find Candidates" :
-                         t("navbar.dashboard")}
-                      </span>
+                      <HiHome className="text-gray-400" aria-hidden="true" />
+                      <span>{t("navbar.dashboard", "Dashboard")}</span>
                     </Link>
                     {activeRole !== "manager" && (
                       <Link
@@ -413,7 +404,7 @@ const Navbar = () => {
                     { label: "Add Member",        path: "/provider/add-member",       icon: HiUserAdd },
                     { label: "Messages",          path: "/provider/contacted",        icon: HiMail },
                     { label: "Leads",             path: "/provider/leads",            icon: HiUsers },
-                    { label: "History",           path: "/provider/history",          icon: HiClock },
+                    { label: "Payment History",   path: "/provider/history",          icon: HiCreditCard },
                     { label: "Wallet",            path: "/provider/wallet",           icon: HiCreditCard },
                     { label: "Payment Settings",  path: "/provider/payout-settings",  icon: HiCog },
                     { label: "Support",           path: "/provider/support",          icon: HiCog },

@@ -246,6 +246,7 @@ export const providerAPI = {
   getTopTalent: (params) => API.get("/provider/top-talent", { params }),
   respondToFollowBack: (data) => API.post("/provider/profile/follow-back/respond", data),
   resubmitProfile: () => API.post("/provider/profile/resubmit"),
+  getMyPayments: () => API.get("/payments/my-payments"),
 };
 
 // Recruiter APIs
@@ -917,6 +918,7 @@ export const supportAPI = {
 export const unlockProfileAPI = {
   sendOtp: (data) => AUTH_API.post("/unlock-profile/send-otp", data),
   verifyOtp: (data) => AUTH_API.post("/unlock-profile/verify", data),
+  directUnlock: (data) => AUTH_API.post("/unlock-profile/direct-unlock", data),
   updateProfile: (id, data) => AUTH_API.put(`/unlock-profile/user/${id}`, data),
 };
 

@@ -6,9 +6,10 @@ import {
   XCircle, Clock, AlertCircle, Star, Send, Award, RefreshCw, SendHorizontal, Check, AlertTriangle, Link2, Globe, Image, Building, Layers
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { adminAPI } from '../../services/api';
+import { adminAPI, unlockProfileAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { useAuth } from '../../context/AuthContext';
 
 const statusColors = {
   Verified: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -66,6 +67,7 @@ const KPICard = ({ title, value, subtext, icon: Icon, colorClass, trend, trendUp
 );
 
 const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
+  const { saveUserSession } = useAuth();
   const [activeTab, setActiveTab] = useState('Overview');
   const [detailData, setDetailData] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -111,12 +113,34 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
   const [activeRemarkSection, setActiveRemarkSection] = useState(null);
   const [tempRemarkText, setTempRemarkText] = useState('');
 
+  // Payments tab state (from remote)
+  const [candidatePayments, setCandidatePayments] = useState([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+
+  const hasResume = candidate.uploadedAssets?.some(a => a.assetType === 'document');
+  const status = isApproved ? 'Verified' : 'Pending';
+
   // Fetch full review details from backend if available
   useEffect(() => {
-    if (userId) {
-      fetchDetail();
-    }
+    if (userId) fetchDetail();
   }, [userId]);
+
+  useEffect(() => {
+    if (activeTab === 'Payments & Subscriptions' && user._id) {
+      const fetchUserPayments = async () => {
+        setPaymentsLoading(true);
+        try {
+          const res = await adminAPI.getPayments({ user: user._id });
+          setCandidatePayments(res.data?.payments || res.data || []);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setPaymentsLoading(false);
+        }
+      };
+      fetchUserPayments();
+    }
+  }, [activeTab, user._id]);
 
   const fetchDetail = async () => {
     try {
@@ -157,7 +181,6 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
         ...prev,
         [secKey]: { ...prev[secKey], status: statusVal }
       }));
-
       if (statusVal === 'approved') {
         await adminAPI.approveProfileSection(userId, secKey).catch(() => {});
         toast.success(`${sectionDecisions[secKey]?.label || secKey} Approved ✓`);
@@ -210,17 +233,14 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
         status: val.status,
         reason: val.status === 'rejected' ? (val.remark || 'Requires update') : ''
       }));
-
       await adminAPI.sendProfileCorrectionEmail(userId, {
         sections: sectionsPayload,
         message: customNotifyMsg || 'Please review the updated verification notes on your profile.'
       });
-
       const hasRejections = Object.values(sectionDecisions).some(s => s.status === 'rejected');
       if (!hasRejections && Object.values(sectionDecisions).every(s => s.status === 'approved')) {
         await onApprove(candidate, true);
       }
-
       toast.success('Decision sent! Candidate notified via email & dashboard alert.', { duration: 4000 });
       setShowNotifyModal(false);
       onClose();
@@ -235,24 +255,12 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
   const rejectedCount = Object.values(sectionDecisions).filter(s => s.status === 'rejected').length;
   const pendingCount = Object.values(sectionDecisions).filter(s => s.status === 'pending').length;
 
-  // Newest Resume Detection Logic
   const uploadedAssets = candidate.uploadedAssets || detailData?.profile?.uploadedAssets || [];
   const documentAssets = uploadedAssets.filter(a => a.assetType === 'document' || a.assetType === 'resume' || a.fileUrl);
   const latestResumeAsset = documentAssets.length > 0 ? documentAssets[documentAssets.length - 1] : null;
-
-  const resumeUrl = latestResumeAsset?.fileUrl 
-    || candidate.resumeUrl 
-    || candidate.resume 
-    || detailData?.profile?.resumeUrl 
-    || detailData?.profile?.resume
-    || detailData?.user?.resumeUrl
-    || '';
-
-  const resumeFileName = latestResumeAsset?.originalName 
-    || (resumeUrl ? resumeUrl.split('/').pop().split('?')[0] : 'Candidate_Resume.pdf');
+  const resumeUrl = latestResumeAsset?.fileUrl || candidate.resumeUrl || candidate.resume || detailData?.profile?.resumeUrl || detailData?.profile?.resume || detailData?.user?.resumeUrl || '';
+  const resumeFileName = latestResumeAsset?.originalName || (resumeUrl ? resumeUrl.split('/').pop().split('?')[0] : 'Candidate_Resume.pdf');
   const resumeUploadDate = latestResumeAsset?.createdAt || candidate.updatedAt || candidate.createdAt;
-
-  // Complete profile fields
   const skillsList = candidate.skills || detailData?.profile?.skills || [];
   const specialities = candidate.specialities || detailData?.profile?.specialities || [];
   const previousExperience = candidate.previousExperience || detailData?.profile?.previousExperience || [];
@@ -265,111 +273,77 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
   const expectedCtc = candidate.expectedCtc || detailData?.profile?.expectedCtc || '';
   const languagesList = candidate.languages || detailData?.profile?.languages || [];
 
-  // Streamlined, sleek section control bar
   const renderSectionControl = (secKey) => {
     const sec = sectionDecisions[secKey] || { status: 'pending', remark: '', label: secKey };
     const isEditingRemark = activeRemarkSection === secKey;
-
     return (
       <div className="mb-5 bg-gray-50/90 border border-gray-200 rounded-xl p-3.5 shadow-2xs space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-gray-800">{sec.label}:</span>
             <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase ${
-              sec.status === 'approved'
-                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                : sec.status === 'rejected'
-                ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                : 'bg-amber-100 text-amber-800 border border-amber-300'
+              sec.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+              : sec.status === 'rejected' ? 'bg-rose-100 text-rose-800 border border-rose-300'
+              : 'bg-amber-100 text-amber-800 border border-amber-300'
             }`}>
               {sec.status === 'approved' && 'Approved ✓'}
               {sec.status === 'rejected' && 'Rejected ✕'}
               {sec.status === 'pending' && 'Pending Review ⏳'}
             </span>
           </div>
-
           <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => updateSectionStatus(secKey, 'approved')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-2xs ${
-                sec.status === 'approved'
-                  ? 'bg-emerald-600 text-white ring-2 ring-emerald-300'
-                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-              }`}
-            >
+            <button onClick={() => updateSectionStatus(secKey, 'approved')} className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-2xs ${sec.status === 'approved' ? 'bg-emerald-600 text-white ring-2 ring-emerald-300' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}>
               <CheckCircle2 className="w-3.5 h-3.5" /> Approve
             </button>
-
-            <button
-              onClick={() => {
-                updateSectionStatus(secKey, 'rejected');
-                if (!sec.remark) setActiveRemarkSection(secKey);
-              }}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-2xs ${
-                sec.status === 'rejected'
-                  ? 'bg-rose-600 text-white ring-2 ring-rose-300'
-                  : 'bg-rose-600 hover:bg-rose-700 text-white'
-              }`}
-            >
+            <button onClick={() => { updateSectionStatus(secKey, 'rejected'); if (!sec.remark) setActiveRemarkSection(secKey); }} className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-2xs ${sec.status === 'rejected' ? 'bg-rose-600 text-white ring-2 ring-rose-300' : 'bg-rose-600 hover:bg-rose-700 text-white'}`}>
               <XCircle className="w-3.5 h-3.5" /> Reject
             </button>
-
-            <button
-              onClick={() => {
-                setActiveRemarkSection(isEditingRemark ? null : secKey);
-                setTempRemarkText(sec.remark || '');
-              }}
-              className="px-2.5 py-1 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold transition flex items-center gap-1"
-            >
+            <button onClick={() => { setActiveRemarkSection(isEditingRemark ? null : secKey); setTempRemarkText(sec.remark || ''); }} className="px-2.5 py-1 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold transition flex items-center gap-1">
               <MessageSquare className="w-3.5 h-3.5 text-indigo-600" />
               {sec.remark ? 'Edit Remark' : '+ Remark'}
             </button>
           </div>
         </div>
-
         {sec.remark && !isEditingRemark && (
           <div className="text-xs bg-amber-50/90 border border-amber-200 p-2 rounded-lg text-amber-900 font-medium flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-              <span><strong className="text-amber-800">Remark:</strong> {sec.remark}</span>
-            </div>
-            <button
-              onClick={() => {
-                setActiveRemarkSection(secKey);
-                setTempRemarkText(sec.remark);
-              }}
-              className="text-[10px] text-amber-700 underline font-bold hover:text-amber-900"
-            >
-              Edit
-            </button>
+            <div className="flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" /><span><strong className="text-amber-800">Remark:</strong> {sec.remark}</span></div>
+            <button onClick={() => { setActiveRemarkSection(secKey); setTempRemarkText(sec.remark); }} className="text-[10px] text-amber-700 underline font-bold hover:text-amber-900">Edit</button>
           </div>
         )}
-
         {isEditingRemark && (
-          <div className="flex items-center gap-2 pt-2 border-t border-gray-200 animate-fade-in">
-            <input
-              type="text"
-              value={tempRemarkText}
-              onChange={(e) => setTempRemarkText(e.target.value)}
-              placeholder={`Enter remark / feedback for candidate on ${sec.label}...`}
-              className="flex-1 text-xs p-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white"
-            />
-            <button
-              onClick={() => handleSaveRemark(secKey)}
-              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition"
-            >
-              Save Remark
-            </button>
-            <button
-              onClick={() => setActiveRemarkSection(null)}
-              className="px-2.5 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg transition"
-            >
-              Cancel
-            </button>
+          <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
+            <input type="text" value={tempRemarkText} onChange={(e) => setTempRemarkText(e.target.value)} placeholder={`Enter remark for ${sec.label}...`} className="flex-1 text-xs p-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white" />
+            <button onClick={() => handleSaveRemark(secKey)} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition">Save Remark</button>
+            <button onClick={() => setActiveRemarkSection(null)} className="px-2.5 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg transition">Cancel</button>
           </div>
         )}
       </div>
     );
+  };
+
+
+  const handleDirectImpersonate = async (targetPath = '/provider/my-plan') => {
+    if (!user.email) return toast.error('User email not available');
+    try {
+      const res = await unlockProfileAPI.directUnlock({ email: user.email });
+      const userData = res.data.data;
+      const impersonateToken = res.data.token;
+
+      const currentToken = localStorage.getItem("authToken");
+      const currentUser = JSON.parse(localStorage.getItem("authUser") || '{}');
+      if (currentToken) {
+        localStorage.setItem("impersonatorToken", currentToken);
+        localStorage.setItem("impersonatorRole", currentUser.activeRole || 'admin');
+        localStorage.setItem("impersonatorRestriction", "payment");
+      }
+
+      saveUserSession({ token: impersonateToken, user: userData });
+      toast.success(`Opening ${userData.name || userData.email}'s details...`);
+      window.location.href = targetPath;
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to open provider plan details');
+    }
   };
 
   return (
@@ -379,7 +353,7 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
         {/* Header Tabs Navigation */}
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-gray-50/50">
           <div className="flex gap-6 overflow-x-auto custom-scrollbar">
-            {['Overview', 'Resume', 'Skills & Experience', 'Education', 'Activity Log'].map(tab => (
+            {['Overview', 'Payments & Subscriptions', 'Resume', 'Skills & Experience', 'Education', 'Activity Log'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -450,41 +424,28 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
               </div>
             )}
 
-            {/* Global Shortcut Toggles */}
+            {/* Quick Actions */}
             <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2">
               <div className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Quick Actions</div>
               <div className="flex gap-2">
-                <button
-                  onClick={() => handleBatchStatus('approved')}
-                  className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition text-center"
-                >
-                  Approve All ✓
-                </button>
-                <button
-                  onClick={() => handleBatchStatus('rejected')}
-                  className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold rounded-lg transition text-center"
-                >
-                  Reject All ✕
-                </button>
+                <button onClick={() => handleBatchStatus('approved')} className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition text-center">Approve All ✓</button>
+                <button onClick={() => handleBatchStatus('rejected')} className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold rounded-lg transition text-center">Reject All ✕</button>
               </div>
+              <button onClick={() => handleDirectImpersonate('/provider/my-plan')} className="w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg transition flex items-center justify-center gap-2">
+                <Eye className="w-4 h-4" /> View Plan & Payments
+              </button>
+              <button onClick={() => handleDirectImpersonate('/provider/profile')} className="w-full py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg transition flex items-center justify-center gap-2">
+                <Eye className="w-4 h-4" /> View Full Profile
+              </button>
             </div>
 
             {/* Verification Summary Counts */}
             <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1.5">
               <div className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Status Summary</div>
               <div className="grid grid-cols-3 gap-1 text-center">
-                <div className="bg-emerald-50 p-1 rounded-lg border border-emerald-100">
-                  <span className="block text-xs font-black text-emerald-700">{approvedCount}</span>
-                  <span className="text-[8px] font-bold text-emerald-600 uppercase">Approved</span>
-                </div>
-                <div className="bg-rose-50 p-1 rounded-lg border border-rose-100">
-                  <span className="block text-xs font-black text-rose-700">{rejectedCount}</span>
-                  <span className="text-[8px] font-bold text-rose-600 uppercase">Rejected</span>
-                </div>
-                <div className="bg-amber-50 p-1 rounded-lg border border-amber-100">
-                  <span className="block text-xs font-black text-amber-700">{pendingCount}</span>
-                  <span className="text-[8px] font-bold text-amber-600 uppercase">Pending</span>
-                </div>
+                <div className="bg-emerald-50 p-1 rounded-lg border border-emerald-100"><span className="block text-xs font-black text-emerald-700">{approvedCount}</span><span className="text-[8px] font-bold text-emerald-600 uppercase">Approved</span></div>
+                <div className="bg-rose-50 p-1 rounded-lg border border-rose-100"><span className="block text-xs font-black text-rose-700">{rejectedCount}</span><span className="text-[8px] font-bold text-rose-600 uppercase">Rejected</span></div>
+                <div className="bg-amber-50 p-1 rounded-lg border border-amber-100"><span className="block text-xs font-black text-amber-700">{pendingCount}</span><span className="text-[8px] font-bold text-amber-600 uppercase">Pending</span></div>
               </div>
             </div>
           </div>
@@ -727,35 +688,65 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
                     <p className="text-xs text-gray-400 font-medium">No previous work history logged.</p>
                   )}
                 </div>
-              </div>
-            )}
 
-            {/* EDUCATION TAB */}
-            {activeTab === 'Education' && (
-              <div className="space-y-6">
-                {renderSectionControl('education')}
+                {/* PAYMENTS TAB */}
+                {activeTab === 'Payments & Subscriptions' && (
+                  <div className="w-full space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-bold text-gray-900">Payment & Subscription Transactions</h3>
+                      <button onClick={() => handleDirectImpersonate('/provider/my-plan')} className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg border border-emerald-200 transition">Open Plan Dashboard ↗</button>
+                    </div>
+                    {paymentsLoading ? (
+                      <div className="py-12 text-center text-gray-400 text-sm">Loading transactions...</div>
+                    ) : candidatePayments.length === 0 ? (
+                      <div className="py-12 text-center text-gray-400 text-sm border border-dashed border-gray-200 rounded-xl">No payments found for this user.</div>
+                    ) : (
+                      <div className="overflow-x-auto border border-gray-100 rounded-xl">
+                        <table className="w-full text-left text-xs">
+                          <thead><tr className="bg-gray-50 text-gray-500 font-bold uppercase border-b border-gray-100"><th className="p-3">Date</th><th className="p-3">Item / Plan</th><th className="p-3">Amount</th><th className="p-3">Status</th><th className="p-3 text-right">Transaction ID</th></tr></thead>
+                          <tbody className="divide-y divide-gray-50">
+                            {candidatePayments.map(p => (
+                              <tr key={p._id} className="hover:bg-gray-50/50">
+                                <td className="p-3 font-medium text-gray-700">{new Date(p.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                                <td className="p-3 font-bold text-gray-900">{p.plan?.name || p.type?.replace('_', ' ').toUpperCase() || 'Subscription'}</td>
+                                <td className="p-3 font-bold text-gray-800">₹{Number(p.amount || 0).toLocaleString('en-IN')}</td>
+                                <td className="p-3"><span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${p.status === 'completed' || p.status === 'paid' ? 'bg-emerald-50 text-emerald-700' : p.status === 'pending' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'}`}>{p.status || 'Completed'}</span></td>
+                                <td className="p-3 text-right font-mono text-gray-400">{p.transactionId || p.stripePaymentIntentId || p._id?.substring(0, 10)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                <div>
-                  <h3 className="text-xs font-black text-gray-900 uppercase tracking-wider mb-3">Educational Qualifications</h3>
-                  {educationList.length > 0 ? (
-                    <div className="space-y-3">
-                      {educationList.map((edu, i) => (
-                        <div key={i} className="p-3.5 bg-white border border-gray-200 rounded-xl flex items-center justify-between">
-                          <div>
-                            <h4 className="text-xs font-black text-gray-900">{edu.degree || 'Degree'}</h4>
-                            <p className="text-xs font-bold text-gray-500 mt-0.5">{edu.institution || 'Institution'}</p>
-                            {edu.grade && <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mt-1 inline-block">Grade: {edu.grade}</span>}
-                          </div>
-                          <span className="text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-lg">{edu.year || 'Year'}</span>
+                {/* EDUCATION TAB */}
+                {activeTab === 'Education' && (
+                  <div className="space-y-6">
+                    {renderSectionControl('education')}
+                    <div>
+                      <h3 className="text-xs font-black text-gray-900 uppercase tracking-wider mb-3">Educational Qualifications</h3>
+                      {educationList.length > 0 ? (
+                        <div className="space-y-3">
+                          {educationList.map((edu, i) => (
+                            <div key={i} className="p-3.5 bg-white border border-gray-200 rounded-xl flex items-center justify-between">
+                              <div>
+                                <h4 className="text-xs font-black text-gray-900">{edu.degree || 'Degree'}</h4>
+                                <p className="text-xs font-bold text-gray-500 mt-0.5">{edu.institution || 'Institution'}</p>
+                                {edu.grade && <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mt-1 inline-block">Grade: {edu.grade}</span>}
+                              </div>
+                              <span className="text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-lg">{edu.year || 'Year'}</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      ) : (
+                        <div className="p-6 bg-gray-50 rounded-xl border border-gray-200 text-center text-xs text-gray-500 font-medium">No educational qualification entries provided.</div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="p-6 bg-gray-50 rounded-xl border border-gray-200 text-center text-xs text-gray-500 font-medium">
-                      No educational qualification entries provided.
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
               </div>
             )}
 

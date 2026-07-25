@@ -6,6 +6,7 @@ import { jobsAPI, providerAPI } from '../services/api';
 import HeroSection from '../components/landing/HeroSection';
 import TopTalentCarousel from '../components/landing/TopTalentCarousel';
 import FeaturesSection from '../components/landing/FeaturesSection';
+import LandingFaqSection from '../components/landing/LandingFaqSection';
 import CandidateModal from '../components/landing/CandidateModal';
 
 export default function LandingPage() {
@@ -118,6 +119,8 @@ export default function LandingPage() {
       />
       
       <FeaturesSection />
+
+      <LandingFaqSection />
 
       <CandidateModal 
         selectedCandidate={selectedCandidate}

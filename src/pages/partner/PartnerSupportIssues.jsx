@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { supportAPI } from '../../services/api';
+import { supportAPI, unlockProfileAPI } from '../../services/api';
 import toast from 'react-hot-toast';
-import { HiCheckCircle, HiClock, HiLockOpen, HiX } from 'react-icons/hi';
-import ProfileUnlocker from '../admin/ProfileUnlocker';
+import { HiCheckCircle, HiClock, HiEye } from 'react-icons/hi';
+import { useAuth, getDashboardByRole } from '../../context/AuthContext';
 
 const PartnerSupportIssues = () => {
+  const { saveUserSession } = useAuth();
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resolvingId, setResolvingId] = useState(null);
-  const [unlockModalOpen, setUnlockModalOpen] = useState(false);
-  const [selectedUserEmail, setSelectedUserEmail] = useState('');
+  const [accessingId, setAccessingId] = useState(null);
 
   useEffect(() => {
     fetchIssues();
@@ -30,12 +30,42 @@ const PartnerSupportIssues = () => {
     setResolvingId(id);
     try {
       await supportAPI.resolveManagerTicket(id);
-      toast.success('Issue marked as resolved');
+      toast.success('Support issue marked as resolved');
       fetchIssues(); // Refresh list
     } catch (error) {
       toast.error('Failed to resolve issue');
     } finally {
       setResolvingId(null);
+    }
+  };
+
+  const handleDirectViewProfile = async (issue) => {
+    if (!issue?.user?.email) return toast.error('User email not found');
+    setAccessingId(issue._id);
+    try {
+      const res = await unlockProfileAPI.directUnlock({ email: issue.user.email });
+      const userData = res.data.data;
+      const impersonateToken = res.data.token;
+
+      // Store current manager/partner session before impersonating
+      const currentToken = localStorage.getItem("authToken");
+      const currentUser = JSON.parse(localStorage.getItem("authUser") || '{}');
+      if (currentToken) {
+        localStorage.setItem("impersonatorToken", currentToken);
+        localStorage.setItem("impersonatorRole", currentUser.activeRole || 'manager');
+        localStorage.setItem("impersonatorRestriction", "manager_support");
+      }
+
+      saveUserSession({ token: impersonateToken, user: userData });
+      toast.success(`Opening profile for ${userData.name || userData.email}...`);
+      
+      const targetPath = userData.activeRole === 'provider' ? '/provider/profile' : getDashboardByRole(userData.activeRole);
+      window.location.href = targetPath;
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to access user profile');
+    } finally {
+      setAccessingId(null);
     }
   };
 
@@ -46,22 +76,20 @@ const PartnerSupportIssues = () => {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Support Issues (Profile & Job)</h1>
-        <p className="text-gray-500 text-sm mt-1">Manage user issues assigned to the Manager panel.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Partner & Support Issues</h1>
+        <p className="text-gray-500 text-sm mt-1">Manage user issues assigned to your account.</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {issues.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">No issues found.</div>
+          <div className="p-8 text-center text-gray-500">No support issues found.</div>
         ) : (
           <div className="divide-y divide-gray-100">
             {issues.map(issue => (
               <div key={issue._id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className={`px-2.5 py-1 text-xs font-bold uppercase rounded-md ${
-                      issue.type === 'profile' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-                    }`}>
+                    <span className="px-2.5 py-1 text-xs font-bold uppercase rounded-md bg-emerald-100 text-emerald-700">
                       {issue.type}
                     </span>
                     <span className="text-sm text-gray-500">
@@ -86,13 +114,11 @@ const PartnerSupportIssues = () => {
                 <div className="flex flex-col sm:flex-row gap-2 shrink-0">
                   {issue.status === 'open' && issue.user && (
                     <button
-                      onClick={() => {
-                        setSelectedUserEmail(issue.user.email);
-                        setUnlockModalOpen(true);
-                      }}
-                      className="flex items-center justify-center gap-1.5 px-4 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 font-medium rounded-lg transition-colors text-sm border border-purple-100"
+                      onClick={() => handleDirectViewProfile(issue)}
+                      disabled={accessingId === issue._id}
+                      className="flex items-center justify-center gap-1.5 px-4 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 font-medium rounded-lg transition-colors text-sm border border-purple-100 disabled:opacity-50"
                     >
-                      <HiLockOpen className="w-4 h-4" /> Send OTP / Unlock
+                      <HiEye className="w-4 h-4" /> {accessingId === issue._id ? 'Opening...' : 'View Profile'}
                     </button>
                   )}
                   {issue.status === 'open' && (
@@ -110,26 +136,6 @@ const PartnerSupportIssues = () => {
           </div>
         )}
       </div>
-
-      {/* Unlocker Modal */}
-      {unlockModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl">
-            <button 
-              onClick={() => {
-                setUnlockModalOpen(false);
-                setSelectedUserEmail('');
-              }} 
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition-colors z-10"
-            >
-              <HiX className="w-5 h-5" />
-            </button>
-            <div className="pt-2">
-              <ProfileUnlocker restrictionType="manager_support" initialEmail={selectedUserEmail} />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
