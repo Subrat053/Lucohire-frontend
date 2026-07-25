@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Sparkles, AlertCircle, CheckCircle2, Briefcase } from 'lucide-react';
+import { Search, Sparkles, AlertCircle, CheckCircle2, Briefcase, TrendingUp, Zap, Award, Target, PlusCircle } from 'lucide-react';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import toast from 'react-hot-toast';
@@ -11,6 +11,7 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
   const [jd, setJd] = useState('');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
+  const [selectedSkills, setSelectedSkills] = useState([]);
   const [toolkitAtsScore, setToolkitAtsScore] = useState(null);
   const [toolkitTips, setToolkitTips] = useState([]);
 
@@ -35,13 +36,24 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
       setLoading(true);
       const res = await getAtsOptimizer({ fileHash, parsedData, jobDescription: jd });
       if (res.success || res.data) {
-        setData(res.data?.data || res.data || res);
+        const resData = res.data?.data || res.data || res;
+        setData(resData);
+        const keywords = resData.added_keywords?.length > 0 ? resData.added_keywords : (resData.missing_keywords || []);
+        setSelectedSkills(keywords);
       }
     } catch (error) {
       console.error("Failed to fetch ATS Optimizer data:", error);
       toast.error(error.response?.data?.message || "Failed to analyze ATS compatibility. Please ensure resume is uploaded.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleSkill = (skill) => {
+    if (selectedSkills.includes(skill)) {
+      setSelectedSkills(selectedSkills.filter(s => s !== skill));
+    } else {
+      setSelectedSkills([...selectedSkills, skill]);
     }
   };
 
@@ -91,31 +103,55 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
         </div>
       </div>
 
-      {toolkitTips && toolkitTips.length > 0 && !data && (
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm animate-fadeIn">
-          <h3 className="text-[14px] font-bold text-gray-800 flex items-center gap-2 mb-3">
-            <Sparkles className="w-4 h-4 text-[#0f766e]" />
-            {t("Personalized Profile Improvements")}
-          </h3>
-          <p className="text-[12px] text-gray-500 font-medium mb-4">
-            {t("Our AI has analyzed your current profile data. Here are specific suggestions on how you can improve your ATS pass rate:")}
-          </p>
-          <ul className="space-y-3">
-            {toolkitTips.map((tip, idx) => {
-              // Ensure we display string if it's passed as a string, else use tip.title or a default message
-              let bulletText = typeof tip === 'string' ? tip : (tip?.title || JSON.stringify(tip));
-              if (typeof bulletText !== 'string') bulletText = String(bulletText);
-              
-              return (
-                <li key={idx} className="flex gap-3 text-[12px] text-gray-700 bg-gray-50/50 p-3 rounded-xl border border-gray-100 font-medium leading-relaxed">
-                  <CheckCircle2 className="text-[#0f766e] w-4 h-4 shrink-0 mt-0.5" />
-                  <span dangerouslySetInnerHTML={{ __html: bulletText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+      {toolkitTips && toolkitTips.length > 0 && !data && (() => {
+        const tipBoosts = toolkitTips.map((tip, idx) => {
+          if (typeof tip === 'object' && tip?.scoreBoost) return parseInt(tip.scoreBoost) || 3;
+          const text = typeof tip === 'string' ? tip : (tip?.title || '');
+          return text.length > 80 ? 4 : text.length > 40 ? 3 : 2;
+        });
+        const totalBoost = tipBoosts.reduce((a, b) => a + b, 0);
+
+        return (
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm animate-fadeIn">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
+              <div>
+                <h3 className="text-[15px] font-bold text-gray-800 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0f766e]" />
+                  {t("Personalized Profile Improvements")}
+                </h3>
+                <p className="text-[12px] text-gray-500 font-medium mt-0.5">
+                  {t("Our AI analyzed your profile data. Applying these suggestions will boost your ATS match score:")}
+                </p>
+              </div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold shrink-0 self-start sm:self-auto shadow-xs">
+                <TrendingUp className="w-4 h-4 text-emerald-600" />
+                <span>{t("Potential Score Boost")}: <strong className="text-emerald-700 font-black text-sm">+{totalBoost} {t("Pts")}</strong></span>
+              </div>
+            </div>
+
+            <ul className="space-y-3">
+              {toolkitTips.map((tip, idx) => {
+                let bulletText = typeof tip === 'string' ? tip : (tip?.title || tip?.suggestion || JSON.stringify(tip));
+                if (typeof bulletText !== 'string') bulletText = String(bulletText);
+                const pts = tipBoosts[idx] || 3;
+
+                return (
+                  <li key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[12px] text-gray-700 bg-gray-50/70 p-3.5 px-4 rounded-xl border border-gray-100/80 font-medium leading-relaxed hover:bg-emerald-50/30 transition">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="text-[#0f766e] w-4.5 h-4.5 shrink-0 mt-0.5" />
+                      <span dangerouslySetInnerHTML={{ __html: bulletText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100/80 text-emerald-800 text-[11px] font-bold shrink-0 border border-emerald-200/80 self-end sm:self-auto">
+                      <Zap className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{t("Estimated Boost")}: <strong>+{pts} pts</strong></span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      })()}
       {data && (
         <div className="animate-fadeIn space-y-8">
           
@@ -164,6 +200,151 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
               </div>
             </div>
           </div>
+
+          {/* Skill Addition & ATS Score Boost Estimator Card */}
+          {(() => {
+            const scoreBefore = data.ats_score_before || 60;
+            const scoreAfterMax = data.ats_score_after || 85;
+            const recommendedKeywords = data.added_keywords?.length > 0 
+              ? data.added_keywords 
+              : (data.missing_keywords || []);
+            const totalSkillCount = recommendedKeywords.length || 1;
+            const totalScoreDiff = Math.max(0, scoreAfterMax - scoreBefore);
+            const perSkillBoost = totalScoreDiff > 0 ? (totalScoreDiff / totalSkillCount) : 3.5;
+            
+            const activeCount = selectedSkills.length;
+            const currentEstimatedBoost = Math.round(activeCount * perSkillBoost);
+            const currentProjectedScore = Math.min(100, Math.round(scoreBefore + currentEstimatedBoost));
+
+            return (
+              <div className="bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900 text-white p-6 rounded-2xl shadow-lg border border-teal-700/40 relative overflow-hidden">
+                <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
+                
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-6 border-b border-teal-700/50">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-400/20 text-teal-300 border border-teal-400/30">
+                        {t("Skill Boost Estimator")}
+                      </span>
+                      <span className="text-[11px] font-semibold text-teal-200 flex items-center gap-1">
+                        <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> +{totalScoreDiff}% {t("Potential Gain")}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-black text-white tracking-tight">
+                      {t("Skill Addition & ATS Score Projection")}
+                    </h3>
+                    <p className="text-xs text-teal-200/80 font-medium mt-0.5">
+                      {t("Select skills below to see how adding them boosts your ATS score step by step.")}
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-950/60 backdrop-blur-md px-5 py-3 rounded-xl border border-teal-500/30 flex items-center gap-4 shrink-0">
+                    <div className="text-right">
+                      <span className="text-[10px] uppercase font-bold text-teal-300 block">{t("Projected ATS Score")}</span>
+                      <span className="text-2xl font-black text-white">{currentProjectedScore}%</span>
+                    </div>
+                    <div className="h-8 w-px bg-teal-800" />
+                    <div className="text-left">
+                      <span className="text-[10px] uppercase font-bold text-emerald-400 block">{t("Selected Boost")}</span>
+                      <span className="text-lg font-black text-emerald-400">+{currentEstimatedBoost}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Summary Metrics Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                  <div className="bg-teal-950/40 p-3.5 rounded-xl border border-teal-800/50 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-300 shrink-0">
+                      <TrendingUp className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-teal-300">{t("Total Skills Suggested")}</p>
+                      <p className="text-base font-extrabold text-white">{totalSkillCount} {t("Skills")}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-teal-950/40 p-3.5 rounded-xl border border-teal-800/50 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-300 shrink-0">
+                      <Zap className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-teal-300">{t("Estimated Boost / Skill")}</p>
+                      <p className="text-base font-extrabold text-white">+{perSkillBoost.toFixed(1)}% {t("per skill")}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-teal-950/40 p-3.5 rounded-xl border border-teal-800/50 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-300 shrink-0">
+                      <Award className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-teal-300">{t("Max Achievable Match")}</p>
+                      <p className="text-base font-extrabold text-emerald-300">{scoreAfterMax}% {t("Match")}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Interactive Skill Selection & Impact List */}
+                {recommendedKeywords.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-teal-100">
+                        {t("Toggle skills to preview dynamic ATS score increase")} ({selectedSkills.length}/{totalSkillCount} {t("selected")}):
+                      </span>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedSkills(recommendedKeywords)}
+                          className="text-[11px] font-bold text-teal-300 hover:text-white transition underline"
+                        >
+                          {t("Select All")}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedSkills([])}
+                          className="text-[11px] font-bold text-teal-400/70 hover:text-teal-200 transition underline"
+                        >
+                          {t("Clear")}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-48 overflow-y-auto pr-1">
+                      {recommendedKeywords.map((skill, idx) => {
+                        const isSelected = selectedSkills.includes(skill);
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => toggleSkill(skill)}
+                            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs text-left transition-all ${
+                              isSelected
+                                ? 'bg-teal-700/60 border-teal-400 text-white font-bold shadow-sm'
+                                : 'bg-slate-900/40 border-teal-900/60 text-teal-200/60 font-medium hover:border-teal-700'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              {isSelected ? (
+                                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                              ) : (
+                                <PlusCircle className="w-4 h-4 text-teal-500/50 shrink-0" />
+                              )}
+                              <span className="truncate">{skill}</span>
+                            </div>
+                            <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ml-2 shrink-0 ${
+                              isSelected ? 'bg-emerald-400/20 text-emerald-300' : 'bg-teal-950 text-teal-400/60'
+                            }`}>
+                              +{perSkillBoost.toFixed(1)}%
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">

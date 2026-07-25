@@ -56,7 +56,7 @@ const navItems = [
   { label: 'Messages', fallback: 'Messages', path: '/provider/contacted',      icon: HiMail },
   { label: 'Leads', fallback: 'Leads', path: '/provider/leads',          icon: HiUsers },
   
-  { label: 'History', fallback: 'History', path: '/provider/history',        icon: HiClock },
+  { label: 'Payment History', fallback: 'Payment History', path: '/provider/history',        icon: HiCreditCard },
   { label: 'Wallet', fallback: 'Wallet', path: '/provider/wallet',              icon: HiCreditCard },
   { label: 'Payment Settings', fallback: 'Payment Settings', path: '/provider/payout-settings', icon: HiCog },
   { 
@@ -81,7 +81,7 @@ const ProviderLayout = ({ children }) => {
   const impersonatorRestriction = localStorage.getItem('impersonatorRestriction');
   
   const displayedNavItems = impersonatorRestriction === 'payment' 
-    ? navItems.filter(item => ['/provider/payout-settings', '/provider/wallet', '/provider/my-plan'].includes(item.path))
+    ? navItems.filter(item => ['/provider/payout-settings', '/provider/wallet', '/provider/my-plan', '/provider/history'].includes(item.path))
     : impersonatorRestriction === 'manager_support'
       ? navItems.filter(item => item.path === '/provider/profile' || item.path === '/provider/job-for-me' || item.path === '/provider/applied-jobs')
       : navItems;
@@ -99,55 +99,55 @@ const ProviderLayout = ({ children }) => {
   const [planTag, setPlanTag] = useState({ loading: true, type: 'Free', days: 0 });
 
   useEffect(() => {
+    let isMounted = true;
     const fetchPlan = async () => {
       try {
         const data = await getCurrentSubscription();
-        const activePlan = data?.subscription || data;
+        const sub = data?.subscription || (data?.plan ? null : data);
         
-        // API returns 'status' (not 'subscriptionStatus')
-        const planStatus = activePlan.subscriptionStatus || activePlan.status;
-        const isFreePlan = activePlan.planSnapshot?.slug === 'free' || activePlan.planName?.toLowerCase() === 'free' || !activePlan.planSnapshot;
+        if (sub && (sub.subscriptionStatus === 'active' || sub.status === 'active')) {
+          const planName = sub.planSnapshot?.name || sub.planName || data?.plan?.name || 'Paid';
+          const isFree = sub.planSnapshot?.slug === 'free' || String(planName).toLowerCase().includes('free');
 
-        if (activePlan && planStatus === 'active' && !isFreePlan) {
-          const planName = activePlan.planSnapshot?.name || activePlan.planName || 'Paid';
-          
-          // API returns expiresAt directly OR we compute from startDate + durationMonths
-          const expiresAt = activePlan.expiresAt || activePlan.endDate;
-          
-          if (expiresAt) {
-            // Use expiresAt directly — most accurate
-            const diff = new Date(expiresAt).getTime() - new Date().getTime();
-            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-            if (days > 0) {
-              setPlanTag({ loading: false, type: planName, days });
+          if (isFree) {
+            if (isMounted) setPlanTag({ loading: false, type: 'Free', days: 0 });
+            return;
+          }
+
+          // Get exact expiry date from endDate, expiresAt, or boostedUntil
+          const expiryDateStr = sub.endDate || sub.expiresAt || profile?.boostedUntil;
+          let daysLeft = 0;
+
+          if (expiryDateStr) {
+            const expiryTime = new Date(expiryDateStr).getTime();
+            const nowTime = new Date().getTime();
+            daysLeft = Math.max(0, Math.ceil((expiryTime - nowTime) / (1000 * 60 * 60 * 24)));
+          } else if (sub.startDate) {
+            const startTime = new Date(sub.startDate).getTime();
+            const durationDays = (Number(sub.durationMonths) || 1) * 30;
+            const expiryTime = startTime + (durationDays * 24 * 60 * 60 * 1000);
+            const nowTime = new Date().getTime();
+            daysLeft = Math.max(0, Math.ceil((expiryTime - nowTime) / (1000 * 60 * 60 * 24)));
+          }
+
+          if (isMounted) {
+            if (daysLeft > 0) {
+              setPlanTag({ loading: false, type: planName, days: daysLeft });
             } else {
               setPlanTag({ loading: false, type: 'Free', days: 0 });
             }
-          } else if (activePlan.startDate || activePlan.createdAt) {
-            // Fallback: compute from startDate + durationMonths
-            const purchaseDate = activePlan.startDate || activePlan.createdAt;
-            const validationDays = (activePlan.durationMonths || 1) * (activePlan.planSnapshot?.duration || 30);
-            const purchaseTime = new Date(purchaseDate).getTime();
-            const validityMs = validationDays * 24 * 60 * 60 * 1000;
-            const diff = (purchaseTime + validityMs) - new Date().getTime();
-            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-            if (days > 0) {
-              setPlanTag({ loading: false, type: planName, days });
-            } else {
-              setPlanTag({ loading: false, type: 'Free', days: 0 });
-            }
-          } else {
-            setPlanTag({ loading: false, type: planName, days: 0 });
           }
         } else {
-          setPlanTag({ loading: false, type: 'Free', days: 0 });
+          if (isMounted) setPlanTag({ loading: false, type: 'Free', days: 0 });
         }
       } catch (err) {
-        setPlanTag({ loading: false, type: 'Free', days: 0 });
+        if (isMounted) setPlanTag({ loading: false, type: 'Free', days: 0 });
       }
     };
+
     fetchPlan();
-  }, []);
+    return () => { isMounted = false; };
+  }, [location.pathname, profile?.boostedUntil]);
 
   const handleLogout = () => { 
     if (window.lucodeProfileIsDirty && typeof window.lucodeProfileShowWarning === 'function') {

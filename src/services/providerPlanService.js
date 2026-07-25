@@ -67,8 +67,12 @@ export const confirmPaymentSuccess = async (payload) => {
   return data || {};
 };
 
-export const cancelSubscription = async (payload) => {
-  const { data } = await API.post('/payment/cancel-subscription', payload);
+export const cancelSubscription = async () => {
+  const { data } = await API.post('/payments/cancel-subscription');
   return data || {};
 };
 
+export const toggleAutoRenew = async (isAutoRenew) => {
+  const { data } = await API.patch('/provider/subscription/auto-renew', { isAutoRenew });
+  return data || {};
+};

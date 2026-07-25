@@ -5,9 +5,10 @@ import {
   MapPin, Mail, Phone, Calendar, Briefcase, ChevronLeft, ChevronRight, CheckCircle2
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { adminAPI } from '../../services/api';
+import { adminAPI, unlockProfileAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { useAuth } from '../../context/AuthContext';
 
 const statusColors = {
   Verified: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -65,12 +66,57 @@ const KPICard = ({ title, value, subtext, icon: Icon, colorClass, trend, trendUp
 );
 
 const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
+  const { saveUserSession } = useAuth();
   const [activeTab, setActiveTab] = useState('Overview');
   const user = candidate.user || {};
   const isApproved = candidate.isApproved;
   const status = isApproved ? 'Verified' : 'Pending';
   
+  const [candidatePayments, setCandidatePayments] = useState([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'Payments & Subscriptions' && user._id) {
+      const fetchUserPayments = async () => {
+        setPaymentsLoading(true);
+        try {
+          const res = await adminAPI.getPayments({ user: user._id });
+          setCandidatePayments(res.data?.payments || res.data || []);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setPaymentsLoading(false);
+        }
+      };
+      fetchUserPayments();
+    }
+  }, [activeTab, user._id]);
+  
   const hasResume = candidate.uploadedAssets?.some(a => a.assetType === 'document');
+
+  const handleDirectImpersonate = async (targetPath = '/provider/my-plan') => {
+    if (!user.email) return toast.error('User email not available');
+    try {
+      const res = await unlockProfileAPI.directUnlock({ email: user.email });
+      const userData = res.data.data;
+      const impersonateToken = res.data.token;
+
+      const currentToken = localStorage.getItem("authToken");
+      const currentUser = JSON.parse(localStorage.getItem("authUser") || '{}');
+      if (currentToken) {
+        localStorage.setItem("impersonatorToken", currentToken);
+        localStorage.setItem("impersonatorRole", currentUser.activeRole || 'admin');
+        localStorage.setItem("impersonatorRestriction", "payment");
+      }
+
+      saveUserSession({ token: impersonateToken, user: userData });
+      toast.success(`Opening ${userData.name || userData.email}'s details...`);
+      window.location.href = targetPath;
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to open provider plan details');
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 md:p-8">
@@ -79,7 +125,7 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
         {/* Header Tabs */}
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-gray-50/50">
           <div className="flex gap-6 overflow-x-auto custom-scrollbar">
-            {['Overview', 'Resume', 'Skills & Experience', 'Education', 'Documents', 'Activity Log', 'Notes & History'].map(tab => (
+            {['Overview', 'Payments & Subscriptions', 'Resume', 'Skills & Experience', 'Education', 'Documents', 'Activity Log', 'Notes & History'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -131,9 +177,20 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
               </div>
             </div>
 
-            <button className="w-full py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2">
-              <Eye className="w-4 h-4" /> View Full Profile
-            </button>
+            <div className="space-y-2">
+              <button 
+                onClick={() => handleDirectImpersonate('/provider/my-plan')}
+                className="w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2"
+              >
+                <Eye className="w-4 h-4" /> View Plan & Payments
+              </button>
+              <button 
+                onClick={() => handleDirectImpersonate('/provider/profile')}
+                className="w-full py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2"
+              >
+                <Eye className="w-4 h-4" /> View Full Profile
+              </button>
+            </div>
           </div>
 
           {/* Right Column (Details) */}
@@ -239,7 +296,72 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
               </div>
             )}
 
-            {activeTab !== 'Overview' && (
+            {activeTab === 'Payments & Subscriptions' && (
+              <div className="w-full space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-bold text-gray-900">Payment & Subscription Transactions</h3>
+                  <button 
+                    onClick={() => handleDirectImpersonate('/provider/my-plan')}
+                    className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg border border-emerald-200 transition"
+                  >
+                    Open Plan Dashboard ↗
+                  </button>
+                </div>
+
+                {paymentsLoading ? (
+                  <div className="py-12 text-center text-gray-400 text-sm">Loading transactions...</div>
+                ) : candidatePayments.length === 0 ? (
+                  <div className="py-12 text-center text-gray-400 text-sm border border-dashed border-gray-200 rounded-xl">
+                    No payments found for this user.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto border border-gray-100 rounded-xl">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="bg-gray-50 text-gray-500 font-bold uppercase border-b border-gray-100">
+                          <th className="p-3">Date</th>
+                          <th className="p-3">Item / Plan</th>
+                          <th className="p-3">Amount</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3 text-right">Transaction ID</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {candidatePayments.map(p => (
+                          <tr key={p._id} className="hover:bg-gray-50/50">
+                            <td className="p-3 font-medium text-gray-700">
+                              {new Date(p.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </td>
+                            <td className="p-3 font-bold text-gray-900">
+                              {p.plan?.name || p.type?.replace('_', ' ').toUpperCase() || 'Subscription'}
+                            </td>
+                            <td className="p-3 font-bold text-gray-800">
+                              ₹{Number(p.amount || 0).toLocaleString('en-IN')}
+                            </td>
+                            <td className="p-3">
+                              <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${
+                                p.status === 'completed' || p.status === 'paid'
+                                  ? 'bg-emerald-50 text-emerald-700'
+                                  : p.status === 'pending'
+                                  ? 'bg-amber-50 text-amber-700'
+                                  : 'bg-red-50 text-red-700'
+                              }`}>
+                                {p.status || 'Completed'}
+                              </span>
+                            </td>
+                            <td className="p-3 text-right font-mono text-gray-400">
+                              {p.transactionId || p.stripePaymentIntentId || p._id?.substring(0, 10)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab !== 'Overview' && activeTab !== 'Payments & Subscriptions' && (
               <div className="h-full min-h-[300px] flex items-center justify-center text-gray-400 font-medium">
                 {activeTab} view coming soon.
               </div>

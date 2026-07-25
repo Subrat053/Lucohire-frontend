@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { supportAPI } from '../../services/api';
+import { supportAPI, unlockProfileAPI } from '../../services/api';
 import toast from 'react-hot-toast';
-import { HiCheckCircle, HiClock, HiX, HiLockOpen } from 'react-icons/hi';
-import ProfileUnlocker from './ProfileUnlocker';
+import { HiCheckCircle, HiClock, HiEye, HiCreditCard } from 'react-icons/hi';
+import { useAuth, getDashboardByRole } from '../../context/AuthContext';
 
 const AdminSupportIssues = () => {
+  const { saveUserSession } = useAuth();
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resolvingId, setResolvingId] = useState(null);
-  const [unlockModalOpen, setUnlockModalOpen] = useState(false);
-  const [selectedUserEmail, setSelectedUserEmail] = useState('');
+  const [accessingId, setAccessingId] = useState(null);
 
   useEffect(() => {
     fetchIssues();
@@ -36,6 +36,36 @@ const AdminSupportIssues = () => {
       toast.error('Failed to resolve issue');
     } finally {
       setResolvingId(null);
+    }
+  };
+
+  const handleDirectViewProfile = async (issue, targetSubPage = '/provider/my-plan') => {
+    if (!issue?.user?.email) return toast.error('User email not found');
+    setAccessingId(issue._id + '_' + targetSubPage);
+    try {
+      const res = await unlockProfileAPI.directUnlock({ email: issue.user.email });
+      const userData = res.data.data;
+      const impersonateToken = res.data.token;
+
+      // Store current admin session before impersonating
+      const currentToken = localStorage.getItem("authToken");
+      const currentUser = JSON.parse(localStorage.getItem("authUser") || '{}');
+      if (currentToken) {
+        localStorage.setItem("impersonatorToken", currentToken);
+        localStorage.setItem("impersonatorRole", currentUser.activeRole || 'admin');
+        localStorage.setItem("impersonatorRestriction", "payment");
+      }
+
+      saveUserSession({ token: impersonateToken, user: userData });
+      toast.success(`Opening ${userData.name || userData.email}'s details...`);
+      
+      const targetPath = userData.activeRole === 'provider' ? targetSubPage : getDashboardByRole(userData.activeRole);
+      window.location.href = targetPath;
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to access user details');
+    } finally {
+      setAccessingId(null);
     }
   };
 
@@ -83,15 +113,22 @@ const AdminSupportIssues = () => {
                 
                 <div className="flex flex-col sm:flex-row gap-2 shrink-0">
                   {issue.status === 'open' && issue.user && (
-                    <button
-                      onClick={() => {
-                        setSelectedUserEmail(issue.user.email);
-                        setUnlockModalOpen(true);
-                      }}
-                      className="flex items-center justify-center gap-1.5 px-4 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 font-medium rounded-lg transition-colors text-sm border border-purple-100"
-                    >
-                      <HiLockOpen className="w-4 h-4" /> Send OTP / Unlock
-                    </button>
+                    <>
+                      <button
+                        onClick={() => handleDirectViewProfile(issue, '/provider/my-plan')}
+                        disabled={accessingId === issue._id + '_/provider/my-plan'}
+                        className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-medium rounded-lg transition-colors text-sm border border-emerald-100 disabled:opacity-50"
+                      >
+                        <HiCreditCard className="w-4 h-4" /> {accessingId === issue._id + '_/provider/my-plan' ? 'Opening...' : 'View Payment History'}
+                      </button>
+                      <button
+                        onClick={() => handleDirectViewProfile(issue, '/provider/profile')}
+                        disabled={accessingId === issue._id + '_/provider/profile'}
+                        className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 font-medium rounded-lg transition-colors text-sm border border-purple-100 disabled:opacity-50"
+                      >
+                        <HiEye className="w-4 h-4" /> {accessingId === issue._id + '_/provider/profile' ? 'Opening...' : 'View Profile'}
+                      </button>
+                    </>
                   )}
                   {issue.status === 'open' && (
                     <button
@@ -108,26 +145,6 @@ const AdminSupportIssues = () => {
           </div>
         )}
       </div>
-
-      {/* Unlocker Modal */}
-      {unlockModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl">
-            <button 
-              onClick={() => {
-                setUnlockModalOpen(false);
-                setSelectedUserEmail('');
-              }} 
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition-colors z-10"
-            >
-              <HiX className="w-5 h-5" />
-            </button>
-            <div className="pt-2">
-              <ProfileUnlocker restrictionType="payment" initialEmail={selectedUserEmail} />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

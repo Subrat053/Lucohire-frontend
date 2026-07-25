@@ -97,13 +97,15 @@ const Navbar = () => {
     if (!user) return "/";
     switch (activeRole) {
       case "provider":
-        return "/provider/job-for-me";
+      case "candidate":
+        return "/provider/dashboard";
       case "recruiter":
-        return "/recruiter/job-postings";
+        return "/recruiter/dashboard";
       case "admin":
         return "/admin/dashboard";
       case "manager":
-        return "/admin/providers";
+      case "partner":
+        return "/partner/dashboard";
       default:
         return "/";
     }
@@ -207,26 +209,12 @@ const Navbar = () => {
                       </span>
                     </div>
                     <Link
-                      to={
-                        activeRole === 'provider' ? '/provider/job-for-me' :
-                        activeRole === 'candidate' ? '/candidate/dashboard' :
-                        activeRole === 'recruiter' ? '/recruiter/dashboard' : '/'
-                      }
-                      onClick={(e) => handleNavClick(e, activeRole === 'provider' ? '/provider/job-for-me' : activeRole === 'candidate' ? '/candidate/dashboard' : activeRole === 'recruiter' ? '/recruiter/dashboard' : '/', () => setDropdownOpen(false))}
+                      to={getDashboardLink()}
+                      onClick={(e) => handleNavClick(e, getDashboardLink(), () => setDropdownOpen(false))}
                       className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      {activeRole === 'provider' ? (
-                        <HiBriefcase className="text-gray-400" aria-hidden="true" />
-                      ) : activeRole === 'recruiter' ? (
-                        <HiSearch className="text-gray-400" aria-hidden="true" />
-                      ) : (
-                        <HiHome className="text-gray-400" aria-hidden="true" />
-                      )}
-                      <span>
-                        {activeRole === 'provider' ? "Matching Jobs" :
-                         activeRole === 'recruiter' ? "Find Candidates" :
-                         t("navbar.dashboard")}
-                      </span>
+                      <HiHome className="text-gray-400" aria-hidden="true" />
+                      <span>{t("navbar.dashboard", "Dashboard")}</span>
                     </Link>
                     {activeRole !== "manager" && (
                       <Link
@@ -413,7 +401,7 @@ const Navbar = () => {
                     { label: "Add Member",        path: "/provider/add-member",       icon: HiUserAdd },
                     { label: "Messages",          path: "/provider/contacted",        icon: HiMail },
                     { label: "Leads",             path: "/provider/leads",            icon: HiUsers },
-                    { label: "History",           path: "/provider/history",          icon: HiClock },
+                    { label: "Payment History",   path: "/provider/history",          icon: HiCreditCard },
                     { label: "Wallet",            path: "/provider/wallet",           icon: HiCreditCard },
                     { label: "Payment Settings",  path: "/provider/payout-settings",  icon: HiCog },
                     { label: "Support",           path: "/provider/support",          icon: HiCog },

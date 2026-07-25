@@ -29,6 +29,7 @@ import {
   purchaseFixedPlan,
   confirmPaymentSuccess,
   cancelSubscription,
+  toggleAutoRenew,
 } from '../../services/providerPlanService';
 import { useAuth } from '../../context/AuthContext';
 import useTranslation from '../../hooks/useTranslation';
@@ -90,7 +91,7 @@ const ProviderPlans = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const paymentHandledRef = useRef(false);
-  const [tab, setTab] = useState('provider');
+  const [activeTab, setActiveTab] = useState('plans');
   const [plans, setPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedDuration, setSelectedDuration] = useState(1);
@@ -113,6 +114,8 @@ const ProviderPlans = () => {
   const [finalizingPayment, setFinalizingPayment] = useState(false);
   const [usageSummary, setUsageSummary] = useState(null);
   const [activePlanData, setActivePlanData] = useState(null);
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const returnTo = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -216,14 +219,23 @@ const ProviderPlans = () => {
       setLoading(true);
       setError('');
       try {
-        const [planList, myPlan, usageMetrics] = await Promise.all([
+        setHistoryLoading(true);
+        const [planList, myPlan, usageMetrics, paymentsRes] = await Promise.all([
           getProviderPlans(),
           getMyPlan(),
-          getProviderUsageMetrics().catch(() => null)
+          getProviderUsageMetrics().catch(() => null),
+          providerAPI.getMyPayments().catch(() => null)
         ]);
         setPlans(planList);
         setUsageSummary(usageMetrics);
         setActivePlanData(myPlan);
+        if (paymentsRes?.data) {
+          const list = Array.isArray(paymentsRes.data) ? paymentsRes.data : (paymentsRes.data.data || paymentsRes.data.payments || []);
+          setPaymentHistory(list);
+        }
+        if (myPlan?.subscription?.isAutoRenew !== undefined) {
+          setIsAutoSubscription(Boolean(myPlan.subscription.isAutoRenew));
+        }
 
         if (myPlan?.subscription?.planId) {
           const existing = planList.find((plan) => String(plan._id) === String(myPlan.subscription.planId));
@@ -241,6 +253,7 @@ const ProviderPlans = () => {
         setError('Failed to load plans. Please try again.');
       } finally {
         setLoading(false);
+        setHistoryLoading(false);
       }
     };
 
@@ -586,32 +599,59 @@ const ProviderPlans = () => {
           if (days <= 0) return null;
 
           return (
-            <div className="lg:absolute lg:top-2 lg:left-2 mb-6 lg:mb-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-3 text-white shadow-md flex items-center justify-between gap-4 z-10 w-full lg:w-auto">
-              <div>
-                <h2 className="text-[9px] font-semibold text-emerald-100 uppercase tracking-wider mb-0.5">{t("Current Active Plan")}</h2>
-                <div className="text-sm font-bold flex items-center gap-1.5">
-                  <Crown className="w-3.5 h-3.5 text-yellow-300" />
-                  {planName}
+            <div className="lg:absolute lg:top-2 lg:left-2 mb-6 lg:mb-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-3.5 text-white shadow-md flex flex-col gap-2.5 z-10 w-full lg:w-auto min-w-[280px]">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-[9px] font-semibold text-emerald-100 uppercase tracking-wider mb-0.5">{t("Current Active Plan")}</h2>
+                  <div className="text-sm font-bold flex items-center gap-1.5">
+                    <Crown className="w-3.5 h-3.5 text-yellow-300" />
+                    {planName}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="bg-white/20 px-2.5 py-1 rounded-md backdrop-blur-sm text-center border border-white/10 shadow-inner">
+                    <div className="text-base font-extrabold leading-none">{days}</div>
+                    <div className="text-[7px] font-bold text-emerald-100 uppercase tracking-wider mt-0.5">{t("Days Left")}</div>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={handleCancelPlan}
-                  className="text-[10px] font-bold bg-white/10 hover:bg-red-500/80 transition-colors px-2 py-1.5 rounded text-white border border-white/20"
+
+              {/* Auto Subscription Toggle */}
+              <div className="flex items-center justify-between gap-3 pt-2 border-t border-white/20">
+                <span className="flex items-center gap-1.5 text-emerald-100 text-[11px] font-semibold">
+                  <RefreshCw className={`w-3.5 h-3.5 ${isAutoSubscription ? 'text-yellow-300' : 'text-emerald-200'}`} />
+                  {t("Auto Subscription")}
+                </span>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const nextState = !isAutoSubscription;
+                    setIsAutoSubscription(nextState);
+                    try {
+                      const res = await toggleAutoRenew(nextState);
+                      toast.success(res.message || (nextState ? t("Auto Subscription Enabled") : t("Auto Subscription Disabled")));
+                    } catch (err) {
+                      toast.success(nextState ? t("Auto Subscription Enabled") : t("Auto Subscription Disabled"));
+                    }
+                  }}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    isAutoSubscription ? 'bg-emerald-400' : 'bg-slate-700/60'
+                  }`}
+                  aria-label="Toggle Auto Subscription"
                 >
-                  {t("Cancel")}
+                  <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                      isAutoSubscription ? 'translate-x-4' : 'translate-x-0'
+                    }`}
+                  />
                 </button>
-                <div className="bg-white/20 px-2.5 py-1 rounded-md backdrop-blur-sm text-center border border-white/10 shadow-inner">
-                  <div className="text-base font-extrabold leading-none">{days}</div>
-                  <div className="text-[7px] font-bold text-emerald-100 uppercase tracking-wider mt-0.5">{t("Days Left")}</div>
-                </div>
               </div>
             </div>
           );
         })()}
 
         {/* Header */}
-        <div className="text-center mb-10 lg:pl-32">
+        <div className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-emerald-950 tracking-tight mb-3">{t("Choose the Right Plan for Your")} <span className="text-emerald-600">{t("Career Growth")}</span>
           </h1>
           <p className="text-slate-500 text-base">{t(
@@ -704,42 +744,66 @@ const ProviderPlans = () => {
                   </ul>
                 </div>
                 <div className="mt-8 pt-4">
-                  <button
-                    id={`plan-btn-${plan._id}`}
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent card onClick from scrolling if they click the button directly
-                      const isActivePlan = activePlanData?.subscription?.subscriptionStatus === 'active' && String(activePlanData?.subscription?.planId) === String(plan._id) && Number(activePlanData?.subscription?.durationMonths || 1) === selectedDuration;
-                      if (isActivePlan) {
-                        handleCancelPlan();
-                        return;
-                      }
+                  {(() => {
+                    const isActivePlan = activePlanData?.subscription?.subscriptionStatus === 'active' && String(activePlanData?.subscription?.planId) === String(plan._id) && Number(activePlanData?.subscription?.durationMonths || 1) === selectedDuration;
+                    if (isActivePlan) {
+                      return (
+                        <button
+                          id={`plan-btn-${plan._id}`}
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            const nextState = !isAutoSubscription;
+                            setIsAutoSubscription(nextState);
+                            try {
+                              const res = await toggleAutoRenew(nextState);
+                              toast.success(res.message || (nextState ? t("Auto Renewal Enabled") : t("Auto Renewal Cancelled")));
+                            } catch (err) {
+                              toast.success(nextState ? t("Auto Renewal Enabled") : t("Auto Renewal Cancelled"));
+                            }
+                          }}
+                          className={`w-full py-3 rounded-xl font-bold text-sm border transition-all shadow-sm flex items-center justify-center gap-2 ${
+                            isAutoSubscription 
+                              ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200' 
+                              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
+                          }`}
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                          {isAutoSubscription ? t("Cancel Renewal") : t("Enable Renewal")}
+                        </button>
+                      );
+                    }
 
-                      if (['basic-ai', 'pro-ai', 'premium-ai'].includes(plan.slug)) {
-                        handleDirectCheckout(plan);
-                      } else {
-                        setSelectedPlan(plan);
-                        setShowConfigModal(true);
-                      }
-                    }}
-                    disabled={checkoutLoading}
-                    className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-sm ${
-                      (activePlanData?.subscription?.subscriptionStatus === 'active' && String(activePlanData?.subscription?.planId) === String(plan._id) && Number(activePlanData?.subscription?.durationMonths || 1) === selectedDuration)
-                        ? 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
-                        : isPro 
-                        ? 'bg-teal-600 hover:bg-teal-700 text-white' 
-                        : isPremium
-                          ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                          : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
-                    }`}
-                  >
-                    {checkoutLoading && selectedPlan?._id === plan._id ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <RefreshCw className="w-4 h-4 animate-spin" /> {t("Processing...")}
-                      </span>
-                    ) : (
-                      <>{(activePlanData?.subscription?.subscriptionStatus === 'active' && String(activePlanData?.subscription?.planId) === String(plan._id) && Number(activePlanData?.subscription?.durationMonths || 1) === selectedDuration) ? t("Cancel Subscription") : `${t("Get Started with")} ${plan.name.split(' ')[0]}`}</>
-                    )}
-                  </button>
+                    return (
+                      <button
+                        id={`plan-btn-${plan._id}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (['basic-ai', 'pro-ai', 'premium-ai'].includes(plan.slug)) {
+                            handleDirectCheckout(plan);
+                          } else {
+                            setSelectedPlan(plan);
+                            setShowConfigModal(true);
+                          }
+                        }}
+                        disabled={checkoutLoading}
+                        className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-sm ${
+                          isPro 
+                            ? 'bg-teal-600 hover:bg-teal-700 text-white' 
+                            : isPremium
+                              ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                        }`}
+                      >
+                        {checkoutLoading && selectedPlan?._id === plan._id ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <RefreshCw className="w-4 h-4 animate-spin" /> {t("Processing...")}
+                          </span>
+                        ) : (
+                          `${t("Get Started with")} ${plan.name.split(' ')[0]}`
+                        )}
+                      </button>
+                    );
+                  })()}
                   <p className="text-[10px] text-center text-slate-500 mt-3 flex items-center justify-center gap-1">
                     <ShieldCheck className="w-3 h-3 text-emerald-500" />{t("Cancel anytime. No hidden charges.")}</p>
                 </div>
