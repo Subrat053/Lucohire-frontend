@@ -111,7 +111,7 @@ const CompaniesRegistry = () => {
         <>
           <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 min-w-[150px]">
-              <p className="text-sm text-gray-500 font-medium">Total Companies</p>
+              <p className="text-sm text-gray-500 font-medium">Total Partners</p>
               <h3 className="text-2xl font-bold text-gray-900 mt-1">{pagination?.total || 0}</h3>
             </div>
             {locationStats.map((stat, idx) => (

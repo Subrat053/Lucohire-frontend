@@ -70,6 +70,7 @@ const RecruiterLeads = lazy(() => import("../pages/admin/RecruiterLeads"));
 const LiveTester = lazy(() => import("../pages/admin/LiveTester"));
 const BulkCrawlerPanel = lazy(() => import("../pages/admin/components/BulkCrawlerPanel"));
 const NightlyEngineSettings = lazy(() => import("../pages/admin/components/NightlyEngineSettings"));
+const LiveQueueMonitor = lazy(() => import("../pages/admin/components/LiveQueueMonitor"));
 const StagingCandidates = lazy(() => import("../pages/admin/StagingCandidates"));
 const AdminRefundRequests = lazy(() => import("../pages/admin/RefundRequests"));
 
@@ -175,6 +176,7 @@ export default function AdminRoutes() {
       {/* Crawlers & Scrapers sub-routes */}
       <Route path="crawlers/single" element={wrap(<div className="p-8 max-w-7xl mx-auto"><LiveTester /></div>)} />
       <Route path="crawlers/bulk" element={wrap(<div className="p-8 max-w-7xl mx-auto"><BulkCrawlerPanel /></div>)} />
+      <Route path="crawlers/queue" element={wrap(<div className="p-8 max-w-7xl mx-auto"><LiveQueueMonitor /></div>)} />
       <Route path="crawlers/engine" element={wrap(<div className="p-8 max-w-7xl mx-auto"><NightlyEngineSettings /></div>)} />
       <Route path="crawlers/jobs" element={wrap(<ExternalJobs defaultFilters={{ source: 'crawler' }} />)} />
       <Route path="crawlers" element={<Navigate to="/admin/crawlers/bulk" replace />} />

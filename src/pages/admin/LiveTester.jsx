@@ -4,6 +4,15 @@ import toast from 'react-hot-toast';
 import { HiSearch, HiLightningBolt, HiOutlineBriefcase, HiOutlineMail, HiOutlineLocationMarker, HiOutlineCurrencyDollar, HiOutlineAcademicCap, HiX, HiOutlineLink } from 'react-icons/hi';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
+const formatSafeString = (val) => {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') {
+    return val.name || val.city || val.formattedAddress || val.country || '';
+  }
+  return String(val);
+};
+
 const LiveTester = () => {
   const [companyName, setCompanyName] = useState('');
   const [url, setUrl] = useState('');
@@ -124,7 +133,7 @@ const LiveTester = () => {
                         
                         <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-4">
                           {job.location && (
-                            <span className="flex items-center gap-1"><HiOutlineLocationMarker className="w-3.5 h-3.5 text-gray-400" /> {job.location}</span>
+                            <span className="flex items-center gap-1"><HiOutlineLocationMarker className="w-3.5 h-3.5 text-gray-400" /> {formatSafeString(job.location)}</span>
                           )}
                           {job.salary && (
                             <span className="flex items-center gap-1"><HiOutlineCurrencyDollar className="w-3.5 h-3.5 text-gray-400" /> {job.salary}</span>
@@ -190,7 +199,7 @@ const LiveTester = () => {
               <div>
                 <h2 className="text-xl font-bold text-gray-900">{selectedJob.title || 'Untitled Job'}</h2>
                 <div className="flex flex-wrap gap-3 mt-2 text-sm text-gray-500">
-                  {selectedJob.location && <span className="flex items-center gap-1"><HiOutlineLocationMarker /> {selectedJob.location}</span>}
+                  {selectedJob.location && <span className="flex items-center gap-1"><HiOutlineLocationMarker /> {formatSafeString(selectedJob.location)}</span>}
                   {selectedJob.employmentType && <span className="flex items-center gap-1"><HiOutlineBriefcase /> {selectedJob.employmentType}</span>}
                   {selectedJob.salary && <span className="flex items-center gap-1"><HiOutlineCurrencyDollar /> {selectedJob.salary}</span>}
                 </div>

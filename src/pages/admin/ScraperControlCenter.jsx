@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { HiLightningBolt, HiDatabase, HiCog } from 'react-icons/hi';
+import { HiLightningBolt, HiDatabase, HiCog, HiViewList } from 'react-icons/hi';
 import LiveTester from './LiveTester';
 import BulkCrawlerPanel from './components/BulkCrawlerPanel';
+import LiveQueueMonitor from './components/LiveQueueMonitor';
 import NightlyEngineSettings from './components/NightlyEngineSettings';
 
 const ScraperControlCenter = () => {
@@ -10,13 +11,14 @@ const ScraperControlCenter = () => {
   const tabs = [
     { id: 'single', label: 'Single Scraper', icon: HiLightningBolt },
     { id: 'bulk', label: 'Bulk Mapping & Upload', icon: HiDatabase },
+    { id: 'queue', label: 'Live Queue Monitor', icon: HiViewList },
     { id: 'engine', label: 'Nightly Engine Settings', icon: HiCog },
   ];
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       <div className="mb-6 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Scrapers & Crawlers</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Scrapers & Crawlers Control Center</h1>
         <nav className="-mb-px flex space-x-8 overflow-x-auto">
           {tabs.map((tab) => (
             <button
@@ -40,6 +42,7 @@ const ScraperControlCenter = () => {
       <div className="mt-6 w-full">
         {activeTab === 'single' && <LiveTester />}
         {activeTab === 'bulk' && <BulkCrawlerPanel />}
+        {activeTab === 'queue' && <LiveQueueMonitor />}
         {activeTab === 'engine' && <NightlyEngineSettings />}
       </div>
     </div>
