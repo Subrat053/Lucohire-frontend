@@ -10,6 +10,7 @@ import {
 import { HiSparkles, HiBookmark } from 'react-icons/hi2';
 import LocationAutocomplete from '../../components/common/LocationAutocomplete';
 import { recruiterAPI, aiAPI } from '../../services/api';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { toOptimizedMediaUrl } from '../../utils/media';
 
@@ -44,8 +45,22 @@ const Candidates = () => {
     };
   }, []);
 
+  const [adminRoles, setAdminRoles] = useState([]);
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await api.get('/job-roles');
+        setAdminRoles(res.data.map(r => r.roleName));
+      } catch (err) {
+        console.error('Failed to fetch job roles', err);
+      }
+    };
+    fetchRoles();
+  }, []);
+
   // Mock filters to match the design
   const [filters, setFilters] = useState({
+    roles: [],
     skills: [],
     experience: [],
     location: [],
@@ -76,6 +91,9 @@ const Candidates = () => {
         if (Object.keys(parsedFilters).length > 0) {
           setFilters(prev => {
             const next = { ...prev };
+            if (parsedFilters.role && !next.roles.includes(parsedFilters.role)) {
+              next.roles = [...next.roles, parsedFilters.role];
+            }
             if (parsedFilters.experience && !next.experience.includes(parsedFilters.experience)) {
               next.experience = [...next.experience, parsedFilters.experience];
             }
@@ -202,7 +220,7 @@ const Candidates = () => {
   };
 
   const clearAllFilters = () => {
-    setFilters({ skills: [], experience: [], location: [], ctc: [], noticePeriod: [], employmentType: [] });
+    setFilters({ roles: [], skills: [], experience: [], location: [], ctc: [], noticePeriod: [], employmentType: [] });
     setSearchQuery('');
     searchQueryRef.current = '';
     setSearchMessage(null);
@@ -231,6 +249,13 @@ const Candidates = () => {
   // Derive display candidates by applying active filters in memory
   const displayCandidates = useMemo(() => {
     let list = [...candidates];
+
+    if (filters.roles && filters.roles.length > 0) {
+      list = list.filter(candidate => {
+        const cRole = (candidate.role || candidate.headline || candidate.title || candidate.skills?.[0] || '').toLowerCase();
+        return filters.roles.some(f => cRole.includes(f.toLowerCase()));
+      });
+    }
 
     // Client-side text filtering: if user has typed something, filter locally too
     // (backend already did it, but guard against stale results)
@@ -331,6 +356,34 @@ const Candidates = () => {
               <button className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-lg font-medium text-gray-700 text-sm">
                 <FiFilter className="text-indigo-600 w-3.5 h-3.5" /> Filters <span className="bg-indigo-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">{totalActiveFilters}</span>
               </button>
+
+              <div className="relative">
+                <button onClick={() => { setActiveDropdown(activeDropdown === 'roles' ? null : 'roles'); setDropdownSearch(''); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg font-medium text-gray-700 text-sm hover:bg-gray-50">
+                  <span className="text-indigo-600">Role:</span> {filters.roles?.length ? filters.roles.join(', ') : 'Any'} <FiChevronDown className="text-gray-400 w-3.5 h-3.5" />
+                </button>
+                {activeDropdown === 'roles' && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                    <div className="p-2 border-b border-gray-100">
+                      <input
+                        type="text"
+                        placeholder="Search roles..."
+                        className="w-full bg-gray-50 border-none rounded-lg text-sm px-3 py-1.5 focus:ring-0"
+                        value={dropdownSearch}
+                        onChange={e => setDropdownSearch(e.target.value)}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="max-h-48 overflow-y-auto p-1 custom-scrollbar">
+                      {adminRoles.filter(r => r.toLowerCase().includes(dropdownSearch.toLowerCase())).map((roleOpt) => (
+                        <label key={roleOpt} className="flex items-center gap-2.5 px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer transition">
+                          <input type="checkbox" checked={filters.roles?.includes(roleOpt)} onChange={() => toggleFilter('roles', roleOpt)} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                          <span className="text-sm font-medium text-gray-700">{roleOpt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <div className="relative">
                 <button onClick={() => { setActiveDropdown(activeDropdown === 'experience' ? null : 'experience'); setDropdownSearch(''); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg font-medium text-gray-700 text-sm hover:bg-gray-50">

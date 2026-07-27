@@ -802,11 +802,6 @@ const ProviderProfile = () => {
 
   const handleTabChange = (newTab) => {
     if (activeTab === newTab) return;
-    if (isDirty) {
-      setPendingTab(`tab:${newTab}`);
-      setShowUnsavedWarning(true);
-      return;
-    }
     setActiveTab(newTab);
     window.scrollTo(0, 0);
   };
@@ -1820,6 +1815,14 @@ const ProviderProfile = () => {
 
   const avatarSrc = photoPreview || form.photo;
 
+  const handleSaveAndResubmit = async () => {
+    await handleSave();
+    await providerAPI.resubmitProfile();
+    toast.success("Profile updated & resubmitted for admin verification!");
+    hasInitialized.current = false;
+    await fetchProfile();
+  };
+
   return (
     <div className="min-h-screen bg-white py-10 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-7xl mx-auto">
@@ -1871,6 +1874,13 @@ const ProviderProfile = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Main Content */}
             <div className={`space-y-6 ${activeTab === "Generate Resume" ? "lg:col-span-12" : "lg:col-span-8"}`}>
+              <DocumentVerificationStatusCard 
+                verification={documentVerification} 
+                profile={profileData}
+                onRefresh={fetchProfile}
+                onSaveAndResubmit={handleSaveAndResubmit}
+                onTabChange={handleTabChange}
+              />
               {activeTab === "Personal" && (
                 <>
                   {/* Basic Information Card */}

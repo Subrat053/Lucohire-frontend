@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { HiShieldCheck, HiRefresh } from "react-icons/hi";
-import api from "../../../services/api";
+import { HiShieldCheck, HiRefresh, HiOutlineInformationCircle } from "react-icons/hi";
+import { ADMIN_API as api } from "../../../services/api";
 import { toast } from "react-hot-toast";
 
 export default function SelfHealingCenter() {
@@ -57,7 +57,7 @@ export default function SelfHealingCenter() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <HiShieldCheck className="text-blue-600" /> Self-Healing Center
+            <HiShieldCheck className="text-blue-600" /> Self-Healing & One-Click Fix Center
           </h1>
           <p className="text-gray-500 mt-1">
             Review and quickly fix jobs with missing or incorrect data.
@@ -70,6 +70,19 @@ export default function SelfHealingCenter() {
         >
           <HiRefresh className={loading ? "animate-spin" : ""} /> Refresh List
         </button>
+      </div>
+
+      {/* SOW 3-Tier Legend */}
+      <div className="mb-6 bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-4 text-sm text-blue-800">
+        <HiOutlineInformationCircle className="w-5 h-5 shrink-0 mt-0.5" />
+        <div>
+          <strong>System operates on a 3-Tier Classification:</strong>
+          <ul className="list-disc pl-5 mt-1 space-y-1">
+            <li><strong>Tier-1 (Fully Safe Auto):</strong> System corrects formatting and minor schema issues automatically in the background.</li>
+            <li><strong>Tier-2 (Admin Confirmed):</strong> Use the Quick Actions below to resolve missing salaries or set items to draft.</li>
+            <li><strong>Tier-3 (Developer Only):</strong> Critical errors are flagged here but locked from manual admin edits to prevent DB corruption.</li>
+          </ul>
+        </div>
       </div>
 
       {loading ? (

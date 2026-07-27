@@ -75,6 +75,7 @@ const LiveQueueMonitor = lazy(() => import("../pages/admin/components/LiveQueueM
 const StagingCandidates = lazy(() => import("../pages/admin/StagingCandidates"));
 const AdminRefundRequests = lazy(() => import("../pages/admin/RefundRequests"));
 
+const ExternalServices = lazy(() => import("../pages/admin/ExternalServices"));
 const SeoCommandCenter = lazy(() => import("../pages/admin/pipeline/SeoCommandCenter"));
 const SelfHealingCenter = lazy(() => import("../pages/admin/pipeline/SelfHealingCenter"));
 
@@ -183,6 +184,7 @@ export default function AdminRoutes() {
       <Route path="crawlers/jobs" element={wrap(<ExternalJobs defaultFilters={{ source: 'crawler' }} />)} />
       <Route path="crawlers" element={<Navigate to="/admin/crawlers/bulk" replace />} />
 
+      <Route path="external-services" element={wrap(<ExternalServices />)} />
       <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
     </Routes>
   );

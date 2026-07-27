@@ -95,19 +95,22 @@ const Navbar = () => {
 
   const getDashboardLink = () => {
     if (!user) return "/";
-    switch (activeRole) {
+    const role = String(user?.activeRole || user?.role || (user?.roles && user?.roles[0]) || "").toLowerCase();
+    switch (role) {
       case "provider":
       case "candidate":
         return "/provider/dashboard";
       case "recruiter":
         return "/recruiter/dashboard";
       case "admin":
+      case "superadmin":
         return "/admin/dashboard";
       case "manager":
+        return "/admin/providers";
       case "partner":
         return "/partner/dashboard";
       default:
-        return "/";
+        return "/candidate/dashboard";
     }
   };
 

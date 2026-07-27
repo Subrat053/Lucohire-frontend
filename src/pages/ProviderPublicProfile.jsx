@@ -16,6 +16,7 @@ import { getProviderById as fetchProviderById } from '../services/providerServic
 import useTranslation from '../hooks/useTranslation';
 import Seo from '../components/common/Seo';
 import SafeExternalLink from '../components/common/SafeExternalLink';
+import { generateBreadcrumbSchema } from '../utils/seoSchemas';
 
 const ProviderPublicProfile = () => {
   const { t } = useTranslation();
@@ -217,18 +218,26 @@ const ProviderPublicProfile = () => {
     return link.status === 'approved';
   });
 
-  const personSchema = {
-    "@context": "https://schema.org",
-    "@type": ["ProfilePage", "Person"],
-    "name": userName,
-    "jobTitle": profile.category || (Array.isArray(profile.skills) ? profile.skills[0] : 'Professional'),
-    "description": seoDescription,
-    "image": seoImage,
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": profile.city || "India"
-    }
-  };
+  const combinedSchema = [
+    {
+      "@context": "https://schema.org",
+      "@type": ["ProfilePage", "Person"],
+      "name": userName,
+      "jobTitle": profile.category || (Array.isArray(profile.skills) ? profile.skills[0] : 'Professional'),
+      "description": seoDescription,
+      "image": seoImage,
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": profile.city || "India"
+      }
+    },
+    generateBreadcrumbSchema([
+      { name: "Home", item: "https://lucohire.com" },
+      { name: "Providers", item: "https://lucohire.com/search" },
+      { name: profile.city || "India", item: `https://lucohire.com/search?location=${profile.city || ""}` },
+      { name: userName, item: `https://lucohire.com/p/${id}` }
+    ])
+  ];
 
   return (
     <div className="min-h-screen bg-[#F4F7FC] pb-24 pt-8 px-4 sm:px-6 lg:px-8 font-sans">
@@ -238,7 +247,7 @@ const ProviderPublicProfile = () => {
         canonicalPath={`/p/${id}`}
         image={seoImage}
         robots={isPublic && !profile.isDummy ? 'index, follow' : 'noindex, nofollow'}
-        schema={personSchema}
+        schema={combinedSchema}
       />
       
       <div className="max-w-[1200px] mx-auto">

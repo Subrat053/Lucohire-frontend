@@ -50,6 +50,13 @@ const navItems = [
     icon: Activity,
     adminOnly: true,
   },
+  {
+    labelKey: "admin.externalServices",
+    fallback: "External Services",
+    path: "/admin/external-services",
+    icon: HiGlobe,
+    adminOnly: true,
+  },
 
   {
     labelKey: "admin.candidates",
