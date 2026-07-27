@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useTranslation from '../../hooks/useTranslation';
@@ -35,6 +36,17 @@ const CompanyLogo = ({ company, className = '' }) => {
 
 export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobClick }) {
   const { t } = useTranslation();
+  const carouselRef = useRef(null);
+
+  const scrollCarousel = (direction) => {
+    if (carouselRef.current) {
+      const scrollAmount = 300;
+      carouselRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 pb-1">
       <div className="max-w-7xl mx-auto bg-[#f4f7ff] border border-blue-100 rounded-[24px] p-3 sm:p-4 relative shadow-sm">
@@ -53,14 +65,23 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
         </div>
         
         {/* Buttons on the sides */}
-        <div className="absolute left-2 sm:left-3 top-[55%] -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center cursor-pointer text-gray-700 z-10 hidden md:flex hover:bg-gray-50 transition-all">
+        <div 
+          onClick={() => scrollCarousel('left')}
+          className="absolute left-2 sm:left-3 top-[55%] -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center cursor-pointer text-gray-700 z-10 hidden md:flex hover:bg-gray-50 transition-all"
+        >
           <svg className="w-4 h-4 rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
-        <div className="absolute right-2 sm:right-3 top-[55%] -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center cursor-pointer text-gray-700 z-10 hidden md:flex hover:bg-gray-50 transition-all">
+        <div 
+          onClick={() => scrollCarousel('right')}
+          className="absolute right-2 sm:right-3 top-[55%] -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center cursor-pointer text-gray-700 z-10 hidden md:flex hover:bg-gray-50 transition-all"
+        >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
 
-        <div className="flex space-x-4 overflow-x-auto pb-4 pt-2 hide-scrollbar px-2 sm:px-10">
+        <div 
+          ref={carouselRef}
+          className="flex space-x-4 overflow-x-auto pb-4 pt-2 hide-scrollbar px-2 sm:px-10"
+        >
           {isLoadingJobs ? (
             [1, 2, 3, 4, 5].map(i => (
               <div key={i} className="w-[220px] sm:w-[260px] bg-white border border-gray-100 rounded-[20px] p-4 sm:p-5 flex-shrink-0 animate-pulse h-[160px]">

@@ -37,17 +37,17 @@ const Footer = () => {
       links: [
         { label: t('footer.findJobs', 'Find Jobs'), href: '/candidate-landing' },
         { label: t('footer.createProfile', 'Create Profile'), href: '/signup?role=candidate' },
-        { label: t('footer.careerTips', 'Career Tips'), href: '#' },
+        { label: t('footer.careerTips', 'Career Tips'), href: '/provider/career-health' },
         { label: t('footer.helpCenter', 'Help Center'), href: '/contact' },
       ],
     },
     {
       title: t('footer.recruiters', 'For Recruiters'),
       links: [
-        { label: t('footer.postJob', 'Post a Job'), href: '/recruiter/job-postings' },
+        { label: t('footer.postJob', 'Post a Job'), href: '/signup?role=recruiter' },
         { label: t('footer.findCandidates', 'Find Candidates'), href: '/search' },
         { label: t('footer.pricing', 'Pricing'), href: '/pricing?tab=recruiter' },
-        { label: t('footer.resources', 'Resources'), href: '#' },
+        { label: t('footer.resources', 'Resources'), href: '/faq' },
       ],
     },
     {

@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { providerAPI } from '../services/api';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 import { MapPin, BadgeCheck, MoreVertical, Clock, Briefcase, Calendar, Zap, Wallet, CheckCircle2, MessageCircle, Phone, Eye, ArrowLeft } from 'lucide-react';
 import Seo from '../components/common/Seo';
 
 export default function TopTalentPage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [topTalent, setTopTalent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -29,6 +33,28 @@ export default function TopTalentPage() {
     fetchTopTalent();
     window.scrollTo(0, 0);
   }, [page]);
+
+  const handleContactClick = async (e, candidate, type) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      toast.error("Please login to contact candidate");
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const res = await api.post(`/provider/public/${candidate._id}/contact-click`, { actionType: type });
+      if (res.data.success && res.data.url) {
+        if (type === 'whatsapp') {
+          window.open(res.data.url, '_blank');
+        } else {
+          window.location.href = res.data.url;
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Action failed");
+    }
+  };
 
   return (
     <div className="flex flex-col font-sans w-full min-h-[calc(100vh-64px)]">
@@ -194,20 +220,18 @@ export default function TopTalentPage() {
                     {/* Action Buttons */}
                     <div className="mt-auto flex flex-col gap-2.5">
                       <div className="flex gap-2.5">
-                        <a 
-                          href={candidate._id ? `${import.meta.env.VITE_API_URL}/provider/public/${candidate._id}/whatsapp-redirect` : '#'}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button 
+                          onClick={(e) => handleContactClick(e, candidate, 'whatsapp')}
                           className="flex-[1.5] py-2.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] transition-colors text-[13px] flex items-center justify-center gap-2 shadow-sm"
                         >
                           <MessageCircle className="w-4 h-4" fill="currentColor" strokeWidth={0} /> Chat on WhatsApp
-                        </a>
-                        <a 
-                          href={candidate.user?.whatsappNumber ? `tel:${candidate.user.whatsappNumber}` : '#'}
+                        </button>
+                        <button 
+                          onClick={(e) => handleContactClick(e, candidate, 'call')}
                           className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors text-[13px] flex items-center justify-center gap-1.5 shadow-sm"
                         >
                           <Phone className="w-4 h-4" /> Call
-                        </a>
+                        </button>
                       </div>
                       <button 
                         onClick={() => navigate(`/p/${candidate._id}`)}

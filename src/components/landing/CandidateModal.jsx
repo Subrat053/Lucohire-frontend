@@ -1,7 +1,36 @@
 import { X, BadgeCheck, MapPin, Globe, Briefcase, Wallet, Calendar, Star, CheckCircle2, MessageCircle, Phone } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 export default function CandidateModal({ selectedCandidate, setSelectedCandidate }) {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
   if (!selectedCandidate) return null;
+
+  const handleContactClick = async (e, type) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      toast.error("Please login to contact candidate");
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const res = await api.post(`/provider/public/${selectedCandidate._id || selectedCandidate.id}/contact-click`, { actionType: type });
+      if (res.data.success && res.data.url) {
+        if (type === 'whatsapp') {
+          window.open(res.data.url, '_blank');
+        } else {
+          window.location.href = res.data.url;
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Action failed");
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -129,20 +158,18 @@ export default function CandidateModal({ selectedCandidate, setSelectedCandidate
 
         {/* Footer Actions */}
         <div className="sticky bottom-0 bg-white border-t border-gray-100 p-5 sm:px-8 flex flex-col sm:flex-row gap-3 mt-auto">
-          <a 
-            href={selectedCandidate.user?.whatsappNumber ? `https://wa.me/${selectedCandidate.user.whatsappNumber}` : '#'}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button 
+            onClick={(e) => handleContactClick(e, 'whatsapp')}
             className="flex-1 py-3.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] transition-colors text-sm flex items-center justify-center gap-2 shadow-sm"
           >
             <MessageCircle className="w-5 h-5" fill="currentColor" strokeWidth={0} /> Chat on WhatsApp
-          </a>
-          <a 
-            href={selectedCandidate.user?.whatsappNumber ? `tel:${selectedCandidate.user.whatsappNumber}` : '#'}
+          </button>
+          <button 
+            onClick={(e) => handleContactClick(e, 'call')}
             className="flex-1 py-3.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2 shadow-sm"
           >
             <Phone className="w-5 h-5" /> Call Now
-          </a>
+          </button>
         </div>
 
       </div>

@@ -24,6 +24,11 @@ const useSubmitLock = () => {
   const withLock = useCallback(
     (handler) =>
       async (...args) => {
+        const e = args[0];
+        if (e && typeof e.preventDefault === 'function') {
+          e.preventDefault();
+        }
+
         // Synchronous guard first — React state update is async and too slow
         if (lockRef.current) return;
         lockRef.current = true;

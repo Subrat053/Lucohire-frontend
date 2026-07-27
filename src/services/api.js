@@ -426,6 +426,8 @@ export const adminAPI = {
   deletePartner: (id) => ADMIN_API.delete(`/admin/partners/${id}`),
   getApprovalLogs: (params) =>
     ADMIN_API.get("/admin/approval-logs", { params }),
+  getContactLogs: (page = 1, limit = 20) => 
+    ADMIN_API.get("/admin/contact-logs", { params: { page, limit } }),
   approveUser: (userId) => ADMIN_API.patch(`/admin/users/${userId}/approve`),
   rejectUser: (userId, reason = "") =>
     ADMIN_API.patch(`/admin/users/${userId}/reject`, { reason }),
@@ -673,6 +675,8 @@ export const adminAPI = {
 
   // Sync logs & controls
   getSyncReports: (params) => ADMIN_API.get("/admin/sync/reports", { params }),
+  getSyncLogSampleJobs: (id) => ADMIN_API.get(`/admin/sync/reports/${id}/sample-jobs`),
+  getSyncStatsByCountry: () => ADMIN_API.get("/admin/sync/stats/by-country"),
   getSyncErrors: () => ADMIN_API.get("/admin/sync/errors"),
   retrySyncLog: (id) => ADMIN_API.post(`/admin/sync/errors/${id}/retry`),
   triggerDailySync: () => ADMIN_API.post("/admin/sync/run"),
@@ -925,6 +929,8 @@ export const pipelineAdminAPI = {
   getLocations: () => AUTH_API.get("/pipeline/locations"),
   // Also we need an endpoint to get the final pipeline jobs
   getPipelineJobs: (params) => AUTH_API.get("/pipeline/jobs", { params }),
+  updatePipelineJobStatus: (id, data) => AUTH_API.put(`/pipeline/jobs/${id}/status`, data),
+  autoVerifyPipelineJobs: (data) => AUTH_API.post("/pipeline/jobs/auto-verify", data),
 };
 
 export default API;

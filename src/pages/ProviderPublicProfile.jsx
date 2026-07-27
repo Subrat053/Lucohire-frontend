@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { HiStar, HiLocationMarker, HiBadgeCheck, HiPhone, HiMail, HiExternalLink, HiBriefcase, HiTranslate, HiCurrencyRupee, HiEye, HiCheckCircle, HiCalendar, HiLockClosed, HiOutlinePencil, HiOutlineDocumentText } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { recruiterAPI } from '../services/api';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 const ReviewSection = lazy(() => import('../components/common/ReviewSection'));
@@ -143,6 +144,24 @@ const ProviderPublicProfile = () => {
       }
     } finally {
       setUnlocking(false);
+    }
+  };
+
+  const handleContactClick = async (e) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      toast.error(t('common.loginFirst', "Please login first"));
+      navigate('/login');
+      return;
+    }
+    
+    try {
+      const res = await api.post(`/provider/public/${id}/contact-click`, { actionType: 'whatsapp' });
+      if (res.data.success && res.data.url) {
+        window.open(res.data.url, '_blank');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || t('common.actionFailed', "Action failed"));
     }
   };
 
@@ -288,14 +307,12 @@ const ProviderPublicProfile = () => {
                   {profile.phone && <div className="text-[#3B82F6] font-medium text-[15px] blur-[4px] select-none">+1 (555) 000-0000</div>}
                   {profile.email && <div className="text-[#3B82F6] font-medium text-[15px] blur-[4px] select-none">contact@example.com</div>}
                   {isPublic && profile.user?.whatsappConsent ? (
-                    <a 
-                      href={`${import.meta.env.VITE_AUTH_BASE_URL || import.meta.env.VITE_AUTH_URL || '/api/v1'}/provider/public/${id}/whatsapp-redirect`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button 
+                      onClick={handleContactClick}
                       className="mt-4 w-full border border-[#25D366] text-[#25D366] py-2 rounded-lg text-sm font-semibold flex justify-center items-center gap-2 hover:bg-[#25D366] hover:text-white transition-colors"
                     >
                       <FaWhatsapp className="w-4 h-4"/> Contact via WhatsApp
-                    </a>
+                    </button>
                   ) : (
                     <button 
                       disabled={unlocking}

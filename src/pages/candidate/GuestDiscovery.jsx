@@ -5,6 +5,7 @@ import { BiBuildingHouse } from 'react-icons/bi';
 import { RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import CountryPhoneInput from '../../components/common/CountryPhoneInput';
 
 const GuestDiscovery = () => {
   const navigate = useNavigate();
@@ -48,10 +49,21 @@ const GuestDiscovery = () => {
 
   const [formData, setFormData] = useState({
     emailId: '',
+    countryCode: '+91',
+    nationalNumber: '',
     phone: '',
     role: location.state?.formData?.skills || '',
     experience: ''
   });
+
+  const handlePhoneChange = (phoneData) => {
+    setFormData((prev) => ({
+      ...prev,
+      phone: phoneData.fullPhone,
+      countryCode: phoneData.countryCode,
+      nationalNumber: phoneData.nationalNumber,
+    }));
+  };
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -88,6 +100,7 @@ const GuestDiscovery = () => {
           ...formData,
           emailId: parsed.email || parsed.emailId || formData.emailId,
           phone: parsed.contactNumber || parsed.phone || formData.phone,
+          nationalNumber: (parsed.contactNumber || parsed.phone)?.replace(/\D/g, '') || formData.nationalNumber,
           role: parsed.skills?.length ? parsed.skills.join(', ') : formData.role,
           experience: (parsed.experienceYears !== null && parsed.experienceYears !== undefined) ? getExperienceCategory(parsed.experienceYears) : formData.experience,
           resumeScore: resultWrapper.profile_strength_score || resultWrapper.confidence_score || 85
@@ -193,7 +206,8 @@ const GuestDiscovery = () => {
     const finalFormData = {
       ...formData,
       experience: experience === 'Other' ? otherExperience : experience,
-      role: role
+      role: role,
+      phone: formData.phone // already combined by handlePhoneChange
     };
 
     navigate('/unlock-matches', { state: { file, formData: finalFormData } });
@@ -202,10 +216,21 @@ const GuestDiscovery = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-4 px-4 sm:px-6 lg:px-8">
       {/* Back Button */}
-      <div className="w-full max-w-5xl mb-2">
-        <button onClick={() => navigate('/')} className="text-indigo-600 font-medium hover:text-indigo-800 flex items-center text-sm">
-          &larr; Back
+      <div className="w-full max-w-5xl mb-4">
+        <button onClick={() => navigate('/')} className="text-white bg-gray-800 hover:bg-gray-900 shadow-md font-medium flex items-center px-5 py-2.5 rounded-lg text-sm transition-all w-fit group">
+          <svg className="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          Back to Home
         </button>
+      </div>
+
+      {/* Prominent Info Message */}
+      <div className="w-full max-w-5xl mb-6 bg-blue-50 border border-blue-200 text-blue-900 px-6 py-4 rounded-xl shadow-sm flex items-start gap-4">
+        <div className="bg-blue-100 p-2 rounded-full shrink-0 mt-0.5">
+          <FiUploadCloud className="text-blue-600 text-xl" />
+        </div>
+        <p className="text-sm md:text-base font-medium leading-relaxed">
+          Our AI compares your experience, skills, and resume with thousands of jobs to find the best matches. Upload your resume—it takes less than 30 seconds.
+        </p>
       </div>
 
       <div className="w-full max-w-5xl bg-gradient-to-br from-blue-50/90 via-indigo-50/40 to-blue-100/90 shadow-2xl shadow-blue-900/10 sm:rounded-[24px] flex flex-col md:flex-row border border-blue-200/60 relative">
@@ -298,14 +323,14 @@ const GuestDiscovery = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Mobile Number *</label>
-                <input 
-                  type="text" 
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+919876543210" 
-                  className="w-full px-4 py-2.5 bg-white shadow-sm border border-blue-200/80 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-blue-300 transition-all"
-                />
+                <div className="relative">
+                  <CountryPhoneInput
+                    variant="auth"
+                    countryCode={formData.countryCode}
+                    nationalNumber={formData.nationalNumber}
+                    onChange={handlePhoneChange}
+                  />
+                </div>
               </div>
             </div>
 
@@ -361,11 +386,12 @@ const GuestDiscovery = () => {
                   className="w-full px-4 py-2.5 bg-white shadow-sm border border-blue-200/80 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700 hover:border-blue-300 transition-all"
                 >
                   <option value="">Select experience</option>
-                  <option value="0-1">0 - 1 Year</option>
-                  <option value="1-3">1 - 3 Years</option>
-                  <option value="3-5">3 - 5 Years</option>
-                  <option value="5-8">5 - 8 Years</option>
                   <option value="Other">Other</option>
+                  <option value="Fresher">Fresher</option>
+                  <option value="1-3 Years">1 - 3 Years</option>
+                  <option value="3-5 Years">3 - 5 Years</option>
+                  <option value="5-10 Years">5 - 10 Years</option>
+                  <option value="10+ Years">10+ Years</option>
                 </select>
                 {formData.experience === 'Other' && (
                   <input 
@@ -388,7 +414,6 @@ const GuestDiscovery = () => {
           onClick={handleSubmit}
           className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
         >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
           Submit & Find Matching Jobs
         </button>
       </div>

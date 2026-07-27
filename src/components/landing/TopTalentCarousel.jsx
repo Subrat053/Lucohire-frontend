@@ -3,6 +3,8 @@ import { Search, MapPin, ChevronLeft, ChevronRight, BadgeCheck, MoreVertical, Cl
 import { Link, useNavigate } from 'react-router-dom';
 import useTranslation from '../../hooks/useTranslation';
 import { POPULAR_SKILLS, ALL_SKILLS } from '../../data/skillsData';
+import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 import api from '../../services/api';
 
 const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder }) => {
@@ -97,7 +99,30 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
 export default function TopTalentCarousel({ displayTalent, talentSearch, setTalentSearch, handleTalentSearch, setSelectedCandidate }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const carouselRef = useRef(null);
+
+  const handleContactClick = async (e, candidate, type) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      toast.error(t("Please login to contact candidate"));
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const res = await api.post(`/provider/public/${candidate._id || candidate.id}/contact-click`, { actionType: type });
+      if (res.data.success && res.data.url) {
+        if (type === 'whatsapp') {
+          window.open(res.data.url, '_blank');
+        } else {
+          window.location.href = res.data.url;
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || t("Action failed"));
+    }
+  };
 
   const [skillFilter, setSkillFilter] = useState('');
   const [experienceFilter, setExperienceFilter] = useState('');
@@ -387,20 +412,18 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                 {/* Action Buttons */}
                 <div className="mt-auto flex flex-col gap-2.5">
                   <div className="flex gap-2.5">
-                    <a 
-                      href={candidate._id ? `${import.meta.env.VITE_API_URL}/provider/public/${candidate._id}/whatsapp-redirect` : '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button 
+                      onClick={(e) => handleContactClick(e, candidate, 'whatsapp')}
                       className="flex-[1.5] py-2.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] transition-colors text-[13px] flex items-center justify-center gap-2 shadow-sm"
                     >
                       <MessageCircle className="w-4 h-4" fill="currentColor" strokeWidth={0} /> {t("Chat on WhatsApp")}
-                    </a>
-                    <a 
-                      href={candidate.user?.whatsappNumber ? `tel:${candidate.user.whatsappNumber}` : '#'}
+                    </button>
+                    <button 
+                      onClick={(e) => handleContactClick(e, candidate, 'call')}
                       className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors text-[13px] flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <Phone className="w-4 h-4" /> {t("Call")}
-                    </a>
+                    </button>
                   </div>
                   <button 
                     onClick={() => setSelectedCandidate(candidate)}
@@ -417,7 +440,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
           {displayTalent.length > 0 && (
             <div className="mt-8 flex justify-center">
               <Link 
-                to="/top-talent"
+                to="/search"
                 className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-bold py-2.5 px-6 rounded-full shadow-sm text-sm transition-all flex items-center gap-2 block"
               >
                 View All Talent <ArrowRight className="w-4 h-4" />

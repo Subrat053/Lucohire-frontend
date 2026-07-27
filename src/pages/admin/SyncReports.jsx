@@ -1,19 +1,48 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
-import { RefreshCw, Play, CheckCircle2, ShieldAlert, Filter, ChevronLeft, ChevronRight, FileText, Database } from 'lucide-react';
+import { RefreshCw, Play, CheckCircle2, ShieldAlert, Filter, ChevronLeft, ChevronRight, FileText, Database, Globe, ChevronDown, ChevronUp, Briefcase, MapPin } from 'lucide-react';
+
+const CountryFlag = ({ code, className = "" }) => {
+  if (!code || code === 'GLOBAL' || code.length !== 2) return <Globe className={`text-gray-400 ${className}`} />;
+  return (
+    <img 
+      src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`} 
+      alt={code} 
+      title={code}
+      className={`object-cover rounded-sm inline-block ${className}`} 
+    />
+  );
+};
 
 const SyncReports = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [runningSync, setRunningSync] = useState(false);
-  const [filters, setFilters] = useState({ status: '', source: '', page: 1 });
+  const [filters, setFilters] = useState({ status: '', source: '', country: '', page: 1 });
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
+  const [stats, setStats] = useState([]);
+  
+  const [expandedLogId, setExpandedLogId] = useState(null);
+  const [sampleJobs, setSampleJobs] = useState([]);
+  const [loadingSamples, setLoadingSamples] = useState(false);
 
   useEffect(() => {
     fetchLogs();
+    fetchStats();
   }, [filters]);
+
+  const fetchStats = async () => {
+    try {
+      const { data } = await adminAPI.getSyncStatsByCountry();
+      if (data.success) {
+        setStats(data.data || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch stats', err);
+    }
+  };
 
   const fetchLogs = async () => {
     try {
@@ -21,10 +50,31 @@ const SyncReports = () => {
       const { data } = await adminAPI.getSyncReports(filters);
       setLogs(data.logs || []);
       setPagination(data.pagination || { page: 1, limit: 20, total: 0, pages: 1 });
+      setExpandedLogId(null);
     } catch (err) {
       toast.error('Failed to load sync logs');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleRow = async (logId) => {
+    if (expandedLogId === logId) {
+      setExpandedLogId(null);
+      return;
+    }
+    setExpandedLogId(logId);
+    setLoadingSamples(true);
+    setSampleJobs([]);
+    try {
+      const { data } = await adminAPI.getSyncLogSampleJobs(logId);
+      if (data.success) {
+        setSampleJobs(data.data || []);
+      }
+    } catch (err) {
+      toast.error('Failed to fetch sample jobs');
+    } finally {
+      setLoadingSamples(false);
     }
   };
 
@@ -65,6 +115,45 @@ const SyncReports = () => {
           </div>
         </div>
 
+        {/* Stats Row */}
+        {stats.length > 0 && (
+          <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
+            {stats.map((stat, idx) => (
+              <div key={idx} className="min-w-[200px] shrink-0 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-lg shadow-sm border border-blue-100/50 overflow-hidden">
+                      <CountryFlag code={stat.countryCode} className="w-8 h-8 rounded-full object-cover" />
+                    </div>
+                    <span className="text-xs font-black text-gray-700 uppercase tracking-wider">{stat.countryCode}</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
+                    Source
+                  </span>
+                </div>
+                <div className="flex justify-between items-end">
+                  <div>
+                    <div className="text-2xl font-black text-gray-900 leading-none mb-1">
+                      {stat.totalFetched.toLocaleString()}
+                    </div>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Jobs Fetched
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-black text-emerald-600 leading-none mb-1">
+                      +{stat.totalInserted.toLocaleString()}
+                    </div>
+                    <div className="text-[10px] font-bold text-emerald-600/70 uppercase tracking-wider">
+                      Inserted
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Main Layout */}
         <div className="flex flex-col xl:flex-row gap-6 items-start">
           
@@ -91,9 +180,14 @@ const SyncReports = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {logs.map((log) => (
-                      <tr key={log._id} className="hover:bg-gray-50/50 transition-colors group">
+                      <React.Fragment key={log._id}>
+                      <tr 
+                        className={`hover:bg-gray-50/50 transition-colors group cursor-pointer ${expandedLogId === log._id ? 'bg-indigo-50/30' : ''}`}
+                        onClick={() => handleToggleRow(log._id)}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            {expandedLogId === log._id ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
                             <FileText className="w-4 h-4 text-indigo-400" />
                             {new Date(log.startedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </div>
@@ -102,8 +196,16 @@ const SyncReports = () => {
                           <div className="text-xs font-black uppercase text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded tracking-wider w-max mb-1">
                             {log.syncType.replace('_', ' ')}
                           </div>
-                          <div className="text-[11px] font-bold text-gray-600 capitalize flex items-center gap-1">
-                            <Database className="w-3 h-3" /> {log.source} {log.countryCode ? `(${log.countryCode})` : ''}
+                          <div className="flex flex-col gap-1">
+                            <div className="text-[11px] font-bold text-gray-600 capitalize flex items-center gap-1">
+                              <Database className="w-3 h-3" /> {log.source}
+                            </div>
+                            {log.countryCode && (
+                              <div className="flex items-center gap-1.5 text-[10px] font-black uppercase bg-indigo-50/80 text-indigo-700 border border-indigo-200/50 px-2 py-0.5 rounded w-max mt-0.5">
+                                <CountryFlag code={log.countryCode} className="w-3.5 h-2.5 rounded-sm" />
+                                {log.countryCode}
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -116,15 +218,110 @@ const SyncReports = () => {
                           <div className="text-sm font-black text-red-500">{log.jobsDeactivated || 0}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border justify-end w-max ml-auto ${
-                            log.status === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
-                            log.status === 'failed' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-                          }`}>
-                            {log.status === 'success' ? <CheckCircle2 className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
-                            <span className="capitalize">{log.status}</span>
-                          </span>
+                          <div className="flex flex-col items-end gap-1.5">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                              log.status === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
+                              log.status === 'failed' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}>
+                              {log.status === 'success' ? <CheckCircle2 className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
+                              <span className="capitalize">{log.status}</span>
+                            </span>
+                            <div className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {expandedLogId === log._id ? 'Hide Details' : 'View Sample Jobs'}
+                            </div>
+                          </div>
                         </td>
                       </tr>
+                      {expandedLogId === log._id && (
+                        <tr className="bg-gray-50/30 border-b border-gray-100">
+                          <td colSpan="6" className="px-6 py-4">
+                            <div className="pl-6 border-l-2 border-indigo-200">
+                              <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider mb-3">
+                                {log.syncType === 'company_discovery' ? 'Sample Companies Discovered' 
+                                : log.source.toLowerCase() === 'contact_enricher' ? 'Sample Contacts Found' 
+                                : 'Sample Jobs Fetched'}
+                              </h4>
+                              {loadingSamples ? (
+                                <div className="flex items-center gap-2 text-xs font-bold text-gray-500 py-2">
+                                  <RefreshCw className="w-4 h-4 animate-spin text-indigo-500" /> Fetching samples...
+                                </div>
+                              ) : sampleJobs.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                  {sampleJobs.map(item => (
+                                    <div key={item._id} className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:shadow transition-shadow">
+                                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                                        <h5 className="text-sm font-black text-gray-900 line-clamp-1 flex-1" title={item.title || item.companyName || item.email}>
+                                          {item.title || item.companyName || item.email}
+                                        </h5>
+                                        {item.countryCode && (
+                                          <CountryFlag code={item.countryCode} className="w-4 h-3 rounded-[2px] shrink-0 mt-0.5" />
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2 text-[11px] font-bold text-gray-500 mb-2">
+                                        {log.syncType === 'company_discovery' ? (
+                                          <>
+                                            <div className="flex items-center gap-1">
+                                              <Globe className="w-3 h-3" /> {item.companyDomain || item.industry || 'Unknown Sector'}
+                                            </div>
+                                            {item.externalId && (
+                                              <div className="flex items-center gap-1">
+                                                <Database className="w-3 h-3" /> {item.externalId}
+                                              </div>
+                                            )}
+                                          </>
+                                        ) : log.source.toLowerCase() === 'contact_enricher' ? (
+                                          <>
+                                            <div className="flex items-center gap-1">
+                                              <Globe className="w-3 h-3" /> {item.companyDomain}
+                                            </div>
+                                            {item.confidenceScore && (
+                                              <div className="flex items-center gap-1">
+                                                <CheckCircle2 className="w-3 h-3 text-emerald-500" /> {item.confidenceScore}% Conf.
+                                              </div>
+                                            )}
+                                          </>
+                                        ) : (
+                                          <>
+                                            <div className="flex items-center gap-1">
+                                              <Briefcase className="w-3 h-3" /> {item.companyName || 'Unknown'}
+                                            </div>
+                                            <div className="flex items-center gap-1 truncate">
+                                              <MapPin className="w-3 h-3" /> {item.cityName || 'Remote'}
+                                            </div>
+                                          </>
+                                        )}
+                                      </div>
+                                      <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-50">
+                                        <span className="text-[10px] font-bold text-gray-400">
+                                          {new Date(item.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                        </span>
+                                        {log.syncType !== 'company_discovery' && log.source.toLowerCase() !== 'contact_enricher' && (item.externalUrl || item.applyUrl) && (
+                                          <a href={item.externalUrl || item.applyUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-[10px] font-black text-indigo-600 hover:underline">
+                                            View Origin
+                                          </a>
+                                        )}
+                                        {log.syncType === 'company_discovery' && item.companyDomain && (
+                                          <a href={`https://${item.companyDomain}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-[10px] font-black text-indigo-600 hover:underline">
+                                            Visit Website
+                                          </a>
+                                        )}
+                                        {log.source.toLowerCase() === 'contact_enricher' && item.sourcePage && (
+                                          <a href={item.sourcePage} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-[10px] font-black text-emerald-600 hover:underline">
+                                            Source Page
+                                          </a>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-xs font-medium text-gray-500 italic py-2">No data available for this source.</div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      </React.Fragment>
                     ))}
                     {logs.length === 0 && !loading && (
                       <tr>
@@ -173,7 +370,7 @@ const SyncReports = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-black text-gray-900 flex items-center gap-2"><Filter className="w-4 h-4"/> Filters</h3>
                 <button 
-                  onClick={() => setFilters({ status: '', source: '', page: 1 })}
+                  onClick={() => setFilters({ status: '', source: '', country: '', page: 1 })}
                   className="text-[11px] font-bold text-emerald-600 hover:underline"
                 >
                   Reset

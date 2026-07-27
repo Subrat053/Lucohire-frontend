@@ -1354,10 +1354,17 @@ const AuthPage = () => {
 
       const { data } = await authAPI.registerEmail(payload);
 
+      // If backend returns auth data directly (e.g. cross-role registration for verified users)
+      if (data?.data?.user && data?.data?.token) {
+        toast.success("Profile added successfully!");
+        redirectAfterAuth(data?.data);
+        return;
+      }
+
       setEmailOtpSource("register");
       setForm((f) => ({ ...f, email: trimmedEmail, otp: "" }));
       setMode("email-verify");
-      toast.success(data.message || "OTP sent to your email");
+      toast.success(data?.message || data?.data?.message || "OTP sent to your email");
       setTimeout(() => otpRefs.current[0]?.focus(), 200);
     } catch (err) {
       toast.error(

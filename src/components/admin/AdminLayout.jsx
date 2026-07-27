@@ -247,6 +247,12 @@ const navItems = [
     icon: HiUsers,
   },
   {
+    labelKey: "admin.navContactLogs",
+    fallback: "Contact Logs",
+    path: "/admin/contact-logs",
+    icon: HiUsers,
+  },
+  {
     labelKey: "admin.navEnquiries",
     fallback: "Enquiries",
     path: "/admin/enquiries",

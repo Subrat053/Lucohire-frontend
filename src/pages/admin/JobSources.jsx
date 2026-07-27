@@ -2,7 +2,19 @@ import { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
-import { ShieldCheck, ShieldAlert, Zap, Server, Activity, Pause, Play, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Zap, Server, Activity, Pause, Play, RefreshCw, CheckCircle2, Globe } from 'lucide-react';
+
+const CountryFlag = ({ code, className = "" }) => {
+  if (!code || code === 'GLOBAL' || code.length !== 2) return <Globe className={`text-gray-400 ${className}`} />;
+  return (
+    <img 
+      src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`} 
+      alt={code} 
+      title={code}
+      className={`object-cover rounded-sm inline-block ${className}`} 
+    />
+  );
+};
 
 const JobSources = () => {
   const [sources, setSources] = useState([]);
@@ -135,7 +147,18 @@ const JobSources = () => {
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-gray-400 uppercase tracking-wider">Regions</span>
-                    <span className="font-bold text-blue-600 font-mono truncate max-w-[150px] text-right">{src.supportedCountries.join(', ') || 'Global'}</span>
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                      {src.supportedCountries?.length > 0 ? (
+                        src.supportedCountries.map((countryCode, i) => (
+                          <div key={i} className="flex items-center gap-1 text-[10px] font-black uppercase bg-indigo-50/80 text-indigo-700 border border-indigo-200/50 px-1.5 py-0.5 rounded">
+                            <CountryFlag code={countryCode} className="w-3.5 h-2.5 rounded-[1px]" />
+                            {countryCode}
+                          </div>
+                        ))
+                      ) : (
+                        <span className="font-bold text-gray-600">Global</span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-gray-400 uppercase tracking-wider">Rate Limit</span>

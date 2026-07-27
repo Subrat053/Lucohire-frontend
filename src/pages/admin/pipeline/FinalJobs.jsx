@@ -23,7 +23,30 @@ const FinalJobs = () => {
     try {
       const res = await pipelineAdminAPI.getPipelineJobs();
       if (res.data?.success) {
-        setJobs(res.data.data);
+        const fetchedJobs = res.data.data;
+        setJobs(fetchedJobs);
+        
+        // Auto-verify active jobs in the background
+        const activeJobIds = fetchedJobs
+          .filter(j => j.isActive !== false && (!j.status || ['active', 'published'].includes(j.status.toLowerCase())))
+          .map(j => j._id);
+          
+        if (activeJobIds.length > 0) {
+          pipelineAdminAPI.autoVerifyPipelineJobs({ jobIds: activeJobIds })
+            .then(verifyRes => {
+              if (verifyRes.data?.success && verifyRes.data.updatedJobs?.length > 0) {
+                const updated = verifyRes.data.updatedJobs;
+                setJobs(prevJobs => prevJobs.map(job => {
+                  const verifiedUpdate = updated.find(u => u.id === job._id);
+                  if (verifiedUpdate) {
+                    return { ...job, isActive: verifiedUpdate.isActive, status: verifiedUpdate.status };
+                  }
+                  return job;
+                }));
+              }
+            })
+            .catch(err => console.error("Auto-verify failed", err));
+        }
       }
     } catch (error) {
       toast.error('Failed to fetch final jobs');
@@ -65,11 +88,16 @@ const FinalJobs = () => {
                   {formatDisplayValue(job.location, 'Remote / Specified')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-xs">
-                  <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-md border ${
-                    job.status === 'published' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-                  }`}>
-                    {formatDisplayValue(job.status, 'active')}
-                  </span>
+                  {(() => {
+                    const isActive = job.isActive !== false && (!job.status || ['active', 'published'].includes(job.status.toLowerCase()));
+                    return (
+                      <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-md border ${
+                        isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-500 border-gray-200'
+                      }`}>
+                        {isActive ? 'Active' : 'Closed'}
+                      </span>
+                    );
+                  })()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
                   {job.postedDate ? new Date(job.postedDate).toLocaleDateString() : 'Recently'}

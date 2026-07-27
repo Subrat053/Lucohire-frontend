@@ -70,6 +70,8 @@ import {
   Star,
   Mail,
   EyeOff,
+  MessageCircle,
+  ExternalLink,
 } from "lucide-react";
 
 // ─── constants ───────────────────────────────────────────────────────────────
@@ -466,6 +468,9 @@ const ProviderProfile = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [aiUsageData, setAiUsageData] = useState({ limits: {}, usage: {} });
+  const [showWhatsappModal, setShowWhatsappModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const scrolledHashRef = useRef('');
 
@@ -1058,8 +1063,8 @@ const ProviderProfile = () => {
           relocationAvailable: data.relocationAvailable || false,
           pricingReason: data.pricingReason || "",
           email: data.user?.email || "",
-          isPublicProfile: data.user?.isPublicProfile !== false, // default true if undefined
-          whatsappConsent: data.user?.whatsappConsent !== false, // default true if undefined
+          isPublicProfile: Boolean(data.isPublicProfile ?? data.user?.isPublicProfile),
+          whatsappConsent: Boolean(data.whatsappConsent ?? data.user?.whatsappConsent),
         };
 
         setForm(defaultForm);
@@ -1694,6 +1699,9 @@ const ProviderProfile = () => {
       payload.projects = rawPayload.projects;
       payload.locations = rawPayload.locations;
       payload.serviceLocations = rawPayload.serviceLocations;
+      payload.contactVisibility = rawPayload.contactVisibility;
+      payload.isPublicProfile = rawPayload.isPublicProfile;
+      payload.whatsappConsent = rawPayload.whatsappConsent;
 
       const { data } = await providerAPI.updateProfile(payload);
       setCompletion(data.profileCompletion || completion);
@@ -2207,7 +2215,7 @@ const ProviderProfile = () => {
                           <p className="text-[12px] text-slate-500 mt-0.5">{t("Allow your profile to be indexed by search engines and viewed publicly.")}</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" className="sr-only peer" checked={form.isPublicProfile} onChange={(e) => setForm({ ...form, isPublicProfile: e.target.checked })} />
+                          <input type="checkbox" className="sr-only peer" checked={!!form.isPublicProfile} onChange={(e) => setForm({ ...form, isPublicProfile: e.target.checked })} />
                           <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                         </label>
                       </div>
@@ -2220,8 +2228,34 @@ const ProviderProfile = () => {
                           )}</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" className="sr-only peer" checked={form.whatsappConsent} onChange={(e) => setForm({ ...form, whatsappConsent: e.target.checked })} />
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer" 
+                            checked={!!form.whatsappConsent} 
+                            onChange={(e) => setForm({ ...form, whatsappConsent: e.target.checked })}
+                          />
                           <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                      </div>
+
+                      {/* Terms and Conditions Checkbox */}
+                      <div className="flex items-start sm:items-center gap-3 p-4 border border-slate-200 rounded-xl bg-slate-50/50 hover:border-emerald-300 transition-colors mt-4">
+                        <input
+                          type="checkbox"
+                          id="termsConsentCheckbox"
+                          checked={agreedToTerms}
+                          onChange={(e) => setAgreedToTerms(e.target.checked)}
+                          className="mt-0.5 sm:mt-0 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer accent-emerald-600"
+                        />
+                        <label htmlFor="termsConsentCheckbox" className="text-[13px] text-slate-700 font-medium cursor-pointer select-none">
+                          {t("I have read and agree to the")}{" "}
+                          <button
+                            type="button"
+                            onClick={() => setShowTermsModal(true)}
+                            className="text-emerald-600 font-bold underline hover:text-emerald-700"
+                          >
+                            {t("Terms and Conditions")}
+                          </button>
                         </label>
                       </div>
                     </div>
@@ -3213,6 +3247,63 @@ const ProviderProfile = () => {
           </div>
         </div>
       )}
+
+      {/* Terms and Conditions Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-emerald-600" />
+                <h3 className="text-lg font-bold text-slate-800">
+                  {t("Terms and Conditions")}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTermsModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto space-y-4 text-sm text-slate-600 leading-relaxed">
+              <h4 className="font-bold text-slate-800 text-base">1. Candidate Agreement & Terms</h4>
+              <p>By registering and using Lucohire, you agree to provide accurate, current, and complete profile information. You maintain control over your contact visibility settings at all times.</p>
+
+              <h4 className="font-bold text-slate-800 text-base">2. Contact Visibility & SEO Options</h4>
+              <p>Public SEO profiles allow search engines to index public details. Optional features such as direct WhatsApp contact require candidate consent and carry additional charges (₹1 per day) billed via subscription plans.</p>
+
+              <h4 className="font-bold text-slate-800 text-base">3. Privacy & Data Use</h4>
+              <p>Lucohire respects candidate privacy. Your contact details will only be disclosed according to your chosen preferences (Show Phone & Email, Show Email Only, Show Phone Only, or Hide All).</p>
+
+              <h4 className="font-bold text-slate-800 text-base">4. Account Erasure</h4>
+              <p>Candidates can permanently wipe their account data at any time under settings in compliance with privacy laws.</p>
+            </div>
+            <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-emerald-600 font-bold hover:underline flex items-center gap-1"
+              >
+                {t("Open Full Page")} <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  setAgreedToTerms(true);
+                  setShowTermsModal(false);
+                }}
+                className="py-2 px-5 bg-emerald-600 text-white font-bold text-sm rounded-xl hover:bg-emerald-700 transition-colors"
+              >
+                {t("I Agree & Close")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Parsed Resume Data Review Modal */}
       {parsedResumeData && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">

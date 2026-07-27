@@ -8,6 +8,7 @@ import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 
 const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
+  const [recaptchaId] = useState(() => 'recaptcha-' + Math.random().toString(36).substr(2, 9));
   const { saveUserSession } = useAuth();
   const navigate = useNavigate();
 
@@ -71,21 +72,27 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
 
   useEffect(() => {
     if (isOpen) {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      if (window.recaptchaVerifier) {
+        try { window.recaptchaVerifier.clear(); } catch(e) {}
+        window.recaptchaVerifier = null;
+      }
+      setTimeout(() => {
+        if (!document.getElementById(recaptchaId)) return;
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, {
           size: 'invisible',
           callback: () => {
             console.log('Recaptcha resolved');
           },
           'expired-callback': () => {
             toast.error('Recaptcha expired, please try again.');
-            window.recaptchaVerifier.clear();
-            window.recaptchaVerifier = null;
+            if (window.recaptchaVerifier) {
+               window.recaptchaVerifier.clear();
+               window.recaptchaVerifier = null;
+            }
           }
         });
-        // Pre-render to make sending faster
         window.recaptchaVerifier.render().catch(console.error);
-      }
+      }, 100);
     } else {
       // Clean up when modal closes
       if (window.recaptchaVerifier) {
@@ -133,7 +140,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
     setLoading(true);
     try {
       if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+         window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, { size: 'invisible' });
       }
       const appVerifier = window.recaptchaVerifier;
       const formattedPhone = localPhone.startsWith('+') 
@@ -395,8 +402,8 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
 
       </div>
       
-      {/* Hidden Recaptcha container rendered unconditionally */}
-      <div id="recaptcha-container"></div>
+      {/* Recaptcha container is rendered with a unique ID */}
+      <div id={recaptchaId}></div>
     </div>
   );
 };

@@ -676,8 +676,9 @@ const ProviderJobs = () => {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState(null);
-  const [filters, setFilters] = useState({ skill: initialSkill, city: initialCity, origin: "all", source: "" });
-  const [search, setSearch] = useState({ skill: initialSkill, city: initialCity, origin: "all", source: "" });
+  const [filters, setFilters] = useState({ skill: initialSkill, city: initialCity, origin: "all", source: "", experience: "" });
+  const [search, setSearch] = useState({ skill: initialSkill, city: initialCity, origin: "all", source: "", experience: "" });
+  const [otherExperience, setOtherExperience] = useState("");
   const [recruiterProfileTarget, setRecruiterProfileTarget] = useState(null);
 
   const [aiMatchResults, setAiMatchResults] = useState(null);
@@ -846,6 +847,14 @@ const ProviderJobs = () => {
       setLoading(true);
       try {
         const params = { page, limit: 15 };
+        if (search.skill) params.skill = search.skill;
+        if (search.city) params.city = search.city;
+        if (search.origin) params.origin = search.origin;
+        if (search.source) params.source = search.source;
+        if (search.experience) params.experienceRequired = search.experience;
+        if (incomePathFilter?.scheduleType) params.scheduleType = incomePathFilter.scheduleType;
+        if (incomePathFilter?.workMode) params.workMode = incomePathFilter.workMode;
+
         if (currentNearbyOnly && userCoords) {
           params.lat = userCoords.lat;
           params.lng = userCoords.lng;
@@ -854,12 +863,6 @@ const ProviderJobs = () => {
           setJobs(data.jobs || []);
           setPagination(data.pagination || { page: 1, pages: 1, total: (data.jobs || []).length });
         } else {
-          if (search.skill) params.skill = search.skill;
-          if (search.city) params.city = search.city;
-          if (search.origin) params.origin = search.origin;
-          if (search.source) params.source = search.source;
-          if (incomePathFilter?.scheduleType) params.scheduleType = incomePathFilter.scheduleType;
-          if (incomePathFilter?.workMode) params.workMode = incomePathFilter.workMode;
           const { data } = await providerAPI.getJobs(params);
           setJobs(data.jobs || []);
           setPagination(data.pagination || { page: 1, pages: 1, total: 0 });
@@ -882,7 +885,7 @@ const ProviderJobs = () => {
       }
     } else if (incomePathFilter) {
       fetchJobs(1, radius, nearbyOnly);
-    } else if (search.skill || search.city || search.origin !== "all" || search.source) {
+    } else if (search.skill || search.city || search.origin !== "all" || search.source || search.experience) {
       fetchJobs(1, radius, nearbyOnly);
       } else {
         fetchJobs(1, radius, nearbyOnly);
@@ -919,14 +922,16 @@ const ProviderJobs = () => {
       skill: filters.skill, 
       city: filters.city, 
       origin: filters.origin, 
-      source: filters.source 
+      source: filters.source,
+      experience: filters.experience === "Other" ? otherExperience : filters.experience
     });
     setNearbyOnly(false); // Explicit search overrides nearby mode
   };
 
   const clearFilters = () => {
-    setFilters({ skill: "", city: "", origin: "all", source: "" });
-    setSearch({ skill: "", city: "", origin: "all", source: "" });
+    setFilters({ skill: "", city: "", origin: "all", source: "", experience: "" });
+    setSearch({ skill: "", city: "", origin: "all", source: "", experience: "" });
+    setOtherExperience("");
   };
 
   const getPaginationGroup = () => {
@@ -1022,13 +1027,49 @@ const ProviderJobs = () => {
                     className="focus:ring-emerald-300"
                   />
                 </div>
+                <div className="flex-1 w-full">
+                  <label className="block text-xs text-gray-500 font-medium mb-1">{t("Years of Experience")}</label>
+                  <select
+                    value={filters.experience || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFilters((f) => ({ ...f, experience: val }));
+                      setSearch((s) => ({ ...s, experience: val === "Other" ? otherExperience : val }));
+                    }}
+                    className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-300 outline-none text-sm text-gray-700 hover:border-gray-300 transition-colors"
+                  >
+                    <option value="">{t("Any Experience")}</option>
+                    <option value="Fresher">Fresher</option>
+                    <option value="0-2 Years">0-2 Years</option>
+                    <option value="3-5 Years">3-5 Years</option>
+                    <option value="5-7 Years">5-7 Years</option>
+                    <option value="7-9 Years">7-9 Years</option>
+                    <option value="10+ Years">10+ Years</option>
+                    <option value="Other">Other / Type manually</option>
+                  </select>
+                  {filters.experience === 'Other' && (
+                    <input 
+                      type="number"
+                      value={otherExperience}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setOtherExperience(val);
+                        setSearch((s) => ({ ...s, experience: val }));
+                      }}
+                      placeholder="Enter years"
+                      className="w-full mt-2 h-11 px-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-300 outline-none text-sm text-gray-700 hover:border-gray-300 transition-colors"
+                    />
+                  )}
+                </div>
                 <div className="flex-1 min-w-[200px] w-full">
                   <label className="block text-xs text-gray-500 font-medium mb-1">{t("Job Source / Type")}</label>
                   <select
                     value={filters.origin}
-                    onChange={(e) =>
-                      setFilters((f) => ({ ...f, origin: e.target.value, source: e.target.value !== "external" ? "" : f.source }))
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFilters((f) => ({ ...f, origin: val, source: val !== "external" ? "" : f.source }));
+                      setSearch((s) => ({ ...s, origin: val, source: val !== "external" ? "" : s.source }));
+                    }}
                     className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300 outline-none h-[38px]"
                   >
                     <option value="all">{t("All Jobs (Internal & Ingested)")}</option>
@@ -1042,9 +1083,11 @@ const ProviderJobs = () => {
                     <label className="block text-xs text-gray-500 font-medium mb-1">{t("Ingestion Source")}</label>
                     <select
                       value={filters.source}
-                      onChange={(e) =>
-                        setFilters((f) => ({ ...f, source: e.target.value }))
-                      }
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFilters((f) => ({ ...f, source: val }));
+                        setSearch((s) => ({ ...s, source: val }));
+                      }}
                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300 outline-none h-[38px]"
                     >
                       <option value="">{t("All Ingestion Sources")}</option>
@@ -1101,8 +1144,7 @@ const ProviderJobs = () => {
                   )}
                   <button
                     type="submit"
-                    disabled={nearbyOnly}
-                    className="flex-1 md:flex-none justify-center px-5 py-2 text-sm font-bold text-white bg-[#081B3A] rounded-xl hover:bg-[#0E2854] transition flex items-center gap-2 disabled:opacity-50"
+                    className="flex-1 md:flex-none justify-center px-5 py-2 text-sm font-bold text-white bg-[#081B3A] rounded-xl hover:bg-[#0E2854] transition flex items-center gap-2"
                   >
                     <HiFilter className="w-4 h-4" />{t("Search")}</button>
                 </div>

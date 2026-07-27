@@ -137,8 +137,8 @@ export default function ProfileApprovals() {
         state: forState || undefined,
       });
       setCountries(data.countries || []);
-      if (forCountry) setStates(data.states || []);
-      if (forState) setCities(data.cities || []);
+      setStates(data.states || []);
+      setCities(data.cities || []);
     } catch { /* silent */ }
   }, []);
 
@@ -189,16 +189,13 @@ export default function ProfileApprovals() {
     setCountry(val);
     setState('');
     setCity('');
-    setStates([]);
-    setCities([]);
-    if (val) fetchLocations(val, '');
+    fetchLocations(val, '');
   };
 
   const handleStateChange = (val) => {
     setState(val);
     setCity('');
-    setCities([]);
-    if (val) fetchLocations(country, val);
+    fetchLocations(country, val);
   };
 
   const handleReset = () => {
@@ -351,8 +348,7 @@ export default function ProfileApprovals() {
             {/* State */}
             <div className="relative">
               <select value={state} onChange={e => handleStateChange(e.target.value)}
-                disabled={!country}
-                className="pl-3 pr-8 py-2.5 border border-gray-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-purple-300 appearance-none min-w-[120px] disabled:opacity-50">
+                className="pl-3 pr-8 py-2.5 border border-gray-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-purple-300 appearance-none min-w-[120px]">
                 <option value="">All States</option>
                 {states.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -362,8 +358,7 @@ export default function ProfileApprovals() {
             {/* City */}
             <div className="relative">
               <select value={city} onChange={e => setCity(e.target.value)}
-                disabled={!state}
-                className="pl-3 pr-8 py-2.5 border border-gray-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-purple-300 appearance-none min-w-[120px] disabled:opacity-50">
+                className="pl-3 pr-8 py-2.5 border border-gray-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-purple-300 appearance-none min-w-[120px]">
                 <option value="">All Cities</option>
                 {cities.map(c => <option key={c} value={c}>{c}</option>)}
               </select>

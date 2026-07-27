@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
-import { Briefcase, Download, Search, Filter, MapPin, Building, Globe, ExternalLink, RefreshCw, Trash2, ChevronLeft, ChevronRight, CheckCircle2, ShieldAlert, FileSpreadsheet, Sparkles } from 'lucide-react';
+import { Briefcase, Download, Search, Filter, MapPin, Building, Globe, ExternalLink, RefreshCw, Trash2, ChevronLeft, ChevronRight, CheckCircle2, ShieldAlert, FileSpreadsheet, Sparkles, Calendar } from 'lucide-react';
 
 const ExternalJobs = ({ defaultFilters = {} }) => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ country: '', source: '', isActive: 'true', page: 1, search: '', ...defaultFilters });
+  const [filters, setFilters] = useState({ country: '', source: '', isActive: 'true', datePreset: '', startDate: '', endDate: '', page: 1, search: '', ...defaultFilters });
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
   const [uniqueCompaniesCount, setUniqueCompaniesCount] = useState(0);
   const [refreshingId, setRefreshingId] = useState(null);
@@ -187,9 +187,44 @@ const ExternalJobs = ({ defaultFilters = {} }) => {
                     <option value="AU">Australia (AU)</option>
                   </select>
                 </div>
+
+                {/* Date-wise Filter */}
+                <div className="w-full sm:w-auto flex items-center gap-2">
+                  <select 
+                    value={filters.datePreset}
+                    onChange={(e) => setFilters(f => ({ ...f, datePreset: e.target.value, startDate: '', endDate: '', page: 1 }))}
+                    className="w-full text-xs font-bold text-gray-700 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all"
+                  >
+                    <option value="">All Dates</option>
+                    <option value="today">Today</option>
+                    <option value="yesterday">Yesterday</option>
+                    <option value="7days">Last 7 Days</option>
+                    <option value="30days">Last 30 Days</option>
+                    <option value="custom">Custom Date Range</option>
+                  </select>
+                </div>
+
+                {filters.datePreset === 'custom' && (
+                  <div className="flex items-center gap-2 w-full sm:w-auto bg-gray-50/80 p-1.5 rounded-lg border border-gray-200">
+                    <input
+                      type="date"
+                      value={filters.startDate}
+                      onChange={(e) => setFilters(f => ({ ...f, startDate: e.target.value, page: 1 }))}
+                      className="text-xs font-semibold text-gray-700 px-2 py-1.5 rounded bg-white border border-gray-200 outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                    <span className="text-xs font-bold text-gray-400">to</span>
+                    <input
+                      type="date"
+                      value={filters.endDate}
+                      onChange={(e) => setFilters(f => ({ ...f, endDate: e.target.value, page: 1 }))}
+                      className="text-xs font-semibold text-gray-700 px-2 py-1.5 rounded bg-white border border-gray-200 outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                )}
+
                 <div className="w-full sm:w-auto sm:ml-auto">
                   <button 
-                    onClick={() => setFilters({ country: '', source: '', isActive: 'true', page: 1, search: '' })}
+                    onClick={() => setFilters({ country: '', source: '', isActive: 'true', datePreset: '', startDate: '', endDate: '', page: 1, search: '' })}
                     className="w-full sm:w-auto text-[11px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 px-4 py-2.5 rounded-lg"
                   >
                     Reset All
