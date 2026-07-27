@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useTranslation from '../../hooks/useTranslation';
@@ -37,16 +37,76 @@ const CompanyLogo = ({ company, className = '' }) => {
 export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobClick }) {
   const { t } = useTranslation();
   const carouselRef = useRef(null);
+  
+  const [currentPage, setCurrentPage] = useState(0);
+  const [scrollState, setScrollState] = useState({ isAtStart: true, isAtEnd: false });
 
-  const scrollCarousel = (direction) => {
+  const JOBS_PER_PAGE = 10;
+  // Maximum of 3 pages, calculated from actual job count
+  const TOTAL_PAGES = Math.min(3, Math.ceil((liveJobsList?.length || 0) / JOBS_PER_PAGE) || 1);
+
+  // The subset of jobs currently visible in the carousel
+  const displayJobs = liveJobsList?.slice(
+    currentPage * JOBS_PER_PAGE,
+    (currentPage + 1) * JOBS_PER_PAGE
+  ) || [];
+
+  const handleScrollEvent = () => {
     if (carouselRef.current) {
-      const scrollAmount = 300;
-      carouselRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
+      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+      setScrollState({
+        isAtStart: scrollLeft <= 10,
+        isAtEnd: scrollLeft >= scrollWidth - clientWidth - 10
       });
     }
   };
+
+  // Reset scroll position and re-check scroll state when page changes
+  useEffect(() => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollTo({ left: 0, behavior: 'instant' });
+    }
+    // Give DOM a tick to render new items before checking scroll state
+    setTimeout(() => handleScrollEvent(), 50);
+  }, [currentPage, displayJobs.length]);
+
+  // Make sure we listen for resize events to recheck scroll state
+  useEffect(() => {
+    window.addEventListener('resize', handleScrollEvent);
+    return () => window.removeEventListener('resize', handleScrollEvent);
+  }, []);
+
+  const handleScrollNext = () => {
+    if (carouselRef.current) {
+      // If we're already at the end of the scroll for this page, move to the NEXT page
+      if (scrollState.isAtEnd) {
+        if (currentPage < TOTAL_PAGES - 1) {
+          setCurrentPage(prev => prev + 1);
+        }
+      } else {
+        // Otherwise just scroll right within the current page
+        carouselRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handleScrollPrev = () => {
+    if (carouselRef.current) {
+      // If we're already at the beginning of the scroll, move to the PREV page
+      if (scrollState.isAtStart) {
+        if (currentPage > 0) {
+          setCurrentPage(prev => prev - 1);
+        }
+      } else {
+        // Otherwise just scroll left within the current page
+        carouselRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+      }
+    }
+  };
+
+  const showPrevArrow = !isLoadingJobs && liveJobsList.length > 0 && (currentPage > 0 || !scrollState.isAtStart);
+  const showNextArrow = !isLoadingJobs && liveJobsList.length > 0 && (currentPage < TOTAL_PAGES - 1 || !scrollState.isAtEnd);
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 pb-1">
       <div className="max-w-7xl mx-auto bg-[#f4f7ff] border border-blue-100 rounded-[24px] p-3 sm:p-4 relative shadow-sm">
@@ -64,31 +124,42 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
           </Link>
         </div>
         
-        {/* Buttons on the sides */}
-        <div 
-          onClick={() => scrollCarousel('left')}
-          className="absolute left-2 sm:left-3 top-[55%] -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center cursor-pointer text-gray-700 z-10 hidden md:flex hover:bg-gray-50 transition-all"
-        >
-          <svg className="w-4 h-4 rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </div>
-        <div 
-          onClick={() => scrollCarousel('right')}
-          className="absolute right-2 sm:right-3 top-[55%] -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center cursor-pointer text-gray-700 z-10 hidden md:flex hover:bg-gray-50 transition-all"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </div>
+        {/* Previous Arrow Button */}
+        {showPrevArrow && (
+          <button 
+            type="button"
+            onClick={handleScrollPrev}
+            aria-label="Previous"
+            className="absolute left-2 sm:left-3 top-[55%] -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center cursor-pointer text-gray-700 z-10 hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all"
+          >
+            <svg className="w-4 h-4 rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        )}
+
+        {/* Next Arrow Button */}
+        {showNextArrow && (
+          <button 
+            type="button"
+            onClick={handleScrollNext}
+            aria-label="Next"
+            className="absolute right-2 sm:right-3 top-[55%] -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center cursor-pointer text-gray-700 z-10 hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        )}
 
         <div 
           ref={carouselRef}
-          className="flex space-x-4 overflow-x-auto pb-4 pt-2 hide-scrollbar px-2 sm:px-10"
+          onScroll={handleScrollEvent}
+          className="flex space-x-4 overflow-x-auto pb-4 pt-2 hide-scrollbar px-2 sm:px-10 scroll-smooth"
         >
           {isLoadingJobs ? (
             [1, 2, 3, 4, 5].map(i => (
               <div key={i} className="w-[220px] sm:w-[260px] bg-white border border-gray-100 rounded-[20px] p-4 sm:p-5 flex-shrink-0 animate-pulse h-[160px]">
               </div>
             ))
-          ) : liveJobsList.length > 0 ? (
-            liveJobsList.map((job) => {
+          ) : displayJobs.length > 0 ? (
+            displayJobs.map((job) => {
               return (
               <div 
                 key={job._id || job.id} 
@@ -133,14 +204,24 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
           )}
         </div>
         
-        {/* Pagination Dots */}
-        <div className="flex justify-center items-center gap-1.5 mt-2">
-          <div className="w-4 h-1.5 bg-blue-600 rounded-full"></div>
-          <div className="w-2 h-1.5 bg-blue-100 rounded-full"></div>
-          <div className="w-2 h-1.5 bg-blue-100 rounded-full"></div>
-          <div className="w-2 h-1.5 bg-blue-100 rounded-full"></div>
-          <div className="w-2 h-1.5 bg-blue-100 rounded-full"></div>
-        </div>
+        {/* Dynamic Pagination Dots */}
+        {!isLoadingJobs && liveJobsList.length > 0 && TOTAL_PAGES > 1 && (
+          <div className="flex justify-center items-center gap-1.5 mt-2">
+            {Array.from({ length: TOTAL_PAGES }, (_, i) => i).map((pageIndex) => (
+              <button
+                key={pageIndex}
+                type="button"
+                onClick={() => setCurrentPage(pageIndex)}
+                aria-label={`Go to page ${pageIndex + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  currentPage === pageIndex
+                    ? 'w-5 bg-blue-600'
+                    : 'w-2 bg-blue-200 hover:bg-blue-300'
+                }`}
+              />
+            ))}
+          </div>
+        )}
 
       </div>
     </div>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { FiX, FiMail, FiSmartphone, FiCheckCircle } from 'react-icons/fi';
+import React, { useState, useEffect, useRef } from 'react';
+import { FiX, FiCheckCircle, FiArrowLeft, FiEdit2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { auth } from '../../config/firebase';
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
@@ -12,188 +12,182 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
   const { saveUserSession } = useAuth();
   const navigate = useNavigate();
 
-  // Steps: 1 = Email OTP Send, 2 = Email OTP Verify, 3 = Phone OTP Send, 4 = Phone OTP Verify, 5 = Success
-  const [step, setStep] = useState(1);
+  // Active view: 'email' or 'phone' or 'success'
+  const [activeView, setActiveView] = useState('email');
+  
   const [loading, setLoading] = useState(false);
+  const [initialSent, setInitialSent] = useState(false);
+  const initializedRef = useRef(false);
 
-  const [emailOtp, setEmailOtp] = useState('');
+  const [emailOtp, setEmailOtp] = useState(['', '', '', '', '', '']);
   const [guestToken, setGuestToken] = useState('');
-
+  
+  const [phoneOtp, setPhoneOtp] = useState(['', '', '', '', '', '']);
   const [confirmationResult, setConfirmationResult] = useState(null);
-  const [accountExistsError, setAccountExistsError] = useState(false);
 
-  const [phoneOtp, setPhoneOtp] = useState('');
+  const emailInputRefs = useRef([]);
+  const phoneInputRefs = useRef([]);
 
-  const [localPhone, setLocalPhone] = useState(recruiterData?.phone || '');
-  const [isEditingPhone, setIsEditingPhone] = useState(false);
-
-  const [country, setCountry] = useState(recruiterData?.country || '');
-  const [stateName, setStateName] = useState(recruiterData?.state || '');
-  const [city, setCity] = useState(recruiterData?.city || '');
-  const [loadingLocation, setLoadingLocation] = useState(false);
-
-  const handleAutoFillLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser');
-      return;
-    }
-    
-    setLoadingLocation(true);
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      try {
-        const { latitude, longitude } = position.coords;
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-        const data = await res.json();
-        
-        if (data && data.address) {
-          setCountry(data.address.country || '');
-          setStateName(data.address.state || data.address.region || '');
-          setCity(data.address.city || data.address.town || data.address.village || data.address.county || '');
-          toast.success('Location detected successfully!');
-        } else {
-          toast.error('Could not detect exact location');
-        }
-      } catch (err) {
-        toast.error('Error fetching location data');
-      } finally {
-        setLoadingLocation(false);
-      }
-    }, () => {
-      setLoadingLocation(false);
-      toast.error('Location access denied or unavailable');
-    });
+  const handleBack = () => {
+    navigate('/recruiter-discovery', { state: { recruiterData } });
   };
 
   useEffect(() => {
-    if (recruiterData?.phone && !localPhone) {
-      setLocalPhone(recruiterData.phone);
-    }
-  }, [recruiterData]);
+    if (isOpen && !initialSent && recruiterData?.email && recruiterData?.phone) {
+      if (initializedRef.current) return;
+      initializedRef.current = true;
+      setInitialSent(true);
 
-  useEffect(() => {
-    if (isOpen) {
+      // Sequential: only send phone OTP if email check passes (saves Firebase SMS credits)
+      const initOtps = async () => {
+        const emailOk = await sendEmailOtp();
+        if (emailOk) setTimeout(() => sendPhoneOtp(true), 200);
+      };
+      initOtps();
+    }
+
+    return () => {
       if (window.recaptchaVerifier) {
-        try { window.recaptchaVerifier.clear(); } catch(e) {}
+        try { window.recaptchaVerifier.clear(); } catch (e) {}
         window.recaptchaVerifier = null;
       }
-      setTimeout(() => {
-        if (!document.getElementById(recaptchaId)) return;
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, {
-          size: 'invisible',
-          callback: () => {
-            console.log('Recaptcha resolved');
-          },
-          'expired-callback': () => {
-            toast.error('Recaptcha expired, please try again.');
-            if (window.recaptchaVerifier) {
-               window.recaptchaVerifier.clear();
-               window.recaptchaVerifier = null;
-            }
-          }
-        });
-        window.recaptchaVerifier.render().catch(console.error);
-      }, 100);
-    } else {
-      // Clean up when modal closes
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-        window.recaptchaVerifier = null;
-      }
-    }
-  }, [isOpen]);
+    };
+  }, [isOpen, initialSent, recruiterData]);
 
-  const handleSendEmailOtp = async () => {
-    setLoading(true);
-    setAccountExistsError(false);
+  // Returns true if email OTP was sent successfully, false otherwise
+  const sendEmailOtp = async () => {
     try {
       const { data } = await api.post('/jobs/recruiter-discovery/send-email-otp', {
         email: recruiterData.email
       });
       if (data.success) {
         setGuestToken(data.guestToken);
-        setStep(2);
-        toast.success(data.message || 'OTP sent to email');
-        if (data.devMode && data.otp) {
-          console.log('Dev Mode OTP:', data.otp);
-        }
+        toast.success('OTP sent to email');
+        return true;
       } else {
-        toast.error(data.message || 'Failed to send OTP');
+        toast.error(data.message || 'Failed to send email OTP');
+        return false;
       }
     } catch (err) {
       if (err.response?.status === 409 || err.response?.data?.accountExists) {
-        setAccountExistsError(true);
+        toast.error('Account already exists! Please login.');
+        navigate(`/login?email=${encodeURIComponent(recruiterData?.email || '')}`);
       } else {
         toast.error(err.response?.data?.message || 'Failed to send OTP to email');
       }
-    } finally {
-      setLoading(false);
+      return false;
     }
   };
 
-  const handleVerifyEmailOtp = () => {
-    if (emailOtp.length !== 6) return toast.error('Enter 6-digit OTP');
-    setStep(3); 
-    toast.success('Email OTP recorded. Now verify your phone.');
-  };
-
-  const handleSendPhoneOtp = async () => {
-    setLoading(true);
+  const sendPhoneOtp = async (forceRecreate = false) => {
     try {
-      if (!window.recaptchaVerifier) {
-         window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, { size: 'invisible' });
+      if (forceRecreate) {
+        if (window.recaptchaVerifier) {
+          try { window.recaptchaVerifier.clear(); } catch (e) {}
+          window.recaptchaVerifier = null;
+        }
+        const wrapper = document.getElementById('recaptcha-wrapper');
+        if (wrapper) {
+          const newId = 'recaptcha-' + Date.now();
+          wrapper.innerHTML = `<div id="${newId}"></div>`;
+          window.recaptchaVerifier = new RecaptchaVerifier(auth, newId, { size: 'invisible' });
+          await window.recaptchaVerifier.render();
+        }
       }
-      const appVerifier = window.recaptchaVerifier;
-      const formattedPhone = localPhone.startsWith('+') 
-        ? '+' + localPhone.replace(/\D/g, '') 
-        : `+91${localPhone.replace(/\D/g, '')}`;
       
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, { size: 'invisible' });
+        await window.recaptchaVerifier.render();
+      }
+      
+      const appVerifier = window.recaptchaVerifier;
+
+      // Build E.164: prefer countryCode+nationalNumber, fall back to parsing fullPhone
+      let formattedPhone;
+      const rawNational = (recruiterData.nationalNumber || '').replace(/\D/g, '');
+      if (rawNational) {
+        const cc = (recruiterData.countryCode || '+91');
+        formattedPhone = (cc.startsWith('+') ? cc : '+' + cc) + rawNational;
+      } else {
+        // Fall back: strip non-digits from phone and ensure it starts with +
+        const digits = (recruiterData.phone || '').replace(/\D/g, '');
+        formattedPhone = digits ? '+' + digits : null;
+      }
+
+      if (!formattedPhone || formattedPhone.length < 8) {
+        toast.error('Please enter a valid phone number before proceeding.');
+        return;
+      }
+
       const confResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
       setConfirmationResult(confResult);
-      setStep(4);
-      setIsEditingPhone(false);
       toast.success('OTP sent to phone');
     } catch (err) {
+      if (err.code === 'auth/internal-error') return; // Ignore error caused by unmounting due to 409 conflict
       console.error('Send Phone OTP Error:', err);
       toast.error('Failed to send OTP to phone. Format must be +CountryCode');
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-        window.recaptchaVerifier = null;
-      }
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const handleOtpChange = (index, value, type) => {
+    if (!/^[0-9]*$/.test(value)) return;
+    
+    const newOtp = type === 'email' ? [...emailOtp] : [...phoneOtp];
+    newOtp[index] = value;
+    
+    if (type === 'email') setEmailOtp(newOtp);
+    else setPhoneOtp(newOtp);
+
+    // Auto-focus next
+    if (value && index < 5) {
+      const refs = type === 'email' ? emailInputRefs.current : phoneInputRefs.current;
+      refs[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e, type) => {
+    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+      const refs = type === 'email' ? emailInputRefs.current : phoneInputRefs.current;
+      refs[index - 1]?.focus();
     }
   };
 
   const handleVerifyDual = async () => {
-    if (phoneOtp.length !== 6) return toast.error('Enter 6-digit phone OTP');
-    setLoading(true);
+    const fullEmailOtp = emailOtp.join('');
+    const fullPhoneOtp = phoneOtp.join('');
 
+    if (fullEmailOtp.length !== 6) return toast.error('Enter 6-digit email OTP');
+    if (fullPhoneOtp.length !== 6) return toast.error('Enter 6-digit phone OTP');
+    
+    if (!confirmationResult) return toast.error('Phone verification not ready. Please try resending.');
+
+    setLoading(true);
     try {
       // 1. Verify Phone OTP locally with Firebase
-      const result = await confirmationResult.confirm(phoneOtp);
+      const result = await confirmationResult.confirm(fullPhoneOtp);
       const firebaseToken = await result.user.getIdToken();
 
       // 2. Call backend with everything
       const payload = {
         guestToken,
-        emailOtp,
+        emailOtp: fullEmailOtp,
         firebaseToken,
         name: recruiterData.name,
         companyName: recruiterData.companyName,
         email: recruiterData.email,
-        phone: localPhone,
+        phone: recruiterData.phone,
         password: recruiterData.password,
         industry: recruiterData.industry,
-        country,
-        state: stateName,
-        city
+        country: 'India', // Optional defaults since we removed from modal
+        state: '',
+        city: ''
       };
 
       const { data } = await api.post('/jobs/recruiter-discovery/verify-dual', payload);
 
       if (data.success) {
         saveUserSession({ token: data.token, user: data.user });
-        setStep(5);
+        setActiveView('success');
         setTimeout(() => {
           navigate('/recruiter/dashboard');
         }, 1500);
@@ -203,7 +197,14 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
 
     } catch (err) {
       console.error('Dual Verify Error:', err);
-      toast.error(err.response?.data?.message || 'Invalid Phone OTP or Verification Failed');
+      const msg = err.response?.data?.message || 'Invalid OTP or Verification Failed';
+      // If already registered, redirect to login with prefilled email
+      if (msg.toLowerCase().includes('already registered')) {
+        toast.error(msg + ' Redirecting to login...');
+        setTimeout(() => navigate(`/login?email=${encodeURIComponent(recruiterData?.email || '')}`), 1500);
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -213,197 +214,157 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+      <div className="bg-white rounded-3xl w-full max-w-lg p-8 relative shadow-2xl">
+        <button onClick={handleBack} className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition">
           <FiX className="w-6 h-6" />
         </button>
 
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Secure Your Account</h2>
-        <p className="text-gray-600 mb-6 text-sm">
-          Please verify your email and phone number to unlock full access to candidates.
-        </p>
-
-        {/* STEP 1: Email Send */}
-        {step === 1 && (
-          <div className="space-y-4">
-            <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 flex items-start gap-3">
-              <FiMail className="w-5 h-5 text-purple-600 mt-1" />
-              <div>
-                <h4 className="font-semibold text-purple-900">Verify Email</h4>
-                <p className="text-sm text-purple-700">{recruiterData.email}</p>
-              </div>
+        {activeView !== 'success' ? (
+          <>
+            <div className="flex justify-center mb-6">
+              <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">
+                Step 2 of 2
+              </span>
             </div>
+            
+            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2 text-center">Verify your account</h2>
+            <p className="text-gray-500 mb-8 text-sm text-center">
+              {activeView === 'email' 
+                ? `We've sent an OTP to your email address`
+                : `We've sent an OTP to your mobile number`
+              }
+            </p>
 
-            {accountExistsError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-4 text-center">
-                <p className="font-medium mb-2 text-sm">Account already exists!</p>
-                <button 
-                  onClick={() => navigate('/login')}
-                  className="bg-red-600 text-white px-4 py-2 rounded-md font-medium hover:bg-red-700 transition text-sm w-full"
-                >
-                  Login to Continue
-                </button>
-              </div>
-            )}
+            <div className="space-y-8">
+              {/* Email Section */}
+              {activeView === 'email' && (
+                <div className="animate-fade-in">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-semibold text-gray-900">Email Address</span>
+                    <button onClick={handleBack} className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1">
+                      {recruiterData?.email} <FiEdit2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div className="flex gap-2 justify-between mb-4">
+                    {emailOtp.map((digit, idx) => (
+                      <input
+                        key={idx}
+                        ref={(el) => emailInputRefs.current[idx] = el}
+                        type="text"
+                        maxLength="1"
+                        value={digit}
+                        onChange={(e) => handleOtpChange(idx, e.target.value, 'email')}
+                        onKeyDown={(e) => handleOtpKeyDown(idx, e, 'email')}
+                        className="w-12 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none transition-colors"
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="flex justify-between items-center text-sm text-gray-500 mb-6">
+                    <span className="flex items-center gap-2">
+                      <FiCheckCircle className="text-green-500" /> Didn't receive the OTP?
+                    </span>
+                    <button onClick={sendEmailOtp} className="text-purple-600 font-semibold hover:underline">
+                      Resend OTP
+                    </button>
+                  </div>
 
-            <div className={`bg-gray-50 p-4 rounded-xl border border-gray-200 ${accountExistsError ? 'opacity-50 pointer-events-none' : ''}`}>
-              <div className="flex justify-between items-center mb-3">
-                <h4 className="font-semibold text-gray-800 text-sm">Location Details</h4>
-                <button
-                  type="button"
-                  onClick={handleAutoFillLocation}
-                  disabled={loadingLocation}
-                  className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded hover:bg-indigo-100 flex items-center gap-1 transition"
-                >
-                  {loadingLocation ? 'Detecting...' : '📍 Auto Detect'}
-                </button>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase">Country</label>
-                  <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} className="w-full text-sm p-2 border rounded-md outline-none focus:ring-1 focus:ring-purple-500" placeholder="e.g. India" />
+                  <div className="flex items-center gap-4">
+                    <button 
+                      onClick={handleBack}
+                      className="px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition flex items-center gap-2"
+                    >
+                      <FiArrowLeft /> Back
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (emailOtp.join('').length === 6) setActiveView('phone');
+                        else toast.error('Please enter complete Email OTP');
+                      }}
+                      className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition"
+                    >
+                      Continue
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase">State</label>
-                  <input type="text" value={stateName} onChange={(e) => setStateName(e.target.value)} className="w-full text-sm p-2 border rounded-md outline-none focus:ring-1 focus:ring-purple-500" placeholder="e.g. Karnataka" />
+              )}
+
+              {/* Phone Section */}
+              {activeView === 'phone' && (
+                <div className="animate-fade-in">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-semibold text-gray-900">Mobile Number</span>
+                    <button onClick={handleBack} className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1">
+                      {recruiterData?.phone} <FiEdit2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div className="flex gap-2 justify-between mb-4">
+                    {phoneOtp.map((digit, idx) => (
+                      <input
+                        key={idx}
+                        ref={(el) => phoneInputRefs.current[idx] = el}
+                        type="text"
+                        maxLength="1"
+                        value={digit}
+                        onChange={(e) => handleOtpChange(idx, e.target.value, 'phone')}
+                        onKeyDown={(e) => handleOtpKeyDown(idx, e, 'phone')}
+                        className="w-12 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none transition-colors"
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="flex justify-between items-center text-sm text-gray-500 mb-6">
+                    <span className="flex items-center gap-2">
+                      <FiCheckCircle className="text-green-500" /> Didn't receive the OTP?
+                    </span>
+                    <button onClick={sendPhoneOtp} className="text-purple-600 font-semibold hover:underline">
+                      Resend OTP
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <button 
+                      onClick={() => setActiveView('email')}
+                      className="px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition flex items-center gap-2"
+                    >
+                      <FiArrowLeft /> Back
+                    </button>
+                    <button
+                      onClick={handleVerifyDual}
+                      disabled={loading}
+                      className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 disabled:opacity-70 transition flex items-center justify-center gap-2"
+                    >
+                      {loading ? (
+                         <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                         </svg>
+                      ) : (
+                        <FiCheckCircle />
+                      )}
+                      {loading ? 'Verifying...' : 'Verify & Unlock Candidates'}
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase">City</label>
-                <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full text-sm p-2 border rounded-md outline-none focus:ring-1 focus:ring-purple-500" placeholder="e.g. Bangalore" />
-              </div>
-            </div>
-
-            <button
-              onClick={handleSendEmailOtp}
-              disabled={loading || !country || !stateName || !city || accountExistsError}
-              className="w-full py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 disabled:opacity-50 transition"
-            >
-              {loading ? 'Sending...' : 'Send Email Code'}
-            </button>
-          </div>
-        )}
-
-        {/* STEP 2: Email Verify */}
-        {step === 2 && (
-          <div className="space-y-4">
-            <div className="text-center">
-              <h4 className="font-semibold text-gray-900">Enter Email Code</h4>
-              <p className="text-sm text-gray-500">Sent to {recruiterData.email}</p>
-            </div>
-            <input
-              type="text"
-              maxLength="6"
-              value={emailOtp}
-              onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ''))}
-              placeholder="000000"
-              className="w-full text-center text-3xl tracking-widest py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none font-mono"
-            />
-            <button
-              onClick={handleVerifyEmailOtp}
-              className="w-full py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-        )}
-
-        {/* STEP 3: Phone Send */}
-        {step === 3 && (
-          <div className="space-y-4">
-            <div className="bg-green-50 p-4 rounded-xl border border-green-100 flex items-start gap-3">
-              <FiCheckCircle className="w-5 h-5 text-green-600 mt-1" />
-              <div>
-                <h4 className="font-semibold text-green-900">Email Verified</h4>
-              </div>
-            </div>
-            <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 flex items-start justify-between gap-3">
-              <div className="flex gap-3">
-                <FiSmartphone className="w-5 h-5 text-purple-600 mt-1" />
-                <div>
-                  <h4 className="font-semibold text-purple-900">Verify Phone</h4>
-                  {isEditingPhone ? (
-                    <input
-                      type="text"
-                      value={localPhone}
-                      onChange={(e) => setLocalPhone(e.target.value)}
-                      className="mt-1 w-full px-2 py-1 text-sm border rounded outline-none focus:ring-2 focus:ring-purple-500"
-                      placeholder="+91..."
-                    />
-                  ) : (
-                    <p className="text-sm text-purple-700">{localPhone}</p>
-                  )}
-                </div>
-              </div>
-              {!isEditingPhone ? (
-                <button
-                  type="button"
-                  onClick={() => setIsEditingPhone(true)}
-                  className="text-xs text-purple-600 font-semibold hover:underline"
-                >
-                  Edit
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsEditingPhone(false)}
-                  className="text-xs text-purple-600 font-semibold hover:underline"
-                >
-                  Done
-                </button>
               )}
             </div>
-            <button
-              onClick={handleSendPhoneOtp}
-              disabled={loading}
-              className="w-full py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 disabled:opacity-50"
-            >
-              {loading ? 'Sending...' : 'Send Phone Code'}
-            </button>
-          </div>
-        )}
-
-        {/* STEP 4: Phone Verify */}
-        {step === 4 && (
-          <div className="space-y-4">
-            <div className="text-center">
-              <h4 className="font-semibold text-gray-900">Enter Phone Code</h4>
-              <p className="text-sm text-gray-500">Sent to {localPhone}</p>
+            <div className="mt-6 text-center text-xs text-gray-400 flex items-center justify-center gap-1">
+              <FiCheckCircle className="text-green-500" /> Your data is 100% secure and will never be shared.
             </div>
-            <input
-              type="text"
-              maxLength="6"
-              value={phoneOtp}
-              onChange={(e) => setPhoneOtp(e.target.value.replace(/\D/g, ''))}
-              placeholder="000000"
-              className="w-full text-center text-3xl tracking-widest py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none font-mono"
-            />
-            <button
-              onClick={handleVerifyDual}
-              disabled={loading}
-              className="w-full py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 disabled:opacity-50"
-            >
-              {loading ? 'Verifying...' : 'Unlock Account'}
-            </button>
-          </div>
-        )}
-
-        {/* STEP 5: Success */}
-        {step === 5 && (
-          <div className="text-center space-y-4 py-6">
-            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
-              <FiCheckCircle className="w-8 h-8" />
+          </>
+        ) : (
+          <div className="text-center space-y-4 py-8">
+            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+              <FiCheckCircle className="w-10 h-10" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900">Account Verified!</h3>
+            <h3 className="text-2xl font-bold text-gray-900">Account Verified!</h3>
             <p className="text-gray-500">Redirecting to your workspace...</p>
           </div>
         )}
-
       </div>
-      
-      {/* Recaptcha container is rendered with a unique ID */}
-      <div id={recaptchaId}></div>
+      <div id="recaptcha-wrapper">
+        <div id={recaptchaId}></div>
+      </div>
     </div>
   );
 };

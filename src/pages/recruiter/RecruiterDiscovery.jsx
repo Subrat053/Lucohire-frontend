@@ -1,8 +1,10 @@
 import useTranslation from "../../hooks/useTranslation";
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FiEye, FiEyeOff, FiBriefcase, FiMail, FiPhone, FiUser, FiLock, FiCheckCircle } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import CreatableSelect from 'react-select/creatable';
+import CountryPhoneInput from '../../components/common/CountryPhoneInput';
 
 const RecruiterDiscovery = () => {
   const {
@@ -10,15 +12,36 @@ const RecruiterDiscovery = () => {
   } = useTranslation();
 
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(location.state?.recruiterData || {
     name: '',
     companyName: '',
     email: '',
     phone: '',
+    countryCode: '+91',
+    nationalNumber: '',
     industry: '',
     password: ''
   });
+
+  const handlePhoneChange = (phoneData) => {
+    setFormData((prev) => ({
+      ...prev,
+      phone: phoneData.fullPhone,
+      countryCode: phoneData.countryCode,
+      nationalNumber: phoneData.nationalNumber,
+    }));
+  };
+
+  const industryOptions = [
+    { value: "IT/Software", label: t("IT/Software") },
+    { value: "Finance", label: t("Finance") },
+    { value: "Healthcare", label: t("Healthcare") },
+    { value: "Education", label: t("Education") },
+    { value: "Manufacturing", label: t("Manufacturing") },
+    { value: "Other", label: t("Other") }
+  ];
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -130,37 +153,44 @@ const RecruiterDiscovery = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("Phone Number")}</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("Mobile Number")}</label>
                   <div className="relative">
-                    <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input 
-                      type="tel" 
-                      name="phone"
-                      required
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
-                      placeholder={t("+91 XXXXXXXXXX")}
+                    <CountryPhoneInput
+                      variant="auth"
+                      countryCode={formData.countryCode}
+                      nationalNumber={formData.nationalNumber}
+                      onChange={handlePhoneChange}
                     />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t("Industry")}</label>
-                  <select 
-                    name="industry"
-                    required
-                    value={formData.industry}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none bg-white text-gray-700"
-                  >
-                    <option value="" disabled>{t("Select Industry")}</option>
-                    <option value="IT/Software">{t("IT/Software")}</option>
-                    <option value="Finance">{t("Finance")}</option>
-                    <option value="Healthcare">{t("Healthcare")}</option>
-                    <option value="Education">{t("Education")}</option>
-                    <option value="Manufacturing">{t("Manufacturing")}</option>
-                    <option value="Other">{t("Other")}</option>
-                  </select>
+                  <CreatableSelect
+                    isClearable
+                    placeholder={t("Select or type...")}
+                    options={industryOptions}
+                    value={formData.industry ? { value: formData.industry, label: formData.industry } : null}
+                    onChange={(selectedOption) => {
+                      setFormData({ ...formData, industry: selectedOption ? selectedOption.value : '' });
+                    }}
+                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        minHeight: '46px',
+                        borderRadius: '0.5rem',
+                        borderColor: state.isFocused ? '#a855f7' : '#e5e7eb',
+                        boxShadow: state.isFocused ? '0 0 0 2px rgba(168, 85, 247, 0.2)' : 'none',
+                        '&:hover': {
+                          borderColor: '#a855f7'
+                        }
+                      }),
+                      valueContainer: (base) => ({
+                        ...base,
+                        padding: '0 16px'
+                      })
+                    }}
+                  />
                 </div>
               </div>
 
@@ -193,8 +223,21 @@ const RecruiterDiscovery = () => {
               >{t("Find Candidates Now")}</button>
               
               <p className="text-xs text-center text-gray-500 mt-4">{t(
-                "By clicking \"Find Candidates Now\", you agree to our Terms of Service and Privacy Policy."
+                "By clicking \"Find Candidates Now\", you agree to our Terms and Conditions"
               )}</p>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600">
+                  Already have an account?{' '}
+                  <button 
+                    type="button" 
+                    onClick={() => navigate('/login')} 
+                    className="text-purple-600 font-bold hover:underline"
+                  >
+                    Login here
+                  </button>
+                </p>
+              </div>
             </form>
           </div>
         </div>

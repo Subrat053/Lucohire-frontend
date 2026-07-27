@@ -591,6 +591,7 @@ const AuthPage = () => {
   const searchParams = new URLSearchParams(location.search);
   const referralCode = searchParams.get("ref") || "";
   const preSelectedRole = searchParams.get("role") || "";
+  const prefillEmail = searchParams.get("email") || "";
 
   const [mode, setMode] = useState(isLoginRoute ? "login" : "register");
   const [step, setStep] = useState(1);
@@ -608,7 +609,7 @@ const AuthPage = () => {
 
   const [form, setForm] = useState({
     name: "",
-    email: "",
+    email: prefillEmail,
     phone: "",
     countryCode: "+91",
     nationalNumber: "",

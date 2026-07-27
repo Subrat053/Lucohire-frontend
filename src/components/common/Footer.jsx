@@ -7,7 +7,8 @@ import {
   FaWhatsapp, FaTelegram, FaGithub, FaDiscord, FaTiktok, FaPinterest, FaReddit, FaGlobe
 } from "react-icons/fa";
 import { Lock, ShieldCheck, FileCheck, Award, Mail, Phone, MapPin } from "lucide-react";
-import { ADMIN_API, adminAPI } from '../../services/api';
+import toast from 'react-hot-toast';
+import API, { ADMIN_API, adminAPI } from '../../services/api';
 
 const ICON_MAP = {
   facebook: FaFacebookF,
@@ -40,6 +41,7 @@ const Footer = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [socials, setSocials] = useState({
     facebook: 'https://facebook.com/lucohire',
     twitter: 'https://twitter.com/lucohire',
@@ -84,17 +86,17 @@ const Footer = () => {
       links: [
         { label: t('footer.findJobs', 'Find Jobs'), href: '/candidate-landing' },
         { label: t('footer.createProfile', 'Create Profile'), href: '/signup?role=candidate' },
-        { label: t('footer.careerTips', 'Career Tips'), href: '/provider/career-health' },
+        { label: t('footer.careerTips', 'Career Tips'), href: '/career-tips' },
         { label: t('footer.helpCenter', 'Help Center'), href: '/contact' },
       ],
     },
     {
       title: t('footer.recruiters', 'For Recruiters'),
       links: [
-        { label: t('footer.postJob', 'Post a Job'), href: '/signup?role=recruiter' },
+        { label: t('footer.postJob', 'Post a Job'), href: '/recruiter-discovery' },
         { label: t('footer.findCandidates', 'Find Candidates'), href: '/search' },
         { label: t('footer.pricing', 'Pricing'), href: '/pricing?tab=recruiter' },
-        { label: t('footer.resources', 'Resources'), href: '/faq' },
+        { label: t('footer.resources', 'Resources'), href: '/resources' },
       ],
     },
     {
@@ -215,23 +217,52 @@ const Footer = () => {
           </p>
 
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              setEmail("");
+              if (email.trim() && !isSubmitting) {
+                setIsSubmitting(true);
+                try {
+                  const res = await API.post('/public/newsletter/subscribe', { email: email.trim() });
+                  toast.success(res.data?.message || t('footer.subscribeSuccess', 'Subscribed successfully to the newsletter!'));
+                  setEmail("");
+                } catch (err) {
+                  toast.error(err.response?.data?.message || 'Failed to subscribe to newsletter. Please try again.');
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }
             }}
-            className="flex items-center bg-[#102A54] rounded-lg p-1 mb-5"
+            className="flex flex-col gap-3 mb-5"
           >
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t('footer.emailPlaceholder', 'you@email.com')}
-              className="flex-1 bg-transparent border-none px-3 py-2 text-sm text-white placeholder-gray-400 outline-none focus:ring-0"
+              className="w-full bg-[#102A54] border border-[#1C3A66] rounded-lg px-4 py-3 text-sm text-white placeholder-gray-400 outline-none focus:ring-1 focus:ring-blue-500 transition-all"
               required
+              disabled={isSubmitting}
             />
 
-            <button className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className={`w-fit bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 font-semibold text-sm ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>{t('footer.subscribing', 'Subscribing...')}</span>
+                </>
+              ) : (
+                <>
+                  <span>{t('footer.subscribe', 'Subscribe')}</span>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </>
+              )}
             </button>
           </form>
         </div>

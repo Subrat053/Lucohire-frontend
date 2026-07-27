@@ -323,7 +323,7 @@ const CountryPhoneInput = ({
     inputClasses = `w-full px-3 h-[42px] border border-gray-200 rounded-xl outline-none transition-all text-gray-900 focus:ring-2 ${themeColors.ringColor}`;
   } else {
     // "default" variant (matches current authPage)
-    buttonClasses = `flex items-center gap-1.5 h-[52px] px-3.5 border-2 border-gray-200 rounded-xl bg-gray-50 text-sm text-gray-700 font-semibold ${themeColors.focusBorder} focus:bg-white focus:ring-2 ${themeColors.ringColor} transition-all disabled:opacity-50 min-w-[90px] outline-none`;
+    buttonClasses = `flex items-center justify-center gap-1 h-[52px] px-2 border-2 border-gray-200 rounded-xl bg-gray-50 text-sm text-gray-700 font-semibold ${themeColors.focusBorder} focus:bg-white focus:ring-2 ${themeColors.ringColor} transition-all disabled:opacity-50 min-w-[76px] outline-none`;
     inputClasses = `w-full h-[52px] px-4 border-2 border-gray-200 rounded-xl outline-none transition text-sm font-semibold bg-gray-50 focus:bg-white focus:ring-2 ${themeColors.ringColor} focus:border-transparent`;
   }
 

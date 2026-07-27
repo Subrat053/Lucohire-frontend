@@ -38,10 +38,10 @@ export default function LandingPage() {
           fetchedJobs = (data?.data?.jobs) || data?.jobs || [];
         }
 
-        // Randomly shuffle the jobs and take the first 10
+        // Randomly shuffle the jobs and take up to 30 (10 per page across 3 pages)
         if (fetchedJobs.length > 0) {
           const shuffled = [...fetchedJobs].sort(() => 0.5 - Math.random());
-          setLiveJobsList(shuffled.slice(0, 10));
+          setLiveJobsList(shuffled.slice(0, 30));
         } else {
           setLiveJobsList([]);
         }

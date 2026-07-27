@@ -418,6 +418,19 @@ const GuestDiscovery = () => {
         </button>
       </div>
 
+      <div className="w-full max-w-5xl mt-6 text-center">
+        <p className="text-sm text-gray-600">
+          Already have an account?{' '}
+          <button 
+            type="button" 
+            onClick={() => navigate('/login')} 
+            className="text-purple-600 font-bold hover:underline"
+          >
+            Login here
+          </button>
+        </p>
+      </div>
+
       {/* Trust Footer */}
       <div className="w-full max-w-5xl mt-3 bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col md:flex-row items-center justify-between">
         <div className="flex items-center mb-2 md:mb-0">
