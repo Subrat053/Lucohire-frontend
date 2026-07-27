@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { HiSave, HiRefresh, HiCog, HiPhotograph, HiDocumentText, HiEye, HiEyeOff, HiCloud, HiChip, HiCheckCircle, HiDatabase, HiLocationMarker } from 'react-icons/hi';
+import {
+  HiSave, HiRefresh, HiCog, HiPhotograph, HiDocumentText, HiEye, HiEyeOff,
+  HiCloud, HiChip, HiCheckCircle, HiDatabase, HiLocationMarker,
+  HiPlay, HiPause, HiStop, HiLightningBolt, HiPlus, HiTrash, HiPencil,
+  HiUsers, HiClock, HiArrowUp, HiArrowDown, HiX
+} from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import LocationAutocomplete from '../../components/common/LocationAutocomplete';
@@ -49,8 +54,18 @@ const AdminSettings = () => {
   const [aboutContent, setAboutContent] = useState('');
   const [savingContent, setSavingContent] = useState('');
 
-  // Company details
-  const [companyDetails, setCompanyDetails] = useState({ companyName: 'Lucohire Inc.', addressLine1: '123 Business Avenue', addressLine2: 'Tech District, Bangalore 560001', gstNumber: '29AABCU9603R1ZX' });
+  // Company & Footer details
+  const [companyDetails, setCompanyDetails] = useState({
+    companyName: 'Lucohire Inc.',
+    registrationDetails: 'Certified from Government of India with Certificate No. 3424242',
+    footerDescription: "India's AI-powered hiring platform. Verified providers, fair distribution, WhatsApp-first.",
+    addressLine1: '123 Business Avenue',
+    addressLine2: 'Tech District, Bangalore 560001',
+    gstNumber: '29AABCU9603R1ZX',
+    copyrightText: '© 2026 Lucohire. All rights reserved.',
+    supportEmail: 'support@lucohire.com',
+    supportPhone: '+91 98765 43210',
+  });
   const [savingCompanyDetails, setSavingCompanyDetails] = useState(false);
 
   useEffect(() => { fetchSettings(); fetchCloudinary(); fetchRotation(); fetchContent(); }, []);
@@ -79,18 +94,151 @@ const AdminSettings = () => {
         cloudinary_cloud_name: data.cloudinary_cloud_name || '',
         cloudinary_api_key: data.cloudinary_api_key || '',
         cloudinary_api_secret: data.cloudinary_api_secret || '',
+        cloudinary_account_name: data.cloudinary_account_name || 'LucoHire Media Cloud',
+        cloudinary_folder_prefix: data.cloudinary_folder_prefix || 'lucohire_media',
       });
     } catch { /* silent */ }
     finally { setCloudinaryLoading(false); }
   };
 
+  // Rotation Pools state
+  const [allProviders, setAllProviders] = useState([]);
+  const [createPoolModal, setCreatePoolModal] = useState({ open: false, skill: '', city: '', maxPoolSize: 5, rotationInterval: 60, rotationStrategy: 'round_robin' });
+  const [configPoolModal, setConfigPoolModal] = useState({ open: false, pool: null });
+  const [manageProvidersModal, setManageProvidersModal] = useState({ open: false, pool: null, selectedProviderId: '', weight: 1 });
+  const [historyPoolModal, setHistoryPoolModal] = useState({ open: false, pool: null });
+
   const fetchRotation = async () => {
     try {
       setRotationLoading(true);
-      const { data } = await adminAPI.getRotationPools();
-      setRotation(Array.isArray(data) ? data : data.pools || []);
+      const [poolRes, provRes] = await Promise.allSettled([
+        adminAPI.getRotationPools(),
+        adminAPI.getProviders(),
+      ]);
+      if (poolRes.status === 'fulfilled') {
+        const data = poolRes.value.data;
+        setRotation(Array.isArray(data) ? data : data.pools || []);
+      }
+      if (provRes.status === 'fulfilled') {
+        const provData = provRes.value.data;
+        setAllProviders(Array.isArray(provData) ? provData : provData.providers || []);
+      }
     } catch { console.error('Failed to load rotation pools'); }
     finally { setRotationLoading(false); }
+  };
+
+  const handleStartPool = async (id) => {
+    try {
+      await adminAPI.startRotationPool(id);
+      toast.success('Rotation pool STARTED');
+      fetchRotation();
+    } catch { toast.error('Failed to start pool'); }
+  };
+
+  const handlePausePool = async (id) => {
+    try {
+      await adminAPI.pauseRotationPool(id);
+      toast.success('Rotation pool PAUSED');
+      fetchRotation();
+    } catch { toast.error('Failed to pause pool'); }
+  };
+
+  const handleStopPool = async (id) => {
+    try {
+      await adminAPI.stopRotationPool(id);
+      toast.success('Rotation pool STOPPED');
+      fetchRotation();
+    } catch { toast.error('Failed to stop pool'); }
+  };
+
+  const handleAdvancePool = async (id) => {
+    try {
+      const res = await adminAPI.advanceRotationPool(id);
+      toast.success(res.data?.message || 'Rotated to next step!');
+      fetchRotation();
+    } catch (err) { toast.error(err.response?.data?.message || 'Failed to advance pool'); }
+  };
+
+  const handleDeletePool = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this rotation pool?')) return;
+    try {
+      await adminAPI.deleteRotationPool(id);
+      toast.success('Rotation pool deleted');
+      fetchRotation();
+    } catch { toast.error('Failed to delete pool'); }
+  };
+
+  const handleCreatePoolSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await adminAPI.createRotationPool(createPoolModal);
+      toast.success('Rotation pool created successfully');
+      setCreatePoolModal({ open: false, skill: '', city: '', maxPoolSize: 5, rotationInterval: 60, rotationStrategy: 'round_robin' });
+      fetchRotation();
+    } catch (err) { toast.error(err.response?.data?.message || 'Failed to create pool'); }
+  };
+
+  const handleSavePoolConfig = async (e) => {
+    e.preventDefault();
+    if (!configPoolModal.pool) return;
+    try {
+      await adminAPI.updateRotationPool(configPoolModal.pool._id, {
+        maxPoolSize: configPoolModal.pool.maxPoolSize,
+        rotationInterval: configPoolModal.pool.rotationInterval,
+        rotationStrategy: configPoolModal.pool.rotationStrategy,
+      });
+      toast.success('Pool configuration updated!');
+      setConfigPoolModal({ open: false, pool: null });
+      fetchRotation();
+    } catch { toast.error('Failed to update pool config'); }
+  };
+
+  const handleAddProviderToPool = async () => {
+    const { pool, selectedProviderId, weight } = manageProvidersModal;
+    if (!pool || !selectedProviderId) return toast.error('Select a provider');
+    
+    const existing = pool.providers?.find(p => String(p.provider?._id || p.provider) === String(selectedProviderId));
+    if (existing) return toast.error('Provider already in this pool');
+
+    const updatedProviders = [...(pool.providers || []), { provider: selectedProviderId, weight: Number(weight) || 1, lastShown: new Date(0) }];
+    try {
+      await adminAPI.updateRotationPool(pool._id, { providers: updatedProviders });
+      toast.success('Provider added to pool');
+      fetchRotation();
+      const updatedPool = { ...pool, providers: updatedProviders };
+      setManageProvidersModal(prev => ({ ...prev, pool: updatedPool, selectedProviderId: '' }));
+    } catch { toast.error('Failed to add provider'); }
+  };
+
+  const handleRemoveProviderFromPool = async (providerId) => {
+    const { pool } = manageProvidersModal;
+    if (!pool) return;
+    const updatedProviders = pool.providers.filter(p => String(p.provider?._id || p.provider) !== String(providerId));
+    try {
+      await adminAPI.updateRotationPool(pool._id, { providers: updatedProviders });
+      toast.success('Provider removed');
+      fetchRotation();
+      setManageProvidersModal(prev => ({ ...prev, pool: { ...pool, providers: updatedProviders } }));
+    } catch { toast.error('Failed to remove provider'); }
+  };
+
+  const handleMoveProviderOrder = async (index, direction) => {
+    const { pool } = manageProvidersModal;
+    if (!pool || !pool.providers) return;
+    const newIdx = direction === 'up' ? index - 1 : index + 1;
+    if (newIdx < 0 || newIdx >= pool.providers.length) return;
+
+    const list = [...pool.providers];
+    const temp = list[index];
+    list[index] = list[newIdx];
+    list[newIdx] = temp;
+
+    try {
+      await adminAPI.updateRotationPool(pool._id, { providers: list });
+      toast.success('Provider reordered');
+      fetchRotation();
+      setManageProvidersModal(prev => ({ ...prev, pool: { ...pool, providers: list } }));
+    } catch { toast.error('Failed to reorder'); }
   };
 
   const fetchContent = async () => {
@@ -423,40 +571,102 @@ const AdminSettings = () => {
       {/* ── Cloudinary Settings ── */}
       {activeTab === 'cloudinary' && (
         <div className="space-y-6">
-          {/* Info banner */}
-          <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex gap-3">
-            <HiCloud className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
-            <div className="text-sm text-indigo-700">
-              <p className="font-semibold mb-0.5">Cloudinary — Media Storage</p>
-              <p>All user profile photos, provider avatars, and documents are stored on Cloudinary. Get your credentials from{' '}
-                <a href="https://cloudinary.com/console" target="_blank" rel="noopener noreferrer" className="underline font-medium">cloudinary.com/console</a>.
-              </p>
+          {/* Active Account & Branding Display Banner */}
+          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 text-white rounded-2xl p-6 shadow-md border border-indigo-500/20">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    ACTIVE OPERATIONAL ACCOUNT
+                  </span>
+                  <span className="text-xs text-indigo-300 font-mono">ID: {cloudinary.cloudinary_cloud_name || 'Not Set'}</span>
+                </div>
+                <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+                  <HiCloud className="w-6 h-6 text-indigo-400" /> {cloudinary.cloudinary_account_name || 'LucoHire Media Storage'}
+                </h2>
+                <p className="text-xs text-indigo-200 mt-1">
+                  Active Cloud Name: <strong className="text-white font-mono">{cloudinary.cloudinary_cloud_name || 'Not Configured (Using Default)'}</strong> &bull; Subfolder Root: <span className="font-mono text-cyan-300">/{cloudinary.cloudinary_folder_prefix || 'lucohire_media'}/</span>
+                </p>
+              </div>
+              <a
+                href="https://cloudinary.com/console"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition shadow-sm self-start md:self-auto shrink-0 flex items-center gap-1.5"
+              >
+                Open Cloudinary Console ↗
+              </a>
             </div>
           </div>
 
+          {/* Guide Banner: Renaming/Configuring Cloudinary under LucoHire */}
+          <div className="bg-indigo-50/80 border border-indigo-100 rounded-2xl p-5 text-xs text-indigo-900 space-y-2">
+            <p className="font-bold text-sm text-indigo-950 flex items-center gap-1.5">
+              <span>📘</span> How to Configure or Rename your Cloudinary Account to LucoHire Name:
+            </p>
+            <ol className="list-decimal list-inside space-y-1 text-indigo-800 leading-relaxed pl-1">
+              <li>Log into <a href="https://cloudinary.com/console" target="_blank" rel="noopener noreferrer" className="underline font-bold text-indigo-950">cloudinary.com/console</a>.</li>
+              <li>Go to <strong>Settings (⚙️ Gear icon) → Product Environments</strong> (or Account Settings).</li>
+              <li>Click <strong>Edit Product Environment Name</strong> and change your <strong>Cloud Name</strong> to <code className="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded font-mono font-bold">lucohire-media</code> or <code className="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded font-mono font-bold">lucohire-cloud</code>.</li>
+              <li>Copy your updated <strong>Cloud Name (Account ID)</strong>, <strong>API Key</strong>, and <strong>API Secret</strong> into the form below and click <strong>Save Cloudinary Settings</strong>.</li>
+            </ol>
+          </div>
+
+          {/* Configuration Form Card */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
               <HiCloud className="w-5 h-5 text-indigo-500" />
-              <h2 className="text-base font-bold text-gray-900">Cloudinary Configuration</h2>
+              <h2 className="text-base font-bold text-gray-900">Cloudinary Account & Branding Settings</h2>
             </div>
 
             {cloudinaryLoading ? (
               <div className="p-12 flex justify-center"><LoadingSpinner /></div>
             ) : (
               <div className="p-6 space-y-5">
-                {/* Cloud Name */}
+                {/* Account Branding Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Cloud Name <span className="text-red-500">*</span>
+                    Account Display Name / Branding Label
+                  </label>
+                  <input
+                    type="text"
+                    value={cloudinary.cloudinary_account_name || ''}
+                    onChange={e => setCloudinary(c => ({ ...c, cloudinary_account_name: e.target.value }))}
+                    placeholder="e.g. LucoHire Production Media Cloud"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Friendly account display label for admins</p>
+                </div>
+
+                {/* Cloud Name / Account ID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Cloud Name (Account ID) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={cloudinary.cloudinary_cloud_name}
                     onChange={e => setCloudinary(c => ({ ...c, cloudinary_cloud_name: e.target.value }))}
-                    placeholder="e.g. my-app-cloud"
+                    placeholder="e.g. lucohire-media or your-cloud-id"
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none font-mono text-sm"
                   />
-                  <p className="text-xs text-gray-400 mt-1">Found on your Cloudinary Dashboard home page</p>
+                  <p className="text-xs text-gray-400 mt-1">This is your active Cloudinary Account ID / Environment Cloud Name from Dashboard</p>
+                </div>
+
+                {/* Root Upload Folder */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Media Storage Folder Prefix
+                  </label>
+                  <input
+                    type="text"
+                    value={cloudinary.cloudinary_folder_prefix || ''}
+                    onChange={e => setCloudinary(c => ({ ...c, cloudinary_folder_prefix: e.target.value }))}
+                    placeholder="e.g. lucohire_media"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none font-mono text-sm"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Root folder in Cloudinary where LucoHire avatars, resumes, and assets will be organized</p>
                 </div>
 
                 {/* API Key */}
@@ -471,7 +681,7 @@ const AdminSettings = () => {
                     placeholder="e.g. 123456789012345"
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none font-mono text-sm"
                   />
-                  <p className="text-xs text-gray-400 mt-1">Dashboard → Settings → API Keys</p>
+                  <p className="text-xs text-gray-400 mt-1">Found under Dashboard → Settings → API Keys</p>
                 </div>
 
                 {/* API Secret */}
@@ -601,71 +811,518 @@ const AdminSettings = () => {
         </div>
       )}
 
-      {/* ── Rotation Pools ── */}
+      {/* ── Rotation Pools Command & Control Engine ── */}
       {activeTab === 'rotation' && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <HiChip className="w-5 h-5 text-purple-500" />
-              <h2 className="text-base font-bold text-gray-900">Active Rotation Pools</h2>
-              <span className="px-2.5 py-0.5 bg-purple-50 text-purple-700 rounded-full text-xs font-medium">{rotation.length} pools</span>
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/50">
+              <div>
+                <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                  <HiChip className="w-5 h-5 text-purple-600" /> Active Rotation Pools Control Engine
+                  <span className="px-2.5 py-0.5 bg-purple-100 text-purple-800 rounded-full text-xs font-bold">{rotation.length} Pools</span>
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">Control provider visibility rotation, set strategies, add/reorder providers, and step manually.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCreatePoolModal({ open: true, skill: '', city: '', maxPoolSize: 5, rotationInterval: 60, rotationStrategy: 'round_robin' })}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition text-xs font-semibold shadow-sm"
+                >
+                  <HiPlus className="w-4 h-4" /> Create Rotation Pool
+                </button>
+                <button
+                  onClick={fetchRotation}
+                  className="flex items-center gap-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition text-xs font-medium"
+                >
+                  <HiRefresh className="w-4 h-4" /> Refresh
+                </button>
+              </div>
             </div>
-            <button onClick={fetchRotation}
-              className="flex items-center gap-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition text-sm font-medium">
-              <HiRefresh className="w-4 h-4" /> Refresh
-            </button>
+
+            {rotationLoading ? (
+              <div className="py-12 flex justify-center"><LoadingSpinner /></div>
+            ) : rotation.length === 0 ? (
+              <div className="py-16 text-center text-gray-400">
+                <HiChip className="w-12 h-12 mx-auto mb-3 opacity-30 text-indigo-500" />
+                <p className="font-semibold text-gray-700">No active rotation pools found</p>
+                <p className="text-xs mt-1 text-gray-400">Click <strong>+ Create Rotation Pool</strong> above to create your first rotation engine.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      <th className="text-left py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Skill & Market</th>
+                      <th className="text-left py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Status & Strategy</th>
+                      <th className="text-left py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Providers In Pool</th>
+                      <th className="text-left py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Active Index</th>
+                      <th className="text-left py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Interval</th>
+                      <th className="text-right py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Command & Controls</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {rotation.map((pool) => {
+                      const poolStatus = pool.status || 'running';
+                      const strategy = pool.rotationStrategy || 'round_robin';
+                      return (
+                        <tr key={pool._id} className="hover:bg-gray-50/50 transition">
+                          {/* Skill & Market */}
+                          <td className="py-4 px-4 font-semibold text-gray-900">
+                            {pool.skill}{' '}
+                            <span className="font-mono text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-bold ml-1">
+                              {pool.city}
+                            </span>
+                          </td>
+
+                          {/* Status & Strategy */}
+                          <td className="py-4 px-4 whitespace-nowrap">
+                            <div className="flex flex-col gap-1">
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold w-fit ${
+                                poolStatus === 'running' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                                poolStatus === 'paused' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                                'bg-red-50 text-red-700 border border-red-200'
+                              }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${poolStatus === 'running' ? 'bg-emerald-500 animate-pulse' : poolStatus === 'paused' ? 'bg-amber-500' : 'bg-red-500'}`}></span>
+                                {poolStatus.toUpperCase()}
+                              </span>
+                              <span className="text-[11px] text-gray-500 font-medium capitalize">
+                                ⚙️ {strategy.replace('_', ' ')}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Providers in Pool */}
+                          <td className="py-4 px-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-extrabold">
+                                {pool.providers?.length || 0} / {pool.maxPoolSize || 5} Max
+                              </span>
+                              <button
+                                onClick={() => setManageProvidersModal({ open: true, pool, selectedProviderId: '', weight: 1 })}
+                                className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold underline flex items-center gap-1"
+                              >
+                                <HiUsers className="w-3.5 h-3.5" /> Manage Users
+                              </button>
+                            </div>
+                          </td>
+
+                          {/* Active Index */}
+                          <td className="py-4 px-4 whitespace-nowrap">
+                            <span className="font-mono text-xs font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded-md">
+                              Index #{pool.currentIndex || 0}
+                            </span>
+                          </td>
+
+                          {/* Interval */}
+                          <td className="py-4 px-4 whitespace-nowrap text-xs text-gray-600 font-mono">
+                            {pool.rotationInterval || 60}s
+                          </td>
+
+                          {/* Command Controls */}
+                          <td className="py-4 px-4 whitespace-nowrap text-right">
+                            <div className="flex justify-end items-center gap-1.5">
+                              {/* Start / Pause / Stop Buttons */}
+                              {poolStatus === 'running' ? (
+                                <button
+                                  onClick={() => handlePausePool(pool._id)}
+                                  className="p-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-xs font-semibold transition"
+                                  title="Pause Rotation"
+                                >
+                                  <HiPause className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleStartPool(pool._id)}
+                                  className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition"
+                                  title="Start Rotation"
+                                >
+                                  <HiPlay className="w-4 h-4" />
+                                </button>
+                              )}
+                              {poolStatus !== 'stopped' && (
+                                <button
+                                  onClick={() => handleStopPool(pool._id)}
+                                  className="p-1.5 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg text-xs font-semibold transition"
+                                  title="Stop Rotation"
+                                >
+                                  <HiStop className="w-4 h-4" />
+                                </button>
+                              )}
+
+                              {/* Advance Step */}
+                              <button
+                                onClick={() => handleAdvancePool(pool._id)}
+                                className="p-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition"
+                                title="Manually rotate step now"
+                              >
+                                <HiLightningBolt className="w-4 h-4 text-indigo-600" />
+                              </button>
+
+                              {/* Edit Config */}
+                              <button
+                                onClick={() => setConfigPoolModal({ open: true, pool })}
+                                className="p-1.5 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition"
+                                title="Configure rotation duration & rules"
+                              >
+                                <HiPencil className="w-4 h-4" />
+                              </button>
+
+                              {/* View History Logs */}
+                              <button
+                                onClick={() => setHistoryPoolModal({ open: true, pool })}
+                                className="p-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg transition"
+                                title="View Rotation Activity Logs"
+                              >
+                                <HiClock className="w-4 h-4" />
+                              </button>
+
+                              {/* Delete */}
+                              <button
+                                onClick={() => handleDeletePool(pool._id)}
+                                className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
+                                title="Delete Pool"
+                              >
+                                <HiTrash className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
-          {rotationLoading ? (
-            <div className="py-12 flex justify-center"><LoadingSpinner /></div>
-          ) : rotation.length === 0 ? (
-            <div className="py-16 text-center text-gray-400">
-              <HiChip className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p>No active rotation pools yet.</p>
-              <p className="text-xs mt-1">Pools are created automatically when providers boost their profiles.</p>
+          {/* Modal 1: Create Rotation Pool */}
+          {createPoolModal.open && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+                <div className="flex justify-between items-center border-b pb-3">
+                  <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <HiChip className="w-5 h-5 text-indigo-600" /> Create Rotation Pool
+                  </h3>
+                  <button onClick={() => setCreatePoolModal({ ...createPoolModal, open: false })} className="text-gray-400 hover:text-gray-600">
+                    <HiX className="w-5 h-5" />
+                  </button>
+                </div>
+                <form onSubmit={handleCreatePoolSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Target Skill *</label>
+                    <input
+                      type="text"
+                      required
+                      value={createPoolModal.skill}
+                      onChange={e => setCreatePoolModal({ ...createPoolModal, skill: e.target.value })}
+                      placeholder="e.g. React.js, Python, Plumber"
+                      className="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">City / Region *</label>
+                    <input
+                      type="text"
+                      required
+                      value={createPoolModal.city}
+                      onChange={e => setCreatePoolModal({ ...createPoolModal, city: e.target.value })}
+                      placeholder="e.g. Bangalore, Delhi, Mumbai"
+                      className="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Rotation Strategy</label>
+                    <select
+                      value={createPoolModal.rotationStrategy}
+                      onChange={e => setCreatePoolModal({ ...createPoolModal, rotationStrategy: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-xl text-sm bg-white"
+                    >
+                      <option value="round_robin">Round Robin (Sequential Rotation)</option>
+                      <option value="weighted_random">Weighted Random (Priority-Based)</option>
+                      <option value="fair_distribution">Fair Distribution (Least-Shown First)</option>
+                      <option value="priority_boost">Priority Boost (Highest Weight First)</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Max Pool Size</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={createPoolModal.maxPoolSize}
+                        onChange={e => setCreatePoolModal({ ...createPoolModal, maxPoolSize: Number(e.target.value) })}
+                        className="w-full px-3 py-2 border rounded-xl text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Duration (Seconds)</label>
+                      <input
+                        type="number"
+                        min="10"
+                        value={createPoolModal.rotationInterval}
+                        onChange={e => setCreatePoolModal({ ...createPoolModal, rotationInterval: Number(e.target.value) })}
+                        className="w-full px-3 py-2 border rounded-xl text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2 border-t">
+                    <button
+                      type="button"
+                      onClick={() => setCreatePoolModal({ ...createPoolModal, open: false })}
+                      className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl"
+                    >
+                      Create Pool
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Skill</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">City</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Pool Size</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Index</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Max</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Last Updated</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rotation.map((pool, i) => (
-                    <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                      <td className="py-3 px-4 font-medium text-gray-900">{pool.skill}</td>
-                      <td className="py-3 px-4 text-gray-600">{pool.city}</td>
-                      <td className="py-3 px-4">
-                        <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-semibold">
-                          {pool.providers?.length || 0}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-gray-600">{pool.currentIndex || 0}</td>
-                      <td className="py-3 px-4 text-gray-600">{pool.maxPoolSize || 5}</td>
-                      <td className="py-3 px-4 text-gray-400 text-xs">{new Date(pool.updatedAt).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          )}
+
+          {/* Modal 2: Configure Rotation Strategy & Limits */}
+          {configPoolModal.open && configPoolModal.pool && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+                <div className="flex justify-between items-center border-b pb-3">
+                  <h3 className="text-base font-bold text-gray-900">
+                    Configure Pool: {configPoolModal.pool.skill} ({configPoolModal.pool.city})
+                  </h3>
+                  <button onClick={() => setConfigPoolModal({ open: false, pool: null })} className="text-gray-400 hover:text-gray-600">
+                    <HiX className="w-5 h-5" />
+                  </button>
+                </div>
+                <form onSubmit={handleSavePoolConfig} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Rotation Strategy</label>
+                    <select
+                      value={configPoolModal.pool.rotationStrategy || 'round_robin'}
+                      onChange={e => setConfigPoolModal({
+                        ...configPoolModal,
+                        pool: { ...configPoolModal.pool, rotationStrategy: e.target.value }
+                      })}
+                      className="w-full px-3 py-2 border rounded-xl text-sm bg-white"
+                    >
+                      <option value="round_robin">Round Robin (Sequential Rotation)</option>
+                      <option value="weighted_random">Weighted Random (Priority-Based)</option>
+                      <option value="fair_distribution">Fair Distribution (Least-Shown First)</option>
+                      <option value="priority_boost">Priority Boost (Highest Weight First)</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Max Pool Size Limit</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={configPoolModal.pool.maxPoolSize || 5}
+                        onChange={e => setConfigPoolModal({
+                          ...configPoolModal,
+                          pool: { ...configPoolModal.pool, maxPoolSize: Number(e.target.value) }
+                        })}
+                        className="w-full px-3 py-2 border rounded-xl text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Rotation Interval (Sec)</label>
+                      <input
+                        type="number"
+                        min="10"
+                        value={configPoolModal.pool.rotationInterval || 60}
+                        onChange={e => setConfigPoolModal({
+                          ...configPoolModal,
+                          pool: { ...configPoolModal.pool, rotationInterval: Number(e.target.value) }
+                        })}
+                        className="w-full px-3 py-2 border rounded-xl text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2 border-t">
+                    <button
+                      type="button"
+                      onClick={() => setConfigPoolModal({ open: false, pool: null })}
+                      className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl"
+                    >
+                      Save Rules
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Modal 3: Manage Pool Users (Add/Remove, Priority Weight & Reorder) */}
+          {manageProvidersModal.open && manageProvidersModal.pool && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl p-6 max-w-xl w-full shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
+                <div className="flex justify-between items-center border-b pb-3 shrink-0">
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900">
+                      Manage Users in Pool: {manageProvidersModal.pool.skill} ({manageProvidersModal.pool.city})
+                    </h3>
+                    <p className="text-xs text-gray-500">Add users, reorder priority, and adjust individual weights.</p>
+                  </div>
+                  <button onClick={() => setManageProvidersModal({ open: false, pool: null, selectedProviderId: '', weight: 1 })} className="text-gray-400 hover:text-gray-600">
+                    <HiX className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Add User Section */}
+                <div className="bg-gray-50 p-3 rounded-xl border flex flex-col sm:flex-row items-center gap-2 shrink-0">
+                  <select
+                    value={manageProvidersModal.selectedProviderId}
+                    onChange={e => setManageProvidersModal({ ...manageProvidersModal, selectedProviderId: e.target.value })}
+                    className="w-full sm:flex-1 px-3 py-2 border rounded-xl text-xs bg-white"
+                  >
+                    <option value="">-- Select Provider to Add --</option>
+                    {allProviders.map(p => (
+                      <option key={p._id} value={p._id}>
+                        {p.user?.name || 'Unnamed Provider'} ({p.category || 'General'})
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    placeholder="Weight"
+                    value={manageProvidersModal.weight}
+                    onChange={e => setManageProvidersModal({ ...manageProvidersModal, weight: Number(e.target.value) })}
+                    className="w-20 px-2 py-2 border rounded-xl text-xs text-center"
+                    title="Priority Weight (1-10)"
+                  />
+                  <button
+                    onClick={handleAddProviderToPool}
+                    className="w-full sm:w-auto px-3 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700 transition"
+                  >
+                    Add User
+                  </button>
+                </div>
+
+                {/* Users List */}
+                <div className="flex-1 overflow-y-auto space-y-2 py-2 pr-1">
+                  {(!manageProvidersModal.pool.providers || manageProvidersModal.pool.providers.length === 0) ? (
+                    <p className="text-center text-xs text-gray-400 py-6">No users assigned to this rotation pool yet.</p>
+                  ) : (
+                    manageProvidersModal.pool.providers.map((item, idx) => {
+                      const provName = item.provider?.user?.name || `Provider ID: ${item.provider?._id || item.provider}`;
+                      return (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl hover:border-indigo-300 transition text-xs">
+                          <div className="flex items-center gap-3">
+                            <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-800 font-bold flex items-center justify-center text-[10px]">
+                              #{idx + 1}
+                            </span>
+                            <div>
+                              <p className="font-bold text-gray-900">{provName}</p>
+                              <p className="text-[10px] text-gray-400 font-mono">
+                                Weight: {item.weight || 1} &bull; Last Shown: {item.lastShown ? new Date(item.lastShown).toLocaleTimeString() : 'Never'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleMoveProviderOrder(idx, 'up')}
+                              disabled={idx === 0}
+                              className="p-1 text-gray-500 hover:text-indigo-600 disabled:opacity-30"
+                              title="Move Up"
+                            >
+                              <HiArrowUp className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleMoveProviderOrder(idx, 'down')}
+                              disabled={idx === manageProvidersModal.pool.providers.length - 1}
+                              className="p-1 text-gray-500 hover:text-indigo-600 disabled:opacity-30"
+                              title="Move Down"
+                            >
+                              <HiArrowDown className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleRemoveProviderFromPool(item.provider?._id || item.provider)}
+                              className="p-1 text-red-500 hover:text-red-700 ml-1"
+                              title="Remove User"
+                            >
+                              <HiTrash className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                <div className="flex justify-end pt-2 border-t shrink-0">
+                  <button
+                    onClick={() => setManageProvidersModal({ open: false, pool: null, selectedProviderId: '', weight: 1 })}
+                    className="px-4 py-2 text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-xl"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Modal 4: Rotation History & Activity Logs */}
+          {historyPoolModal.open && historyPoolModal.pool && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+                <div className="flex justify-between items-center border-b pb-3 shrink-0">
+                  <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <HiClock className="w-5 h-5 text-purple-600" /> Rotation Activity Logs ({historyPoolModal.pool.skill})
+                  </h3>
+                  <button onClick={() => setHistoryPoolModal({ open: false, pool: null })} className="text-gray-400 hover:text-gray-600">
+                    <HiX className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto space-y-2 py-1 pr-1 text-xs">
+                  {(!historyPoolModal.pool.history || historyPoolModal.pool.history.length === 0) ? (
+                    <p className="text-center text-gray-400 py-6">No rotation history logged yet.</p>
+                  ) : (
+                    historyPoolModal.pool.history.slice().reverse().map((h, i) => (
+                      <div key={i} className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-bold text-indigo-700 uppercase tracking-wider text-[10px]">{h.action}</span>
+                          <span className="text-[10px] text-gray-400 font-mono">{new Date(h.timestamp).toLocaleString()}</span>
+                        </div>
+                        <p className="text-gray-700">{h.details}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="flex justify-end pt-2 border-t shrink-0">
+                  <button
+                    onClick={() => setHistoryPoolModal({ open: false, pool: null })}
+                    className="px-4 py-2 text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-xl"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* ── Company Details ── */}
+      {/* ── Company & Footer Details ── */}
       {activeTab === 'company' && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
             <div>
-              <h2 className="text-base font-bold text-gray-900">Platform Company Details</h2>
-              <p className="text-sm text-gray-500 mt-0.5">These details will be used on recruiter invoices and billing receipts.</p>
+              <h2 className="text-base font-bold text-gray-900">Platform Company & Footer Details</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Configure official branding, government registration, tax numbers, and footer notices displayed across the platform.</p>
             </div>
             <button
               onClick={handleSaveCompanyDetails}
@@ -676,9 +1333,10 @@ const AdminSettings = () => {
               {savingCompanyDetails ? 'Saving...' : 'Save Details'}
             </button>
           </div>
-          <div className="p-6 space-y-6 max-w-2xl">
+          <div className="p-6 space-y-6 max-w-3xl">
+            {/* Company Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Company Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Company / Platform Name</label>
               <input
                 type="text"
                 value={companyDetails.companyName || ''}
@@ -687,6 +1345,47 @@ const AdminSettings = () => {
                 placeholder="e.g. Lucohire Inc."
               />
             </div>
+
+            {/* Government Certification / Registration Details */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Government Certification & Registration Details <span className="text-indigo-600 font-normal text-xs">(Displays Live in Website Footer)</span>
+              </label>
+              <textarea
+                rows={2}
+                value={companyDetails.registrationDetails || ''}
+                onChange={e => setCompanyDetails({...companyDetails, registrationDetails: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm transition-shadow"
+                placeholder="e.g. Certified from Government of India with Certificate No. 3424242 / CIN: U74999KA2025PTC123456"
+              />
+              <p className="text-xs text-gray-500 mt-1">Whatever text or certificate numbers you type here will display live in the website footer for all visitors.</p>
+            </div>
+
+            {/* Footer Short Description */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Footer Tagline / Short Description</label>
+              <textarea
+                rows={2}
+                value={companyDetails.footerDescription || ''}
+                onChange={e => setCompanyDetails({...companyDetails, footerDescription: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm transition-shadow"
+                placeholder="e.g. India's AI-powered hiring platform. Verified providers, fair distribution, WhatsApp-first."
+              />
+            </div>
+
+            {/* GST / Tax Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">GST/Tax Number</label>
+              <input
+                type="text"
+                value={companyDetails.gstNumber || ''}
+                onChange={e => setCompanyDetails({...companyDetails, gstNumber: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm uppercase transition-shadow"
+                placeholder="e.g. 29AABCU9603R1ZX"
+              />
+            </div>
+
+            {/* Primary Address */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Primary Address</label>
               <LocationAutocomplete
@@ -697,6 +1396,8 @@ const AdminSettings = () => {
                 placeholder="Search for your company address..."
               />
             </div>
+
+            {/* Address Line 2 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Address Line 2 (Optional)</label>
               <input
@@ -707,15 +1408,41 @@ const AdminSettings = () => {
                 placeholder="Suite, Unit, Building, etc."
               />
             </div>
+
+            {/* Copyright Text */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">GST/Tax Number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Footer Copyright Notice</label>
               <input
                 type="text"
-                value={companyDetails.gstNumber || ''}
-                onChange={e => setCompanyDetails({...companyDetails, gstNumber: e.target.value})}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm uppercase transition-shadow"
-                placeholder="e.g. 29AABCU9603R1ZX"
+                value={companyDetails.copyrightText || ''}
+                onChange={e => setCompanyDetails({...companyDetails, copyrightText: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm transition-shadow"
+                placeholder="e.g. © 2026 Lucohire. All rights reserved."
               />
+            </div>
+
+            {/* Support Contact Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Support Email</label>
+                <input
+                  type="email"
+                  value={companyDetails.supportEmail || ''}
+                  onChange={e => setCompanyDetails({...companyDetails, supportEmail: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm transition-shadow"
+                  placeholder="e.g. support@lucohire.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Support Phone</label>
+                <input
+                  type="text"
+                  value={companyDetails.supportPhone || ''}
+                  onChange={e => setCompanyDetails({...companyDetails, supportPhone: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm transition-shadow"
+                  placeholder="e.g. +91 98765 43210"
+                />
+              </div>
             </div>
           </div>
         </div>

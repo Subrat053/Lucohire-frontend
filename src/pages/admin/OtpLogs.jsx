@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { ADMIN_API } from '../../services/api';
+import { ADMIN_API, adminAPI } from '../../services/api';
 import { ShieldCheck, Phone, Mail, AlertTriangle, Search, RefreshCw, Loader2 } from 'lucide-react';
 
 
@@ -36,8 +36,7 @@ export default function OtpLogs() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ page, limit, search, ...filter });
-      const res = await ADMIN_API.get(`/admin/logs/otp?${params}`);
+      const res = await adminAPI.getOtpLogs({ page, limit, search, status: filter.status, channel: filter.channel });
       setLogs(res.data.logs || []);
       setTotal(res.data.total || 0);
       setPages(res.data.pages || 1);

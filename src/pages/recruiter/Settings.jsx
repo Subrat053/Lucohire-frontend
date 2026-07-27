@@ -442,6 +442,35 @@ export default function Settings() {
                 <p className="text-xs font-medium text-gray-500 mt-1">{t("Update your account security credentials")}</p>
               </div>
 
+              {/* Security Recipient Info */}
+              <div className="mb-6 p-4 bg-slate-900 text-white rounded-xl space-y-2 text-xs">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                    Security Verification Recipient
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('profile')}
+                    className="text-[11px] text-indigo-300 hover:text-white font-bold underline"
+                  >
+                    Update Email / Phone ↗
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-mono">
+                  <div>
+                    <span className="text-slate-400 font-sans text-[10px] block">Email:</span>
+                    <span className="font-bold text-white text-xs">{profileData.companyEmail || 'Not configured'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-sans text-[10px] block">Mobile:</span>
+                    <span className="font-bold text-white text-xs">{profileData.phone || 'Not configured'}</span>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-400 pt-1">
+                  ℹ️ Security verification links & OTPs are dispatched to the contact details above.
+                </p>
+              </div>
+
               {passwordError && (
                 <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-medium">
                   {passwordError}
@@ -480,13 +509,29 @@ export default function Settings() {
                     />
                   </div>
                 </div>
-                <div className="sm:col-span-2">
+                <div className="sm:col-span-2 flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                   <button 
                     type="submit"
                     disabled={changingPassword || !passwordData.newPassword || !passwordData.confirmPassword}
                     className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed w-full sm:w-auto"
                   >
                     {changingPassword ? 'Updating...' : 'Update Password'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!profileData.companyEmail) return toast.error("Email not found");
+                      try {
+                        await authAPI.forgotPassword({ email: profileData.companyEmail });
+                        toast.success(`Reset link & OTP sent to ${profileData.companyEmail}`);
+                      } catch (err) {
+                        toast.error(err.response?.data?.message || "Failed to send reset link");
+                      }
+                    }}
+                    className="text-xs font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-4 py-2.5 rounded-lg transition"
+                  >
+                    🔑 Forgot Password? Send Reset OTP
                   </button>
                 </div>
               </form>

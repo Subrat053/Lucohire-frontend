@@ -45,6 +45,10 @@ const AIControlCenter = () => {
   const [activeTab, setActiveTab] = useState("telemetry");
 
   // Telemetry states
+  const [datePreset, setDatePreset] = useState("all"); // all | today | yesterday | this_week | this_month | custom
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
   const [usageSummary, setUsageSummary] = useState({
     totalRequests: 0,
     totalCostUsd: 0,
@@ -71,9 +75,14 @@ const AIControlCenter = () => {
 
   const fetchTelemetry = async () => {
     try {
+      const params = {
+        datePreset,
+        startDate: datePreset === 'custom' ? startDate : undefined,
+        endDate: datePreset === 'custom' ? endDate : undefined,
+      };
       const [usageRes, demandRes] = await Promise.all([
-        adminAPI.getAIUsageDashboard(),
-        adminAPI.getDemandSnapshots(),
+        adminAPI.getAIUsageDashboard(params),
+        adminAPI.getDemandSnapshots(params),
       ]);
       setUsageSummary(usageRes.data?.summary || usageSummary);
       setUsageByFeature(usageRes.data?.byFeature || []);
@@ -120,6 +129,10 @@ const AIControlCenter = () => {
   useEffect(() => {
     loadAll();
   }, []);
+
+  useEffect(() => {
+    fetchTelemetry();
+  }, [datePreset, startDate, endDate]);
 
   useEffect(() => {
     fetchAuditLogs(1);
@@ -267,6 +280,57 @@ const AIControlCenter = () => {
         {/* 1. Usage Telemetry Tab */}
         {activeTab === "telemetry" && (
           <div className="space-y-6 animate-fadeIn">
+            {/* Date-based Expenses & Usage Filter Bar */}
+            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mr-1">Time Period:</span>
+                {[
+                  { id: 'all', label: 'All Dates' },
+                  { id: 'today', label: 'Today' },
+                  { id: 'yesterday', label: 'Yesterday' },
+                  { id: 'this_week', label: 'This Week' },
+                  { id: 'this_month', label: 'This Month' },
+                  { id: 'custom', label: 'Custom Range' },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setDatePreset(item.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                      datePreset === item.id
+                        ? 'bg-violet-600 text-white shadow-xs'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Date Pickers */}
+              {datePreset === 'custom' && (
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-500 font-medium">From:</span>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="px-2.5 py-1 border border-gray-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-violet-500"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-500 font-medium">To:</span>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="px-2.5 py-1 border border-gray-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-violet-500"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Telemetry Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs relative overflow-hidden group hover:border-violet-350 transition-all">

@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { HiPlus, HiPencil, HiTrash, HiX, HiCheck, HiShieldCheck, HiRefresh } from 'react-icons/hi';
+import { 
+  HiPlus, HiPencil, HiTrash, HiX, HiCheck, HiShieldCheck, HiRefresh,
+  HiPlay, HiPause, HiStop, HiSearch, HiFilter, HiInformationCircle, 
+  HiChevronDown, HiChevronUp, HiGlobeAlt, HiSparkles, HiLightningBolt
+} from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -296,6 +300,12 @@ const AdminCountries = () => {
   const [categoriesText, setCategoriesText] = useState('');
   const [skillsText, setSkillsText] = useState('');
 
+  // Filters & Search State
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // all | live | inactive | incomplete
+  const [syncFilter, setSyncFilter] = useState('all'); // all | running | paused | stopped
+  const [showGuide, setShowGuide] = useState(true);
+
   useEffect(() => {
     fetchCountries();
   }, []);
@@ -445,6 +455,61 @@ const AdminCountries = () => {
     }
   };
 
+  const handleStartSync = async (id) => {
+    try {
+      await adminAPI.startCountrySync(id);
+      toast.success('Job ingestion pipeline STARTED');
+      fetchCountries();
+    } catch (err) {
+      toast.error('Failed to start sync pipeline');
+    }
+  };
+
+  const handlePauseSync = async (id) => {
+    try {
+      await adminAPI.pauseCountrySync(id);
+      toast.success('Job ingestion pipeline PAUSED');
+      fetchCountries();
+    } catch (err) {
+      toast.error('Failed to pause sync pipeline');
+    }
+  };
+
+  const handleStopSync = async (id) => {
+    try {
+      await adminAPI.stopCountrySync(id);
+      toast.success('Job ingestion pipeline STOPPED');
+      fetchCountries();
+    } catch (err) {
+      toast.error('Failed to stop sync pipeline');
+    }
+  };
+
+  // Filtered countries logic
+  const filteredCountries = countries.filter(country => {
+    const q = search.trim().toLowerCase();
+    const matchesSearch = !q ||
+      (country.countryName && country.countryName.toLowerCase().includes(q)) ||
+      (country.countryCode && country.countryCode.toLowerCase().includes(q)) ||
+      (country.currency && country.currency.toLowerCase().includes(q)) ||
+      (country.timezone && country.timezone.toLowerCase().includes(q));
+
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'live' && country.isActive) ||
+      (statusFilter === 'inactive' && !country.isActive) ||
+      (statusFilter === 'incomplete' && country.validationStatus !== 'active');
+
+    const syncState = country.syncRules?.syncState || (country.isJobSyncEnabled ? 'running' : 'stopped');
+    const matchesSync =
+      syncFilter === 'all' ||
+      (syncFilter === 'running' && (syncState === 'running' || country.isJobSyncEnabled)) ||
+      (syncFilter === 'paused' && syncState === 'paused') ||
+      (syncFilter === 'stopped' && (syncState === 'stopped' && !country.isJobSyncEnabled));
+
+    return matchesSearch && matchesStatus && matchesSync;
+  });
+
   const handleDeleteClick = (country) => {
     setDeleteModal({
       open: true,
@@ -485,117 +550,346 @@ const AdminCountries = () => {
     );
   }
 
+  // Stats calculation
+  const totalCount = countries.length;
+  const liveCount = countries.filter(c => c.isActive).length;
+  const runningSyncCount = countries.filter(c => c.isJobSyncEnabled && (c.syncRules?.syncState === 'running' || !c.syncRules?.syncState)).length;
+  const pausedSyncCount = countries.filter(c => c.syncRules?.syncState === 'paused').length;
+
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-      <div className="flex items-center justify-between mb-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Country Control Engine</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage pricing, job source sync rules, SEO landing pages, and notification rules dynamically by country.</p>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <HiGlobeAlt className="w-7 h-7 text-indigo-600" /> Country Configuration & Ingestion Engine
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Configure regional settings (pricing, currency, taxes, ATS sources) and control multi-country automated job ingestion pipelines.
+          </p>
         </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium shadow-md shadow-blue-500/10"
-        >
-          <HiPlus className="w-5 h-5" /> Add Country Config
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowGuide(!showGuide)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition text-sm font-medium"
+          >
+            <HiInformationCircle className="w-4 h-4 text-indigo-600" />
+            {showGuide ? 'Hide Guide' : 'Workflow Guide'}
+            {showGuide ? <HiChevronUp className="w-4 h-4" /> : <HiChevronDown className="w-4 h-4" />}
+          </button>
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium shadow-md shadow-blue-500/10 text-sm"
+          >
+            <HiPlus className="w-4 h-4" /> Add Country Config
+          </button>
+        </div>
       </div>
 
-      {/* Checklist Banner */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-sm overflow-hidden mb-6">
+      {/* Purpose & Workflow Banner */}
+      {showGuide && (
+        <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-2xl p-6 mb-6 shadow-lg relative overflow-hidden">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 bg-indigo-500/30 text-indigo-200 text-xs font-semibold rounded-full border border-indigo-400/30 flex items-center gap-1">
+                <HiSparkles className="w-3.5 h-3.5 text-yellow-300" /> Country Engine Lifecycle
+              </span>
+              <h2 className="text-lg font-bold text-white">How Country Configuration Works</h2>
+            </div>
+            <button onClick={() => setShowGuide(false)} className="text-indigo-200 hover:text-white transition">
+              <HiX className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+            <div className="bg-white/10 backdrop-blur-sm p-3.5 rounded-xl border border-white/10">
+              <div className="font-bold text-indigo-200 mb-1 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[10px]">1</span>
+                Regional Setup
+              </div>
+              <p className="text-indigo-100">Set 2-letter ISO code (e.g. IN, US), currency, timezone, tax rates, and allowed job/ATS sources.</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm p-3.5 rounded-xl border border-white/10">
+              <div className="font-bold text-indigo-200 mb-1 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[10px]">2</span>
+                Checklist Validation
+              </div>
+              <p className="text-indigo-100">Click 🛡️ Check Validation to run automatic completeness tests on pricing, languages, and SEO rules.</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm p-3.5 rounded-xl border border-white/10">
+              <div className="font-bold text-indigo-200 mb-1 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[10px]">3</span>
+                Pipeline Controls
+              </div>
+              <p className="text-indigo-100">Use <strong className="text-emerald-300">▶ Start</strong>, <strong className="text-amber-300">⏸ Pause</strong>, or <strong className="text-red-300">⏹ Stop</strong> to control automated job scraping for that country.</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm p-3.5 rounded-xl border border-white/10">
+              <div className="font-bold text-indigo-200 mb-1 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[10px]">4</span>
+                Market Activation
+              </div>
+              <p className="text-indigo-100">Toggle <strong className="text-emerald-300">Activate</strong> to open public site search, candidate profiles, and recruiter matching for that country.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* KPI Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Countries</div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{totalCount}</div>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+          <div className="text-xs font-semibold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Markets
+          </div>
+          <div className="text-2xl font-bold text-emerald-700 mt-1">{liveCount}</div>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+          <div className="text-xs font-semibold text-indigo-600 uppercase tracking-wider flex items-center gap-1">
+            <HiLightningBolt className="w-3.5 h-3.5 text-indigo-600" /> Active Sync Pipelines
+          </div>
+          <div className="text-2xl font-bold text-indigo-700 mt-1">{runningSyncCount} <span className="text-xs font-normal text-gray-400">({pausedSyncCount} paused)</span></div>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+          <div className="text-xs font-semibold text-amber-600 uppercase tracking-wider">Pending Setup</div>
+          <div className="text-2xl font-bold text-amber-700 mt-1">{totalCount - liveCount}</div>
+        </div>
+      </div>
+
+      {/* Filters Bar */}
+      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto flex-1">
+          {/* Search Input */}
+          <div className="relative w-full md:w-72">
+            <HiSearch className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search country, code, currency..."
+              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <HiX className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <HiFilter className="w-4 h-4 text-gray-400 hidden sm:block" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full md:w-44 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            >
+              <option value="all">All Market Statuses</option>
+              <option value="live">LIVE Markets</option>
+              <option value="inactive">INACTIVE Markets</option>
+              <option value="incomplete">Setup Incomplete</option>
+            </select>
+          </div>
+
+          {/* Ingestion Sync Filter */}
+          <select
+            value={syncFilter}
+            onChange={(e) => setSyncFilter(e.target.value)}
+            className="w-full md:w-48 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+          >
+            <option value="all">All Sync Pipelines</option>
+            <option value="running">▶ Sync Running</option>
+            <option value="paused">⏸ Sync Paused</option>
+            <option value="stopped">⏹ Sync Stopped</option>
+          </select>
+        </div>
+
+        {/* Clear Filters Button */}
+        {(search || statusFilter !== 'all' || syncFilter !== 'all') && (
+          <button
+            onClick={() => { setSearch(''); setStatusFilter('all'); setSyncFilter('all'); }}
+            className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition"
+          >
+            <HiRefresh className="w-3.5 h-3.5" /> Clear Filters ({filteredCountries.length} shown)
+          </button>
+        )}
+      </div>
+
+      {/* Main Countries Table */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Country</th>
-                <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Currency</th>
-                <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Timezone</th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Currency & TZ</th>
                 <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Checklist Status</th>
-                <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Job Ingestion</th>
-                <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Job Ingestion Pipeline</th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Market Status</th>
                 <th className="px-6 py-3.5 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100 text-sm">
-              {countries.map((country) => (
-                <tr key={country._id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap font-semibold text-gray-900">
-                    {country.countryName} <span className="font-mono text-xs text-indigo-600 font-bold ml-1">{country.countryCode}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">{country.currency} ({country.currencySymbol})</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500 font-mono text-xs">{country.timezone || 'Not Set'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                        country.validationStatus === 'active'
-                          ? 'bg-green-50 text-green-700'
-                          : country.validationStatus === 'draft'
-                            ? 'bg-indigo-50 text-indigo-700'
-                            : 'bg-yellow-50 text-yellow-700'
-                      }`}
-                    >
-                      {country.validationStatus || 'setup_incomplete'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        country.isJobSyncEnabled ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'
-                      }`}
-                    >
-                      {country.isJobSyncEnabled ? 'Sync Enabled' : 'Sync Disabled'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                        country.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {country.isActive ? 'LIVE' : 'INACTIVE'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end items-center gap-2">
-                      <button
-                        onClick={() => runValidation(country._id)}
-                        className="p-1.5 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded-lg transition"
-                        title="Check Validation"
-                      >
-                        <HiShieldCheck className="w-4.5 h-4.5" />
-                      </button>
-                      {country.isActive ? (
-                        <button
-                          onClick={() => handleDeactivate(country._id)}
-                          className="px-2 py-1 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg text-xs font-semibold transition"
-                        >
-                          Deactivate
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleActivate(country._id)}
-                          className="px-2 py-1 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-semibold transition"
-                        >
-                          Activate
-                        </button>
-                      )}
-                      <button
-                        onClick={() => openEdit(country)}
-                        className="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition"
-                        title="Edit Config"
-                      >
-                        <HiPencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(country)}
-                        className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
-                        title="Delete"
-                      >
-                        <HiTrash className="w-4 h-4" />
-                      </button>
-                    </div>
+              {filteredCountries.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    No country configurations match the selected filter criteria.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredCountries.map((country) => {
+                  const syncState = country.syncRules?.syncState || (country.isJobSyncEnabled ? 'running' : 'stopped');
+                  return (
+                    <tr key={country._id} className="hover:bg-gray-50/50 transition-colors">
+                      {/* Country Name & Code */}
+                      <td className="px-6 py-4 whitespace-nowrap font-semibold text-gray-900">
+                        {country.countryName}{' '}
+                        <span className="font-mono text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-bold ml-1">
+                          {country.countryCode}
+                        </span>
+                      </td>
+
+                      {/* Currency & Timezone */}
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                        <div className="font-medium text-gray-900">{country.currency} ({country.currencySymbol || '$'})</div>
+                        <div className="text-xs text-gray-400 font-mono">{country.timezone || 'Not set'}</div>
+                      </td>
+
+                      {/* Checklist Status */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                            country.validationStatus === 'active'
+                              ? 'bg-green-50 text-green-700'
+                              : country.validationStatus === 'draft'
+                                ? 'bg-indigo-50 text-indigo-700'
+                                : 'bg-yellow-50 text-yellow-700'
+                          }`}
+                        >
+                          {country.validationStatus || 'setup_incomplete'}
+                        </span>
+                      </td>
+
+                      {/* Job Ingestion Pipeline Status & Controls */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex flex-col gap-1.5">
+                          {/* Sync State Badge */}
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                syncState === 'running'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : syncState === 'paused'
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    : 'bg-gray-100 text-gray-600 border border-gray-200'
+                              }`}
+                            >
+                              <span className={`w-2 h-2 rounded-full ${
+                                syncState === 'running' ? 'bg-emerald-500 animate-pulse' : syncState === 'paused' ? 'bg-amber-500' : 'bg-gray-400'
+                              }`}></span>
+                              {syncState === 'running' ? 'Running' : syncState === 'paused' ? 'Paused' : 'Stopped'}
+                            </span>
+                          </div>
+
+                          {/* Ingestion Control Buttons: Start, Pause, Stop */}
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleStartSync(country._id)}
+                              disabled={syncState === 'running'}
+                              className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition ${
+                                syncState === 'running'
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                              }`}
+                              title="Start job ingestion pipeline"
+                            >
+                              <HiPlay className="w-3 h-3" /> Start
+                            </button>
+                            <button
+                              onClick={() => handlePauseSync(country._id)}
+                              disabled={syncState === 'paused'}
+                              className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition ${
+                                syncState === 'paused'
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                              }`}
+                              title="Pause job ingestion pipeline"
+                            >
+                              <HiPause className="w-3 h-3" /> Pause
+                            </button>
+                            <button
+                              onClick={() => handleStopSync(country._id)}
+                              disabled={syncState === 'stopped'}
+                              className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition ${
+                                syncState === 'stopped'
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                              }`}
+                              title="Stop job ingestion pipeline"
+                            >
+                              <HiStop className="w-3 h-3" /> Stop
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Market Activation Status */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                            country.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
+                          {country.isActive ? 'LIVE' : 'INACTIVE'}
+                        </span>
+                      </td>
+
+                      {/* Row Actions */}
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end items-center gap-2">
+                          <button
+                            onClick={() => runValidation(country._id)}
+                            className="p-1.5 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded-lg transition"
+                            title="Run Setup Validation"
+                          >
+                            <HiShieldCheck className="w-4.5 h-4.5" />
+                          </button>
+                          {country.isActive ? (
+                            <button
+                              onClick={() => handleDeactivate(country._id)}
+                              className="px-2.5 py-1 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg text-xs font-semibold transition"
+                            >
+                              Deactivate
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleActivate(country._id)}
+                              className="px-2.5 py-1 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-semibold transition"
+                            >
+                              Activate
+                            </button>
+                          )}
+                          <button
+                            onClick={() => openEdit(country)}
+                            className="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition"
+                            title="Edit Config"
+                          >
+                            <HiPencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(country)}
+                            className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
+                            title="Delete"
+                          >
+                            <HiTrash className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

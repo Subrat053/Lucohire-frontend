@@ -455,8 +455,14 @@ export const adminAPI = {
   getSettings: () => ADMIN_API.get("/admin/settings"),
   updateSettings: (data) => ADMIN_API.put("/admin/settings", data),
   getRotationPools: () => ADMIN_API.get("/admin/rotation-pools"),
+  createRotationPool: (data) => ADMIN_API.post("/admin/rotation-pools", data),
   updateRotationPool: (id, data) =>
     ADMIN_API.put(`/admin/rotation-pools/${id}`, data),
+  startRotationPool: (id) => ADMIN_API.post(`/admin/rotation-pools/${id}/start`),
+  pauseRotationPool: (id) => ADMIN_API.post(`/admin/rotation-pools/${id}/pause`),
+  stopRotationPool: (id) => ADMIN_API.post(`/admin/rotation-pools/${id}/stop`),
+  advanceRotationPool: (id) => ADMIN_API.post(`/admin/rotation-pools/${id}/advance`),
+  deleteRotationPool: (id) => ADMIN_API.delete(`/admin/rotation-pools/${id}`),
   getPayments: (params) => ADMIN_API.get("/admin/payments", { params }),
   getProviderSubscriptions: (params) =>
     ADMIN_API.get("/admin/provider-subscriptions", { params }),
@@ -576,6 +582,8 @@ export const adminAPI = {
     ADMIN_API.put("/admin/cloudinary-settings", data),
   getWhatsappLogs: (params) =>
     ADMIN_API.get("/admin/whatsapp-logs", { params }),
+  getOtpLogs: (params) =>
+    ADMIN_API.get("/admin/logs/otp", { params }),
   getWhatsappSettings: () => ADMIN_API.get("/admin/whatsapp-settings"),
   updateWhatsappSettings: (data) =>
     ADMIN_API.put("/admin/whatsapp-settings", data),
@@ -610,7 +618,7 @@ export const adminAPI = {
   getOcrReviewQueue: () => API.get("/admin/ai/ocr-review-queue"),
   updateOcrReviewDecision: (id, data) =>
     API.put(`/admin/ai/ocr-review-queue/${id}`, data),
-  getAIUsageDashboard: () => API.get("/admin/ai/usage-dashboard"),
+  getAIUsageDashboard: (params) => API.get("/admin/ai/usage-dashboard", { params }),
   getAIUsageLogs: (params) => API.get("/admin/ai/usage-logs", { params }),
   getDemandSnapshots: () => API.get("/admin/ai/demand-snapshots"),
   getAIFeatureSettings: () => API.get("/admin/ai/feature-settings"),
@@ -635,6 +643,7 @@ export const adminAPI = {
     ADMIN_API.patch(`/admin/partners/rewards/${id}/status`, data),
   markRewardsPaid: (data) =>
     ADMIN_API.post("/admin/partners/rewards/mark-paid", data),
+  getPublicCompanyDetails: () => API.get("/public/company-details"),
   getCountries: () => ADMIN_API.get("/admin/countries"),
   createCountryConfig: (data) => ADMIN_API.post("/admin/countries", data),
   updateCountryConfig: (id, data) =>
@@ -646,6 +655,12 @@ export const adminAPI = {
     ADMIN_API.post(`/admin/countries/${id}/activate`),
   deactivateCountryConfig: (id) =>
     ADMIN_API.post(`/admin/countries/${id}/deactivate`),
+  startCountrySync: (id) =>
+    ADMIN_API.post(`/admin/countries/${id}/start-sync`),
+  pauseCountrySync: (id) =>
+    ADMIN_API.post(`/admin/countries/${id}/pause-sync`),
+  stopCountrySync: (id) =>
+    ADMIN_API.post(`/admin/countries/${id}/stop-sync`),
 
   // External Job Sources
   getJobSources: () => ADMIN_API.get("/admin/job-sources"),

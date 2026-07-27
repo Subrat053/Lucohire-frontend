@@ -2,9 +2,39 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import useTranslation from '../../hooks/useTranslation';
 import { useState, useEffect } from 'react';
-import { FaFacebookF, FaInstagram, FaLinkedinIn, FaTwitter } from "react-icons/fa";
-import { Lock, ShieldCheck, FileCheck } from "lucide-react";
-import { ADMIN_API } from '../../services/api';
+import {
+  FaFacebookF, FaInstagram, FaLinkedinIn, FaTwitter, FaYoutube,
+  FaWhatsapp, FaTelegram, FaGithub, FaDiscord, FaTiktok, FaPinterest, FaReddit, FaGlobe
+} from "react-icons/fa";
+import { Lock, ShieldCheck, FileCheck, Award, Mail, Phone, MapPin } from "lucide-react";
+import { ADMIN_API, adminAPI } from '../../services/api';
+
+const ICON_MAP = {
+  facebook: FaFacebookF,
+  twitter: FaTwitter,
+  linkedin: FaLinkedinIn,
+  instagram: FaInstagram,
+  youtube: FaYoutube,
+  whatsapp: FaWhatsapp,
+  telegram: FaTelegram,
+  github: FaGithub,
+  discord: FaDiscord,
+  tiktok: FaTiktok,
+  pinterest: FaPinterest,
+  reddit: FaReddit,
+};
+
+const getSocialEntries = (socials) => {
+  if (socials && Array.isArray(socials._list)) {
+    return socials._list.filter(item => item.enabled && item.url);
+  }
+  if (socials && typeof socials === 'object') {
+    return Object.entries(socials)
+      .filter(([k, url]) => k !== '_list' && url)
+      .map(([key, url]) => ({ key, url }));
+  }
+  return [];
+};
 
 const Footer = () => {
   const { user } = useAuth();
@@ -16,19 +46,36 @@ const Footer = () => {
     linkedin: 'https://linkedin.com/company/lucohire',
     instagram: 'https://instagram.com/lucohire'
   });
+  const [companyDetails, setCompanyDetails] = useState({
+    companyName: 'Lucohire',
+    registrationDetails: '',
+    footerDescription: '',
+    addressLine1: '',
+    addressLine2: '',
+    gstNumber: '',
+    copyrightText: '',
+    supportEmail: '',
+    supportPhone: '',
+  });
 
   useEffect(() => {
-    const fetchSocials = async () => {
+    const fetchData = async () => {
       try {
-        const res = await ADMIN_API.get('/admin/content/socials');
-        if (res.data) {
-          setSocials(res.data);
+        const [socRes, compRes] = await Promise.allSettled([
+          ADMIN_API.get('/admin/content/socials'),
+          adminAPI.getPublicCompanyDetails(),
+        ]);
+        if (socRes.status === 'fulfilled' && socRes.value.data) {
+          setSocials(socRes.value.data);
+        }
+        if (compRes.status === 'fulfilled' && compRes.value.data) {
+          setCompanyDetails(compRes.value.data);
         }
       } catch (err) {
-        console.error('Failed to load socials:', err);
+        console.error('Failed to load footer metadata:', err);
       }
     };
-    fetchSocials();
+    fetchData();
   }, []);
 
   const sections = [
@@ -64,29 +111,82 @@ const Footer = () => {
   return (
     <footer className="bg-[#081B3A] text-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
+        {/* Brand Column */}
         <div className="col-span-1 md:col-span-2 lg:col-span-1">
-          <div className="flex items-center gap-2.5 mb-6">
+          <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center">
-              <span className="text-[#081B3A] font-bold text-lg scale-125">L</span>
+              <span className="text-[#081B3A] font-bold text-lg scale-125">
+                {(companyDetails.companyName || 'L').charAt(0)}
+              </span>
             </div>
             <div className="leading-none">
-              <p className="font-extrabold text-white tracking-tight">Lucohire</p>
-              <p className="text-[9px] font-semibold tracking-[0.2em] text-gray-400 mt-0.5">AI HIRING</p>
+              <p className="font-extrabold text-white tracking-tight">{companyDetails.companyName || 'Lucohire'}</p>
+              <p className="text-[9px] font-semibold tracking-[0.2em] text-gray-400 mt-0.5">AI HIRING PLATFORM</p>
             </div>
           </div>
-          <p className="text-sm text-gray-400 leading-relaxed">
-            {t('footer.description', 'India\'s AI-powered hiring platform. Verified providers, fair distribution, WhatsApp-first.')}
+
+          {/* Dynamic Footer Short Description / Tagline */}
+          <p className="text-sm text-gray-400 leading-relaxed mb-4">
+            {companyDetails.footerDescription || t('footer.description', "India's AI-powered hiring platform. Verified providers, fair distribution, WhatsApp-first.")}
           </p>
+
+          {/* Government Certification / Registration Details Box */}
+          {companyDetails.registrationDetails && (
+            <div className="my-4 p-3 bg border border border-emerald-500/30 rounded-xl text-xs text-emerald-200 bg-emerald-950/40 flex items-start gap-2.5">
+              <Award className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold text-white block mb-0.5">Government Registration & Certification</span>
+                <span className="leading-snug text-emerald-100 font-medium">{companyDetails.registrationDetails}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Address & Contact Info if present */}
+          {(companyDetails.addressLine1 || companyDetails.supportEmail || companyDetails.supportPhone) && (
+            <div className="space-y-1.5 text-xs text-gray-400 mt-3 pt-3 border-t border-blue-900/50">
+              {companyDetails.addressLine1 && (
+                <div className="flex items-start gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
+                  <span>{companyDetails.addressLine1}{companyDetails.addressLine2 ? `, ${companyDetails.addressLine2}` : ''}</span>
+                </div>
+              )}
+              {companyDetails.supportEmail && (
+                <div className="flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                  <a href={`mailto:${companyDetails.supportEmail}`} className="hover:text-white transition">{companyDetails.supportEmail}</a>
+                </div>
+              )}
+              {companyDetails.supportPhone && (
+                <div className="flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                  <a href={`tel:${companyDetails.supportPhone}`} className="hover:text-white transition">{companyDetails.supportPhone}</a>
+                </div>
+              )}
+            </div>
+          )}
           
           {/* Social Icons */}
-          <div className="flex items-center gap-4 mt-6">
-            {socials?.facebook && <a href={socials.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><FaFacebookF size={18} /></a>}
-            {socials?.twitter && <a href={socials.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><FaTwitter size={18} /></a>}
-            {socials?.linkedin && <a href={socials.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><FaLinkedinIn size={18} /></a>}
-            {socials?.instagram && <a href={socials.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><FaInstagram size={18} /></a>}
+          <div className="flex flex-wrap items-center gap-3.5 mt-5">
+            {getSocialEntries(socials).map((item, idx) => {
+              const key = (item.key || '').toLowerCase();
+              const IconComp = ICON_MAP[key] || FaGlobe;
+              return (
+                <a
+                  key={key || idx}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-full bg-blue-900/50 hover:bg-blue-600 text-gray-300 hover:text-white flex items-center justify-center transition-all shadow-xs"
+                  title={item.name || key}
+                >
+                  <IconComp size={15} />
+                </a>
+              );
+            })}
           </div>
         </div>
 
+        {/* Dynamic Navigation Link Columns */}
         {sections.map((section) => (
           <div key={section.title}>
             <h4 className="font-semibold text-white mb-6">{section.title}</h4>
@@ -104,7 +204,7 @@ const Footer = () => {
           </div>
         ))}
 
-
+        {/* Newsletter Column */}
         <div>
           <h4 className="font-semibold text-white mb-6">
             {t('footer.support', 'Stay Updated')}
@@ -137,11 +237,17 @@ const Footer = () => {
         </div>
       </div>
 
+      {/* Bottom Bar: Copyright & Compliance */}
       <div className="border-t border-[#1C3A66]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-          <span>{t('footer.copyrightSimple', '© 2025 Lucohire. All rights reserved.')}</span>
+          <span>{companyDetails.copyrightText || t('footer.copyrightSimple', '© 2026 Lucohire. All rights reserved.')}</span>
           
           <div className="flex flex-wrap items-center gap-6">
+            {companyDetails.gstNumber && (
+              <span className="text-xs bg-blue-900/60 border border-blue-700/40 text-blue-200 px-2.5 py-1 rounded-md font-mono font-medium">
+                GSTIN: {companyDetails.gstNumber}
+              </span>
+            )}
             <div className="flex items-center gap-2">
               <Lock className="w-4 h-4 text-blue-400" />
               <span>Secure</span>
