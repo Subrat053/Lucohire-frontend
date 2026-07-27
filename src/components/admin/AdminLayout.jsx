@@ -114,43 +114,10 @@ const navItems = [
   },
   {
     labelKey: "admin.automatedPipeline",
-    fallback: "Automated Pipeline",
+    fallback: "Unified Data Pipeline",
     path: "/admin/pipeline",
-    icon: HiCollection,
-    adminOnly: true,
-  },
-  {
-    labelKey: "admin.dataPipeline",
-    fallback: "Data Pipeline & Sync",
     icon: HiDatabase,
     adminOnly: true,
-    subItems: [
-      {
-        labelKey: "admin.dataPipelineOverview",
-        fallback: "Overview & Runner",
-        path: "/admin/data-pipeline",
-      },
-      {
-        labelKey: "admin.dataPipelineSources",
-        fallback: "Global Sources",
-        path: "/admin/data-pipeline/sources",
-      },
-      {
-        labelKey: "admin.dataPipelineJobs",
-        fallback: "Synced Jobs Library",
-        path: "/admin/data-pipeline/jobs",
-      },
-      {
-        labelKey: "admin.dataPipelineReports",
-        fallback: "Sync Reports",
-        path: "/admin/data-pipeline/reports",
-      },
-      {
-        labelKey: "admin.dataPipelineErrors",
-        fallback: "Sync Errors",
-        path: "/admin/data-pipeline/errors",
-      },
-    ],
   },
   {
     labelKey: "admin.seoCommandCenter",

@@ -262,7 +262,7 @@ const Dashboard = () => {
                       </div>
                       <div className="text-xs text-gray-900 font-bold">{t("Interviews")}</div>
                     </div>
-                    <div className="text-2xl font-black text-gray-900 mb-2">{topStats.interviews || 5}</div>
+                    <div className="text-2xl font-black text-gray-900 mb-2">0</div>
                     <Link to="/recruiter/interviews" className="text-xs font-bold text-indigo-600 hover:underline mt-auto">{t("View schedule →")}</Link>
                   </div>
                   <div className="p-4 text-center flex flex-col items-center">
@@ -272,7 +272,7 @@ const Dashboard = () => {
                       </div>
                       <div className="text-xs text-gray-900 font-bold">{t("Offers")}</div>
                     </div>
-                    <div className="text-2xl font-black text-gray-900 mb-2">3</div>
+                    <div className="text-2xl font-black text-gray-900 mb-2">0</div>
                     <Link to="/recruiter/offers" className="text-xs font-bold text-indigo-600 hover:underline mt-auto">{t("View offers →")}</Link>
                   </div>
                   <div className="p-4 text-center flex flex-col items-center">

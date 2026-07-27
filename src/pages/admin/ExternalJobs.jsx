@@ -11,10 +11,23 @@ const ExternalJobs = ({ defaultFilters = {} }) => {
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
   const [uniqueCompaniesCount, setUniqueCompaniesCount] = useState(0);
   const [refreshingId, setRefreshingId] = useState(null);
+  const [sources, setSources] = useState([]);
 
   useEffect(() => {
     fetchJobs();
   }, [filters]);
+
+  useEffect(() => {
+    const fetchSources = async () => {
+      try {
+        const { data } = await adminAPI.getJobSources();
+        setSources(data.sources || []);
+      } catch (err) {
+        console.error('Failed to load sources for filter', err);
+      }
+    };
+    fetchSources();
+  }, []);
 
   const fetchJobs = async () => {
     try {
@@ -158,18 +171,9 @@ const ExternalJobs = ({ defaultFilters = {} }) => {
                     className="w-full text-xs font-bold text-gray-700 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all capitalize"
                   >
                     <option value="">All Sources</option>
-                    <option value="greenhouse">Greenhouse</option>
-                    <option value="lever">Lever</option>
-                    <option value="ashby">Ashby</option>
-                    <option value="smartrecruiters">SmartRecruiters</option>
-                    <option value="workable">Workable</option>
-                    <option value="adzuna">Adzuna</option>
-                    <option value="jooble">Jooble</option>
-                    <option value="usajobs">USAJobs</option>
-                    <option value="themuse">The Muse</option>
-                    <option value="arbeitnow">Arbeitnow</option>
-                    <option value="remoteok">RemoteOK</option>
-                    <option value="remotive">Remotive</option>
+                    {sources.map(src => (
+                      <option key={src._id} value={src.sourceName}>{src.sourceName}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="w-full sm:w-auto">

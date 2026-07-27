@@ -23,6 +23,8 @@ const SyncReports = () => {
   const [filters, setFilters] = useState({ status: '', source: '', country: '', page: 1 });
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
   const [stats, setStats] = useState([]);
+  const [sources, setSources] = useState([]);
+  
   
   const [expandedLogId, setExpandedLogId] = useState(null);
   const [sampleJobs, setSampleJobs] = useState([]);
@@ -32,6 +34,18 @@ const SyncReports = () => {
     fetchLogs();
     fetchStats();
   }, [filters]);
+
+  useEffect(() => {
+    const fetchSources = async () => {
+      try {
+        const { data } = await adminAPI.getJobSources();
+        setSources(data.sources || []);
+      } catch (err) {
+        console.error('Failed to load sources for filter', err);
+      }
+    };
+    fetchSources();
+  }, []);
 
   const fetchStats = async () => {
     try {
@@ -115,44 +129,7 @@ const SyncReports = () => {
           </div>
         </div>
 
-        {/* Stats Row */}
-        {stats.length > 0 && (
-          <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
-            {stats.map((stat, idx) => (
-              <div key={idx} className="min-w-[200px] shrink-0 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-lg shadow-sm border border-blue-100/50 overflow-hidden">
-                      <CountryFlag code={stat.countryCode} className="w-8 h-8 rounded-full object-cover" />
-                    </div>
-                    <span className="text-xs font-black text-gray-700 uppercase tracking-wider">{stat.countryCode}</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
-                    Source
-                  </span>
-                </div>
-                <div className="flex justify-between items-end">
-                  <div>
-                    <div className="text-2xl font-black text-gray-900 leading-none mb-1">
-                      {stat.totalFetched.toLocaleString()}
-                    </div>
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                      Jobs Fetched
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-black text-emerald-600 leading-none mb-1">
-                      +{stat.totalInserted.toLocaleString()}
-                    </div>
-                    <div className="text-[10px] font-bold text-emerald-600/70 uppercase tracking-wider">
-                      Inserted
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+
 
         {/* Main Layout */}
         <div className="flex flex-col xl:flex-row gap-6 items-start">
@@ -399,15 +376,9 @@ const SyncReports = () => {
                     className="w-full text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500 capitalize"
                   >
                     <option value="">All Sources</option>
-                    <option value="greenhouse">Greenhouse</option>
-                    <option value="lever">Lever</option>
-                    <option value="ashby">Ashby</option>
-                    <option value="smartrecruiters">SmartRecruiters</option>
-                    <option value="workable">Workable</option>
-                    <option value="adzuna">Adzuna</option>
-                    <option value="jooble">Jooble</option>
-                    <option value="usajobs">USAJobs</option>
-                    <option value="themuse">The Muse</option>
+                    {sources.map(src => (
+                      <option key={src._id} value={src.sourceName}>{src.sourceName}</option>
+                    ))}
                   </select>
                 </div>
               </div>

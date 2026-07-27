@@ -4,24 +4,29 @@ import QueryManager from './QueryManager';
 import ScanHistory from './ScanHistory';
 import NeedsReviewQueue from './NeedsReviewQueue';
 import MasterDataManagement from './MasterDataManagement';
-import FinalJobs from './FinalJobs';
+import JobSources from '../JobSources';
+import JobSourceBuilder from './JobSourceBuilder';
+import ExternalJobs from '../ExternalJobs';
+import SyncReports from '../SyncReports';
 
 const PipelineAdmin = () => {
   const [activeTab, setActiveTab] = useState('queries');
 
   const tabs = [
-    { id: 'queries', label: 'Manage Queries', icon: <HiOutlineSearchCircle className="w-5 h-5 mr-2" />, component: <QueryManager /> },
-    { id: 'scans', label: 'Scan Status & Logs', icon: <HiOutlineClock className="w-5 h-5 mr-2" />, component: <ScanHistory /> },
-    { id: 'jobs', label: 'Jobs Received', icon: <HiOutlineBriefcase className="w-5 h-5 mr-2" />, component: <FinalJobs /> },
+    { id: 'sources', label: 'API Integrations', icon: <HiOutlineDatabase className="w-5 h-5 mr-2" />, component: <JobSources /> },
+    { id: 'builder', label: 'Zero-Code Builder', icon: <HiOutlineDatabase className="w-5 h-5 mr-2" />, component: <JobSourceBuilder onSaveSuccess={() => setActiveTab('sources')} /> },
+    { id: 'queries', label: 'Scraping Rules', icon: <HiOutlineSearchCircle className="w-5 h-5 mr-2" />, component: <QueryManager /> },
+    { id: 'jobs', label: 'Master Job Pool', icon: <HiOutlineBriefcase className="w-5 h-5 mr-2" />, component: <ExternalJobs /> },
     { id: 'review', label: 'Needs Review', icon: <HiOutlineShieldCheck className="w-5 h-5 mr-2" />, component: <NeedsReviewQueue /> },
-    { id: 'master', label: 'Master Data', icon: <HiOutlineDatabase className="w-5 h-5 mr-2" />, component: <MasterDataManagement /> }
+    { id: 'scans', label: 'Sync Logs & Health', icon: <HiOutlineClock className="w-5 h-5 mr-2" />, component: <SyncReports /> },
+    { id: 'master', label: 'Master Data Mapping', icon: <HiOutlineDatabase className="w-5 h-5 mr-2" />, component: <MasterDataManagement /> }
   ];
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Automated Job Pipeline</h1>
-        <p className="text-gray-500 mt-2">Manage your automated scraping engine, monitor scan statuses, and review imported jobs.</p>
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Unified Data Pipeline</h1>
+        <p className="text-gray-500 mt-2">Manage your API integrations, zero-code webhooks, scraping engine, and master job pool.</p>
       </div>
       
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
