@@ -1,5 +1,5 @@
 import useTranslation from "../../hooks/useTranslation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
@@ -679,6 +679,22 @@ const ProviderJobs = () => {
   const [filters, setFilters] = useState({ skill: initialSkill, city: initialCity, origin: "all", source: "", experience: "" });
   const [search, setSearch] = useState({ skill: initialSkill, city: initialCity, origin: "all", source: "", experience: "" });
   const [otherExperience, setOtherExperience] = useState("");
+  const [showExpDropdown, setShowExpDropdown] = useState(false);
+  const expRef = useRef(null);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (expRef.current && !expRef.current.contains(event.target)) {
+        setShowExpDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.addEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const [recruiterProfileTarget, setRecruiterProfileTarget] = useState(null);
 
   const [aiMatchResults, setAiMatchResults] = useState(null);
@@ -1027,38 +1043,51 @@ const ProviderJobs = () => {
                     className="focus:ring-emerald-300"
                   />
                 </div>
-                <div className="flex-1 w-full">
+                <div className="flex-1 w-full relative" ref={expRef}>
                   <label className="block text-xs text-gray-500 font-medium mb-1">{t("Years of Experience")}</label>
-                  <select
+                  <input
+                    type="text"
                     value={filters.experience || ''}
+                    onFocus={() => setShowExpDropdown(true)}
                     onChange={(e) => {
                       const val = e.target.value;
-                      setFilters((f) => ({ ...f, experience: val }));
-                      setSearch((s) => ({ ...s, experience: val === "Other" ? otherExperience : val }));
-                    }}
-                    className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-300 outline-none text-sm text-gray-700 hover:border-gray-300 transition-colors"
-                  >
-                    <option value="">{t("Any Experience")}</option>
-                    <option value="Fresher">Fresher</option>
-                    <option value="0-2 Years">0-2 Years</option>
-                    <option value="3-5 Years">3-5 Years</option>
-                    <option value="5-7 Years">5-7 Years</option>
-                    <option value="7-9 Years">7-9 Years</option>
-                    <option value="10+ Years">10+ Years</option>
-                    <option value="Other">Other / Type manually</option>
-                  </select>
-                  {filters.experience === 'Other' && (
-                    <input 
-                      type="number"
-                      value={otherExperience}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setOtherExperience(val);
+                      // Only allow numbers or specific strings like "Fresher"
+                      if (val === "" || val === "Fresher" || /^[0-9+ -a-zA-Z]+$/.test(val)) {
+                        setFilters((f) => ({ ...f, experience: val }));
                         setSearch((s) => ({ ...s, experience: val }));
-                      }}
-                      placeholder="Enter years"
-                      className="w-full mt-2 h-11 px-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-300 outline-none text-sm text-gray-700 hover:border-gray-300 transition-colors"
-                    />
+                      }
+                      setShowExpDropdown(true);
+                    }}
+                    placeholder={t("Type years (e.g. 8) or select...")}
+                    className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-300 outline-none text-sm text-gray-700 hover:border-gray-300 transition-colors"
+                  />
+                  {showExpDropdown && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto py-1 text-sm text-gray-700">
+                      {["Fresher", "0-2 Years", "3-5 Years", "5-7 Years", "7-9 Years", "10+ Years"].filter(opt => {
+                        const val = filters.experience || "";
+                        const num = parseInt(val);
+                        if (isNaN(num)) return true; // Show all if no number typed
+                        if (num === 0) return opt === "Fresher" || opt === "0-2 Years";
+                        if (num >= 1 && num <= 2) return opt === "0-2 Years";
+                        if (num >= 3 && num <= 5) return opt === "3-5 Years";
+                        if (num >= 6 && num <= 7) return opt === "5-7 Years";
+                        if (num >= 8 && num <= 9) return opt === "7-9 Years";
+                        if (num >= 10) return opt === "10+ Years";
+                        return true;
+                      }).map((opt) => (
+                        <div
+                          key={opt}
+                          className="px-4 py-2.5 hover:bg-emerald-50 cursor-pointer transition-colors font-medium"
+                          onClick={() => {
+                            setFilters((f) => ({ ...f, experience: opt }));
+                            setSearch((s) => ({ ...s, experience: opt }));
+                            setShowExpDropdown(false);
+                          }}
+                        >
+                          {opt === "Fresher" ? t("Fresher (0 Years)") : opt}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-[200px] w-full">

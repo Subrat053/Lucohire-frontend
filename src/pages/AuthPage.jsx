@@ -1067,6 +1067,12 @@ const AuthPage = () => {
         appVerifier,
       );
       console.log("[PHONE OTP SENT]");
+      
+      try {
+        await authAPI.logFirebaseOtpAttempt({ phone: formattedPhone, channel: 'phone', purpose: mode === 'register' ? 'register' : 'login' });
+      } catch (err) {
+        console.error("Failed to log firebase attempt:", err);
+      }
 
       setConfirmationResult(result);
       const parsed = parsePhoneString(formattedPhone);

@@ -855,7 +855,7 @@ const AdminSettings = () => {
                       <th className="text-left py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Skill & Market</th>
                       <th className="text-left py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Status & Strategy</th>
                       <th className="text-left py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Providers In Pool</th>
-                      <th className="text-left py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Active Index</th>
+                      <th className="text-left py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Last Updated</th>
                       <th className="text-left py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Interval</th>
                       <th className="text-right py-3.5 px-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Command & Controls</th>
                     </tr>
@@ -892,24 +892,24 @@ const AdminSettings = () => {
                           </td>
 
                           {/* Providers in Pool */}
-                          <td className="py-4 px-4 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-extrabold">
+                          <td className="py-4 px-4">
+                            <div className="flex flex-col gap-2">
+                              <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-extrabold w-fit">
                                 {pool.providers?.length || 0} / {pool.maxPoolSize || 5} Max
                               </span>
                               <button
                                 onClick={() => setManageProvidersModal({ open: true, pool, selectedProviderId: '', weight: 1 })}
-                                className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold underline flex items-center gap-1"
+                                className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition-colors w-fit shrink-0"
                               >
-                                <HiUsers className="w-3.5 h-3.5" /> Manage Users
+                                <HiUsers className="w-4 h-4 shrink-0" /> Manage Priority
                               </button>
                             </div>
                           </td>
 
-                          {/* Active Index */}
+                          {/* Last Updated */}
                           <td className="py-4 px-4 whitespace-nowrap">
-                            <span className="font-mono text-xs font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded-md">
-                              Index #{pool.currentIndex || 0}
+                            <span className="text-xs text-gray-500 font-medium">
+                              {pool.updatedAt ? new Date(pool.updatedAt).toLocaleString() : 'N/A'}
                             </span>
                           </td>
 
@@ -919,70 +919,53 @@ const AdminSettings = () => {
                           </td>
 
                           {/* Command Controls */}
-                          <td className="py-4 px-4 whitespace-nowrap text-right">
-                            <div className="flex justify-end items-center gap-1.5">
+                          <td className="py-4 px-4 text-right">
+                            <div className="flex justify-end items-center gap-2 flex-wrap min-w-[200px]">
                               {/* Start / Pause / Stop Buttons */}
                               {poolStatus === 'running' ? (
                                 <button
                                   onClick={() => handlePausePool(pool._id)}
-                                  className="p-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-xs font-semibold transition"
+                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-xs font-semibold transition shrink-0"
                                   title="Pause Rotation"
                                 >
-                                  <HiPause className="w-4 h-4" />
+                                  <HiPause className="w-4 h-4 shrink-0" />
+                                  <span>Pause</span>
                                 </button>
                               ) : (
                                 <button
                                   onClick={() => handleStartPool(pool._id)}
-                                  className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition"
+                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition shrink-0"
                                   title="Start Rotation"
                                 >
-                                  <HiPlay className="w-4 h-4" />
+                                  <HiPlay className="w-4 h-4 shrink-0" />
+                                  <span>Start</span>
                                 </button>
                               )}
-                              {poolStatus !== 'stopped' && (
-                                <button
-                                  onClick={() => handleStopPool(pool._id)}
-                                  className="p-1.5 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg text-xs font-semibold transition"
-                                  title="Stop Rotation"
-                                >
-                                  <HiStop className="w-4 h-4" />
-                                </button>
-                              )}
-
-                              {/* Advance Step */}
-                              <button
-                                onClick={() => handleAdvancePool(pool._id)}
-                                className="p-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition"
-                                title="Manually rotate step now"
-                              >
-                                <HiLightningBolt className="w-4 h-4 text-indigo-600" />
-                              </button>
-
                               {/* Edit Config */}
                               <button
                                 onClick={() => setConfigPoolModal({ open: true, pool })}
-                                className="p-1.5 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition"
+                                className="p-1.5 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition shrink-0"
                                 title="Configure rotation duration & rules"
                               >
-                                <HiPencil className="w-4 h-4" />
+                                <HiPencil className="w-4 h-4 shrink-0" />
                               </button>
 
                               {/* View History Logs */}
                               <button
                                 onClick={() => setHistoryPoolModal({ open: true, pool })}
-                                className="p-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg transition"
+                                className="p-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg transition shrink-0"
                                 title="View Rotation Activity Logs"
                               >
-                                <HiClock className="w-4 h-4" />
+                                <HiClock className="w-4 h-4 shrink-0" />
                               </button>
 
                               {/* Delete */}
                               <button
                                 onClick={() => handleDeletePool(pool._id)}
-                                className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
+                                className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition shrink-0"
                                 title="Delete Pool"
                               >
-                                <HiTrash className="w-4 h-4" />
+                                <HiTrash className="w-4 h-4 shrink-0" />
                               </button>
                             </div>
                           </td>

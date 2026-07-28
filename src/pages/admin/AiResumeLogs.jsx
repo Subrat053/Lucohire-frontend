@@ -28,7 +28,6 @@ export default function AiResumeLogs() {
   
   // Filters State
   const [statusFilter, setStatusFilter] = useState('all');
-  const [aiProviderFilter, setAiProviderFilter] = useState('all');
   const [dateRange, setDateRange] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -44,7 +43,6 @@ export default function AiResumeLogs() {
         limit,
         search,
         status: statusFilter,
-        aiProvider: aiProviderFilter,
         dateRange,
         ...(dateRange === 'custom' && startDate ? { startDate } : {}),
         ...(dateRange === 'custom' && endDate ? { endDate } : {}),
@@ -59,10 +57,10 @@ export default function AiResumeLogs() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, statusFilter, aiProviderFilter, dateRange, startDate, endDate]);
+  }, [page, search, statusFilter, dateRange, startDate, endDate]);
 
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
-  useEffect(() => { setPage(1); }, [search, statusFilter, aiProviderFilter, dateRange, startDate, endDate]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, dateRange, startDate, endDate]);
 
   const formatDate = (d) => d ? new Date(d).toLocaleString() : '—';
   const formatConf = (c) => c != null ? `${Math.round(c * 100)}%` : '—';
@@ -70,13 +68,12 @@ export default function AiResumeLogs() {
   const resetFilters = () => {
     setSearch('');
     setStatusFilter('all');
-    setAiProviderFilter('all');
     setDateRange('all');
     setStartDate('');
     setEndDate('');
   };
 
-  const hasActiveFilters = search || statusFilter !== 'all' || aiProviderFilter !== 'all' || dateRange !== 'all' || startDate || endDate;
+  const hasActiveFilters = search || statusFilter !== 'all' || dateRange !== 'all' || startDate || endDate;
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -140,25 +137,7 @@ export default function AiResumeLogs() {
             >
               <option value="all">⚡ All Statuses</option>
               <option value="completed">✅ Completed</option>
-              <option value="failed">❌ Failed</option>
-              <option value="processing">🔄 Processing</option>
               <option value="pending">⏳ Pending</option>
-            </select>
-          </div>
-
-          {/* AI Provider Filter */}
-          <div className="shrink-0">
-            <select
-              value={aiProviderFilter}
-              onChange={e => setAiProviderFilter(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-purple-500 outline-none transition"
-            >
-              <option value="all">🤖 All AI Engines</option>
-              <option value="ai-pipeline">⚡ AI Pipeline (Auto)</option>
-              <option value="gemini">♊ Gemini AI</option>
-              <option value="openai">🧠 OpenAI</option>
-              <option value="anthropic">🤖 Claude Anthropic</option>
-              <option value="system_generated">⚙️ System Generated</option>
             </select>
           </div>
 

@@ -394,21 +394,23 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
       const profileSkills = report?.top_strengths ? report.top_strengths.slice(0, 3).map(s => typeof s === 'string' ? s : s.name || s.skill).join(', ') : '';
       const skillString = role + (profileSkills ? ` with skills: ${profileSkills}` : '');
       const userLocationStr = typeof user?.location === 'string' ? user.location : '';
-      let userCountry = user?.location?.country || user?.country || user?.profile?.country || user?.profile?.location?.country || userLocationStr || "India";
-      if (typeof userCountry === 'string' && ['us', 'usa', 'united states'].includes(userCountry.toLowerCase())) {
-        userCountry = "India"; // Override dummy DB data for testing
-      }
+      let baseCountry = user?.location?.country || user?.country || user?.profile?.country || user?.profile?.location?.country;
+      let userCountry = (typeof baseCountry === 'string' && baseCountry.trim()) ? baseCountry : "India";
       let userCity = user?.location?.city || user?.city || user?.profile?.city || user?.profile?.location?.city;
       if (!userCity && user?.locations?.[0]) {
         userCity = typeof user.locations[0] === 'string' ? user.locations[0] : user.locations[0].city || user.locations[0].name || '';
+      }
+      if (['us', 'usa', 'united states'].includes(userCountry.toLowerCase())) {
+        userCountry = "India"; // Override dummy DB data for testing
+        userCity = ""; // Clear city to avoid "New York, India" confusion
       }
       const loc = userCountry || userCity || report?.location || report?.city || 'India';
       
       const res = await providerAPI.getWageEstimate({
         skill: skillString,
-        cityName: userCity || '',
-        country: userCountry,
-        pricingType: 'monthly'
+        cityName: '', // Clear city to allow AI to generate top Indian cities generally
+        country: 'India', // Force India based on user requirement for Indian cities
+        pricingType: 'yearly'
       });
       if (res.data?.success) {
         setSalaryDetails(res.data.data);
@@ -480,9 +482,9 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
     topCities: "N/A"
   };
 
-  const userLocationStr = typeof user?.location === 'string' ? user.location : '';
-  let userCountry = user?.location?.country || user?.country || user?.profile?.country || user?.profile?.location?.country || userLocationStr || "India";
-  if (typeof userCountry === 'string' && ['us', 'usa', 'united states'].includes(userCountry.toLowerCase())) {
+  let baseCountry = user?.location?.country || user?.country || user?.profile?.country || user?.profile?.location?.country;
+  let userCountry = (typeof baseCountry === 'string' && baseCountry.trim()) ? baseCountry : "India";
+  if (['us', 'usa', 'united states'].includes(userCountry.toLowerCase())) {
     userCountry = "India";
   }
 

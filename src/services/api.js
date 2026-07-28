@@ -161,6 +161,7 @@ export const authAPI = {
   loginEmail: (data) => AUTH_API.post("/auth/login-email", data),
   googleLogin: (data) => AUTH_API.post("/auth/google-login", data),
   phoneLogin: (data) => AUTH_API.post("/auth/phone-login", data),
+  logFirebaseOtpAttempt: (data) => AUTH_API.post("/auth/log-firebase-otp", data),
   getMe: () => AUTH_API.get("/auth/me"),
   switchRole: (data) => API.post("/auth/switch-role", data),
   switchPanel: (data) => API.patch("/auth/switch-panel", data),

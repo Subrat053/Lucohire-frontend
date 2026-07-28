@@ -1063,6 +1063,7 @@ const ProviderProfile = () => {
         };
 
         setForm(defaultForm);
+        setAgreedToTerms(Boolean(data.user?.termsAccepted));
 
         if (displayPhoto) setPhotoPreview(toAbsoluteMediaUrl(displayPhoto));
         hasInitialized.current = true;
@@ -1679,6 +1680,7 @@ const ProviderProfile = () => {
         projects: form.projects,
         isPublicProfile: form.isPublicProfile,
         whatsappConsent: form.whatsappConsent,
+        termsAccepted: agreedToTerms,
         firebaseToken: finalToken || undefined,
       };
       // sanitizePayload only touches string fields, leaves arrays/numbers intact
@@ -1697,6 +1699,7 @@ const ProviderProfile = () => {
       payload.contactVisibility = rawPayload.contactVisibility;
       payload.isPublicProfile = rawPayload.isPublicProfile;
       payload.whatsappConsent = rawPayload.whatsappConsent;
+      payload.termsAccepted = rawPayload.termsAccepted;
 
       const { data } = await providerAPI.updateProfile(payload);
       setCompletion(data.profileCompletion || completion);
