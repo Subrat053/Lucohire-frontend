@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, UserPlus, ShieldCheck, Hourglass, Ban, 
   Search, Filter, Download, MoreVertical, Eye, X, 
-  MapPin, Calendar, Briefcase, ChevronLeft, ChevronRight, CheckCircle2, PauseCircle
+  MapPin, Calendar, Briefcase, ChevronLeft, ChevronRight, CheckCircle2, PauseCircle, ChevronDown
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { adminAPI } from '../../services/api';
@@ -14,6 +14,98 @@ const statusColors = {
   Pending: 'bg-amber-50 text-amber-700 border-amber-200',
   Rejected: 'bg-red-50 text-red-700 border-red-200',
   Suspended: 'bg-purple-50 text-purple-700 border-purple-200',
+};
+
+// --- Components ---
+const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder, fullWidth = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = React.useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+        if (searchTerm && !options.some(opt => opt.toLowerCase() === searchTerm.toLowerCase())) {
+          setValue(searchTerm);
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchTerm, options, setValue]);
+
+  const filteredOptions = options.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  return (
+    <div className={`relative ${fullWidth ? 'w-full' : ''}`} ref={wrapperRef}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center text-xs bg-white border rounded-lg px-4 py-2 cursor-pointer transition whitespace-nowrap min-w-[130px] ${fullWidth ? 'w-full justify-between' : ''} ${isOpen ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-gray-50' : 'border-gray-200 hover:bg-gray-50 text-gray-700'}`}
+      >
+        <div className="flex items-center gap-1.5 overflow-hidden">
+          {Icon && <Icon className="w-3.5 h-3.5 shrink-0 text-gray-400" />}
+          <span className={`truncate ${value ? "text-gray-900 font-bold capitalize" : "text-gray-600 font-bold"}`}>
+            {value || label}
+          </span>
+        </div>
+        <ChevronDown className={`w-3.5 h-3.5 shrink-0 ml-auto transition-transform ${isOpen ? 'rotate-180 text-emerald-500' : 'text-gray-400'}`} />
+      </div>
+
+      {isOpen && (
+        <div className={`absolute z-50 top-full mt-1 ${fullWidth ? 'left-0 w-full' : 'right-0 w-48'} bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden flex flex-col`}>
+          <div className="p-2 border-b border-gray-50">
+            <input
+              type="text"
+              autoFocus
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              placeholder={placeholder || `Search...`}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  setValue(searchTerm);
+                  setIsOpen(false);
+                }
+              }}
+            />
+          </div>
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt, i) => (
+                <li 
+                  key={i}
+                  className="px-3 py-2 text-xs text-gray-700 hover:bg-emerald-50 cursor-pointer capitalize font-medium"
+                  onClick={() => {
+                    setValue(opt);
+                    setSearchTerm('');
+                    setIsOpen(false);
+                  }}
+                >
+                  {opt}
+                </li>
+              ))
+            ) : (
+              <li className="px-3 py-2 text-xs text-gray-400 text-center">No match found</li>
+            )}
+            {value && (
+              <li 
+                className="px-3 py-2 text-xs text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
+                onClick={() => {
+                  setValue('');
+                  setSearchTerm('');
+                  setIsOpen(false);
+                }}
+              >
+                Clear selection
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 };
 
 // --- Helper Functions ---
@@ -545,39 +637,49 @@ export default function RecruiterApprovals() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 mb-1.5">Status</label>
-                  <select 
-                    value={statusFilter} 
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500"
-                  >
-                    <option value="">All Status</option>
-                    <option value="approved">Verified</option>
-                    <option value="pending">Pending</option>
-                  </select>
+                  <FilterDropdown
+                    fullWidth
+                    label="All Status"
+                    value={statusFilter === 'all' ? '' : statusFilter}
+                    setValue={val => setStatusFilter(val || 'all')}
+                    options={['pending', 'approved', 'rejected']}
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 mb-1.5">Source</label>
-                  <select className="w-full text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500">
-                    <option>All Sources</option>
-                  </select>
+                  <FilterDropdown
+                    fullWidth
+                    label="All Sources"
+                    value={''}
+                    setValue={() => {}}
+                    options={['organic', 'referral', 'campaign']}
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 mb-1.5">Country</label>
-                  <select className="w-full text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500">
-                    <option>All Countries</option>
-                  </select>
+                  <FilterDropdown
+                    fullWidth
+                    label="All Countries"
+                    value={''}
+                    setValue={() => {}}
+                    options={['india', 'united states', 'united kingdom']}
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 mb-1.5">Verification Level</label>
-                  <select className="w-full text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500 text-gray-400">
-                    <option>All Levels</option>
-                  </select>
+                  <FilterDropdown
+                    fullWidth
+                    label="All Levels"
+                    value={''}
+                    setValue={() => {}}
+                    options={['tier 1', 'tier 2', 'tier 3']}
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 mb-1.5">Applied Date</label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                    <input type="text" placeholder="Select date range" className="w-full text-xs font-medium pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500" />
+                    <input type="date" className="w-full text-xs font-medium pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500" />
                   </div>
                 </div>
                 <button className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all mt-2">

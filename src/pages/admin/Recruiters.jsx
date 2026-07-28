@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, UserPlus, ShieldCheck, Hourglass, Ban, 
   Search, Filter, Download, MoreVertical, Eye, X, 
-  MapPin, Calendar, Briefcase, ChevronLeft, ChevronRight, CheckCircle2, PauseCircle, Trash2, Send, Mail
+  MapPin, Calendar, Briefcase, ChevronLeft, ChevronRight, CheckCircle2, PauseCircle, Trash2, Send, Mail, ChevronDown
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { adminAPI } from '../../services/api';
@@ -41,6 +41,97 @@ const calcTrend = (current, previous) => {
 };
 
 // --- Components ---
+
+const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder, fullWidth = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = React.useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+        if (searchTerm && !options.some(opt => opt.toLowerCase() === searchTerm.toLowerCase())) {
+          setValue(searchTerm);
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchTerm, options, setValue]);
+
+  const filteredOptions = options.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  return (
+    <div className={`relative ${fullWidth ? 'w-full' : ''}`} ref={wrapperRef}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center text-xs bg-white border rounded-lg px-4 py-2 cursor-pointer transition whitespace-nowrap min-w-[130px] ${fullWidth ? 'w-full justify-between' : ''} ${isOpen ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-gray-50' : 'border-gray-200 hover:bg-gray-50 text-gray-700'}`}
+      >
+        <div className="flex items-center gap-1.5 overflow-hidden">
+          {Icon && <Icon className="w-3.5 h-3.5 shrink-0 text-gray-400" />}
+          <span className={`truncate ${value ? "text-gray-900 font-bold capitalize" : "text-gray-600 font-bold"}`}>
+            {value || label}
+          </span>
+        </div>
+        <ChevronDown className={`w-3.5 h-3.5 shrink-0 ml-auto transition-transform ${isOpen ? 'rotate-180 text-emerald-500' : 'text-gray-400'}`} />
+      </div>
+
+      {isOpen && (
+        <div className={`absolute z-50 top-full mt-1 ${fullWidth ? 'left-0 w-full' : 'right-0 w-48'} bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden flex flex-col`}>
+          <div className="p-2 border-b border-gray-50">
+            <input
+              type="text"
+              autoFocus
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              placeholder={placeholder || `Search...`}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  setValue(searchTerm);
+                  setIsOpen(false);
+                }
+              }}
+            />
+          </div>
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt, i) => (
+                <li 
+                  key={i}
+                  className="px-3 py-2 text-xs text-gray-700 hover:bg-emerald-50 cursor-pointer capitalize font-medium"
+                  onClick={() => {
+                    setValue(opt);
+                    setSearchTerm('');
+                    setIsOpen(false);
+                  }}
+                >
+                  {opt}
+                </li>
+              ))
+            ) : (
+              <li className="px-3 py-2 text-xs text-gray-400 text-center">No match found</li>
+            )}
+            {value && (
+              <li 
+                className="px-3 py-2 text-xs text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
+                onClick={() => {
+                  setValue('');
+                  setSearchTerm('');
+                  setIsOpen(false);
+                }}
+              >
+                Clear selection
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const KPICard = ({ title, value, subtext, icon: Icon, colorClass, trend, trendUp }) => (
   <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col justify-between">
@@ -441,14 +532,28 @@ export default function AdminRecruiters() {
   
   const [selectedRecruiter, setSelectedRecruiter] = useState(null);
 
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+  const searchContainerRef = React.useRef(null);
+  const debounceRef = React.useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setSearchDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   useEffect(() => { 
     fetchRecruiters(); 
   }, [statusFilter, activeTableTab]);
 
-  const fetchRecruiters = async () => {
+  const fetchRecruiters = async (searchOverride) => {
     try {
       setLoading(true);
-      const params = { search, limit: 100 };
+      const params = { search: searchOverride !== undefined ? searchOverride : search, limit: 100 };
       
       if (activeTableTab === 'Verified') params.approved = true;
       if (activeTableTab === 'Pending') params.approved = false;
@@ -467,10 +572,31 @@ export default function AdminRecruiters() {
     }
   };
 
+  const handleSearchChange = (val) => {
+    setSearch(val);
+    setSearchDropdownOpen(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchRecruiters(val);
+    }, 400);
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
+    setSearchDropdownOpen(false);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     fetchRecruiters();
   };
+
+  const matchingSuggestions = Array.from(new Set(
+    recruiters.flatMap(r => [
+      r.user?.name,
+      r.user?.email,
+      r.user?.phone,
+      r.companyName,
+      r.city
+    ].filter(Boolean))
+  )).filter(s => search ? s.toLowerCase().includes(search.toLowerCase()) : true).slice(0, 10);
 
   const handleDelete = async (id, name) => {
     if (!confirm(`Are you sure you want to delete recruiter "${name}"?\n\nThis will permanently delete everything associated with this recruiter.`)) {
@@ -561,20 +687,59 @@ export default function AdminRecruiters() {
 
             {/* Table Search & Export Bar */}
             <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-gray-50 bg-gray-50/30">
-              <form onSubmit={handleSearch} className="relative w-full sm:max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search by name, email, company or mobile..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                />
-              </form>
+              <div className="relative w-full sm:max-w-md" ref={searchContainerRef}>
+                <form onSubmit={handleSearch} className="relative flex items-center bg-white border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-all overflow-hidden">
+                  <Search className="w-4 h-4 text-gray-400 ml-3 shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, company or mobile..."
+                    value={search}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onFocus={() => setSearchDropdownOpen(true)}
+                    className="w-full pl-2 pr-4 py-2 bg-transparent border-none text-xs font-medium outline-none focus:ring-0"
+                  />
+                  {search && (
+                    <button type="button" onClick={() => { setSearch(''); fetchRecruiters(''); }} className="text-gray-400 hover:text-gray-600 px-3">×</button>
+                  )}
+                </form>
+
+                {/* Smart Dropdown */}
+                {searchDropdownOpen && matchingSuggestions.length > 0 && (
+                  <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+                    <div className="bg-gray-50/80 border-b border-gray-100 px-4 py-2.5 flex justify-between items-center backdrop-blur-sm">
+                      <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">
+                        {search ? "Matching Results" : "Suggestions"}
+                      </span>
+                      <span className="text-[9px] text-gray-400 font-bold bg-white px-2 py-0.5 rounded border border-gray-200">Select</span>
+                    </div>
+                    <div className="max-h-[300px] overflow-y-auto py-1">
+                      {matchingSuggestions.map((suggestion, idx) => (
+                        <div 
+                          key={idx}
+                          className="px-4 py-2 hover:bg-emerald-50/50 cursor-pointer text-xs font-bold text-gray-700 border-b border-gray-50/60 last:border-none flex items-center gap-2.5 transition-colors"
+                          onClick={() => {
+                            setSearch(suggestion);
+                            setSearchDropdownOpen(false);
+                            if (debounceRef.current) clearTimeout(debounceRef.current);
+                            fetchRecruiters(suggestion);
+                          }}
+                        >
+                          <Search className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          <span className="truncate">{suggestion}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               <div className="flex items-center gap-3 w-full sm:w-auto">
-                <button className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2">
-                  <Filter className="w-3.5 h-3.5" /> Filters
-                </button>
+                <FilterDropdown 
+                  label="All Status" 
+                  value={statusFilter === 'all' ? '' : statusFilter} 
+                  setValue={val => setStatusFilter(val || 'all')} 
+                  options={['pending', 'approved', 'rejected']} 
+                  icon={Filter}
+                />
                 <button className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2">
                   <Download className="w-3.5 h-3.5" /> Export
                 </button>
@@ -703,27 +868,33 @@ export default function AdminRecruiters() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 mb-1.5">Status</label>
-                  <select 
-                    value={statusFilter} 
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500"
-                  >
-                    <option value="">All Status</option>
-                    <option value="approved">Verified</option>
-                    <option value="pending">Pending</option>
-                  </select>
+                  <FilterDropdown
+                    fullWidth
+                    label="All Status"
+                    value={statusFilter === 'all' ? '' : statusFilter}
+                    setValue={val => setStatusFilter(val || 'all')}
+                    options={['pending', 'approved', 'rejected']}
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 mb-1.5">Source</label>
-                  <select className="w-full text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500">
-                    <option>All Sources</option>
-                  </select>
+                  <FilterDropdown
+                    fullWidth
+                    label="All Sources"
+                    value={''}
+                    setValue={() => {}}
+                    options={['organic', 'referral', 'campaign']}
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 mb-1.5">Country</label>
-                  <select className="w-full text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-emerald-500">
-                    <option>All Countries</option>
-                  </select>
+                  <FilterDropdown
+                    fullWidth
+                    label="All Countries"
+                    value={''}
+                    setValue={() => {}}
+                    options={['india', 'united states', 'united kingdom']}
+                  />
                 </div>
                 <button className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all mt-2">
                   Apply Filters

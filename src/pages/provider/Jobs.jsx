@@ -26,6 +26,7 @@ import {
   HiOutlinePhone,
   HiOutlineBriefcase,
   HiOutlineClock,
+  HiChevronDown,
 } from "react-icons/hi";
 import { FaRupeeSign, FaWhatsapp } from "react-icons/fa";
 import toast from "react-hot-toast";
@@ -36,6 +37,72 @@ import LocationSearch from "../../components/LocationSearch";
 import JobSearchAutocomplete from "../../components/common/JobSearchAutocomplete";
 import RecruiterProfileModal from "../../components/recruiter/RecruiterProfileModal";
 import AIExpiryBadge from "../../components/ai/AIExpiryBadge";
+
+const FilterDropdown = ({ label, value, setValue, options }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredOptions = options.filter(opt =>
+    opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const displayValue = options.find(opt => opt.value === value)?.label || label;
+
+  return (
+    <div className="relative shrink-0 w-full" ref={wrapperRef}>
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center justify-between gap-2 px-3 py-2 bg-white border rounded-xl text-sm text-gray-700 cursor-pointer transition h-[38px] ${
+          isOpen ? 'border-emerald-300 ring-2 ring-emerald-300/20' : 'border-gray-200 hover:border-gray-300'
+        }`}
+      >
+        <span className={value ? 'text-gray-900' : 'text-gray-600'}>{displayValue}</span>
+        <HiChevronDown className={`w-4 h-4 transition-transform text-gray-400 ${isOpen ? 'rotate-180 text-emerald-500' : ''}`} />
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 top-full mt-1 left-0 min-w-full w-max bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
+          <div className="p-2 border-b border-gray-50">
+            <input
+              type="text"
+              autoFocus
+              className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {filteredOptions.length > 0 ? filteredOptions.map((opt, i) => (
+              <li
+                key={i}
+                className={`px-3 py-2 text-sm cursor-pointer hover:bg-emerald-50 ${
+                  opt.value === value ? 'text-emerald-700 font-semibold bg-emerald-50/50' : 'text-gray-700'
+                }`}
+                onClick={() => { setValue(opt.value); setSearchTerm(''); setIsOpen(false); }}
+              >
+                {opt.label}
+              </li>
+            )) : (
+              <li className="px-3 py-2 text-sm text-gray-400 text-center">No match</li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const BUDGET_LABELS = {
   fixed: "Fixed",
@@ -1092,46 +1159,46 @@ const ProviderJobs = () => {
                 </div>
                 <div className="flex-1 min-w-[200px] w-full">
                   <label className="block text-xs text-gray-500 font-medium mb-1">{t("Job Source / Type")}</label>
-                  <select
+                  <FilterDropdown
+                    label={t("All Jobs (Internal & Ingested)")}
                     value={filters.origin}
-                    onChange={(e) => {
-                      const val = e.target.value;
+                    setValue={(val) => {
                       setFilters((f) => ({ ...f, origin: val, source: val !== "external" ? "" : f.source }));
                       setSearch((s) => ({ ...s, origin: val, source: val !== "external" ? "" : s.source }));
                     }}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300 outline-none h-[38px]"
-                  >
-                    <option value="all">{t("All Jobs (Internal & Ingested)")}</option>
-                    <option value="internal">{t("Direct Jobs (Internal Platform)")}</option>
-                    <option value="external">{t("Ingested Jobs (Aggregators & ATS)")}</option>
-                  </select>
+                    options={[
+                      { value: 'all', label: t("All Jobs (Internal & Ingested)") },
+                      { value: 'internal', label: t("Direct Jobs (Internal Platform)") },
+                      { value: 'external', label: t("Ingested Jobs (Aggregators & ATS)") }
+                    ]}
+                  />
                 </div>
 
                 {filters.origin === "external" && (
                   <div className="flex-1 min-w-[200px] w-full">
                     <label className="block text-xs text-gray-500 font-medium mb-1">{t("Ingestion Source")}</label>
-                    <select
+                    <FilterDropdown
+                      label={t("All Ingestion Sources")}
                       value={filters.source}
-                      onChange={(e) => {
-                        const val = e.target.value;
+                      setValue={(val) => {
                         setFilters((f) => ({ ...f, source: val }));
                         setSearch((s) => ({ ...s, source: val }));
                       }}
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300 outline-none h-[38px]"
-                    >
-                      <option value="">{t("All Ingestion Sources")}</option>
-                      <option value="adzuna">{t("Adzuna")}</option>
-                      <option value="jooble">{t("Jooble")}</option>
-                      <option value="remoteok">{t("RemoteOK")}</option>
-                      <option value="remotive">{t("Remotive")}</option>
-                      <option value="arbeitnow">{t("Arbeitnow")}</option>
-                      <option value="themuse">{t("The Muse")}</option>
-                      <option value="greenhouse">{t("Greenhouse")}</option>
-                      <option value="lever">{t("Lever")}</option>
-                      <option value="ashby">{t("Ashby")}</option>
-                      <option value="smartrecruiters">{t("SmartRecruiters")}</option>
-                      <option value="workable">{t("Workable")}</option>
-                    </select>
+                      options={[
+                        { value: '', label: t("All Ingestion Sources") },
+                        { value: 'adzuna', label: t("Adzuna") },
+                        { value: 'jooble', label: t("Jooble") },
+                        { value: 'remoteok', label: t("RemoteOK") },
+                        { value: 'remotive', label: t("Remotive") },
+                        { value: 'arbeitnow', label: t("Arbeitnow") },
+                        { value: 'themuse', label: t("The Muse") },
+                        { value: 'greenhouse', label: t("Greenhouse") },
+                        { value: 'lever', label: t("Lever") },
+                        { value: 'ashby', label: t("Ashby") },
+                        { value: 'smartrecruiters', label: t("SmartRecruiters") },
+                        { value: 'workable', label: t("Workable") }
+                      ]}
+                    />
                   </div>
                 )}
                 <div className="flex flex-wrap gap-2 w-full md:w-auto mt-2 md:mt-0 items-center">

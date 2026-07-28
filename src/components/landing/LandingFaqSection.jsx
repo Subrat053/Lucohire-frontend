@@ -54,12 +54,12 @@ const LandingFaqSection = () => {
   };
 
   return (
-    <div className="w-full bg-white pb-12 sm:pb-16 pt-4">
+    <div className="w-full bg-white pb-12 sm:pb-16 pt-0">
       <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Brand/Logo Header */}
-        <div className="flex flex-col items-center justify-center mb-8 mt-0">
-          <img src="/logo.jpg" alt="Lucohire Logo" className="w-32 h-32 sm:w-48 sm:h-48 object-contain shadow-sm rounded-3xl p-3 bg-white border border-gray-100 mb-3" />
+        <div className="flex flex-col items-center justify-center mb-4 mt-0">
+          <img src="/logo.jpg" alt="Lucohire Logo" className="w-32 h-32 sm:w-48 sm:h-48 object-contain mix-blend-multiply -mt-2 -mb-2" />
           <div className="flex flex-col text-center justify-center">
             <h2 className="font-semibold text-gray-800 text-4xl sm:text-5xl tracking-tight mb-1">
               Lucohire

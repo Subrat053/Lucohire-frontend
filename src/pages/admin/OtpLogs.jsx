@@ -3,12 +3,106 @@
  * Admin page: paginated OTP audit log with date filters & multi-channel tracking.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ADMIN_API, adminAPI } from '../../services/api';
 import {
   ShieldCheck, Phone, Mail, AlertTriangle, Search,
-  RefreshCw, Loader2, Calendar, Filter, X
+  RefreshCw, Loader2, Calendar, Filter, X, ChevronDown
 } from 'lucide-react';
+
+const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder, fullWidth = false, disabled = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+        if (searchTerm && !options.some(opt => opt.label.toLowerCase() === searchTerm.toLowerCase())) {
+          setValue(searchTerm);
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchTerm, options, setValue]);
+
+  const filteredOptions = options.filter(opt => opt.label.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const displayValue = options.find(opt => opt.value === value)?.label || value;
+
+  return (
+    <div className={`relative ${fullWidth ? 'w-full' : 'w-full sm:w-auto min-w-[150px]'}`} ref={wrapperRef}>
+      <div 
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`flex items-center text-sm bg-white border rounded-xl px-3.5 py-2.5 transition whitespace-nowrap ${fullWidth ? 'w-full justify-between' : 'justify-between'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'} ${isOpen && !disabled ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-sm' : 'border-gray-200 text-gray-700'}`}
+      >
+        <div className="flex items-center gap-1.5 overflow-hidden">
+          {Icon && <Icon className="w-4 h-4 shrink-0 text-gray-400" />}
+          <span className={`truncate font-medium ${value ? "text-gray-900" : "text-gray-700"}`}>
+            {displayValue || label}
+          </span>
+        </div>
+        <ChevronDown className={`w-4 h-4 shrink-0 ml-2 transition-transform ${isOpen ? 'rotate-180 text-indigo-500' : 'text-gray-400'}`} />
+      </div>
+
+      {isOpen && (
+        <div className={`absolute z-50 top-full mt-1 left-0 w-full min-w-[160px] bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden flex flex-col`}>
+          <div className="p-2 border-b border-gray-50">
+            <input
+              type="text"
+              autoFocus
+              className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              placeholder={placeholder || `Search...`}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const matched = filteredOptions.find(opt => opt.label.toLowerCase() === searchTerm.toLowerCase());
+                  setValue(matched ? matched.value : searchTerm);
+                  setIsOpen(false);
+                }
+              }}
+            />
+          </div>
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt, i) => (
+                <li 
+                  key={i}
+                  className="px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 cursor-pointer"
+                  onClick={() => {
+                    setValue(opt.value);
+                    setSearchTerm('');
+                    setIsOpen(false);
+                  }}
+                >
+                  {opt.label}
+                </li>
+              ))
+            ) : (
+              <li className="px-3 py-2 text-sm text-gray-400 text-center font-medium">No match found</li>
+            )}
+            {value && (
+              <li 
+                className="px-3 py-2 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
+                onClick={() => {
+                  setValue('');
+                  setSearchTerm('');
+                  setIsOpen(false);
+                }}
+              >
+                Clear selection
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const CHANNEL_BADGE = {
   phone: { icon: <Phone className="w-3.5 h-3.5" />, cls: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
@@ -127,47 +221,49 @@ export default function OtpLogs() {
 
           {/* Date Range Selector */}
           <div className="flex items-center gap-2 shrink-0">
-            <Calendar className="w-4 h-4 text-indigo-600" />
-            <select
+            <FilterDropdown
+              label="🗓️ All Time"
               value={dateRange}
-              onChange={e => setDateRange(e.target.value)}
-              className="px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-            >
-              <option value="all">🗓️ All Time</option>
-              <option value="today">⚡ Today</option>
-              <option value="yesterday">⏪ Yesterday</option>
-              <option value="this_week">📅 This Week</option>
-              <option value="this_month">📆 This Month</option>
-              <option value="custom">⚙️ Custom Date Range</option>
-            </select>
+              setValue={setDateRange}
+              options={[
+                { value: 'all', label: '🗓️ All Time' },
+                { value: 'today', label: '⚡ Today' },
+                { value: 'yesterday', label: '⏪ Yesterday' },
+                { value: 'this_week', label: '📅 This Week' },
+                { value: 'this_month', label: '📆 This Month' },
+                { value: 'custom', label: '⚙️ Custom Date Range' }
+              ]}
+            />
           </div>
 
           {/* Channel Selector */}
           <div className="shrink-0">
-            <select
+            <FilterDropdown
+              label="📱 All Channels"
               value={channelFilter}
-              onChange={e => setChannelFilter(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-            >
-              <option value="">📱 All Delivery Channels</option>
-              <option value="phone">Phone / WhatsApp / SMS</option>
-              <option value="email">Email</option>
-            </select>
+              setValue={setChannelFilter}
+              options={[
+                { value: '', label: '📱 All Delivery Channels' },
+                { value: 'phone', label: 'Phone / WhatsApp / SMS' },
+                { value: 'email', label: 'Email' }
+              ]}
+            />
           </div>
 
           {/* Status Selector */}
           <div className="shrink-0">
-            <select
+            <FilterDropdown
+              label="⚡ All Statuses"
               value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-            >
-              <option value="">⚡ All Statuses</option>
-              <option value="verified">✅ Verified</option>
-              <option value="pending">⏳ Pending</option>
-              <option value="expired">❌ Expired</option>
-              <option value="blocked">⛔ Blocked</option>
-            </select>
+              setValue={setStatusFilter}
+              options={[
+                { value: '', label: '⚡ All Statuses' },
+                { value: 'verified', label: '✅ Verified' },
+                { value: 'pending', label: '⏳ Pending' },
+                { value: 'expired', label: '❌ Expired' },
+                { value: 'blocked', label: '⛔ Blocked' }
+              ]}
+            />
           </div>
 
           {hasActiveFilters && (

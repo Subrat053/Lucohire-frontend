@@ -119,17 +119,17 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2" onClick={(e) => handleNavClick(e, "/")}>
-            <img src="/logo.jpg" alt="Lucohire Logo" className="w-12 h-12 object-contain" />
+          <Link to="/" className="flex items-center gap-1 mr-auto" onClick={(e) => handleNavClick(e, "/")}>
+            <img src="/logo.jpg" alt="Lucohire Logo" className="w-11 h-11 object-contain shrink-0" />
             <div className="leading-none flex flex-col justify-center">
-              <p className="font-extrabold text-[#081B3A] text-lg tracking-tight leading-none">
+              <p className="font-bold text-[#081B3A] text-lg tracking-tight leading-none">
                 Lucohire
               </p>
               <p className="text-[10px] font-semibold text-[#6B7280] mt-1 leading-none whitespace-nowrap">
-                AI-Powered Global Jobs & Hiring Platform
+                AI-Powered Global Jobs &amp; Hiring Platform
               </p>
             </div>
           </Link>
@@ -305,8 +305,6 @@ const Navbar = () => {
               </div>
             )}
             <LanguageDropdown />
-          </div>
-          <div className="lg:absolute hidden md:block right-4 top-4 border-gray-300">
             <NotificationBell />
           </div>
 
