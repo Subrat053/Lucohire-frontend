@@ -116,14 +116,14 @@ const Footer = () => {
         {/* Brand Column */}
         <div className="col-span-1 md:col-span-2 lg:col-span-1">
           <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center">
-              <span className="text-[#081B3A] font-bold text-lg scale-125">
-                {(companyDetails.companyName || 'L').charAt(0)}
-              </span>
+            <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center p-1.5">
+              <img src="/logo.jpg" alt="Lucohire Logo" className="w-full h-full object-contain" />
             </div>
-            <div className="leading-none">
-              <p className="font-extrabold text-white tracking-tight">{companyDetails.companyName || 'Lucohire'}</p>
-              <p className="text-[9px] font-semibold tracking-[0.2em] text-gray-400 mt-0.5">AI HIRING PLATFORM</p>
+            <div className="leading-none flex flex-col justify-center">
+              <p className="font-extrabold text-white tracking-tight text-lg leading-none">{companyDetails.companyName || 'Lucohire'}</p>
+              <p className="text-[10px] font-medium text-gray-400 mt-1 leading-snug max-w-[200px]">
+                AI-Powered Global Jobs & Hiring Platform
+              </p>
             </div>
           </div>
 

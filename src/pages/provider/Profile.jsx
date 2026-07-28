@@ -1845,8 +1845,8 @@ const ProviderProfile = () => {
                 <Eye className="w-4 h-4" />{t("Share Profile")}</button>
               <button
                 type="submit"
-                disabled={saving}
-                className="py-2.5 px-6 bg-[#047857] text-white rounded-lg text-sm font-bold shadow-md hover:bg-emerald-800 transition flex items-center justify-center gap-2"
+                disabled={saving || !agreedToTerms}
+                className="py-2.5 px-6 bg-[#047857] text-white rounded-lg text-sm font-bold shadow-md hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#047857] transition flex items-center justify-center gap-2"
               >
                 {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 {saving ? "Saving..." : "Save Changes"}
@@ -2863,11 +2863,12 @@ const ProviderProfile = () => {
                   {PROFILE_TABS.indexOf(activeTab) < PROFILE_TABS.length - 1 ? (
                     <button
                       type="button"
+                      disabled={!agreedToTerms}
                       onClick={() => {
                         const idx = PROFILE_TABS.indexOf(activeTab);
                         if (idx < PROFILE_TABS.length - 1) handleTabChange(PROFILE_TABS[idx + 1]);
                       }}
-                      className="px-6 py-2.5 rounded-xl text-[14px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                      className="px-6 py-2.5 rounded-xl text-[14px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 shadow-sm transition-all active:scale-95 flex items-center gap-2"
                     >
                       {t("Next")}
                     </button>
@@ -2875,8 +2876,8 @@ const ProviderProfile = () => {
                     <button
                       type="button"
                       onClick={handleSave}
-                      disabled={saving}
-                      className="px-6 py-2.5 rounded-xl text-[14px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                      disabled={saving || !agreedToTerms}
+                      className="px-6 py-2.5 rounded-xl text-[14px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600 shadow-sm transition-all active:scale-95 flex items-center gap-2"
                     >
                       {saving ? t("Saving...") : t("Save Profile")}
                     </button>
