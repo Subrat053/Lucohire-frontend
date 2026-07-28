@@ -57,7 +57,16 @@ export default function CandidateModal({ selectedCandidate, setSelectedCandidate
           {/* Profile Header */}
           <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
             {selectedCandidate.profilePhoto ? (
-              <img src={selectedCandidate.profilePhoto} alt={selectedCandidate.profileName} className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl object-cover ring-4 ring-gray-50" />
+              <img 
+                src={selectedCandidate.profilePhoto} 
+                alt={selectedCandidate.profileName} 
+                referrerPolicy="no-referrer"
+                className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl object-cover ring-4 ring-gray-50" 
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedCandidate.profileName || 'U')}&background=e0e7ff&color=4f46e5`;
+                }}
+              />
             ) : (
               <div className={`w-24 h-24 sm:w-32 sm:h-32 rounded-2xl flex items-center justify-center text-4xl font-bold ring-4 ring-gray-50 ${selectedCandidate.avatarBg || 'bg-blue-100 text-blue-700'}`}>
                 {selectedCandidate.profileName?.substring(0, 2).toUpperCase() || 'UN'}

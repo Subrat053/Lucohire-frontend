@@ -83,6 +83,96 @@ const BulkBar = ({ selected, onApprove, onReject, onClear, loading }) => (
   </div>
 );
 
+/* ── Filter Dropdown ───────────────────────────────────────────── */
+const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+        if (searchTerm && !options.some(opt => opt.toLowerCase() === searchTerm.toLowerCase())) {
+          setValue(searchTerm);
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchTerm, options, setValue]);
+
+  const filteredOptions = options.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  return (
+    <div className="relative" ref={wrapperRef}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center text-sm bg-white border rounded-xl px-3 py-2.5 cursor-pointer transition whitespace-nowrap min-w-[130px] ${isOpen ? 'border-purple-300 ring-2 ring-purple-300 bg-gray-50' : 'border-gray-200 hover:bg-gray-50 text-gray-700'}`}
+      >
+        {Icon && <Icon className="w-4 h-4 mr-1.5 text-gray-400" />}
+        <span className={value ? "text-gray-900 font-medium capitalize" : "text-gray-600"}>
+          {value || label}
+        </span>
+        <ChevronDown className={`w-3.5 h-3.5 ml-auto transition-transform ${isOpen ? 'rotate-180 text-purple-500' : 'text-gray-400'}`} />
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 top-full mt-1 left-0 w-48 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden flex flex-col">
+          <div className="p-2 border-b border-gray-50">
+            <input
+              type="text"
+              autoFocus
+              className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-purple-300 focus:ring-1 focus:ring-purple-300"
+              placeholder={placeholder || `Search...`}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  setValue(searchTerm);
+                  setIsOpen(false);
+                }
+              }}
+            />
+          </div>
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt, i) => (
+                <li 
+                  key={i}
+                  className="px-3 py-2 text-sm text-gray-700 hover:bg-purple-50 cursor-pointer capitalize"
+                  onClick={() => {
+                    setValue(opt);
+                    setSearchTerm('');
+                    setIsOpen(false);
+                  }}
+                >
+                  {opt}
+                </li>
+              ))
+            ) : (
+              <li className="px-3 py-2 text-sm text-gray-400 text-center">No match found</li>
+            )}
+            {value && (
+              <li 
+                className="px-3 py-2 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1"
+                onClick={() => {
+                  setValue('');
+                  setSearchTerm('');
+                  setIsOpen(false);
+                }}
+              >
+                Clear selection
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
 /* ═══════════════════════════════════════════════════════════════════ */
 export default function ProfileApprovals() {
   const navigate = useNavigate();
@@ -113,8 +203,11 @@ export default function ProfileApprovals() {
   const [selected, setSelected]   = useState([]);
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  /* Reject modal */
   const [rejectModal, setRejectModal] = useState({ open: false, reason: '' });
+
+  /* Smart Dropdown state */
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+  const searchContainerRef = useRef(null);
 
   /* Debounce ref */
   const debounceRef = useRef(null);
@@ -173,6 +266,16 @@ export default function ProfileApprovals() {
   /* ── Initial load ───────────────────────────────────────────────── */
   useEffect(() => { fetchStats(); fetchLocations(); }, [fetchStats, fetchLocations]);
   useEffect(() => { setPage(1); fetchUsers(1); }, [activeTab, status, country, state, city]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setSearchDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   /* ── Debounced search ───────────────────────────────────────────── */
   const handleSearchChange = (val) => {
@@ -264,6 +367,17 @@ export default function ProfileApprovals() {
     return role?.charAt(0).toUpperCase() + role?.slice(1) || 'User';
   };
 
+  /* ── Derived State ──────────────────────────────────────────────── */
+  const matchingSuggestions = Array.from(new Set(
+    users.flatMap(u => [
+      u.name,
+      u.email,
+      u.phone,
+      u.profile?.city,
+      ...(u.profile?.skills || [])
+    ].filter(Boolean))
+  )).filter(s => search ? s.toLowerCase().includes(search.toLowerCase()) : true).slice(0, 10);
+
   /* ── Render ─────────────────────────────────────────────────────── */
   return (
     <div className="min-h-screen bg-gray-50/80">
@@ -309,61 +423,87 @@ export default function ProfileApprovals() {
           <div className="flex flex-wrap items-center gap-3">
 
             {/* Global Search */}
-            <div className="relative flex-1 min-w-[220px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                value={search}
-                onChange={e => handleSearchChange(e.target.value)}
-                placeholder="Search name, email, phone, skills, city, pincode..."
-                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-300 bg-gray-50"
-              />
-              {search && (
-                <button onClick={() => { setSearch(''); fetchUsers(1, { search: '' }); }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">×</button>
+            <div className="relative flex-1 min-w-[220px]" ref={searchContainerRef}>
+              <div className="flex items-center bg-gray-50 rounded-xl px-3 py-2.5 border border-gray-200 focus-within:border-purple-300 focus-within:ring-2 focus-within:ring-purple-300 transition-all">
+                <Search className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
+                <input
+                  value={search}
+                  onChange={e => {
+                    handleSearchChange(e.target.value);
+                    setSearchDropdownOpen(true);
+                  }}
+                  onFocus={() => setSearchDropdownOpen(true)}
+                  placeholder="Search name, email, phone, skills, city, pincode..."
+                  className="w-full bg-transparent border-none focus:ring-0 text-sm outline-none"
+                />
+                {search && (
+                  <button onClick={() => { setSearch(''); fetchUsers(1, { search: '' }); }}
+                    className="text-gray-400 hover:text-gray-600 shrink-0">×</button>
+                )}
+              </div>
+              
+              {/* Smart Dropdown */}
+              {searchDropdownOpen && matchingSuggestions.length > 0 && (
+                <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden">
+                  <div className="bg-gray-50/80 border-b border-gray-100 px-4 py-3 flex justify-between items-center backdrop-blur-sm">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      {search ? "Matching Results" : "Suggestions"}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200">Select</span>
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto py-1.5">
+                    {matchingSuggestions.map((suggestion, idx) => (
+                      <div 
+                        key={idx}
+                        className="px-4 py-2.5 hover:bg-purple-50/50 cursor-pointer text-sm text-gray-700 border-b border-gray-50/60 last:border-none flex items-center gap-2.5 transition-colors duration-150"
+                        onClick={() => {
+                          setSearch(suggestion);
+                          setSearchDropdownOpen(false);
+                          if (debounceRef.current) clearTimeout(debounceRef.current);
+                          setPage(1);
+                          fetchUsers(1, { search: suggestion });
+                        }}
+                      >
+                        <Search className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                        <span className="font-medium text-gray-700 truncate">{suggestion}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
 
             {/* Status */}
-            <div className="relative">
-              <select value={status} onChange={e => setStatus(e.target.value)}
-                className="pl-3 pr-8 py-2.5 border border-gray-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-purple-300 appearance-none min-w-[130px]">
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-              </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-            </div>
+            <FilterDropdown 
+              label="All Status" 
+              value={status === 'all' ? '' : status} 
+              setValue={val => setStatus(val || 'all')} 
+              options={['pending', 'approved', 'rejected']} 
+            />
 
             {/* Country */}
-            <div className="relative">
-              <select value={country} onChange={e => handleCountryChange(e.target.value)}
-                className="pl-3 pr-8 py-2.5 border border-gray-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-purple-300 appearance-none min-w-[120px]">
-                <option value="">All Countries</option>
-                {countries.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-            </div>
+            <FilterDropdown 
+              label="All Countries" 
+              value={country} 
+              setValue={handleCountryChange} 
+              options={countries} 
+            />
 
             {/* State */}
-            <div className="relative">
-              <select value={state} onChange={e => handleStateChange(e.target.value)}
-                className="pl-3 pr-8 py-2.5 border border-gray-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-purple-300 appearance-none min-w-[120px]">
-                <option value="">All States</option>
-                {states.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-            </div>
+            <FilterDropdown 
+              label="All States" 
+              value={state} 
+              setValue={handleStateChange} 
+              options={states} 
+            />
 
             {/* City */}
-            <div className="relative">
-              <select value={city} onChange={e => setCity(e.target.value)}
-                className="pl-3 pr-8 py-2.5 border border-gray-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-purple-300 appearance-none min-w-[120px]">
-                <option value="">All Cities</option>
-                {cities.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-            </div>
+            <FilterDropdown 
+              label="All Cities" 
+              value={city} 
+              setValue={setCity} 
+              options={cities} 
+            />
 
             <button onClick={handleReset}
               className="flex items-center gap-1.5 px-4 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition">

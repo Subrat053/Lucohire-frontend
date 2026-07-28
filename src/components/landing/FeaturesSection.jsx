@@ -275,7 +275,7 @@ export default function FeaturesSection() {
       </div>
 
       {/* 11. Final CTA Banner */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6">
         <div className="bg-[#0a1930] rounded-2xl p-6 sm:p-10 md:p-12 flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0 text-center md:text-left">
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{t("Ready to Hire Smarter?")}</h2>

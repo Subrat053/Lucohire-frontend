@@ -12,6 +12,100 @@ import { useAuth } from '../../context/AuthContext';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder, fullWidth = false, disabled = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+        if (searchTerm && !options.some(opt => opt.label.toLowerCase() === searchTerm.toLowerCase())) {
+          setValue(searchTerm);
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchTerm, options, setValue]);
+
+  const filteredOptions = options.filter(opt => opt.label.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const displayValue = options.find(opt => opt.value === value)?.label || value;
+
+  return (
+    <div className={`relative ${fullWidth ? 'w-full' : 'w-full sm:w-auto min-w-[150px]'}`} ref={wrapperRef}>
+      <div 
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`flex items-center text-sm bg-white border rounded-xl px-3 py-2.5 transition whitespace-nowrap ${fullWidth ? 'w-full justify-between' : 'justify-between'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'} ${isOpen && !disabled ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-sm' : 'border-gray-200 text-gray-700'}`}
+      >
+        <div className="flex items-center gap-1.5 overflow-hidden">
+          {Icon && <Icon className="w-4 h-4 shrink-0 text-gray-400" />}
+          <span className={`truncate ${value ? "text-gray-900 font-medium" : "text-gray-700"}`}>
+            {displayValue || label}
+          </span>
+        </div>
+        <HiChevronDown className={`w-4 h-4 shrink-0 ml-2 transition-transform ${isOpen ? 'rotate-180 text-indigo-500' : 'text-gray-400'}`} />
+      </div>
+
+      {isOpen && (
+        <div className={`absolute z-50 top-full mt-1 left-0 w-full min-w-[160px] bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden flex flex-col`}>
+          <div className="p-2 border-b border-gray-50">
+            <input
+              type="text"
+              autoFocus
+              className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              placeholder={placeholder || `Search...`}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const matched = filteredOptions.find(opt => opt.label.toLowerCase() === searchTerm.toLowerCase());
+                  setValue(matched ? matched.value : searchTerm);
+                  setIsOpen(false);
+                }
+              }}
+            />
+          </div>
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt, i) => (
+                <li 
+                  key={i}
+                  className="px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 cursor-pointer"
+                  onClick={() => {
+                    setValue(opt.value);
+                    setSearchTerm('');
+                    setIsOpen(false);
+                  }}
+                >
+                  {opt.label}
+                </li>
+              ))
+            ) : (
+              <li className="px-3 py-2 text-sm text-gray-400 text-center font-medium">No match found</li>
+            )}
+            {value && (
+              <li 
+                className="px-3 py-2 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
+                onClick={() => {
+                  setValue('');
+                  setSearchTerm('');
+                  setIsOpen(false);
+                }}
+              >
+                Clear selection
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const fmtDate = (v) => v ? new Date(v).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 const CURRENCY = { INR: '₹', USD: '$', AED: 'د.إ', EUR: '€', GBP: '£', CAD: 'C$' };
@@ -546,37 +640,48 @@ const ProviderSubscriptions = () => {
               className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm bg-white text-gray-700 transition" />
           </div>
           {/* User Type */}
-          <select value={filters.userType} onChange={e => setFilter('userType', e.target.value)}
-            className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white text-gray-700 cursor-pointer min-w-[140px]">
-            <option value="">All User Types</option>
-            <option value="provider">Providers</option>
-            <option value="recruiter">Recruiters</option>
-          </select>
+          <FilterDropdown
+            label="All User Types"
+            value={filters.userType}
+            setValue={val => setFilter('userType', val)}
+            options={[
+              { value: 'provider', label: 'Providers' },
+              { value: 'recruiter', label: 'Recruiters' },
+            ]}
+          />
           {/* Subscription Status */}
-          <select value={filters.subscriptionStatus} onChange={e => setFilter('subscriptionStatus', e.target.value)}
-            className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white text-gray-700 cursor-pointer min-w-[140px]">
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="expired">Expired</option>
-            <option value="cancelled">Cancelled</option>
-            <option value="paused">Paused</option>
-            <option value="pending_payment">Pending Payment</option>
-          </select>
+          <FilterDropdown
+            label="All Statuses"
+            value={filters.subscriptionStatus}
+            setValue={val => setFilter('subscriptionStatus', val)}
+            options={[
+              { value: 'active', label: 'Active' },
+              { value: 'expired', label: 'Expired' },
+              { value: 'cancelled', label: 'Cancelled' },
+              { value: 'paused', label: 'Paused' },
+              { value: 'pending_payment', label: 'Pending Payment' },
+            ]}
+          />
           {/* Payment Status */}
-          <select value={filters.paymentStatus} onChange={e => setFilter('paymentStatus', e.target.value)}
-            className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white text-gray-700 cursor-pointer min-w-[130px]">
-            <option value="">All Payments</option>
-            <option value="paid">Paid</option>
-            <option value="free">Free</option>
-            <option value="pending">Pending</option>
-            <option value="failed">Failed</option>
-            <option value="refunded">Refunded</option>
-          </select>
+          <FilterDropdown
+            label="All Payments"
+            value={filters.paymentStatus}
+            setValue={val => setFilter('paymentStatus', val)}
+            options={[
+              { value: 'paid', label: 'Paid' },
+              { value: 'free', label: 'Free' },
+              { value: 'pending', label: 'Pending' },
+              { value: 'failed', label: 'Failed' },
+              { value: 'refunded', label: 'Refunded' },
+            ]}
+          />
           {/* Date Preset */}
-          <select value={filters.datePreset} onChange={e => setFilter('datePreset', e.target.value)}
-            className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white text-gray-700 cursor-pointer min-w-[130px]">
-            {DATE_PRESETS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-          </select>
+          <FilterDropdown
+            label="All Dates"
+            value={filters.datePreset}
+            setValue={val => setFilter('datePreset', val)}
+            options={DATE_PRESETS.filter(p => p.value)}
+          />
           {/* Toggle Advanced */}
           <button type="button" onClick={() => setShowAdvanced(v => !v)}
             className={`flex items-center gap-1.5 px-3 py-2.5 border rounded-xl text-sm font-semibold transition ${showAdvanced ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
@@ -612,44 +717,56 @@ const ProviderSubscriptions = () => {
         {showAdvanced && (
           <div className="pt-3 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {/* Plan */}
-            <select value={filters.planId} onChange={e => setFilter('planId', e.target.value)}
-              className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white text-gray-700 cursor-pointer">
-              <option value="">All Plans</option>
-              {plans.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
-            </select>
+            <FilterDropdown
+              label="All Plans"
+              fullWidth
+              value={filters.planId}
+              setValue={val => setFilter('planId', val)}
+              options={plans.map(p => ({ value: p._id, label: p.name }))}
+            />
             {/* Country */}
-            <select value={filters.country} onChange={e => handleCountryChange(e.target.value)}
-              className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white text-gray-700 cursor-pointer">
-              <option value="">All Countries</option>
-              {countries.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <FilterDropdown
+              label="All Countries"
+              fullWidth
+              value={filters.country}
+              setValue={val => handleCountryChange(val)}
+              options={countries.map(c => ({ value: c, label: c }))}
+            />
             {/* State */}
-            <select value={filters.state} onChange={e => handleStateChange(e.target.value)}
+            <FilterDropdown
+              label="All States"
+              fullWidth
+              value={filters.state}
+              setValue={val => handleStateChange(val)}
+              options={states.map(s => ({ value: s, label: s }))}
               disabled={!filters.country}
-              className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white text-gray-700 cursor-pointer disabled:opacity-50">
-              <option value="">All States</option>
-              {states.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
+            />
             {/* City */}
-            <select value={filters.city} onChange={e => setFilter('city', e.target.value)}
+            <FilterDropdown
+              label="All Cities"
+              fullWidth
+              value={filters.city}
+              setValue={val => setFilter('city', val)}
+              options={cities.map(c => ({ value: c, label: c }))}
               disabled={!filters.state}
-              className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white text-gray-700 cursor-pointer disabled:opacity-50">
-              <option value="">All Cities</option>
-              {cities.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            />
             {/* Locality */}
             <input type="text" placeholder="Locality…" value={filters.locality} onChange={e => setFilter('locality', e.target.value)}
               className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
             {/* Referral Type */}
-            <select value={filters.referralType} onChange={e => setFilter('referralType', e.target.value)}
-              className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white text-gray-700 cursor-pointer">
-              <option value="">All Sources</option>
-              <option value="direct">Direct</option>
-              <option value="partner">Partner</option>
-              <option value="provider">Provider Referral</option>
-              <option value="recruiter">Recruiter Referral</option>
-              <option value="admin_created">Admin Created</option>
-            </select>
+            <FilterDropdown
+              label="All Sources"
+              fullWidth
+              value={filters.referralType}
+              setValue={val => setFilter('referralType', val)}
+              options={[
+                { value: 'direct', label: 'Direct' },
+                { value: 'partner', label: 'Partner' },
+                { value: 'provider', label: 'Provider Referral' },
+                { value: 'recruiter', label: 'Recruiter Referral' },
+                { value: 'admin_created', label: 'Admin Created' }
+              ]}
+            />
             {/* Amount Min */}
             <input type="number" placeholder="Min Amount…" value={filters.amountMin} onChange={e => setFilter('amountMin', e.target.value)}
               className="px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />

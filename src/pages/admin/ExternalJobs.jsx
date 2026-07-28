@@ -1,8 +1,99 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
-import { Briefcase, Download, Search, Filter, MapPin, Building, Globe, ExternalLink, RefreshCw, Trash2, ChevronLeft, ChevronRight, CheckCircle2, ShieldAlert, FileSpreadsheet, Sparkles, Calendar } from 'lucide-react';
+import { Briefcase, Download, Search, Filter, MapPin, Building, Globe, ExternalLink, RefreshCw, Trash2, ChevronLeft, ChevronRight, CheckCircle2, ShieldAlert, FileSpreadsheet, Sparkles, Calendar, ChevronDown } from 'lucide-react';
+
+const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder, fullWidth = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = React.useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+        if (searchTerm && !options.some(opt => opt.toLowerCase() === searchTerm.toLowerCase())) {
+          setValue(searchTerm);
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchTerm, options, setValue]);
+
+  const filteredOptions = options.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  return (
+    <div className={`relative ${fullWidth ? 'w-full' : 'w-full sm:w-auto min-w-[150px]'}`} ref={wrapperRef}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center text-xs font-bold bg-white border rounded-lg px-3 py-2.5 cursor-pointer transition whitespace-nowrap ${fullWidth ? 'w-full justify-between' : 'justify-between'} ${isOpen ? 'border-indigo-500 ring-1 ring-indigo-500 shadow-sm' : 'border-gray-200 hover:bg-gray-50/50 text-gray-700 bg-gray-50/50'}`}
+      >
+        <div className="flex items-center gap-1.5 overflow-hidden">
+          {Icon && <Icon className="w-3.5 h-3.5 shrink-0 text-gray-400" />}
+          <span className={`truncate ${value ? "text-gray-900 capitalize" : "text-gray-700"}`}>
+            {value || label}
+          </span>
+        </div>
+        <ChevronDown className={`w-3.5 h-3.5 shrink-0 ml-2 transition-transform ${isOpen ? 'rotate-180 text-indigo-500' : 'text-gray-400'}`} />
+      </div>
+
+      {isOpen && (
+        <div className={`absolute z-50 top-full mt-1 left-0 w-full min-w-[160px] bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden flex flex-col`}>
+          <div className="p-2 border-b border-gray-50">
+            <input
+              type="text"
+              autoFocus
+              className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              placeholder={placeholder || `Search...`}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  setValue(searchTerm);
+                  setIsOpen(false);
+                }
+              }}
+            />
+          </div>
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt, i) => (
+                <li 
+                  key={i}
+                  className="px-3 py-2 text-xs text-gray-700 hover:bg-indigo-50 cursor-pointer capitalize font-bold"
+                  onClick={() => {
+                    setValue(opt);
+                    setSearchTerm('');
+                    setIsOpen(false);
+                  }}
+                >
+                  {opt}
+                </li>
+              ))
+            ) : (
+              <li className="px-3 py-2 text-xs text-gray-400 text-center font-medium">No match found</li>
+            )}
+            {value && (
+              <li 
+                className="px-3 py-2 text-xs text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-bold"
+                onClick={() => {
+                  setValue('');
+                  setSearchTerm('');
+                  setIsOpen(false);
+                }}
+              >
+                Clear selection
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ExternalJobs = ({ defaultFilters = {} }) => {
   const [jobs, setJobs] = useState([]);
@@ -154,58 +245,63 @@ const ExternalJobs = ({ defaultFilters = {} }) => {
               
               <div className="flex-1 flex flex-col sm:flex-row items-center gap-4">
                 <div className="w-full sm:w-auto">
-                  <select 
-                    value={filters.isActive} 
-                    onChange={(e) => setFilters(f => ({ ...f, isActive: e.target.value, page: 1 }))}
-                    className="w-full text-xs font-bold text-gray-700 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all"
-                  >
-                    <option value="true">Active Only</option>
-                    <option value="false">Closed Only</option>
-                    <option value="">All Statuses</option>
-                  </select>
+                  <FilterDropdown
+                    label="All Statuses"
+                    value={filters.isActive === 'true' ? 'Active Only' : filters.isActive === 'false' ? 'Closed Only' : ''}
+                    setValue={val => setFilters(f => ({ ...f, isActive: val === 'Active Only' ? 'true' : val === 'Closed Only' ? 'false' : '', page: 1 }))}
+                    options={['Active Only', 'Closed Only']}
+                  />
                 </div>
                 <div className="w-full sm:w-auto">
-                  <select 
+                  <FilterDropdown
+                    label="All Sources"
                     value={filters.source}
-                    onChange={(e) => setFilters(f => ({ ...f, source: e.target.value, page: 1 }))}
-                    className="w-full text-xs font-bold text-gray-700 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all capitalize"
-                  >
-                    <option value="">All Sources</option>
-                    {sources.map(src => (
-                      <option key={src._id} value={src.sourceName}>{src.sourceName}</option>
-                    ))}
-                  </select>
+                    setValue={val => setFilters(f => ({ ...f, source: val, page: 1 }))}
+                    options={sources.map(src => src.sourceName)}
+                  />
                 </div>
                 <div className="w-full sm:w-auto">
-                  <select 
-                    value={filters.country}
-                    onChange={(e) => setFilters(f => ({ ...f, country: e.target.value, page: 1 }))}
-                    className="w-full text-xs font-bold text-gray-700 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all"
-                  >
-                    <option value="">All Countries</option>
-                    <option value="US">USA (US)</option>
-                    <option value="IN">India (IN)</option>
-                    <option value="GB">UK (GB)</option>
-                    <option value="CA">Canada (CA)</option>
-                    <option value="AE">UAE (AE)</option>
-                    <option value="AU">Australia (AU)</option>
-                  </select>
+                  <FilterDropdown
+                    label="All Countries"
+                    value={
+                      filters.country === 'US' ? 'USA (US)' :
+                      filters.country === 'IN' ? 'India (IN)' :
+                      filters.country === 'GB' ? 'UK (GB)' :
+                      filters.country === 'CA' ? 'Canada (CA)' :
+                      filters.country === 'AE' ? 'UAE (AE)' :
+                      filters.country === 'AU' ? 'Australia (AU)' : ''
+                    }
+                    setValue={val => {
+                      const cMap = {
+                        'usa (us)': 'US', 'india (in)': 'IN', 'uk (gb)': 'GB',
+                        'canada (ca)': 'CA', 'uae (ae)': 'AE', 'australia (au)': 'AU'
+                      };
+                      setFilters(f => ({ ...f, country: cMap[val.toLowerCase()] || '', page: 1 }));
+                    }}
+                    options={['USA (US)', 'India (IN)', 'UK (GB)', 'Canada (CA)', 'UAE (AE)', 'Australia (AU)']}
+                  />
                 </div>
 
                 {/* Date-wise Filter */}
                 <div className="w-full sm:w-auto flex items-center gap-2">
-                  <select 
-                    value={filters.datePreset}
-                    onChange={(e) => setFilters(f => ({ ...f, datePreset: e.target.value, startDate: '', endDate: '', page: 1 }))}
-                    className="w-full text-xs font-bold text-gray-700 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all"
-                  >
-                    <option value="">All Dates</option>
-                    <option value="today">Today</option>
-                    <option value="yesterday">Yesterday</option>
-                    <option value="7days">Last 7 Days</option>
-                    <option value="30days">Last 30 Days</option>
-                    <option value="custom">Custom Date Range</option>
-                  </select>
+                  <FilterDropdown
+                    label="All Dates"
+                    value={
+                      filters.datePreset === 'today' ? 'Today' :
+                      filters.datePreset === 'yesterday' ? 'Yesterday' :
+                      filters.datePreset === '7days' ? 'Last 7 Days' :
+                      filters.datePreset === '30days' ? 'Last 30 Days' :
+                      filters.datePreset === 'custom' ? 'Custom Date Range' : ''
+                    }
+                    setValue={val => {
+                      const dMap = {
+                        'today': 'today', 'yesterday': 'yesterday',
+                        'last 7 days': '7days', 'last 30 days': '30days', 'custom date range': 'custom'
+                      };
+                      setFilters(f => ({ ...f, datePreset: dMap[val.toLowerCase()] || '', startDate: '', endDate: '', page: 1 }));
+                    }}
+                    options={['Today', 'Yesterday', 'Last 7 Days', 'Last 30 Days', 'Custom Date Range']}
+                  />
                 </div>
 
                 {filters.datePreset === 'custom' && (

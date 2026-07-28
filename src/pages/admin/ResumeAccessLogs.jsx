@@ -3,12 +3,78 @@
  * Admin page: R2 Resume Access Log audit trails with date filters & link status filters.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ADMIN_API } from '../../services/api';
 import {
   FileText, RefreshCw, Loader2, AlertTriangle, Search,
-  Clock, Globe, Calendar, Filter, X
+  Clock, Globe, Calendar, Filter, X, ChevronDown
 } from 'lucide-react';
+
+const FilterDropdown = ({ label, value, setValue, options }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredOptions = options.filter(opt =>
+    opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const displayValue = options.find(opt => opt.value === value)?.label || label;
+
+  return (
+    <div className="relative shrink-0" ref={wrapperRef}>
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center justify-between gap-2 px-3.5 py-2.5 bg-gray-50 border rounded-xl text-sm font-medium text-gray-700 cursor-pointer transition hover:bg-white ${
+          isOpen ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-white' : 'border-gray-200'
+        }`}
+      >
+        <span className={value && value !== 'all' ? 'text-gray-900' : 'text-gray-600'}>{displayValue}</span>
+        <ChevronDown className={`w-4 h-4 transition-transform text-gray-400 ${isOpen ? 'rotate-180 text-indigo-500' : ''}`} />
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 top-full mt-1 left-0 min-w-full w-max bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
+          <div className="p-2 border-b border-gray-50">
+            <input
+              type="text"
+              autoFocus
+              className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {filteredOptions.length > 0 ? filteredOptions.map((opt, i) => (
+              <li
+                key={i}
+                className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 ${
+                  opt.value === value ? 'text-indigo-700 font-semibold bg-indigo-50/50' : 'text-gray-700'
+                }`}
+                onClick={() => { setValue(opt.value); setSearchTerm(''); setIsOpen(false); }}
+              >
+                {opt.label}
+              </li>
+            )) : (
+              <li className="px-3 py-2 text-sm text-gray-400 text-center">No match</li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function ResumeAccessLogs() {
   const [logs, setLogs] = useState([]);
@@ -106,33 +172,32 @@ export default function ResumeAccessLogs() {
 
           {/* Date Range Selector */}
           <div className="flex items-center gap-2 shrink-0">
-            <Calendar className="w-4 h-4 text-indigo-600" />
-            <select
+            <FilterDropdown
+              label="🗓️ All Time"
               value={dateRange}
-              onChange={e => setDateRange(e.target.value)}
-              className="px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-            >
-              <option value="all">🗓️ All Time</option>
-              <option value="today">⚡ Today</option>
-              <option value="yesterday">⏪ Yesterday</option>
-              <option value="this_week">📅 This Week</option>
-              <option value="this_month">📆 This Month</option>
-              <option value="custom">⚙️ Custom Date Range</option>
-            </select>
+              setValue={setDateRange}
+              options={[
+                { value: 'all', label: '🗓️ All Time' },
+                { value: 'today', label: '⚡ Today' },
+                { value: 'yesterday', label: '⏪ Yesterday' },
+                { value: 'this_week', label: '📅 This Week' },
+                { value: 'this_month', label: '📆 This Month' },
+                { value: 'custom', label: '⚙️ Custom Date Range' },
+              ]}
+            />
           </div>
 
           {/* Link Status Selector */}
-          <div className="shrink-0">
-            <select
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-            >
-              <option value="all">🔗 All Link Statuses</option>
-              <option value="active">🟢 Active Temporary Link</option>
-              <option value="expired">🔴 Expired Link</option>
-            </select>
-          </div>
+          <FilterDropdown
+            label="🔗 All Link Statuses"
+            value={statusFilter}
+            setValue={setStatusFilter}
+            options={[
+              { value: 'all', label: '🔗 All Link Statuses' },
+              { value: 'active', label: '🟢 Active Temporary Link' },
+              { value: 'expired', label: '🔴 Expired Link' },
+            ]}
+          />
 
           {hasActiveFilters && (
             <button

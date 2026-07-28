@@ -119,19 +119,17 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2" onClick={(e) => handleNavClick(e, "/")}>
-            <div className="w-9 h-9 rounded-md bg-[#081B3A] flex items-center justify-center">
-              <span className="text-white font-bold text-lg scale-125">L</span>
-            </div>
-            <div className="leading-none">
-              <p className="font-extrabold text-[#081B3A] tracking-tight">
+          <Link to="/" className="flex items-center gap-1 mr-auto" onClick={(e) => handleNavClick(e, "/")}>
+            <img src="/logo.jpg" alt="Lucohire Logo" className="w-11 h-11 object-contain shrink-0" />
+            <div className="leading-none flex flex-col justify-center">
+              <p className="font-bold text-[#081B3A] text-lg tracking-tight leading-none">
                 Lucohire
               </p>
-              <p className="text-[9px] font-semibold tracking-[0.2em] text-[#6B7280] mt-0.5">
-                AI HIRING
+              <p className="text-[10px] font-semibold text-[#6B7280] mt-1 leading-none whitespace-nowrap">
+                AI-Powered Global Jobs &amp; Hiring Platform
               </p>
             </div>
           </Link>
@@ -178,7 +176,12 @@ const Navbar = () => {
                         decoding="async"
                         fetchpriority="high"
                         loading="lazy"
+                        referrerPolicy="no-referrer"
                         className="w-full h-full object-cover rounded-full"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'U')}&background=e0e7ff&color=4f46e5`;
+                        }}
                       />
                     ) : user?.profilePhoto || user?.avatar ? (
                       <img
@@ -192,7 +195,12 @@ const Navbar = () => {
                         decoding="async"
                         fetchpriority="high"
                         loading="lazy"
+                        referrerPolicy="no-referrer"
                         className="w-full h-full object-cover rounded-full"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'U')}&background=e0e7ff&color=4f46e5`;
+                        }}
                       />
                     ) : (
                       <HiUser className="text-indigo-600" aria-hidden="true" />
@@ -297,8 +305,6 @@ const Navbar = () => {
               </div>
             )}
             <LanguageDropdown />
-          </div>
-          <div className="lg:absolute hidden md:block right-4 top-4 border-gray-300">
             <NotificationBell />
           </div>
 
@@ -338,15 +344,13 @@ const Navbar = () => {
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/50">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded bg-[#081B3A] flex items-center justify-center">
-                  <span className="text-white font-extrabold text-sm">L</span>
-                </div>
-                <div className="leading-none">
-                  <p className="font-bold text-[#081B3A] text-sm tracking-tight">
+                <img src="/logo.jpg" alt="Lucohire Logo" className="w-10 h-10 object-contain" />
+                <div className="leading-none flex flex-col justify-center">
+                  <p className="font-bold text-[#081B3A] text-sm tracking-tight leading-none">
                     Lucohire
                   </p>
-                  <p className="text-[7px] font-semibold tracking-[0.2em] text-[#6B7280] mt-0.5">
-                    AI HIRING
+                  <p className="text-[8px] font-semibold text-[#6B7280] mt-1 leading-none max-w-[150px] whitespace-normal">
+                    AI-Powered Global Jobs & Hiring Platform
                   </p>
                 </div>
               </div>

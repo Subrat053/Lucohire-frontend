@@ -98,43 +98,7 @@ const ChangePassword = () => {
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4 lg:mt-9 space-y-6">
-      {/* ── Active Recipient Details Banner ── */}
-      <div className="bg-slate-900 text-white rounded-[24px] p-6 shadow-lg border border-slate-800 space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Security Recipient Address
-          </span>
-          <Link
-            to={getUpdateProfileLink()}
-            className="text-xs text-indigo-300 hover:text-white font-bold flex items-center gap-1 underline transition"
-          >
-            Update Email / Mobile <HiExternalLink className="w-3.5 h-3.5" />
-          </Link>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 flex items-center gap-2.5">
-            <HiMail className="w-5 h-5 text-indigo-400 shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[10px] text-slate-400 font-medium">Registered Email ID</p>
-              <p className="font-mono font-bold text-white truncate">{user?.email || 'Not configured'}</p>
-            </div>
-          </div>
-
-          <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 flex items-center gap-2.5">
-            <HiPhone className="w-5 h-5 text-emerald-400 shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[10px] text-slate-400 font-medium">Registered Mobile Number</p>
-              <p className="font-mono font-bold text-white truncate">{user?.phone || user?.phoneNumber || 'Not configured'}</p>
-            </div>
-          </div>
-        </div>
-
-        <p className="text-[11px] text-slate-400 leading-relaxed pt-1">
-          ℹ️ All password reset verification links, security tokens, and OTP codes will be sent directly to the registered email & mobile number shown above.
-        </p>
-      </div>
 
       {/* ── Main Change Password Form ── */}
       <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
@@ -232,38 +196,7 @@ const ChangePassword = () => {
             </button>
           </div>
 
-          {/* ── Forgot Password Section ── */}
-          <div className="pt-6 border-t border-slate-100 space-y-3">
-            <div className="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
-                  <HiKey className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="font-bold text-amber-950 text-sm">Forgot your current password?</p>
-                  <p className="text-amber-700 mt-0.5">
-                    Click to send a password reset verification link & OTP code directly to <strong className="font-mono text-amber-950">{user?.email || 'your email'}</strong>.
-                  </p>
-                </div>
-              </div>
 
-              <button
-                type="button"
-                onClick={handleSendResetOtp}
-                disabled={sendingReset}
-                className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition text-xs shrink-0 shadow-sm disabled:opacity-50 self-start sm:self-auto flex items-center gap-1.5"
-              >
-                {sendingReset ? 'Sending Reset OTP...' : '🔑 Send Reset Link / OTP'}
-              </button>
-            </div>
-
-            {resetSent && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center gap-2">
-                <HiShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Password reset instructions & OTP have been dispatched to <strong>{user?.email}</strong>. Check your email inbox!</span>
-              </div>
-            )}
-          </div>
         </form>
       </div>
     </div>

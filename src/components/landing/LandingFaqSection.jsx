@@ -54,11 +54,24 @@ const LandingFaqSection = () => {
   };
 
   return (
-    <div className="w-full bg-white pb-12 sm:pb-16 pt-4">
+    <div className="w-full bg-white pb-12 sm:pb-16 pt-0">
       <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8">
         
+        {/* Brand/Logo Header */}
+        <div className="flex flex-col items-center justify-center mb-4 mt-0">
+          <img src="/logo.jpg" alt="Lucohire Logo" className="w-32 h-32 sm:w-48 sm:h-48 object-contain mix-blend-multiply -mt-2 -mb-2" />
+          <div className="flex flex-col text-center justify-center">
+            <h2 className="font-semibold text-gray-800 text-4xl sm:text-5xl tracking-tight mb-1">
+              Lucohire
+            </h2>
+            <p className="text-sm sm:text-base md:text-lg font-medium text-gray-500 max-w-md mx-auto">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 font-bold">AI-Powered</span> Global Jobs & Hiring Platform
+            </p>
+          </div>
+        </div>
+
         {/* Upper FAQ Header (Borderless & Clean) */}
-        <div className="text-center space-y-2 mb-8 sm:mb-10">
+        <div className="text-center space-y-2 mb-6 sm:mb-8">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold">
             <Sparkles className="w-3.5 h-3.5 text-blue-600" />
             {t('landingFaq.badge', 'FAQ')}
@@ -72,7 +85,7 @@ const LandingFaqSection = () => {
         </div>
 
         {/* Vertically Stacked Question Cards (Squeezed Bar & Full Width Text) */}
-        <div className="w-full space-y-3">
+        <div className="w-full space-y-2">
           {faqs.map((item, idx) => {
             const isOpen = openIndex === idx;
             return (

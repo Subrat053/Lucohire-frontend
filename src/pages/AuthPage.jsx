@@ -352,10 +352,8 @@ const LeftPanel = ({ mode }) => {
       {/* Content */}
       <div className="relative z-10 animate-fade-in">
         <div className="flex items-center gap-3 mb-12">
-          <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
-            <svg className="w-6 h-6 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-            </svg>
+          <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg p-1">
+            <img src="/logo.jpg" alt="Lucohire Logo" className="w-full h-full object-contain" />
           </div>
           <span className="text-white font-extrabold text-2xl tracking-tight">Lucohire</span>
         </div>
@@ -363,10 +361,11 @@ const LeftPanel = ({ mode }) => {
 
       <div className="relative z-10 max-w-lg mb-10">
         <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6">
-          Connect.<br/><span className="text-blue-400">Hire.</span><br/>Grow.
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 font-bold">AI-Powered</span><br/>
+          Global Jobs & <br/>Hiring Platform.
         </h1>
-        <p className="text-lg text-gray-300 font-medium leading-relaxed mb-8 italic">
-          "Join thousands of service providers and recruiters building their network and accelerating their growth today."
+        <p className="text-lg text-gray-300 font-medium leading-relaxed mb-8">
+          Join thousands of service providers and recruiters building their network and accelerating their growth today.
         </p>
         
         <div className="flex items-center gap-4">
@@ -1067,6 +1066,12 @@ const AuthPage = () => {
         appVerifier,
       );
       console.log("[PHONE OTP SENT]");
+      
+      try {
+        await authAPI.logFirebaseOtpAttempt({ phone: formattedPhone, channel: 'phone', purpose: mode === 'register' ? 'register' : 'login' });
+      } catch (err) {
+        console.error("Failed to log firebase attempt:", err);
+      }
 
       setConfirmationResult(result);
       const parsed = parsePhoneString(formattedPhone);

@@ -503,9 +503,7 @@ const AdminCountries = () => {
     const syncState = country.syncRules?.syncState || (country.isJobSyncEnabled ? 'running' : 'stopped');
     const matchesSync =
       syncFilter === 'all' ||
-      (syncFilter === 'running' && (syncState === 'running' || country.isJobSyncEnabled)) ||
-      (syncFilter === 'paused' && syncState === 'paused') ||
-      (syncFilter === 'stopped' && (syncState === 'stopped' && !country.isJobSyncEnabled));
+      syncState === syncFilter;
 
     return matchesSearch && matchesStatus && matchesSync;
   });

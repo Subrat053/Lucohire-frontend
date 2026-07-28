@@ -294,7 +294,16 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                   {/* Left: Avatar with Available Now pill */}
                   <div className="relative shrink-0">
                     {candidate.profilePhoto ? (
-                      <img src={candidate.profilePhoto} alt={candidate.profileName} className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-1 ring-gray-100" />
+                      <img 
+                        src={candidate.profilePhoto} 
+                        alt={candidate.profileName} 
+                        referrerPolicy="no-referrer"
+                        className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-1 ring-gray-100" 
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.profileName || 'U')}&background=e0e7ff&color=4f46e5`;
+                        }}
+                      />
                     ) : (
                       <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center text-3xl font-bold ring-1 ring-gray-100 ${candidate.avatarBg || 'bg-blue-100 text-blue-700'}`}>
                         {candidate.profileName?.substring(0, 2).toUpperCase() || 'UN'}
