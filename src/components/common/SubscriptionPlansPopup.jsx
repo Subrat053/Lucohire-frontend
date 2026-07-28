@@ -143,9 +143,9 @@ const SubscriptionPlansPopup = ({ role, currentPlan = 'free', open, onClose, red
                       {isActive ? 'Active' : String(plan.slug || 'plan')}
                     </span>
                   </div>
-                  <p className="mt-2 text-2xl font-extrabold text-gray-900">
-                    {formatPrice(plan.price, plan.priceAED, plan.priceUSD)}
-                    <span className="text-sm font-medium text-gray-500"> / {PERIOD_LABELS[plan.duration] || `${plan.duration}d`}</span>
+                  <p className="text-3xl font-extrabold text-indigo-900 mt-2">
+                    ₹{plan.price}
+                    <span className="text-sm text-slate-500 font-medium tracking-normal ml-1">/ {plan.duration} days</span>
                   </p>
                   <ul className="mt-3 flex-1 list-disc space-y-1 pl-5 text-sm text-gray-600">
                     {(plan.features || []).slice(0, 4).map((feature, index) => (

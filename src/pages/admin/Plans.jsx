@@ -990,7 +990,7 @@ const PlanCard = ({ plan, formatPrice, openEdit, handleDelete, isLanding }) => (
       
       {/* Default Base Price */}
       <p className="text-3xl font-bold text-indigo-600 mt-2">
-        {formatPrice(plan.price, plan.priceAED, plan.priceUSD)}
+        ₹{plan.price}
         <span className="text-sm text-gray-400 font-normal">/{DURATION_LABEL_BY_VALUE[plan.duration] || `${plan.duration}d`}</span>
       </p>
 

@@ -65,7 +65,7 @@ const coverageLabels = {
   custom: 'Custom Coverage',
 };
 
-const formatCurrency = (value, symbol = '₹') => `${symbol}${Number(value || 0).toLocaleString()}`;
+const formatCurrency = (value) => `₹${Number(value || 0).toLocaleString()}`;
 
 const buildLocalPreview = (plan, months) => {
   if (!plan) return null;
@@ -76,8 +76,7 @@ const buildLocalPreview = (plan, months) => {
   const gstAmount = Math.round(subtotal * (taxPercent / 100) * 100) / 100;
   const totalAmount = Math.round((subtotal + gstAmount) * 100) / 100;
   return {
-    monthlyPrice,
-    discountPercent,
+    ...plan,
     subtotal,
     gstPercent: taxPercent,
     gstAmount,
