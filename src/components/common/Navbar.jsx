@@ -344,7 +344,7 @@ const Navbar = () => {
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/50">
               <div className="flex items-center space-x-2">
-                <img src="/logo.jpg" alt="Lucohire Logo" className="w-10 h-10 object-contain" />
+                <img src="/lucohire.webp" alt="Lucohire Logo" className="w-10 h-10 object-contain" />
                 <div className="leading-none flex flex-col justify-center">
                   <p className="font-bold text-[#081B3A] text-sm tracking-tight leading-none">
                     Lucohire

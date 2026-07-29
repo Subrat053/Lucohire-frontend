@@ -811,6 +811,43 @@ const ProviderPlans = () => {
           })}
         </div>
 
+          
+          {/* Important Disclaimers */}
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 shadow-sm relative overflow-hidden mb-8">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <AlertTriangle className="w-16 h-16 text-amber-500" />
+            </div>
+            <div className="relative z-10 flex flex-col md:flex-row gap-6">
+              <div className="flex-1 space-y-2 text-xs text-amber-800 font-medium">
+                <p className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
+                  {t("All prices are in INR and exclusive of applicable taxes (GST), where applicable.")}
+                </p>
+                <p className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
+                  {t("Showcase your freelance profile and receive direct calls or WhatsApp enquiries from verified clients—with your consent.")}
+                </p>
+                <p className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
+                  {t("Subscriptions renew automatically until cancelled by the user. You can cancel future renewals anytime before the next billing cycle.")}
+                </p>
+                <p className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
+                  {t("By subscribing, you agree to our Terms & Conditions, Privacy Policy, and Refund Policy.")}
+                </p>
+              </div>
+              <div className="flex-1 bg-white/60 p-4 rounded-xl border border-amber-100/50">
+                <span className="font-bold text-amber-900 block mb-1 flex items-center gap-1">
+                  <ShieldCheck className="w-4 h-4" />
+                  {t("AI disclaimer")}
+                </span>
+                <p className="text-xs text-amber-800/80 leading-relaxed">
+                  {t("AI-generated scores, recommendations and career insights are intended to assist users and do not guarantee interviews, recruiter responses or employment outcomes.")}
+                </p>
+              </div>
+            </div>
+          </div>
+
         {/* Comparison Table */}
         <div className="bg-white rounded-3xl border border-emerald-100 shadow-sm overflow-hidden mb-8">
           <div className="overflow-x-auto">
@@ -855,29 +892,30 @@ const ProviderPlans = () => {
             </table>
           </div>
           <div className="p-4 text-[10px] text-center text-[#94A3B8] border-t border-emerald-100">{t("* Fair usage policy applies to prevent spam.")}</div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsAutoSubscription(!isAutoSubscription)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAutoSubscription ? 'bg-emerald-600' : 'bg-slate-300'}`}
-            >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAutoSubscription ? 'translate-x-6' : 'translate-x-1'}`} />
-            </button>
-            <div>
-              <p className="text-sm font-bold text-emerald-950">{t("Auto Subscription")}</p>
-              <p className="text-xs text-slate-500">{t("Your plan will auto-renew at the end of each billing cycle.")}</p>
+          
+          {/* Bottom Bar */}
+          <div className="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsAutoSubscription(!isAutoSubscription)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAutoSubscription ? 'bg-emerald-600' : 'bg-slate-300'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAutoSubscription ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+              <div>
+                <p className="text-sm font-bold text-emerald-950">{t("Auto Subscription")}</p>
+                <p className="text-xs text-slate-500">{t("Your plan will auto-renew at the end of each billing cycle.")}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-6 text-xs font-bold text-slate-500">
-            <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-600" />{t("100% Secure Payments")}</div>
-            <div className="flex items-center gap-2"><RefreshCw className="w-4 h-4 text-emerald-600" />{t("Cancel Anytime")}</div>
-            <div className="flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-emerald-600" />{t("7-Day Money Back Guarantee (T&C Apply)")}</div>
+            <div className="flex items-center gap-6 text-xs font-bold text-slate-500">
+              <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-600" />{t("100% Secure Payments")}</div>
+              <div className="flex items-center gap-2"><RefreshCw className="w-4 h-4 text-emerald-600" />{t("Cancel Anytime")}</div>
+              <div className="flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-emerald-600" />{t("7-Day Money Back Guarantee (T&C Apply)")}</div>
+            </div>
           </div>
         </div>
       </div>
+
       {/* Configuration & Checkout Modal */}
       {showConfigModal && selectedPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
@@ -1001,10 +1039,11 @@ const ProviderPlans = () => {
               <button
                 onClick={handleCheckout}
                 disabled={checkoutLoading || !isConfigurationValid}
-                className="w-full bg-emerald-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl transition-all shadow-md flex justify-center items-center gap-2"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl transition-all shadow-md flex justify-center items-center gap-2"
               >
                 {checkoutLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
-                <Wallet className="w-4 h-4" />{t("Proceed to Payment")}</button>
+                <Wallet className="w-4 h-4" />{t("Proceed to Payment")}
+              </button>
             </div>
           </div>
         </div>

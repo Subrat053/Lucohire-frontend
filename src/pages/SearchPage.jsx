@@ -708,10 +708,10 @@ const SearchPage = () => {
   return (
     <div className="min-h-screen bg-[#faf9f7]">
       <Seo
-        title={t("search.pageTitle", "Search Providers")}
+        title={t("search.pageTitle", "Search Jobs & Freelancers in India")}
         description={t(
           "search.pageDescription",
-          "Search verified service providers by skill, city, and availability with AI-powered matching.",
+          "Browse thousands of verified jobs and freelancers across India. Filter by skill, location, and budget on Lucohire."
         )}
         canonicalPath={location.pathname}
       />

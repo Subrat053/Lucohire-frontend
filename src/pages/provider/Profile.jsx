@@ -1845,7 +1845,7 @@ const ProviderProfile = () => {
                 <Eye className="w-4 h-4" />{t("Share Profile")}</button>
               <button
                 type="submit"
-                disabled={saving || !agreedToTerms}
+                disabled={saving || ((form.isPublicProfile || form.whatsappConsent) && !agreedToTerms)}
                 className="py-2.5 px-6 bg-[#047857] text-white rounded-lg text-sm font-bold shadow-md hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#047857] transition flex items-center justify-center gap-2"
               >
                 {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
@@ -2237,7 +2237,7 @@ const ProviderProfile = () => {
                         <div>
                           <h4 className="text-[14px] font-bold text-slate-800">{t("WhatsApp Contact Consent")}</h4>
                           <p className="text-[12px] text-slate-500 mt-0.5">{t(
-                            "Allow recruiters to directly open a WhatsApp chat with you from your public profile."
+                            "Showcase your freelance profile and receive direct calls or WhatsApp enquiries from verified clients—with your consent."
                           )}</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -2863,7 +2863,7 @@ const ProviderProfile = () => {
                   {PROFILE_TABS.indexOf(activeTab) < PROFILE_TABS.length - 1 ? (
                     <button
                       type="button"
-                      disabled={!agreedToTerms}
+                      disabled={(form.isPublicProfile || form.whatsappConsent) && !agreedToTerms}
                       onClick={() => {
                         const idx = PROFILE_TABS.indexOf(activeTab);
                         if (idx < PROFILE_TABS.length - 1) handleTabChange(PROFILE_TABS[idx + 1]);
@@ -2876,7 +2876,7 @@ const ProviderProfile = () => {
                     <button
                       type="button"
                       onClick={handleSave}
-                      disabled={saving || !agreedToTerms}
+                      disabled={saving || ((form.isPublicProfile || form.whatsappConsent) && !agreedToTerms)}
                       className="px-6 py-2.5 rounded-xl text-[14px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600 shadow-sm transition-all active:scale-95 flex items-center gap-2"
                     >
                       {saving ? t("Saving...") : t("Save Profile")}

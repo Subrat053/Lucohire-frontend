@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { jobsAPI, providerAPI } from '../services/api';
+import Seo from '../components/common/Seo';
 
 import HeroSection from '../components/landing/HeroSection';
 import TopTalentCarousel from '../components/landing/TopTalentCarousel';
 import FeaturesSection from '../components/landing/FeaturesSection';
+import LogoLuco from '../components/landing/LogoLuco';
 import LandingFaqSection from '../components/landing/LandingFaqSection';
 import CandidateModal from '../components/landing/CandidateModal';
 
@@ -98,6 +100,11 @@ export default function LandingPage() {
 
   return (
     <div className="w-full bg-white font-sans text-gray-900 overflow-hidden">
+      <Seo
+        title="Find & Hire Verified Talent in India"
+        description="Lucohire is India's AI-powered hiring platform. Find verified freelancers, post jobs, and hire instantly. Transparent pricing, fast matching."
+        canonicalPath="/"
+      />
       <HeroSection 
         user={user}
         jobSearch={jobSearch}
@@ -119,6 +126,8 @@ export default function LandingPage() {
       />
       
       <FeaturesSection />
+
+      <LogoLuco />
 
       <LandingFaqSection />
 

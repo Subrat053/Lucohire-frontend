@@ -8,6 +8,7 @@ import useStripePayment from '../../hooks/useStripePayment';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { useLocale } from '../../context/LocaleContext';
+import { AlertTriangle, ShieldCheck } from 'lucide-react';
 
 const PLAN_THEME_BY_SLUG = {
   free: {
@@ -569,6 +570,42 @@ Recruitment Firms`}</p>
             })()}
           </>
         )}
+
+        {/* Important Disclaimers */}
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 shadow-sm relative overflow-hidden mb-20">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <AlertTriangle className="w-16 h-16 text-amber-500" />
+          </div>
+          <div className="relative z-10 flex flex-col md:flex-row gap-6">
+            <div className="flex-1 space-y-2 text-xs text-amber-800 font-medium">
+              <p className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
+                {t("All prices are in INR and exclusive of applicable taxes (GST), where applicable.")}
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
+                {t("Showcase your freelance profile and receive direct calls or WhatsApp enquiries from verified clients—with your consent.")}
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
+                {t("Subscriptions renew automatically until cancelled by the user. You can cancel future renewals anytime before the next billing cycle.")}
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
+                {t("By subscribing, you agree to our Terms & Conditions, Privacy Policy, and Refund Policy.")}
+              </p>
+            </div>
+            <div className="flex-1 bg-white/60 p-4 rounded-xl border border-amber-100/50">
+              <span className="font-bold text-amber-900 block mb-1 flex items-center gap-1">
+                <ShieldCheck className="w-4 h-4" />
+                {t("AI disclaimer")}
+              </span>
+              <p className="text-xs text-amber-800/80 leading-relaxed">
+                {t("AI-generated scores, recommendations and career insights are intended to assist users and do not guarantee interviews, recruiter responses or employment outcomes.")}
+              </p>
+            </div>
+          </div>
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-20">
           <div className="bg-[#1e1b4b] rounded-3xl p-8 text-white relative overflow-hidden">

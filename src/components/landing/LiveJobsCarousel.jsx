@@ -171,7 +171,7 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
                   <svg className="w-4 h-4 text-gray-300 hover:text-blue-500 shrink-0 ml-2 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
                 </div>
                 
-                <h5 className="font-black text-gray-900 text-sm sm:text-[15px] leading-tight mb-1 truncate">{job.title}</h5>
+                <h3 className="font-black text-gray-900 text-sm sm:text-[15px] leading-tight mb-1 truncate">{job.title}</h3>
                 <p className="text-[11px] sm:text-xs text-indigo-600 font-semibold mb-2.5 truncate">{job.companyName || job.recruiter?.name || 'Company'}</p>
                 
                 <div className="flex flex-col gap-1.5 mb-3">
@@ -193,7 +193,7 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
                     <span className="bg-[#f4f7fa] text-[#4b5563] text-[9px] font-bold px-2 py-0.5 rounded-full border border-gray-200/60 shadow-sm whitespace-nowrap">{job.workMode || 'Full-time'}</span>
                     <span className="bg-[#f4f7fa] text-[#4b5563] text-[9px] font-bold px-2 py-0.5 rounded-full border border-gray-200/60 shadow-sm whitespace-nowrap">{job.jobType || 'On-site'}</span>
                   </div>
-                  <div className="text-[9px] text-gray-400 font-semibold shrink-0">{job.createdAt ? new Date(job.createdAt).toLocaleDateString() : t('2m ago')}</div>
+                  <div className="text-[9px] text-gray-500 font-semibold shrink-0">{job.createdAt ? new Date(job.createdAt).toLocaleDateString() : t('2m ago')}</div>
                 </div>
               </div>
             )})
@@ -213,7 +213,7 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
                 type="button"
                 onClick={() => setCurrentPage(pageIndex)}
                 aria-label={`Go to page ${pageIndex + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                className={`relative after:absolute after:-inset-3 h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                   currentPage === pageIndex
                     ? 'w-5 bg-blue-600'
                     : 'w-2 bg-blue-200 hover:bg-blue-300'

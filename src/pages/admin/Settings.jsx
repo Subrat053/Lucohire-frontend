@@ -16,7 +16,6 @@ const TABS = [
   { id: 'general',   label: 'General',   icon: HiCog },
   { id: 'cloudinary',label: 'Cloudinary',icon: HiCloud },
   { id: 'profile',   label: 'Admin Profile', icon: HiPhotograph },
-  { id: 'content',   label: 'Page Content',  icon: HiDocumentText },
   { id: 'rotation',  label: 'Rotation Pools',icon: HiChip },
   { id: 'ai-ops',    label: 'AI OPS',        icon: HiDatabase },
   { id: 'company',   label: 'Company Details',icon: HiLocationMarker },

@@ -25,12 +25,6 @@ export default function CareerTips() {
       color: "text-purple-600 bg-purple-50 border-purple-100"
     },
     {
-      icon: Share2,
-      title: "Strategic Networking on LinkedIn",
-      description: "Never send a blank connection request. Always include a personalized note mentioning a shared interest, a recent post they made, or a mutual connection. Focus on building relationships and offering value before asking for a referral or a job opportunity.",
-      color: "text-pink-600 bg-pink-50 border-pink-100"
-    },
-    {
       icon: DollarSign,
       title: "Salary Negotiation Rules",
       description: "Never be the first to give a number. If asked for your salary expectations early on, pivot by asking about the approved range for the role. Once an offer is made, always negotiate. Research your market value using Glassdoor or Levels.fyi, and frame your counter-offer based on the unique value and skills you bring to the team.",

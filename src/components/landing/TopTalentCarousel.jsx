@@ -279,6 +279,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
           {/* Left Arrow */}
           <button 
             type="button"
+            aria-label="Previous"
             onClick={() => scrollCarousel('left')}
             className="absolute -left-3 sm:-left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition"
           >
@@ -460,6 +461,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
           {/* Right Arrow */}
           <button 
             type="button"
+            aria-label="Next"
             onClick={() => scrollCarousel('right')}
             className="absolute -right-3 sm:-right-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition"
           >

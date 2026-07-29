@@ -353,7 +353,7 @@ const LeftPanel = ({ mode }) => {
       <div className="relative z-10 animate-fade-in">
         <div className="flex items-center gap-3 mb-12">
           <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg p-1">
-            <img src="/logo.jpg" alt="Lucohire Logo" className="w-full h-full object-contain" />
+            <img src="/lucohire.webp" alt="Lucohire Logo" className="w-full h-full object-contain" />
           </div>
           <span className="text-white font-extrabold text-2xl tracking-tight">Lucohire</span>
         </div>

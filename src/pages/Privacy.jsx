@@ -1,114 +1,55 @@
 import { useEffect, useState } from 'react';
 import { adminAPI } from '../services/api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import useTranslation from '../hooks/useTranslation';
 import Seo from '../components/common/Seo';
+import useTranslation from '../hooks/useTranslation';
+import PolicyPageLayout from '../components/common/PolicyPageLayout';
 
 const PrivacyPage = () => {
   const { t } = useTranslation();
-  const [content, setContent] = useState('');
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    adminAPI.getContent('privacy')
-      .then(res => {
-        setContent(res.data || '');
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    adminAPI.getContent('privacy').then(res => {
+      let parsed = null;
+      if (res.data && typeof res.data === 'string') {
+        try {
+          parsed = JSON.parse(res.data);
+        } catch (e) {}
+      } else if (res.data && typeof res.data === 'object') {
+        parsed = res.data;
+      }
+      
+      if (!parsed || !parsed.title) {
+        parsed = {
+          title: 'Privacy Policy',
+          intro: 'Your privacy is important to us. It is Lucohire\'s policy to respect your privacy regarding any information we may collect from you across our website, and other sites we own and operate.',
+          lastUpdated: 'Last Updated: November 2025',
+          sections: [
+            { title: 'Information We Collect', body: 'We only collect information about you if we have a reason to do so - for example, to provide our Services, to communicate with you, or to make our Services better.\n\n• Personal Information: We collect personal information that you provide to us when you use our Services, such as your name, email address, and any other contact information you provide.\n• Usage Data: We collect information about your interactions with our Services, such as the pages you visit, the links you click, and the search terms you use.' },
+            { title: 'How We Use Information', body: 'We use the information we collect in various ways, including to:\n\n• Provide, operate, and maintain our website.\n• Improve, personalize, and expand our website.\n• Understand and analyze how you use our website.\n• Develop new products, services, features, and functionality.\n• Communicate with you, either directly or through one of our partners.' },
+            { title: 'Data Security', body: 'We implement industry-standard encryption and security measures to protect your personal details.' }
+          ]
+        };
+      }
+      
+      setData(parsed);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
-  const parseDynamicContent = (rawContent) => {
-    if (!rawContent || typeof rawContent !== 'string') return '';
-    if (/<[a-z][\s\S]*>/i.test(rawContent)) return rawContent;
-    let html = rawContent
-      .replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-gray-900 mt-6 mb-2">$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-gray-900 mt-8 mb-3 border-b border-gray-100 pb-2">$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1 class="text-xl font-extrabold text-gray-900 mt-8 mb-4">$1</h1>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc text-gray-600 my-1">$1</li>')
-      .replace(/^- (.*$)/gim, '<li class="ml-4 list-disc text-gray-600 my-1">$1</li>');
-    return html
-      .split(/\n\s*\n/)
-      .map(p => p.trim() ? `<p class="mb-4 leading-relaxed">${p}</p>` : '')
-      .join('');
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-gray-50">
-        <LoadingSpinner />
-      </div>
-    );
-  }
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center bg-slate-50"><LoadingSpinner /></div>;
 
   return (
-    <div className="min-h-screen bg-slate-50/70 pb-20">
+    <>
       <Seo
         title={t('static.privacyTitle', 'Privacy Policy | Lucohire')}
         description={t('static.privacyDescription', 'Learn how Lucohire handles data and privacy.')}
         canonicalPath="/privacy"
       />
-
-      {/* Header Banner with Soft Gradient & Illustration */}
-      <div className="bg-gradient-to-r from-indigo-900/5 via-indigo-500/10 to-blue-600/10 border-b border-indigo-100/60 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-3 text-center md:text-left max-w-xl">
-            <span className="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-full tracking-wide">
-              {t('privacy.badge', 'Data Protection & Encryption')}
-            </span>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">{t('static.privacyTitle', 'Privacy Policy')}</span>
-            </h1>
-            <p className="text-sm text-gray-600 font-medium leading-relaxed">
-              {t('privacy.subtitle', 'Understanding how we store, protect, and handle your candidate & recruiter data.')}
-            </p>
-            <p className="text-xs text-indigo-600 font-bold">
-              {t('privacy.lastUpdated', 'Last updated: July 2026')}
-            </p>
-          </div>
-
-          <div className="w-48 sm:w-56 md:w-64 shrink-0 drop-shadow-md hover:scale-105 transition-transform duration-300">
-            <img 
-              src="/privacy_policy.png" 
-              alt="Privacy Policy Shield Illustration" 
-              className="w-full h-auto object-contain rounded-2xl"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Content Container */}
-      <div className="max-w-4xl mx-auto px-4 -mt-6">
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
-          <div className="h-1.5 w-full bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-600" />
-          <div className="p-8 sm:p-12">
-            {content ? (
-              <div 
-                className="prose prose-slate max-w-none text-sm text-gray-700 leading-relaxed font-medium" 
-                dangerouslySetInnerHTML={{ __html: parseDynamicContent(content) }} 
-              />
-            ) : (
-              <div className="space-y-6 text-sm text-gray-700 font-medium leading-relaxed">
-                <section className="space-y-2">
-                  <h2 className="text-base font-bold text-gray-900">1. Data We Collect</h2>
-                  <p className="text-gray-600">We collect information provided when registering an account, uploading resumes, or applying for jobs.</p>
-                </section>
-                <section className="space-y-2">
-                  <h2 className="text-base font-bold text-gray-900">2. How We Use Information</h2>
-                  <p className="text-gray-600">Your data is used to provide job matching, ATS resume scoring, and platform communications.</p>
-                </section>
-                <section className="space-y-2">
-                  <h2 className="text-base font-bold text-gray-900">3. Data Protection</h2>
-                  <p className="text-gray-600">We implement industry-standard encryption and security measures to protect your personal details.</p>
-                </section>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+      <PolicyPageLayout data={data} isEditMode={false} imageUrl="/privacy_policy_illustration_1785319033161.png" />
+    </>
   );
 };
 

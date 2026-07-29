@@ -18,28 +18,28 @@ export default function FeaturesSection() {
             <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-3">
               <Brain className="w-5 h-5" />
             </div>
-            <h4 className="font-bold text-gray-900 mb-1.5 text-sm">{t("AI-Powered Matching")}</h4>
+            <h3 className="font-bold text-gray-900 mb-1.5 text-sm">{t("AI-Powered Matching")}</h3>
             <p className="text-xs text-gray-500 leading-relaxed">{t("Our AI matches the right talent to the right opportunity in seconds.")}</p>
           </div>
           <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
             <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center text-green-600 mb-3">
               <CheckCircle2 className="w-5 h-5" />
             </div>
-            <h4 className="font-bold text-gray-900 mb-1.5 text-sm">{t("Verified & Trusted")}</h4>
+            <h3 className="font-bold text-gray-900 mb-1.5 text-sm">{t("Verified & Trusted")}</h3>
             <p className="text-xs text-gray-500 leading-relaxed">{t("Every profile and job is verified for authenticity and trust.")}</p>
           </div>
           <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
             <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center text-green-600 mb-3">
               <MessageCircle className="w-5 h-5" />
             </div>
-            <h4 className="font-bold text-gray-900 mb-1.5 text-sm">{t("WhatsApp-First")}</h4>
+            <h3 className="font-bold text-gray-900 mb-1.5 text-sm">{t("WhatsApp-First")}</h3>
             <p className="text-xs text-gray-500 leading-relaxed">{t("Communicate instantly with candidates or recruiters via WhatsApp.")}</p>
           </div>
           <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
             <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-3">
               <Scale className="w-5 h-5" />
             </div>
-            <h4 className="font-bold text-gray-900 mb-1.5 text-sm">{t("Fair Distribution")}</h4>
+            <h3 className="font-bold text-gray-900 mb-1.5 text-sm">{t("Fair Distribution")}</h3>
             <p className="text-xs text-gray-500 leading-relaxed">{t("Equal visibility for everyone — no favoritism, just fairness.")}</p>
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function FeaturesSection() {
                     <div className={`w-14 h-14 ${step.bg} rounded-full flex items-center justify-center ${step.color} mb-3`}>
                       {step.icon}
                     </div>
-                    <h4 className="font-bold text-sm text-gray-900 mb-1">{step.title}</h4>
+                    <h3 className="font-bold text-sm text-gray-900 mb-1">{step.title}</h3>
                     <p className="text-xs text-gray-500">{step.desc}</p>
                   </div>
                   {idx < 2 && (
@@ -139,7 +139,7 @@ export default function FeaturesSection() {
                     <div className={`w-14 h-14 ${step.bg} rounded-full flex items-center justify-center ${step.color} mb-3`}>
                       {step.icon}
                     </div>
-                    <h4 className="font-bold text-sm text-gray-900 mb-1">{step.title}</h4>
+                    <h3 className="font-bold text-sm text-gray-900 mb-1">{step.title}</h3>
                     <p className="text-xs text-gray-500">{step.desc}</p>
                   </div>
                   {idx < 2 && (

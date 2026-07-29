@@ -341,40 +341,10 @@ const navItems = [
     icon: HiLink,
   },
   {
-    labelKey: "admin.navTerms",
-    fallback: "Terms",
-    path: "/admin/terms",
+    labelKey: "admin.navPageContent",
+    fallback: "Page Content",
+    path: "/admin/page-content",
     icon: HiDocumentText,
-  },
-  {
-    labelKey: "admin.navPrivacy",
-    fallback: "Privacy",
-    path: "/admin/privacy",
-    icon: HiShieldExclamation,
-  },
-  {
-    labelKey: "admin.navRefund",
-    fallback: "Refund Policy",
-    path: "/admin/refund",
-    icon: HiOutlineDocumentText,
-  },
-  {
-    labelKey: "admin.navRenewal",
-    fallback: "Renewal Policy",
-    path: "/admin/renewal",
-    icon: HiOutlineDocumentText,
-  },
-  {
-    labelKey: "admin.navFaq",
-    fallback: "FAQ",
-    path: "/admin/faq",
-    icon: HiQuestionMarkCircle,
-  },
-  {
-    labelKey: "admin.navAbout",
-    fallback: "About Us",
-    path: "/admin/about",
-    icon: HiInformationCircle,
   },
   {
     labelKey: "common.changePassword",

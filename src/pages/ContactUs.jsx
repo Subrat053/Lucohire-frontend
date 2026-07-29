@@ -59,13 +59,6 @@ const ContactUs = () => {
 
   const contactCards = [
     {
-      icon: Mail,
-      title: t('contact.emailUs', 'Email Us'),
-      value: t('contact.emailAddressValue', 'support@servicehub.com'),
-      bg: 'bg-emerald-50',
-      iconColor: 'text-emerald-600'
-    },
-    {
       icon: MapPin,
       title: t('contact.visitUs', 'Visit Us'),
       value: t('contact.addressValue', 'India (HQ)'),

@@ -106,6 +106,7 @@ const Footer = () => {
         { label: t('footer.privacy', 'Privacy Policy'), href: '/privacy' },
         { label: t('footer.terms', 'Terms & Conditions'), href: '/terms' },
         { label: t('footer.contact', 'Contact Us'), href: '/contact' },
+        { label: t('footer.refundPolicy', 'Refund Policy'), href: '/refund-policy' },
       ],
     },
   ];
@@ -116,8 +117,8 @@ const Footer = () => {
         {/* Brand Column */}
         <div className="col-span-1 md:col-span-2 lg:col-span-1">
           <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center p-1.5">
-              <img src="/logo.jpg" alt="Lucohire Logo" className="w-full h-full object-contain" />
+            <div className="w-14 h-14 bg-white rounded-full overflow-hidden flex items-center justify-center">
+              <img src="/lucohire.webp" alt="Lucohire Logo" className="w-full h-full object-cover" />
             </div>
             <div className="leading-none flex flex-col justify-center">
               <p className="font-extrabold text-white tracking-tight text-lg leading-none">{companyDetails.companyName || 'Lucohire'}</p>
@@ -134,7 +135,7 @@ const Footer = () => {
 
           {/* Government Certification / Registration Details Box */}
           {companyDetails.registrationDetails && (
-            <div className="my-4 p-3 bg border border border-emerald-500/30 rounded-xl text-xs text-emerald-200 bg-emerald-950/40 flex items-start gap-2.5">
+            <div className="my-4 p-3 bg border border-emerald-500/30 rounded-xl text-xs text-emerald-200 bg-emerald-950/40 flex items-start gap-2.5">
               <Award className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold text-white block mb-0.5">Government Registration & Certification</span>
@@ -191,7 +192,7 @@ const Footer = () => {
         {/* Dynamic Navigation Link Columns */}
         {sections.map((section) => (
           <div key={section.title}>
-            <h4 className="font-semibold text-white mb-6">{section.title}</h4>
+            <h3 className="font-semibold text-white mb-6">{section.title}</h3>
             <ul className="space-y-4">
               {section.links.map((item) => {
                 return (

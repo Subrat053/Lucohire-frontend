@@ -54,82 +54,78 @@ const LandingFaqSection = () => {
   };
 
   return (
-    <div className="w-full bg-white pb-12 sm:pb-16 pt-0">
-      <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="w-full bg-slate-50 py-16 sm:py-24 relative overflow-hidden">
+      
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent opacity-50"></div>
+      
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Brand/Logo Header */}
-        <div className="flex flex-col items-center justify-center mb-4 mt-0">
-          <img src="/logo.jpg" alt="Lucohire Logo" className="w-32 h-32 sm:w-48 sm:h-48 object-contain mix-blend-multiply -mt-2 -mb-2" />
-          <div className="flex flex-col text-center justify-center">
-            <h2 className="font-semibold text-gray-800 text-4xl sm:text-5xl tracking-tight mb-1">
-              Lucohire
-            </h2>
-            <p className="text-sm sm:text-base md:text-lg font-medium text-gray-500 max-w-md mx-auto">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 font-bold">AI-Powered</span> Global Jobs & Hiring Platform
-            </p>
-          </div>
-        </div>
-
-        {/* Upper FAQ Header (Borderless & Clean) */}
-        <div className="text-center space-y-2 mb-6 sm:mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold">
+        {/* Upper FAQ Header */}
+        <div className="text-center space-y-3 mb-10 sm:mb-14">
+          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-blue-100/80 text-blue-800 text-xs font-bold tracking-wide uppercase shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-blue-600" />
             {t('landingFaq.badge', 'FAQ')}
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-            {t("landingFaq.titlePrefix", "Frequently Asked")} <span className="text-blue-600">{t("landingFaq.titleSuffix", "Questions")}</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+            {t("landingFaq.titlePrefix", "Frequently Asked")} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{t("landingFaq.titleSuffix", "Questions")}</span>
           </h2>
-          <p className="text-xs sm:text-sm text-gray-500 font-medium max-w-xl mx-auto">
+          <p className="text-sm sm:text-base text-gray-500 font-medium max-w-2xl mx-auto">
             {t("landingFaq.subtitle", "Find answers to common questions about Lucohire AI matching and recruiter tools.")}
           </p>
         </div>
 
-        {/* Vertically Stacked Question Cards (Squeezed Bar & Full Width Text) */}
-        <div className="w-full space-y-2">
+        {/* Vertically Stacked Question Cards */}
+        <div className="w-full space-y-3 sm:space-y-4">
           {faqs.map((item, idx) => {
             const isOpen = openIndex === idx;
             return (
               <div 
                 key={item.id || idx} 
-                className={`group rounded-xl transition-all duration-200 overflow-hidden w-full ${
+                className={`group rounded-2xl transition-all duration-300 overflow-hidden w-full border ${
                   isOpen 
-                    ? 'bg-blue-50/60 shadow-xs' 
-                    : 'bg-gray-50/80 hover:bg-gray-100/70'
+                    ? 'bg-white shadow-xl shadow-blue-900/5 border-blue-200/60 scale-[1.01]' 
+                    : 'bg-white/60 hover:bg-white border-transparent hover:border-gray-200/80 shadow-sm'
                 }`}
               >
                 <button
                   onClick={() => toggleFaq(idx)}
-                  className="w-full p-3.5 sm:p-4 px-5 sm:px-6 flex items-center justify-between gap-4 font-bold text-gray-900 text-sm sm:text-base hover:text-blue-600 transition"
+                  className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 font-bold text-gray-900 text-base sm:text-lg hover:text-blue-700 transition-colors text-left"
                 >
-                  <div className={`w-8.5 h-8.5 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
                     isOpen 
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
-                      : 'bg-white text-blue-600 shadow-xs border border-blue-100'
+                      ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30 rotate-12' 
+                      : 'bg-blue-50 text-blue-600 shadow-sm border border-blue-100/50 group-hover:scale-110'
                   }`}>
-                    <HelpCircle className="w-4.5 h-4.5" />
+                    <HelpCircle className="w-5 h-5" />
                   </div>
 
-                  <span className="flex-1 text-center font-bold text-gray-900 text-sm sm:text-base">{item.question}</span>
+                  <span className="flex-1 font-bold text-gray-900 leading-tight">{item.question}</span>
 
-                  <div className={`w-7.5 h-7.5 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
                     isOpen 
-                      ? 'bg-blue-600 text-white rotate-180 shadow-xs' 
-                      : 'bg-white text-gray-500 shadow-xs border border-gray-100 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600'
+                      ? 'bg-blue-100 text-blue-700 rotate-180' 
+                      : 'bg-gray-100 text-gray-500 group-hover:bg-blue-50 group-hover:text-blue-600'
                   }`}>
-                    <ChevronDown className="w-4 h-4 transition-transform" />
+                    <ChevronDown className="w-4.5 h-4.5 transition-transform" />
                   </div>
                 </button>
 
-                {isOpen && (
-                  <div className="px-5 sm:px-6 pb-4.5 pt-0 text-xs sm:text-sm text-gray-600 font-normal leading-relaxed text-center">
-                    <p className="pt-3 border-t border-blue-100/50 max-w-4xl mx-auto">{item.answer}</p>
+                <div 
+                  className={`grid transition-all duration-300 ease-in-out ${
+                    isOpen ? 'grid-rows-[1fr] opacity-100 pb-5' : 'grid-rows-[0fr] opacity-0'
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <div className="px-5 sm:px-19 text-sm sm:text-base text-gray-600 font-medium leading-relaxed">
+                      <p className="pt-2 border-t border-gray-100/80">{item.answer}</p>
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             );
           })}
         </div>
-
       </div>
     </div>
   );
