@@ -58,6 +58,24 @@ const RecruiterLayout = ({ children }) => {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
+    const checkViewport = () => {
+      if (window.innerWidth >= 768) {
+        setMobileOpen(false);
+      }
+    };
+
+    checkViewport();
+    window.addEventListener('resize', checkViewport);
+    return () => window.removeEventListener('resize', checkViewport);
+  }, []);
+
+  useEffect(() => {
+    const handleOpenSidebar = () => setMobileOpen(true);
+    window.addEventListener('open-recruiter-sidebar', handleOpenSidebar);
+    return () => window.removeEventListener('open-recruiter-sidebar', handleOpenSidebar);
+  }, []);
+
+  useEffect(() => {
     const fetchPlan = async () => {
       try {
         const { data } = await recruiterAPI.getDashboard();
@@ -77,13 +95,13 @@ const RecruiterLayout = ({ children }) => {
   const renderSidebarContent = (onNavClick) => (
     <div className="flex flex-col h-full">
       <div className={`flex items-center px-4 py-4 border-b border-gray-100 ${collapsed ? 'justify-center' : 'space-x-3'}`}>
-        <div className="w-8 h-8 bg-[#0066FF] rounded-lg flex items-center justify-center shrink-0">
+        <div className="w-8 h-8 bg-[#4a24ba] rounded-lg flex items-center justify-center shrink-0">
           <HiBriefcase className="text-white w-4 h-4" />
         </div>
         {!collapsed && (
           <div className="flex flex-col">
             <span className="font-bold text-[#081B3A] text-sm leading-tight">{t("Recruiter Panel")}</span>
-            <span className="text-[10px] font-black text-[#0066FF] uppercase tracking-wider mt-0.5">{currentPlan.replace('-yearly', '')}{t("PLAN")}</span>
+            <span className="text-[10px] font-black text-[#4a24ba] uppercase tracking-wider mt-0.5">{currentPlan.replace('-yearly', '')}{t("PLAN")}</span>
           </div>
         )}
       </div>
@@ -105,7 +123,7 @@ const RecruiterLayout = ({ children }) => {
               title={collapsed ? label : undefined}
               className={`flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all group
                 ${active
-                  ? 'bg-[#0066FF] text-white shadow-sm'
+                  ? 'bg-[#4a24ba] text-white shadow-sm'
                   : 'text-black hover:bg-gray-200'
                 }
                 ${collapsed ? 'justify-center' : 'space-x-3'}
@@ -227,9 +245,9 @@ const RecruiterLayout = ({ children }) => {
 
       {/* Mobile Sidebar Overlay */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <aside className="relative w-56 h-full bg-slate-50 shadow-xl flex flex-col">
+        <div className="fixed inset-0 z-[100] md:hidden">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute top-0 left-0 bottom-0 w-64 bg-white shadow-xl flex flex-col transform transition-transform duration-300 animate-slide-in-left">
             {renderSidebarContent(() => setMobileOpen(false))}
           </aside>
         </div>
@@ -237,21 +255,7 @@ const RecruiterLayout = ({ children }) => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 ">
-        {/* Top Bar */}
-        <div className="md:hidden flex items-center justify-between bg-white border-b border-gray-100 px-3 py-3">
-          <button onClick={() => setMobileOpen(true)} className="p-1.5 rounded-lg hover:bg-gray-100 md:hidden">
-            <HiMenu className="w-5 h-5 text-gray-600" />
-          </button>
-          <span className="text-sm text-gray-500">{t('recruiter.welcome', 'Welcome')}, {user?.name || t('recruiter.role', 'Recruiter')}!</span>
-          
-          <div className="flex items-center gap-2">
-            {/* <LanguageDropdown /> */}
-            {/* <NotificationBell/> */}
-          </div>
-        </div>
-
-
-
+        
         <main className="flex-1 overflow-auto p-0">
           {children}
         </main>

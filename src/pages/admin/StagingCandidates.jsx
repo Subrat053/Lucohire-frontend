@@ -2,8 +2,139 @@ import { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
-import { Users, Mail, MessageSquare, CheckCircle2, Search, Database, Save, Activity, Settings2, ShieldAlert, FileText, Target, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, Mail, MessageSquare, CheckCircle2, Search, Database, Save, Activity, Settings2, ShieldAlert, FileText, Target, Filter, ChevronLeft, ChevronRight, ChevronDown, X, Check } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import React, { useRef } from 'react';
+
+const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder, fullWidth = false, allowCustom = true }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+        if (allowCustom && searchTerm && !options.some(opt => opt.toLowerCase() === searchTerm.toLowerCase())) {
+          setValue(searchTerm);
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchTerm, options, setValue, allowCustom]);
+
+  const allOptions = Array.from(new Set([...options, ...(value && value !== 'all' ? [value] : [])]));
+  const filteredOptions = allOptions.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
+  const sortedFilteredOptions = [...filteredOptions].sort((a, b) => {
+    if (a === value) return -1;
+    if (b === value) return 1;
+    return a.localeCompare(b);
+  });
+
+  return (
+    <div className={`relative ${fullWidth ? 'w-full' : 'w-full sm:w-auto min-w-[150px]'}`} ref={wrapperRef}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center text-xs font-bold bg-white border rounded-lg px-3 py-2.5 cursor-pointer transition whitespace-nowrap ${fullWidth ? 'w-full justify-between' : 'justify-between'} ${isOpen ? 'border-indigo-500 ring-1 ring-indigo-500 shadow-sm' : 'border-gray-200 hover:bg-gray-50/50 text-gray-700 bg-gray-50/50'}`}
+      >
+        <div className="flex items-center gap-1.5 overflow-hidden">
+          {Icon && <Icon className="w-3.5 h-3.5 shrink-0 text-gray-400" />}
+          <span className={`truncate ${value && value !== label ? "text-gray-900 capitalize" : "text-gray-700"}`}>
+            {(value === 'all' || value === '') ? label : value}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+          {(value && value !== 'all' && value !== label && value !== '') && (
+            <X 
+              className="w-3.5 h-3.5 text-gray-400 hover:text-red-500 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                setValue('');
+              }}
+            />
+          )}
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180 text-indigo-500' : 'text-gray-400'}`} />
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className={`absolute z-50 top-full mt-1 left-0 w-full min-w-[160px] bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden flex flex-col`}>
+          <div className="p-2 border-b border-gray-50">
+            <input
+              type="text"
+              autoFocus
+              className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              placeholder={placeholder || `Search...`}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (allowCustom && searchTerm.trim()) {
+                    setValue(searchTerm.trim());
+                  } else if (sortedFilteredOptions.length > 0) {
+                    setValue(sortedFilteredOptions[0]);
+                  }
+                  setSearchTerm('');
+                  setIsOpen(false);
+                }
+              }}
+            />
+          </div>
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {allowCustom && searchTerm.trim() && !options.some(opt => opt.toLowerCase() === searchTerm.trim().toLowerCase()) && (
+              <li
+                className="px-3 py-2 text-xs cursor-pointer hover:bg-indigo-50 text-blue-600 font-medium border-b border-gray-50 mb-1"
+                onClick={() => { setValue(searchTerm.trim()); setSearchTerm(''); setIsOpen(false); }}
+              >
+                Search for "{searchTerm}"
+              </li>
+            )}
+            {sortedFilteredOptions.length > 0 ? (
+              sortedFilteredOptions.map((opt, i) => (
+                <li 
+                  key={i}
+                  className={`px-3 py-2 text-xs cursor-pointer capitalize font-bold ${
+                    opt === value ? 'text-indigo-700 bg-indigo-50/50' : 'text-gray-700 hover:bg-indigo-50'
+                  }`}
+                  onClick={() => {
+                    setValue(opt);
+                    setSearchTerm('');
+                    setIsOpen(false);
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    {opt === value ? (
+                      <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                    ) : (
+                      <div className="w-3.5 h-3.5 shrink-0" />
+                    )}
+                    <span className="truncate">{opt}</span>
+                  </div>
+                </li>
+              ))
+            ) : (
+              !searchTerm.trim() && <li className="px-3 py-2 text-xs text-gray-400 text-center font-medium">No match found</li>
+            )}
+            {value && value !== 'all' && value !== label && value !== '' && (
+              <li 
+                className="px-3 py-2 text-xs text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-bold"
+                onClick={() => {
+                  setValue('');
+                  setSearchTerm('');
+                  setIsOpen(false);
+                }}
+              >
+                Clear selection
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function StagingCandidates() {
   const [candidates, setCandidates] = useState([]);
@@ -174,34 +305,48 @@ export default function StagingCandidates() {
               
               <div className="flex-1 flex flex-col sm:flex-row items-center gap-4">
                 <div className="w-full sm:w-auto">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => {
-                      setStatusFilter(e.target.value);
+                  <FilterDropdown
+                    label="All Statuses"
+                    value={
+                      statusFilter === 'all' ? 'All Statuses' :
+                      statusFilter === 'staged' ? 'Staged (Pending Outreach)' :
+                      statusFilter === 'outreach_sent' ? 'Outreach Sent' :
+                      statusFilter === 'claimed' ? 'Claimed (Active User)' : statusFilter
+                    }
+                    setValue={val => {
+                      const lower = val.toLowerCase();
+                      if (val === '' || lower === 'all statuses') setStatusFilter('all');
+                      else {
+                        const sMap = {
+                          'all statuses': 'all',
+                          'staged (pending outreach)': 'staged',
+                          'outreach sent': 'outreach_sent',
+                          'claimed (active user)': 'claimed'
+                        };
+                        let mapped = sMap[lower] || val;
+                        if (!sMap[lower]) {
+                          if (lower.includes('staged') || lower.includes('pending')) mapped = 'staged';
+                          else if (lower.includes('sent') || lower.includes('outreach')) mapped = 'outreach_sent';
+                          else if (lower.includes('claimed') || lower.includes('active')) mapped = 'claimed';
+                        }
+                        setStatusFilter(mapped);
+                      }
                       setPagination(prev => ({ ...prev, page: 1 }));
                     }}
-                    className="w-full text-xs font-bold text-gray-700 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all"
-                  >
-                    <option value="all">All Statuses</option>
-                    <option value="staged">Staged (Pending Outreach)</option>
-                    <option value="outreach_sent">Outreach Sent</option>
-                    <option value="claimed">Claimed (Active User)</option>
-                  </select>
+                    options={['Staged (Pending Outreach)', 'Outreach Sent', 'Claimed (Active User)']}
+                  />
                 </div>
                 <div className="w-full sm:w-auto">
-                  <select
-                    value={leadStatusFilter}
-                    onChange={(e) => {
-                      setLeadStatusFilter(e.target.value);
+                  <FilterDropdown
+                    label="All Lead Tiers"
+                    value={leadStatusFilter === 'all' ? 'All Lead Tiers' : leadStatusFilter}
+                    setValue={val => {
+                      if (val === '' || val.toLowerCase() === 'all lead tiers') setLeadStatusFilter('all');
+                      else setLeadStatusFilter(val);
                       setPagination(prev => ({ ...prev, page: 1 }));
                     }}
-                    className="w-full text-xs font-bold text-gray-700 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50/50 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all"
-                  >
-                    <option value="all">All Lead Tiers</option>
-                    <option value="Verified Active Candidate">Verified Active Candidate</option>
-                    <option value="Active Signal Lead">Active Signal Lead</option>
-                    <option value="Raw Lead">Raw Lead</option>
-                  </select>
+                    options={['Verified Active Candidate', 'Active Signal Lead', 'Raw Lead']}
+                  />
                 </div>
                 <div className="w-full sm:w-auto sm:ml-auto">
                   <button 

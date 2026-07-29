@@ -57,7 +57,7 @@ const FilterDropdown = ({ label, value, setValue, options }) => {
     opt.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const displayValue = options.find(opt => opt.value === value)?.label || label;
+  const displayValue = options.find(opt => opt.value === value)?.label || (value ? value : label);
 
   return (
     <div className="relative shrink-0 w-full" ref={wrapperRef}>
@@ -67,8 +67,20 @@ const FilterDropdown = ({ label, value, setValue, options }) => {
           isOpen ? 'border-emerald-300 ring-2 ring-emerald-300/20' : 'border-gray-200 hover:border-gray-300'
         }`}
       >
-        <span className={value ? 'text-gray-900' : 'text-gray-600'}>{displayValue}</span>
-        <HiChevronDown className={`w-4 h-4 transition-transform text-gray-400 ${isOpen ? 'rotate-180 text-emerald-500' : ''}`} />
+        <span className={value ? 'text-gray-900 truncate' : 'text-gray-600 truncate'}>{displayValue}</span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {(value && value !== 'all') && (
+            <HiX 
+              className="w-3.5 h-3.5 text-gray-400 hover:text-red-500 transition-colors"
+              onClick={(e) => {
+                 e.stopPropagation();
+                 const hasAll = options.some(o => o.value === 'all');
+                 setValue(hasAll ? 'all' : '');
+              }}
+            />
+          )}
+          <HiChevronDown className={`w-4 h-4 transition-transform text-gray-400 ${isOpen ? 'rotate-180 text-emerald-500' : ''}`} />
+        </div>
       </div>
 
       {isOpen && (
@@ -81,6 +93,18 @@ const FilterDropdown = ({ label, value, setValue, options }) => {
               placeholder="Search..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (filteredOptions.length > 0) {
+                    setValue(filteredOptions[0].value);
+                  } else {
+                    setValue(searchTerm); // Allow arbitrary input
+                  }
+                  setSearchTerm('');
+                  setIsOpen(false);
+                }
+              }}
             />
           </div>
           <ul className="max-h-48 overflow-y-auto py-1">
@@ -95,7 +119,16 @@ const FilterDropdown = ({ label, value, setValue, options }) => {
                 {opt.label}
               </li>
             )) : (
-              <li className="px-3 py-2 text-sm text-gray-400 text-center">No match</li>
+              searchTerm.trim() ? (
+                <li
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-emerald-50 text-blue-600 font-medium"
+                  onClick={() => { setValue(searchTerm); setSearchTerm(''); setIsOpen(false); }}
+                >
+                  Search for "{searchTerm}"
+                </li>
+              ) : (
+                <li className="px-3 py-2 text-sm text-gray-400 text-center">No match</li>
+              )
             )}
           </ul>
         </div>
@@ -1103,9 +1136,11 @@ const ProviderJobs = () => {
                     onChange={(value) =>
                       setFilters((f) => ({ ...f, city: value }))
                     }
-                    onSelect={(item) =>
-                      setFilters((f) => ({ ...f, city: item?.name || f.city }))
-                    }
+                    onSelect={(item) => {
+                      const newCity = item?.name || "";
+                      setFilters((f) => ({ ...f, city: newCity }));
+                      setSearch((s) => ({ ...s, city: newCity }));
+                    }}
                     placeholder={t("e.g. Mumbai, Delhi…")}
                     className="focus:ring-emerald-300"
                   />
@@ -1121,9 +1156,15 @@ const ProviderJobs = () => {
                       // Only allow numbers or specific strings like "Fresher"
                       if (val === "" || val === "Fresher" || /^[0-9+ -a-zA-Z]+$/.test(val)) {
                         setFilters((f) => ({ ...f, experience: val }));
-                        setSearch((s) => ({ ...s, experience: val }));
                       }
                       setShowExpDropdown(true);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setShowExpDropdown(false);
+                        setSearch((s) => ({ ...s, experience: filters.experience }));
+                      }
                     }}
                     placeholder={t("Type years (e.g. 8) or select...")}
                     className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-300 outline-none text-sm text-gray-700 hover:border-gray-300 transition-colors"

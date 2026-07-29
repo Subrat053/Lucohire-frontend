@@ -87,6 +87,7 @@ const Footer = () => {
         { label: t('footer.findJobs', 'Find Jobs'), href: '/candidate-landing' },
         { label: t('footer.createProfile', 'Create Profile'), href: '/signup?role=candidate' },
         { label: t('footer.careerTips', 'Career Tips'), href: '/career-tips' },
+        { label: t('footer.pricing', 'Pricing'), href: '/pricing?tab=provider' },
         { label: t('footer.helpCenter', 'Help Center'), href: '/contact' },
       ],
     },

@@ -257,15 +257,15 @@ const JobPostings = () => {
           <div className="xl:col-span-3 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <h2 className="text-lg font-bold text-gray-900">{t("My Jobs (")}{filteredJobs.length})</h2>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="hidden sm:flex items-center bg-white border border-gray-200 rounded-lg p-1 shrink-0">
                   <button onClick={() => setLayout('list')} className={`p-1.5 rounded ${layout === 'list' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}><FiList className="w-4 h-4" /></button>
                   <button onClick={() => setLayout('grid')} className={`p-1.5 rounded ${layout === 'grid' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}><FiGrid className="w-4 h-4" /></button>
                 </div>
                 <select 
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-white border border-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50 transition focus:outline-none cursor-pointer"
+                  className="flex-1 sm:flex-none bg-white border border-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50 transition focus:outline-none cursor-pointer"
                 >
                   <option value="recent">{t("Sort by: Recent")}</option>
                   <option value="applicants">{t("Sort by: Applicants")}</option>
@@ -275,8 +275,7 @@ const JobPostings = () => {
             </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              {layout === 'list' ? (
-                <div className="overflow-x-auto">
+              <div className={layout === 'list' ? 'hidden sm:block overflow-x-auto' : 'hidden'}>
                   <table className="w-full text-left border-collapse border border-gray-200 bg-white shadow-sm">
                     <thead className="bg-gradient-to-r from-gray-50 via-gray-100/50 to-gray-50 shadow-sm">
                       <tr className="text-sm font-bold text-gray-700 whitespace-nowrap">
@@ -343,8 +342,9 @@ const JobPostings = () => {
                     </tbody>
                   </table>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+              
+              <div className={layout === 'grid' ? 'block' : 'block sm:hidden'}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4 sm:p-6">
                   {paginatedJobs.map((job) => (
                     <div key={job._id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-xl hover:-translate-y-1 hover:border-indigo-100 transition-all duration-300 flex flex-col h-full relative group">
                       <div className="flex justify-between items-start mb-4">
@@ -367,20 +367,21 @@ const JobPostings = () => {
                         <span className="flex items-center gap-1 font-medium"><FiClock className="w-3 h-3 text-gray-400" /> {job.workMode || 'onsite'}</span>
                       </div>
                       
-                      <div className="flex items-center gap-6 mt-2 mb-6">
-                        <div>
-                          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{t("Applicants")}</div>
-                          <div className="text-lg font-extrabold text-gray-800">{job.interestedCount || 0}</div>
+                      <div className="flex items-center gap-6 mt-4 mb-6 p-3.5 bg-gray-50/80 rounded-xl border border-gray-100">
+                        <div className="flex-1">
+                          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">{t("Applicants")}</div>
+                          <div className="text-2xl font-extrabold text-gray-800">{job.interestedCount || 0}</div>
                         </div>
-                        <div>
+                        <div className="w-px h-10 bg-gray-200"></div>
+                        <div className="flex-1">
                           <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{t("AI Match")}</div>
-                          <div className="w-8 h-8 font-bold drop-shadow-sm mt-0.5">
+                          <div className="w-9 h-9 font-bold drop-shadow-sm">
                             <CircularProgressbar
                               value={getMatchScore(job)}
                               text={`${getMatchScore(job)}%`}
                               strokeWidth={12}
                               styles={buildStyles({
-                                textSize: '30px',
+                                textSize: '28px',
                                 pathColor: getMatchScore(job) >= 80 ? '#10b981' : getMatchScore(job) >= 60 ? '#f59e0b' : '#ef4444',
                                 textColor: getMatchScore(job) >= 80 ? '#10b981' : getMatchScore(job) >= 60 ? '#f59e0b' : '#ef4444',
                                 trailColor: '#f3f4f6',
@@ -401,11 +402,13 @@ const JobPostings = () => {
                     </div>
                   ))}
                 </div>
-              )}
+              </div>
               
               {/* Pagination */}
-              <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">{t("Rows per page:")} <select 
+              <div className="p-4 border-t border-gray-100 flex items-center justify-between gap-4">
+                <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-gray-500">
+                  {t("Rows per page:")} 
+                  <select 
                     value={rowsPerPage}
                     onChange={(e) => {
                       setRowsPerPage(Number(e.target.value));
@@ -419,27 +422,30 @@ const JobPostings = () => {
                     <option value={100}>100</option>
                   </select>
                 </div>
-                <div className="text-xs font-semibold text-gray-500 text-center whitespace-nowrap">
-                  {t("Showing")} {filteredJobs.length > 0 ? ((currentPage - 1) * rowsPerPage) + 1 : 0} {t("to")} {Math.min(currentPage * rowsPerPage, filteredJobs.length)} {t("of")} {filteredJobs.length} {t("jobs")}
-                </div>
-                <div className="flex items-center gap-1">
-                  <button 
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 font-bold flex items-center justify-center transition shrink-0"
-                  >
-                    &lt;
-                  </button>
-                  <div className="text-xs font-bold px-2 text-gray-700 whitespace-nowrap">
-                    {t("Page")} {currentPage} {t("of")} {totalPages || 1}
+                
+                <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4">
+                  <div className="text-xs font-semibold text-gray-500 truncate">
+                    {t("Showing")} {filteredJobs.length > 0 ? ((currentPage - 1) * rowsPerPage) + 1 : 0}-{Math.min(currentPage * rowsPerPage, filteredJobs.length)} {t("of")} {filteredJobs.length}
                   </div>
-                  <button 
-                    disabled={currentPage >= totalPages}
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 font-bold flex items-center justify-center transition"
-                  >
-                    &gt;
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button 
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 font-bold flex items-center justify-center transition shrink-0"
+                    >
+                      &lt;
+                    </button>
+                    <div className="text-xs font-bold px-1 sm:px-2 text-gray-700 whitespace-nowrap">
+                      {currentPage} / {totalPages || 1}
+                    </div>
+                    <button 
+                      disabled={currentPage >= totalPages}
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 font-bold flex items-center justify-center transition shrink-0"
+                    >
+                      &gt;
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

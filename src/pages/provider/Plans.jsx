@@ -584,15 +584,20 @@ const ProviderPlans = () => {
           const activePlan = activePlanData.subscription;
           const planName = activePlan.planSnapshot?.name || 'Paid Plan';
           const purchaseDate = activePlan.startDate || activePlan.createdAt;
-          const validationDays = (activePlan.durationMonths || 1) * (activePlan.planSnapshot?.duration || 30);
+          const endDate = activePlan.endDate || activePlan.expiresAt;
           
           let days = 0;
-          if (purchaseDate) {
+          if (endDate) {
+            const expiryTime = new Date(endDate).getTime();
+            const currentTime = new Date().getTime();
+            days = Math.max(0, Math.ceil((expiryTime - currentTime) / (1000 * 60 * 60 * 24)));
+          } else if (purchaseDate) {
+            const validationDays = (activePlan.durationMonths || 1) * (activePlan.planSnapshot?.duration || 30);
             const purchaseTime = new Date(purchaseDate).getTime();
             const currentTime = new Date().getTime();
             const validityMs = validationDays * 24 * 60 * 60 * 1000;
             const diff = (purchaseTime + validityMs) - currentTime;
-            days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            days = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
           }
           
           if (days <= 0) return null;

@@ -314,7 +314,13 @@ const Navbar = () => {
               type="button"
               name="hamburger"
               className="p-2"
-              onClick={() => setMobileOpen(!mobileOpen)}
+              onClick={() => {
+                if (window.location.pathname.startsWith('/recruiter')) {
+                  window.dispatchEvent(new Event('open-recruiter-sidebar'));
+                } else {
+                  setMobileOpen(!mobileOpen);
+                }
+              }}
               aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={mobileOpen}
               aria-controls="mobile-navigation"

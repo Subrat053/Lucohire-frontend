@@ -466,10 +466,9 @@ const LocationAutocomplete = ({
           onChange={handleInputChange}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              e.preventDefault(); // Stop form submission
-              if (isOpen && predictions.length > 0) {
-                handleSelectPrediction(predictions[0]);
-              }
+              // Just close the dropdown and let the natural form submission happen
+              // so the user searches for EXACTLY what they typed.
+              setIsOpen(false);
             }
           }}
           placeholder={placeholder}

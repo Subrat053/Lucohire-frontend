@@ -77,7 +77,7 @@ const TaskCard = ({ task, isOverlay, jobs, onMoveTask }) => {
           <button 
             onClick={moveBack}
             disabled={currentIndex === 0}
-            className={`p-1 rounded-full ${currentIndex === 0 ? 'text-gray-300 bg-gray-50 cursor-not-allowed' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'}`}
+            className={`w-7 h-7 !min-w-[28px] !min-h-[28px] !max-w-[28px] !max-h-[28px] !p-0 !m-0 shrink-0 flex items-center justify-center rounded-full transition-colors ${currentIndex === 0 ? 'text-gray-300 bg-gray-50 cursor-not-allowed' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'}`}
             title="Move back"
           >
             <FiMinus className="w-4 h-4" />
@@ -85,7 +85,7 @@ const TaskCard = ({ task, isOverlay, jobs, onMoveTask }) => {
           <button 
             onClick={moveForward}
             disabled={currentIndex === statusOrder.length - 1}
-            className={`p-1 rounded-full ${currentIndex === statusOrder.length - 1 ? 'text-gray-300 bg-gray-50 cursor-not-allowed' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'}`}
+            className={`w-7 h-7 !min-w-[28px] !min-h-[28px] !max-w-[28px] !max-h-[28px] !p-0 !m-0 shrink-0 flex items-center justify-center rounded-full transition-colors ${currentIndex === statusOrder.length - 1 ? 'text-gray-300 bg-gray-50 cursor-not-allowed' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'}`}
             title="Move forward"
           >
             <FiPlus className="w-4 h-4" />

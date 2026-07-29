@@ -41,9 +41,9 @@ export default function ShortlistedCandidates() {
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
               <HiBookmark className="w-5 h-5 text-amber-500" />
               <h1 className="text-xl font-extrabold text-gray-900">Shortlisted Candidates</h1>
               {!loading && (
@@ -56,7 +56,7 @@ export default function ShortlistedCandidates() {
           </div>
           <Link
             to="/recruiter/candidates"
-            className="flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition"
+            className="flex items-center justify-center sm:justify-start gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition bg-white sm:bg-transparent border sm:border-none border-gray-200 px-4 py-2 sm:p-0 rounded-lg shadow-sm sm:shadow-none whitespace-nowrap"
           >
             <FiBookmark className="w-4 h-4" /> Browse Candidates
           </Link>

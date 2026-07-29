@@ -366,20 +366,24 @@ const Candidates = () => {
                     <div className="p-2 border-b border-gray-100">
                       <input
                         type="text"
-                        placeholder="Search roles..."
+                        placeholder="Search or type custom role..."
                         className="w-full bg-gray-50 border-none rounded-lg text-sm px-3 py-1.5 focus:ring-0"
                         value={dropdownSearch}
                         onChange={e => setDropdownSearch(e.target.value)}
+                        onKeyDown={(e) => { if(e.key === 'Enter' && dropdownSearch.trim()) { toggleFilter('roles', dropdownSearch.trim()); setDropdownSearch(''); } }}
                         autoFocus
                       />
                     </div>
                     <div className="max-h-48 overflow-y-auto p-1 custom-scrollbar">
-                      {adminRoles.filter(r => r.toLowerCase().includes(dropdownSearch.toLowerCase())).map((roleOpt) => (
+                      {Array.from(new Set([...adminRoles, ...(filters.roles || [])])).filter(r => r.toLowerCase().includes(dropdownSearch.toLowerCase())).sort((a, b) => (filters.roles?.includes(b) ? 1 : 0) - (filters.roles?.includes(a) ? 1 : 0) || a.localeCompare(b)).map((roleOpt) => (
                         <label key={roleOpt} className="flex items-center gap-2.5 px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer transition">
                           <input type="checkbox" checked={filters.roles?.includes(roleOpt)} onChange={() => toggleFilter('roles', roleOpt)} className="rounded text-indigo-600 focus:ring-indigo-500" />
                           <span className="text-sm font-medium text-gray-700">{roleOpt}</span>
                         </label>
                       ))}
+                      {dropdownSearch.trim() && !adminRoles.some(r => r.toLowerCase() === dropdownSearch.toLowerCase()) && (
+                        <div className="p-2 text-xs text-indigo-600 font-medium">Press Enter to add "{dropdownSearch}"</div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -396,7 +400,7 @@ const Candidates = () => {
                         onKeyDown={(e) => { if(e.key === 'Enter' && dropdownSearch.trim()) { toggleFilter('experience', dropdownSearch.trim()); setDropdownSearch(''); } }} />
                     </div>
                     <div className="max-h-48 overflow-y-auto p-2">
-                      {['0-2 years', '4-8 years', '8+ years'].filter(exp => exp.toLowerCase().includes(dropdownSearch.toLowerCase())).map(exp => (
+                      {Array.from(new Set([...['0-2 years', '4-8 years', '8+ years'], ...(filters.experience || [])])).filter(exp => exp.toLowerCase().includes(dropdownSearch.toLowerCase())).sort((a, b) => (filters.experience?.includes(b) ? 1 : 0) - (filters.experience?.includes(a) ? 1 : 0)).map(exp => (
                         <label key={exp} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
                           <input type="checkbox" checked={filters.experience.includes(exp)} onChange={() => toggleFilter('experience', exp)} className="rounded text-indigo-600 focus:ring-indigo-500" />
                           <span className="text-sm font-medium text-gray-700">{exp}</span>
@@ -422,7 +426,7 @@ const Candidates = () => {
                         placeholder="Smart location search..." className="w-full" inputClassName="w-full text-sm border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white" />
                     </div>
                     <div className="max-h-48 overflow-y-auto p-2">
-                      {['Bangalore', 'Mumbai', 'Delhi NCR', 'Hyderabad', 'Pune'].filter(loc => loc.toLowerCase().includes(dropdownSearch.toLowerCase())).map(loc => (
+                      {Array.from(new Set([...['Bangalore', 'Mumbai', 'Delhi NCR', 'Hyderabad', 'Pune'], ...(filters.location || [])])).filter(loc => loc.toLowerCase().includes(dropdownSearch.toLowerCase())).sort((a, b) => (filters.location?.includes(b) ? 1 : 0) - (filters.location?.includes(a) ? 1 : 0) || a.localeCompare(b)).map(loc => (
                         <label key={loc} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
                           <input type="checkbox" checked={filters.location.includes(loc)} onChange={() => toggleFilter('location', loc)} className="rounded text-indigo-600 focus:ring-indigo-500" />
                           <span className="text-sm font-medium text-gray-700">{loc}</span>
@@ -447,7 +451,7 @@ const Candidates = () => {
                         onKeyDown={(e) => { if(e.key === 'Enter' && dropdownSearch.trim()) { toggleFilter('ctc', dropdownSearch.trim()); setDropdownSearch(''); } }} />
                     </div>
                     <div className="max-h-48 overflow-y-auto p-2">
-                      {['0-10 LPA', '10-20 LPA', '20-30 LPA', '30+ LPA'].filter(opt => opt.toLowerCase().includes(dropdownSearch.toLowerCase())).map(opt => (
+                      {Array.from(new Set([...['0-10 LPA', '10-20 LPA', '20-30 LPA', '30+ LPA'], ...(filters.ctc || [])])).filter(opt => opt.toLowerCase().includes(dropdownSearch.toLowerCase())).sort((a, b) => (filters.ctc?.includes(b) ? 1 : 0) - (filters.ctc?.includes(a) ? 1 : 0)).map(opt => (
                         <label key={opt} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
                           <input type="checkbox" checked={filters.ctc.includes(opt)} onChange={() => toggleFilter('ctc', opt)} className="rounded text-indigo-600 focus:ring-indigo-500" />
                           <span className="text-sm font-medium text-gray-700">{opt}</span>
@@ -472,7 +476,7 @@ const Candidates = () => {
                         onKeyDown={(e) => { if(e.key === 'Enter' && dropdownSearch.trim()) { toggleFilter('noticePeriod', dropdownSearch.trim()); setDropdownSearch(''); } }} />
                     </div>
                     <div className="max-h-48 overflow-y-auto p-2">
-                      {['Immediate', '15 Days', '30 Days', '60 Days'].filter(opt => opt.toLowerCase().includes(dropdownSearch.toLowerCase())).map(opt => (
+                      {Array.from(new Set([...['Immediate', '15 Days', '30 Days', '60 Days'], ...(filters.noticePeriod || [])])).filter(opt => opt.toLowerCase().includes(dropdownSearch.toLowerCase())).sort((a, b) => (filters.noticePeriod?.includes(b) ? 1 : 0) - (filters.noticePeriod?.includes(a) ? 1 : 0)).map(opt => (
                         <label key={opt} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
                           <input type="checkbox" checked={filters.noticePeriod.includes(opt)} onChange={() => toggleFilter('noticePeriod', opt)} className="rounded text-indigo-600 focus:ring-indigo-500" />
                           <span className="text-sm font-medium text-gray-700">{opt}</span>
@@ -493,7 +497,7 @@ const Candidates = () => {
                 {activeDropdown === 'more' && (
                   <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-2">
                     <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2 mt-1 ml-2">Employment Type</div>
-                    {['Full-time', 'Part-time', 'Contract', 'Remote'].map(opt => (
+                    {Array.from(new Set([...['Full-time', 'Part-time', 'Contract', 'Remote'], ...(filters.employmentType || [])])).sort((a, b) => (filters.employmentType?.includes(b) ? 1 : 0) - (filters.employmentType?.includes(a) ? 1 : 0)).map(opt => (
                       <label key={opt} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
                         <input type="checkbox" checked={filters.employmentType.includes(opt)} onChange={() => toggleFilter('employmentType', opt)} className="rounded text-indigo-600 focus:ring-indigo-500" />
                         <span className="text-sm font-medium text-gray-700">{opt}</span>
