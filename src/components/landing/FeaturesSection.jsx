@@ -168,7 +168,7 @@ export default function FeaturesSection() {
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-green-800">Deloitte.</h3>
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0">accenture</h3>
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-red-600">wipro</h3>
-            <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-yellow-600">amazon</h3>
+            <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-yellow-800">amazon</h3>
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-blue-900">IBM</h3>
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-blue-700">Capgemini</h3>
           </div>

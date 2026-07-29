@@ -114,7 +114,7 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-200"></div>
             <h3 className="font-extrabold text-[#0B1536] text-lg">{t("Live Jobs")}</h3>
-            <span className="text-xs font-semibold text-gray-400 ml-2 hidden sm:inline-block tracking-wide">{t("New jobs added every minute")}</span>
+            <span className="text-xs font-semibold text-gray-600 ml-2 hidden sm:inline-block tracking-wide">{t("New jobs added every minute")}</span>
           </div>
           <Link 
             to="/provider/job-for-me"
