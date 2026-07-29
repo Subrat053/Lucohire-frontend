@@ -72,7 +72,7 @@ const JobRoles = () => {
           <Briefcase className="w-6 h-6 text-blue-600" />
           Job Roles Management
         </h1>
-        <p className="text-gray-600 mt-1">Manage the list of job roles available for candidates.</p>
+        <p className="text-gray-700 mt-1">Manage the list of job roles available for candidates.</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">

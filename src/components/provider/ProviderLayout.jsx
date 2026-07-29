@@ -330,7 +330,7 @@ const ProviderLayout = ({ children }) => {
             </span>
             {!planTag.loading && (
               <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 mt-0.5 rounded-full w-fit ${planTag.type === "Free" ? "bg-gray-100 text-gray-600" : "bg-emerald-100 text-emerald-700"}`}
+                className={`text-[10px] font-bold px-1.5 py-0.5 mt-0.5 rounded-full w-fit ${planTag.type === "Free" ? "bg-gray-100 text-gray-700" : "bg-emerald-100 text-emerald-700"}`}
               >
                 {planTag.type === "Free" ? "Free" : `${planTag.days} Days Left`}
               </span>
@@ -359,13 +359,13 @@ const ProviderLayout = ({ children }) => {
                     ${
                       active && !subItems
                         ? "bg-emerald-600 text-white shadow-sm"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                     }
                     ${collapsed ? "justify-center" : "space-x-3"}
                   `}
                 >
                   <Icon
-                    className={`w-5 h-5 shrink-0 ${active && !subItems ? "text-white" : "text-gray-400 group-hover:text-gray-600"}`}
+                    className={`w-5 h-5 shrink-0 ${active && !subItems ? "text-white" : "text-gray-400 group-hover:text-gray-700"}`}
                   />
                   {!collapsed && <span>{t(label, fallback)}</span>}
                 </Link>
@@ -415,7 +415,7 @@ const ProviderLayout = ({ children }) => {
         <button
           onClick={handleLogout}
           title={collapsed ? t("navbar.logout", "Logout") : undefined}
-          className={`flex items-center w-full rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-all
+          className={`flex items-center w-full rounded-xl px-3 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 transition-all
             ${collapsed ? "justify-center" : "space-x-3"}
           `}
         >
@@ -513,7 +513,7 @@ const ProviderLayout = ({ children }) => {
                 onClick={() => setShowFreelanceModal(true)}
                 className="bg-white hover:bg-gray-50 text-gray-900 rounded-full pl-2 pr-5 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-3 transition transform hover:scale-105 border border-gray-100 group"
               >
-                <div className="w-12 h-12 bg-[#25D366] rounded-full flex items-center justify-center shadow-inner group-hover:bg-[#20bd5a] transition-colors">
+                <div className="w-12 h-12 bg-[#075E54] rounded-full flex items-center justify-center shadow-inner group-hover:bg-[#20bd5a] transition-colors">
                   <FaWhatsapp className="w-7 h-7 text-white" />
                 </div>
                 <div className="text-left hidden sm:block">
@@ -536,8 +536,8 @@ const ProviderLayout = ({ children }) => {
           {showFreelanceModal && (
             <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-[9999] flex items-center justify-center p-4">
               <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200 text-center">
-                <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mb-4 text-[#25D366] mx-auto shadow-inner">
-                  <FaWhatsapp className="w-8 h-8 text-[#25D366]" />
+                <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mb-4 text-[#075E54] mx-auto shadow-inner">
+                  <FaWhatsapp className="w-8 h-8 text-[#075E54]" />
                 </div>
                 <h3 className="text-xl font-extrabold text-slate-800 mb-2">
                   {t("Earn Extra Income")}

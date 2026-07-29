@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 const typeConfig = {
   profile_view: { label: 'Profile Viewed', icon: HiEye, color: 'bg-blue-100 text-blue-600' },
   search: { label: 'Search', icon: HiSearch, color: 'bg-amber-100 text-amber-600' },
-  contact_unlock: { label: 'Contact Unlocked', icon: HiLockOpen, color: 'bg-green-100 text-green-600' },
+  contact_unlock: { label: 'Contact Unlocked', icon: HiLockOpen, color: 'bg-green-100 text-green-700' },
   job_match: { label: 'Job Match', icon: HiClock, color: 'bg-purple-100 text-purple-600' },
 };
 

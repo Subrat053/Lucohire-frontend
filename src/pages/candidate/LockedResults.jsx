@@ -217,7 +217,7 @@ const LockedResults = () => {
       {isVerified && (
         <div className="w-full max-w-5xl bg-green-50 border border-green-200 rounded-lg p-6 mb-6 text-green-800 flex flex-col md:flex-row items-start md:items-center justify-between">
           <div className="flex items-center">
-            <FiCheckCircle className="text-3xl mr-4 text-green-600 shrink-0" />
+            <FiCheckCircle className="text-3xl mr-4 text-green-700 shrink-0" />
             <div>
               <h2 className="text-xl font-bold mb-1">You&apos;re Verified! Here are your top matching jobs.</h2>
               <p className="text-sm text-green-700">
@@ -246,10 +246,10 @@ const LockedResults = () => {
                 <path className="text-green-500" strokeWidth="4" strokeDasharray={`${formData?.resumeScore || 78}, 100`} strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
               </svg>
               <div className="absolute flex flex-col items-center justify-center text-center">
-                <span className="text-4xl font-bold text-green-600">{formData?.resumeScore || 78}<span className="text-2xl">%</span></span>
+                <span className="text-4xl font-bold text-green-700">{formData?.resumeScore || 78}<span className="text-2xl">%</span></span>
               </div>
             </div>
-            <div className="flex items-center text-green-600 font-bold mb-2">
+            <div className="flex items-center text-green-700 font-bold mb-2">
                <FiCheckCircle className="mr-2" />
                Good Match
             </div>
@@ -342,7 +342,7 @@ const LockedResults = () => {
                         </div>
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2">{job.matchScore || 90}% Match</span>
+                        <span className="text-green-700 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2">{job.matchScore || 90}% Match</span>
                         <button onClick={() => navigate('/provider/dashboard')} className="text-blue-600 border border-blue-600 hover:bg-blue-50 font-medium px-4 py-2 rounded-md transition">
                           Go to Dashboard
                         </button>
@@ -366,7 +366,7 @@ const LockedResults = () => {
                         </div>
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2 blur-[2px] opacity-70 select-none">{job.matchScore || 90}% Match</span>
+                        <span className="text-green-700 font-bold bg-green-50 px-3 py-1 rounded-full text-sm mb-2 blur-[2px] opacity-70 select-none">{job.matchScore || 90}% Match</span>
                         <button className="text-gray-400 border border-gray-200 bg-gray-50 font-medium px-4 py-2 rounded-md transition flex items-center cursor-not-allowed">
                           <FiLock className="mr-2" /> Locked
                         </button>
@@ -423,7 +423,7 @@ const LockedResults = () => {
           <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md relative animate-fade-in">
             <button 
               onClick={() => setShowOtpModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>

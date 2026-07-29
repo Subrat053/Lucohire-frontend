@@ -172,7 +172,7 @@ const NightlyEngineSettings = () => {
             </p>
           </div>
           {saveMessage && (
-            <span className={`text-xs font-bold ${saveMessage.includes('Failed') ? 'text-red-500' : 'text-emerald-600'}`}>
+            <span className={`text-xs font-bold ${saveMessage.includes('Failed') ? 'text-red-700' : 'text-emerald-600'}`}>
               {saveMessage}
             </span>
           )}
@@ -222,7 +222,7 @@ const NightlyEngineSettings = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={prevMonth}
-              className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600 transition"
+              className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-700 transition"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -231,7 +231,7 @@ const NightlyEngineSettings = () => {
             </span>
             <button
               onClick={nextMonth}
-              className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600 transition"
+              className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-700 transition"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

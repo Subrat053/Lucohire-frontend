@@ -97,7 +97,7 @@ export default function SkillSearchSelect({
               <button
                 type="button"
                 onClick={() => onRemove(skill)}
-                className="text-violet-400 hover:text-red-500 transition leading-none font-bold ml-1"
+                className="text-violet-400 hover:text-red-700 transition leading-none font-bold ml-1"
                 aria-label={`Remove skill ${skill}`}
               >
                 <X className="w-3.5 h-3.5" aria-hidden="true" />

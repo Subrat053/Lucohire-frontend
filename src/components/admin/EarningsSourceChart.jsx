@@ -63,7 +63,7 @@ const EarningsSourceChart = ({ data = [] }) => {
                   className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: COLORS[index % COLORS.length] }}
                 />
-                <span className="text-[11px] text-gray-600 font-medium">{item.name}</span>
+                <span className="text-[11px] text-gray-700 font-medium">{item.name}</span>
               </div>
               <span className="text-[11px] font-bold text-gray-900">{item.value}%</span>
             </div>

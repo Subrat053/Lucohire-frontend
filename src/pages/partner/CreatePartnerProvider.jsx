@@ -125,7 +125,7 @@ const CreatePartnerProvider = () => {
                 <div className="relative z-10">
                   <div className="mb-8 text-center">
                     <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-                      <HiCheckCircle className="h-11 w-11 text-green-600" />
+                      <HiCheckCircle className="h-11 w-11 text-green-700" />
                     </div>
                     <h2 className="text-3xl font-black text-slate-950">Success!</h2>
                     <p className="mt-2 text-slate-500">Provider account is ready for use.</p>

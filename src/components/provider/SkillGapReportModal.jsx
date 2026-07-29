@@ -199,7 +199,7 @@ export default function SkillGapReportModal({ isOpen, onClose, plan }) {
                   <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
                       report.confidence === "high" 
-                        ? "bg-green-50 text-green-600" 
+                        ? "bg-green-50 text-green-700" 
                         : report.confidence === "medium"
                         ? "bg-amber-50 text-amber-600"
                         : "bg-blue-50 text-blue-600"

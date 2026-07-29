@@ -164,7 +164,7 @@ export default function FaqLayout({ data = {}, onChange, isEditMode }) {
                             onChange={v => updateSection(idx, 'body', v)} 
                             isEditMode={isEditMode} 
                             placeholder="Answer goes here..."
-                            className="text-gray-600 leading-relaxed text-[15px] whitespace-pre-wrap"
+                            className="text-gray-700 leading-relaxed text-[15px] whitespace-pre-wrap"
                           />
                         </div>
                       </div>

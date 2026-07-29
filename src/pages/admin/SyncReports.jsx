@@ -174,7 +174,7 @@ const SyncReports = () => {
                             {log.syncType.replace('_', ' ')}
                           </div>
                           <div className="flex flex-col gap-1">
-                            <div className="text-[11px] font-bold text-gray-600 capitalize flex items-center gap-1">
+                            <div className="text-[11px] font-bold text-gray-700 capitalize flex items-center gap-1">
                               <Database className="w-3 h-3" /> {log.source}
                             </div>
                             {log.countryCode && (
@@ -192,7 +192,7 @@ const SyncReports = () => {
                           <div className="text-sm font-black text-emerald-600">{log.jobsInserted || 0}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <div className="text-sm font-black text-red-500">{log.jobsDeactivated || 0}</div>
+                          <div className="text-sm font-black text-red-700">{log.jobsDeactivated || 0}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <div className="flex flex-col items-end gap-1.5">

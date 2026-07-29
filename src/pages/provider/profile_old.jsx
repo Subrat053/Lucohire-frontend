@@ -106,7 +106,7 @@ const Chip = ({ label, onRemove }) => (
     {label}
     {onRemove && (
       <button type="button" onClick={onRemove}
-        className="text-gray-400 hover:text-red-500 transition leading-none text-base">×</button>
+        className="text-gray-400 hover:text-red-700 transition leading-none text-base">×</button>
     )}
   </span>
 );
@@ -1193,7 +1193,7 @@ const ProviderProfile = () => {
                           <button
                             type="button"
                             onClick={() => removeLocation(loc)}
-                            className="text-violet-400 hover:text-red-500 transition leading-none text-base font-bold ml-1"
+                            className="text-violet-400 hover:text-red-700 transition leading-none text-base font-bold ml-1"
                           >
                             ×
                           </button>
@@ -1334,7 +1334,7 @@ const ProviderProfile = () => {
                             {ocrTesting ? 'Running...' : 'Execute Test'}
                           </button>
                         </div>
-                        {ocrError && <p className="text-[10px] text-red-500">{ocrError}</p>}
+                        {ocrError && <p className="text-[10px] text-red-700">{ocrError}</p>}
                         {ocrResult && (
                           <pre className="text-[9px] text-slate-600 bg-slate-50 p-2 rounded max-h-24 overflow-y-auto whitespace-pre-wrap">{JSON.stringify(ocrResult, null, 2)}</pre>
                         )}
@@ -1376,7 +1376,7 @@ const ProviderProfile = () => {
                       <button
                         type="button"
                         onClick={() => setForm({ ...form, portfolioLinks: form.portfolioLinks.filter((_, j) => j !== i) })}
-                        className="text-slate-400 hover:text-red-500 ml-3 text-lg leading-none transition-colors"
+                        className="text-slate-400 hover:text-red-700 ml-3 text-lg leading-none transition-colors"
                       >
                         ×
                       </button>

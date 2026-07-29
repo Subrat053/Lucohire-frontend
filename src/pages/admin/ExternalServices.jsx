@@ -7,8 +7,8 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 const iconMap = {
   Mail: <Mail className="w-8 h-8 text-rose-500" />,
   MessageSquare: <MessageSquare className="w-8 h-8 text-emerald-500" />,
-  Database: <Database className="w-8 h-8 text-green-600" />,
-  Server: <Server className="w-8 h-8 text-red-500" />,
+  Database: <Database className="w-8 h-8 text-green-700" />,
+  Server: <Server className="w-8 h-8 text-red-700" />,
   Cpu: <Cpu className="w-8 h-8 text-purple-500" />,
   Cloud: <Cloud className="w-8 h-8 text-orange-500" />,
   Activity: <Activity className="w-8 h-8 text-gray-500" />,
@@ -75,7 +75,7 @@ export default function ExternalServices() {
                   </span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-900">{service.name}</h3>
-                <p className="text-sm font-medium text-gray-600 mt-1">{service.description}</p>
+                <p className="text-sm font-medium text-gray-700 mt-1">{service.description}</p>
               </div>
               
               <div className="p-5 bg-white space-y-4">

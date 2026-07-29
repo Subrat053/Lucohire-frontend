@@ -87,7 +87,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
             )}
             {value && (
               <li 
-                className="px-3 py-2 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
+                className="px-3 py-2 text-sm text-red-700 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
                 onClick={() => {
                   setValue('');
                   setSearchTerm('');
@@ -198,7 +198,7 @@ export default function OtpLogs() {
         <div className="flex items-center gap-3">
           <button
             onClick={fetchLogs}
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-xs hover:bg-gray-50 transition"
+            className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-xs hover:bg-gray-50 transition"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh Logs
           </button>
@@ -280,7 +280,7 @@ export default function OtpLogs() {
         {/* Custom Date Range Inputs */}
         {dateRange === 'custom' && (
           <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-gray-100 text-xs">
-            <span className="font-semibold text-gray-600">Select Date Range:</span>
+            <span className="font-semibold text-gray-700">Select Date Range:</span>
             <div className="flex items-center gap-2">
               <label className="text-gray-500">From:</label>
               <input
@@ -320,7 +320,7 @@ export default function OtpLogs() {
         </div>
       ) : error ? (
         <div className="bg-red-50 rounded-2xl p-4 flex items-center gap-3 border border-red-200">
-          <AlertTriangle className="w-5 h-5 text-red-500" />
+          <AlertTriangle className="w-5 h-5 text-red-700" />
           <p className="text-sm text-red-700">{error}</p>
         </div>
       ) : logs.length === 0 ? (
@@ -341,7 +341,7 @@ export default function OtpLogs() {
               <tbody className="divide-y divide-gray-50">
                 {logs.map(log => {
                   const status = getStatus(log);
-                  const ch = CHANNEL_BADGE[log.channel] || { cls: 'bg-gray-100 text-gray-600 border-gray-200', icon: null };
+                  const ch = CHANNEL_BADGE[log.channel] || { cls: 'bg-gray-100 text-gray-700 border-gray-200', icon: null };
                   return (
                     <tr key={log._id} className="hover:bg-indigo-50/30 transition">
                       <td className="px-4 py-3.5">

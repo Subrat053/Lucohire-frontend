@@ -199,7 +199,7 @@ const ManagerBankAccounts = () => {
             </div>
             <div className="p-6">
               <div className="mb-4 p-3 bg-red-50 rounded-xl border border-red-100 flex gap-2">
-                <HiExclamationCircle className="w-5 h-5 text-red-500 shrink-0" />
+                <HiExclamationCircle className="w-5 h-5 text-red-700 shrink-0" />
                 <p className="text-xs text-red-700">Please provide a clear reason for rejection. This will be visible to the partner.</p>
               </div>
               <textarea 
@@ -299,7 +299,7 @@ const ManagerBankAccounts = () => {
                       setShowDetailModal(false);
                       setShowRejectModal(true);
                     }}
-                    className="px-6 py-2.5 bg-white text-red-500 border border-red-100 rounded-xl text-sm font-bold hover:bg-red-50 transition-all"
+                    className="px-6 py-2.5 bg-white text-red-700 border border-red-100 rounded-xl text-sm font-bold hover:bg-red-50 transition-all"
                   >
                     Reject
                   </button>

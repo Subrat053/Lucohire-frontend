@@ -100,7 +100,7 @@ export default function UnlockCandidateModal({
           {/* Close */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition"
+            className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -122,7 +122,7 @@ export default function UnlockCandidateModal({
               >
                 View Plans & Pricing
               </a>
-              <button onClick={onClose} className="w-full text-gray-400 text-sm hover:text-gray-600 transition py-2">Cancel</button>
+              <button onClick={onClose} className="w-full text-gray-400 text-sm hover:text-gray-700 transition py-2">Cancel</button>
             </div>
           )}
 
@@ -130,7 +130,7 @@ export default function UnlockCandidateModal({
           {step === 'limit_exceeded' && (
             <div className="text-center">
               <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-8 h-8 text-red-500" />
+                <AlertTriangle className="w-8 h-8 text-red-700" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Contact Limit Reached</h2>
               <p className="text-gray-500 text-sm mb-6">
@@ -142,7 +142,7 @@ export default function UnlockCandidateModal({
               >
                 Upgrade Plan
               </a>
-              <button onClick={onClose} className="w-full text-gray-400 text-sm hover:text-gray-600 transition py-2">Cancel</button>
+              <button onClick={onClose} className="w-full text-gray-400 text-sm hover:text-gray-700 transition py-2">Cancel</button>
             </div>
           )}
 
@@ -182,7 +182,7 @@ export default function UnlockCandidateModal({
                 }
               </button>
 
-              <button onClick={onClose} className="w-full text-gray-400 text-sm hover:text-gray-600 transition py-2">Cancel</button>
+              <button onClick={onClose} className="w-full text-gray-400 text-sm hover:text-gray-700 transition py-2">Cancel</button>
             </div>
           )}
 
@@ -198,7 +198,7 @@ export default function UnlockCandidateModal({
               </p>
               <button
                 onClick={onClose}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition"
+                className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded-xl transition"
               >
                 View Full Profile
               </button>

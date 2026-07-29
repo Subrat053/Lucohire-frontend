@@ -1061,7 +1061,7 @@ export default function ProviderAIChat({ profileContext = {}, missingFields = []
                               const nextLinks = parsedPreview.portfolioLinks.filter((_, i) => i !== idx);
                               setParsedPreview({ ...parsedPreview, portfolioLinks: nextLinks });
                             }}
-                            className="p-2 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                            className="p-2 text-red-700 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                             title="Remove Link"
                           >
                             <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

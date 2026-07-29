@@ -21,7 +21,7 @@ const TYPE_ICON = {
   CONTACT_UNLOCKED: { Icon: HiCheckCircle, color: 'text-cyan-500', bg: 'bg-cyan-50' },
   PROFILE_VIEWED: { Icon: HiEye, color: 'text-blue-500', bg: 'bg-blue-50' },
   PLAN_PURCHASED: { Icon: HiCheckCircle, color: 'text-purple-500', bg: 'bg-purple-50' },
-  PLAN_EXPIRY_REMINDER: { Icon: HiExclamationCircle, color: 'text-red-500', bg: 'bg-red-50' },
+  PLAN_EXPIRY_REMINDER: { Icon: HiExclamationCircle, color: 'text-red-700', bg: 'bg-red-50' },
   ADMIN_ALERT: { Icon: HiInformationCircle, color: 'text-slate-500', bg: 'bg-slate-100' },
 };
 
@@ -189,7 +189,7 @@ const NotificationBell = () => {
       <button
         type="button"
         onClick={handleOpen}
-        className="relative p-2 rounded-xl hover:bg-gray-100 transition text-gray-600"
+        className="relative p-2 rounded-xl hover:bg-gray-100 transition text-gray-700"
         title="Notifications"
         aria-label="Open notifications menu"
         aria-expanded={open}
@@ -257,7 +257,7 @@ const NotificationBell = () => {
                     <button
                       type="button"
                       onClick={() => deleteNotification(n._id)}
-                      className="self-start p-1 rounded-md text-gray-300 hover:text-red-500 hover:bg-red-50 transition"
+                      className="self-start p-1 rounded-md text-gray-300 hover:text-red-700 hover:bg-red-50 transition"
                       title="Delete"
                       aria-label="Delete notification"
                     >

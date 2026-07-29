@@ -88,7 +88,7 @@ const AdminWhatsApp = () => {
           </div>
         </div>
         <button onClick={handleSave} disabled={saving}
-          className="mt-4 flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition text-sm font-medium disabled:opacity-50">
+          className="mt-4 flex items-center gap-2 px-5 py-2.5 bg-green-700 text-white rounded-xl hover:bg-green-800 transition text-sm font-medium disabled:opacity-50">
           <HiSave className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Settings'}
         </button>
       </div>
@@ -130,7 +130,7 @@ const AdminWhatsApp = () => {
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                         log.status === 'sent' ? 'bg-green-100 text-green-700' :
                         log.status === 'failed' ? 'bg-red-100 text-red-700' :
-                        'bg-gray-100 text-gray-600'
+                        'bg-gray-100 text-gray-700'
                       }`}>{log.status || 'pending'}</span>
                     </td>
                     <td className="py-3 px-2 text-gray-500">{new Date(log.createdAt).toLocaleString()}</td>

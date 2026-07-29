@@ -138,7 +138,7 @@ export default function AIInsightsPage() {
                           ? 'bg-emerald-50 text-emerald-700'
                           : item.trend.includes('Cooling')
                           ? 'bg-red-50 text-red-600'
-                          : 'bg-gray-100 text-gray-600'
+                          : 'bg-gray-100 text-gray-700'
                       }`}>{item.trend}</span>
                     </div>
                   </div>

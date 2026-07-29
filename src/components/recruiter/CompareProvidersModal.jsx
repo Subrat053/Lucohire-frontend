@@ -17,7 +17,7 @@ export default function CompareProvidersModal({ open, providers = [], onClose })
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 text-left text-gray-600">
+              <tr className="bg-gray-50 text-left text-gray-700">
                 <th className="px-4 py-2">{t("Provider")}</th>
                 <th className="px-4 py-2">{t("Match")}</th>
                 <th className="px-4 py-2">{t("Trust")}</th>

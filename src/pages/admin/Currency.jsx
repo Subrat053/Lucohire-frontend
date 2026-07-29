@@ -81,7 +81,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
             )}
             {value && (
               <li 
-                className="px-3 py-2 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
+                className="px-3 py-2 text-sm text-red-700 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
                 onClick={() => {
                   setValue('');
                   setSearchTerm('');

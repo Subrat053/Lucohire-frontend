@@ -67,7 +67,7 @@ const AdminCommissions = () => {
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       <div className="mb-8">
         <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-green-50 text-green-600">
+          <span className="p-1.5 rounded-lg bg-green-50 text-green-700">
             <HiCurrencyRupee className="w-6 h-6" />
           </span>
           Referral Commissions & Withdrawals
@@ -121,13 +121,13 @@ const AdminCommissions = () => {
                     <td className="py-4 px-6">
                       <span className="uppercase text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded mr-2">{w.method}</span>
                       {w.method === 'bank' && w.userId?.bankDetails && (
-                        <div className="text-xs mt-2 text-gray-600 font-mono">
+                        <div className="text-xs mt-2 text-gray-700 font-mono">
                           A/C: {w.userId.bankDetails.accountNumber} <br/>
                           IFSC: {w.userId.bankDetails.ifscCode}
                         </div>
                       )}
                       {w.method === 'upi' && w.userId?.bankDetails && (
-                        <div className="text-xs mt-2 text-gray-600 font-mono">
+                        <div className="text-xs mt-2 text-gray-700 font-mono">
                           UPI: {w.userId.bankDetails.upiId}
                         </div>
                       )}
@@ -186,7 +186,7 @@ const AdminCommissions = () => {
                       <p className="text-xs text-gray-500">{r.referredUserId?.email}</p>
                     </td>
                     <td className="py-4 px-6">
-                      <p className="font-bold text-green-600">₹{r.commissionAmount}</p>
+                      <p className="font-bold text-green-700">₹{r.commissionAmount}</p>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${r.commissionStatus === 'earned' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                         {r.commissionStatus.toUpperCase()}
                       </span>
@@ -209,7 +209,7 @@ const AdminCommissions = () => {
             <h3 className="text-xl font-bold mb-4">Confirm {statusAction === 'paid' ? 'Payment' : 'Rejection'}</h3>
             <form onSubmit={handleStatusSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold mb-1 text-gray-600">Admin Notes (Optional)</label>
+                <label className="block text-xs font-bold mb-1 text-gray-700">Admin Notes (Optional)</label>
                 <textarea 
                   className="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" 
                   rows={3} 
@@ -220,7 +220,7 @@ const AdminCommissions = () => {
               </div>
               <div className="flex gap-3">
                 <button type="button" onClick={() => setShowStatusModal(false)} className="flex-1 py-3 bg-gray-100 font-bold rounded-lg hover:bg-gray-200">Cancel</button>
-                <button type="submit" disabled={submitting} className={`flex-1 py-3 text-white font-bold rounded-lg ${statusAction === 'paid' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}>
+                <button type="submit" disabled={submitting} className={`flex-1 py-3 text-white font-bold rounded-lg ${statusAction === 'paid' ? 'bg-green-700 hover:bg-green-800' : 'bg-red-600 hover:bg-red-700'}`}>
                   {submitting ? 'Saving...' : 'Confirm'}
                 </button>
               </div>

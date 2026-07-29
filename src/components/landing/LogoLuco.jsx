@@ -23,7 +23,7 @@ const LogoLuco = () => {
             <h2 className="font-bold text-gray-900 text-5xl sm:text-6xl tracking-tight drop-shadow-sm">
               Lucohire
             </h2>
-            <p className="text-base sm:text-lg md:text-xl font-medium text-gray-600 max-w-lg mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl font-medium text-gray-700 max-w-lg mx-auto leading-relaxed">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 font-bold">
                 AI-Powered
               </span>{' '}

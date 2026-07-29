@@ -349,7 +349,7 @@ export default function QuinnTemplate() {
                   <div key={i} className="flex gap-2 mb-2 items-start font-sans">
                     <input value={link.platform} onChange={(e) => { const nl = [...personal.links]; nl[i].platform = e.target.value; updatePersonal('links', nl); }} placeholder="Platform (e.g. LinkedIn)" className="w-1/3 px-2 py-1.5 border border-emerald-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500" />
                     <input value={link.url} onChange={(e) => { const nl = [...personal.links]; nl[i].url = e.target.value; updatePersonal('links', nl); }} placeholder="URL" className="w-full px-2 py-1.5 border border-emerald-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500" />
-                    <button type="button" onClick={() => updatePersonal('links', personal.links.filter((_, idx) => idx !== i))} className="p-1.5 text-red-500 hover:bg-red-50 rounded bg-[#ffffff]">
+                    <button type="button" onClick={() => updatePersonal('links', personal.links.filter((_, idx) => idx !== i))} className="p-1.5 text-red-700 hover:bg-red-50 rounded bg-[#ffffff]">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

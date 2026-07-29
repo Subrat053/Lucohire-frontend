@@ -140,7 +140,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
               { name: 'Domain Knowledge', score: 75, benchmark: 85 }
             ],
             skills_to_improve: [
-              { name: 'System Design', score: 45, impact: 'High Impact', impactColor: 'text-red-500' },
+              { name: 'System Design', score: 45, impact: 'High Impact', impactColor: 'text-red-700' },
               { name: 'AWS', score: 55, impact: 'Medium Impact', impactColor: 'text-amber-500' }
             ],
             in_demand_skills: ['React', 'Node.js', 'AWS', 'TypeScript', 'GraphQL'],
@@ -884,13 +884,13 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
             {/* Areas to Improve */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
               <div className="flex items-center gap-2 mb-5">
-                <BiLineChart className="w-5 h-5 text-red-500" />
+                <BiLineChart className="w-5 h-5 text-red-700" />
                 <h3 className="font-bold text-slate-800 text-lg">{t("Areas to Improve")}</h3>
               </div>
               <ul className={`space-y-3 mb-6 ${!isPro ? 'blur-[5px] opacity-70 select-none' : ''}`}>
                 {weaknesses.map((wk, i) => (
                   <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
-                    <FiCheck className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                    <FiCheck className="w-4 h-4 text-red-700 mt-0.5 shrink-0" />
                     <span>{wk}</span>
                   </li>
                 ))}
@@ -956,7 +956,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                 {activeModal === 'skills' && <BiBriefcase className="w-5 h-5 text-emerald-600" />}
                 {activeModal === 'market' && <BiLineChart className="w-5 h-5 text-emerald-600" />}
                 {activeModal === 'strengths' && <BiTrophy className="w-5 h-5 text-emerald-600" />}
-                {activeModal === 'improvement' && <FiAlertCircle className="w-5 h-5 text-red-500" />}
+                {activeModal === 'improvement' && <FiAlertCircle className="w-5 h-5 text-red-700" />}
                 {activeModal === 'roadmap' && <MdOutlineLocationOn className="w-5 h-5 text-emerald-600" />}
                 
                 {activeModal === 'breakdown' && t("Detailed Role Fit Breakdown")}
@@ -1096,7 +1096,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                       <ul className="space-y-3">
                         {displayData.top_weaknesses.map((wk, i) => (
                           <li key={i} className="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm border border-red-50 text-sm text-slate-700">
-                            <FiAlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                            <FiAlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
                             <span>{wk}</span>
                           </li>
                         ))}

@@ -609,7 +609,7 @@ const Candidates = () => {
                                 )}
                                 <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">Premium</span>
                               </div>
-                              <div className="text-sm font-bold text-gray-600 mb-1">{title}</div>
+                              <div className="text-sm font-bold text-gray-700 mb-1">{title}</div>
                               <div className="text-xs font-semibold text-gray-400 flex items-center gap-1">
                                 <FiMapPin className="w-3 h-3" /> {city}
                               </div>
@@ -619,7 +619,7 @@ const Candidates = () => {
                           {/* Skills */}
                           <div className="flex flex-wrap items-center gap-2 mt-4">
                             {displayedSkills.map((skill, idx) => (
-                              <span key={idx} className="text-[10px] font-bold text-gray-600 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full shadow-sm">
+                              <span key={idx} className="text-[10px] font-bold text-gray-700 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full shadow-sm">
                                 {skill}
                               </span>
                             ))}
@@ -711,13 +711,13 @@ const Candidates = () => {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-sm font-bold text-gray-900">Search Insights</h3>
-                <button className="text-gray-400 hover:text-gray-600"><FiChevronUp className="w-4 h-4" /></button>
+                <button className="text-gray-400 hover:text-gray-700"><FiChevronUp className="w-4 h-4" /></button>
               </div>
               
               <div className="space-y-5">
                 <div>
                   <div className="text-xs font-extrabold text-gray-900 mb-1">Skills</div>
-                  <div className="text-xs font-semibold text-gray-600">React Developers in Bangalore</div>
+                  <div className="text-xs font-semibold text-gray-700">React Developers in Bangalore</div>
                   <div className="text-[10px] text-gray-400">(4 - 8 yrs exp)</div>
                 </div>
 
@@ -725,7 +725,7 @@ const Candidates = () => {
                   <div className="text-xs font-extrabold text-gray-900 mb-2">Top Skills in Demand</div>
                   <div className="flex flex-wrap gap-1.5">
                     {topSkills.map(skill => (
-                      <span key={skill} className="text-[10px] font-bold text-gray-600 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded shadow-sm">
+                      <span key={skill} className="text-[10px] font-bold text-gray-700 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded shadow-sm">
                         {skill}
                       </span>
                     ))}
@@ -738,10 +738,10 @@ const Candidates = () => {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-gray-900">AI Search Tips</h3>
-                <button className="text-gray-400 hover:text-gray-600"><FiChevronUp className="w-4 h-4" /></button>
+                <button className="text-gray-400 hover:text-gray-700"><FiChevronUp className="w-4 h-4" /></button>
               </div>
               
-              <div className="text-xs font-semibold text-gray-600 leading-relaxed mb-4">
+              <div className="text-xs font-semibold text-gray-700 leading-relaxed mb-4">
                 Try adding more skills like
                 <div className="flex gap-1.5 my-2">
                   <button onClick={() => toggleFilter('skills', 'Material UI')} className="bg-purple-50 text-purple-700 border border-purple-100 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm hover:bg-purple-100 transition">Material UI</button>

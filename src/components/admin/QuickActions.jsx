@@ -10,7 +10,7 @@ const QuickActions = () => {
     { icon: HiOutlinePlus, label: 'Create Job', color: 'text-purple-600', bg: 'bg-purple-50', link: '/admin/dashboard' },
     { icon: HiOutlineSpeakerphone, label: 'Send Announcement', color: 'text-teal-600', bg: 'bg-teal-50', link: '/admin/dashboard' },
     { icon: HiOutlineDocumentReport, label: 'Generate Report', color: 'text-rose-600', bg: 'bg-rose-50', link: '/admin/dashboard' },
-    { icon: HiOutlineCollection, label: 'View All Actions', color: 'text-gray-600', bg: 'bg-gray-50', link: '/admin/dashboard' },
+    { icon: HiOutlineCollection, label: 'View All Actions', color: 'text-gray-700', bg: 'bg-gray-50', link: '/admin/dashboard' },
   ];
 
   return (
@@ -26,7 +26,7 @@ const QuickActions = () => {
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${action.bg}`}>
               <action.icon className={`w-5 h-5 ${action.color}`} />
             </div>
-            <span className="text-[10px] font-bold text-gray-600 leading-tight">{action.label}</span>
+            <span className="text-[10px] font-bold text-gray-700 leading-tight">{action.label}</span>
           </Link>
         ))}
       </div>

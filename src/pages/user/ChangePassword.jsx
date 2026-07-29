@@ -143,7 +143,7 @@ const ChangePassword = () => {
               <div className="mt-3">
                 <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider mb-1.5">
                   <span className="text-slate-400">Security Strength</span>
-                  <span className={strength.label === "Strong" ? "text-green-600" : strength.label === "Good" ? "text-yellow-600" : "text-red-600"}>
+                  <span className={strength.label === "Strong" ? "text-green-700" : strength.label === "Good" ? "text-yellow-600" : "text-red-600"}>
                     {strength.label}
                   </span>
                 </div>

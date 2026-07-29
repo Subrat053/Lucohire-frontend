@@ -67,11 +67,11 @@ const FilterDropdown = ({ label, value, setValue, options }) => {
           isOpen ? 'border-emerald-300 ring-2 ring-emerald-300/20' : 'border-gray-200 hover:border-gray-300'
         }`}
       >
-        <span className={value ? 'text-gray-900 truncate' : 'text-gray-600 truncate'}>{displayValue}</span>
+        <span className={value ? 'text-gray-900 truncate' : 'text-gray-700 truncate'}>{displayValue}</span>
         <div className="flex items-center gap-1.5 shrink-0">
           {(value && value !== 'all') && (
             <HiX 
-              className="w-3.5 h-3.5 text-gray-400 hover:text-red-500 transition-colors"
+              className="w-3.5 h-3.5 text-gray-400 hover:text-red-700 transition-colors"
               onClick={(e) => {
                  e.stopPropagation();
                  const hasAll = options.some(o => o.value === 'all');
@@ -247,11 +247,11 @@ const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
             <h4 className="font-bold text-gray-900 text-sm sm:text-base border-l-4 border-emerald-600 pl-2">{t("Job Description")}</h4>
             {job.description ? (
               <div 
-                className="text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 text-xs sm:text-sm prose prose-sm max-w-none"
+                className="text-gray-700 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 text-xs sm:text-sm prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: job.description }}
               />
             ) : (
-              <p className="text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 whitespace-pre-line text-xs sm:text-sm">{t("No detailed description available.")}</p>
+              <p className="text-gray-700 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100/80 whitespace-pre-line text-xs sm:text-sm">{t("No detailed description available.")}</p>
             )}
           </div>
 
@@ -259,7 +259,7 @@ const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
               <h4 className="font-bold text-gray-900 text-sm border-l-4 border-emerald-600 pl-2">{t("Experience Needed")}</h4>
-              <p className="text-xs sm:text-sm text-gray-600 bg-gray-50/50 px-4 py-3 rounded-xl border border-gray-100/80 font-medium">
+              <p className="text-xs sm:text-sm text-gray-700 bg-gray-50/50 px-4 py-3 rounded-xl border border-gray-100/80 font-medium">
                 {job.experienceRequired ||
                   "Experience requirement not specified"}
               </p>
@@ -306,7 +306,7 @@ const JobDetailsModal = ({ job, onClose, onApplyNow, onRecruiterClick }) => {
               >
                 {job.companyName || job.recruiter?.name || "Recruiter Company"}
               </p>
-              <p className="text-xs text-gray-600 leading-relaxed italic">
+              <p className="text-xs text-gray-700 leading-relaxed italic">
                 "
                 {job.companyInfo ||
                   "This company is registered under the ServiceHub network, providing jobs across multiple sectors."}
@@ -451,13 +451,13 @@ const JobCard = ({
 
           <div className="flex flex-wrap gap-2 mt-1">
              {job.skill && (
-               <span className="text-xs px-3 py-1 bg-gray-50 text-gray-600 rounded-full font-medium">{job.skill}</span>
+               <span className="text-xs px-3 py-1 bg-gray-50 text-gray-700 rounded-full font-medium">{job.skill}</span>
              )}
              {job.requirements?.slice(0, 3).map((r, i) => (
-               <span key={i} className="text-xs px-3 py-1 bg-gray-50 text-gray-600 rounded-full font-medium">{r}</span>
+               <span key={i} className="text-xs px-3 py-1 bg-gray-50 text-gray-700 rounded-full font-medium">{r}</span>
              ))}
              {job.requirements?.length > 3 && (
-               <span className="text-xs px-3 py-1 bg-gray-50 text-gray-600 rounded-full font-medium">+{job.requirements.length - 3}</span>
+               <span className="text-xs px-3 py-1 bg-gray-50 text-gray-700 rounded-full font-medium">+{job.requirements.length - 3}</span>
              )}
           </div>
 
@@ -597,7 +597,7 @@ const JobCard = ({
           </div>
 
           <div className="flex items-start gap-2 w-full">
-            <HiOutlineMail className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+            <HiOutlineMail className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
             <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Why you may get rejected?</span>
             <span className="text-gray-300 shrink-0 text-xs">•</span>
             <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
@@ -739,13 +739,13 @@ const ApplicationsTab = ({ onRecruiterClick }) => {
               </div>
             </div>
             <span
-              className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border capitalize ${STATUS_COLORS[app.status] || "bg-gray-50 text-gray-600 border-gray-200"}`}
+              className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border capitalize ${STATUS_COLORS[app.status] || "bg-gray-50 text-gray-700 border-gray-200"}`}
             >
               {app.status}
             </span>
           </div>
           {app.coverLetter && (
-            <p className="mt-3 text-sm text-gray-600 line-clamp-2 bg-gray-50 rounded-xl px-3 py-2">
+            <p className="mt-3 text-sm text-gray-700 line-clamp-2 bg-gray-50 rounded-xl px-3 py-2">
               {app.coverLetter}
             </p>
           )}
@@ -1276,7 +1276,7 @@ const ProviderJobs = () => {
                         clearFilters();
                         setNearbyOnly(false);
                       }}
-                      className="flex-1 md:flex-none px-4 py-2 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition text-center"
+                      className="flex-1 md:flex-none px-4 py-2 text-sm font-semibold text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition text-center"
                     >{t("Clear")}</button>
                   )}
                   <button
@@ -1297,7 +1297,7 @@ const ProviderJobs = () => {
             ) : jobs.length === 0 ? (
               <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-100 shadow-2xs">
                 <HiBriefcase className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                <p className="font-medium text-gray-600">{t("No jobs found")}</p>
+                <p className="font-medium text-gray-700">{t("No jobs found")}</p>
                 {nearbyOnly ? (
                   <div className="mt-3 space-y-2">
                     <p className="text-sm">{t("There are no jobs within")}{radius}{t("km of your location.")}</p>
@@ -1345,7 +1345,7 @@ const ProviderJobs = () => {
                       onClick={() => fetchJobs(pagination.page - 1)}
                       className="p-2 rounded-xl border border-gray-200 disabled:opacity-40 hover:bg-gray-50 transition"
                     >
-                      <HiChevronLeft className="w-4 h-4 text-gray-600" />
+                      <HiChevronLeft className="w-4 h-4 text-gray-700" />
                     </button>
                     
                     {getPaginationGroup().map((pageNumber) => (
@@ -1355,7 +1355,7 @@ const ProviderJobs = () => {
                         className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-medium transition ${
                           pagination.page === pageNumber
                             ? "bg-blue-600 text-white shadow-sm"
-                            : "text-gray-600 hover:bg-gray-100"
+                            : "text-gray-700 hover:bg-gray-100"
                         }`}
                       >
                         {pageNumber}
@@ -1367,7 +1367,7 @@ const ProviderJobs = () => {
                       onClick={() => fetchJobs(pagination.page + 1)}
                       className="p-2 rounded-xl border border-gray-200 disabled:opacity-40 hover:bg-gray-50 transition"
                     >
-                      <HiChevronRight className="w-4 h-4 text-gray-600" />
+                      <HiChevronRight className="w-4 h-4 text-gray-700" />
                     </button>
                   </div>
                 )}

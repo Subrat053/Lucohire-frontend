@@ -70,7 +70,7 @@ const ProviderLeads = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   {lead.isUnlocked && lead.recruiter?.phone && (
-                    <a href={`tel:${lead.recruiter.phone}`} className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100">
+                    <a href={`tel:${lead.recruiter.phone}`} className="p-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100">
                       <HiPhone className="w-5 h-5" />
                     </a>
                   )}

@@ -400,7 +400,7 @@ const ProviderDashboard = () => {
                               status === 'in_review' ? 'bg-blue-50 text-blue-600' :
                               status === 'screening' ? 'bg-purple-50 text-purple-600' :
                               status === 'assessment' ? 'bg-orange-50 text-orange-600' :
-                              'bg-gray-100 text-gray-600'
+                              'bg-gray-100 text-gray-700'
                             }`}>
                               {status === 'in_review' ? 'In Review' : status === 'screening' ? 'Screening' : status === 'assessment' ? 'Assessment' : 'Applied'}
                             </span>
@@ -488,14 +488,14 @@ const ProviderDashboard = () => {
                   Get nearby freelance projects on WhatsApp.
                 </p>
                 <div className="w-12 h-12 flex items-center justify-center text-4xl mt-[-10px]">
-                  <FaWhatsapp className="text-[#25D366] drop-shadow-md w-10 h-10" />
+                  <FaWhatsapp className="text-[#075E54] drop-shadow-md w-10 h-10" />
                 </div>
               </div>
               
               <ul className="space-y-2 mb-6 text-[12px] text-teal-100 font-medium">
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#25D366] shrink-0" /> Weekend Projects</li>
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#25D366] shrink-0" /> Part-time Work</li>
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#25D366] shrink-0" /> Instant Alerts</li>
+                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#075E54] shrink-0" /> Weekend Projects</li>
+                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#075E54] shrink-0" /> Part-time Work</li>
+                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#075E54] shrink-0" /> Instant Alerts</li>
               </ul>
               
               <div className="flex justify-between items-end mb-4 px-1">
@@ -504,7 +504,7 @@ const ProviderDashboard = () => {
               </div>
               
               <button onClick={handleWhatsappCheckout} className="w-full bg-white hover:bg-gray-50 text-[#0b5d49] font-extrabold py-3.5 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
-                Enable Alerts <FaWhatsapp className="w-4 h-4 text-[#25D366]" />
+                Enable Alerts <FaWhatsapp className="w-4 h-4 text-[#075E54]" />
               </button>
               <div className="text-center text-[10px] text-teal-300 mt-3 font-medium">Cancel anytime</div>
             </div>

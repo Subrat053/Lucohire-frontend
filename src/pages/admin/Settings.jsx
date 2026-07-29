@@ -641,7 +641,7 @@ const AdminSettings = () => {
                 {/* Cloud Name / Account ID */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Cloud Name (Account ID) <span className="text-red-500">*</span>
+                    Cloud Name (Account ID) <span className="text-red-700">*</span>
                   </label>
                   <input
                     type="text"
@@ -671,7 +671,7 @@ const AdminSettings = () => {
                 {/* API Key */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    API Key <span className="text-red-500">*</span>
+                    API Key <span className="text-red-700">*</span>
                   </label>
                   <input
                     type="text"
@@ -686,7 +686,7 @@ const AdminSettings = () => {
                 {/* API Secret */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    API Secret <span className="text-red-500">*</span>
+                    API Secret <span className="text-red-700">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -697,7 +697,7 @@ const AdminSettings = () => {
                       className="w-full px-4 py-2.5 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none font-mono text-sm"
                     />
                     <button type="button" onClick={() => setShowSecret(s => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">
                       {showSecret ? <HiEyeOff className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
                     </button>
                   </div>
@@ -760,7 +760,7 @@ const AdminSettings = () => {
                   {uploadingPhoto ? 'Uploading...' : 'Upload Photo'}
                 </button>
                 {adminPhoto && !photoPreview && (
-                  <div className="flex items-center gap-2 text-sm text-green-600">
+                  <div className="flex items-center gap-2 text-sm text-green-700">
                     <HiCheckCircle className="w-4 h-4" />
                     <span>Photo is set</span>
                   </div>
@@ -913,7 +913,7 @@ const AdminSettings = () => {
                           </td>
 
                           {/* Interval */}
-                          <td className="py-4 px-4 whitespace-nowrap text-xs text-gray-600 font-mono">
+                          <td className="py-4 px-4 whitespace-nowrap text-xs text-gray-700 font-mono">
                             {pool.rotationInterval || 60}s
                           </td>
 
@@ -943,7 +943,7 @@ const AdminSettings = () => {
                               {/* Edit Config */}
                               <button
                                 onClick={() => setConfigPoolModal({ open: true, pool })}
-                                className="p-1.5 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition shrink-0"
+                                className="p-1.5 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg transition shrink-0"
                                 title="Configure rotation duration & rules"
                               >
                                 <HiPencil className="w-4 h-4 shrink-0" />
@@ -985,7 +985,7 @@ const AdminSettings = () => {
                   <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
                     <HiChip className="w-5 h-5 text-indigo-600" /> Create Rotation Pool
                   </h3>
-                  <button onClick={() => setCreatePoolModal({ ...createPoolModal, open: false })} className="text-gray-400 hover:text-gray-600">
+                  <button onClick={() => setCreatePoolModal({ ...createPoolModal, open: false })} className="text-gray-400 hover:text-gray-700">
                     <HiX className="w-5 h-5" />
                   </button>
                 </div>
@@ -1052,7 +1052,7 @@ const AdminSettings = () => {
                     <button
                       type="button"
                       onClick={() => setCreatePoolModal({ ...createPoolModal, open: false })}
-                      className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl"
+                      className="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl"
                     >
                       Cancel
                     </button>
@@ -1076,7 +1076,7 @@ const AdminSettings = () => {
                   <h3 className="text-base font-bold text-gray-900">
                     Configure Pool: {configPoolModal.pool.skill} ({configPoolModal.pool.city})
                   </h3>
-                  <button onClick={() => setConfigPoolModal({ open: false, pool: null })} className="text-gray-400 hover:text-gray-600">
+                  <button onClick={() => setConfigPoolModal({ open: false, pool: null })} className="text-gray-400 hover:text-gray-700">
                     <HiX className="w-5 h-5" />
                   </button>
                 </div>
@@ -1130,7 +1130,7 @@ const AdminSettings = () => {
                     <button
                       type="button"
                       onClick={() => setConfigPoolModal({ open: false, pool: null })}
-                      className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl"
+                      className="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl"
                     >
                       Cancel
                     </button>
@@ -1157,7 +1157,7 @@ const AdminSettings = () => {
                     </h3>
                     <p className="text-xs text-gray-500">Add users, reorder priority, and adjust individual weights.</p>
                   </div>
-                  <button onClick={() => setManageProvidersModal({ open: false, pool: null, selectedProviderId: '', weight: 1 })} className="text-gray-400 hover:text-gray-600">
+                  <button onClick={() => setManageProvidersModal({ open: false, pool: null, selectedProviderId: '', weight: 1 })} className="text-gray-400 hover:text-gray-700">
                     <HiX className="w-5 h-5" />
                   </button>
                 </div>
@@ -1233,7 +1233,7 @@ const AdminSettings = () => {
                             </button>
                             <button
                               onClick={() => handleRemoveProviderFromPool(item.provider?._id || item.provider)}
-                              className="p-1 text-red-500 hover:text-red-700 ml-1"
+                              className="p-1 text-red-700 hover:text-red-700 ml-1"
                               title="Remove User"
                             >
                               <HiTrash className="w-4 h-4" />
@@ -1265,7 +1265,7 @@ const AdminSettings = () => {
                   <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
                     <HiClock className="w-5 h-5 text-purple-600" /> Rotation Activity Logs ({historyPoolModal.pool.skill})
                   </h3>
-                  <button onClick={() => setHistoryPoolModal({ open: false, pool: null })} className="text-gray-400 hover:text-gray-600">
+                  <button onClick={() => setHistoryPoolModal({ open: false, pool: null })} className="text-gray-400 hover:text-gray-700">
                     <HiX className="w-5 h-5" />
                   </button>
                 </div>

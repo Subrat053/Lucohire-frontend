@@ -97,7 +97,7 @@ export default function SeoCommandCenter() {
             {/* Score Card */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col items-center justify-center text-center">
               <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Overall SEO Health</h2>
-              <div className={`text-7xl font-black mb-4 ${healthScore >= 80 ? 'text-green-500' : healthScore >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
+              <div className={`text-7xl font-black mb-4 ${healthScore >= 80 ? 'text-green-500' : healthScore >= 50 ? 'text-amber-500' : 'text-red-700'}`}>
                 {healthScore}<span className="text-3xl text-gray-300">/100</span>
               </div>
               <p className="text-sm text-gray-500">
@@ -161,22 +161,22 @@ export default function SeoCommandCenter() {
             <p className="text-sm text-gray-500 mb-6">Google requires specific data fields (like Location and Salary) to rank profiles and jobs properly.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                <div className="text-sm font-semibold text-gray-600 mb-2">Profiles w/o Location</div>
+                <div className="text-sm font-semibold text-gray-700 mb-2">Profiles w/o Location</div>
                 <div className="text-3xl font-black text-gray-900">{metrics?.missingLocation}</div>
                 <p className="text-xs text-gray-400 mt-2">Hurts Local SEO ranking.</p>
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                <div className="text-sm font-semibold text-gray-600 mb-2">Jobs w/o Salary</div>
+                <div className="text-sm font-semibold text-gray-700 mb-2">Jobs w/o Salary</div>
                 <div className="text-3xl font-black text-gray-900">{metrics?.missingSalaryJobs}</div>
                 <p className="text-xs text-gray-400 mt-2">Required for Google Jobs Schema.</p>
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                <div className="text-sm font-semibold text-gray-600 mb-2">Jobs w/o Description</div>
+                <div className="text-sm font-semibold text-gray-700 mb-2">Jobs w/o Description</div>
                 <div className="text-3xl font-black text-gray-900">{metrics?.missingDescJobs}</div>
                 <p className="text-xs text-gray-400 mt-2">Prevents indexing as a valid job.</p>
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                <div className="text-sm font-semibold text-gray-600 mb-2">Orphan Profiles</div>
+                <div className="text-sm font-semibold text-gray-700 mb-2">Orphan Profiles</div>
                 <div className="text-3xl font-black text-gray-900">{metrics?.orphanProfiles}</div>
                 <p className="text-xs text-gray-400 mt-2">Profiles with 0 views (hard to crawl).</p>
               </div>
@@ -313,7 +313,7 @@ export default function SeoCommandCenter() {
             <div className="flex justify-end gap-3">
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="px-5 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>

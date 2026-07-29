@@ -107,7 +107,7 @@ export default function JobPerformancePage() {
                   <td className="py-3.5">
                     <div className="flex items-center gap-1.5">
                       <span className={`w-2 h-2 rounded-full ${j.dot}`} />
-                      <span className="text-[11px] font-semibold text-gray-600">{j.type}</span>
+                      <span className="text-[11px] font-semibold text-gray-700">{j.type}</span>
                     </div>
                   </td>
                   <td className="py-3.5 text-center text-xs font-semibold text-gray-700">{j.apps}</td>

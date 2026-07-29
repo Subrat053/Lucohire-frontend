@@ -63,7 +63,7 @@ const UpgradeModal = ({ onClose, navigate }) => {
           >{t("Upgrade Subscription / Purchase Credits")}</button>
           <button
             onClick={onClose}
-            className="w-full py-3 bg-gray-50 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-100 transition"
+            className="w-full py-3 bg-gray-50 text-gray-700 rounded-xl font-semibold text-sm hover:bg-gray-100 transition"
           >{t("Cancel")}</button>
         </div>
       </div>
@@ -171,15 +171,15 @@ const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock })
       </div>
       {/* Candidate Overview Details */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-gray-50/50 p-3.5 rounded-xl border border-gray-100/50 text-xs">
-        <div className="flex items-center gap-1.5 text-gray-600">
+        <div className="flex items-center gap-1.5 text-gray-700">
           <HiLocationMarker className="w-4 h-4 text-gray-400 shrink-0" />
           <span className="truncate">{formatLocation(provider?.location || provider?.city)}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-gray-600">
+        <div className="flex items-center gap-1.5 text-gray-700">
           <HiBriefcase className="w-4 h-4 text-gray-400 shrink-0" />
           <span>{provider?.experience ? `${provider.experience} Experience` : 'N/A Experience'}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-gray-600">
+        <div className="flex items-center gap-1.5 text-gray-700">
           <HiCurrencyRupee className="w-4 h-4 text-gray-400 shrink-0" />
           <span>{provider?.pricing ? `₹${provider.pricing} ${provider.pricingType || ''}` : 'Rate Negotiable'}</span>
         </div>
@@ -187,7 +187,7 @@ const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock })
       {/* Bio / Skills */}
       <div className="space-y-2">
         {provider?.description && (
-          <p className="text-xs text-gray-600 leading-relaxed italic bg-gray-50/30 p-3 rounded-lg border border-gray-100">
+          <p className="text-xs text-gray-700 leading-relaxed italic bg-gray-50/30 p-3 rounded-lg border border-gray-100">
             "{provider.description}"
           </p>
         )}
@@ -205,7 +205,7 @@ const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock })
       {application.coverLetter && (
         <div className="border-t border-gray-100 pt-3">
           <p className="text-xs font-semibold text-gray-700 mb-1">{t("Application Message:")}</p>
-          <p className="text-xs text-gray-600 leading-relaxed bg-amber-50/30 border border-amber-100/40 p-3 rounded-xl italic">
+          <p className="text-xs text-gray-700 leading-relaxed bg-amber-50/30 border border-amber-100/40 p-3 rounded-xl italic">
             "{application.coverLetter}"
           </p>
         </div>
@@ -356,7 +356,7 @@ const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock })
               )}
             </div>
           ) : (
-             <div className="text-center py-4 text-xs text-red-500">{t("Failed to load analysis.")}</div>
+             <div className="text-center py-4 text-xs text-red-700">{t("Failed to load analysis.")}</div>
           )}
         </div>
       )}
@@ -370,7 +370,7 @@ const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock })
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
               currentStatus === status
                 ? 'bg-gray-100 text-gray-400 cursor-default'
-                : 'bg-white hover:bg-gray-50 text-gray-600 border border-gray-200'
+                : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200'
             } disabled:opacity-50`}
           >
             {statusInfo.label === STATUS_COLORS[status]?.label ? '✓' : '→'} {STATUS_COLORS[status]?.label || status}
@@ -498,7 +498,7 @@ const RecruiterApplications = () => {
               onClick={() => navigate('/recruiter/dashboard')}
               className="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 shadow-xs transition"
             >
-              <HiArrowLeft className="w-5 h-5 text-gray-600" />
+              <HiArrowLeft className="w-5 h-5 text-gray-700" />
             </button>
             <div>
               <h1 className="text-xl font-bold text-gray-900">{t("Job Applications")}</h1>
@@ -557,7 +557,7 @@ const RecruiterApplications = () => {
                 className={`px-3 py-2 rounded-xl text-xs font-semibold transition ${
                   filterStatus === status
                     ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-transparent'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-transparent'
                 }`}
               >
                 {status === 'all' ? 'All' : STATUS_COLORS[status]?.label || status}

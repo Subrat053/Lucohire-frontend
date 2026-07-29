@@ -22,14 +22,14 @@ export default function FeaturesSection() {
             <p className="text-xs text-gray-500 leading-relaxed">{t("Our AI matches the right talent to the right opportunity in seconds.")}</p>
           </div>
           <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
-            <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center text-green-600 mb-3">
+            <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center text-green-700 mb-3">
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <h3 className="font-bold text-gray-900 mb-1.5 text-sm">{t("Verified & Trusted")}</h3>
             <p className="text-xs text-gray-500 leading-relaxed">{t("Every profile and job is verified for authenticity and trust.")}</p>
           </div>
           <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
-            <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center text-green-600 mb-3">
+            <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center text-green-700 mb-3">
               <MessageCircle className="w-5 h-5" />
             </div>
             <h3 className="font-bold text-gray-900 mb-1.5 text-sm">{t("WhatsApp-First")}</h3>
@@ -87,13 +87,13 @@ export default function FeaturesSection() {
             <div className="inline-flex bg-gray-100 rounded-full p-1">
               <button
                 onClick={() => setActiveTab('candidates')}
-                className={`px-5 sm:px-8 py-2 rounded-full text-sm font-semibold transition ${activeTab === 'candidates' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-800'}`}
+                className={`px-5 sm:px-8 py-2 rounded-full text-sm font-semibold transition ${activeTab === 'candidates' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:text-gray-800'}`}
               >
                 {t("For Candidates")}
               </button>
               <button
                 onClick={() => setActiveTab('recruiters')}
-                className={`px-5 sm:px-8 py-2 rounded-full text-sm font-semibold transition ${activeTab === 'recruiters' ? 'bg-green-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-800'}`}
+                className={`px-5 sm:px-8 py-2 rounded-full text-sm font-semibold transition ${activeTab === 'recruiters' ? 'bg-green-700 text-white shadow-sm' : 'text-gray-700 hover:text-gray-800'}`}
               >
                 {t("For Recruiters")}
               </button>
@@ -130,9 +130,9 @@ export default function FeaturesSection() {
           ) : (
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 lg:gap-10">
               {[
-                { icon: <Building2 className="w-7 h-7" />, title: t('Post Job'), desc: t('Post your job for free in minutes.'), color: 'text-green-600', bg: 'bg-green-50' },
-                { icon: <Zap className="w-7 h-7" />, title: t('AI Shortlist'), desc: t('AI finds and shortlists the best matches.'), color: 'text-green-600', bg: 'bg-green-50' },
-                { icon: <CheckCircle2 className="w-7 h-7" />, title: t('Hire Faster'), desc: t('Connect, interview and hire the right talent.'), color: 'text-green-600', bg: 'bg-green-50' },
+                { icon: <Building2 className="w-7 h-7" />, title: t('Post Job'), desc: t('Post your job for free in minutes.'), color: 'text-green-700', bg: 'bg-green-50' },
+                { icon: <Zap className="w-7 h-7" />, title: t('AI Shortlist'), desc: t('AI finds and shortlists the best matches.'), color: 'text-green-700', bg: 'bg-green-50' },
+                { icon: <CheckCircle2 className="w-7 h-7" />, title: t('Hire Faster'), desc: t('Connect, interview and hire the right talent.'), color: 'text-green-700', bg: 'bg-green-50' },
               ].map((step, idx) => (
                 <div key={idx} className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
                   <div className="flex flex-col items-center text-center max-w-[130px]">
@@ -162,15 +162,15 @@ export default function FeaturesSection() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
           <div className="flex justify-between items-center space-x-6 sm:space-x-8 opacity-60 grayscale hover:grayscale-0 transition duration-500 flex-nowrap overflow-x-auto hide-scrollbar">
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0"><span className="text-blue-500">G</span>oogle</h3>
-            <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-gray-600">Microsoft</h3>
+            <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-gray-700">Microsoft</h3>
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-blue-700">Infosys</h3>
-            <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-red-500">tcs</h3>
+            <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-red-700">tcs</h3>
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-green-800">Deloitte.</h3>
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0">accenture</h3>
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-red-600">wipro</h3>
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-yellow-600">amazon</h3>
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-blue-900">IBM</h3>
-            <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-blue-400">Capgemini</h3>
+            <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-blue-700">Capgemini</h3>
           </div>
         </div>
       </div>
@@ -206,7 +206,7 @@ export default function FeaturesSection() {
 
           {/* Recruiters Love */}
           <div>
-            <h3 className="text-lg sm:text-xl font-bold text-green-600 mb-6 sm:mb-8 text-center sm:text-left">{t("Why Recruiters Love Lucohire")}</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-green-700 mb-6 sm:mb-8 text-center sm:text-left">{t("Why Recruiters Love Lucohire")}</h3>
             <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:gap-y-6">
               {[
                 { icon: <Users className="w-4 h-4" />, title: t('Verified Talent Pool'), desc: t('Hire from trusted and verified professionals.') },
@@ -218,7 +218,7 @@ export default function FeaturesSection() {
               ].map((item, idx) => (
                 <div key={idx}>
                   <div className="flex items-center mb-1.5">
-                    <div className="w-7 h-7 rounded-lg bg-green-50 flex justify-center items-center text-green-600 mr-2.5 shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-green-50 flex justify-center items-center text-green-700 mr-2.5 shrink-0">
                       {item.icon}
                     </div>
                     <h4 className="font-bold text-gray-900 text-xs sm:text-sm">{item.title}</h4>
@@ -292,7 +292,7 @@ export default function FeaturesSection() {
             </Link>
             <Link 
               to="/recruiter-discovery"
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 sm:px-8 rounded-xl flex justify-center items-center gap-2 transition whitespace-nowrap text-sm block text-center"
+              className="bg-green-700 hover:bg-green-800 text-white font-bold py-3 px-6 sm:px-8 rounded-xl flex justify-center items-center gap-2 transition whitespace-nowrap text-sm block text-center"
             >
               <div className="flex items-center justify-center gap-2">
                 {t("Post Free Job")} <ArrowRight className="w-4 h-4" />

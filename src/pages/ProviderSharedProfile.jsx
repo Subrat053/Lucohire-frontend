@@ -60,7 +60,7 @@ export default function ProviderSharedProfile() {
         <div className="text-center">
           <FiAlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-3"/>
           <h2 className="text-xl font-black text-slate-800 mb-2">Link Unavailable</h2>
-          <p className="text-sm font-medium text-gray-600 max-w-md mx-auto mb-6">{error || "This shareable profile link is invalid, expired, or has been revoked."}</p>
+          <p className="text-sm font-medium text-gray-700 max-w-md mx-auto mb-6">{error || "This shareable profile link is invalid, expired, or has been revoked."}</p>
           <button
             onClick={() => navigate("/")}
             className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition shadow-sm text-sm"
@@ -170,7 +170,7 @@ export default function ProviderSharedProfile() {
           {/* About Section */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h3 className="text-[14px] font-bold text-gray-900 mb-3">About {cData.name.split(' ')[0]}</h3>
-            <p className="text-[13px] text-gray-600 leading-relaxed mb-5 whitespace-pre-wrap">{cData.desc || 'No description provided.'}</p>
+            <p className="text-[13px] text-gray-700 leading-relaxed mb-5 whitespace-pre-wrap">{cData.desc || 'No description provided.'}</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {cData.age && <div><div className="text-[10px] font-semibold text-gray-500 mb-1">Age</div><div className="text-[13px] font-bold text-gray-900">{cData.age} yrs</div></div>}
               <div><div className="text-[10px] font-semibold text-gray-500 mb-1">Languages</div><div className="text-[13px] font-bold text-gray-900">{cData.languages.length > 0 ? cData.languages.join(', ') : 'English'}</div></div>
@@ -205,7 +205,7 @@ export default function ProviderSharedProfile() {
                     <div key={idx} className="flex gap-4">
                       <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-extrabold text-[13px] shrink-0 relative z-10 border-4 border-white">{(exp.company||'C').charAt(0).toUpperCase()}</div>
                       <div className="flex-1 flex flex-col sm:flex-row sm:items-start justify-between gap-1 pb-5 border-b border-gray-50 last:border-0 last:pb-0">
-                        <div><h4 className="text-[13px] font-bold text-gray-900">{exp.company||'Company'}</h4><div className="text-[12px] text-gray-600">{exp.role||exp.designation||''}</div></div>
+                        <div><h4 className="text-[13px] font-bold text-gray-900">{exp.company||'Company'}</h4><div className="text-[12px] text-gray-700">{exp.role||exp.designation||''}</div></div>
                         <div className="text-right shrink-0"><div className="text-[12px] font-semibold text-gray-700">{exp.duration||exp.startDate||''}</div>{exp.years&&<div className="text-[11px] text-gray-500">{exp.years}</div>}</div>
                       </div>
                     </div>
@@ -220,7 +220,7 @@ export default function ProviderSharedProfile() {
             <h3 className="text-[14px] font-bold text-gray-900 mb-5">Education</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-4">
               {education.length > 0 ? education.map((edu,idx) => (
-                <div key={idx}><h4 className="text-[13px] font-bold text-gray-900 mb-0.5">{edu.degree||edu.degreeName||'Degree'}</h4><div className="text-[11px] font-semibold text-gray-500 mb-0.5">{edu.year||edu.passingYear||edu.endYear||''}</div><div className="text-[12px] text-gray-600">{edu.institution||edu.schoolName||edu.college||''}</div></div>
+                <div key={idx}><h4 className="text-[13px] font-bold text-gray-900 mb-0.5">{edu.degree||edu.degreeName||'Degree'}</h4><div className="text-[11px] font-semibold text-gray-500 mb-0.5">{edu.year||edu.passingYear||edu.endYear||''}</div><div className="text-[12px] text-gray-700">{edu.institution||edu.schoolName||edu.college||''}</div></div>
               )) : <div className="text-[13px] text-gray-400 italic">No education details provided</div>}
             </div>
           </div>

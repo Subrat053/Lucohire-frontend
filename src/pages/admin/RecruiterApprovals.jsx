@@ -51,14 +51,14 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
       >
         <div className="flex items-center gap-1.5 overflow-hidden">
           {Icon && <Icon className="w-3.5 h-3.5 shrink-0 text-gray-400" />}
-          <span className={`truncate ${value ? "text-gray-900 font-bold capitalize" : "text-gray-600 font-bold"}`}>
+          <span className={`truncate ${value ? "text-gray-900 font-bold capitalize" : "text-gray-700 font-bold"}`}>
             {value || label}
           </span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 ml-auto">
           {(value && value !== 'all') && (
             <X 
-              className="w-3.5 h-3.5 text-gray-400 hover:text-red-500 transition-colors"
+              className="w-3.5 h-3.5 text-gray-400 hover:text-red-700 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 setValue('');
@@ -130,7 +130,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
             )}
             {value && (
               <li 
-                className="px-3 py-2 text-xs text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
+                className="px-3 py-2 text-xs text-red-700 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
                 onClick={() => {
                   setValue('');
                   setSearchTerm('');
@@ -185,7 +185,7 @@ const KPICard = ({ title, value, subtext, icon: Icon, colorClass, trend, trendUp
       <div className="text-2xl font-black text-gray-900 mb-1">{value?.toLocaleString() || 0}</div>
       <div className="flex items-center text-[10px] font-bold">
         {trend && (
-          <span className={`mr-1 ${trendUp ? 'text-emerald-500' : 'text-red-500'}`}>
+          <span className={`mr-1 ${trendUp ? 'text-emerald-500' : 'text-red-700'}`}>
             {trendUp ? '↑' : '↓'} {trend.replace('+', '')}
           </span>
         )}
@@ -220,7 +220,7 @@ const RecruiterDetailPanel = ({ recruiter, onClose, onApprove, onReject }) => {
               </button>
             ))}
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-700 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -308,7 +308,7 @@ const RecruiterDetailPanel = ({ recruiter, onClose, onApprove, onReject }) => {
                       { label: 'Business Registration', done: false },
                     ].map((item, i) => (
                       <div key={i} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2 text-gray-600 font-medium">
+                        <div className="flex items-center gap-2 text-gray-700 font-medium">
                           <ShieldCheck className="w-4 h-4 text-gray-400" />
                           {item.label}
                         </div>
@@ -503,7 +503,7 @@ export default function RecruiterApprovals() {
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <KPICard title="Pending Approval" value={totals.pending} subtext="Requires review" icon={Hourglass} colorClass="text-emerald-500" />
           <KPICard title="Verified Recruiters" value={totals.verified} subtext="Active & verified" icon={ShieldCheck} colorClass="text-amber-500" />
-          <KPICard title="Rejected" value={totals.rejected} subtext="This week" icon={X} colorClass="text-red-500" trend={trendNew} trendUp={!trendNew.includes('-')} />
+          <KPICard title="Rejected" value={totals.rejected} subtext="This week" icon={X} colorClass="text-red-700" trend={trendNew} trendUp={!trendNew.includes('-')} />
           <KPICard title="Suspended" value={totals.suspended} subtext="Policy violation" icon={PauseCircle} colorClass="text-purple-500" />
           <KPICard title="Total Recruiters" value={totals.total} subtext="All time" icon={Users} colorClass="text-teal-500" />
         </div>
@@ -611,7 +611,7 @@ export default function RecruiterApprovals() {
                             <div className="text-xs font-bold text-gray-700">{recruiter.companyName || 'Not specified'}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-xs font-medium text-gray-600 truncate max-w-[150px]" title={user.email}>{user.email}</div>
+                            <div className="text-xs font-medium text-gray-700 truncate max-w-[150px]" title={user.email}>{user.email}</div>
                             <div className="text-[10px] font-medium text-gray-400">{user.phone || 'No phone'}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -634,7 +634,7 @@ export default function RecruiterApprovals() {
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
-                              <button className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+                              <button className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors">
                                 <MoreVertical className="w-4 h-4" />
                               </button>
                             </div>
@@ -792,7 +792,7 @@ export default function RecruiterApprovals() {
                 <div className="flex-1 space-y-2">
                   {summaryData.map(item => (
                     <div key={item.name} className="flex items-center justify-between text-[10px]">
-                      <div className="flex items-center gap-1.5 font-bold text-gray-600">
+                      <div className="flex items-center gap-1.5 font-bold text-gray-700">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
                         {item.name}
                       </div>

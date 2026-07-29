@@ -212,7 +212,7 @@ export default function AITips() {
         if (limit !== -1 && used >= limit) {
           return (
             <div className="absolute inset-0 z-40 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center rounded-2xl">
-              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-red-50 text-red-700 rounded-full flex items-center justify-center mb-4">
                 <Lock className="w-8 h-8" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Usage Limit Reached</h3>
@@ -308,7 +308,7 @@ export default function AITips() {
                   <div>
                     <div className="text-[11px] font-bold text-gray-500 flex items-center gap-1 whitespace-nowrap">{t("Profile Strength")}<Info className="w-3 h-3 text-gray-400" /></div>
                     <div className={`text-3xl font-black text-gray-900 mt-1 leading-none ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{reportData?.resume_score?.overall || 78}%</div>
-                    <div className={`text-[11px] font-bold text-gray-600 mt-1 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{(reportData?.resume_score?.overall || 78) > 80 ? 'Excellent' : 'Good'}</div>
+                    <div className={`text-[11px] font-bold text-gray-700 mt-1 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{(reportData?.resume_score?.overall || 78) > 80 ? 'Excellent' : 'Good'}</div>
                   </div>
                 </div>
                 <div className="text-[10px] font-medium text-gray-500 mt-5 pt-1 border-t border-gray-50">{t("Complete more to reach 100%")}</div>
@@ -486,7 +486,7 @@ export default function AITips() {
                       <Lock className="w-3 h-3"/> {t("Locked")}
                     </button>
                   ) : (
-                    <Link to="/provider/job-for-me" className="block w-full text-center py-2.5 mt-5 text-[11px] font-bold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">{t("Explore Roles →")}</Link>
+                    <Link to="/provider/job-for-me" className="block w-full text-center py-2.5 mt-5 text-[11px] font-bold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition">{t("Explore Roles →")}</Link>
                   )}
                 </div>
 
@@ -565,7 +565,7 @@ export default function AITips() {
 
                     {/* Right Arrow on the last card */}
                     {idx === 3 && (
-                       <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white border border-gray-100 rounded-full flex items-center justify-center shadow-md text-gray-600">
+                       <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white border border-gray-100 rounded-full flex items-center justify-center shadow-md text-gray-700">
                           <ChevronRight className="w-5 h-5" />
                        </div>
                     )}
@@ -650,7 +650,7 @@ export default function AITips() {
             {/* WhatsApp AI Alerts */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative overflow-hidden group">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-6 h-6 rounded-full bg-[#25D366] flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
+                <div className="w-6 h-6 rounded-full bg-[#075E54] flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
                 <h3 className="font-bold text-gray-900 text-[14px]">{t("WhatsApp AI Alerts")}</h3>
               </div>
               <p className="text-[11px] text-gray-500 mb-4 font-medium">{t("Stay updated on the go!")}</p>
@@ -662,11 +662,11 @@ export default function AITips() {
                 <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className="w-3.5 h-3.5 text-[#0f766e]" />{t("Salary drops & more")}</li>
               </ul>
               
-              <button onClick={() => setWhatsappEnabled(!whatsappEnabled)} className={`w-full py-2.5 border rounded-xl text-[11px] font-bold transition flex justify-center items-center gap-2 ${whatsappEnabled ? 'bg-[#25D366]/10 text-[#128C7E] border-[#25D366]/20 hover:bg-[#25D366]/20' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+              <button onClick={() => setWhatsappEnabled(!whatsappEnabled)} className={`w-full py-2.5 border rounded-xl text-[11px] font-bold transition flex justify-center items-center gap-2 ${whatsappEnabled ? 'bg-[#075E54]/10 text-[#04433B] border-[#075E54]/20 hover:bg-[#075E54]/20' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
                 {whatsappEnabled ? (
-                  <>{t("WhatsApp Alerts On")} <CheckCircle2 className="w-4 h-4 text-[#25D366]" /></>
+                  <>{t("WhatsApp Alerts On")} <CheckCircle2 className="w-4 h-4 text-[#075E54]" /></>
                 ) : (
-                  <>{t("Enable WhatsApp Alerts")} <FaWhatsapp className="w-4 h-4 text-[#25D366]" /></>
+                  <>{t("Enable WhatsApp Alerts")} <FaWhatsapp className="w-4 h-4 text-[#075E54]" /></>
                 )}
               </button>
             </div>
@@ -680,7 +680,7 @@ export default function AITips() {
               </div>
               
               <div className="flex items-center justify-between gap-2 mb-5 mt-4">
-                <p className="text-[11px] text-gray-600 leading-relaxed max-w-[130px] font-medium">{t("Discover freelance projects matching your skills.")}</p>
+                <p className="text-[11px] text-gray-700 leading-relaxed max-w-[130px] font-medium">{t("Discover freelance projects matching your skills.")}</p>
                 <div className="w-10 h-10 bg-[#0f766e]/10 rounded-xl flex items-center justify-center border border-[#0f766e]/20">
                   <Briefcase className="w-5 h-5 text-[#0f766e]" />
                 </div>
@@ -710,15 +710,15 @@ export default function AITips() {
                   {reportData.summary && (
                     <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
                       <h3 className="font-bold text-gray-900 mb-2">{t("Executive Summary")}</h3>
-                      <p className="text-sm text-gray-600 leading-relaxed font-medium">{reportData.summary}</p>
+                      <p className="text-sm text-gray-700 leading-relaxed font-medium">{reportData.summary}</p>
                     </div>
                   )}
                   {reportData.top_strengths && reportData.top_strengths.length > 0 && (
                     <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-                      <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> {t("Top Strengths")}</h3>
+                      <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-700" /> {t("Top Strengths")}</h3>
                       <ul className="space-y-2">
                         {reportData.top_strengths.map((s, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-gray-600 font-medium"><Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" /> {s}</li>
+                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700 font-medium"><Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" /> {s}</li>
                         ))}
                       </ul>
                     </div>
@@ -728,7 +728,7 @@ export default function AITips() {
                       <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2"><AlertCircle className="w-4 h-4 text-orange-500" /> {t("Areas for Improvement")}</h3>
                       <ul className="space-y-2">
                         {reportData.top_weaknesses.map((s, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-gray-600 font-medium"><span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0 mt-2"></span> {s}</li>
+                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700 font-medium"><span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0 mt-2"></span> {s}</li>
                         ))}
                       </ul>
                     </div>

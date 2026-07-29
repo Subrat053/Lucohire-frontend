@@ -105,7 +105,7 @@ export default function ShortlistedCandidates() {
                     {/* Left: Avatar with Available Now pill */}
                     <div className="relative shrink-0">
                       <img src={avatar} alt={name} className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-1 ring-gray-100" />
-                      <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
+                      <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-green-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
                         <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
                         Shortlisted
                       </div>
@@ -132,7 +132,7 @@ export default function ShortlistedCandidates() {
                         {title}
                       </p>
                       
-                      <div className="flex flex-col gap-1.5 text-[12px] text-gray-600 font-medium mb-4">
+                      <div className="flex flex-col gap-1.5 text-[12px] text-gray-700 font-medium mb-4">
                         <div className="flex items-center gap-1.5">
                           <FiBriefcase className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                           <span className="truncate">{exp !== 'N/A' ? exp : 'Experience N/A'}</span>
@@ -143,7 +143,7 @@ export default function ShortlistedCandidates() {
                         </div>
                         <div className="flex items-center gap-1.5">
                           <FiClock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                          <span>Last active: <span className="text-green-600 font-bold ml-0.5">Today</span></span>
+                          <span>Last active: <span className="text-green-700 font-bold ml-0.5">Today</span></span>
                         </div>
                       </div>
                     </div>

@@ -43,7 +43,7 @@ const MarketBenchmarkAlert = ({ candidateId }) => {
               Market Stand Value
               <Award className="w-4 h-4 text-yellow-500" />
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-700">
               You are better than <span className="font-bold text-indigo-600">{benchmark.percentile}%</span> of {benchmark.designation}s in the <span className="font-medium text-gray-800">{benchmark.city}</span> market right now.
             </p>
           </div>

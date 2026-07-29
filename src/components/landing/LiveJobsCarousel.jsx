@@ -177,11 +177,11 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
                 <p className="text-[11px] sm:text-xs text-indigo-600 font-semibold mb-2.5 truncate">{job.companyName || job.recruiter?.name || 'Company'}</p>
                 
                 <div className="flex flex-col gap-1.5 mb-3">
-                  <div className="flex items-center text-[10px] sm:text-[11px] text-gray-600 font-medium truncate">
+                  <div className="flex items-center text-[10px] sm:text-[11px] text-gray-700 font-medium truncate">
                     <svg className="w-3 h-3 mr-1.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     <span className="truncate">{job.city || job.location?.city || 'Remote'}</span>
                   </div>
-                  <div className="flex items-center text-[10px] sm:text-[11px] text-gray-600 font-medium truncate">
+                  <div className="flex items-center text-[10px] sm:text-[11px] text-gray-700 font-medium truncate">
                     <svg className="w-3 h-3 mr-1.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span className="font-semibold text-gray-800">
                       {job.budget?.perMonth ? `₹${job.budget.perMonth}` : job.budget?.perHour ? `₹${job.budget.perHour}` : (job.budgetMin || job.budgetMax) ? `₹${(job.budgetMin||0).toLocaleString()} – ${(job.budgetMax||0).toLocaleString()}` : 'Competitive'}
@@ -216,12 +216,16 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
                 role="button"
                 tabIndex={0}
                 aria-label={`Go to page ${pageIndex + 1}`}
-                className={`relative after:absolute after:-inset-3 h-1.5 min-h-[6px] rounded-full transition-all duration-300 cursor-pointer ${
-                  currentPage === pageIndex
-                    ? 'w-5 bg-blue-600'
-                    : 'w-2 bg-blue-200 hover:bg-blue-300'
-                }`}
-              />
+                className="w-8 h-8 flex items-center justify-center cursor-pointer group"
+              >
+                <div 
+                  className={`h-1.5 min-h-[6px] rounded-full transition-all duration-300 ${
+                    currentPage === pageIndex
+                      ? 'w-5 bg-blue-600'
+                      : 'w-2 bg-blue-200 group-hover:bg-blue-300'
+                  }`}
+                />
+              </div>
             ))}
           </div>
         )}

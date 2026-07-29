@@ -141,7 +141,7 @@ export default function TemplateRichard() {
                             </div>
                           </Show>
                         </div>
-                        <div className="text-[13.5px] text-gray-600">{subtitle}</div>
+                        <div className="text-[13.5px] text-gray-700">{subtitle}</div>
                         
                         <Show when={isEdu ? (item.grade || item.coursework) : item.description}>
                           <div className="text-[13px] leading-relaxed text-gray-700 mt-1">
@@ -235,13 +235,13 @@ export default function TemplateRichard() {
           />
           <div className="mt-2">
             <InlineFormBlock
-              renderPreview={() => <p className="text-[17px] text-gray-600 tracking-widest uppercase font-medium">{personal.designation || 'Marketing Manager'}</p>}
+              renderPreview={() => <p className="text-[17px] text-gray-700 tracking-widest uppercase font-medium">{personal.designation || 'Marketing Manager'}</p>}
               renderForm={() => <FormInput label="Professional Title" value={personal.designation} onChange={v => updatePersonal('designation', v)} />}
               isDraggable={false}
             />
           </div>
           
-          <div className="flex items-center gap-4 text-[12px] text-gray-600 mt-6 pt-4 border-t border-gray-300">
+          <div className="flex items-center gap-4 text-[12px] text-gray-700 mt-6 pt-4 border-t border-gray-300">
             <InlineFormBlock
               renderPreview={() => <span>{personal.email || 'hello@reallygreatsite.com'}</span>}
               renderForm={() => <FormInput label="Email" value={personal.email} onChange={v => updatePersonal('email', v)} />}
@@ -286,7 +286,7 @@ export default function TemplateRichard() {
                     <div key={i} className="flex gap-2 mb-2 items-start font-sans">
                       <input value={link.platform} onChange={(e) => { const nl = [...(personal.links||[])]; nl[i].platform = e.target.value; updatePersonal('links', nl); }} placeholder="Platform (e.g. LinkedIn)" className="w-1/3 px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white" />
                       <input value={link.url} onChange={(e) => { const nl = [...(personal.links||[])]; nl[i].url = e.target.value; updatePersonal('links', nl); }} placeholder="URL" className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white" />
-                      <button type="button" onClick={() => updatePersonal('links', personal.links.filter((_, idx) => idx !== i))} className="p-1.5 text-red-500 hover:bg-red-50 rounded bg-[#ffffff] border border-gray-200">
+                      <button type="button" onClick={() => updatePersonal('links', personal.links.filter((_, idx) => idx !== i))} className="p-1.5 text-red-700 hover:bg-red-50 rounded bg-[#ffffff] border border-gray-200">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                       </button>
                     </div>

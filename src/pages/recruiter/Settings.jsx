@@ -311,7 +311,7 @@ export default function Settings() {
                 </div>
               )}
               {profileSuccess && (
-                <div className="mb-6 p-3 bg-green-50 border border-green-200 text-green-600 rounded-lg text-sm font-medium">
+                <div className="mb-6 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm font-medium">
                   {profileSuccess}
                 </div>
               )}
@@ -332,7 +332,7 @@ export default function Settings() {
                     )}
                     <button 
                       onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-2 right-2 w-7 h-7 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 transition z-10"
+                      className="absolute bottom-2 right-2 w-7 h-7 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center text-gray-700 hover:text-indigo-600 transition z-10"
                     >
                       <FiCamera className="w-3.5 h-3.5" />
                     </button>
@@ -477,7 +477,7 @@ export default function Settings() {
                 </div>
               )}
               {passwordSuccess && (
-                <div className="mb-6 p-3 bg-green-50 border border-green-200 text-green-600 rounded-lg text-sm font-medium">
+                <div className="mb-6 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm font-medium">
                   {passwordSuccess}
                 </div>
               )}
@@ -571,7 +571,7 @@ export default function Settings() {
                   <span className="text-gray-500 font-medium">
                     {stats?.planEndDate ? `Renews on ${new Date(stats.planEndDate).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}` : 'No expiration'}
                   </span>
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${stats?.planStatus === 'active' || !stats?.planStatus ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-gray-600 bg-gray-50 border-gray-200'}`}>
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${stats?.planStatus === 'active' || !stats?.planStatus ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-gray-700 bg-gray-50 border-gray-200'}`}>
                     {stats?.planStatus ? stats.planStatus.charAt(0).toUpperCase() + stats.planStatus.slice(1) : 'Active'}
                   </span>
                 </div>
@@ -680,7 +680,7 @@ export default function Settings() {
                 {[
                   { label: 'Billing History & Invoices', icon: <FiFileText />, action: () => setIsInvoiceModalOpen(true) },
                 ].map((link, i) => (
-                  <button key={i} onClick={link.action} className="w-full flex items-center justify-between py-2.5 text-[13px] font-bold text-gray-600 hover:text-indigo-600 group">
+                  <button key={i} onClick={link.action} className="w-full flex items-center justify-between py-2.5 text-[13px] font-bold text-gray-700 hover:text-indigo-600 group">
                     <div className="flex items-center gap-2.5">
                       <span className="text-gray-400 group-hover:text-indigo-600">{link.icon}</span>
                       {link.label}

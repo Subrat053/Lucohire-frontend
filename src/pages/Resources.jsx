@@ -55,7 +55,7 @@ export default function Resources() {
             <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl tracking-tight mb-6">
               Free <span className="text-blue-600">Resources</span>
             </h1>
-            <p className="text-lg text-gray-600 leading-relaxed">
+            <p className="text-lg text-gray-700 leading-relaxed">
               Everything you need to advance your career. From resume templates to expert webinars, we've got you covered.
             </p>
           </div>
@@ -77,7 +77,7 @@ export default function Resources() {
                 </div>
                 
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                <p className="text-gray-600 leading-relaxed mb-8 flex-grow">
+                <p className="text-gray-700 leading-relaxed mb-8 flex-grow">
                   {item.description}
                 </p>
                 
@@ -104,7 +104,7 @@ export default function Resources() {
                </div>
                
                <div className="hidden md:flex shrink-0 w-48 h-48 bg-blue-800/30 rounded-full items-center justify-center border border-blue-700/50">
-                 <FileText className="w-20 h-20 text-blue-400" />
+                 <FileText className="w-20 h-20 text-blue-700" />
                </div>
              </div>
           </div>

@@ -303,7 +303,7 @@ const RecruiterLeads = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider border w-max block ${
-                            lead.hiringLevel === 'High Volume' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-gray-50 text-gray-600 border-gray-200'
+                            lead.hiringLevel === 'High Volume' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-gray-50 text-gray-700 border-gray-200'
                           }`}>
                             {lead.hiringLevel || 'Unknown Volume'}
                           </span>
@@ -411,7 +411,7 @@ const RecruiterLeads = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-gray-900">
                           {lead.name}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-gray-600 flex items-center gap-1.5">
+                        <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-gray-700 flex items-center gap-1.5">
                           <Building className="w-3.5 h-3.5 text-gray-400" /> {lead.companyName}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-gray-800">
@@ -457,7 +457,7 @@ const RecruiterLeads = () => {
               <h2 className="text-lg font-black text-gray-900">Import CSV Leads</h2>
               <button 
                 onClick={() => setShowUploadModal(false)}
-                className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
+                className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
               >
                 <X className="w-4 h-4" />
               </button>

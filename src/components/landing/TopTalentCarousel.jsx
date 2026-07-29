@@ -31,7 +31,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
     <div className="relative" ref={wrapperRef}>
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center text-xs bg-white border rounded-lg px-3 py-2 cursor-pointer transition whitespace-nowrap ${isOpen ? 'border-blue-500 shadow-sm' : 'border-gray-200 hover:bg-gray-50 text-gray-600'}`}
+        className={`flex items-center text-xs bg-white border rounded-lg px-3 py-2 cursor-pointer transition whitespace-nowrap ${isOpen ? 'border-blue-500 shadow-sm' : 'border-gray-200 hover:bg-gray-50 text-gray-700'}`}
       >
         {Icon && <Icon className="w-3 h-3 mr-1 text-gray-400" />}
         <span className={value ? "text-gray-900 font-medium" : ""}>
@@ -79,7 +79,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
             )}
             {value && (
               <li 
-                className="px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1"
+                className="px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1"
                 onClick={() => {
                   setValue('');
                   setSearchTerm('');
@@ -283,7 +283,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
             onClick={() => scrollCarousel('left')}
             className="absolute -left-3 sm:-left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition"
           >
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
+            <ChevronLeft className="w-4 h-4 text-gray-700" />
           </button>
 
           <div ref={carouselRef} className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar scroll-smooth px-1">
@@ -310,7 +310,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                         {candidate.profileName?.substring(0, 2).toUpperCase() || 'UN'}
                       </div>
                     )}
-                    <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
+                    <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-green-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
                       <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
                       {t("Available")}
                     </div>
@@ -330,14 +330,14 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                       {(candidate.roles && candidate.roles.length > 0) ? candidate.roles.join(', ') : (candidate.primaryRole || t('Freelancer'))}
                     </p>
                     
-                    <div className="flex flex-col gap-1.5 text-[12px] text-gray-600 font-medium">
+                    <div className="flex flex-col gap-1.5 text-[12px] text-gray-700 font-medium">
                       <div className="flex items-center gap-1.5">
                         <MapPin className="w-3.5 h-3.5 text-gray-400" />
                         <span className="truncate">{candidate.city || t('India')}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-gray-400" />
-                        {t("Last active:")} <span className="text-green-600 font-bold ml-0.5">{t("Today")}</span>
+                        {t("Last active:")} <span className="text-green-700 font-bold ml-0.5">{t("Today")}</span>
                       </div>
                     </div>
                   </div>
@@ -365,7 +365,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                   </div>
                   <div className="flex items-center gap-2 bg-green-50/50 p-2 rounded-xl">
                     <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                      <Zap className="w-4 h-4 text-green-600" />
+                      <Zap className="w-4 h-4 text-green-700" />
                     </div>
                     <div className="min-w-0">
                       <div className="text-[12px] font-bold text-gray-900 truncate">{t("Ready")}</div>
@@ -424,7 +424,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                   <div className="flex gap-2.5">
                     <button 
                       onClick={(e) => handleContactClick(e, candidate, 'whatsapp')}
-                      className="flex-[1.5] py-2.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] transition-colors text-[13px] flex items-center justify-center gap-2 shadow-sm"
+                      className="flex-[1.5] py-2.5 rounded-xl bg-[#075E54] text-white font-bold hover:bg-[#04433B] transition-colors text-[13px] flex items-center justify-center gap-2 shadow-sm"
                     >
                       <MessageCircle className="w-4 h-4" fill="currentColor" strokeWidth={0} /> {t("Chat on WhatsApp")}
                     </button>
@@ -465,7 +465,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
             onClick={() => scrollCarousel('right')}
             className="absolute -right-3 sm:-right-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition"
           >
-            <ChevronRight className="w-4 h-4 text-gray-600" />
+            <ChevronRight className="w-4 h-4 text-gray-700" />
           </button>
         </div>
 

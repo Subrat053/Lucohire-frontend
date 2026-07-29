@@ -76,14 +76,14 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
       >
         <div className="flex items-center gap-1.5 overflow-hidden">
           {Icon && <Icon className="w-3.5 h-3.5 shrink-0 text-gray-400" />}
-          <span className={`truncate ${value ? "text-gray-900 font-bold capitalize" : "text-gray-600 font-bold"}`}>
+          <span className={`truncate ${value ? "text-gray-900 font-bold capitalize" : "text-gray-700 font-bold"}`}>
             {value || label}
           </span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 ml-auto">
           {(value && value !== 'all') && (
             <X 
-              className="w-3.5 h-3.5 text-gray-400 hover:text-red-500 transition-colors"
+              className="w-3.5 h-3.5 text-gray-400 hover:text-red-700 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 setValue('');
@@ -155,7 +155,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
             )}
             {value && (
               <li 
-                className="px-3 py-2 text-xs text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
+                className="px-3 py-2 text-xs text-red-700 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
                 onClick={() => {
                   setValue('');
                   setSearchTerm('');
@@ -184,7 +184,7 @@ const KPICard = ({ title, value, subtext, icon: Icon, colorClass, trend, trendUp
       <div className="text-2xl font-black text-gray-900 mb-1">{value?.toLocaleString() || 0}</div>
       <div className="flex items-center text-[10px] font-bold">
         {trend && (
-          <span className={`mr-1 ${trendUp ? 'text-emerald-500' : 'text-red-500'}`}>
+          <span className={`mr-1 ${trendUp ? 'text-emerald-500' : 'text-red-700'}`}>
             {trendUp ? '↑' : '↓'} {trend.replace('+', '')}
           </span>
         )}
@@ -401,7 +401,7 @@ const RecruiterDetailPanel = ({ recruiter, onClose, onDelete, onApprove, onRejec
               </button>
             ))}
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-700 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -526,7 +526,7 @@ const RecruiterDetailPanel = ({ recruiter, onClose, onDelete, onApprove, onRejec
                 <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                   <Mail className="w-4 h-4 text-indigo-600" /> Send Decision to Recruiter
                 </h3>
-                <button onClick={() => setShowNotifyModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4"/></button>
+                <button onClick={() => setShowNotifyModal(false)} className="text-gray-400 hover:text-gray-700"><X className="w-4 h-4"/></button>
               </div>
               <div className="p-5 space-y-4">
                 <div className="bg-indigo-50 text-indigo-700 p-3 rounded-lg text-xs font-medium border border-indigo-100">
@@ -544,7 +544,7 @@ const RecruiterDetailPanel = ({ recruiter, onClose, onDelete, onApprove, onRejec
                 </div>
               </div>
               <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-2">
-                <button onClick={() => setShowNotifyModal(false)} className="px-4 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button onClick={() => setShowNotifyModal(false)} className="px-4 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
                 <button onClick={handleSendFinalDecision} disabled={sendingNotify} className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center gap-2">
                   {sendingNotify ? <Hourglass className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   {sendingNotify ? 'Sending...' : 'Send Email'}
@@ -743,7 +743,7 @@ export default function AdminRecruiters() {
                     className="w-full pl-2 pr-4 py-2 bg-transparent border-none text-xs font-medium outline-none focus:ring-0"
                   />
                   {search && (
-                    <button type="button" onClick={() => { setSearch(''); fetchRecruiters(''); }} className="text-gray-400 hover:text-gray-600 px-3">×</button>
+                    <button type="button" onClick={() => { setSearch(''); fetchRecruiters(''); }} className="text-gray-400 hover:text-gray-700 px-3">×</button>
                   )}
                 </form>
 
@@ -839,7 +839,7 @@ export default function AdminRecruiters() {
                             <div className="text-xs font-bold text-gray-700">{recruiter.companyName || 'Not specified'}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-xs font-medium text-gray-600 truncate max-w-[150px]" title={user.email}>{user.email}</div>
+                            <div className="text-xs font-medium text-gray-700 truncate max-w-[150px]" title={user.email}>{user.email}</div>
                             <div className="text-[10px] font-medium text-gray-400">{user.phone || 'No phone'}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -999,7 +999,7 @@ export default function AdminRecruiters() {
                     <div key={i} className="flex items-center justify-between text-xs font-bold">
                       <div className="flex items-center gap-1.5">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }}></div>
-                        <span className="text-gray-600">{d.name}</span>
+                        <span className="text-gray-700">{d.name}</span>
                       </div>
                       <span className="text-gray-900">{d.value}</span>
                     </div>

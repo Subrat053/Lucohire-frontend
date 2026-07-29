@@ -102,12 +102,12 @@ const SavedJobCard = ({ job, onUnsave, onViewDetails }) => {
         {/* Skills */}
         <div className="flex flex-wrap gap-2">
           {displaySkills.map((sk, i) => (
-            <span key={i} className="text-[11px] px-3 py-1 bg-gray-50 text-gray-600 rounded-full font-semibold border border-gray-100">
+            <span key={i} className="text-[11px] px-3 py-1 bg-gray-50 text-gray-700 rounded-full font-semibold border border-gray-100">
               {sk}
             </span>
           ))}
           {extraSkills > 0 && (
-            <span className="text-[11px] px-3 py-1 bg-gray-50 text-gray-600 rounded-full font-semibold border border-gray-100">
+            <span className="text-[11px] px-3 py-1 bg-gray-50 text-gray-700 rounded-full font-semibold border border-gray-100">
               +{extraSkills}
             </span>
           )}
@@ -383,7 +383,7 @@ const SavedJobs = () => {
             ) : filteredJobs.length === 0 ? (
               <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 shadow-xs">
                 <HiOutlineBookmark className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p className="font-medium text-gray-600">No saved jobs found</p>
+                <p className="font-medium text-gray-700">No saved jobs found</p>
                 <p className="text-sm text-gray-400 mt-1">Jobs you save will appear here.</p>
               </div>
             ) : (
@@ -530,7 +530,7 @@ const SavedJobs = () => {
                 <HiBell className="w-5 h-5 text-[#1d4ed8]" />
               </div>
               <h3 className="font-bold text-gray-900 mb-2">Get Notified First</h3>
-              <p className="text-xs text-gray-600 mb-4 leading-relaxed">Turn on alerts for jobs matching your saved criteria and never miss an opportunity.</p>
+              <p className="text-xs text-gray-700 mb-4 leading-relaxed">Turn on alerts for jobs matching your saved criteria and never miss an opportunity.</p>
               <button 
                 onClick={() => setAlertEnabled(!alertEnabled)}
                 className={`w-full py-2.5 text-sm font-bold rounded-lg transition shadow-sm flex items-center justify-center gap-2 ${
@@ -552,10 +552,10 @@ const SavedJobs = () => {
               <h3 className="font-bold text-gray-900 mb-3 text-sm">Quick Actions</h3>
               <div className="space-y-2">
 
-                <Link to="/provider/applied-jobs" className="block text-sm text-gray-600 hover:text-[#1d4ed8] hover:bg-gray-50 px-3 py-2 rounded-lg transition font-medium">
+                <Link to="/provider/applied-jobs" className="block text-sm text-gray-700 hover:text-[#1d4ed8] hover:bg-gray-50 px-3 py-2 rounded-lg transition font-medium">
                   View Application History
                 </Link>
-                <Link to="/provider/profile" className="block text-sm text-gray-600 hover:text-[#1d4ed8] hover:bg-gray-50 px-3 py-2 rounded-lg transition font-medium">
+                <Link to="/provider/profile" className="block text-sm text-gray-700 hover:text-[#1d4ed8] hover:bg-gray-50 px-3 py-2 rounded-lg transition font-medium">
                   Update Profile
                 </Link>
               </div>

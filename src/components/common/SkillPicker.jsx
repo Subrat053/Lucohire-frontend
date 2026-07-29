@@ -94,7 +94,7 @@ const SkillPicker = ({
               <button
                 type="button"
                 onClick={() => removeSkill(skill)}
-                className="text-stone-400 hover:text-red-500 transition ml-0.5"
+                className="text-stone-400 hover:text-red-700 transition ml-0.5"
                 aria-label={`Remove skill ${skill}`}
               >
                 <HiX className="w-3.5 h-3.5" aria-hidden="true" />

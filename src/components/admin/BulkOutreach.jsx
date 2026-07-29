@@ -227,7 +227,7 @@ export default function BulkOutreach() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <div className="flex items-center justify-between text-gray-500 text-[11px] font-bold uppercase tracking-wider mb-2">
             Failed
-            <AlertCircle className="w-4 h-4 text-red-500" />
+            <AlertCircle className="w-4 h-4 text-red-700" />
           </div>
           <div className="text-xl font-extrabold text-gray-900">{queueStatus?.failed || 0}</div>
         </div>
@@ -252,7 +252,7 @@ export default function BulkOutreach() {
                     className={`flex-1 py-2.5 rounded-lg border text-sm font-bold transition-all ${
                       audience === 'Candidate'
                         ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                     }`}
                   >
                     Candidate
@@ -263,7 +263,7 @@ export default function BulkOutreach() {
                     className={`flex-1 py-2.5 rounded-lg border text-sm font-bold transition-all ${
                       audience === 'Company'
                         ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                     }`}
                   >
                     Company
@@ -385,7 +385,7 @@ export default function BulkOutreach() {
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-fit">
             <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-              <History className="w-4 h-4 text-gray-600" />
+              <History className="w-4 h-4 text-gray-700" />
               <h3 className="text-sm font-bold text-gray-900">Recent History</h3>
             </div>
             <div className="p-4 overflow-y-auto max-h-[400px]">
@@ -411,7 +411,7 @@ export default function BulkOutreach() {
                         <div className="text-sm font-bold text-gray-700">{job.targetName}</div>
                         <div className="text-xs text-gray-500">{job.target}</div>
                       </div>
-                      <div className="text-xs font-bold text-green-600 flex items-center gap-1">
+                      <div className="text-xs font-bold text-green-700 flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" /> {job.channel} Sent
                       </div>
                     </div>

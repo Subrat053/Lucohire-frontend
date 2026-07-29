@@ -106,7 +106,7 @@ const SkillSearchSelect = ({ options = [], selected, onChange, placeholder, icon
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className="absolute right-3.5 top-3.5 text-gray-400 hover:text-gray-600 transition"
+          className="absolute right-3.5 top-3.5 text-gray-400 hover:text-gray-700 transition"
         >
           <ChevronDown className="w-4 h-4" />
         </button>
@@ -1176,7 +1176,7 @@ const CustomPlan = () => {
                               setMultipleSkillsList(multipleSkillsList.filter(s => s !== skill));
                               toast.success('Skill removed.');
                             }}
-                            className="hover:text-red-500 transition-colors"
+                            className="hover:text-red-700 transition-colors"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -1224,7 +1224,7 @@ const CustomPlan = () => {
                       <div className="mb-4 inline-flex items-center gap-2 bg-violet-50 border border-violet-100 text-violet-700 text-xs font-bold px-3 py-1 rounded-full animate-fade-in">
                         <span>{getInitials(localitySkill)}</span>
                         <span>{localitySkill}</span>
-                        <button type="button" onClick={() => setLocalitySkill('')} className="hover:text-red-500">
+                        <button type="button" onClick={() => setLocalitySkill('')} className="hover:text-red-700">
                           <X className="w-3 h-3" />
                         </button>
                       </div>
@@ -1273,7 +1273,7 @@ const CustomPlan = () => {
                                     <button
                                       type="button"
                                       onClick={() => handleDeleteLocality(item.id)}
-                                      className="text-slate-300 hover:text-red-500 transition"
+                                      className="text-slate-300 hover:text-red-700 transition"
                                     >
                                       <Trash2 className="w-4 h-4" />
                                     </button>
@@ -1365,7 +1365,7 @@ const CustomPlan = () => {
                       <div className="mb-4 inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full animate-fade-in">
                         <span>{getInitials(citySkill)}</span>
                         <span>{citySkill}</span>
-                        <button type="button" onClick={() => setCitySkill('')} className="hover:text-red-500">
+                        <button type="button" onClick={() => setCitySkill('')} className="hover:text-red-700">
                           <X className="w-3 h-3" />
                         </button>
                       </div>
@@ -1414,7 +1414,7 @@ const CustomPlan = () => {
                                     <button
                                       type="button"
                                       onClick={() => handleDeleteCity(item.id)}
-                                      className="text-slate-300 hover:text-red-500 transition"
+                                      className="text-slate-300 hover:text-red-700 transition"
                                     >
                                       <Trash2 className="w-4 h-4" />
                                     </button>
@@ -1506,7 +1506,7 @@ const CustomPlan = () => {
                       <div className="mb-4 inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full animate-fade-in">
                         <span>{getInitials(countrySkill)}</span>
                         <span>{countrySkill}</span>
-                        <button type="button" onClick={() => setCountrySkill('')} className="hover:text-red-500">
+                        <button type="button" onClick={() => setCountrySkill('')} className="hover:text-red-700">
                           <X className="w-3 h-3" />
                         </button>
                       </div>
@@ -1555,7 +1555,7 @@ const CustomPlan = () => {
                                     <button
                                       type="button"
                                       onClick={() => handleDeleteCountry(item.id)}
-                                      className="text-slate-300 hover:text-red-500 transition"
+                                      className="text-slate-300 hover:text-red-700 transition"
                                     >
                                       <Trash2 className="w-4 h-4" />
                                     </button>
@@ -1658,7 +1658,7 @@ const CustomPlan = () => {
                 )}
                 <button
                   onClick={handleClearAll}
-                  className="text-xs font-extrabold text-red-500 hover:text-red-700 flex items-center gap-1"
+                  className="text-xs font-extrabold text-red-700 hover:text-red-700 flex items-center gap-1"
                 >
                   <Trash2 className="w-3.5 h-3.5" />{t("Clear All")}</button>
               </div>
@@ -1689,7 +1689,7 @@ const CustomPlan = () => {
                               setMultipleSkillsList(multipleSkillsList.filter(s => s !== skill));
                               toast.success('Skill removed.');
                             }}
-                            className="text-slate-400 hover:text-red-500 transition-colors"
+                            className="text-slate-400 hover:text-red-700 transition-colors"
                           >
                             ×
                           </button>

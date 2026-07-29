@@ -109,7 +109,7 @@ const AdminRefundRequests = () => {
           </div>
           <button
             onClick={fetchRefunds}
-            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-emerald-600 transition-colors shadow-sm"
+            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-emerald-600 transition-colors shadow-sm"
           >
             <RefreshCcw className="w-5 h-5" />
           </button>
@@ -118,7 +118,7 @@ const AdminRefundRequests = () => {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600">
+          <table className="w-full text-left text-sm text-gray-700">
             <thead className="bg-gray-50 border-b border-gray-200 text-xs uppercase font-bold text-gray-700">
               <tr>
                 <th className="px-6 py-4">User</th>
@@ -204,7 +204,7 @@ const AdminRefundRequests = () => {
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-emerald-600" /> Refund Request Details
               </h3>
-              <button onClick={() => setSelectedRefund(null)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setSelectedRefund(null)} className="text-gray-400 hover:text-gray-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -254,7 +254,7 @@ const AdminRefundRequests = () => {
                 <h4 className="text-sm font-bold text-gray-900">Process Refund</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Action / Status</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Action / Status</label>
                     <select
                       value={processStatus}
                       onChange={(e) => setProcessStatus(e.target.value)}
@@ -271,7 +271,7 @@ const AdminRefundRequests = () => {
                   
                   {processStatus === 'Partial Refund' && (
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">Refund Amount (₹)</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Refund Amount (₹)</label>
                       <div className="flex gap-2">
                         <input
                           type="number"
@@ -305,7 +305,7 @@ const AdminRefundRequests = () => {
                   )}
 
                   <div className={processStatus === 'Partial Refund' ? 'sm:col-span-2' : ''}>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Transaction ID (Optional)</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Transaction ID (Optional)</label>
                     <input
                       type="text"
                       value={transactionId}
@@ -316,7 +316,7 @@ const AdminRefundRequests = () => {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Admin Remark / Reason</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Admin Remark / Reason</label>
                     <textarea
                       value={adminReason}
                       onChange={(e) => setAdminReason(e.target.value)}
@@ -331,7 +331,7 @@ const AdminRefundRequests = () => {
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 sticky bottom-0 z-10">
               <button
                 onClick={() => setSelectedRefund(null)}
-                className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors"
+                className="px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
                 disabled={isProcessing}
               >
                 Cancel

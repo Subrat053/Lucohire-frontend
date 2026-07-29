@@ -386,12 +386,12 @@ const Transactions = () => {
                 <button
                   type="button"
                   onClick={() => setPayoutMethod('bank')}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${payoutMethod === 'bank' ? 'bg-white shadow text-indigo-600 font-bold' : 'text-gray-600 hover:text-gray-900'}`}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${payoutMethod === 'bank' ? 'bg-white shadow text-indigo-600 font-bold' : 'text-gray-700 hover:text-gray-900'}`}
                 >{t("Bank")}</button>
                 <button
                   type="button"
                   onClick={() => setPayoutMethod('upi')}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${payoutMethod === 'upi' ? 'bg-white shadow text-indigo-600 font-bold' : 'text-gray-600 hover:text-gray-900'}`}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${payoutMethod === 'upi' ? 'bg-white shadow text-indigo-600 font-bold' : 'text-gray-700 hover:text-gray-900'}`}
                 >{t("UPI")}</button>
               </div>
 

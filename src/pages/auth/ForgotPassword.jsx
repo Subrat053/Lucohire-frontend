@@ -88,7 +88,7 @@ const ForgotPassword = () => {
           ) : (
             <div className="text-center space-y-6">
               <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto">
-                <HiMail className="w-10 h-10 text-green-600" />
+                <HiMail className="w-10 h-10 text-green-700" />
               </div>
               <div className="space-y-2">
                 <h3 className="text-xl font-bold text-slate-900">Check your email</h3>

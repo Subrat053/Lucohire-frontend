@@ -98,7 +98,7 @@ const SubscriptionPlansPopup = ({ role, currentPlan = 'free', open, onClose, red
             <button
               type="button"
               onClick={onClose}
-              className="h-9 w-9 shrink-0 rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200"
+              className="h-9 w-9 shrink-0 rounded-full bg-gray-100 text-gray-700 transition hover:bg-gray-200"
               aria-label="Close subscription popup"
             >
               X
@@ -118,7 +118,7 @@ const SubscriptionPlansPopup = ({ role, currentPlan = 'free', open, onClose, red
         ) : (
           <div className="overflow-y-auto px-4 pb-5 pt-4 sm:px-6 sm:pb-6">
             {sortedPlans.length === 0 ? (
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-600">
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-700">
                 No plans available right now. Please try again in a moment.
               </div>
             ) : (
@@ -147,7 +147,7 @@ const SubscriptionPlansPopup = ({ role, currentPlan = 'free', open, onClose, red
                     ₹{plan.price}
                     <span className="text-sm text-slate-500 font-medium tracking-normal ml-1">/ {plan.duration} days</span>
                   </p>
-                  <ul className="mt-3 flex-1 list-disc space-y-1 pl-5 text-sm text-gray-600">
+                  <ul className="mt-3 flex-1 list-disc space-y-1 pl-5 text-sm text-gray-700">
                     {(plan.features || []).slice(0, 4).map((feature, index) => (
                       <li key={index} className={theme.bullet}>{feature}</li>
                     ))}

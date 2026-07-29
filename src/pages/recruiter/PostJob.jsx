@@ -42,7 +42,7 @@ const inputCls = 'w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:rin
 
 const Label = ({ text, required }) => (
   <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-    {text} {required && <span className="text-red-500">*</span>}
+    {text} {required && <span className="text-red-700">*</span>}
   </label>
 );
 
@@ -455,7 +455,7 @@ const PostJob = () => {
             <button
               type="button"
               onClick={() => navigate('/recruiter/dashboard')}
-              className="flex-1 border-2 border-gray-200 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition text-sm"
+              className="flex-1 border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition text-sm"
             >
               {t('common.cancel', 'Cancel')}
             </button>

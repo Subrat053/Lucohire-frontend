@@ -47,7 +47,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
         <div className="flex items-center gap-1.5 shrink-0 ml-2">
           {(value && value !== 'all' && value !== label && value !== '') && (
             <X 
-              className="w-3.5 h-3.5 text-gray-400 hover:text-red-500 transition-colors"
+              className="w-3.5 h-3.5 text-gray-400 hover:text-red-700 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 setValue('');
@@ -119,7 +119,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
             )}
             {value && value !== 'all' && value !== label && value !== '' && (
               <li 
-                className="px-3 py-2 text-xs text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-bold"
+                className="px-3 py-2 text-xs text-red-700 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-bold"
                 onClick={() => {
                   setValue('');
                   setSearchTerm('');
@@ -439,7 +439,7 @@ export default function StagingCandidates() {
                           <span className={`px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider border w-max block ${
                             c.leadStatus === 'Verified Active Candidate' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                             c.leadStatus === 'Active Signal Lead' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                            'bg-gray-50 text-gray-600 border-gray-200'
+                            'bg-gray-50 text-gray-700 border-gray-200'
                           }`}>
                             {c.leadStatus}
                           </span>

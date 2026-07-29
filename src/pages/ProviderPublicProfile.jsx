@@ -308,7 +308,7 @@ const ProviderPublicProfile = () => {
                       if (profile.whatsappAlerts === false) e.preventDefault();
                     }}
                   >
-                    <FaWhatsapp className="text-[#25D366] w-4 h-4"/> WhatsApp
+                    <FaWhatsapp className="text-[#075E54] w-4 h-4"/> WhatsApp
                   </a>
                 </>
               ) : (
@@ -318,7 +318,7 @@ const ProviderPublicProfile = () => {
                   {isPublic && profile.user?.whatsappConsent ? (
                     <button 
                       onClick={handleContactClick}
-                      className="mt-4 w-full border border-[#25D366] text-[#25D366] py-2 rounded-lg text-sm font-semibold flex justify-center items-center gap-2 hover:bg-[#25D366] hover:text-white transition-colors"
+                      className="mt-4 w-full border border-[#075E54] text-[#075E54] py-2 rounded-lg text-sm font-semibold flex justify-center items-center gap-2 hover:bg-[#075E54] hover:text-white transition-colors"
                     >
                       <FaWhatsapp className="w-4 h-4"/> Contact via WhatsApp
                     </button>

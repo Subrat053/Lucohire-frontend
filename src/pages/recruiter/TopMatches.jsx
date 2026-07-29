@@ -53,7 +53,7 @@ export default function TopMatches() {
         {/* Header */}
         <div className="flex items-center gap-4">
           <Link to="/recruiter/job-postings" className="p-2 bg-white border border-[#E5EAF3] rounded-xl hover:bg-gray-50 transition">
-            <HiArrowLeft className="w-5 h-5 text-gray-600" />
+            <HiArrowLeft className="w-5 h-5 text-gray-700" />
           </Link>
           <div>
             <h1 className="text-xl font-bold text-[#081B3A] flex items-center gap-2">
@@ -101,11 +101,11 @@ export default function TopMatches() {
                 </div>
 
                 <div className="space-y-2 mb-5">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
                     <HiLocationMarker className="w-4 h-4 text-purple-500 shrink-0" />
                     <span className="truncate">{provider.city || 'Location not specified'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
                     <HiBriefcase className="w-4 h-4 text-purple-500 shrink-0" />
                     <span>{provider.experience || '0'}{t("Years Experience")}</span>
                   </div>
@@ -117,7 +117,7 @@ export default function TopMatches() {
                 {provider.skills?.length > 1 && (
                   <div className="flex flex-wrap gap-1 mb-5">
                     {provider.skills.slice(1, 4).map((s, i) => (
-                      <span key={i} className="text-[10px] px-2 py-1 bg-gray-100 text-gray-600 rounded-md border border-gray-200">
+                      <span key={i} className="text-[10px] px-2 py-1 bg-gray-100 text-gray-700 rounded-md border border-gray-200">
                         {s}
                       </span>
                     ))}

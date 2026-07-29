@@ -8,7 +8,7 @@ const Show = ({ when, children }) => (when ? children : null);
 const AddItemButton = ({ onClick, label }) => (
   <button 
     type="button"
-    className="mt-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 border-2 border-dashed border-gray-200 hover:border-gray-400 bg-gray-50/50 hover:bg-gray-50 p-2 w-full rounded-lg transition-all opacity-0 hover:opacity-100 group-hover:opacity-100"
+    className="mt-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-700 hover:text-gray-900 border-2 border-dashed border-gray-200 hover:border-gray-400 bg-gray-50/50 hover:bg-gray-50 p-2 w-full rounded-lg transition-all opacity-0 hover:opacity-100 group-hover:opacity-100"
     onClick={onClick}
     title={label}
   >
@@ -92,7 +92,7 @@ export default function TemplateJane() {
                         <div className="text-[13px] font-medium text-gray-800">{item.company || item.technologies}</div>
                       </Show>
                       <Show when={item.description}>
-                        <div className="text-[13px] leading-relaxed text-gray-600 whitespace-pre-wrap">{item.description}</div>
+                        <div className="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap">{item.description}</div>
                       </Show>
                     </div>
                   </div>
@@ -132,10 +132,10 @@ export default function TemplateJane() {
                         {edu.institution}{edu.institution && edu.year ? ' - ' : ''}{edu.year}
                       </div>
                       <Show when={edu.coursework}>
-                        <div className="text-[13px] text-gray-600 mt-0.5">Relevant Coursework: {edu.coursework}</div>
+                        <div className="text-[13px] text-gray-700 mt-0.5">Relevant Coursework: {edu.coursework}</div>
                       </Show>
                       <Show when={edu.grade}>
-                        <div className="text-[13px] text-gray-600">GPA: {edu.grade}</div>
+                        <div className="text-[13px] text-gray-700">GPA: {edu.grade}</div>
                       </Show>
                     </div>
                   </div>
@@ -300,12 +300,12 @@ export default function TemplateJane() {
                         <div key={i} className="flex gap-2 mb-2 items-start font-sans">
                           <input value={link.platform} onChange={(e) => { const nl = [...(personal.links||[])]; nl[i].platform = e.target.value; updatePersonal('links', nl); }} placeholder="Platform (e.g. LinkedIn)" className="w-1/3 px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white" />
                           <input value={link.url} onChange={(e) => { const nl = [...(personal.links||[])]; nl[i].url = e.target.value; updatePersonal('links', nl); }} placeholder="URL" className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white" />
-                          <button type="button" onClick={() => updatePersonal('links', personal.links.filter((_, idx) => idx !== i))} className="p-1.5 text-red-500 hover:bg-red-50 rounded bg-[#ffffff] border border-gray-200">
+                          <button type="button" onClick={() => updatePersonal('links', personal.links.filter((_, idx) => idx !== i))} className="p-1.5 text-red-700 hover:bg-red-50 rounded bg-[#ffffff] border border-gray-200">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                           </button>
                         </div>
                       ))}
-                      <button type="button" onClick={() => updatePersonal('links', [...(personal.links || []), { platform: '', url: '' }])} className="text-gray-600 text-sm font-bold flex items-center gap-1 hover:text-gray-800">
+                      <button type="button" onClick={() => updatePersonal('links', [...(personal.links || []), { platform: '', url: '' }])} className="text-gray-700 text-sm font-bold flex items-center gap-1 hover:text-gray-800">
                         <Plus className="w-4 h-4" /> Add Link
                       </button>
                     </div>

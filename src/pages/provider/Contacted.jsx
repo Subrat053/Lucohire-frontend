@@ -43,7 +43,7 @@ const ContactedCard = ({ application }) => {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="font-extrabold text-lg text-gray-900">{recruiter?.name || 'Recruiter'}</h3>
-            <p className="text-sm text-gray-600 mt-1 font-semibold">
+            <p className="text-sm text-gray-700 mt-1 font-semibold">
               {job?.title}{job?.city && ` • ${job.city}`}
             </p>
           </div>
@@ -65,7 +65,7 @@ const ContactedCard = ({ application }) => {
             </div>
           )}
           {job?.description && (
-            <p className="text-xs text-gray-600 leading-relaxed font-medium">{job.description}</p>
+            <p className="text-xs text-gray-700 leading-relaxed font-medium">{job.description}</p>
           )}
         </div>
 
@@ -174,7 +174,7 @@ const ProviderContacted = () => {
                 className={`px-4 py-2.5 rounded-xl transition text-xs font-extrabold uppercase tracking-wider ${
                   filterType === tab.id
                     ? 'bg-emerald-950 text-white shadow-xs border-0'
-                    : 'text-gray-600 hover:text-emerald-950 hover:bg-gray-55'
+                    : 'text-gray-700 hover:text-emerald-950 hover:bg-gray-55'
                 }`}
               >
                 {tab.label}
@@ -187,7 +187,7 @@ const ProviderContacted = () => {
         {filteredApps.length === 0 ? (
           <div className="bg-white rounded-2xl p-16 text-center border border-gray-100 shadow-xs">
             <HiDocumentText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600 font-bold mb-1 text-sm uppercase tracking-wider">
+            <p className="text-gray-700 font-bold mb-1 text-sm uppercase tracking-wider">
               {applications.length === 0
                 ? 'No applications yet. Start browsing jobs!'
                 : `No applications in "${filterType === 'contacted' ? 'Contacted' : 'Accepted'}" category`}

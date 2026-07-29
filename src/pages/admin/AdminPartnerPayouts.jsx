@@ -224,7 +224,7 @@ const AdminPartnerPayouts = () => {
             </div>
             <div className="p-6">
               <div className="mb-6 p-4 bg-red-50/50 rounded-2xl border border-red-100 flex gap-3">
-                <HiExclamationCircle className="w-6 h-6 text-red-500 shrink-0" />
+                <HiExclamationCircle className="w-6 h-6 text-red-700 shrink-0" />
                 <p className="text-xs text-red-700 font-medium leading-relaxed">
                   Rejecting this payout will return the amount back to the partner's available commission wallet. Please provide a reason.
                 </p>

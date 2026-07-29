@@ -91,7 +91,7 @@ const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
 
           {/* Tier badge */}
           {provider.tier && (
-            <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium capitalize ${TIER_COLORS[provider.tier] || 'bg-gray-100 text-gray-600'}`}>
+            <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium capitalize ${TIER_COLORS[provider.tier] || 'bg-gray-100 text-gray-700'}`}>
               {provider.tier.replace('-', ' ')}
             </span>
           )}
@@ -100,7 +100,7 @@ const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
       {/* Skills (fixed height) */}
       <div className="flex flex-wrap items-center gap-1.5 h-7 overflow-hidden">
         {visibleSkills.map((s, i) => (
-          <span key={i} className="text-xs px-2 py-0.5 bg-gray-50 text-gray-600 rounded-full border border-gray-100 truncate max-w-[100px]" title={s}>
+          <span key={i} className="text-xs px-2 py-0.5 bg-gray-50 text-gray-700 rounded-full border border-gray-100 truncate max-w-[100px]" title={s}>
             {s}
           </span>
         ))}
@@ -135,7 +135,7 @@ const ProviderCardBase = ({ provider, onView, onUnlock, unlocking }) => {
               onUnlock(provider);
             }
           }}
-          className="flex-1 flex items-center justify-center gap-1.5 border border-gray-100 text-[#ffffff] text-xs font-semibold py-2 rounded-xl bg-[#128C7E] hover:bg-[#075E54] transition h-9 group"
+          className="flex-1 flex items-center justify-center gap-1.5 border border-gray-100 text-[#ffffff] text-xs font-semibold py-2 rounded-xl bg-[#04433B] hover:bg-[#075E54] transition h-9 group"
         >
           <FaWhatsapp className="w-3.5 h-3.5" /> 
           {provider.isUnlocked ? 'WhatsApp' : (
@@ -418,7 +418,7 @@ const FindProviders = () => {
                   <button
                     type="button"
                     onClick={handleSkillClear}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
                   >
                     <HiX className="w-4 h-4" />
                   </button>
@@ -546,7 +546,7 @@ const FindProviders = () => {
         ) : hasSearched && providers.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
             <HiUsers className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p className="font-semibold text-gray-600">{t("No providers found")}</p>
+            <p className="font-semibold text-gray-700">{t("No providers found")}</p>
             <p className="text-sm text-gray-400 mt-1">{t("Try different skill or location keywords")}</p>
           </div>
         ) : providers.length > 0 ? (
@@ -592,16 +592,16 @@ const FindProviders = () => {
                   onClick={() => doSearch(currentPage - 1)}
                   className="p-2 rounded-xl border border-gray-200 disabled:opacity-40 hover:bg-gray-50 transition"
                 >
-                  <HiChevronLeft className="w-4 h-4 text-gray-600" />
+                  <HiChevronLeft className="w-4 h-4 text-gray-700" />
                 </button>
-                <span className="text-sm text-gray-600 font-medium">{t("Page")}{currentPage}{t("of")}{pagination.pages}
+                <span className="text-sm text-gray-700 font-medium">{t("Page")}{currentPage}{t("of")}{pagination.pages}
                 </span>
                 <button
                   disabled={currentPage >= pagination.pages}
                   onClick={() => doSearch(currentPage + 1)}
                   className="p-2 rounded-xl border border-gray-200 disabled:opacity-40 hover:bg-gray-50 transition"
                 >
-                  <HiChevronRight className="w-4 h-4 text-gray-600" />
+                  <HiChevronRight className="w-4 h-4 text-gray-700" />
                 </button>
               </div>
             )}
@@ -612,7 +612,7 @@ const FindProviders = () => {
         {!hasSearched && !loading && (
           <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-100">
             <HiSearch className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p className="font-medium text-gray-600">{t("Search for providers")}</p>
+            <p className="font-medium text-gray-700">{t("Search for providers")}</p>
             <p className="text-sm mt-1">{t("Enter a skill or location above to get started")}</p>
           </div>
         )}

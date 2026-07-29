@@ -55,11 +55,11 @@ const NeedsReviewQueue = () => {
               <tr key={job._id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{job.title}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.companyName}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-red-700">
                   {job.flags?.join(', ') || 'Manual Review Required'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <button onClick={() => handleApprove(job._id)} className="text-green-600 hover:text-green-900 font-medium">Approve</button>
+                  <button onClick={() => handleApprove(job._id)} className="text-green-700 hover:text-green-900 font-medium">Approve</button>
                 </td>
               </tr>
             ))}

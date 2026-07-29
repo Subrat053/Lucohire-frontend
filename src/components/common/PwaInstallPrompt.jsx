@@ -58,7 +58,7 @@ export default function PwaInstallPrompt({ deferredPrompt, setDeferredPrompt }) 
           {/* Close Button */}
           <button 
             onClick={handleDismiss} 
-            className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-10"
+            className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors z-10"
           >
             <HiX className="w-5 h-5" />
           </button>
@@ -83,7 +83,7 @@ export default function PwaInstallPrompt({ deferredPrompt, setDeferredPrompt }) 
           <div className="bg-gray-50/80 p-4 border-t border-gray-100 flex gap-3">
             <button 
               onClick={handleDismiss} 
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200 shadow-xs hover:bg-gray-50 active:scale-95 transition-all"
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-700 bg-white border border-gray-200 shadow-xs hover:bg-gray-50 active:scale-95 transition-all"
             >
               Not Now
             </button>

@@ -400,7 +400,7 @@ const TrustRow = () => {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-b border-gray-100 py-3 mb-6">
-      <div className="flex items-center gap-1.5 text-xs text-gray-600">
+      <div className="flex items-center gap-1.5 text-xs text-gray-700">
         <div className="w-7 h-7 bg-emerald-100 rounded-full flex items-center justify-center">
           <svg
             className="w-4 h-4 text-emerald-800"
@@ -413,16 +413,16 @@ const TrustRow = () => {
         {t("auth.signup2Step", "2-Step Signup")}
       </div>
       <div className="hidden sm:block w-px h-7 bg-gray-200" />
-      <div className="flex items-center gap-1.5 text-xs text-gray-600">
+      <div className="flex items-center gap-1.5 text-xs text-gray-700">
         <div className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center">
-          <HiCheckCircle className="w-4 h-4 text-red-500" />
+          <HiCheckCircle className="w-4 h-4 text-red-700" />
         </div>
         {t("auth.noPasswordReq", "No Password Required")}
       </div>
       <div className="hidden sm:block w-px h-7 bg-gray-200" />
-      <div className="flex items-center gap-1.5 text-xs text-gray-600">
+      <div className="flex items-center gap-1.5 text-xs text-gray-700">
         <div className="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center">
-          <HiShieldCheck className="w-4 h-4 text-green-600" />
+          <HiShieldCheck className="w-4 h-4 text-green-700" />
         </div>
         {t("auth.secure100", "100% Secure")}
       </div>
@@ -548,7 +548,7 @@ const RolePicker = ({
             <span className="text-2xl block mb-1">{e}</span>
             {l}
             {activeRole === v && (
-              <span className="block mt-1 text-[10px] font-bold text-gray-600">
+              <span className="block mt-1 text-[10px] font-bold text-gray-700">
                 {t("common.active", "Active")}
               </span>
             )}
@@ -1550,7 +1550,7 @@ const AuthPage = () => {
                   className={`p-4 rounded-2xl border-2 text-center transition flex flex-col items-center justify-center gap-1.5 ${
                     form.selectedRole === v
                       ? "border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-200 text-emerald-700"
-                      : "border-gray-200 hover:border-gray-300 bg-gray-50 text-gray-600"
+                      : "border-gray-200 hover:border-gray-300 bg-gray-50 text-gray-700"
                   }`}
                 >
                   <span className="text-3xl">{e}</span>
@@ -1699,7 +1699,7 @@ const AuthPage = () => {
               required
             />
             {errors.email && (
-              <p className="text-red-500 text-xs mt-0.5 pl-1 font-medium">
+              <p className="text-red-700 text-xs mt-0.5 pl-1 font-medium">
                 {errors.email}
               </p>
             )}
@@ -1763,7 +1763,7 @@ const AuthPage = () => {
               <div className="space-y-1">
                 <label className="block text-xs font-semibold text-gray-500 mb-1">
                   Location (Country &rarr; State &rarr; City){" "}
-                  <span className="text-red-500">*</span>
+                  <span className="text-red-700">*</span>
                 </label>
                 <CascadeLocationSelect
                   required
@@ -1815,7 +1815,7 @@ const AuthPage = () => {
                   placeholder="GST Number (Optional, e.g. 22AAAAA1111A1Z1)"
                 />
                 {errors.gstNumber && (
-                  <p className="text-red-500 text-xs mt-1 pl-1 font-medium">
+                  <p className="text-red-700 text-xs mt-1 pl-1 font-medium">
                     {errors.gstNumber}
                   </p>
                 )}
@@ -1914,7 +1914,7 @@ const AuthPage = () => {
                   setErrors((prev) => ({ ...prev, whatsappNumber: "" }));
                 }
               }}
-              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer"
+              className="h-4 w-4 text-green-700 focus:ring-green-500 border-gray-300 rounded cursor-pointer"
             />
             <label
               htmlFor="isWhatsappSameAsMobile-phone"
@@ -2009,7 +2009,7 @@ const AuthPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-600 text-center mb-4">
+            <p className="text-sm font-medium text-gray-700 text-center mb-4">
               {t("auth.enter6DigitOtp", "Enter 6-digit OTP")}
             </p>
             {renderOtpBoxes("green")}
@@ -2038,7 +2038,7 @@ const AuthPage = () => {
                     : "phone-register",
                 )
               }
-              className="text-gray-500 hover:text-green-600 transition"
+              className="text-gray-500 hover:text-green-700 transition"
             >
               &#8592; {t("auth.changeNumber", "Change Number")}
             </button>
@@ -2046,7 +2046,7 @@ const AuthPage = () => {
             <button
               onClick={handleFirebaseResend}
               disabled={resendTimer > 0 || loading}
-              className="text-green-600 font-bold disabled:text-gray-400 transition"
+              className="text-green-700 font-bold disabled:text-gray-400 transition"
             >
               {resendTimer > 0
                 ? `${t("auth.resendIn", "Resend in")} ${resendTimer}s`
@@ -2076,7 +2076,7 @@ const AuthPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-600 text-center mb-4">
+            <p className="text-sm font-medium text-gray-700 text-center mb-4">
               {t("auth.emailOtp", "Email OTP")}
             </p>
             {renderOtpBoxes("blue")}
@@ -2177,7 +2177,7 @@ const AuthPage = () => {
 
           <button
             onClick={() => setMode("login")}
-            className="w-full text-sm text-gray-500 hover:text-green-600 transition"
+            className="w-full text-sm text-gray-500 hover:text-green-700 transition"
           >
             &#8592; {t("auth.backToLogin")}
           </button>
@@ -2426,7 +2426,7 @@ const AuthPage = () => {
           <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-md w-full relative animate-in zoom-in-95 duration-200">
             <button 
               onClick={() => setShowSignupModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
             >
               <span className="text-2xl leading-none">&times;</span>
             </button>
@@ -2458,7 +2458,7 @@ const AuthPage = () => {
                 className={`w-full flex items-center p-4 border rounded-xl cursor-pointer transition-all ${signupModalRole === 'candidate' ? 'border-green-500 bg-green-50' : 'hover:border-green-300 hover:bg-gray-50'}`}
               >
                 <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-4 shrink-0">
-                  <HiUser className="text-green-600 w-5 h-5" />
+                  <HiUser className="text-green-700 w-5 h-5" />
                 </div>
                 <div className="flex-1">
                   <h4 className="font-bold text-gray-900">Candidate</h4>
@@ -2470,7 +2470,7 @@ const AuthPage = () => {
                   value="candidate" 
                   checked={signupModalRole === 'candidate'}
                   onChange={() => setSignupModalRole('candidate')}
-                  className="w-5 h-5 text-green-600 focus:ring-green-500"
+                  className="w-5 h-5 text-green-700 focus:ring-green-500"
                 />
               </label>
             </div>

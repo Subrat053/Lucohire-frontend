@@ -129,7 +129,7 @@ const RecruiterLayout = ({ children }) => {
                 ${collapsed ? 'justify-center' : 'space-x-3'}
               `}
             >
-              <Icon className={`w-5 h-5 shrink-0 ${active ? 'text-white' : 'text-gray-600 group-hover:text-black'}`} />
+              <Icon className={`w-5 h-5 shrink-0 ${active ? 'text-white' : 'text-gray-700 group-hover:text-black'}`} />
               {!collapsed && (
                 <div className="flex items-center justify-between w-full">
                   <span>{t(label, fallback)}</span>
@@ -152,7 +152,7 @@ const RecruiterLayout = ({ children }) => {
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
                   <HiBriefcase className="w-3 h-3 text-blue-500" />
-                  <span className="text-[10px] font-semibold text-gray-600">{t("Job Postings")}</span>
+                  <span className="text-[10px] font-semibold text-gray-700">{t("Job Postings")}</span>
                 </div>
                 <div className="text-sm font-bold text-gray-900 mb-1">
                   {stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit}
@@ -168,13 +168,13 @@ const RecruiterLayout = ({ children }) => {
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
                   <HiUsers className="w-3 h-3 text-green-500" />
-                  <span className="text-[10px] font-semibold text-gray-600">{t("Candidate Unlocks")}</span>
+                  <span className="text-[10px] font-semibold text-gray-700">{t("Candidate Unlocks")}</span>
                 </div>
                 <div className="text-sm font-bold text-gray-900 mb-1">
                   {stats.unlocksRemaining} <span className="text-gray-400 font-medium">{t("left")}</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-1.5">
-                  <div className="bg-green-600 h-1.5 rounded-full" style={{ width: `${stats.unlocksRemaining > 0 ? 100 : 0}%` }}></div>
+                  <div className="bg-green-700 h-1.5 rounded-full" style={{ width: `${stats.unlocksRemaining > 0 ? 100 : 0}%` }}></div>
                 </div>
               </div>
 
@@ -182,7 +182,7 @@ const RecruiterLayout = ({ children }) => {
                 <div>
                   <div className="flex items-center gap-1.5 mb-1">
                     <HiLightningBolt className="w-3 h-3 text-amber-500" />
-                    <span className="text-[10px] font-semibold text-gray-600">{t("Job Boosts")}</span>
+                    <span className="text-[10px] font-semibold text-gray-700">{t("Job Boosts")}</span>
                   </div>
                   <div className="text-sm font-bold text-gray-900 mb-1">
                     {stats.boostJobsRemaining || 0} <span className="text-gray-400 font-medium">{t("left")}</span>
@@ -197,7 +197,7 @@ const RecruiterLayout = ({ children }) => {
                 <div>
                   <div className="flex items-center gap-1.5 mb-1">
                     <HiCalendar className="w-3 h-3 text-purple-500" />
-                    <span className="text-[10px] font-semibold text-gray-600">{t("Boost Days")}</span>
+                    <span className="text-[10px] font-semibold text-gray-700">{t("Boost Days")}</span>
                   </div>
                   <div className="text-sm font-bold text-gray-900 mb-1">
                     {stats.boostDaysRemaining || 0} <span className="text-gray-400 font-medium">{t("left")}</span>
@@ -216,7 +216,7 @@ const RecruiterLayout = ({ children }) => {
         <button
           onClick={handleLogout}
           title={collapsed ? t('navbar.logout', 'Logout') : undefined}
-          className={`flex items-center w-full rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-all
+          className={`flex items-center w-full rounded-xl px-3 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 transition-all
             ${collapsed ? 'justify-center' : 'space-x-3'}
           `}
         >

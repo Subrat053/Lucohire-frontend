@@ -157,7 +157,7 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
           
           {data.warnings?.length > 0 && (
             <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
               <div>
                 <h3 className="text-[13px] font-bold text-red-800 mb-1">{t("AI Integrity Warnings")}</h3>
                 <ul className="text-[11px] text-red-700 font-medium space-y-1">

@@ -282,7 +282,7 @@ export default function AiCareerCoach() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex-1">
             <h3 className="text-lg font-bold flex items-center gap-1.5 mb-2">
-              Your Career Goal <Target className="w-6 h-6 text-red-500" />
+              Your Career Goal <Target className="w-6 h-6 text-red-700" />
             </h3>
             <div className="flex flex-wrap gap-4 items-center">
               <div>
@@ -301,7 +301,7 @@ export default function AiCareerCoach() {
           </div>
           <div className="flex-1 sm:border-l border-teal-200/50 sm:pl-4 w-full">
             <p className="text-lg font-bold text-gray-900 mb-1">Next Milestone</p>
-            <p className="text-lg font-medium text-gray-600 line-clamp-2 mb-2">{currentGoal.currentMilestone}</p>
+            <p className="text-lg font-medium text-gray-700 line-clamp-2 mb-2">{currentGoal.currentMilestone}</p>
             <div className="h-1.5 w-full bg-teal-100/50 rounded-full overflow-hidden">
               <div className="h-full bg-[#0f766e] rounded-full transition-all" style={{ width: `${currentGoal.completion || 0}%` }} />
             </div>
@@ -347,7 +347,7 @@ export default function AiCareerCoach() {
       <div className="bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100 rounded-2xl p-4">
         <div className="flex justify-between items-start mb-3">
           <h3 className="text-lg font-bold flex items-center gap-1.5">
-            <Target className="w-6 h-6 text-red-500" /> Current Goal
+            <Target className="w-6 h-6 text-red-700" /> Current Goal
           </h3>
           <button onClick={() => setGoalModalOpen(true)}
             className="flex items-center gap-1 px-2.5 py-1 bg-white border border-teal-200 hover:border-[#0f766e] text-[#0f766e] font-bold text-lg rounded-lg transition-all">
@@ -368,7 +368,7 @@ export default function AiCareerCoach() {
             <p className="font-extrabold text-[#0f766e] text-lg">{currentGoal.completion || 0}%</p>
           </div>
         </div>
-        <p className="text-lg text-gray-600 font-medium">📌 {currentGoal.currentMilestone}</p>
+        <p className="text-lg text-gray-700 font-medium">📌 {currentGoal.currentMilestone}</p>
       </div>
 
       {/* Full Roadmap */}
@@ -404,7 +404,7 @@ export default function AiCareerCoach() {
             <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl border ${m.done ? 'bg-teal-50/40 border-teal-100' : 'bg-gray-50 border-gray-100'}`}>
               <div className="flex items-center gap-2.5">
                 {m.done ? <CheckCircle2 className="w-6 h-6 text-[#0f766e] shrink-0" /> : <Circle className="w-6 h-6 text-gray-300 shrink-0" />}
-                <span className={`text-lg font-bold ${m.done ? 'text-[#0f766e]' : 'text-gray-600'}`}>{m.title}</span>
+                <span className={`text-lg font-bold ${m.done ? 'text-[#0f766e]' : 'text-gray-700'}`}>{m.title}</span>
               </div>
               <span className="text-lg font-semibold text-gray-400">{m.date}</span>
             </div>
@@ -527,7 +527,7 @@ export default function AiCareerCoach() {
             {aiInsights.map((insight, idx) => (
               <div key={idx} className="flex gap-3 bg-white/60 p-3 rounded-xl border border-indigo-50/50">
                 <div className="shrink-0 mt-0.5">
-                  {insight.type === 'strength' && <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-green-600" /></div>}
+                  {insight.type === 'strength' && <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-green-700" /></div>}
                   {insight.type === 'improvement' && <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center"><Target className="w-4 h-4 text-orange-600" /></div>}
                   {insight.type === 'opportunity' && <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center"><Sparkles className="w-4 h-4 text-purple-600" /></div>}
                 </div>
@@ -635,7 +635,7 @@ export default function AiCareerCoach() {
               </div>
               <button
                 onClick={() => toast('Feature Coming Soon! 🚀')}
-                className={`px-2.5 py-1 rounded-lg text-lg font-bold transition-colors ${i === 0 ? 'border border-[#0f766e] text-[#0f766e] hover:bg-teal-50' : 'border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                className={`px-2.5 py-1 rounded-lg text-lg font-bold transition-colors ${i === 0 ? 'border border-[#0f766e] text-[#0f766e] hover:bg-teal-50' : 'border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
                 {i === 0 ? 'Join' : 'Later'}
               </button>
             </div>
@@ -733,18 +733,18 @@ export default function AiCareerCoach() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setGoalModalOpen(false)}>
           <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg flex items-center gap-2"><Target className="w-6 h-6 text-red-500" /> Update Your Goal</h3>
+              <h3 className="font-bold text-lg flex items-center gap-2"><Target className="w-6 h-6 text-red-700" /> Update Your Goal</h3>
               <button onClick={() => setGoalModalOpen(false)}><X className="w-6 h-6 text-gray-400" /></button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="text-lg font-bold text-gray-600 block mb-1">Target Role</label>
+                <label className="text-lg font-bold text-gray-700 block mb-1">Target Role</label>
                 <input value={goalRole} onChange={e => setGoalRole(e.target.value)}
                   placeholder="e.g. Senior Full Stack Developer"
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl text-lg focus:border-[#0f766e] focus:outline-none" />
               </div>
               <div>
-                <label className="text-lg font-bold text-gray-600 block mb-1">Timeline</label>
+                <label className="text-lg font-bold text-gray-700 block mb-1">Timeline</label>
                 <select value={goalTimeline} onChange={e => setGoalTimeline(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl text-lg focus:border-[#0f766e] focus:outline-none">
                   <option value="">Select timeline...</option>
@@ -781,7 +781,7 @@ export default function AiCareerCoach() {
                 <Edit2 className="w-5 h-5" /> Update Career Goal
               </button>
               <button onClick={() => { setSettingsOpen(false); fetchDashboardData(); toast.success('Dashboard refreshed!'); }}
-                className="w-full py-2 border border-gray-200 text-gray-600 font-bold text-lg rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                className="w-full py-2 border border-gray-200 text-gray-700 font-bold text-lg rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
                 <RefreshCw className="w-5 h-5" /> Refresh Dashboard
               </button>
             </div>

@@ -60,7 +60,7 @@ const DashboardTaskCard = ({ task, jobs, t }) => {
               {getInitials(task.candidateName)}
             </div>
           )}
-          <div className="text-xs font-medium text-gray-600 truncate">
+          <div className="text-xs font-medium text-gray-700 truncate">
             {task.candidateName ? `${task.candidateName} ` : ''}
             {associatedJob && (
               <>
@@ -237,7 +237,7 @@ const Dashboard = () => {
                   <h2 className="text-lg font-bold text-gray-900">{t("Today's Priorities")}</h2>
                   <FiAlertCircle className="w-4 h-4 text-gray-400" />
                 </div>
-                <div className="flex items-center gap-4 text-sm font-medium text-gray-600">
+                <div className="flex items-center gap-4 text-sm font-medium text-gray-700">
                   <button onClick={() => setPrioritiesCollapsed(!prioritiesCollapsed)} className="flex items-center gap-1 hover:text-indigo-600 ml-2">
                     {prioritiesCollapsed ? 'Expand' : 'Collapse'} {prioritiesCollapsed ? <FiChevronDown /> : <FiChevronRight className="-rotate-90" />}
                   </button>

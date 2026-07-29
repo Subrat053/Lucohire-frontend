@@ -33,7 +33,7 @@ const WhatsAppNumberModal = ({ isOpen, onClose }) => {
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
           aria-label="Close modal"
         >
           <HiX className="w-5 h-5" aria-hidden="true" />
@@ -83,7 +83,7 @@ const WhatsAppNumberModal = ({ isOpen, onClose }) => {
           <button
             type="button"
             onClick={onClose}
-            className="w-full text-sm text-gray-400 hover:text-gray-600 transition"
+            className="w-full text-sm text-gray-400 hover:text-gray-700 transition"
           >
             Skip for now
           </button>

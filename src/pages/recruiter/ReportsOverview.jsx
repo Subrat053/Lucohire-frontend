@@ -161,7 +161,7 @@ export default function ReportsOverview() {
             </div>
             <div className="text-[11px] font-semibold text-gray-500 mb-1 leading-tight">{m.label}</div>
             <div className="text-lg font-extrabold text-gray-900 mb-1">{m.value}</div>
-            <div className={`text-[10px] font-bold flex items-center gap-0.5 ${m.up ? 'text-emerald-600' : 'text-red-500'}`}>
+            <div className={`text-[10px] font-bold flex items-center gap-0.5 ${m.up ? 'text-emerald-600' : 'text-red-700'}`}>
               {m.up ? <FiArrowUpRight className="w-3 h-3" /> : <FiArrowDownRight className="w-3 h-3" />}
               {m.trend}{t("vs last month")}</div>
           </SCard>

@@ -294,7 +294,7 @@ const Partners = () => {
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-900">Create New Partner</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-700">
                 <HiX className="w-5 h-5" />
               </button>
             </div>
@@ -369,7 +369,7 @@ const Partners = () => {
           <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-900">Global Settings</h2>
-              <button onClick={() => setShowSettingsModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowSettingsModal(false)} className="text-gray-400 hover:text-gray-700">
                 <HiX className="w-5 h-5" />
               </button>
             </div>

@@ -91,7 +91,7 @@ const SyncErrors = () => {
                   </div>
                   <div>
                     <h2 className="text-sm font-black text-red-900">Failed API Runs</h2>
-                    <p className="text-[11px] font-bold text-red-500 mt-0.5">Pipeline execution failures</p>
+                    <p className="text-[11px] font-bold text-red-700 mt-0.5">Pipeline execution failures</p>
                   </div>
                 </div>
                 

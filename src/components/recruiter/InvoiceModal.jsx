@@ -181,7 +181,7 @@ export default function InvoiceModal({ isOpen, onClose, profileData, fetchProfil
             <h2 className="text-lg font-bold text-gray-900">GST & Payment History</h2>
             <p className="text-sm text-gray-500">Manage your GST details and download invoices</p>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50 transition">
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-50 transition">
             <FiX className="w-5 h-5" />
           </button>
         </div>

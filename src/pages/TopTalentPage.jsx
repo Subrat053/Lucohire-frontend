@@ -108,7 +108,7 @@ export default function TopTalentPage() {
                             {candidate.profileName?.substring(0, 2).toUpperCase() || 'UN'}
                           </div>
                         )}
-                        <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
+                        <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-green-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
                           <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
                           Available
                         </div>
@@ -128,14 +128,14 @@ export default function TopTalentPage() {
                           {candidate.primaryRole || 'Freelancer'}
                         </p>
                         
-                        <div className="flex flex-col gap-1.5 text-[12px] text-gray-600 font-medium">
+                        <div className="flex flex-col gap-1.5 text-[12px] text-gray-700 font-medium">
                           <div className="flex items-center gap-1.5">
                             <MapPin className="w-3.5 h-3.5 text-gray-400" />
                             <span className="truncate">{candidate.city || 'India'}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <Clock className="w-3.5 h-3.5 text-gray-400" />
-                            Last active: <span className="text-green-600 font-bold ml-0.5">Today</span>
+                            Last active: <span className="text-green-700 font-bold ml-0.5">Today</span>
                           </div>
                         </div>
                       </div>
@@ -163,7 +163,7 @@ export default function TopTalentPage() {
                       </div>
                       <div className="flex items-center gap-2 bg-green-50/50 p-2 rounded-xl">
                         <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                          <Zap className="w-4 h-4 text-green-600" />
+                          <Zap className="w-4 h-4 text-green-700" />
                         </div>
                         <div className="min-w-0">
                           <div className="text-[12px] font-bold text-gray-900 truncate">Ready</div>
@@ -222,7 +222,7 @@ export default function TopTalentPage() {
                       <div className="flex gap-2.5">
                         <button 
                           onClick={(e) => handleContactClick(e, candidate, 'whatsapp')}
-                          className="flex-[1.5] py-2.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] transition-colors text-[13px] flex items-center justify-center gap-2 shadow-sm"
+                          className="flex-[1.5] py-2.5 rounded-xl bg-[#075E54] text-white font-bold hover:bg-[#04433B] transition-colors text-[13px] flex items-center justify-center gap-2 shadow-sm"
                         >
                           <MessageCircle className="w-4 h-4" fill="currentColor" strokeWidth={0} /> Chat on WhatsApp
                         </button>
@@ -251,7 +251,7 @@ export default function TopTalentPage() {
                 <button 
                   disabled={page === 1}
                   onClick={() => setPage(p => Math.max(1, p - 1))}
-                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
@@ -263,7 +263,7 @@ export default function TopTalentPage() {
                       className={`w-8 h-8 rounded-lg text-sm font-medium flex items-center justify-center transition-colors ${
                         page === i + 1 
                           ? 'bg-blue-600 text-white' 
-                          : 'text-gray-600 hover:bg-gray-100'
+                          : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
                       {i + 1}
@@ -273,7 +273,7 @@ export default function TopTalentPage() {
                 <button 
                   disabled={page === pagination.pages}
                   onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
-                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

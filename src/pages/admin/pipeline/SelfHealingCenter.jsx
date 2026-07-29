@@ -145,7 +145,7 @@ export default function SelfHealingCenter() {
                             </button>
                             <button
                               onClick={() => handleUndoFix(job.jobId)}
-                              className="text-sm px-3 py-1.5 bg-gray-50 text-gray-600 border border-gray-200 rounded hover:bg-gray-100 font-medium transition-colors"
+                              className="text-sm px-3 py-1.5 bg-gray-50 text-gray-700 border border-gray-200 rounded hover:bg-gray-100 font-medium transition-colors"
                             >
                               Undo
                             </button>

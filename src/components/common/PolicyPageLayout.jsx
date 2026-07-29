@@ -152,7 +152,7 @@ export default function PolicyPageLayout({ data = {}, onChange, isEditMode, imag
                   onChange={v => updateSection(0, 'body', v)} 
                   isEditMode={isEditMode} 
                   placeholder="Section body text..."
-                  className="text-gray-600 leading-loose text-base whitespace-pre-wrap pl-4"
+                  className="text-gray-700 leading-loose text-base whitespace-pre-wrap pl-4"
                 />
               </div>
             )}
@@ -170,7 +170,7 @@ export default function PolicyPageLayout({ data = {}, onChange, isEditMode, imag
                 />
               </div>
             ) : (
-              <div className="w-full aspect-square bg-blue-50/50 rounded-3xl border-2 border-dashed border-blue-200 flex items-center justify-center text-blue-400 font-bold tracking-wider uppercase shadow-inner">
+              <div className="w-full aspect-square bg-blue-50/50 rounded-3xl border-2 border-dashed border-blue-200 flex items-center justify-center text-blue-700 font-bold tracking-wider uppercase shadow-inner">
                 Illustration Area
               </div>
             )}
@@ -226,7 +226,7 @@ export default function PolicyPageLayout({ data = {}, onChange, isEditMode, imag
                     onChange={v => updateSection(actualIndex, 'body', v)} 
                     isEditMode={isEditMode} 
                     placeholder="Section body text..."
-                    className="text-gray-600 leading-loose text-base whitespace-pre-wrap ml-11"
+                    className="text-gray-700 leading-loose text-base whitespace-pre-wrap ml-11"
                   />
                 </div>
               );

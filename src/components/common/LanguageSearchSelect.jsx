@@ -47,7 +47,7 @@ export default function LanguageSearchSelect({
               <button
                 type="button"
                 onClick={() => toggleLanguage(lang)}
-                className="text-violet-400 hover:text-red-500 transition leading-none font-bold ml-1"
+                className="text-violet-400 hover:text-red-700 transition leading-none font-bold ml-1"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

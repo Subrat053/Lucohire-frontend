@@ -74,7 +74,7 @@ const RemarksModal = ({ open, onClose, user }) => {
           {/* Status */}
           <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4">
             <div className="flex items-center gap-2">
-              {status === 'approved' ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <AlertCircle className="w-4 h-4 text-amber-500" />}
+              {status === 'approved' ? <CheckCircle2 className="w-4 h-4 text-green-700" /> : <AlertCircle className="w-4 h-4 text-amber-500" />}
               <span className="text-sm font-medium text-gray-700">Approval Status</span>
             </div>
             <span className={`text-xs font-semibold px-3 py-1 rounded-full capitalize ${statusColors[status]}`}>{status}</span>

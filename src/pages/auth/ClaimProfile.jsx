@@ -94,12 +94,12 @@ export default function ClaimProfile() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-            <HiCheckCircle className="w-10 h-10 text-green-600" />
+            <HiCheckCircle className="w-10 h-10 text-green-700" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Welcome to Lucohire
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-700">
             Top companies are looking for your skills! We've pre-built your profile.
           </p>
         </div>

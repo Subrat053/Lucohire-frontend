@@ -123,7 +123,7 @@ const LiveScraper = () => {
           
           {bulkCompanies.length > 0 && (
             <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-600 flex items-center gap-1">
+              <div className="text-sm text-gray-700 flex items-center gap-1">
                 <HiDocumentText className="w-4 h-4" /> 
                 <strong>{bulkCompanies.length}</strong> companies
               </div>
@@ -150,13 +150,13 @@ const LiveScraper = () => {
             <div className="bg-gray-50 border-b border-gray-200 flex">
               <button
                 onClick={() => setSubTab('companies')}
-                className={`px-6 py-3 font-semibold text-sm transition-colors ${subTab === 'companies' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-100'}`}
+                className={`px-6 py-3 font-semibold text-sm transition-colors ${subTab === 'companies' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-700 hover:bg-gray-100'}`}
               >
                 Companies Status ({bulkResults.length})
               </button>
               <button
                 onClick={() => setSubTab('jobs')}
-                className={`px-6 py-3 font-semibold text-sm transition-colors flex items-center gap-2 ${subTab === 'jobs' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-100'}`}
+                className={`px-6 py-3 font-semibold text-sm transition-colors flex items-center gap-2 ${subTab === 'jobs' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-700 hover:bg-gray-100'}`}
               >
                 All Extracted Jobs 
                 <span className="bg-gray-200 text-gray-700 text-xs py-0.5 px-2 rounded-full">{allScrapedJobs.length}</span>
@@ -188,20 +188,20 @@ const LiveScraper = () => {
                             ) : '-'}
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`inline-flex items-center justify-center min-w-8 px-1.5 py-0.5 rounded-full text-xs font-medium ${r.jobsCount > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                            <span className={`inline-flex items-center justify-center min-w-8 px-1.5 py-0.5 rounded-full text-xs font-medium ${r.jobsCount > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
                               {r.jobsCount}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`inline-flex items-center justify-center min-w-8 px-1.5 py-0.5 rounded-full text-xs font-medium ${r.emailsCount > 0 ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-600'}`}>
+                            <span className={`inline-flex items-center justify-center min-w-8 px-1.5 py-0.5 rounded-full text-xs font-medium ${r.emailsCount > 0 ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-700'}`}>
                               {r.emailsCount}
                             </span>
                           </td>
                           <td className="px-4 py-3">
                             {r.success ? (
-                              <span className="text-green-600 font-medium">Success</span>
+                              <span className="text-green-700 font-medium">Success</span>
                             ) : (
-                              <span className="text-red-500 font-medium">Failed</span>
+                              <span className="text-red-700 font-medium">Failed</span>
                             )}
                           </td>
                         </tr>
@@ -248,7 +248,7 @@ const LiveScraper = () => {
                           </div>
                           
                           {job.description && (
-                            <div className="text-xs text-gray-600 mb-4 flex-grow">
+                            <div className="text-xs text-gray-700 mb-4 flex-grow">
                               <p className="line-clamp-3 leading-relaxed">{job.description}</p>
                             </div>
                           )}
@@ -257,7 +257,7 @@ const LiveScraper = () => {
                             <div className="mb-5 mt-auto pt-4 border-t border-gray-100">
                               <div className="flex flex-wrap gap-1.5">
                                 {job.skills.slice(0, 3).map((skill, sIdx) => (
-                                  <span key={sIdx} className="bg-gray-100 text-gray-600 text-[10px] px-2 py-1 rounded-md">{skill}</span>
+                                  <span key={sIdx} className="bg-gray-100 text-gray-700 text-[10px] px-2 py-1 rounded-md">{skill}</span>
                                 ))}
                                 {job.skills.length > 3 && (
                                   <span className="bg-gray-50 text-gray-400 text-[10px] px-2 py-1 rounded-md">+{job.skills.length - 3}</span>

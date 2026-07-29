@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   HiArrowLeft,
@@ -35,7 +35,7 @@ import { generateBreadcrumbSchema, generateJobPostingSchema } from "../utils/seo
 
 const BUDGET_LABELS = { fixed: "Fixed", hourly: "/hr", monthly: "/mo", negotiable: "Negotiable" };
 
-/* â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Main Page ───────────────────────────────────────────────────────────── */
 export default function JobDetail() {
   const { id: jobId } = useParams();
   const navigate = useNavigate();
@@ -99,7 +99,7 @@ export default function JobDetail() {
 
   const budgetText = job.budgetType === "negotiable"
     ? "Negotiable"
-    : `â‚¹${job.budgetMin?.toLocaleString()} â€“ â‚¹${job.budgetMax?.toLocaleString()} ${BUDGET_LABELS[job.budgetType] || ""}`.trim();
+    : `₹${job.budgetMin?.toLocaleString()} – ₹${job.budgetMax?.toLocaleString()} ${BUDGET_LABELS[job.budgetType] || ""}`.trim();
 
   const postedAgo = (() => {
     const d = Math.floor((Date.now() - new Date(job.createdAt)) / 86400000);
@@ -126,16 +126,16 @@ export default function JobDetail() {
       {/* Back bar */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-gray-900 transition">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 transition">
             <HiArrowLeft className="w-4 h-4" /> Back to Jobs
           </button>
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
-        {/* â”€â”€ Left Column â”€â”€ */}
+        {/* ── Left Column ── */}
         <div className="space-y-5">
 
-          {/* â”€â”€ Company Header â”€â”€ */}
+          {/* ── Company Header ── */}
           <div className="bg-white rounded-2xl border border-gray-100 p-0 shadow-sm overflow-hidden">
             <div className="p-6">
               <div className="flex items-start justify-between gap-4">
@@ -157,14 +157,14 @@ export default function JobDetail() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
-                      <span className="text-yellow-400">â˜…</span>
+                      <span className="text-yellow-400">★</span>
                       <span className="font-bold text-gray-700">4.6</span>
                       <span>(12.4K reviews)</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button onClick={() => handleShare("copy")} className="flex items-center gap-1.5 text-[13px] font-bold text-gray-600 hover:bg-gray-50 px-3 py-1.5 rounded-xl transition">
+                  <button onClick={() => handleShare("copy")} className="flex items-center gap-1.5 text-[13px] font-bold text-gray-700 hover:bg-gray-50 px-3 py-1.5 rounded-xl transition">
                     <HiShare className="w-4 h-4" /> Share
                   </button>
                 </div>
@@ -184,12 +184,12 @@ export default function JobDetail() {
 
                 {/* Skills */}
                 <div className="flex flex-wrap gap-2 mt-5">
-                  {job.skill && <span className="text-[12px] px-4 py-1.5 bg-gray-50 text-gray-600 rounded-full font-bold border border-gray-100">{job.skill}</span>}
+                  {job.skill && <span className="text-[12px] px-4 py-1.5 bg-gray-50 text-gray-700 rounded-full font-bold border border-gray-100">{job.skill}</span>}
                   {job.requirements?.slice(0, 4).map((r, i) => (
-                    <span key={i} className="text-[12px] px-4 py-1.5 bg-gray-50 text-gray-600 rounded-full font-bold border border-gray-100">{r}</span>
+                    <span key={i} className="text-[12px] px-4 py-1.5 bg-gray-50 text-gray-700 rounded-full font-bold border border-gray-100">{r}</span>
                   ))}
                   {job.requirements?.length > 4 && (
-                    <span className="text-[12px] px-4 py-1.5 bg-gray-50 text-gray-600 rounded-full font-bold border border-gray-100">+{job.requirements.length - 4}</span>
+                    <span className="text-[12px] px-4 py-1.5 bg-gray-50 text-gray-700 rounded-full font-bold border border-gray-100">+{job.requirements.length - 4}</span>
                   )}
                 </div>
                 
@@ -224,7 +224,7 @@ export default function JobDetail() {
             </div>
           </div>
 
-          {/* â”€â”€ Tab Content â”€â”€ */}
+          {/* ── Tab Content ── */}
           {activeTab === 'Overview' && (
             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-7">
               {/* Overview */}
@@ -237,7 +237,7 @@ export default function JobDetail() {
                 </h2>
                 {job.description && (
                   <div
-                    className="text-[14px] text-gray-600 leading-relaxed prose prose-sm max-w-none px-1"
+                    className="text-[14px] text-gray-700 leading-relaxed prose prose-sm max-w-none px-1"
                     dangerouslySetInnerHTML={{ __html: job.description.replace(/<img[^>]*>/g, '') }}
                   />
                 )}
@@ -254,7 +254,7 @@ export default function JobDetail() {
                       Requirements
                     </div>
                   </div>
-                  <p className="text-[13px] text-gray-600 mt-2 px-10">{job.requirements.join(", ")}</p>
+                  <p className="text-[13px] text-gray-700 mt-2 px-10">{job.requirements.join(", ")}</p>
                 </section>
               )}
 
@@ -269,7 +269,7 @@ export default function JobDetail() {
                       Benefits & Perks
                     </div>
                   </div>
-                  <ul className="text-[13px] text-gray-600 mt-2 px-10 list-disc list-inside">
+                  <ul className="text-[13px] text-gray-700 mt-2 px-10 list-disc list-inside">
                     {job.benefits.map((benefit, i) => (
                       <li key={i}>{benefit}</li>
                     ))}
@@ -295,7 +295,7 @@ export default function JobDetail() {
               </div>
               {job.companyDescription ? (
                 <div 
-                  className="text-[13px] text-gray-600 leading-relaxed"
+                  className="text-[13px] text-gray-700 leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: job.companyDescription.replace(/<img[^>]*>/g, '') }}
                 />
               ) : (
@@ -306,14 +306,14 @@ export default function JobDetail() {
 
         </div>
 
-        {/* â”€â”€ Right Column â”€â”€ */}
+        {/* ── Right Column ── */}
         <div className="space-y-4">
 
           {/* Share this job */}
           <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
             <h3 className="font-bold text-sm text-gray-900 mb-3">Share this job</h3>
             <div className="flex items-center gap-2">
-              <button onClick={() => handleShare("whatsapp")} className="w-9 h-9 flex items-center justify-center bg-green-50 hover:bg-green-100 border border-green-100 rounded-xl transition text-green-600">
+              <button onClick={() => handleShare("whatsapp")} className="w-9 h-9 flex items-center justify-center bg-green-50 hover:bg-green-100 border border-green-100 rounded-xl transition text-green-700">
                 <FaWhatsapp className="w-4 h-4" />
               </button>
               <button onClick={() => handleShare("linkedin")} className="w-9 h-9 flex items-center justify-center bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-xl transition text-blue-600">
@@ -322,7 +322,7 @@ export default function JobDetail() {
               <button onClick={() => handleShare("twitter")} className="w-9 h-9 flex items-center justify-center bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-xl transition text-sky-500">
                 <FaTwitter className="w-4 h-4" />
               </button>
-              <button onClick={() => handleShare("copy")} className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 px-3 py-2 rounded-xl transition flex-1 justify-center">
+              <button onClick={() => handleShare("copy")} className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-50 px-3 py-2 rounded-xl transition flex-1 justify-center">
                 Copy Link
               </button>
             </div>
@@ -333,7 +333,7 @@ export default function JobDetail() {
             <h3 className="font-bold text-sm text-gray-900 mb-3">Job Safety Tips</h3>
             <ul className="space-y-1.5">
               {["Verified company", "No registration fee", "No interview fee", "No payment required"].map((tip, i) => (
-                <li key={i} className="flex items-center gap-2 text-xs text-gray-600">
+                <li key={i} className="flex items-center gap-2 text-xs text-gray-700">
                   <HiShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> {tip}
                 </li>
               ))}

@@ -156,7 +156,7 @@ const JobSources = () => {
                           </div>
                         ))
                       ) : (
-                        <span className="font-bold text-gray-600">Global</span>
+                        <span className="font-bold text-gray-700">Global</span>
                       )}
                     </div>
                   </div>
@@ -169,13 +169,13 @@ const JobSources = () => {
                 {src.lastSyncAt && (
                   <div className="pt-4 border-t border-gray-50 flex items-center justify-between text-xs">
                     <span className="font-bold text-gray-400 flex items-center gap-1.5"><Activity className="w-3.5 h-3.5" /> Last Sync</span>
-                    <span className="font-bold text-gray-600">{new Date(src.lastSyncAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="font-bold text-gray-700">{new Date(src.lastSyncAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                 )}
                 
                 {src.lastError && (
                   <div className="mt-3 p-3 bg-red-50 border border-red-100 rounded-lg flex gap-2 items-start">
-                    <ShieldAlert className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                    <ShieldAlert className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
                     <p className="text-[11px] font-medium text-red-700 line-clamp-2">{src.lastError}</p>
                   </div>
                 )}

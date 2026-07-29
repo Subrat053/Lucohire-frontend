@@ -20,7 +20,7 @@ const RejectModal = ({ open, onClose, onReject, loading = false }) => {
           <button type="button" onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition" aria-label="Close modal"><X className="w-5 h-5 text-gray-400" aria-hidden="true" /></button>
         </div>
         <div className="px-6 py-5 space-y-3">
-          <label className="block text-sm font-medium text-gray-700">Reason for rejection <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-gray-700">Reason for rejection <span className="text-red-700">*</span></label>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}

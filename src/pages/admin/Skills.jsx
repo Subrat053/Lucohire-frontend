@@ -341,7 +341,7 @@ const AdminSkills = () => {
                       <div className="flex items-center gap-1 shrink-0">
                         {isEditing ? (
                           <>
-                            <button onClick={saveEditCat} title="Save" className="p-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition">
+                            <button onClick={saveEditCat} title="Save" className="p-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition">
                               <HiCheck className="w-4 h-4" />
                             </button>
                             <button onClick={() => setEditingCat(null)} title="Cancel" className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-500 transition">
@@ -423,7 +423,7 @@ const AdminSkills = () => {
                                     type="button"
                                     onClick={() => confirmDeleteSkill(cat, skill)}
                                     title="Remove skill"
-                                    className="text-stone-300 hover:text-red-500 transition"
+                                    className="text-stone-300 hover:text-red-700 transition"
                                   >
                                     <HiX className="w-3 h-3" />
                                   </button>

@@ -69,14 +69,14 @@ const RecruiterDiscovery = () => {
             <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mt-6 leading-tight">{t("Hire Top Talent,")}<br className="hidden md:block" />
               <span className="text-purple-600">{t("Faster & Smarter")}</span>
             </h1>
-            <p className="text-xl text-gray-600 mt-4 leading-relaxed">{t(
+            <p className="text-xl text-gray-700 mt-4 leading-relaxed">{t(
               "Post a job for free and let our AI match you with the best candidates in your industry instantly."
             )}</p>
           </div>
 
           <div className="space-y-5">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 bg-green-100 text-green-700 rounded-full flex items-center justify-center shrink-0">
                 <FiCheckCircle className="w-5 h-5" />
               </div>
               <div>
@@ -210,7 +210,7 @@ const RecruiterDiscovery = () => {
                   <button 
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 focus:outline-none"
                   >
                     {showPassword ? <FiEyeOff /> : <FiEye />}
                   </button>
@@ -227,7 +227,7 @@ const RecruiterDiscovery = () => {
               )}</p>
 
               <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-700">
                   Already have an account?{' '}
                   <button 
                     type="button" 

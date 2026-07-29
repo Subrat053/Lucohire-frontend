@@ -540,7 +540,7 @@ const AdminPlans = () => {
                           className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition flex items-center gap-1 ${
                             isSelected
                               ? 'bg-indigo-50 text-indigo-700 border-blue-300'
-                              : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                              : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
                           }`}
                         >
                           {c.countryName} ({c.countryCode})
@@ -609,7 +609,7 @@ const AdminPlans = () => {
                               countryPricing: f.countryPricing.filter((_, i) => i !== idx)
                             }));
                           }}
-                          className="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded-lg"
+                          className="absolute top-2 right-2 text-red-700 hover:text-red-700 p-1 hover:bg-red-50 rounded-lg"
                         >
                           <HiTrash className="w-4 h-4" />
                         </button>
@@ -866,7 +866,7 @@ const AdminPlans = () => {
                     <input value={f} onChange={e => updateFeature(i, e.target.value)} placeholder={`Feature ${i + 1}`}
                       className="flex-1 px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
                     {form.features.length > 1 && (
-                      <button type="button" onClick={() => removeFeature(i)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><HiTrash className="w-4 h-4" /></button>
+                      <button type="button" onClick={() => removeFeature(i)} className="p-2 text-red-700 hover:bg-red-50 rounded-lg"><HiTrash className="w-4 h-4" /></button>
                     )}
                   </div>
                 ))}
@@ -947,7 +947,7 @@ const AdminPlans = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
             <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-50 mx-auto mb-4">
-              <HiTrash className="w-7 h-7 text-red-500" />
+              <HiTrash className="w-7 h-7 text-red-700" />
             </div>
             <h3 className="text-lg font-bold text-gray-900 text-center mb-1">Delete Plan</h3>
             <p className="text-sm text-gray-500 text-center mb-1">
@@ -1003,7 +1003,7 @@ const PlanCard = ({ plan, formatPrice, openEdit, handleDelete, isLanding }) => (
               {plan.countryPricing.filter(cp => cp.isActive).length} Active
             </span>
           </div>
-          <div className="space-y-1 text-gray-600">
+          <div className="space-y-1 text-gray-700">
             {plan.countryPricing.map((cp, idx) => (
               <div key={idx} className="flex justify-between items-center">
                 <span>{cp.countryName || cp.countryCode}:</span>
@@ -1034,7 +1034,7 @@ const PlanCard = ({ plan, formatPrice, openEdit, handleDelete, isLanding }) => (
 
       <ul className="mt-3 space-y-1 text-sm">
         {plan.features?.map((f, i) => (
-          <li key={i} className="flex items-start gap-2 text-gray-600">
+          <li key={i} className="flex items-start gap-2 text-gray-700">
             <HiCheck className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> {f}
           </li>
         ))}

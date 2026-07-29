@@ -15,7 +15,7 @@ const RecruiterPendingApproval = () => {
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{t("Recruiter Approval Pending")}</h1>
-        <p className="text-gray-600 text-sm mb-6">{t(
+        <p className="text-gray-700 text-sm mb-6">{t(
           "Your recruiter account is under admin review. You can edit your profile and plans, but hiring actions will be enabled only after approval."
         )}</p>
 

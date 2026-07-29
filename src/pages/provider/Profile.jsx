@@ -314,7 +314,7 @@ const Chip = ({ label, onRemove }) => (
       <button
         type="button"
         onClick={onRemove}
-        className="text-gray-400 hover:text-red-500 transition leading-none text-base"
+        className="text-gray-400 hover:text-red-700 transition leading-none text-base"
       >
         ×
       </button>
@@ -2422,7 +2422,7 @@ const ProviderProfile = () => {
                      <div className="space-y-4">
                        {form.previousExperience?.map((exp, i) => (
                          <div key={i} className="relative grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border border-slate-100 rounded-xl bg-slate-50">
-                           <button type="button" onClick={() => setForm({ ...form, previousExperience: form.previousExperience.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
+                           <button type="button" onClick={() => setForm({ ...form, previousExperience: form.previousExperience.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-700">&times;</button>
                            
                            <div className="sm:col-span-1">
                              <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Company Name")}</label>
@@ -2458,7 +2458,7 @@ const ProviderProfile = () => {
                      <div className="space-y-4">
                        {form.projects?.map((proj, i) => (
                          <div key={i} className="border border-slate-200 rounded-xl p-4 relative bg-slate-50">
-                           <button type="button" onClick={() => setForm({ ...form, projects: form.projects.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
+                           <button type="button" onClick={() => setForm({ ...form, projects: form.projects.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-700">&times;</button>
                            <div className="grid grid-cols-2 gap-4">
                              <div className="col-span-2">
                                <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Project Name")}</label>
@@ -2501,7 +2501,7 @@ const ProviderProfile = () => {
                      <div className="space-y-4">
                        {form.education?.map((edu, i) => (
                          <div key={i} className="border border-slate-200 rounded-xl p-4 relative">
-                           <button type="button" onClick={() => setForm({ ...form, education: form.education.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
+                           <button type="button" onClick={() => setForm({ ...form, education: form.education.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-700">&times;</button>
                            <div className="grid grid-cols-2 gap-4">
                              <div>
                                <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Institution")}</label>
@@ -2536,7 +2536,7 @@ const ProviderProfile = () => {
                     <div className="space-y-4">
                       {form.certifications?.map((cert, i) => (
                         <div key={i} className="border border-slate-200 rounded-xl p-4 relative">
-                          <button type="button" onClick={() => setForm({ ...form, certifications: form.certifications.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
+                          <button type="button" onClick={() => setForm({ ...form, certifications: form.certifications.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-700">&times;</button>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Certification Name")}</label>
@@ -2567,7 +2567,7 @@ const ProviderProfile = () => {
                     <div className="space-y-4">
                       {form.achievements?.map((ach, i) => (
                         <div key={i} className="border border-slate-200 rounded-xl p-4 relative">
-                          <button type="button" onClick={() => setForm({ ...form, achievements: form.achievements.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
+                          <button type="button" onClick={() => setForm({ ...form, achievements: form.achievements.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-700">&times;</button>
                           <div className="grid grid-cols-1 gap-4">
                             <div>
                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Title")}</label>
@@ -2599,7 +2599,7 @@ const ProviderProfile = () => {
                      <div className="space-y-4">
                        {form.portfolioLinks?.map((link, i) => (
                          <div key={i} className="border border-slate-200 rounded-xl p-4 relative">
-                           <button type="button" onClick={() => setForm({ ...form, portfolioLinks: form.portfolioLinks.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-500">&times;</button>
+                           <button type="button" onClick={() => setForm({ ...form, portfolioLinks: form.portfolioLinks.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-700">&times;</button>
                            
                            {link.status && link.status !== 'pending' && (
                              <div className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 inline-block rounded mb-3 ${link.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
@@ -2939,7 +2939,7 @@ const ProviderProfile = () => {
                    <button type="button" onClick={() => setShowErasureModal(true)} className="flex items-center justify-between py-3.5 hover:bg-red-50 -mx-6 px-6 transition-colors group">
                      <div className="flex items-center gap-3">
                        <Trash2 className="w-[18px] h-[18px] text-red-400 group-hover:text-red-600 transition-colors" />
-                       <span className="text-[13px] font-bold text-red-500 group-hover:text-red-700 transition-colors">{t("Delete Account")}</span>
+                       <span className="text-[13px] font-bold text-red-700 group-hover:text-red-700 transition-colors">{t("Delete Account")}</span>
                      </div>
                      <ChevronDown className="w-4 h-4 text-slate-300 transform -rotate-90 group-hover:text-red-600 transition-colors" />
                    </button>
@@ -3065,15 +3065,15 @@ const ProviderProfile = () => {
 
               <div className="w-full bg-red-50 p-4 rounded-xl text-left border border-red-100 mb-6 space-y-3">
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-red-700 mt-0.5 shrink-0" />
                   <span className="text-xs font-semibold text-red-800">{t("All data removed. No backup available.")}</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-red-700 mt-0.5 shrink-0" />
                   <span className="text-xs font-semibold text-red-800">{t("No storage maintained on our servers.")}</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-red-700 mt-0.5 shrink-0" />
                   <span className="text-xs font-semibold text-red-800">{t("Lucohire is not responsible for data loss.")}</span>
                 </div>
               </div>
@@ -3154,7 +3154,7 @@ const ProviderProfile = () => {
                   rel="noopener noreferrer"
                   className="flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-100 hover:border-violet-100 hover:bg-violet-50/30 transition-all duration-200 group"
                 >
-                  <div className="w-10 h-10 rounded-full bg-[#25D366]/10 text-[#25D366] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                  <div className="w-10 h-10 rounded-full bg-[#075E54]/10 text-[#075E54] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
                     <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                       <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436.002 9.858-4.41 9.86-9.85.001-2.636-1.02-5.115-2.875-6.973-1.854-1.859-4.326-2.882-6.966-2.883-5.438 0-9.862 4.412-9.865 9.853-.001 1.765.46 3.49 1.336 5.01l-.988 3.6 3.693-.968zm10.741-6.98c-.28-.14-1.65-.815-1.905-.907-.255-.093-.44-.139-.626.14-.185.28-.718.907-.88 1.092-.163.186-.325.21-.605.07-.28-.14-1.18-.435-2.247-1.388-.83-.74-1.388-1.653-1.55-1.93-.163-.28-.018-.43.122-.57.126-.127.28-.326.42-.489.14-.163.186-.28.28-.465.093-.186.046-.35-.023-.49-.07-.14-.626-1.507-.858-2.065-.226-.54-.452-.465-.626-.475-.162-.008-.348-.01-.533-.01-.186 0-.488.07-.743.35-.255.28-.975.953-.975 2.326 0 1.373 1 2.7 1.14 2.885.14.186 1.967 3.003 4.76 4.21.665.286 1.184.457 1.587.585.67.213 1.277.183 1.757.11.536-.08 1.65-.674 1.884-1.326.233-.652.233-1.21.163-1.325-.07-.11-.255-.21-.536-.35z" />
                     </svg>

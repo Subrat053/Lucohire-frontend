@@ -41,7 +41,7 @@ const EnquiryDetailModal = ({ enquiry, onClose }) => {
             </div>
             <div className="space-y-1">
               <label className="text-xs font-bold text-indigo-500 uppercase tracking-wider">Email</label>
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex items-center gap-2 text-gray-700">
                 <HiMail className="text-indigo-400" />
                 <a href={`mailto:${enquiry.email}`} className="hover:text-indigo-600 hover:underline transition">
                   {enquiry.email}
@@ -50,7 +50,7 @@ const EnquiryDetailModal = ({ enquiry, onClose }) => {
             </div>
             <div className="space-y-1">
               <label className="text-xs font-bold text-indigo-500 uppercase tracking-wider">Phone</label>
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex items-center gap-2 text-gray-700">
                 <HiPhone className="text-indigo-400" />
                 {enquiry.phone || 'N/A'}
               </div>

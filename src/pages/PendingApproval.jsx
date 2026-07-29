@@ -20,7 +20,7 @@ const PendingApproval = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
           {isRejected ? 'Approval Rejected' : 'Approval Pending'}
         </h1>
-        <p className="text-gray-600 text-sm mb-6">
+        <p className="text-gray-700 text-sm mb-6">
           {isRejected
             ? `Your ${roleLabel} account request was rejected.`
             : `Your ${roleLabel} account is under manager/admin review. Panel access will be enabled after approval.`}

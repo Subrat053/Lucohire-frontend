@@ -138,7 +138,7 @@ const HealthDashboard = () => {
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                   dateFilterMode === btn.id
                     ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/60'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-200/60'
                 }`}
               >
                 {btn.label}
@@ -206,7 +206,7 @@ const HealthDashboard = () => {
           label="BullMQ Status" 
           value={metrics.infrastructure.queues.status === 'active' ? 'Active' : 'Disabled'} 
           bgClass={metrics.infrastructure.queues.status === 'active' ? 'bg-emerald-50' : 'bg-red-50'}
-          colorClass={metrics.infrastructure.queues.status === 'active' ? 'text-emerald-500' : 'text-red-500'}
+          colorClass={metrics.infrastructure.queues.status === 'active' ? 'text-emerald-500' : 'text-red-700'}
           sparklineColor={metrics.infrastructure.queues.status === 'active' ? '#10B981' : '#EF4444'}
         />
         <DashboardStatsCard 

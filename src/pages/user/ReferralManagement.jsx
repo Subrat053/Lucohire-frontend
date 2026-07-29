@@ -215,7 +215,7 @@ const ReferralManagement = () => {
       {/* Header Section */}
       <div className="mb-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Refer & Earn</h1>
-        <p className="text-gray-600">
+        <p className="text-gray-700">
           Invite your friends to ServiceHub and earn commission on their first
           subscription.
         </p>
@@ -238,7 +238,7 @@ const ReferralManagement = () => {
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center space-x-4">
-          <div className="p-3 bg-green-50 rounded-xl text-green-600">
+          <div className="p-3 bg-green-50 rounded-xl text-green-700">
             <Wallet size={24} />
           </div>
           <div>
@@ -330,13 +330,13 @@ const ReferralManagement = () => {
               <div className="flex bg-gray-100 p-1 rounded-xl w-fit">
                 <button
                   onClick={() => setPayoutMethod("bank")}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${payoutMethod === "bank" ? "bg-white shadow text-emerald-600" : "text-gray-600 hover:text-gray-900"}`}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${payoutMethod === "bank" ? "bg-white shadow text-emerald-600" : "text-gray-700 hover:text-gray-900"}`}
                 >
                   Bank
                 </button>
                 <button
                   onClick={() => setPayoutMethod("upi")}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${payoutMethod === "upi" ? "bg-white shadow text-emerald-600" : "text-gray-600 hover:text-gray-900"}`}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${payoutMethod === "upi" ? "bg-white shadow text-emerald-600" : "text-gray-700 hover:text-gray-900"}`}
                 >
                   UPI
                 </button>
@@ -469,7 +469,7 @@ const ReferralManagement = () => {
                 )}
 
                 {isPhoneVerified && (
-                  <div className="flex items-center text-green-600 text-sm font-bold bg-green-50 px-3 py-2 rounded-lg">
+                  <div className="flex items-center text-green-700 text-sm font-bold bg-green-50 px-3 py-2 rounded-lg">
                     <Check size={16} className="mr-1" /> Phone Verified
                     Successfully
                   </div>

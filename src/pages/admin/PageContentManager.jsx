@@ -96,7 +96,7 @@ export default function PageContentManager() {
                 className={`px-4 py-2 text-sm font-medium rounded-md transition ${
                   activePage === page.key 
                     ? 'bg-white text-blue-700 shadow-sm border border-gray-200' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    : 'text-gray-700 hover:text-gray-900'
                 }`}
               >
                 {page.label}

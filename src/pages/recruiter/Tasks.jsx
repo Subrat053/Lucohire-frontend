@@ -100,7 +100,7 @@ const TaskCard = ({ task, isOverlay, jobs, onMoveTask }) => {
               {getInitials(task.candidateName)}
             </div>
           )}
-          <div className="text-xs font-medium text-gray-600 truncate">
+          <div className="text-xs font-medium text-gray-700 truncate">
             {task.candidateName ? `${task.candidateName} ` : ''}
             {associatedJob && (
               <>
@@ -150,7 +150,7 @@ const Column = ({ title, count, colorClass, status, tasks, jobs, onMoveTask }) =
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${colorClass}`}></div>
           <h3 className="font-bold text-gray-900">{title}</h3>
-          <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>
+          <span className="bg-gray-100 text-gray-700 text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>
         </div>
       </div>
       <div className="flex-1 lg:overflow-y-auto space-y-3 pr-2 custom-scrollbar pb-10">
@@ -330,7 +330,7 @@ const Tasks = () => {
             <div className="flex-1 overflow-y-auto p-2 space-y-1">
               <button 
                 onClick={() => setSelectedJob('All')}
-                className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-between ${selectedJob === 'All' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-between ${selectedJob === 'All' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'}`}
               >
                 <div className="flex items-center gap-2"><FiList className="w-4 h-4" />{t("All Reminders")}</div>
                 <span className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full">{tasks.length}</span>
@@ -338,7 +338,7 @@ const Tasks = () => {
               
               <button 
                 onClick={() => setSelectedJob('General')}
-                className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-between ${selectedJob === 'General' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-between ${selectedJob === 'General' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'}`}
               >
                 <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-gray-200"></div>{t("General")}</div>
                 <span className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full">
@@ -354,7 +354,7 @@ const Tasks = () => {
                   <button 
                     key={job._id}
                     onClick={() => setSelectedJob(job._id)}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-between ${selectedJob === job._id ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-between ${selectedJob === job._id ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'}`}
                   >
                     <div className="truncate pr-2">{job.title}</div>
                     <span className={`${selectedJob === job._id ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'} text-[10px] px-2 py-0.5 rounded-full shrink-0`}>
@@ -391,7 +391,7 @@ const Tasks = () => {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
             <div className="flex justify-between items-center p-5 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-900">{t("Create New Task")}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-700">
                 <FiX className="w-5 h-5" />
               </button>
             </div>
@@ -451,7 +451,7 @@ const Tasks = () => {
                 </div>
               </div>
               <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg">{t("Cancel")}</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">{t("Cancel")}</button>
                 <button type="submit" className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg">{t("Create Task")}</button>
               </div>
             </form>

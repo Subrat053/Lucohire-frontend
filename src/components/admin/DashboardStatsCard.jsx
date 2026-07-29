@@ -16,7 +16,7 @@ const DashboardStatsCard = ({ icon: Icon, label, value, trend, trendLabel, color
           
           {trend !== undefined && trend !== null && (
             <div className="flex items-center gap-1 mt-1 text-[10px] font-semibold">
-              <span className={`flex items-center gap-0.5 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+              <span className={`flex items-center gap-0.5 ${isPositive ? 'text-green-700' : 'text-red-600'}`}>
                 {isPositive ? <HiTrendingUp className="w-3 h-3" /> : <HiTrendingDown className="w-3 h-3" />}
                 {isPositive ? '+' : ''}{trend}%
               </span>

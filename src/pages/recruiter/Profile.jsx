@@ -24,7 +24,7 @@ import { validateUploadFile } from '../../utils/fileValidationService';
 const InputField = ({ label, required, children }) => (
   <div>
     <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-      {label} {required && <span className="text-red-500">*</span>}
+      {label} {required && <span className="text-red-700">*</span>}
     </label>
     {children}
   </div>
@@ -261,7 +261,7 @@ const RecruiterProfile = () => {
             onClick={() => navigate('/recruiter/dashboard')}
             className="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition"
           >
-            <HiArrowLeft className="w-5 h-5 text-gray-600" />
+            <HiArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
           <div>
             <h1 className="text-2xl font-extrabold text-gray-900">{t("Edit Profile")}</h1>
@@ -284,7 +284,7 @@ const RecruiterProfile = () => {
                     {displayPhoto ? (
                       <img src={displayPhoto} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
-                      <FaUserTie className="w-8 h-8 text-blue-400" />
+                      <FaUserTie className="w-8 h-8 text-blue-700" />
                     )}
                   </div>
                   {uploading && (
@@ -310,7 +310,7 @@ const RecruiterProfile = () => {
                     </div>
                   )}
                   {savedPhoto && profile?.profilePhotoApproval?.status !== 'pending' && (
-                    <span className="inline-flex items-center gap-1 mt-1.5 text-xs text-green-600 font-medium">
+                    <span className="inline-flex items-center gap-1 mt-1.5 text-xs text-green-700 font-medium">
                       <HiCheckCircle className="w-3.5 h-3.5" />{t("Photo saved")}</span>
                   )}
                   <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
@@ -549,7 +549,7 @@ const RecruiterProfile = () => {
             <button
               type="button"
               onClick={() => navigate('/recruiter/dashboard')}
-              className="flex-1 border-2 border-gray-200 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition text-sm"
+              className="flex-1 border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition text-sm"
             >{t("Cancel")}</button>
             <button
               type="submit"

@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 const typeConfig = {
   profile_view: { label: 'Profile View', icon: HiEye, color: 'bg-teal-100 text-teal-600' },
   search: { label: 'Search Appearance', icon: HiSearch, color: 'bg-amber-100 text-amber-600' },
-  contact_unlock: { label: 'Contact Unlocked', icon: HiLockOpen, color: 'bg-green-100 text-green-600' },
+  contact_unlock: { label: 'Contact Unlocked', icon: HiLockOpen, color: 'bg-green-100 text-green-700' },
   job_match: { label: 'Job Match', icon: HiClock, color: 'bg-teal-100 text-teal-600' },
 };
 
@@ -73,7 +73,7 @@ const ProviderHistory = () => {
             className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
               activeTab === 'payments'
                 ? 'bg-white text-emerald-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-700 hover:text-gray-900'
             }`}
           >
             {t("Payment History")}
@@ -83,7 +83,7 @@ const ProviderHistory = () => {
             className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
               activeTab === 'activity'
                 ? 'bg-white text-emerald-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-700 hover:text-gray-900'
             }`}
           >
             {t("Activity Logs")}

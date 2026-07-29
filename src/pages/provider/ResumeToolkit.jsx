@@ -484,7 +484,7 @@ export default function ResumeToolkit() {
                     <>
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <h4 className="text-xs font-bold text-gray-900 leading-snug">{t(sug.title)}</h4>
-                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap ${sug.impact === 'High Impact' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap ${sug.impact === 'High Impact' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'}`}>
                           {t(sug.impact)}
                         </span>
                       </div>
@@ -548,7 +548,7 @@ export default function ResumeToolkit() {
             {['Resume score updates', 'Profile views by recruiters', 'New job matches', 'Application tips & reminders'].map((item) => (
               <div key={item} className="flex items-start gap-2">
                 <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-[11px] text-gray-600">{t(item)}</span>
+                <span className="text-[11px] text-gray-700">{t(item)}</span>
               </div>
             ))}
           </div>

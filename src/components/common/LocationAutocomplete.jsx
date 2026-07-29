@@ -453,7 +453,7 @@ const LocationAutocomplete = ({
     <div ref={containerRef} className={`relative flex flex-col w-full ${className}`}>
       {label && (
         <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">
-          {label} {required && <span className="text-red-500">*</span>}
+          {label} {required && <span className="text-red-700">*</span>}
         </label>
       )}
 
@@ -510,7 +510,7 @@ const LocationAutocomplete = ({
       </div>
 
       {error && (
-        <span className="text-xs text-red-500 mt-1 flex items-center gap-1 font-medium">
+        <span className="text-xs text-red-700 mt-1 flex items-center gap-1 font-medium">
           <HiExclamationCircle className="w-3.5 h-3.5" />
           {error}
         </span>

@@ -234,7 +234,7 @@ const BulkCrawlerPanel = () => {
 
         {error && (
           <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <AlertCircle className="w-5 h-5 text-red-700 flex-shrink-0" />
             <p className="text-xs font-semibold text-red-700">{error}</p>
           </div>
         )}
@@ -310,7 +310,7 @@ const BulkCrawlerPanel = () => {
                         {item.status === 'crawling' && <Loader2 className="w-4 h-4 text-indigo-500 animate-spin" />}
                         {item.status === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
                         {item.status === 'pending' && <Clock className="w-4 h-4 text-gray-400" />}
-                        {(item.status === 'failed' || item.status === 'error') && <AlertCircle className="w-4 h-4 text-red-500" />}
+                        {(item.status === 'failed' || item.status === 'error') && <AlertCircle className="w-4 h-4 text-red-700" />}
                         
                         <div>
                           <p className="text-xs font-bold text-gray-900">{item.company}</p>
@@ -319,7 +319,7 @@ const BulkCrawlerPanel = () => {
                               {item.careerUrl}
                             </a>
                           )}
-                          {item.error && <p className="text-[10px] text-red-500 mt-0.5">{item.error}</p>}
+                          {item.error && <p className="text-[10px] text-red-700 mt-0.5">{item.error}</p>}
                         </div>
                       </div>
                       
@@ -449,14 +449,14 @@ const BulkCrawlerPanel = () => {
                 <button
                   onClick={() => fetchHistory(page - 1)}
                   disabled={page === 1}
-                  className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                  className="p-1.5 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => fetchHistory(page + 1)}
                   disabled={page === totalPages}
-                  className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                  className="p-1.5 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>

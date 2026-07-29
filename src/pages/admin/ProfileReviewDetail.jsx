@@ -255,7 +255,7 @@ const SectionCard = ({
               {link.status === 'pending' && profileId && (
                 <div className="flex items-center gap-2 shrink-0">
                   <button onClick={() => onApprovePortfolioLink(profileId, link._id)}
-                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition">
+                    className="px-3 py-1.5 bg-green-700 hover:bg-green-800 text-white text-xs font-semibold rounded-lg transition">
                     Approve Link
                   </button>
                   <button onClick={() => onRejectPortfolioLink(profileId, link._id)}
@@ -323,7 +323,7 @@ const SectionCard = ({
                 <div className="flex flex-wrap gap-1.5">
                   {uniqueItems.map((area, i) => (
                     <span key={i} className="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200/80 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                      <MapPin className="w-3.5 h-3.5 text-blue-700 shrink-0" />
                       {area}
                     </span>
                   ))}
@@ -388,7 +388,7 @@ const SectionCard = ({
         <div className="flex items-center flex-wrap gap-2 mt-2">
           {section.status !== 'approved' && (
             <button onClick={handleApprove} disabled={loading}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition disabled:opacity-50">
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-green-700 hover:bg-green-800 text-white text-xs font-semibold rounded-lg transition disabled:opacity-50">
               <CheckCircle2 className="w-3.5 h-3.5" /> Approve
             </button>
           )}
@@ -400,7 +400,7 @@ const SectionCard = ({
           )}
           {!isPhoneOrEmail && section.key !== 'skills' && (
             <button onClick={() => setShowRemarkInput(v => !v)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
               <MessageSquare className="w-3.5 h-3.5" /> Remark
             </button>
           )}
@@ -423,7 +423,7 @@ const SectionCard = ({
               Mark for Correction
             </button>
             <button onClick={() => setShowRejectInput(false)}
-              className="px-4 py-1.5 text-xs text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+              className="px-4 py-1.5 text-xs text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
               Cancel
             </button>
           </div>
@@ -443,7 +443,7 @@ const SectionCard = ({
               Add Remark
             </button>
             <button onClick={() => setShowRemarkInput(false)}
-              className="px-4 py-1.5 text-xs text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+              className="px-4 py-1.5 text-xs text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
               Cancel
             </button>
           </div>
@@ -476,7 +476,7 @@ const SectionCard = ({
 /* ── Activity Log Item ────────────────────────────────────────────── */
 const ActivityItem = ({ log, isLast }) => {
   const iconMap = {
-    approved: { icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
+    approved: { icon: CheckCircle2, color: 'text-green-700', bg: 'bg-green-50' },
     rejected: { icon: XCircle, color: 'text-red-600', bg: 'bg-red-50' },
     remark_added: { icon: MessageSquare, color: 'text-purple-600', bg: 'bg-purple-50' },
     correction_email_sent: { icon: Send, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -678,7 +678,7 @@ export default function ProfileReviewDetail() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate('/admin/profile-approvals')}
-              className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition">
+              className="flex items-center gap-1.5 text-sm text-gray-700 hover:text-gray-900 transition">
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Back to Approvals</span>
             </button>
@@ -687,7 +687,7 @@ export default function ProfileReviewDetail() {
           </div>
           <div className="flex items-center gap-2">
             <button onClick={fetchDetail}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
+              className="flex items-center gap-1.5 px-3 py-2 text-xs text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
               <RefreshCw className="w-3.5 h-3.5" /> Refresh
             </button>
             <button onClick={() => setShowEmailModal(true)}
@@ -715,12 +715,12 @@ export default function ProfileReviewDetail() {
                   <div className="flex flex-wrap gap-1">
                     {Array.isArray(user.roles) ? Array.from(new Set(user.roles)).map(r => (
                       <span key={r} className={`text-2xs font-semibold px-2 py-0.5 rounded-full border capitalize
-                        ${ROLE_BADGE[r] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                        ${ROLE_BADGE[r] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
                         {r === 'provider' ? 'Provider' : r}
                       </span>
                     )) : (
                       <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full border capitalize
-                        ${ROLE_BADGE[user.primaryRole] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                        ${ROLE_BADGE[user.primaryRole] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
                         {user.primaryRole === 'provider' ? 'Provider' : user.primaryRole}
                       </span>
                     )}
@@ -744,7 +744,7 @@ export default function ProfileReviewDetail() {
                       <span className="font-bold text-gray-400 uppercase tracking-wider block mb-1">Previous Numbers:</span>
                       {user.phoneHistory.map((historyItem, idx) => (
                         <div key={idx} className="flex flex-col leading-tight border-b border-gray-50 pb-1 last:border-0 last:pb-0">
-                          <span className="font-semibold text-gray-600">{historyItem.phone}</span>
+                          <span className="font-semibold text-gray-700">{historyItem.phone}</span>
                           <span className="text-[9px] text-gray-400">
                             {new Date(historyItem.changedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </span>
@@ -776,7 +776,7 @@ export default function ProfileReviewDetail() {
                     <div className="w-2 h-2 rounded-full bg-green-500" />
                     <span className="text-gray-500 font-medium">Approved</span>
                   </div>
-                  <span className="font-bold text-green-600">{approvedCount}</span>
+                  <span className="font-bold text-green-700">{approvedCount}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-1.5">
@@ -830,7 +830,7 @@ export default function ProfileReviewDetail() {
           ].map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`px-4 py-2 text-sm font-semibold rounded-xl transition
-                ${activeTab === tab.key ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>
+                ${activeTab === tab.key ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'}`}>
               {tab.label}
             </button>
           ))}
@@ -903,7 +903,7 @@ export default function ProfileReviewDetail() {
             <div className="mb-4 space-y-2 max-h-48 overflow-y-auto">
               {sections.filter(s => s.status === 'rejected').map(s => (
                 <div key={s.key} className="flex items-start gap-2.5 px-3 py-2 bg-red-50 rounded-lg border border-red-100">
-                  <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                  <XCircle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-semibold text-red-800">{s.label}</p>
                     {s.remarks?.length > 0 && (

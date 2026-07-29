@@ -39,7 +39,7 @@ export default function ContactLogs() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600">
+          <table className="w-full text-left text-sm text-gray-700">
             <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
               <tr>
                 <th className="px-6 py-4">User (Clicker)</th>
@@ -111,7 +111,7 @@ export default function ContactLogs() {
         {/* Pagination */}
         {pagination.pages > 1 && (
           <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-700">
               Page {page} of {pagination.pages}
             </span>
             <div className="flex gap-2">

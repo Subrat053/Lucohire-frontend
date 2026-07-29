@@ -766,7 +766,7 @@ const AdminCommissionSettings = () => {
                   <span>Provider Share ({100 - platformCommissionPercentage}%)</span>
                   <span>+₹{simProviderShare.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-xs text-blue-400 font-semibold">
+                <div className="flex justify-between text-xs text-blue-700 font-semibold">
                   <span>Gross Platform Cut ({platformCommissionPercentage}%)</span>
                   <span>+₹{simPlatformCut.toFixed(2)}</span>
                 </div>

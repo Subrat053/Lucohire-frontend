@@ -88,8 +88,8 @@ const CascadeLocationSelect = ({
       {/* ── Country ── */}
       <div>
         {showLabels && (
-          <label className="block text-xs font-semibold text-gray-600 mb-1">
-            Country {required && <span className="text-red-500">*</span>}
+          <label className="block text-xs font-semibold text-gray-700 mb-1">
+            Country {required && <span className="text-red-700">*</span>}
           </label>
         )}
         <select
@@ -115,7 +115,7 @@ const CascadeLocationSelect = ({
       {/* ── State ── */}
       <div>
         {showLabels && (
-          <label className="block text-xs font-semibold text-gray-600 mb-1">
+          <label className="block text-xs font-semibold text-gray-700 mb-1">
             State / Province
           </label>
         )}
@@ -147,7 +147,7 @@ const CascadeLocationSelect = ({
       {/* ── City ── */}
       <div>
         {showLabels && (
-          <label className="block text-xs font-semibold text-gray-600 mb-1">
+          <label className="block text-xs font-semibold text-gray-700 mb-1">
             City
           </label>
         )}

@@ -121,10 +121,10 @@ const ProfilePage = () => {
             <h1 className="text-2xl font-bold text-gray-900">{data.user?.name}</h1>
             <p className="text-sm text-gray-500 capitalize">{data.user?.role} {t('common.profile', 'profile')}</p>
             {data.profile?.city ? (
-              <p className="text-sm text-gray-600 mt-1 flex items-center gap-1"><HiLocationMarker className="w-4 h-4" /> {data.profile.city}</p>
+              <p className="text-sm text-gray-700 mt-1 flex items-center gap-1"><HiLocationMarker className="w-4 h-4" /> {data.profile.city}</p>
             ) : null}
             {profileType === 'recruiter' && data.profile?.companyName ? (
-              <p className="text-sm text-gray-600 mt-1 flex items-center gap-1"><HiOfficeBuilding className="w-4 h-4" /> {data.profile.companyName}</p>
+              <p className="text-sm text-gray-700 mt-1 flex items-center gap-1"><HiOfficeBuilding className="w-4 h-4" /> {data.profile.companyName}</p>
             ) : null}
           </div>
           {isOwner ? (

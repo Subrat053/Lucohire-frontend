@@ -22,7 +22,7 @@ const ROLE_BADGE = {
 
 const STATUS_BADGE = {
   pending:  'bg-amber-50 text-amber-600 border-amber-200',
-  approved: 'bg-green-50 text-green-600 border-green-200',
+  approved: 'bg-green-50 text-green-700 border-green-200',
   rejected: 'bg-red-50 text-red-600 border-red-200',
   none:     'bg-gray-50 text-gray-500 border-gray-200',
 };
@@ -227,13 +227,13 @@ const ResumeApprovals = () => {
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
                   ${isActive
                     ? 'bg-purple-600 text-white shadow-sm shadow-purple-200'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-700 hover:bg-gray-100'
                   }`}
               >
                 {tab.label}
                 {count !== undefined && (
                   <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold
-                    ${isActive ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                    ${isActive ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'}`}>
                     {count}
                   </span>
                 )}
@@ -245,7 +245,7 @@ const ResumeApprovals = () => {
         {/* ── Stats Cards ─────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard icon={Clock} iconBg="bg-amber-100 text-amber-600" label="Pending Review" value={stats.pendingReview} />
-          <StatsCard icon={CheckCircle2} iconBg="bg-green-100 text-green-600" label="Approved" value={stats.approved} />
+          <StatsCard icon={CheckCircle2} iconBg="bg-green-100 text-green-700" label="Approved" value={stats.approved} />
           <StatsCard icon={XCircle} iconBg="bg-red-100 text-red-600" label="Rejected" value={stats.rejected} />
           <StatsCard icon={Users} iconBg="bg-purple-100 text-purple-600" label="Total Profiles" value={stats.totalProfiles} />
         </div>
@@ -269,7 +269,7 @@ const ResumeApprovals = () => {
               onKeyDown={(e) => e.key === 'Enter' && handleApplyFilters()}
               placeholder="Search profiles..." className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-purple-300" />
           </div>
-          <button onClick={handleReset} className="flex items-center gap-1.5 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition">
+          <button onClick={handleReset} className="flex items-center gap-1.5 px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition">
             <RotateCcw className="w-3.5 h-3.5" /> Reset
           </button>
           <button onClick={handleApplyFilters} className="flex items-center gap-1.5 px-5 py-2 text-sm font-medium text-white bg-purple-600 rounded-xl hover:bg-purple-700 transition shadow-sm">
@@ -368,7 +368,7 @@ const ResumeApprovals = () => {
 
                         {/* Registered */}
                         <td className="px-4 py-3">
-                          <span className="text-sm text-gray-600">{formatDate(u.createdAt)}</span>
+                          <span className="text-sm text-gray-700">{formatDate(u.createdAt)}</span>
                         </td>
 
                         {/* Documents */}
@@ -413,7 +413,7 @@ const ResumeApprovals = () => {
                               <>
                                 <button
                                   onClick={() => setConfirmModal({ open: true, user: u })}
-                                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition"
+                                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition"
                                   title="Approve"
                                 >
                                   <CheckCircle2 className="w-4.5 h-4.5" />
@@ -451,20 +451,20 @@ const ResumeApprovals = () => {
               <div className="flex items-center gap-1">
                 <button onClick={() => handlePageChange(page - 1)} disabled={page <= 1}
                   className="p-1.5 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition">
-                  <ChevronLeft className="w-4 h-4 text-gray-600" />
+                  <ChevronLeft className="w-4 h-4 text-gray-700" />
                 </button>
                 {[...Array(Math.min(totalPages, 5))].map((_, i) => {
                   const pNum = i + 1;
                   return (
                     <button key={pNum} onClick={() => handlePageChange(pNum)}
-                      className={`w-8 h-8 text-xs font-medium rounded-lg transition ${pNum === page ? 'bg-purple-600 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
+                      className={`w-8 h-8 text-xs font-medium rounded-lg transition ${pNum === page ? 'bg-purple-600 text-white' : 'text-gray-700 hover:bg-gray-200'}`}>
                       {pNum}
                     </button>
                   );
                 })}
                 <button onClick={() => handlePageChange(page + 1)} disabled={page >= totalPages}
                   className="p-1.5 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition">
-                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                  <ChevronRight className="w-4 h-4 text-gray-700" />
                 </button>
               </div>
             </div>
@@ -480,7 +480,7 @@ const ResumeApprovals = () => {
         title="Approve Resume"
         message={`Are you sure you want to approve the resume for "${confirmModal.user?.name || 'this user'}"? The pending resume will replace their current resume.`}
         confirmText="Approve"
-        confirmColor="bg-green-600 hover:bg-green-700"
+        confirmColor="bg-green-700 hover:bg-green-800"
         loading={actionLoading}
       />
 

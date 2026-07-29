@@ -72,7 +72,7 @@ export default function DocumentVerificationStatusCard({ profile, onRefresh, onS
             >
               <div className="flex justify-between items-center">
                 <div className="font-bold text-red-900 capitalize">{sec.label || sec.key}</div>
-                <div className="text-xs text-red-500 underline">Fix Issue &rarr;</div>
+                <div className="text-xs text-red-700 underline">Fix Issue &rarr;</div>
               </div>
               <div className="text-red-700 mt-1">
                 {sec.remarks?.length > 0 ? sec.remarks[sec.remarks.length - 1]?.text : "Please update this field with correct details."}

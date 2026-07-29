@@ -36,22 +36,22 @@ export default function DualPathwayCards({ user }) {
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("AI Match")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
-            <div className="flex flex-col items-center gap-1.5 text-gray-600">
+            <div className="flex flex-col items-center gap-1.5 text-gray-700">
               <FileText className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Resume Score")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
-            <div className="flex flex-col items-center gap-1.5 text-gray-600">
+            <div className="flex flex-col items-center gap-1.5 text-gray-700">
               <PieChart className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Skill Insights")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
-            <div className="flex flex-col items-center gap-1.5 text-gray-600">
+            <div className="flex flex-col items-center gap-1.5 text-gray-700">
               <TrendingUp className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Career Tips")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
-            <div className="flex flex-col items-center gap-1.5 text-gray-600">
+            <div className="flex flex-col items-center gap-1.5 text-gray-700">
               <Globe className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Global Jobs")}</span>
             </div>
@@ -62,11 +62,11 @@ export default function DualPathwayCards({ user }) {
         <Link to="/recruiter-discovery" className="bg-[#fafffb] border border-green-100/50 rounded-[16px] px-4 py-3 lg:px-5 lg:py-4 min-h-[160px] sm:min-h-[200px] h-auto flex flex-col relative group hover:shadow-lg hover:border-green-200 transition duration-300 shadow-sm cursor-pointer block">
           <div className="flex justify-between items-center mb-4 sm:mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-green-50 text-green-600 shrink-0 shadow-sm">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-green-50 text-green-700 shrink-0 shadow-sm">
                 <Briefcase className="w-5 h-5" strokeWidth={2.5} />
               </div>
               <div>
-                <h2 className="text-2xl lg:text-3xl font-bold text-green-600 mb-2 leading-normal tracking-tight">{t("I'm a Recruiter")}</h2>
+                <h2 className="text-2xl lg:text-3xl font-bold text-green-700 mb-2 leading-normal tracking-tight">{t("I'm a Recruiter")}</h2>
                 <p className="text-sm lg:text-base font-semibold text-gray-700 leading-[1.6]">{t("Hire verified talent faster and build teams.")}</p>
               </div>
             </div>

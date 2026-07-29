@@ -43,7 +43,7 @@ export default function OutreachAnalyticsPage() {
           <SCard key={i} className="p-4">
             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">{k.label}</div>
             <div className="text-xl font-extrabold text-gray-900 mb-1">{k.value}</div>
-            <div className={`text-[10px] font-bold flex items-center gap-0.5 ${k.up ? 'text-emerald-600' : 'text-red-500'}`}>
+            <div className={`text-[10px] font-bold flex items-center gap-0.5 ${k.up ? 'text-emerald-600' : 'text-red-700'}`}>
               <FiArrowUpRight className="w-3 h-3" /> {k.trend}{t("vs last month")}</div>
           </SCard>
         ))}

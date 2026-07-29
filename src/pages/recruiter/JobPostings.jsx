@@ -120,7 +120,7 @@ const JobPostings = () => {
   const jobStats = [
     { title: 'Active Jobs', count: activeJobs, percent: Math.round((activeJobs/totalJobs)*100)+'%', icon: <FiBriefcase className="w-5 h-5 text-emerald-600" />, bg: 'bg-emerald-50' },
     { title: 'Draft Jobs', count: draftJobs, percent: Math.round((draftJobs/totalJobs)*100)+'%', icon: <FiClock className="w-5 h-5 text-blue-600" />, bg: 'bg-blue-50' },
-    { title: 'Closed Jobs', count: closedJobs, percent: Math.round((closedJobs/totalJobs)*100)+'%', icon: <FiCheckCircle className="w-5 h-5 text-gray-600" />, bg: 'bg-gray-100' },
+    { title: 'Closed Jobs', count: closedJobs, percent: Math.round((closedJobs/totalJobs)*100)+'%', icon: <FiCheckCircle className="w-5 h-5 text-gray-700" />, bg: 'bg-gray-100' },
     { title: 'On Hold', count: onHoldJobs, percent: Math.round((onHoldJobs/totalJobs)*100)+'%', icon: <FiPauseCircle className="w-5 h-5 text-orange-600" />, bg: 'bg-orange-50' },
   ];
 
@@ -215,7 +215,7 @@ const JobPostings = () => {
                 <button 
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`whitespace-nowrap flex-1 px-4 py-1.5 rounded-lg text-sm font-semibold transition ${activeTab === tab ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`whitespace-nowrap flex-1 px-4 py-1.5 rounded-lg text-sm font-semibold transition ${activeTab === tab ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'}`}
                 >
                   {tab} {idx === 0 ? '' : <span className="ml-1 text-[10px] bg-gray-100 px-1.5 py-0.5 rounded-full text-gray-500">{[activeJobs, draftJobs, closedJobs, onHoldJobs][idx-1]}</span>}
                 </button>
@@ -259,8 +259,8 @@ const JobPostings = () => {
               <h2 className="text-lg font-bold text-gray-900">{t("My Jobs (")}{filteredJobs.length})</h2>
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 <div className="hidden sm:flex items-center bg-white border border-gray-200 rounded-lg p-1 shrink-0">
-                  <button onClick={() => setLayout('list')} className={`p-1.5 rounded ${layout === 'list' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}><FiList className="w-4 h-4" /></button>
-                  <button onClick={() => setLayout('grid')} className={`p-1.5 rounded ${layout === 'grid' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}><FiGrid className="w-4 h-4" /></button>
+                  <button onClick={() => setLayout('list')} className={`p-1.5 rounded ${layout === 'list' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-400 hover:text-gray-700'}`}><FiList className="w-4 h-4" /></button>
+                  <button onClick={() => setLayout('grid')} className={`p-1.5 rounded ${layout === 'grid' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-400 hover:text-gray-700'}`}><FiGrid className="w-4 h-4" /></button>
                 </div>
                 <select 
                   value={sortBy}
@@ -296,13 +296,13 @@ const JobPostings = () => {
                               {job.title}
                             </div>
                           </td>
-                          <td className="py-3 px-4 border border-gray-200 text-gray-600 font-medium">
+                          <td className="py-3 px-4 border border-gray-200 text-gray-700 font-medium">
                             {job.city || 'N/A'}
                           </td>
                           <td className="py-3 px-4 border border-gray-200 text-center font-bold text-gray-700">
                             {job.interestedCount || 0}
                           </td>
-                          <td className="py-3 px-4 border border-gray-200 text-center text-gray-600">
+                          <td className="py-3 px-4 border border-gray-200 text-center text-gray-700">
                             <div className="flex justify-center">
                               <div className="w-10 h-10 font-bold drop-shadow-sm">
                                 <CircularProgressbar
@@ -320,7 +320,7 @@ const JobPostings = () => {
                             </div>
                           </td>
                           <td className="py-3 px-4 border border-gray-200 text-center text-gray-700">
-                            <span className={`inline-flex items-center px-3 py-1.5 rounded-md text-[11px] font-bold shadow-sm ${job.status === 'active' ? 'bg-gradient-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 border border-emerald-200' : 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-600 border border-gray-200'}`}>
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-md text-[11px] font-bold shadow-sm ${job.status === 'active' ? 'bg-gradient-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 border border-emerald-200' : 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border border-gray-200'}`}>
                               {(job.status || 'active').toUpperCase()}
                             </span>
                           </td>
@@ -357,7 +357,7 @@ const JobPostings = () => {
                             </div>
                           )}
                         </div>
-                        <span className={`inline-flex items-center px-3 py-1 rounded-md text-[10px] font-bold shadow-sm ${job.status === 'active' ? 'bg-gradient-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 border border-emerald-200' : 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-600 border border-gray-200'}`}>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-md text-[10px] font-bold shadow-sm ${job.status === 'active' ? 'bg-gradient-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 border border-emerald-200' : 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border border-gray-200'}`}>
                           {(job.status || 'active').toUpperCase()}
                         </span>
                       </div>
@@ -431,7 +431,7 @@ const JobPostings = () => {
                     <button 
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 font-bold flex items-center justify-center transition shrink-0"
+                      className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 font-bold flex items-center justify-center transition shrink-0"
                     >
                       &lt;
                     </button>
@@ -441,7 +441,7 @@ const JobPostings = () => {
                     <button 
                       disabled={currentPage >= totalPages}
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 font-bold flex items-center justify-center transition shrink-0"
+                      className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 font-bold flex items-center justify-center transition shrink-0"
                     >
                       &gt;
                     </button>
@@ -471,7 +471,7 @@ const JobPostings = () => {
                     </div>
                     <div>
                       <div className="text-xs font-bold text-gray-900">{job.title}</div>
-                      <div className="text-[10px] font-bold text-red-500 mt-0.5">
+                      <div className="text-[10px] font-bold text-red-700 mt-0.5">
                         {job.topAiMatch ? `AI Match: ${job.topAiMatch}% (Needs improvement)` : 'Evaluate applicants to see match score'}
                       </div>
                     </div>
@@ -490,7 +490,7 @@ const JobPostings = () => {
                 {pipeline.map(stage => (
                   <div key={stage.label} className="relative">
                     <div className="flex justify-between items-end mb-1">
-                      <span className="text-[11px] font-bold text-gray-600">{stage.label}</span>
+                      <span className="text-[11px] font-bold text-gray-700">{stage.label}</span>
                       <span className="text-[11px] font-bold text-gray-900 bg-gray-50 px-1.5 py-0.5 rounded">{stage.count}</span>
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -583,7 +583,7 @@ const JobPostings = () => {
             <div className="flex gap-3 justify-end mt-8">
               <button
                 onClick={() => setBoostModalOpen(false)}
-                className="px-5 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition"
+                className="px-5 py-2.5 rounded-xl font-bold text-gray-700 hover:bg-gray-100 transition"
                 disabled={isBoosting}
               >
                 Cancel
@@ -609,7 +609,7 @@ const JobPostings = () => {
               <h3 className="text-lg font-bold text-gray-900">Filter Jobs</h3>
               <button 
                 onClick={() => setFilterModalOpen(false)} 
-                className="p-2 bg-red-50 hover:bg-red-100 rounded-full text-red-500 hover:text-red-600 transition-all transform hover:scale-110 shadow-sm"
+                className="p-2 bg-red-50 hover:bg-red-100 rounded-full text-red-700 hover:text-red-600 transition-all transform hover:scale-110 shadow-sm"
               >
                 <FiX className="w-5 h-5" />
               </button>
@@ -652,7 +652,7 @@ const JobPostings = () => {
                   setFilterCity('');
                   setFilterWorkMode('All');
                 }}
-                className="px-5 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition mr-auto"
+                className="px-5 py-2.5 rounded-xl font-bold text-gray-700 hover:bg-gray-100 transition mr-auto"
               >
                 Clear All
               </button>

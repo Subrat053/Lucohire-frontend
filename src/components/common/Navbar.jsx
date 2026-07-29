@@ -135,14 +135,14 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden md:flex items-center gap-3 lg:gap-5 ml-auto">
-            <Link to="/" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm" onClick={(e) => handleNavClick(e, "/")}>
+            <Link to="/" className="text-gray-700 hover:text-indigo-600 transition font-medium text-sm" onClick={(e) => handleNavClick(e, "/")}>
               {t("navbar.home")}
             </Link>
-            <Link to={isAuthenticated ? "/provider/job-for-me" : "/candidate-landing"} className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm" onClick={(e) => handleNavClick(e, isAuthenticated ? "/provider/job-for-me" : "/candidate-landing")}>
+            <Link to={isAuthenticated ? "/provider/job-for-me" : "/candidate-landing"} className="text-gray-700 hover:text-indigo-600 transition font-medium text-sm" onClick={(e) => handleNavClick(e, isAuthenticated ? "/provider/job-for-me" : "/candidate-landing")}>
               {t("navbar.findJobs", "Find Jobs")}
             </Link>
             {(!isAuthenticated || activeRole !== "provider") && (
-              <Link to="/search" className="text-gray-600 hover:text-indigo-600 transition font-medium text-sm" onClick={(e) => handleNavClick(e, "/search")}>
+              <Link to="/search" className="text-gray-700 hover:text-indigo-600 transition font-medium text-sm" onClick={(e) => handleNavClick(e, "/search")}>
                 {t("navbar.findProviders")}
               </Link>
             )}
@@ -291,7 +291,7 @@ const Navbar = () => {
                 <button
                   type="button"
                   onClick={() => navigate("/login")}
-                  className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
+                  className="text-sm font-medium text-gray-700 hover:text-indigo-600 transition"
                 >
                   {t("navbar.login")}
                 </button>
@@ -426,7 +426,7 @@ const Navbar = () => {
                         key={path}
                         to={path}
                         onClick={(e) => handleNavClick(e, path, () => setMobileOpen(false))}
-                        className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-emerald-50 text-emerald-700" : "text-gray-600 hover:bg-gray-50"}`}
+                        className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-gray-50"}`}
                       >
                         <Icon
                           className={`w-4 h-4 ${active ? "text-emerald-600" : "text-gray-400"}`}
@@ -457,7 +457,7 @@ const Navbar = () => {
                         key={path}
                         to={path}
                         onClick={(e) => handleNavClick(e, path, () => setMobileOpen(false))}
-                        className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-amber-50 text-amber-700" : "text-gray-600 hover:bg-gray-50"}`}
+                        className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-amber-50 text-amber-700" : "text-gray-700 hover:bg-gray-50"}`}
                       >
                         <Icon className={`w-4 h-4 ${active ? "text-amber-600" : "text-gray-400"}`} />
                         <span>{label}</span>
@@ -493,7 +493,7 @@ const Navbar = () => {
                         key={path}
                         to={path}
                         onClick={(e) => handleNavClick(e, path, () => setMobileOpen(false))}
-                        className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-emerald-50 text-emerald-700" : "text-gray-600 hover:bg-gray-50"}`}
+                        className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-gray-50"}`}
                       >
                         <Icon
                           className={`w-4 h-4 ${active ? "text-emerald-600" : "text-gray-400"}`}
@@ -590,13 +590,13 @@ const Navbar = () => {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
             <button 
               onClick={() => setShowSignupModal(false)}
-              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-700 transition-colors"
             >
               <HiX className="w-6 h-6" />
             </button>
 
             <h3 className="text-2xl font-bold text-gray-900 mb-2">Join Luco</h3>
-            <p className="text-gray-600 mb-6">How would you like to use Luco?</p>
+            <p className="text-gray-700 mb-6">How would you like to use Luco?</p>
 
             <div className="space-y-4 mb-6">
               {/* Recruiter Option */}
@@ -623,7 +623,7 @@ const Navbar = () => {
                 <input 
                   type="radio" 
                   name="signupRole" 
-                  className="w-5 h-5 text-green-600 focus:ring-green-500"
+                  className="w-5 h-5 text-green-700 focus:ring-green-500"
                   checked={signupModalRole === 'candidate'}
                   onChange={() => setSignupModalRole('candidate')}
                 />

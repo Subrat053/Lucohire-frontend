@@ -179,7 +179,7 @@ const ReportsAnalytics = () => {
           <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl border border-gray-100 animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-gray-900">Report Filters</h3>
-              <button onClick={() => setIsFilterOpen(false)} className="p-2 bg-gray-50 hover:bg-red-50 rounded-full text-gray-500 hover:text-red-500 transition-all transform hover:scale-110 shadow-sm">
+              <button onClick={() => setIsFilterOpen(false)} className="p-2 bg-gray-50 hover:bg-red-50 rounded-full text-gray-500 hover:text-red-700 transition-all transform hover:scale-110 shadow-sm">
                 <FiX className="w-5 h-5" />
               </button>
             </div>
@@ -232,7 +232,7 @@ const ReportsAnalytics = () => {
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-              <button onClick={() => setIsFilterOpen(false)} className="px-5 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition text-sm">
+              <button onClick={() => setIsFilterOpen(false)} className="px-5 py-2.5 rounded-xl font-bold text-gray-700 hover:bg-gray-100 transition text-sm">
                 Clear Filters
               </button>
               <button onClick={() => { setIsFilterOpen(false); toast.success("Filters applied!"); }} className="px-5 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition text-sm shadow-sm hover:shadow">

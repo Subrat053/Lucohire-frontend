@@ -204,7 +204,7 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
             </div>
           )}
           {available && (
-            <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
+            <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-green-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
               <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
               {t('common.available', 'Available')}
             </div>
@@ -225,14 +225,14 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
             {roleText}
           </p>
           
-          <div className="flex flex-col gap-1.5 text-[12px] text-gray-600 font-medium">
+          <div className="flex flex-col gap-1.5 text-[12px] text-gray-700 font-medium">
             <div className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
               <span className="truncate" title={location}>{location || t('common.india', 'India')}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-              {t("Last active:")} <span className="text-green-600 font-bold ml-0.5">{t("Today")}</span>
+              {t("Last active:")} <span className="text-green-700 font-bold ml-0.5">{t("Today")}</span>
             </div>
           </div>
         </div>
@@ -260,7 +260,7 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
         </div>
         <div className="flex items-center gap-2 bg-green-50/50 p-2 rounded-xl">
           <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-            <Zap className="w-4 h-4 text-green-600" />
+            <Zap className="w-4 h-4 text-green-700" />
           </div>
           <div className="min-w-0">
             <div className="text-[12px] font-bold text-gray-900 truncate">{t("Ready")}</div>
@@ -329,7 +329,7 @@ const ProviderCard = ({ provider = {}, variant = 'search', badge = '', onClick, 
                     window.open(`https://wa.me/${cleanNum}`, '_blank');
                 }
             }}
-            className="flex-[1.5] py-2.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] transition-colors text-[13px] flex items-center justify-center gap-2 shadow-sm"
+            className="flex-[1.5] py-2.5 rounded-xl bg-[#075E54] text-white font-bold hover:bg-[#04433B] transition-colors text-[13px] flex items-center justify-center gap-2 shadow-sm"
           >
             <MessageCircle className="w-4 h-4" fill="currentColor" strokeWidth={0} /> {t("Chat on WhatsApp")}
           </button>

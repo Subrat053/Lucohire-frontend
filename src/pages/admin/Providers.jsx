@@ -45,14 +45,14 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
       >
         <div className="flex items-center gap-1.5 overflow-hidden">
           {Icon && <Icon className="w-3.5 h-3.5 shrink-0 text-gray-400" />}
-          <span className={`truncate ${value ? "text-gray-900 font-bold capitalize" : "text-gray-600 font-bold"}`}>
+          <span className={`truncate ${value ? "text-gray-900 font-bold capitalize" : "text-gray-700 font-bold"}`}>
             {value || label}
           </span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 ml-auto">
           {(value && value !== 'all') && (
             <X 
-              className="w-3.5 h-3.5 text-gray-400 hover:text-red-500 transition-colors"
+              className="w-3.5 h-3.5 text-gray-400 hover:text-red-700 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 setValue('');
@@ -124,7 +124,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
             )}
             {value && (
               <li 
-                className="px-3 py-2 text-xs text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
+                className="px-3 py-2 text-xs text-red-700 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
                 onClick={() => {
                   setValue('');
                   setSearchTerm('');
@@ -186,7 +186,7 @@ const KPICard = ({ title, value, subtext, icon: Icon, colorClass, trend, trendUp
       <div className="text-2xl font-black text-gray-900 mb-1">{value?.toLocaleString() || 0}</div>
       <div className="flex items-center text-[10px] font-bold">
         {trend && (
-          <span className={`mr-1 ${trendUp ? 'text-emerald-500' : 'text-red-500'}`}>
+          <span className={`mr-1 ${trendUp ? 'text-emerald-500' : 'text-red-700'}`}>
             {trendUp ? '↑' : '↓'} {trend.replace('+', '')}
           </span>
         )}
@@ -495,7 +495,7 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
               </button>
             ))}
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-700 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -705,7 +705,7 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
                               </a>
                             )}
                           </div>
-                          {proj.description && <p className="text-xs text-gray-600">{proj.description}</p>}
+                          {proj.description && <p className="text-xs text-gray-700">{proj.description}</p>}
                         </div>
                       ))}
                     </div>
@@ -892,7 +892,7 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
                           <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full"></div>
                         </div>
                         <p className="text-xs font-bold text-gray-900">{log.action?.toUpperCase() || 'ACTION'}</p>
-                        <p className="text-xs text-gray-600 mt-0.5">{log.remark || log.details}</p>
+                        <p className="text-xs text-gray-700 mt-0.5">{log.remark || log.details}</p>
                         <span className="text-[10px] text-gray-400 font-medium mt-1 block">{formatDate(log.timestamp)}</span>
                       </div>
                     ))}
@@ -911,7 +911,7 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
         {/* Modal Footer */}
         <div className="border-t border-gray-200 bg-gray-50 p-4 flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-gray-600">Decision:</span>
+            <span className="text-xs font-bold text-gray-700">Decision:</span>
             <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">{approvedCount} Approved</span>
             <span className="text-xs font-bold text-rose-700 bg-rose-100 px-2.5 py-0.5 rounded-full">{rejectedCount} Rejected</span>
           </div>
@@ -962,12 +962,12 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
                 <Send className="w-4 h-4 text-indigo-600" />
                 Send Section Review Decision to Candidate
               </h3>
-              <button onClick={() => setShowNotifyModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowNotifyModal(false)} className="text-gray-400 hover:text-gray-700">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-gray-600 leading-relaxed">
+            <p className="text-xs text-gray-700 leading-relaxed">
               This will send an official email notification to <strong className="text-gray-900">{user.email}</strong> detailing approved sections and feedback/remarks for rejected sections.
             </p>
 
@@ -975,7 +975,7 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
               <div className="font-bold text-gray-700 mb-1">Section Decisions:</div>
               {Object.entries(sectionDecisions).map(([k, v]) => (
                 <div key={k} className="flex justify-between items-center text-[11px]">
-                  <span className="font-semibold text-gray-600">{v.label}</span>
+                  <span className="font-semibold text-gray-700">{v.label}</span>
                   <span className={`font-bold capitalize ${
                     v.status === 'approved' ? 'text-emerald-600' : v.status === 'rejected' ? 'text-rose-600' : 'text-amber-600'
                   }`}>
@@ -1029,12 +1029,12 @@ const CandidateDetailPanel = ({ candidate, onClose, onApprove, onReject }) => {
                 <MessageSquare className="w-4 h-4 text-amber-600" />
                 Request Follow-back / Clarification
               </h3>
-              <button onClick={() => setShowFollowBackModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowFollowBackModal(false)} className="text-gray-400 hover:text-gray-700">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-gray-600 leading-relaxed">
+            <p className="text-xs text-gray-700 leading-relaxed">
               Send a direct follow-up question or clarification request to <strong className="text-gray-900">{user.name || user.email}</strong>. Candidate will be notified via email and a prompt will appear on their profile dashboard.
             </p>
 
@@ -1214,7 +1214,7 @@ export default function AdminProviders() {
           <KPICard title="New This Week" value={totals.newThisWeek} subtext="vs last 7 days" icon={UserPlus} colorClass="text-indigo-500" trend={trendNew} trendUp={!trendNew.includes('-')} />
           <KPICard title="Verified Candidates" value={totals.verified} subtext="All time" icon={ShieldCheck} colorClass="text-emerald-500" />
           <KPICard title="Pending Verification" value={totals.pending} subtext="Requires review" icon={Hourglass} colorClass="text-amber-500" />
-          <KPICard title="Rejected / Blocked" value={totals.rejected} subtext="Policy violation" icon={Ban} colorClass="text-red-500" />
+          <KPICard title="Rejected / Blocked" value={totals.rejected} subtext="Policy violation" icon={Ban} colorClass="text-red-700" />
           <KPICard title="Active Resumes" value={totals.withResume} subtext="Active & visible" icon={FileText} colorClass="text-blue-500" />
         </div>
 
@@ -1329,7 +1329,7 @@ export default function AdminProviders() {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-xs font-medium text-gray-600 truncate max-w-[150px]" title={user.email}>{user.email}</div>
+                            <div className="text-xs font-medium text-gray-700 truncate max-w-[150px]" title={user.email}>{user.email}</div>
                             <div className="text-[10px] font-medium text-gray-400">{user.phone || 'No phone'}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1341,7 +1341,7 @@ export default function AdminProviders() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center gap-1.5 flex-wrap w-48">
                               {displaySkills.length > 0 ? displaySkills.map((s, i) => (
-                                <span key={i} className="px-2 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded">{s}</span>
+                                <span key={i} className="px-2 py-1 bg-gray-100 text-gray-700 text-[10px] font-bold rounded">{s}</span>
                               )) : <span className="text-xs text-gray-400 italic">No skills listed</span>}
                               {extraSkills > 0 && (
                                 <span className="px-2 py-1 bg-gray-50 border border-gray-200 text-gray-500 text-[10px] font-bold rounded">+{extraSkills}</span>
@@ -1368,7 +1368,7 @@ export default function AdminProviders() {
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
-                              <button className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+                              <button className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors">
                                 <MoreVertical className="w-4 h-4" />
                               </button>
                             </div>
@@ -1528,7 +1528,7 @@ export default function AdminProviders() {
                 <div className="flex-1 space-y-2">
                   {summaryData.map(item => (
                     <div key={item.name} className="flex items-center justify-between text-[10px]">
-                      <div className="flex items-center gap-1.5 font-bold text-gray-600">
+                      <div className="flex items-center gap-1.5 font-bold text-gray-700">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
                         {item.name}
                       </div>

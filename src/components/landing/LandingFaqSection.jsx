@@ -117,7 +117,7 @@ const LandingFaqSection = () => {
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <div className="px-5 sm:px-19 text-sm sm:text-base text-gray-600 font-medium leading-relaxed">
+                    <div className="px-5 sm:px-19 text-sm sm:text-base text-gray-700 font-medium leading-relaxed">
                       <p className="pt-2 border-t border-gray-100/80">{item.answer}</p>
                     </div>
                   </div>

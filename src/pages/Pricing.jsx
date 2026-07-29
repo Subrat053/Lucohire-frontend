@@ -112,7 +112,7 @@ const PricingPage = () => {
                 className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
                   activeTab === "provider"
                     ? "bg-blue-600 text-white shadow-sm"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                 }`}
               >
                 {t("plans.providerTab", "Service Providers")}
@@ -122,7 +122,7 @@ const PricingPage = () => {
                 className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
                   activeTab === "recruiter"
                     ? "bg-blue-600 text-white shadow-sm"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                 }`}
               >
                 {t("plans.recruiterTab", "Recruiters & Clients")}
@@ -155,7 +155,7 @@ const PricingPage = () => {
                     className="w-full max-w-sm lg:max-w-none bg-gradient-to-br from-green-50 to-emerald-50/90 backdrop-blur-sm border border-green-200 rounded-3xl p-5 flex flex-col items-start gap-3 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
                   >
                     <div className="flex items-center gap-3 w-full">
-                      <div className="w-10 h-10 rounded-xl bg-green-100 text-green-600 flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-green-100 text-green-700 flex items-center justify-center shrink-0">
                         <ShieldCheck className="w-5 h-5" /> 
                       </div>
                       <h3 className="text-lg font-bold text-gray-900 leading-tight">
@@ -170,7 +170,7 @@ const PricingPage = () => {
                         <div className="text-2xl font-extrabold text-gray-900 flex items-end gap-1">
                           ₹30 <span className="text-xs font-medium text-gray-500 mb-1">/mo</span>
                         </div>
-                        <div className="text-[10px] font-bold text-green-600 uppercase tracking-wider mt-0.5">
+                        <div className="text-[10px] font-bold text-green-700 uppercase tracking-wider mt-0.5">
                           OR ₹1 per day
                         </div>
                       </div>
@@ -180,7 +180,7 @@ const PricingPage = () => {
                           e.stopPropagation();
                           handleCtaClick(waPlan);
                         }}
-                        className="bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-green-700 transition-colors shadow-sm shadow-green-600/20"
+                        className="bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-green-800 transition-colors shadow-sm shadow-green-600/20"
                       >
                         Subscribe
                       </button>
@@ -197,7 +197,7 @@ const PricingPage = () => {
                   <button
                     onClick={() => setBillingPeriod('monthly')}
                     className={`px-5 py-2 text-sm font-semibold rounded-xl transition-all duration-300 ${
-                      billingPeriod === 'monthly' ? 'bg-[#4a24ba] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      billingPeriod === 'monthly' ? 'bg-[#4a24ba] text-white shadow-sm' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                   >
                     Monthly
@@ -205,7 +205,7 @@ const PricingPage = () => {
                   <button
                     onClick={() => setBillingPeriod('quarterly')}
                     className={`px-5 py-2 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center gap-2 ${
-                      billingPeriod === 'quarterly' ? 'bg-[#4a24ba] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      billingPeriod === 'quarterly' ? 'bg-[#4a24ba] text-white shadow-sm' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                   >
                     Quarterly <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
@@ -215,7 +215,7 @@ const PricingPage = () => {
                   <button
                     onClick={() => setBillingPeriod('yearly')}
                     className={`px-5 py-2 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center gap-2 ${
-                      billingPeriod === 'yearly' ? 'bg-[#4a24ba] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      billingPeriod === 'yearly' ? 'bg-[#4a24ba] text-white shadow-sm' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                   >
                     Yearly <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
@@ -250,7 +250,7 @@ const PricingPage = () => {
                   <div>
                     {/* Icon Header */}
                     <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-2xl flex items-center justify-center mb-5 lg:mb-6 ${
-                      isPopular ? "bg-white/10 text-blue-400" : "bg-blue-50 text-blue-600"
+                      isPopular ? "bg-white/10 text-blue-700" : "bg-blue-50 text-blue-600"
                     }`}>
                       {isPopular ? <Zap className="w-5 h-5 lg:w-6 lg:h-6" /> : <ShieldCheck className="w-5 h-5 lg:w-6 lg:h-6" />}
                     </div>
@@ -284,7 +284,7 @@ const PricingPage = () => {
                         </div>
                       )}
                       {p.metadata?.hireLimitText && (
-                        <div className={`text-xs ${isPopular ? "text-gray-300" : "text-gray-600"}`}>
+                        <div className={`text-xs ${isPopular ? "text-gray-300" : "text-gray-700"}`}>
                           {p.metadata.hireLimitText}
                         </div>
                       )}
@@ -305,9 +305,9 @@ const PricingPage = () => {
                       {(p.features || []).map((perk, perkIdx) => (
                         <li key={perkIdx} className="flex items-start gap-2.5 text-sm">
                           <Check className={`w-4 h-4 mt-0.5 shrink-0 ${
-                            isPopular ? "text-blue-400" : "text-emerald-500"
+                            isPopular ? "text-blue-700" : "text-emerald-500"
                           }`} />
-                          <span className={isPopular ? "text-gray-300" : "text-gray-600"}>
+                          <span className={isPopular ? "text-gray-300" : "text-gray-700"}>
                             {perk}
                           </span>
                         </li>

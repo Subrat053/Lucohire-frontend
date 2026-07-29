@@ -16,7 +16,7 @@ const ROLE_BADGE = {
   manager:   'bg-blue-100 text-blue-700 border-blue-200',
   recruiter: 'bg-teal-100 text-teal-700 border-teal-200',
   provider:  'bg-orange-100 text-orange-700 border-orange-200',
-  user:      'bg-gray-100 text-gray-600 border-gray-200',
+  user:      'bg-gray-100 text-gray-700 border-gray-200',
 };
 
 const STATUS_BADGE = {
@@ -111,7 +111,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
         className={`flex items-center text-sm bg-white border rounded-xl px-3 py-2.5 cursor-pointer transition whitespace-nowrap min-w-[130px] ${isOpen ? 'border-purple-300 ring-2 ring-purple-300 bg-gray-50' : 'border-gray-200 hover:bg-gray-50 text-gray-700'}`}
       >
         {Icon && <Icon className="w-4 h-4 mr-1.5 text-gray-400" />}
-        <span className={value ? "text-gray-900 font-medium capitalize" : "text-gray-600"}>
+        <span className={value ? "text-gray-900 font-medium capitalize" : "text-gray-700"}>
           {value || label}
         </span>
         <ChevronDown className={`w-3.5 h-3.5 ml-auto transition-transform ${isOpen ? 'rotate-180 text-purple-500' : 'text-gray-400'}`} />
@@ -156,7 +156,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
             )}
             {value && (
               <li 
-                className="px-3 py-2 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1"
+                className="px-3 py-2 text-sm text-red-700 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1"
                 onClick={() => {
                   setValue('');
                   setSearchTerm('');
@@ -396,7 +396,7 @@ export default function ProfileApprovals() {
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
                 ${activeTab === tab.key
                   ? 'bg-purple-600 text-white shadow-sm shadow-purple-200'
-                  : 'text-gray-600 hover:bg-gray-100 bg-white border border-gray-200'}`}>
+                  : 'text-gray-700 hover:bg-gray-100 bg-white border border-gray-200'}`}>
               {tab.label}
             </button>
           ))}
@@ -411,7 +411,7 @@ export default function ProfileApprovals() {
             </div>
           )) : <>
             <StatsCard icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" label="Pending" value={stats.pending} sub="Awaiting review" />
-            <StatsCard icon={CheckCircle2} iconBg="bg-green-50" iconColor="text-green-600" label="Approved" value={stats.approved} sub="Profiles approved" />
+            <StatsCard icon={CheckCircle2} iconBg="bg-green-50" iconColor="text-green-700" label="Approved" value={stats.approved} sub="Profiles approved" />
             <StatsCard icon={XCircle} iconBg="bg-red-50" iconColor="text-red-600" label="Rejected" value={stats.rejected} sub="Need correction" />
             <StatsCard icon={Shield} iconBg="bg-blue-50" iconColor="text-blue-600" label="Under Review" value={stats.underReview} sub="Docs in review" />
             <StatsCard icon={Users} iconBg="bg-purple-50" iconColor="text-purple-600" label="Total Profiles" value={stats.totalProfiles} />
@@ -438,7 +438,7 @@ export default function ProfileApprovals() {
                 />
                 {search && (
                   <button onClick={() => { setSearch(''); fetchUsers(1, { search: '' }); }}
-                    className="text-gray-400 hover:text-gray-600 shrink-0">×</button>
+                    className="text-gray-400 hover:text-gray-700 shrink-0">×</button>
                 )}
               </div>
               
@@ -506,7 +506,7 @@ export default function ProfileApprovals() {
             />
 
             <button onClick={handleReset}
-              className="flex items-center gap-1.5 px-4 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition">
+              className="flex items-center gap-1.5 px-4 py-2.5 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition">
               <RotateCcw className="w-3.5 h-3.5" /> Reset
             </button>
           </div>
@@ -650,7 +650,7 @@ export default function ProfileApprovals() {
                         ) : (
                           <td className="px-4 py-3.5">
                             {u.skills?.length > 0 ? (
-                              <p className="text-xs text-gray-600 truncate max-w-[160px]">{u.skills.join(', ')}</p>
+                              <p className="text-xs text-gray-700 truncate max-w-[160px]">{u.skills.join(', ')}</p>
                             ) : <span className="text-xs text-gray-300">—</span>}
                           </td>
                         )}
@@ -667,7 +667,7 @@ export default function ProfileApprovals() {
 
                         {/* Registered */}
                         <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                          <div className="flex items-center gap-1.5 text-sm text-gray-700">
                             <Calendar className="w-3.5 h-3.5 text-gray-400" />
                             {formatDate(u.createdAt)}
                           </div>
@@ -732,20 +732,20 @@ export default function ProfileApprovals() {
               <div className="flex items-center gap-1">
                 <button onClick={() => { setPage(p => p - 1); fetchUsers(page - 1); }} disabled={page <= 1}
                   className="p-1.5 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition">
-                  <ChevronLeft className="w-4 h-4 text-gray-600" />
+                  <ChevronLeft className="w-4 h-4 text-gray-700" />
                 </button>
                 {[...Array(Math.min(totalPages, 7))].map((_, i) => {
                   const pNum = i + 1;
                   return (
                     <button key={pNum} onClick={() => { setPage(pNum); fetchUsers(pNum); }}
-                      className={`w-8 h-8 text-xs font-semibold rounded-lg transition ${pNum === page ? 'bg-purple-600 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
+                      className={`w-8 h-8 text-xs font-semibold rounded-lg transition ${pNum === page ? 'bg-purple-600 text-white' : 'text-gray-700 hover:bg-gray-200'}`}>
                       {pNum}
                     </button>
                   );
                 })}
                 <button onClick={() => { setPage(p => p + 1); fetchUsers(page + 1); }} disabled={page >= totalPages}
                   className="p-1.5 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition">
-                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                  <ChevronRight className="w-4 h-4 text-gray-700" />
                 </button>
               </div>
             </div>

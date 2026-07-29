@@ -175,7 +175,7 @@ const PartnerBankDetails = () => {
 
             {bankAccount.verificationStatus === 'rejected' && (
               <div className="mb-8 p-4 bg-red-50 rounded-2xl border border-red-100 flex gap-3">
-                <HiExclamationCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <HiExclamationCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-bold text-red-800">Account Rejected</p>
                   <p className="text-sm text-red-700">{bankAccount.rejectionReason || "Please check your details and resubmit."}</p>
@@ -220,7 +220,7 @@ const PartnerBankDetails = () => {
               </button>
               <button 
                 onClick={handleDelete}
-                className="flex items-center justify-center px-4 py-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                className="flex items-center justify-center px-4 py-2.5 text-red-700 hover:bg-red-50 rounded-xl transition-all"
                 title="Delete Account"
               >
                 <HiTrash className="w-5 h-5" />

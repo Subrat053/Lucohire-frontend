@@ -326,7 +326,7 @@ const Support = () => {
                   setMessages([{ id: Date.now(), sender: 'bot', text: 'Hi there! 👋 How can we help you today?' }]);
                   setStep('SELECT_TYPE');
                   navigate('/provider/support');
-                }} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-xs font-medium hover:bg-gray-200 transition-colors">{t("Start New Conversation")}</button>
+                }} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition-colors">{t("Start New Conversation")}</button>
               </div>
             )}
           </div>

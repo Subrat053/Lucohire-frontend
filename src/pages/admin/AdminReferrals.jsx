@@ -96,7 +96,7 @@ const AdminReferrals = () => {
               className={`flex items-center gap-2 px-3 py-2.5 border rounded-xl text-sm font-medium transition ${
                 rewardFilter
                   ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                  : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  : 'border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100'
               }`}
             >
               <HiFilter className="w-4 h-4" />
@@ -113,7 +113,7 @@ const AdminReferrals = () => {
             {hasActiveFilters && (
               <button
                 onClick={() => { setRoleFilter(''); setRewardFilter(''); }}
-                className="flex items-center gap-1 px-3 py-2 text-xs text-red-500 hover:text-red-700 border border-red-200 rounded-xl bg-red-50 hover:bg-red-100 transition"
+                className="flex items-center gap-1 px-3 py-2 text-xs text-red-700 hover:text-red-700 border border-red-200 rounded-xl bg-red-50 hover:bg-red-100 transition"
               >
                 <HiX className="w-3.5 h-3.5" /> Clear Filters
               </button>
@@ -171,7 +171,7 @@ const AdminReferrals = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-gray-900">{ref.partner?.name || 'Unknown'}</span>
-                          <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-mono">
+                          <span className="text-[10px] bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded font-mono">
                             {ref.referralCode}
                           </span>
                         </div>

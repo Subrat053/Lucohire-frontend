@@ -298,7 +298,7 @@ const AIControlCenter = () => {
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       datePreset === item.id
                         ? 'bg-violet-600 text-white shadow-xs'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     {item.label}
@@ -795,7 +795,7 @@ const AIControlCenter = () => {
           <div className="bg-white border border-gray-200 rounded-2xl max-w-5xl w-full p-6 shadow-2xl relative text-left my-8">
             <button
               onClick={() => setSelectedAudit(null)}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-all"
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-all"
             >
               <HiXCircle className="w-6 h-6" />
             </button>

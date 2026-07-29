@@ -27,7 +27,7 @@ const StatCard = ({ icon: Icon, label, value, growth }) => (
             <div className="w-10 h-10 rounded-2xl bg-purple-50 text-[#7C3AED] flex items-center justify-center">
                 <Icon size={18} />
             </div>
-            <span className="text-[11px] px-2 py-1 rounded-full bg-green-50 text-green-600 font-semibold">
+            <span className="text-[11px] px-2 py-1 rounded-full bg-green-50 text-green-700 font-semibold">
                 ↗ {growth || "+0%"}
             </span>
         </div>
@@ -153,7 +153,7 @@ const PartnerDashboard = () => {
                         <input
                             value={partner.referralLink || ""}
                             readOnly
-                            className="flex-1 bg-transparent outline-none text-sm text-gray-600"
+                            className="flex-1 bg-transparent outline-none text-sm text-gray-700"
                         />
                         <button
                             onClick={copyReferral}

@@ -50,7 +50,7 @@ export default function BlurredLockedProfile({ lockedCandidatePreview, onUnlock,
           <h3 className="text-lg font-bold text-gray-900 tracking-wide">{name}</h3>
           {tier && (
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1
-              ${tier === 'skilled' ? 'bg-green-100 text-green-700' : tier === 'semi-skilled' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+              ${tier === 'skilled' ? 'bg-green-100 text-green-700' : tier === 'semi-skilled' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
               {tier.replace('-', ' ')}
             </span>
           )}

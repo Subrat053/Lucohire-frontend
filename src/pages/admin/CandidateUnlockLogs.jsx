@@ -39,7 +39,7 @@ const FilterDropdown = ({ label, value, setValue, options }) => {
           isOpen ? 'border-amber-500 ring-2 ring-amber-500/20 bg-white' : 'border-gray-200'
         }`}
       >
-        <span className={value && value !== 'all' ? 'text-gray-900' : 'text-gray-600'}>{displayValue}</span>
+        <span className={value && value !== 'all' ? 'text-gray-900' : 'text-gray-700'}>{displayValue}</span>
         <ChevronDown className={`w-4 h-4 transition-transform text-gray-400 ${isOpen ? 'rotate-180 text-amber-500' : ''}`} />
       </div>
 
@@ -149,7 +149,7 @@ export default function CandidateUnlockLogs() {
         <div className="flex items-center gap-3">
           <button
             onClick={fetchLogs}
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-xs hover:bg-gray-50 transition"
+            className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-xs hover:bg-gray-50 transition"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh Logs
           </button>
@@ -214,7 +214,7 @@ export default function CandidateUnlockLogs() {
         {/* Custom Date Range Inputs */}
         {dateRange === 'custom' && (
           <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-gray-100 text-xs">
-            <span className="font-semibold text-gray-600">Select Date Range:</span>
+            <span className="font-semibold text-gray-700">Select Date Range:</span>
             <div className="flex items-center gap-2">
               <label className="text-gray-500">From:</label>
               <input
@@ -254,7 +254,7 @@ export default function CandidateUnlockLogs() {
         </div>
       ) : error ? (
         <div className="bg-red-50 rounded-2xl p-4 flex items-center gap-3 border border-red-200">
-          <AlertTriangle className="w-5 h-5 text-red-500" />
+          <AlertTriangle className="w-5 h-5 text-red-700" />
           <p className="text-sm text-red-700">{error}</p>
         </div>
       ) : logs.length === 0 ? (
@@ -294,12 +294,12 @@ export default function CandidateUnlockLogs() {
                         : <span className="text-gray-300">—</span>
                       }
                     </td>
-                    <td className="px-4 py-3.5 text-xs text-gray-600 font-medium">{log.planId?.name || 'Standard Unlock'}</td>
+                    <td className="px-4 py-3.5 text-xs text-gray-700 font-medium">{log.planId?.name || 'Standard Unlock'}</td>
                     <td className="px-4 py-3.5 text-xs text-gray-500 whitespace-nowrap font-mono">{formatDate(log.unlockedAt || log.createdAt)}</td>
                     <td className="px-4 py-3.5 text-xs whitespace-nowrap font-mono">
                       <span className={isExpired(log) ? 'text-red-600 font-bold' : 'text-gray-500'}>
                         {formatDate(log.expiresAt)}
-                        {isExpired(log) && <span className="ml-1 text-red-500 text-[10px] font-bold uppercase">(Expired)</span>}
+                        {isExpired(log) && <span className="ml-1 text-red-700 text-[10px] font-bold uppercase">(Expired)</span>}
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-xs text-gray-400 font-mono">{log.ipAddress || '—'}</td>

@@ -438,7 +438,7 @@ const CountryPhoneInput = ({
 
       {/* Error */}
       {error && (
-        <p className="flex items-center gap-1 mt-1.5 text-xs font-semibold text-red-500">
+        <p className="flex items-center gap-1 mt-1.5 text-xs font-semibold text-red-700">
           <HiExclamationCircle className="w-4 h-4 shrink-0" />
           {error}
         </p>

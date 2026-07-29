@@ -282,7 +282,7 @@ const Footer = () => {
               </span>
             )}
             <div className="flex items-center gap-2">
-              <Lock className="w-4 h-4 text-blue-400" />
+              <Lock className="w-4 h-4 text-blue-700" />
               <span>Secure</span>
             </div>
             <div className="flex items-center gap-2">

@@ -38,7 +38,7 @@ const TopPartnersTable = ({ partners = [] }) => {
                   <p className="font-bold text-gray-900 text-sm">
                     ₹{Number(partner.totalCommissionEarned || 0).toLocaleString('en-IN')}
                   </p>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-green-600 mt-0.5">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-green-700 mt-0.5">
                     <HiTrendingUp className="w-3 h-3" /> +{(Math.random() * 20 + 5).toFixed(0)}%
                   </span>
                 </div>

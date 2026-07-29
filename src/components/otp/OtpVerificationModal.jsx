@@ -105,7 +105,7 @@ export default function OtpVerificationModal({
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-400 hover:text-gray-600"
+            className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-400 hover:text-gray-700"
             aria-label="Close OTP modal"
           >
             <X className="w-5 h-5" />
@@ -179,7 +179,7 @@ export default function OtpVerificationModal({
                 <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">
                   <p className="text-sm text-red-700">{error}</p>
                   {attemptsRemaining < 5 && (
-                    <p className="text-xs text-red-500 mt-1">{attemptsRemaining} attempts remaining</p>
+                    <p className="text-xs text-red-700 mt-1">{attemptsRemaining} attempts remaining</p>
                   )}
                 </div>
               )}
@@ -201,7 +201,7 @@ export default function OtpVerificationModal({
               <div className="text-center">
                 {resendCooldown > 0 ? (
                   <span className="text-sm text-gray-400">
-                    Resend in <span className="font-semibold text-gray-600">{resendCooldown}s</span>
+                    Resend in <span className="font-semibold text-gray-700">{resendCooldown}s</span>
                   </span>
                 ) : resendRemaining > 0 ? (
                   <button
@@ -223,7 +223,7 @@ export default function OtpVerificationModal({
           {verified && (
             <div className="text-center py-6">
               <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ShieldCheck className="w-9 h-9 text-green-600" />
+                <ShieldCheck className="w-9 h-9 text-green-700" />
               </div>
               <p className="text-lg font-semibold text-gray-900 mb-1">Verified!</p>
               <p className="text-sm text-gray-500">Identity confirmed successfully.</p>

@@ -335,7 +335,7 @@ export default function GrowWithAIDashboard() {
                 className={`py-2 px-5 text-[13.5px] font-bold transition-all duration-300 whitespace-nowrap flex items-center gap-2 rounded-full border ${
                   activeTab === tab.id 
                     ? 'bg-gradient-to-r from-[#0f766e] to-[#0d5c56] text-white border-transparent shadow-md shadow-[#0f766e]/25 transform scale-[1.02]' 
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-[#0f766e]/30 hover:bg-[#f8fcfb]'
+                    : 'bg-white text-gray-700 border-gray-200 hover:border-[#0f766e]/30 hover:bg-[#f8fcfb]'
                 }`}
               >
                 <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-gray-400'}`} /> 
@@ -356,7 +356,7 @@ export default function GrowWithAIDashboard() {
               if (limit !== -1 && (limit === 0 || used >= limit)) {
                 return (
                   <div className="absolute inset-0 z-40 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center rounded-2xl">
-                    <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                    <div className="w-16 h-16 bg-red-50 text-red-700 rounded-full flex items-center justify-center mb-4">
                       <Lock className="w-8 h-8" />
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -430,7 +430,7 @@ export default function GrowWithAIDashboard() {
             </ul>
             <button 
               onClick={() => isPro && setIsAiReportModalOpen(true)}
-              className={`w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-600 hover:bg-gray-50 transition flex justify-center items-center gap-1.5 ${!isPro ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition flex justify-center items-center gap-1.5 ${!isPro ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {t("View Full AI Analysis")}<ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -464,7 +464,7 @@ export default function GrowWithAIDashboard() {
           <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative overflow-hidden group">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-[#25D366] flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
+                <div className="w-6 h-6 rounded-full bg-[#075E54] flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
                 <h3 className="font-bold text-gray-900 text-[14px]">{t("WhatsApp AI Alerts")}</h3>
               </div>
               <button
@@ -472,7 +472,7 @@ export default function GrowWithAIDashboard() {
                   setWhatsappEnabled(!whatsappEnabled);
                   toast.success(whatsappEnabled ? "WhatsApp alerts disabled" : "WhatsApp alerts enabled!");
                 }}
-                className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out flex items-center ${whatsappEnabled ? 'bg-[#25D366]' : 'bg-gray-200'}`}
+                className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out flex items-center ${whatsappEnabled ? 'bg-[#075E54]' : 'bg-gray-200'}`}
               >
                 <div className={`w-4 h-4 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out ${whatsappEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
               </button>
@@ -482,10 +482,10 @@ export default function GrowWithAIDashboard() {
             </p>
             
             <ul className={`space-y-3 mb-6 transition-opacity duration-200 ${whatsappEnabled ? 'opacity-100' : 'opacity-60'}`}>
-              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#25D366]' : 'text-gray-400'}`} />{t("New job matches")}</li>
-              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#25D366]' : 'text-gray-400'}`} />{t("Application status updates")}</li>
-              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#25D366]' : 'text-gray-400'}`} />{t("Interview reminders")}</li>
-              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#25D366]' : 'text-gray-400'}`} />{t("Salary drops & more")}</li>
+              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#075E54]' : 'text-gray-400'}`} />{t("New job matches")}</li>
+              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#075E54]' : 'text-gray-400'}`} />{t("Application status updates")}</li>
+              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#075E54]' : 'text-gray-400'}`} />{t("Interview reminders")}</li>
+              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#075E54]' : 'text-gray-400'}`} />{t("Salary drops & more")}</li>
             </ul>
             
             <button 
@@ -493,9 +493,9 @@ export default function GrowWithAIDashboard() {
                 setWhatsappEnabled(!whatsappEnabled);
                 toast.success(whatsappEnabled ? "WhatsApp alerts disabled" : "WhatsApp alerts enabled!");
               }}
-              className={`w-full py-2.5 border rounded-xl text-[11px] font-bold transition flex justify-center items-center gap-2 ${whatsappEnabled ? 'border-[#25D366]/20 bg-[#25D366]/10 text-[#128C7E] hover:bg-[#25D366]/20' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+              className={`w-full py-2.5 border rounded-xl text-[11px] font-bold transition flex justify-center items-center gap-2 ${whatsappEnabled ? 'border-[#075E54]/20 bg-[#075E54]/10 text-[#04433B] hover:bg-[#075E54]/20' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
             >
-              {whatsappEnabled ? t("Manage Alert Settings") : t("Enable WhatsApp Alerts")}<FaWhatsapp className={`w-4 h-4 ${whatsappEnabled ? 'text-[#128C7E]' : 'text-[#25D366]'}`} />
+              {whatsappEnabled ? t("Manage Alert Settings") : t("Enable WhatsApp Alerts")}<FaWhatsapp className={`w-4 h-4 ${whatsappEnabled ? 'text-[#04433B]' : 'text-[#075E54]'}`} />
             </button>
           </div>
 
@@ -519,7 +519,7 @@ export default function GrowWithAIDashboard() {
             </div>
             
             <div className="flex items-center justify-between gap-2 mb-5 mt-4">
-              <p className="text-[11px] text-gray-600 leading-relaxed max-w-[130px] font-medium">
+              <p className="text-[11px] text-gray-700 leading-relaxed max-w-[130px] font-medium">
                 {freelanceEnabled 
                   ? t("We are actively finding freelance projects for you.") 
                   : t("Discover freelance projects matching your skills.")}
@@ -591,13 +591,13 @@ function CareerGPSPanel({ loading, data, isLocked, isPro }) {
       </div>
       <div className="mb-8">
         <h4 className="text-[14px] font-bold text-gray-900 mb-2">{t("Reasoning Summary")}</h4>
-        <p className={`text-[12px] text-gray-600 leading-relaxed font-medium ${blurClass}`}>{data.reasoning_summary}</p>
+        <p className={`text-[12px] text-gray-700 leading-relaxed font-medium ${blurClass}`}>{data.reasoning_summary}</p>
       </div>
       <div className={isLocked ? "blur-md pointer-events-none opacity-50 select-none" : ""}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div>
             <h4 className="text-[13px] font-bold text-gray-900 mb-3 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-green-600" />{t("Required Skills")}</h4>
+              <CheckCircle2 className="w-4 h-4 text-green-700" />{t("Required Skills")}</h4>
             <div className="flex flex-wrap gap-1.5">
               {(data.required_skills || ['React', 'System Design']).map((skill, i) => (
                 <span key={i} className={`px-2.5 py-1.5 bg-gray-50 border border-gray-100 text-gray-700 rounded-lg text-[11px] font-bold ${blurClass}`}>
@@ -659,7 +659,7 @@ function CareerGPSPanel({ loading, data, isLocked, isPro }) {
               <h4 className="text-[12px] font-bold text-gray-900 mb-3">{t("Alternative Roles")}</h4>
               <ul className="space-y-2">
                 {(data.alternative_roles || ['Role A']).map((role, i) => (
-                  <li key={i} className={`flex items-center gap-1.5 text-[11px] font-bold text-gray-600 ${blurClass}`}>
+                  <li key={i} className={`flex items-center gap-1.5 text-[11px] font-bold text-gray-700 ${blurClass}`}>
                     <ChevronRight className="w-3.5 h-3.5 text-gray-400" /> {role}
                   </li>
                 ))}
@@ -715,13 +715,13 @@ function HiringBarriersPanel({ loading, data, isLocked, gpsData, isPro }) {
         </div>
         <div>
           <h3 className="text-[16px] font-bold text-gray-900 mb-1">{t("Hiring Barrier Score")}</h3>
-          <p className="text-[12px] text-gray-600 font-medium leading-relaxed">{t("A lower score is better. Your score indicates")}<span className="font-bold text-gray-800">{data.hiring_barrier_score > 60 ? 'significant' : data.hiring_barrier_score > 30 ? 'moderate' : 'few'}</span>{t("barriers to getting hired based on your current presentation and skills.")}</p>
+          <p className="text-[12px] text-gray-700 font-medium leading-relaxed">{t("A lower score is better. Your score indicates")}<span className="font-bold text-gray-800">{data.hiring_barrier_score > 60 ? 'significant' : data.hiring_barrier_score > 30 ? 'moderate' : 'few'}</span>{t("barriers to getting hired based on your current presentation and skills.")}</p>
         </div>
       </div>
       <div className="mb-8">
         <h4 className="text-[14px] font-bold text-gray-900 mb-3">{t("Top Reason You Aren't Getting Hired")}</h4>
         <div className="bg-red-50/50 border border-red-100 p-4 rounded-xl text-red-800 text-[13px] font-bold flex items-start gap-3">
-           <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+           <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
            <span className={blurClass}>{data.top_reasons?.[0] || "Needs more data."}</span>
         </div>
       </div>
@@ -732,7 +732,7 @@ function HiringBarriersPanel({ loading, data, isLocked, gpsData, isPro }) {
             <h4 className="text-[13px] font-bold text-gray-900 mb-3">{t("Other Major Reasons")}</h4>
             <ul className="space-y-2.5">
               {data.top_reasons.slice(1).map((reason, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-gray-600 text-[12px] font-medium">
+                <li key={i} className="flex items-start gap-2.5 text-gray-700 text-[12px] font-medium">
                   <div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div>
                   <span className={blurClass}>{reason}</span>
                 </li>
@@ -745,16 +745,16 @@ function HiringBarriersPanel({ loading, data, isLocked, gpsData, isPro }) {
           <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
             <h5 className="font-bold text-[13px] text-gray-900 mb-3 flex items-center gap-2">
               <Briefcase className="text-blue-500 w-4 h-4" />{t("Resume Issues")}</h5>
-            <ul className="space-y-2.5 text-[11px] text-gray-600 font-medium">
+            <ul className="space-y-2.5 text-[11px] text-gray-700 font-medium">
               {(data.resume_issues || ['Issue 1']).map((issue, i) => (
-                <li key={i} className="flex items-start gap-2"><Check className="w-3 h-3 text-blue-400 mt-0.5 shrink-0"/> <span className={blurClass}>{issue}</span></li>
+                <li key={i} className="flex items-start gap-2"><Check className="w-3 h-3 text-blue-700 mt-0.5 shrink-0"/> <span className={blurClass}>{issue}</span></li>
               ))}
             </ul>
           </div>
           <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
             <h5 className="font-bold text-[13px] text-gray-900 mb-3 flex items-center gap-2">
               <CheckCircle2 className="text-amber-500 w-4 h-4" />{t("Skill Issues")}</h5>
-            <ul className="space-y-2.5 text-[11px] text-gray-600 font-medium">
+            <ul className="space-y-2.5 text-[11px] text-gray-700 font-medium">
               {((gpsData?.missing_skills?.length > 0 ? gpsData.missing_skills : data.skill_issues) || ['No major issues']).map((issue, i) => (
                 <li key={i} className="flex items-start gap-2"><Check className="w-3 h-3 text-amber-400 mt-0.5 shrink-0"/> <span className={blurClass}>{issue}</span></li>
               ))}
@@ -763,7 +763,7 @@ function HiringBarriersPanel({ loading, data, isLocked, gpsData, isPro }) {
           <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
             <h5 className="font-bold text-[13px] text-gray-900 mb-3 flex items-center gap-2">
               <TrendingUp className="text-emerald-500 w-4 h-4" />{t("Salary/Location")}</h5>
-            <ul className="space-y-2.5 text-[11px] text-gray-600 font-medium">
+            <ul className="space-y-2.5 text-[11px] text-gray-700 font-medium">
               {(data.salary_or_location_issues || ['Issue 1']).map((issue, i) => (
                 <li key={i} className="flex items-start gap-2"><Check className="w-3 h-3 text-emerald-400 mt-0.5 shrink-0"/> <span className={blurClass}>{issue}</span></li>
               ))}
@@ -780,7 +780,7 @@ function HiringBarriersPanel({ loading, data, isLocked, gpsData, isPro }) {
                 <span className={`px-2 py-1 text-[10px] font-bold rounded-md ${
                   plan.priority === 'High' ? 'bg-red-50 text-red-600 border border-red-100' :
                   plan.priority === 'Medium' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
-                  'bg-green-50 text-green-600 border border-green-100'
+                  'bg-green-50 text-green-700 border border-green-100'
                 } ${blurClass}`}>
                   {plan.priority}{t("Priority")}</span>
               </div>
@@ -882,14 +882,14 @@ function SkillGapPanel({ fileHash, parsedData, isPro }) {
             </div>
             <div>
               <h3 className="text-[15px] font-bold text-gray-900 mb-1">{t("Job Match Score")}</h3>
-              <p className="text-gray-600 text-[12px] font-medium">{t("Based on your resume, you are a")}<span className={`font-bold text-gray-800 ${blurClass}`}>{data.job_match_score}{t("% match")}</span>{t("for this job description.")}</p>
+              <p className="text-gray-700 text-[12px] font-medium">{t("Based on your resume, you are a")}<span className={`font-bold text-gray-800 ${blurClass}`}>{data.job_match_score}{t("% match")}</span>{t("for this job description.")}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
               <h4 className="text-[13px] font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <CheckCircle2 className="text-green-600 w-4 h-4" />{t("Matched Skills")}</h4>
+                <CheckCircle2 className="text-green-700 w-4 h-4" />{t("Matched Skills")}</h4>
               <div className="flex flex-wrap gap-1.5">
                 {(data.matched_skills || []).map((skill, i) => (
                   <span key={i} className={`px-2.5 py-1 bg-green-50 text-green-700 border border-green-100 rounded-md text-[11px] font-bold ${blurClass}`}>
@@ -901,7 +901,7 @@ function SkillGapPanel({ fileHash, parsedData, isPro }) {
 
             <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
               <h4 className="text-[13px] font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <AlertCircle className="text-red-500 w-4 h-4" />{t("Missing Critical Skills")}</h4>
+                <AlertCircle className="text-red-700 w-4 h-4" />{t("Missing Critical Skills")}</h4>
               <div className="flex flex-wrap gap-1.5">
                 {(data.missing_critical_skills || []).map((skill, i) => (
                   <span key={i} className={`px-2.5 py-1 bg-red-50 text-red-700 border border-red-100 rounded-md text-[11px] font-bold ${blurClass}`}>
@@ -1011,7 +1011,7 @@ function AtsOptimizerPanel({ fileHash, parsedData, isPro }) {
           
           {data.warnings?.length > 0 && (
             <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
               <div>
                 <h3 className="text-[13px] font-bold text-red-800 mb-1">{t("AI Integrity Warnings")}</h3>
                 <ul className="text-[11px] text-red-700 font-medium space-y-1">
@@ -1201,7 +1201,7 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
             className={`px-4 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
               activeCategory === cat 
                 ? 'bg-[#0f766e] text-white shadow-sm' 
-                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
             }`}
           >
             {cat}

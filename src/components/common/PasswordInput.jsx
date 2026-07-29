@@ -22,7 +22,7 @@ const PasswordInput = ({ value, onChange, name, placeholder, error, autoComplete
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3.5 top-3.5 text-gray-400 hover:text-gray-600 focus:outline-none"
+          className="absolute right-3.5 top-3.5 text-gray-400 hover:text-gray-700 focus:outline-none"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           {showPassword ? (
@@ -32,7 +32,7 @@ const PasswordInput = ({ value, onChange, name, placeholder, error, autoComplete
           )}
         </button>
       </div>
-      {error && <p className="text-red-500 text-xs mt-1 pl-1 font-medium">{error}</p>}
+      {error && <p className="text-red-700 text-xs mt-1 pl-1 font-medium">{error}</p>}
     </div>
   );
 };

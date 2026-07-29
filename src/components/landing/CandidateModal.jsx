@@ -45,7 +45,7 @@ export default function CandidateModal({ selectedCandidate, setSelectedCandidate
           <h2 className="text-xl font-bold text-gray-900">Candidate Profile</h2>
           <button 
             onClick={() => setSelectedCandidate(null)}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -80,7 +80,7 @@ export default function CandidateModal({ selectedCandidate, setSelectedCandidate
               </div>
               <p className="text-lg font-bold text-indigo-700 mb-3">{selectedCandidate.primaryRole || 'Freelancer'}</p>
               
-              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 font-medium">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-700 font-medium">
                 <div className="flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-gray-400" />
                   {selectedCandidate.city || 'India'}
@@ -105,7 +105,7 @@ export default function CandidateModal({ selectedCandidate, setSelectedCandidate
               <div className="text-xs text-gray-500 font-medium">Experience</div>
             </div>
             <div className="bg-green-50/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
-              <Wallet className="w-6 h-6 text-green-600 mb-2" />
+              <Wallet className="w-6 h-6 text-green-700 mb-2" />
               <div className="text-lg font-bold text-gray-900">₹{selectedCandidate.hourlyRate || '1200'}/hr</div>
               <div className="text-xs text-gray-500 font-medium">Hourly Rate</div>
             </div>
@@ -139,7 +139,7 @@ export default function CandidateModal({ selectedCandidate, setSelectedCandidate
           {/* Bio/About */}
           <div>
             <h4 className="text-base font-bold text-gray-900 mb-3">About</h4>
-            <p className="text-sm text-gray-600 leading-relaxed">
+            <p className="text-sm text-gray-700 leading-relaxed">
               {selectedCandidate.bio || `${selectedCandidate.profileName} is a highly skilled ${selectedCandidate.primaryRole || 'professional'} based in ${selectedCandidate.city || 'India'} with over ${selectedCandidate.experienceYears || 0} years of experience. They are ready to take on new projects and deliver high-quality results.`}
             </p>
           </div>
@@ -169,7 +169,7 @@ export default function CandidateModal({ selectedCandidate, setSelectedCandidate
         <div className="sticky bottom-0 bg-white border-t border-gray-100 p-5 sm:px-8 flex flex-col sm:flex-row gap-3 mt-auto">
           <button 
             onClick={(e) => handleContactClick(e, 'whatsapp')}
-            className="flex-1 py-3.5 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] transition-colors text-sm flex items-center justify-center gap-2 shadow-sm"
+            className="flex-1 py-3.5 rounded-xl bg-[#075E54] text-white font-bold hover:bg-[#04433B] transition-colors text-sm flex items-center justify-center gap-2 shadow-sm"
           >
             <MessageCircle className="w-5 h-5" fill="currentColor" strokeWidth={0} /> Chat on WhatsApp
           </button>

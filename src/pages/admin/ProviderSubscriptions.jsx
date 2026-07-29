@@ -89,7 +89,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
             )}
             {value && (
               <li 
-                className="px-3 py-2 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
+                className="px-3 py-2 text-sm text-red-700 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
                 onClick={() => {
                   setValue('');
                   setSearchTerm('');
@@ -153,7 +153,7 @@ const DEFAULT_FILTERS = {
 
 const Badge = ({ children, variant = 'gray', size = 'sm' }) => {
   const styles = {
-    gray:     'bg-gray-100 text-gray-600 border-gray-200',
+    gray:     'bg-gray-100 text-gray-700 border-gray-200',
     blue:     'bg-indigo-50 text-indigo-700 border-indigo-100',
     indigo:   'bg-indigo-50 text-indigo-700 border-indigo-100',
     purple:   'bg-purple-50 text-purple-700 border-purple-100',
@@ -280,9 +280,9 @@ const ReminderModal = ({ selectedIds, onClose, onSent }) => {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-gray-900">Send Renewal Reminder</h3>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition"><HiX className="w-5 h-5" /></button>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-700 transition"><HiX className="w-5 h-5" /></button>
         </div>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-gray-700 mb-4">
           Sending reminder to <strong>{selectedIds.length}</strong> subscription(s).
         </p>
         <div className="space-y-4">
@@ -291,7 +291,7 @@ const ReminderModal = ({ selectedIds, onClose, onSent }) => {
             <div className="flex gap-3">
               {['email', 'whatsapp'].map(c => (
                 <button key={c} type="button" onClick={() => setChannel(c)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition ${channel === c ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'}`}>
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition ${channel === c ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-200 hover:border-indigo-300'}`}>
                   {c === 'email' ? '📧 Email' : '💬 WhatsApp'}
                 </button>
               ))}
@@ -307,7 +307,7 @@ const ReminderModal = ({ selectedIds, onClose, onSent }) => {
           </div>
         </div>
         <div className="flex gap-3 mt-6">
-          <button onClick={onClose} type="button" className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">Cancel</button>
+          <button onClick={onClose} type="button" className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">Cancel</button>
           <button onClick={handleSend} disabled={sending} type="button"
             className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition">
             {sending ? 'Sending…' : `Send ${channel === 'email' ? 'Emails' : 'WhatsApp'}`}
@@ -601,15 +601,15 @@ const ProviderSubscriptions = () => {
                 <HiMail className="w-4 h-4" /> Remind ({selectedIds.length})
               </button>
               <button onClick={() => setSelectedIds([])} type="button"
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition"><HiX className="w-4 h-4" /></button>
+                className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition"><HiX className="w-4 h-4" /></button>
             </>
           )}
           <button onClick={exportCSV} type="button"
-            className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition">
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition">
             <HiDownload className="w-4 h-4" /> Export CSV
           </button>
           <button onClick={fetchSubscriptions} type="button"
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition" title="Refresh">
+            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition" title="Refresh">
             <HiRefresh className="w-5 h-5" />
           </button>
         </div>
@@ -684,7 +684,7 @@ const ProviderSubscriptions = () => {
           />
           {/* Toggle Advanced */}
           <button type="button" onClick={() => setShowAdvanced(v => !v)}
-            className={`flex items-center gap-1.5 px-3 py-2.5 border rounded-xl text-sm font-semibold transition ${showAdvanced ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+            className={`flex items-center gap-1.5 px-3 py-2.5 border rounded-xl text-sm font-semibold transition ${showAdvanced ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
             <HiFilter className="w-4 h-4" /> More Filters
             {showAdvanced ? <HiChevronUp className="w-3.5 h-3.5" /> : <HiChevronDown className="w-3.5 h-3.5" />}
           </button>
@@ -882,7 +882,7 @@ const ProviderSubscriptions = () => {
                             </div>
                             <div className="min-w-0">
                               {item.userMissing ? (
-                                <div className="text-red-500 text-xs font-semibold">Deleted / Missing User</div>
+                                <div className="text-red-700 text-xs font-semibold">Deleted / Missing User</div>
                               ) : (
                                 <div className="font-semibold text-gray-900 text-sm leading-tight truncate max-w-[150px]" title={item.userName}>
                                   {item.userName || '—'}
@@ -910,7 +910,7 @@ const ProviderSubscriptions = () => {
                         </td>
                         {/* Category / Skill */}
                         <td className="px-4 py-3 min-w-[130px]">
-                          <div className="text-xs text-gray-600 font-medium">
+                          <div className="text-xs text-gray-700 font-medium">
                             {item.userRole === 'provider'
                               ? (item.skillName || item.serviceCategory || item.planCategory || '—')
                               : (item.hiringCategoryName || item.industry || item.planCategory || '—')}
@@ -918,7 +918,7 @@ const ProviderSubscriptions = () => {
                         </td>
                         {/* Location */}
                         <td className="px-4 py-3 min-w-[110px]">
-                          <div className="text-xs text-gray-600">
+                          <div className="text-xs text-gray-700">
                             {[item.city, item.state, item.country].filter(Boolean).join(', ') || '—'}
                           </div>
                           {item.locality && <div className="text-[11px] text-gray-400 truncate">{item.locality}</div>}
@@ -990,12 +990,12 @@ const ProviderSubscriptions = () => {
                 </p>
                 <div className="flex items-center gap-1">
                   <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                    className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 transition text-gray-600">
+                    className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 transition text-gray-700">
                     <HiChevronLeft className="w-5 h-5" />
                   </button>
-                  <span className="text-sm font-semibold text-gray-600 px-2">{page} / {totalPages}</span>
+                  <span className="text-sm font-semibold text-gray-700 px-2">{page} / {totalPages}</span>
                   <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                    className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 transition text-gray-600">
+                    className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 transition text-gray-700">
                     <HiChevronRight className="w-5 h-5" />
                   </button>
                 </div>
@@ -1008,7 +1008,7 @@ const ProviderSubscriptions = () => {
       {/* ── Analytics Breakdowns ── */}
       <div>
         <button type="button" onClick={() => { setAnalyticsOpen(v => !v); if (!analyticsOpen) fetchAnalytics(); }}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">
+          className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">
           <HiTrendingUp className="w-4 h-4 text-indigo-500" />
           {analyticsOpen ? 'Hide Analytics Breakdowns' : 'Show Analytics Breakdowns'}
           {analyticsOpen ? <HiChevronUp className="w-4 h-4" /> : <HiChevronDown className="w-4 h-4" />}

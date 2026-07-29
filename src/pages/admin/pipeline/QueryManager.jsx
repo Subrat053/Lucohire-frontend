@@ -335,7 +335,7 @@ const QueryManager = () => {
                     <td className="px-6 py-3.5 text-sm font-bold text-gray-900">
                       "{q.query}"
                     </td>
-                    <td className="px-6 py-3.5 text-xs text-gray-600 font-medium">
+                    <td className="px-6 py-3.5 text-xs text-gray-700 font-medium">
                       {q.location || 'Any'}
                     </td>
                     <td className="px-6 py-3.5 text-xs font-bold text-gray-700 uppercase">
@@ -501,7 +501,7 @@ const ScanRow = ({ scan }) => {
                         </div>
                         <span className={`px-2 py-0.5 text-[10px] uppercase font-bold rounded-full ${
                           job.processingStatus === 'published' ? 'bg-emerald-100 text-emerald-700' :
-                          job.processingStatus === 'duplicate' ? 'bg-gray-200 text-gray-600' :
+                          job.processingStatus === 'duplicate' ? 'bg-gray-200 text-gray-700' :
                           job.processingStatus === 'validation_failed' ? 'bg-red-100 text-red-700' :
                           'bg-blue-100 text-blue-700'
                         }`}>

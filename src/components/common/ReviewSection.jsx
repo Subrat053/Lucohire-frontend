@@ -150,7 +150,7 @@ const ReviewSection = ({ revieweeId, initialReviews = [], initialSummary = { avg
     <section className="bg-white rounded-2xl border border-gray-100 p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold text-gray-900">Reviews</h3>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-700">
           <span className="font-semibold text-gray-900">{summary.avgRating || 0}</span> / 5 · {summary.totalReviews || 0} reviews
         </div>
       </div>
@@ -221,7 +221,7 @@ const ReviewSection = ({ revieweeId, initialReviews = [], initialSummary = { avg
                 </div>
               ) : (
                 <>
-                  {review.comment ? <p className="text-sm text-gray-600 mt-1">{review.comment}</p> : null}
+                  {review.comment ? <p className="text-sm text-gray-700 mt-1">{review.comment}</p> : null}
                   {isManageable(review) ? (
                     <div className="mt-2 flex items-center gap-2">
                       <button

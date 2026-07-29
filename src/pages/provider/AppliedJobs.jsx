@@ -223,7 +223,7 @@ export default function AppliedJobs() {
                                     'bg-white border-slate-300'
                                   }`}>
                                     {isCompleted && <HiCheckCircle className="w-3.5 h-3.5 text-white shrink-0 absolute" />}
-                                    {isFailed && <HiX className="w-2.5 h-2.5 text-red-500 shrink-0 absolute" />}
+                                    {isFailed && <HiX className="w-2.5 h-2.5 text-red-700 shrink-0 absolute" />}
                                   </div>
                                   <span className={`absolute top-6 text-center left-1/2 -translate-x-1/2 w-16 text-[9px] xl:text-[10px] leading-tight ${isCurrent || isCompleted ? 'text-slate-800' : isFailed ? 'text-red-600' : 'text-slate-400'}`}>
                                     {step}
@@ -402,8 +402,8 @@ export default function AppliedJobs() {
           {/* Stay Updated on WhatsApp */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-[#25D366]/10 flex items-center justify-center">
-                <FaWhatsapp className="w-5 h-5 text-[#25D366]" />
+              <div className="w-8 h-8 rounded-full bg-[#075E54]/10 flex items-center justify-center">
+                <FaWhatsapp className="w-5 h-5 text-[#075E54]" />
               </div>
               <h3 className="font-bold text-slate-900">Stay Updated on WhatsApp</h3>
             </div>
@@ -437,7 +437,7 @@ export default function AppliedJobs() {
                <h3 className="font-bold text-sm mb-1">Need Help?</h3>
                <p className="text-[11px] font-medium text-blue-100 mb-3 leading-relaxed">Chat with us on WhatsApp.<br/>We're here to help you 9 AM - 9 PM</p>
                <button onClick={() => toast('Feature in progress')} className="text-[11px] font-bold text-blue-900 bg-white rounded-full px-4 py-2 flex items-center gap-1.5 hover:bg-blue-50 shadow-sm transition w-fit">
-                 Chat Now on WhatsApp <FaWhatsapp className="w-3.5 h-3.5 text-[#25D366]" />
+                 Chat Now on WhatsApp <FaWhatsapp className="w-3.5 h-3.5 text-[#075E54]" />
                </button>
              </div>
              <div className="w-[80px] shrink-0 flex items-end justify-end pt-2 relative z-10">

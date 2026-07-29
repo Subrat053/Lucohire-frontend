@@ -48,7 +48,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
         <div className="flex items-center gap-1.5 shrink-0 ml-2">
           {(value && value !== 'all' && value !== label && value !== '') && (
             <X 
-              className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
+              className="w-4 h-4 text-gray-400 hover:text-red-700 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 setValue('');
@@ -120,7 +120,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
             )}
             {value && value !== 'all' && value !== label && value !== '' && (
               <li 
-                className="px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
+                className="px-4 py-2.5 text-sm text-red-700 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
                 onClick={() => {
                   setValue('');
                   setSearchTerm('');
@@ -176,7 +176,7 @@ const UserDetailModal = ({ userId, onClose }) => {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
           <h2 className="text-lg font-bold text-gray-900">User Details</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><HiX className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><HiX className="w-5 h-5" /></button>
         </div>
         {loading ? (
           <div className="p-12 flex justify-center"><LoadingSpinner /></div>
@@ -377,7 +377,7 @@ const UserDetailModal = ({ userId, onClose }) => {
                   {selectedProfile.latitude && selectedProfile.longitude && (
                     <div className="sm:col-span-2">
                       <span className="text-gray-500 block text-xs">Google Coordinates</span>
-                      <span className="font-mono text-xs text-gray-600">
+                      <span className="font-mono text-xs text-gray-700">
                         {selectedProfile.latitude.toFixed(6)}, {selectedProfile.longitude.toFixed(6)}
                       </span>
                     </div>
@@ -661,11 +661,11 @@ const AdminUsers = () => {
                     <th className="text-left py-3 px-4 font-medium text-gray-500 relative group">
                       <div className="flex items-center gap-1 cursor-help">
                         <span>Role</span>
-                        <HiInformationCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 transition-colors" />
+                        <HiInformationCircle className="w-4 h-4 text-gray-400 hover:text-gray-700 transition-colors" />
                         <div className="absolute left-4 top-full mt-1 w-64 bg-slate-900 text-white text-xs rounded-xl p-3 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 font-normal normal-case border border-slate-800">
                           <div className="space-y-2">
                             <p><strong className="text-emerald-400 font-semibold">Provider:</strong> Offers services/skills, views matches, and receives job leads.</p>
-                            <p><strong className="text-blue-400 font-semibold">Recruiter:</strong> Posts jobs, searches providers, and unlocks contacts.</p>
+                            <p><strong className="text-blue-700 font-semibold">Recruiter:</strong> Posts jobs, searches providers, and unlocks contacts.</p>
                             <p><strong className="text-purple-400 font-semibold">Admin/Manager:</strong> Moderates users, manages plans, settings, and logs.</p>
                           </div>
                         </div>
@@ -788,7 +788,7 @@ const AdminUsers = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 animate-fade-in">
             <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-50 mx-auto mb-4">
-              <HiTrash className="w-7 h-7 text-red-500" />
+              <HiTrash className="w-7 h-7 text-red-700" />
             </div>
             <h3 className="text-lg font-bold text-gray-900 text-center mb-1">Delete User</h3>
             <p className="text-sm text-gray-500 text-center mb-1">

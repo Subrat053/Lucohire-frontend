@@ -104,7 +104,7 @@ const ResetPassword = () => {
                     <div className="mt-2">
                       <div className="flex items-center justify-between text-xs font-bold mb-1">
                         <span className="text-slate-500 uppercase">Strength</span>
-                        <span className={strength.label === "Strong" ? "text-green-600" : strength.label === "Good" ? "text-yellow-600" : "text-red-600"}>
+                        <span className={strength.label === "Strong" ? "text-green-700" : strength.label === "Good" ? "text-yellow-600" : "text-red-600"}>
                           {strength.label}
                         </span>
                       </div>
@@ -153,7 +153,7 @@ const ResetPassword = () => {
           ) : (
             <div className="text-center space-y-6">
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <HiCheckCircle className="w-12 h-12 text-green-600" />
+                <HiCheckCircle className="w-12 h-12 text-green-700" />
               </div>
               <div className="space-y-2">
                 <h3 className="text-2xl font-black text-slate-900">Success!</h3>

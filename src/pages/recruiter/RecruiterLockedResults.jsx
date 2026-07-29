@@ -117,7 +117,7 @@ const RecruiterLockedResults = () => {
             <h1 className="text-[28px] md:text-[40px] font-bold text-[#081B3A] leading-tight tracking-tight">{t("Find the right talent,")}<br/>
               <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-600 to-purple-600">{t("faster and smarter")}</span>
             </h1>
-            {/* <p className="text-[15px] font-medium text-gray-600 mt-3 leading-relaxed">
+            {/* <p className="text-[15px] font-medium text-gray-700 mt-3 leading-relaxed">
               Search from <strong>8.6M+ verified profiles</strong> and connect <br/>with the best candidates for your role.
             </p> */}
           </div>
@@ -144,20 +144,20 @@ const RecruiterLockedResults = () => {
                 <div className="text-[11px] font-medium text-indigo-500 flex items-center gap-1">{t("Free Preview")}<span className="w-1 h-1 bg-gray-300 rounded-full mx-1"></span>{t("No Login Required")}</div>
               </div>
               
-              <div onClick={() => setIsModalOpen(true)} className="flex-1 p-4 border-b border-gray-200 text-gray-600 hover:bg-gray-50 flex flex-col items-start cursor-pointer transition">
+              <div onClick={() => setIsModalOpen(true)} className="flex-1 p-4 border-b border-gray-200 text-gray-700 hover:bg-gray-50 flex flex-col items-start cursor-pointer transition">
                 <div className="flex items-center gap-2 mb-1">
                   <FiUploadCloud className="w-4 h-4" />
                   <span>{t("Upload JD / Requirement")}</span>
-                  <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-bold ml-1">{t("Login Required")}</span>
+                  <span className="text-[10px] bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded font-bold ml-1">{t("Login Required")}</span>
                 </div>
                 <div className="text-[11px] font-medium text-gray-500">{t("Unlock AI JD parsing & smart matching")}</div>
               </div>
 
-              <div onClick={() => setIsModalOpen(true)} className="flex-1 p-4 border-b border-gray-200 text-gray-600 hover:bg-gray-50 flex flex-col items-start cursor-pointer transition">
+              <div onClick={() => setIsModalOpen(true)} className="flex-1 p-4 border-b border-gray-200 text-gray-700 hover:bg-gray-50 flex flex-col items-start cursor-pointer transition">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-purple-500 font-bold">✨</span>
                   <span>{t("Ask Luco AI")}</span>
-                  <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-bold ml-1">{t("Login Required")}</span>
+                  <span className="text-[10px] bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded font-bold ml-1">{t("Login Required")}</span>
                 </div>
                 <div className="text-[11px] font-medium text-gray-500">{t("Get AI hiring advice & insights")}</div>
               </div>
@@ -169,7 +169,7 @@ const RecruiterLockedResults = () => {
                 <h2 className="text-lg font-bold text-gray-900">{t("1. Search Candidates")}</h2>
                 <span className="text-sm font-medium text-gray-500">{t("(Free Preview)")}</span>
               </div>
-              <p className="text-sm text-gray-600 mb-5">{t("Fill in the filters below to find the best matching candidates.")}</p>
+              <p className="text-sm text-gray-700 mb-5">{t("Fill in the filters below to find the best matching candidates.")}</p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap lg:flex-nowrap gap-3 items-end opacity-80 pointer-events-none">
                 <div className="w-full md:flex-1">
@@ -206,7 +206,7 @@ const RecruiterLockedResults = () => {
               <div className="flex items-center gap-3 mt-5">
                 <span className="text-xs font-bold text-gray-800">{t("Popular searches:")}</span>
                 {['React Developer', 'UI/UX Designer', 'Python Developer', 'Product Manager'].map(s => (
-                  <span key={s} className="text-[11px] font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">{s}</span>
+                  <span key={s} className="text-[11px] font-semibold text-gray-700 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">{s}</span>
                 ))}
               </div>
             </div>
@@ -224,7 +224,7 @@ const RecruiterLockedResults = () => {
                       <div className="w-8 h-8 rounded-full bg-emerald-100 border-2 border-white text-emerald-600 flex items-center justify-center shadow-sm">
                         <FiCheckCircle className="w-4 h-4" />
                       </div>
-                      <p className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{step}</p>
+                      <p className="text-[10px] font-semibold text-gray-700 text-center leading-tight">{step}</p>
                     </div>
                   ))}
                   <div className="flex flex-col items-center gap-2 relative z-10 min-w-[80px]">

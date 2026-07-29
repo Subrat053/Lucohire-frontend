@@ -259,7 +259,7 @@ const CompanySources = () => {
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-auto">
                   <button
                     onClick={() => handleDelete(c._id)}
-                    className="p-2 bg-gray-50 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition border border-gray-200"
+                    className="p-2 bg-gray-50 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-xl transition border border-gray-200"
                     title="Delete"
                   >
                     <HiTrash className="w-5 h-5" />
@@ -326,7 +326,7 @@ const CompanySources = () => {
               </div>
 
               <div className="pt-4 flex justify-end gap-3">
-                <button type="button" onClick={() => setShowDiscoverForm(false)} className="px-4 py-2 font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition">
+                <button type="button" onClick={() => setShowDiscoverForm(false)} className="px-4 py-2 font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition">
                   Cancel
                 </button>
                 <button disabled={discovering} type="submit" className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition shadow-md disabled:opacity-50 flex items-center gap-2">
@@ -460,7 +460,7 @@ const CompanySources = () => {
                 <div className="mt-2 flex justify-center rounded-xl border border-dashed border-gray-300 px-6 py-8 hover:bg-gray-50 transition cursor-pointer relative">
                   <div className="text-center">
                     <HiDownload className="mx-auto h-8 w-8 text-gray-300" aria-hidden="true" />
-                    <div className="mt-4 flex text-sm leading-6 text-gray-600 justify-center">
+                    <div className="mt-4 flex text-sm leading-6 text-gray-700 justify-center">
                       <label className="relative cursor-pointer rounded-md bg-transparent font-semibold text-indigo-600 focus-within:outline-none hover:text-indigo-500">
                         <span>Upload a file</span>
                         <input

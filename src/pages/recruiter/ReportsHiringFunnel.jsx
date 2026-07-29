@@ -135,7 +135,7 @@ export default function HiringFunnelPage() {
                   <div className="text-[10px] font-semibold text-gray-500 mb-1">{c.from}</div>
                   <div className="text-xl font-extrabold text-gray-900">{c.rate}</div>
                 </div>
-                <div className={`flex items-center gap-0.5 text-xs font-bold ${c.up ? 'text-emerald-600' : 'text-red-500'}`}>
+                <div className={`flex items-center gap-0.5 text-xs font-bold ${c.up ? 'text-emerald-600' : 'text-red-700'}`}>
                   <FiArrowUpRight className="w-4 h-4" /> {c.change}
                 </div>
               </div>

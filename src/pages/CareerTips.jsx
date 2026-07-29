@@ -65,7 +65,7 @@ export default function CareerTips() {
             <h1 className="text-4xl font-extrabold text-[#0B1536] sm:text-5xl tracking-tight mb-6">
               Actionable <span className="text-blue-600">Career Tips</span>
             </h1>
-            <p className="text-lg text-gray-600 leading-relaxed max-w-2xl">
+            <p className="text-lg text-gray-700 leading-relaxed max-w-2xl">
               Skip the fluff. Here are proven, high-impact strategies to help you land interviews, negotiate better offers, and accelerate your professional growth.
             </p>
           </div>
@@ -91,7 +91,7 @@ export default function CareerTips() {
                     <span className="text-sm font-bold text-gray-400">0{index + 1}</span>
                     <h2 className="text-2xl font-bold text-[#0B1536]">{tip.title}</h2>
                   </div>
-                  <p className="text-gray-600 leading-relaxed text-lg">
+                  <p className="text-gray-700 leading-relaxed text-lg">
                     {tip.description}
                   </p>
                 </div>

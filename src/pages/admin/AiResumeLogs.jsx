@@ -39,7 +39,7 @@ const FilterDropdown = ({ label, value, setValue, options }) => {
           isOpen ? 'border-purple-500 ring-2 ring-purple-500/20 bg-white' : 'border-gray-200'
         }`}
       >
-        <span className={value && value !== 'all' ? 'text-gray-900' : 'text-gray-600'}>{displayValue}</span>
+        <span className={value && value !== 'all' ? 'text-gray-900' : 'text-gray-700'}>{displayValue}</span>
         <ChevronDown className={`w-4 h-4 transition-transform text-gray-400 ${isOpen ? 'rotate-180 text-purple-500' : ''}`} />
       </div>
 
@@ -80,7 +80,7 @@ const STATUS_CONFIG = {
   completed: { cls: 'bg-green-50 text-green-700 border-green-200', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
   failed: { cls: 'bg-red-50 text-red-700 border-red-200', icon: <XCircle className="w-3.5 h-3.5" /> },
   processing: { cls: 'bg-indigo-50 text-indigo-700 border-indigo-200', icon: <Loader2 className="w-3.5 h-3.5 animate-spin" /> },
-  pending: { cls: 'bg-gray-100 text-gray-600 border-gray-200', icon: <Clock className="w-3.5 h-3.5" /> },
+  pending: { cls: 'bg-gray-100 text-gray-700 border-gray-200', icon: <Clock className="w-3.5 h-3.5" /> },
 };
 
 export default function AiResumeLogs() {
@@ -156,7 +156,7 @@ export default function AiResumeLogs() {
         <div className="flex items-center gap-3">
           <button
             onClick={fetchLogs}
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-xs hover:bg-gray-50 transition"
+            className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-xs hover:bg-gray-50 transition"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh Logs
           </button>
@@ -220,7 +220,7 @@ export default function AiResumeLogs() {
         {/* Custom Date Range Inputs */}
         {dateRange === 'custom' && (
           <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-gray-100 text-xs">
-            <span className="font-semibold text-gray-600">Select Date Range:</span>
+            <span className="font-semibold text-gray-700">Select Date Range:</span>
             <div className="flex items-center gap-2">
               <label className="text-gray-500">From:</label>
               <input
@@ -260,7 +260,7 @@ export default function AiResumeLogs() {
         </div>
       ) : error ? (
         <div className="bg-red-50 rounded-2xl p-4 flex items-center gap-3 border border-red-200">
-          <AlertTriangle className="w-5 h-5 text-red-500" />
+          <AlertTriangle className="w-5 h-5 text-red-700" />
           <p className="text-sm text-red-700">{error}</p>
         </div>
       ) : logs.length === 0 ? (
@@ -314,7 +314,7 @@ export default function AiResumeLogs() {
                           {skills.length > 3 && <span className="text-xs text-gray-400 self-center">+{skills.length - 3}</span>}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 text-xs text-red-500 max-w-xs truncate" title={log.resumeParsing?.errorMessage}>
+                      <td className="px-4 py-3.5 text-xs text-red-700 max-w-xs truncate" title={log.resumeParsing?.errorMessage}>
                         {log.resumeParsing?.errorMessage || '—'}
                       </td>
                       <td className="px-4 py-3.5 text-xs text-gray-500 whitespace-nowrap font-mono">{formatDate(log.resumeParsing?.parsedAt || log.updatedAt)}</td>

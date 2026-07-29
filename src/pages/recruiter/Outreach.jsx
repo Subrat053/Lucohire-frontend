@@ -157,7 +157,7 @@ const Outreach = () => {
                         <div className="flex items-center gap-3">
                           <h3 className="font-bold text-gray-900 text-lg">{job.title}</h3>
                           {job.skill && (
-                            <span className="bg-gray-50 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-gray-200">
+                            <span className="bg-gray-50 text-gray-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-gray-200">
                               {t("Skill")}
                             </span>
                           )}
@@ -382,7 +382,7 @@ const Outreach = () => {
               <button 
                 onClick={() => setIsModalOpen(false)}
                 disabled={runningCampaign}
-                className="px-6 py-2.5 text-sm font-extrabold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-gray-900 rounded-xl transition-all shadow-sm"
+                className="px-6 py-2.5 text-sm font-extrabold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:text-gray-900 rounded-xl transition-all shadow-sm"
               >
                 {t("Cancel")}
               </button>
@@ -407,7 +407,7 @@ const Outreach = () => {
           <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl border border-gray-100" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-gray-900">Boost Job Post</h3>
-              <button onClick={() => setBoostModalOpen(false)} className="p-2 bg-gray-50 hover:bg-red-50 rounded-full text-gray-500 hover:text-red-500 transition-all transform hover:scale-110 shadow-sm">
+              <button onClick={() => setBoostModalOpen(false)} className="p-2 bg-gray-50 hover:bg-red-50 rounded-full text-gray-500 hover:text-red-700 transition-all transform hover:scale-110 shadow-sm">
                 <FiX className="w-5 h-5" />
               </button>
             </div>
@@ -432,7 +432,7 @@ const Outreach = () => {
             <div className="flex gap-3 justify-end mt-8">
               <button
                 onClick={() => setBoostModalOpen(false)}
-                className="px-5 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition"
+                className="px-5 py-2.5 rounded-xl font-bold text-gray-700 hover:bg-gray-100 transition"
                 disabled={isBoosting}
               >
                 Cancel
@@ -463,7 +463,7 @@ const Outreach = () => {
                 <span className={`px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wider ${selectedCampaign.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>
                   {selectedCampaign.status}
                 </span>
-                <button onClick={() => setSelectedCampaign(null)} className="p-2 bg-gray-50 hover:bg-red-50 rounded-full text-gray-500 hover:text-red-500 transition-all transform hover:scale-110 shadow-sm">
+                <button onClick={() => setSelectedCampaign(null)} className="p-2 bg-gray-50 hover:bg-red-50 rounded-full text-gray-500 hover:text-red-700 transition-all transform hover:scale-110 shadow-sm">
                   <FiX className="w-5 h-5" />
                 </button>
               </div>
@@ -519,7 +519,7 @@ const Outreach = () => {
             <div className="flex justify-end mt-4">
               <button
                 onClick={() => setSelectedCampaign(null)}
-                className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition"
+                className="px-6 py-2.5 rounded-xl font-bold text-gray-700 hover:bg-gray-100 transition"
               >
                 Close
               </button>
@@ -541,7 +541,7 @@ const Outreach = () => {
                 <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 shrink-0">
                   <FiTrendingUp className="w-5 h-5" />
                 </div>
-                <button onClick={() => setSelectedBoost(null)} className="p-2 bg-gray-50 hover:bg-red-50 rounded-full text-gray-500 hover:text-red-500 transition-all transform hover:scale-110 shadow-sm">
+                <button onClick={() => setSelectedBoost(null)} className="p-2 bg-gray-50 hover:bg-red-50 rounded-full text-gray-500 hover:text-red-700 transition-all transform hover:scale-110 shadow-sm">
                   <FiX className="w-5 h-5" />
                 </button>
               </div>
@@ -549,19 +549,19 @@ const Outreach = () => {
 
             <div className="space-y-3 mb-6">
               <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 flex justify-between items-center">
-                <span className="text-sm font-semibold text-gray-600">Status</span>
+                <span className="text-sm font-semibold text-gray-700">Status</span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700">Active</span>
               </div>
               
               <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 flex justify-between items-center">
-                <span className="text-sm font-semibold text-gray-600">Boosted On</span>
+                <span className="text-sm font-semibold text-gray-700">Boosted On</span>
                 <span className="text-sm font-bold text-gray-900">
                   {selectedBoost.boostedAt ? new Date(selectedBoost.boostedAt).toLocaleDateString() : 'N/A'}
                 </span>
               </div>
 
               <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 flex justify-between items-center">
-                <span className="text-sm font-semibold text-gray-600">Expires On</span>
+                <span className="text-sm font-semibold text-gray-700">Expires On</span>
                 <span className="text-sm font-bold text-gray-900">
                   {selectedBoost.boostExpiresAt ? new Date(selectedBoost.boostExpiresAt).toLocaleDateString() : 'N/A'}
                 </span>

@@ -73,8 +73,8 @@ export default function ImportRecruiters() {
       case 'processing': return 'text-blue-600 bg-blue-50 border-blue-200';
       case 'paused': return 'text-amber-600 bg-amber-50 border-amber-200';
       case 'failed': return 'text-red-600 bg-red-50 border-red-200';
-      case 'stopped': return 'text-gray-600 bg-gray-50 border-gray-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case 'stopped': return 'text-gray-700 bg-gray-50 border-gray-200';
+      default: return 'text-gray-700 bg-gray-50 border-gray-200';
     }
   };
 
@@ -182,7 +182,7 @@ export default function ImportRecruiters() {
                             {batch.status}
                           </span>
                           {batch.errors?.length > 0 && (
-                            <div className="text-xs text-red-500 mt-1">{batch.errors.length} errors</div>
+                            <div className="text-xs text-red-700 mt-1">{batch.errors.length} errors</div>
                           )}
                         </td>
                         <td className="px-5 py-4">

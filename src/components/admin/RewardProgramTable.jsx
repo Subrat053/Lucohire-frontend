@@ -114,7 +114,7 @@ const RewardProgramTable = ({ topPartners = [] }) => {
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right">
-                      <span className="inline-flex items-center justify-center px-3 py-1 bg-green-50 text-green-600 font-bold text-[10px] rounded-full">
+                      <span className="inline-flex items-center justify-center px-3 py-1 bg-green-50 text-green-700 font-bold text-[10px] rounded-full">
                         ₹{(Number(partner.totalCommissionEarned || 0)).toLocaleString('en-IN')}
                       </span>
                     </td>

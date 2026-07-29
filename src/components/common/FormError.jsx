@@ -21,7 +21,7 @@ const FormError = ({ message, className = '', role = 'alert' }) => {
     <p
       role={role}
       aria-live="polite"
-      className={`text-red-500 text-xs font-medium mt-1 leading-snug ${className}`}
+      className={`text-red-700 text-xs font-medium mt-1 leading-snug ${className}`}
     >
       {message}
     </p>

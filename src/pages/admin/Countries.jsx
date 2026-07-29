@@ -669,7 +669,7 @@ const AdminCountries = () => {
               className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">
                 <HiX className="w-4 h-4" />
               </button>
             )}
@@ -749,7 +749,7 @@ const AdminCountries = () => {
                       </td>
 
                       {/* Currency & Timezone */}
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-700">
                         <div className="font-medium text-gray-900">{country.currency} ({country.currencySymbol || '$'})</div>
                         <div className="text-xs text-gray-400 font-mono">{country.timezone || 'Not set'}</div>
                       </td>
@@ -780,7 +780,7 @@ const AdminCountries = () => {
                                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                   : syncState === 'paused'
                                     ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                    : 'bg-gray-100 text-gray-600 border border-gray-200'
+                                    : 'bg-gray-100 text-gray-700 border border-gray-200'
                               }`}
                             >
                               <span className={`w-2 h-2 rounded-full ${
@@ -836,7 +836,7 @@ const AdminCountries = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                            country.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'
+                            country.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'
                           }`}
                         >
                           {country.isActive ? 'LIVE' : 'INACTIVE'}

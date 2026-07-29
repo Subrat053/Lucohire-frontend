@@ -8,7 +8,7 @@ const DashboardAlerts = ({ criticalAlerts = [] }) => {
       {/* Critical Alerts */}
       <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm h-full flex flex-col justify-between">
         <div className="flex items-center gap-2 mb-5">
-          <HiOutlineExclamationCircle className="w-5 h-5 text-red-500" />
+          <HiOutlineExclamationCircle className="w-5 h-5 text-red-700" />
           <h3 className="text-sm font-bold text-gray-900">Critical Alerts</h3>
           <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
             {criticalAlerts.reduce((sum, a) => sum + (a.count || 0), 0)}
@@ -19,7 +19,7 @@ const DashboardAlerts = ({ criticalAlerts = [] }) => {
           {criticalAlerts.map((alert) => (
             <div key={alert.id || alert.title} className="flex flex-col bg-gray-50/50 p-3 rounded-lg border border-gray-100/80">
               <div className="flex items-center gap-2 mb-1">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${alert.type === 'error' ? 'bg-red-50 text-red-500' : 'bg-orange-50 text-orange-500'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${alert.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-orange-50 text-orange-500'}`}>
                   {alert.title?.includes('Payment') ? (
                     <HiOutlineCreditCard className="w-3.5 h-3.5" />
                   ) : (

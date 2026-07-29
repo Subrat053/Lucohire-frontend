@@ -71,7 +71,7 @@ const ApplyJob = () => {
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6 md:p-8 border-b border-gray-100 bg-emerald-50/30">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Submit Your Application</h1>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-gray-600">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-gray-700">
             <div className="flex items-center gap-1.5">
               <HiOutlineBriefcase className="w-4 h-4 text-emerald-600" />
               <span className="font-medium text-gray-800">{job.title}</span>
@@ -104,7 +104,7 @@ const ApplyJob = () => {
             <button 
               type="button" 
               onClick={() => navigate(-1)} 
-              className="flex-1 py-3 text-sm font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition"
+              className="flex-1 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition"
             >
               Cancel
             </button>

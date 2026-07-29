@@ -74,7 +74,7 @@ export default function InlineFormBlock({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1.5 bg-white text-red-500 hover:bg-red-50 rounded-md shadow-sm border border-red-100 ml-1"
+            className="p-1.5 bg-white text-red-700 hover:bg-red-50 rounded-md shadow-sm border border-red-100 ml-1"
             title="Delete"
           >
             <Trash2 className="w-3.5 h-3.5" />

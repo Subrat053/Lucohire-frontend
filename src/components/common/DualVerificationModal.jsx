@@ -215,7 +215,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-3xl w-full max-w-lg p-8 relative shadow-2xl">
-        <button onClick={handleBack} className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition">
+        <button onClick={handleBack} className="absolute top-6 right-6 text-gray-400 hover:text-gray-700 transition">
           <FiX className="w-6 h-6" />
         </button>
 
@@ -354,7 +354,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
           </>
         ) : (
           <div className="text-center space-y-4 py-8">
-            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+            <div className="w-20 h-20 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto">
               <FiCheckCircle className="w-10 h-10" />
             </div>
             <h3 className="text-2xl font-bold text-gray-900">Account Verified!</h3>

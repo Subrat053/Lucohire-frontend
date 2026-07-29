@@ -100,7 +100,7 @@ const AdminSupportIssues = () => {
                         <HiClock className="w-3 h-3 mr-1" /> Open
                       </span>
                     ) : (
-                      <span className="flex items-center text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                      <span className="flex items-center text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
                         <HiCheckCircle className="w-3 h-3 mr-1" /> Resolved
                       </span>
                     )}
@@ -108,7 +108,7 @@ const AdminSupportIssues = () => {
                   <p className="text-gray-900 font-medium mb-1">
                     {issue.user ? `${issue.user.name} (${issue.user.email})` : 'Unknown User'}
                   </p>
-                  <p className="text-gray-600 text-sm">{issue.message}</p>
+                  <p className="text-gray-700 text-sm">{issue.message}</p>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-2 shrink-0">

@@ -128,7 +128,7 @@ const AdminPayments = () => {
 
       {!configConfigured && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
-          <HiExclamationCircle className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
+          <HiExclamationCircle className="w-6 h-6 text-red-700 shrink-0 mt-0.5" />
           <div>
             <h3 className="font-semibold text-red-800">Payment configuration not set</h3>
             <p className="text-sm text-red-700 mt-0.5">
@@ -212,7 +212,7 @@ const AdminPayments = () => {
               <button
                 type="button"
                 onClick={() => setShowSecret(!showSecret)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
               >
                 {showSecret ? <HiEyeOff className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
               </button>
@@ -233,7 +233,7 @@ const AdminPayments = () => {
               <button
                 type="button"
                 onClick={() => setShowWebhookSecret(!showWebhookSecret)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
               >
                 {showWebhookSecret ? <HiEyeOff className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
               </button>
@@ -303,7 +303,7 @@ const AdminPayments = () => {
                           <p className="text-xs text-gray-400">{p.user?.email || ''}</p>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-gray-600">{p.plan?.name || '-'}</td>
+                      <td className="py-3 px-4 text-gray-700">{p.plan?.name || '-'}</td>
                       <td className="py-3 px-4 font-semibold text-gray-900">{formatMoney(p.amount, p.currency)}</td>
                       <td className="py-3 px-4">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -311,7 +311,7 @@ const AdminPayments = () => {
                           p.status === 'failed' ? 'bg-red-100 text-red-700' :
                           p.status === 'created' ? 'bg-yellow-100 text-yellow-700' :
                           p.status === 'refunded' ? 'bg-indigo-100 text-indigo-700' :
-                          'bg-gray-100 text-gray-600'
+                          'bg-gray-100 text-gray-700'
                         }`}>
                           {p.status === 'completed' && <HiCheckCircle className="w-3 h-3" />}
                           {p.status?.toUpperCase()}

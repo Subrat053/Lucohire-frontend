@@ -606,7 +606,7 @@ const AdminLayout = ({ children }) => {
             onClick={() => setMobileOpen(true)}
             className="p-1.5 rounded-lg hover:bg-gray-100"
           >
-            <HiMenu className="w-5 h-5 text-gray-600" />
+            <HiMenu className="w-5 h-5 text-gray-700" />
           </button>
           <span className="font-semibold text-gray-800 text-sm">
             {t("admin.panel", "Admin Panel")}

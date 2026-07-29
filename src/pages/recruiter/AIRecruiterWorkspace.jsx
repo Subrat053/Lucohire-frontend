@@ -325,7 +325,7 @@ export default function AIRecruiterWorkspace() {
                     <h2 className="text-[22px] sm:text-[26px] font-extrabold text-gray-900 mb-1.5 tracking-tight text-center md:text-left">
                       {t("Start a conversation with Luco AI")}
                     </h2>
-                    <p className="text-sm font-medium text-gray-600 mb-6 text-center md:text-left">
+                    <p className="text-sm font-medium text-gray-700 mb-6 text-center md:text-left">
                       {t(
                         "Ask anything about candidates, jobs, hiring strategies or insights.",
                       )}
@@ -355,7 +355,7 @@ export default function AIRecruiterWorkspace() {
                         <button
                           key={idx}
                           onClick={() => handleActionClick(action.label)}
-                          className="flex items-center gap-1.5 bg-white text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:shadow-md transition"
+                          className="flex items-center gap-1.5 bg-white text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:shadow-md transition"
                         >
                           <span className="text-purple-600">{action.icon}</span>
                           <span className="whitespace-nowrap">
@@ -750,7 +750,7 @@ export default function AIRecruiterWorkspace() {
                   <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                     <FiUsers className="w-4 h-4" />
                   </div>
-                  <div className="text-xs font-bold text-gray-600 leading-tight">
+                  <div className="text-xs font-bold text-gray-700 leading-tight">
                     New Applications
                   </div>
                 </div>
@@ -775,7 +775,7 @@ export default function AIRecruiterWorkspace() {
                   <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                     <FiCalendar className="w-4 h-4" />
                   </div>
-                  <div className="text-xs font-bold text-gray-600 leading-tight">
+                  <div className="text-xs font-bold text-gray-700 leading-tight">
                     Interviews
                   </div>
                 </div>
@@ -794,7 +794,7 @@ export default function AIRecruiterWorkspace() {
                   <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
                     <FiCalendar className="w-4 h-4" />
                   </div>
-                  <div className="text-xs font-bold text-gray-600 leading-tight">
+                  <div className="text-xs font-bold text-gray-700 leading-tight">
                     Offers Made
                   </div>
                 </div>
@@ -813,7 +813,7 @@ export default function AIRecruiterWorkspace() {
                   <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                     <FiTarget className="w-4 h-4" />
                   </div>
-                  <div className="text-xs font-bold text-gray-600 leading-tight">
+                  <div className="text-xs font-bold text-gray-700 leading-tight">
                     Hires
                   </div>
                 </div>

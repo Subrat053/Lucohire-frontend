@@ -144,7 +144,7 @@ const LiveTester = () => {
                         </div>
                         
                         {job.description && (
-                          <div className="text-xs text-gray-600 mb-4 flex-grow">
+                          <div className="text-xs text-gray-700 mb-4 flex-grow">
                             <p className="line-clamp-3 leading-relaxed">{job.description}</p>
                           </div>
                         )}
@@ -153,7 +153,7 @@ const LiveTester = () => {
                           <div className="mb-5 mt-auto pt-4 border-t border-gray-100">
                             <div className="flex flex-wrap gap-1.5">
                               {job.skills.slice(0, 3).map((skill, sIdx) => (
-                                <span key={sIdx} className="bg-gray-100 text-gray-600 text-[10px] px-2 py-1 rounded-md">{skill}</span>
+                                <span key={sIdx} className="bg-gray-100 text-gray-700 text-[10px] px-2 py-1 rounded-md">{skill}</span>
                               ))}
                               {job.skills.length > 3 && (
                                 <span className="bg-gray-50 text-gray-400 text-[10px] px-2 py-1 rounded-md">+{job.skills.length - 3}</span>

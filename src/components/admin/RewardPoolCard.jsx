@@ -45,7 +45,7 @@ const RewardPoolCard = ({ pool = {} }) => {
 
           <div className="flex justify-between text-[11px] mt-2">
             <span className="text-gray-500">Distributed</span>
-            <span className="font-bold text-green-600">₹{distributed.toLocaleString('en-IN')}</span>
+            <span className="font-bold text-green-700">₹{distributed.toLocaleString('en-IN')}</span>
           </div>
 
           <div className="flex justify-between text-[11px]">

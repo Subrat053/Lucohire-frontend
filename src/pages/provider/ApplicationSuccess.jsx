@@ -107,7 +107,7 @@ const ApplicationSuccess = () => {
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
               Application Submitted Successfully! 🎉
             </h1>
-            <p className="text-gray-600 mb-8 max-w-lg mx-auto md:mx-0">
+            <p className="text-gray-700 mb-8 max-w-lg mx-auto md:mx-0">
               Great job, {user?.name?.split(" ")[0] || "there"}! Your application has been sent to the recruiter. We'll notify you about any updates.
             </p>
             
@@ -280,7 +280,7 @@ const ApplicationSuccess = () => {
           
           <div className="z-10 relative w-full md:w-1/2">
             <h2 className="text-2xl md:text-3xl font-extrabold text-[#1a1b41] mb-4 leading-tight">Earn extra income in<br/>your free time</h2>
-            <p className="text-base text-gray-800 md:text-gray-600 mb-8 max-w-sm font-medium">Enable Freelance Alerts and get notified about nearby projects that match your skills.</p>
+            <p className="text-base text-gray-800 md:text-gray-700 mb-8 max-w-sm font-medium">Enable Freelance Alerts and get notified about nearby projects that match your skills.</p>
             <button onClick={handleWhatsappCheckout} className="px-6 py-3 bg-[#0d8765] hover:bg-[#096c4f] text-white text-sm font-bold rounded-xl transition flex items-center gap-2 w-max shadow-md">
                Enable Freelance Alerts <FaWhatsapp className="w-5 h-5 ml-1" />
             </button>

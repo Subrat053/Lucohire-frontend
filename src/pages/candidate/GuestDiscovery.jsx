@@ -300,7 +300,7 @@ const GuestDiscovery = () => {
 
           <div className="flex flex-col items-center text-center mb-4">
             <div className="bg-green-100 p-2 rounded-full mb-3">
-              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+              <svg className="w-5 h-5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
             </div>
             <h2 className="text-lg font-bold text-gray-900 mb-1">Option 2: Fill Your Details Manually</h2>
             <p className="text-gray-500 max-w-xs text-sm">
@@ -412,14 +412,14 @@ const GuestDiscovery = () => {
       <div className="w-full max-w-5xl mt-3">
         <button 
           onClick={handleSubmit}
-          className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+          className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
         >
           Submit & Find Matching Jobs
         </button>
       </div>
 
       <div className="w-full max-w-5xl mt-6 text-center">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-700">
           Already have an account?{' '}
           <button 
             type="button" 
@@ -442,7 +442,7 @@ const GuestDiscovery = () => {
             <p className="text-xs text-gray-500">We never share your details with anyone without your permission.</p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-6 text-sm text-gray-600 font-medium">
+        <div className="flex flex-wrap gap-6 text-sm text-gray-700 font-medium">
           <div className="flex items-center"><FiCheckCircle className="mr-2 text-blue-600" /> 100% Secure</div>
           <div className="flex items-center"><BiBuildingHouse className="mr-2 text-blue-600" /> Verified Employers</div>
           <div className="flex items-center"><FiLock className="mr-2 text-blue-600" /> Privacy Protected</div>

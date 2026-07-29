@@ -140,19 +140,19 @@ const CompaniesRegistry = () => {
                 </div>
 
                 <div className="relative z-10 p-5 space-y-3 mb-6 flex-1">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+                  <div className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg">
                     <HiIdentification className="w-4 h-4 text-gray-400 shrink-0" />
                     <span className="font-mono font-medium truncate">{c.externalId}</span>
                   </div>
                   
                   {c.location && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600 px-1">
+                    <div className="flex items-center gap-2 text-sm text-gray-700 px-1">
                       <HiLocationMarker className="w-4 h-4 text-gray-400 shrink-0" />
                       <span>{c.location}</span>
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2 text-sm text-gray-600 px-1">
+                  <div className="flex items-center gap-2 text-sm text-gray-700 px-1">
                     <HiGlobe className="w-4 h-4 text-gray-400 shrink-0" />
                     <span>{c.countryCode || 'Global'}</span>
                   </div>

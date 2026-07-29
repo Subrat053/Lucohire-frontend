@@ -173,7 +173,7 @@ export default function ResumeUploadParser({ onApplied }) {
 
   const toggleField = (key) => setAcceptedFields(prev => ({ ...prev, [key]: !prev[key] }));
 
-  const confidenceColor = confidenceScore >= 0.8 ? 'text-green-600' : confidenceScore >= 0.5 ? 'text-amber-600' : 'text-red-500';
+  const confidenceColor = confidenceScore >= 0.8 ? 'text-green-700' : confidenceScore >= 0.5 ? 'text-amber-600' : 'text-red-700';
   const confidenceBg = confidenceScore >= 0.8 ? 'bg-green-50' : confidenceScore >= 0.5 ? 'bg-amber-50' : 'bg-red-50';
 
   return (
@@ -187,7 +187,7 @@ export default function ResumeUploadParser({ onApplied }) {
         {parseStatus === 'completed' && parsedData && (
           <button
             onClick={() => setShowPreview(p => !p)}
-            className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600"
+            className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-700"
           >
             {showPreview ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             {showPreview ? 'Hide' : 'Show'} preview
@@ -254,10 +254,10 @@ export default function ResumeUploadParser({ onApplied }) {
         {/* ── Error State ────────────────────────────────────────────────── */}
         {parseStatus === 'failed' && errorMessage && (
           <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
-            <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <XCircle className="w-5 h-5 text-red-700 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm text-red-700 font-medium">Parsing failed</p>
-              <p className="text-xs text-red-500 mt-1">{errorMessage}</p>
+              <p className="text-xs text-red-700 mt-1">{errorMessage}</p>
               <button
                 onClick={handleRetry}
                 className="mt-2 flex items-center gap-1.5 text-xs text-red-600 hover:text-red-800 font-medium"
@@ -311,7 +311,7 @@ export default function ResumeUploadParser({ onApplied }) {
                     className="mt-0.5 accent-indigo-600"
                   />
                   <div className="flex-1 min-w-0">
-                    <span className="text-xs font-semibold text-gray-600 block">{label}</span>
+                    <span className="text-xs font-semibold text-gray-700 block">{label}</span>
                     <span className="text-sm text-gray-800 truncate block" title={value}>{value}</span>
                   </div>
                 </label>
@@ -321,7 +321,7 @@ export default function ResumeUploadParser({ onApplied }) {
             {/* Apply / Applied */}
             {applied ? (
               <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <CheckCircle2 className="w-5 h-5 text-green-700" />
                 <span className="text-sm font-medium text-green-700">Applied to your profile successfully!</span>
               </div>
             ) : (
@@ -337,7 +337,7 @@ export default function ResumeUploadParser({ onApplied }) {
             {/* Re-upload link */}
             <button
               onClick={() => { setParseStatus(null); setParsedData(null); setApplied(false); }}
-              className="w-full text-center text-sm text-gray-400 hover:text-gray-600 mt-3 py-1"
+              className="w-full text-center text-sm text-gray-400 hover:text-gray-700 mt-3 py-1"
             >
               Upload a different resume
             </button>
