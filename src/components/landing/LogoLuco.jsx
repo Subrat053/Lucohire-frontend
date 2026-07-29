@@ -7,7 +7,7 @@ const LogoLuco = () => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-100/50 rounded-full blur-3xl opacity-50 mix-blend-multiply pointer-events-none"></div>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-indigo-200/40 rounded-full blur-2xl opacity-60 mix-blend-multiply pointer-events-none"></div>
       
-      <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-335 mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex flex-col items-center justify-center text-center space-y-6">
           {/* Logo container with subtle hover scale */}
           <div className="relative group cursor-default">

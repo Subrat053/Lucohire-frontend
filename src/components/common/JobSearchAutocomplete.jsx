@@ -107,7 +107,7 @@ const JobSearchAutocomplete = ({
         autoComplete="off"
       />
       
-      {isOpen && suggestions.length > 0 && (
+      {isOpen && (
         <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-100 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto py-1.5 min-w-full md:min-w-[320px] animate-fadeIn">
           {suggestions.map((suggestion, index) => (
             <div 
@@ -119,6 +119,15 @@ const JobSearchAutocomplete = ({
               <span className="font-semibold text-gray-700 truncate">{suggestion}</span>
             </div>
           ))}
+          {inputValue.trim() && !suggestions.some(s => s.toLowerCase() === inputValue.trim().toLowerCase()) && (
+            <div 
+              className="px-4 py-2 hover:bg-blue-50/50 cursor-pointer text-sm text-blue-600 font-medium border-b border-gray-50/60 last:border-none flex items-center gap-2.5 transition-colors duration-150"
+              onClick={() => handleSelect(inputValue.trim())}
+            >
+              <Search className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <span className="truncate">Search for "{inputValue}"</span>
+            </div>
+          )}
         </div>
       )}
     </div>

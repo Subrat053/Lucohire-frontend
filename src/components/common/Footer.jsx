@@ -87,6 +87,7 @@ const Footer = () => {
         { label: t('footer.findJobs', 'Find Jobs'), href: '/candidate-landing' },
         { label: t('footer.createProfile', 'Create Profile'), href: '/signup?role=candidate' },
         { label: t('footer.careerTips', 'Career Tips'), href: '/career-tips' },
+        { label: t('footer.pricing', 'Pricing'), href: '/pricing?tab=provider' },
         { label: t('footer.helpCenter', 'Help Center'), href: '/contact' },
       ],
     },
@@ -113,7 +114,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-[#081B3A] text-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-14 sm:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10">
         {/* Brand Column */}
         <div className="col-span-1 md:col-span-2 lg:col-span-1">
           <div className="flex items-center gap-2.5 mb-4">
@@ -154,16 +155,16 @@ const Footer = () => {
                 </div>
               )}
               {companyDetails.supportEmail && (
-                <div className="flex items-center gap-1.5">
+                <a href={`mailto:${companyDetails.supportEmail}`} className="flex items-center gap-1.5 hover:text-white transition">
                   <Mail className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                  <a href={`mailto:${companyDetails.supportEmail}`} className="hover:text-white transition">{companyDetails.supportEmail}</a>
-                </div>
+                  <span>{companyDetails.supportEmail}</span>
+                </a>
               )}
               {companyDetails.supportPhone && (
-                <div className="flex items-center gap-1.5">
+                <a href={`tel:${companyDetails.supportPhone}`} className="flex items-center gap-1.5 hover:text-white transition">
                   <Phone className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                  <a href={`tel:${companyDetails.supportPhone}`} className="hover:text-white transition">{companyDetails.supportPhone}</a>
-                </div>
+                  <span>{companyDetails.supportPhone}</span>
+                </a>
               )}
             </div>
           )}
@@ -192,7 +193,7 @@ const Footer = () => {
         {/* Dynamic Navigation Link Columns */}
         {sections.map((section) => (
           <div key={section.title}>
-            <h3 className="font-semibold text-white mb-6">{section.title}</h3>
+            <h3 className="font-semibold text-white mb-5 sm:mb-6">{section.title}</h3>
             <ul className="space-y-4">
               {section.links.map((item) => {
                 return (
@@ -208,8 +209,8 @@ const Footer = () => {
         ))}
 
         {/* Newsletter Column */}
-        <div>
-          <h4 className="font-semibold text-white mb-6">
+        <div className="col-span-1 sm:col-span-1">
+          <h4 className="font-semibold text-white mb-5 sm:mb-6">
             {t('footer.support', 'Stay Updated')}
           </h4>
 
@@ -274,7 +275,7 @@ const Footer = () => {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
           <span>{companyDetails.copyrightText || t('footer.copyrightSimple', '© 2026 Lucohire. All rights reserved.')}</span>
           
-          <div className="flex flex-wrap items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-6">
             {companyDetails.gstNumber && (
               <span className="text-xs bg-blue-900/60 border border-blue-700/40 text-blue-200 px-2.5 py-1 rounded-md font-mono font-medium">
                 GSTIN: {companyDetails.gstNumber}

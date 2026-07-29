@@ -328,7 +328,7 @@ export default function Settings() {
                     ) : profileData?.profilePhoto ? (
                       <img src={profileData.profilePhoto} alt="Company Logo" className="w-full h-full object-cover" />
                     ) : (
-                      <img src="/lucohire-logo.png" alt="Company Logo" className="w-16 h-16 opacity-50" />
+                      <img src="/lucohire-logo.webp" alt="Company Logo" className="w-16 h-16 opacity-50" />
                     )}
                     <button 
                       onClick={() => fileInputRef.current?.click()}

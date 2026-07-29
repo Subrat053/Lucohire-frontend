@@ -13,13 +13,34 @@ const PricingPage = () => {
   const { user, isAuthenticated } = useAuth();
   const [searchParams] = useSearchParams();
 
-  const initialTab = searchParams.get("tab") === "recruiter" || searchParams.get("role") === "recruiter"
-    ? "recruiter"
-    : "provider";
+  const initialTab = isAuthenticated 
+    ? ((user?.activeRole === "recruiter" || user?.role === "recruiter") ? "recruiter" : "provider")
+    : (searchParams.get("tab") === "recruiter" || searchParams.get("role") === "recruiter"
+      ? "recruiter"
+      : "provider");
 
   const [activeTab, setActiveTab] = useState(initialTab);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [billingPeriod, setBillingPeriod] = useState('monthly');
+
+  // For recruiter tab: filter to the selected billing cycle, dedup by name
+  const displayedPlans = activeTab === 'recruiter'
+    ? plans.filter(p => (p.billingCycle || 'monthly') === billingPeriod)
+    : plans;
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setActiveTab((user?.activeRole === "recruiter" || user?.role === "recruiter") ? "recruiter" : "provider");
+    } else {
+      const tab = searchParams.get("tab") || searchParams.get("role");
+      if (tab === "recruiter") {
+        setActiveTab("recruiter");
+      } else if (tab === "provider" || tab === "candidate") {
+        setActiveTab("provider");
+      }
+    }
+  }, [searchParams, isAuthenticated, user]);
 
   useEffect(() => {
     fetchPlans();
@@ -69,9 +90,9 @@ const PricingPage = () => {
         canonicalPath="/pricing"
       />
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="max-w-[90rem] mx-auto px-6 lg:px-8 relative">
         {/* Header Section */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-16 lg:translate-x-8 xl:translate-x-12">
           <span className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-100 text-blue-600 text-[11px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full mb-4">
             <Sparkles className="w-3.5 h-3.5" /> {t("plans.headerTag", "Flexible & Transparent")}
           </span>
@@ -83,11 +104,12 @@ const PricingPage = () => {
           </p>
 
           {/* Toggle Tabs */}
-          <div className="mt-8 flex justify-center">
+          {!isAuthenticated && (
+            <div className="mt-6 flex justify-center">
             <div className="relative bg-white border border-gray-100 rounded-2xl p-1.5 flex gap-1 shadow-sm max-w-md w-full">
               <button
                 onClick={() => setActiveTab("provider")}
-                className={`flex-1 py-3 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
                   activeTab === "provider"
                     ? "bg-blue-600 text-white shadow-sm"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -97,7 +119,7 @@ const PricingPage = () => {
               </button>
               <button
                 onClick={() => setActiveTab("recruiter")}
-                className={`flex-1 py-3 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
                   activeTab === "recruiter"
                     ? "bg-blue-600 text-white shadow-sm"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -107,7 +129,9 @@ const PricingPage = () => {
               </button>
             </div>
           </div>
+          )}
         </div>
+
 
         {/* Plans Display */}
         {loading ? (
@@ -115,60 +139,170 @@ const PricingPage = () => {
             <LoadingSpinner size="lg" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch max-w-7xl mx-auto">
-            {plans.map((p, idx) => {
-              const isFree = Number(p.price) === 0;
-              // Highlight the most popular or second card if none marked popular
-              const isPopular = p.isPopular || (plans.length > 2 && idx === 1);
-
+          <div className="flex flex-col gap-6 w-full">
+            {/* WhatsApp Plan - Top Left Small Card */}
+            {(() => {
+              const waPlan = plans.find(p => p.name.toLowerCase().includes('whatsapp'));
+              if (!waPlan) return null;
+              
               return (
+                <div className="lg:absolute lg:left-6 lg:top-0 lg:w-72 xl:w-80 flex justify-center w-full z-10">
+                  <div 
+                    onClick={() => {
+                      const grid = document.getElementById('pricing-grid');
+                      if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }}
+                    className="w-full max-w-sm lg:max-w-none bg-gradient-to-br from-green-50 to-emerald-50/90 backdrop-blur-sm border border-green-200 rounded-3xl p-5 flex flex-col items-start gap-3 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="w-10 h-10 rounded-xl bg-green-100 text-green-600 flex items-center justify-center shrink-0">
+                        <ShieldCheck className="w-5 h-5" /> 
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-tight">
+                        {waPlan.name}
+                      </h3>
+                    </div>
+                    <p className="text-xs text-green-700/80">
+                      {waPlan.description || "Get exclusive freelance job alerts on WhatsApp"}
+                    </p>
+                    <div className="w-full flex items-center justify-between mt-1">
+                      <div>
+                        <div className="text-2xl font-extrabold text-gray-900 flex items-end gap-1">
+                          ₹30 <span className="text-xs font-medium text-gray-500 mb-1">/mo</span>
+                        </div>
+                        <div className="text-[10px] font-bold text-green-600 uppercase tracking-wider mt-0.5">
+                          OR ₹1 per day
+                        </div>
+                      </div>
+                      <button
+                        id={`cta-btn-${waPlan._id}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCtaClick(waPlan);
+                        }}
+                        className="bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-green-700 transition-colors shadow-sm shadow-green-600/20"
+                      >
+                        Subscribe
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Billing period toggle — only for recruiter */}
+            {activeTab === 'recruiter' && (
+              <div className="flex justify-center mb-6">
+                <div className="bg-white border border-gray-100 rounded-2xl p-1 flex gap-1 shadow-sm">
+                  <button
+                    onClick={() => setBillingPeriod('monthly')}
+                    className={`px-5 py-2 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                      billingPeriod === 'monthly' ? 'bg-[#4a24ba] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setBillingPeriod('quarterly')}
+                    className={`px-5 py-2 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center gap-2 ${
+                      billingPeriod === 'quarterly' ? 'bg-[#4a24ba] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    Quarterly <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                      billingPeriod === 'quarterly' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'
+                    }`}>Save 10%</span>
+                  </button>
+                  <button
+                    onClick={() => setBillingPeriod('yearly')}
+                    className={`px-5 py-2 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center gap-2 ${
+                      billingPeriod === 'yearly' ? 'bg-[#4a24ba] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    Yearly <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                      billingPeriod === 'yearly' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'
+                    }`}>Save 20%</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div id="pricing-grid" className={`grid grid-cols-1 md:grid-cols-2 ${displayedPlans.filter(p => !p.name.toLowerCase().includes('whatsapp')).length === 3 ? 'lg:grid-cols-3' : displayedPlans.filter(p => !p.name.toLowerCase().includes('whatsapp')).length === 4 ? 'lg:grid-cols-4 xl:grid-cols-4' : 'xl:grid-cols-5'} gap-4 lg:gap-6 xl:gap-8 items-stretch max-w-7xl mx-auto w-full pb-20`}>
+              {displayedPlans.filter(p => !p.name.toLowerCase().includes('whatsapp')).map((p, idx) => {
+                const isFree = Number(p.price) === 0;
+                const filteredPlans = displayedPlans.filter(plan => !plan.name.toLowerCase().includes('whatsapp'));
+                const filteredIdx = filteredPlans.findIndex(plan => plan._id === p._id);
+                const isPopular = p.isPopular;
+
+                return (
                 <div
                   key={p._id}
-                  className={`relative flex flex-col justify-between rounded-3xl p-6 md:p-8 border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                  onClick={(e) => {
+                    if (e.target.closest('button')) return;
+                    const btn = document.getElementById(`cta-btn-${p._id}`);
+                    if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}
+                  className={`relative cursor-pointer flex flex-col justify-between rounded-3xl p-5 md:p-6 lg:p-7 border transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-blue-500 ${
                     isPopular
                       ? "bg-slate-900 text-white border-slate-900 shadow-[0_20px_50px_rgba(15,23,42,0.15)] ring-2 ring-blue-500/20"
-                      : "bg-white border-gray-100 text-gray-800"
+                      : "bg-white border-slate-200 shadow-sm text-gray-800"
                   }`}
                 >
-                  {isPopular && (
-                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full shadow-sm">
-                      {t("common.popular", "Recommended")}
-                    </span>
-                  )}
-
                   <div>
                     {/* Icon Header */}
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${
+                    <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-2xl flex items-center justify-center mb-5 lg:mb-6 ${
                       isPopular ? "bg-white/10 text-blue-400" : "bg-blue-50 text-blue-600"
                     }`}>
-                      {isPopular ? <Zap className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
+                      {isPopular ? <Zap className="w-5 h-5 lg:w-6 lg:h-6" /> : <ShieldCheck className="w-5 h-5 lg:w-6 lg:h-6" />}
                     </div>
 
                     {/* Plan Name & Price */}
-                    <h3 className={`text-xl font-bold tracking-tight ${isPopular ? "text-white" : "text-gray-900"}`}>
+                    <h3 className={`text-lg lg:text-xl font-bold tracking-tight ${isPopular ? "text-white" : "text-gray-900"}`}>
                       {p.name}
                     </h3>
                     
-                    <div className="mt-4 flex items-baseline gap-1.5">
-                      <span className={`text-4xl font-extrabold tracking-tight ${isPopular ? "text-white" : "text-gray-900"}`}>
-                        {isFree ? t("common.free", "Free") : `₹${p.price}`}
+                    <div className="mt-3 lg:mt-4 flex items-baseline gap-1.5">
+                      <span className={`text-3xl lg:text-4xl font-extrabold tracking-tight ${isPopular ? "text-white" : "text-gray-900"}`}>
+                        {isFree ? '₹0' : `₹${Number(p.price).toLocaleString('en-IN')}`}
                       </span>
                       {!isFree && (
-                        <span className={`text-xs ${isPopular ? "text-gray-400" : "text-gray-500"}`}>
-                          /{p.duration === 30 ? t("plans.monthly", "mo") : `${p.duration} ${t("plans.days", "days")}`}
+                        <span className={`text-[10px] lg:text-xs ${isPopular ? "text-gray-400" : "text-gray-500"}`}>
+                          /{p.billingCycle === 'yearly' ? 'year' : p.billingCycle === 'quarterly' ? 'quarter' : 'month'}
                         </span>
                       )}
                     </div>
                     
-                    <p className={`mt-3 text-xs leading-relaxed ${isPopular ? "text-gray-400" : "text-gray-500"}`}>
-                      {p.description || (isFree ? t("plans.freePlanDesc", "Get basic features to get started.") : t("plans.premiumPlanDesc", "Unlock full business potential."))}
+                    <p className={`mt-2 text-xs lg:text-sm leading-relaxed ${isPopular ? "text-gray-400" : "text-gray-500"}`}>
+                      {p.description || (isFree ? 'For new recruiters' : 'For growing teams')}
                     </p>
 
+                    {/* Metadata */}
+                    <div className="flex flex-col items-center text-center space-y-3 mb-6">
+                      {p.metadata?.bestFor && (
+                        <div className="text-sm">
+                          <span className={isPopular ? "text-gray-400" : "text-gray-500"}>Best for:</span><br/>
+                          <span className={`font-semibold ${isPopular ? "text-white" : "text-gray-900"}`}>{p.metadata.bestFor}</span>
+                        </div>
+                      )}
+                      {p.metadata?.hireLimitText && (
+                        <div className={`text-xs ${isPopular ? "text-gray-300" : "text-gray-600"}`}>
+                          {p.metadata.hireLimitText}
+                        </div>
+                      )}
+                      {p.metadata?.saveHoursText && (
+                        <div className={`mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
+                          isPopular ? "bg-blue-900/50 text-blue-300 border border-blue-800" : "bg-orange-50 text-orange-600 border border-orange-100"
+                        }`}>
+                          <Sparkles className="w-3.5 h-3.5" />
+                          {p.metadata.saveHoursText}
+                        </div>
+                      )}
+                    </div>
+
                     {/* Features List */}
-                    <div className={`border-t my-6 ${isPopular ? "border-white/10" : "border-gray-100"}`} />
+                    <div className={`border-t mb-6 ${isPopular ? "border-white/10" : "border-gray-100"}`} />
 
                     <ul className="space-y-3.5">
-                      {p.features?.map((perk, perkIdx) => (
+                      {(p.features || []).map((perk, perkIdx) => (
                         <li key={perkIdx} className="flex items-start gap-2.5 text-sm">
                           <Check className={`w-4 h-4 mt-0.5 shrink-0 ${
                             isPopular ? "text-blue-400" : "text-emerald-500"
@@ -184,19 +318,31 @@ const PricingPage = () => {
                   {/* CTA Button */}
                   <div className="mt-8">
                     <button
-                      onClick={() => handleCtaClick(p)}
+                      id={`cta-btn-${p._id}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCtaClick(p);
+                      }}
                       className={`w-full py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${
-                        isPopular
+                        p.planType === 'custom'
+                          ? "bg-gray-900 text-white hover:bg-black"
+                          : isPopular
                           ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
-                          : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+                          : p.name.toLowerCase().includes('business')
+                          ? "bg-orange-500 text-white hover:bg-orange-600"
+                          : isFree
+                          ? "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
+                          : "bg-[#4a24ba] text-white hover:bg-[#381a91]"
                       }`}
                     >
-                      {isFree ? t("plans.getStarted", "Get Started") : t("plans.choosePlan", "Choose Plan")}
+                      {p.planType === 'custom' ? 'Contact Sales' : isFree ? 'Get Started' : 'Choose Plan'}
                     </button>
                   </div>
+
                 </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
 

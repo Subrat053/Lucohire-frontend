@@ -345,8 +345,8 @@ const HealthDashboard = () => {
       </div>
 
       {/* Main Tab Navigation for Feature Cost Breakdown */}
-      <div className="flex items-center justify-between border-b border-gray-200 pb-2 pt-2">
-        <div className="flex items-center space-x-2">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between border-b border-gray-200 pb-3 pt-2 gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {[
             { id: 'all', label: 'All Paid & AI Features', icon: Sparkles },
             { id: 'candidate', label: `Candidate AI Features (₹${(metrics.costs.totalCandidateCostInr || 0).toLocaleString('en-IN')})`, icon: User },
@@ -357,14 +357,14 @@ const HealthDashboard = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-bold transition ${
                   activeTab === tab.id
                     ? 'bg-indigo-600 text-white shadow-md'
                     : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span className="whitespace-nowrap">{tab.label}</span>
               </button>
             );
           })}
@@ -374,16 +374,16 @@ const HealthDashboard = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => handleGlobalStatusToggle(activeTab === 'all' ? 'all' : activeTab, 'active')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition"
+            className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] sm:text-xs font-bold shadow-xs transition whitespace-nowrap"
           >
-            <Play className="w-3 h-3 fill-current" />
+            <Play className="w-3 h-3 fill-current shrink-0" />
             Resume All ({activeTab.toUpperCase()})
           </button>
           <button
             onClick={() => handleGlobalStatusToggle(activeTab === 'all' ? 'all' : activeTab, 'paused')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-xs transition"
+            className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[11px] sm:text-xs font-bold shadow-xs transition whitespace-nowrap"
           >
-            <Pause className="w-3 h-3 fill-current" />
+            <Pause className="w-3 h-3 fill-current shrink-0" />
             Pause All ({activeTab.toUpperCase()})
           </button>
         </div>

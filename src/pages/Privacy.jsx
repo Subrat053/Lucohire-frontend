@@ -48,7 +48,7 @@ const PrivacyPage = () => {
         description={t('static.privacyDescription', 'Learn how Lucohire handles data and privacy.')}
         canonicalPath="/privacy"
       />
-      <PolicyPageLayout data={data} isEditMode={false} imageUrl="/privacy_policy_illustration_1785319033161.png" />
+      <PolicyPageLayout data={data} isEditMode={false} imageUrl="/privacy_policy_illustration_1785319033161.webp" />
     </>
   );
 };

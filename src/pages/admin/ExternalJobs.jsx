@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
-import { Briefcase, Download, Search, Filter, MapPin, Building, Globe, ExternalLink, RefreshCw, Trash2, ChevronLeft, ChevronRight, CheckCircle2, ShieldAlert, FileSpreadsheet, Sparkles, Calendar, ChevronDown } from 'lucide-react';
+import { Briefcase, Download, Search, Filter, MapPin, Building, Globe, ExternalLink, RefreshCw, Trash2, ChevronLeft, ChevronRight, CheckCircle2, ShieldAlert, FileSpreadsheet, Sparkles, Calendar, ChevronDown, X, Check } from 'lucide-react';
 
-const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder, fullWidth = false }) => {
+const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder, fullWidth = false, allowCustom = true }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const wrapperRef = React.useRef(null);
@@ -13,7 +13,7 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
     function handleClickOutside(event) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setIsOpen(false);
-        if (searchTerm && !options.some(opt => opt.toLowerCase() === searchTerm.toLowerCase())) {
+        if (allowCustom && searchTerm && !options.some(opt => opt.toLowerCase() === searchTerm.toLowerCase())) {
           setValue(searchTerm);
         }
       }
@@ -22,7 +22,13 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [searchTerm, options, setValue]);
 
-  const filteredOptions = options.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
+  const allOptions = Array.from(new Set([...options, ...(value && value !== 'all' ? [value] : [])]));
+  const filteredOptions = allOptions.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
+  const sortedFilteredOptions = [...filteredOptions].sort((a, b) => {
+    if (a === value) return -1;
+    if (b === value) return 1;
+    return a.localeCompare(b);
+  });
 
   return (
     <div className={`relative ${fullWidth ? 'w-full' : 'w-full sm:w-auto min-w-[150px]'}`} ref={wrapperRef}>
@@ -36,7 +42,18 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
             {value || label}
           </span>
         </div>
-        <ChevronDown className={`w-3.5 h-3.5 shrink-0 ml-2 transition-transform ${isOpen ? 'rotate-180 text-indigo-500' : 'text-gray-400'}`} />
+        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+          {(value && value !== 'all') && (
+            <X 
+              className="w-3.5 h-3.5 text-gray-400 hover:text-red-500 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                setValue('');
+              }}
+            />
+          )}
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180 text-indigo-500' : 'text-gray-400'}`} />
+        </div>
       </div>
 
       {isOpen && (
@@ -52,29 +69,51 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
               onKeyDown={e => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  setValue(searchTerm);
+                  if (allowCustom && searchTerm.trim()) {
+                    setValue(searchTerm.trim());
+                  } else if (sortedFilteredOptions.length > 0) {
+                    setValue(sortedFilteredOptions[0]);
+                  }
+                  setSearchTerm('');
                   setIsOpen(false);
                 }
               }}
             />
           </div>
           <ul className="max-h-48 overflow-y-auto py-1">
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((opt, i) => (
+            {allowCustom && searchTerm.trim() && !options.some(opt => opt.toLowerCase() === searchTerm.trim().toLowerCase()) && (
+              <li
+                className="px-3 py-2 text-xs cursor-pointer hover:bg-indigo-50 text-blue-600 font-medium border-b border-gray-50 mb-1"
+                onClick={() => { setValue(searchTerm.trim()); setSearchTerm(''); setIsOpen(false); }}
+              >
+                Search for "{searchTerm}"
+              </li>
+            )}
+            {sortedFilteredOptions.length > 0 ? (
+              sortedFilteredOptions.map((opt, i) => (
                 <li 
                   key={i}
-                  className="px-3 py-2 text-xs text-gray-700 hover:bg-indigo-50 cursor-pointer capitalize font-bold"
+                  className={`px-3 py-2 text-xs cursor-pointer capitalize font-bold ${
+                    opt === value ? 'text-indigo-700 bg-indigo-50/50' : 'text-gray-700 hover:bg-indigo-50'
+                  }`}
                   onClick={() => {
                     setValue(opt);
                     setSearchTerm('');
                     setIsOpen(false);
                   }}
                 >
-                  {opt}
+                  <div className="flex items-center gap-2">
+                    {opt === value ? (
+                      <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                    ) : (
+                      <div className="w-3.5 h-3.5 shrink-0" />
+                    )}
+                    <span className="truncate">{opt}</span>
+                  </div>
                 </li>
               ))
             ) : (
-              <li className="px-3 py-2 text-xs text-gray-400 text-center font-medium">No match found</li>
+              !searchTerm.trim() && <li className="px-3 py-2 text-xs text-gray-400 text-center font-medium">No match found</li>
             )}
             {value && (
               <li 
@@ -247,8 +286,15 @@ const ExternalJobs = ({ defaultFilters = {} }) => {
                 <div className="w-full sm:w-auto">
                   <FilterDropdown
                     label="All Statuses"
-                    value={filters.isActive === 'true' ? 'Active Only' : filters.isActive === 'false' ? 'Closed Only' : ''}
-                    setValue={val => setFilters(f => ({ ...f, isActive: val === 'Active Only' ? 'true' : val === 'Closed Only' ? 'false' : '', page: 1 }))}
+                    value={filters.isActive === 'true' ? 'Active Only' : filters.isActive === 'false' ? 'Closed Only' : filters.isActive}
+                    setValue={val => {
+                      const lower = val.toLowerCase();
+                      setFilters(f => ({ 
+                        ...f, 
+                        isActive: lower.includes('active') ? 'true' : lower.includes('closed') ? 'false' : val, 
+                        page: 1 
+                      }));
+                    }}
                     options={['Active Only', 'Closed Only']}
                   />
                 </div>
@@ -269,14 +315,25 @@ const ExternalJobs = ({ defaultFilters = {} }) => {
                       filters.country === 'GB' ? 'UK (GB)' :
                       filters.country === 'CA' ? 'Canada (CA)' :
                       filters.country === 'AE' ? 'UAE (AE)' :
-                      filters.country === 'AU' ? 'Australia (AU)' : ''
+                      filters.country === 'AU' ? 'Australia (AU)' : filters.country
                     }
                     setValue={val => {
+                      const lower = val.toLowerCase();
                       const cMap = {
                         'usa (us)': 'US', 'india (in)': 'IN', 'uk (gb)': 'GB',
                         'canada (ca)': 'CA', 'uae (ae)': 'AE', 'australia (au)': 'AU'
                       };
-                      setFilters(f => ({ ...f, country: cMap[val.toLowerCase()] || '', page: 1 }));
+                      let mapped = cMap[lower];
+                      if (!mapped) {
+                        if (lower.includes('india') || lower === 'in') mapped = 'IN';
+                        else if (lower.includes('usa') || lower.includes('united states') || lower === 'us') mapped = 'US';
+                        else if (lower.includes('uk') || lower.includes('united kingdom') || lower === 'gb') mapped = 'GB';
+                        else if (lower.includes('canada') || lower === 'ca') mapped = 'CA';
+                        else if (lower.includes('uae') || lower.includes('emirates') || lower === 'ae') mapped = 'AE';
+                        else if (lower.includes('australia') || lower === 'au') mapped = 'AU';
+                        else mapped = val;
+                      }
+                      setFilters(f => ({ ...f, country: mapped, page: 1 }));
                     }}
                     options={['USA (US)', 'India (IN)', 'UK (GB)', 'Canada (CA)', 'UAE (AE)', 'Australia (AU)']}
                   />
@@ -291,14 +348,15 @@ const ExternalJobs = ({ defaultFilters = {} }) => {
                       filters.datePreset === 'yesterday' ? 'Yesterday' :
                       filters.datePreset === '7days' ? 'Last 7 Days' :
                       filters.datePreset === '30days' ? 'Last 30 Days' :
-                      filters.datePreset === 'custom' ? 'Custom Date Range' : ''
+                      filters.datePreset === 'custom' ? 'Custom Date Range' : filters.datePreset
                     }
                     setValue={val => {
+                      const lower = val.toLowerCase();
                       const dMap = {
                         'today': 'today', 'yesterday': 'yesterday',
                         'last 7 days': '7days', 'last 30 days': '30days', 'custom date range': 'custom'
                       };
-                      setFilters(f => ({ ...f, datePreset: dMap[val.toLowerCase()] || '', startDate: '', endDate: '', page: 1 }));
+                      setFilters(f => ({ ...f, datePreset: dMap[lower] || val, startDate: '', endDate: '', page: 1 }));
                     }}
                     options={['Today', 'Yesterday', 'Last 7 Days', 'Last 30 Days', 'Custom Date Range']}
                   />

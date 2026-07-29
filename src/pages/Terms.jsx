@@ -48,7 +48,7 @@ const TermsPage = () => {
         description={t('static.termsDescription', 'Read the terms and conditions for using Lucohire.')}
         canonicalPath="/terms"
       />
-      <PolicyPageLayout data={data} isEditMode={false} imageUrl="/terms_illustration_1785319045794.png" />
+      <PolicyPageLayout data={data} isEditMode={false} imageUrl="/terms_illustration_1785319045794.webp" />
     </>
   );
 };

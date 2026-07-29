@@ -56,10 +56,9 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
               onSelect={(loc) => setJobLocation(loc ? loc.name || loc.city || loc.label : '')}
               placeholder={t("All Locations")}
               className="w-full flex-1"
-              iconClassName="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
-              inputClassName="!border-none !rounded-none !bg-transparent !ring-0 focus:!ring-0 w-full focus:!bg-transparent hover:!bg-transparent !shadow-none !text-[11px] sm:!text-sm text-gray-700 !py-1.5 sm:!py-2"
+              iconClassName="!left-0 w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+              inputClassName="!border-none !rounded-none !bg-transparent !ring-0 focus:!ring-0 w-full focus:!bg-transparent hover:!bg-transparent !shadow-none !text-[11px] sm:!text-sm text-gray-700 !py-1.5 sm:!py-2 !pl-6 sm:!pl-8 !pr-8"
             />
-            <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 shrink-0 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
           </div>
           <button 
             type="submit"

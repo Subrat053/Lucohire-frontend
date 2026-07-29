@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, UserPlus, ShieldCheck, Hourglass, Ban, 
-  Search, Filter, Download, MoreVertical, Eye, X, 
+  Search, Filter, Download, MoreVertical, Eye, X, Check,
   MapPin, Calendar, Briefcase, ChevronLeft, ChevronRight, CheckCircle2, PauseCircle, Trash2, Send, Mail, ChevronDown
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
@@ -60,7 +60,13 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [searchTerm, options, setValue]);
 
-  const filteredOptions = options.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
+  const allOptions = Array.from(new Set([...options, ...(value && value !== 'all' ? [value] : [])]));
+  const filteredOptions = allOptions.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
+  const sortedFilteredOptions = [...filteredOptions].sort((a, b) => {
+    if (a === value) return -1;
+    if (b === value) return 1;
+    return a.localeCompare(b);
+  });
 
   return (
     <div className={`relative ${fullWidth ? 'w-full' : ''}`} ref={wrapperRef}>
@@ -74,7 +80,18 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
             {value || label}
           </span>
         </div>
-        <ChevronDown className={`w-3.5 h-3.5 shrink-0 ml-auto transition-transform ${isOpen ? 'rotate-180 text-emerald-500' : 'text-gray-400'}`} />
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+          {(value && value !== 'all') && (
+            <X 
+              className="w-3.5 h-3.5 text-gray-400 hover:text-red-500 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                setValue('');
+              }}
+            />
+          )}
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180 text-emerald-500' : 'text-gray-400'}`} />
+        </div>
       </div>
 
       {isOpen && (
@@ -90,29 +107,51 @@ const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placehold
               onKeyDown={e => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  setValue(searchTerm);
+                  if (searchTerm.trim()) {
+                    setValue(searchTerm.trim());
+                  } else if (sortedFilteredOptions.length > 0) {
+                    setValue(sortedFilteredOptions[0]);
+                  }
+                  setSearchTerm('');
                   setIsOpen(false);
                 }
               }}
             />
           </div>
           <ul className="max-h-48 overflow-y-auto py-1">
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((opt, i) => (
+            {searchTerm.trim() && !options.some(opt => opt.toLowerCase() === searchTerm.trim().toLowerCase()) && (
+              <li
+                className="px-3 py-2 text-xs cursor-pointer hover:bg-emerald-50 text-blue-600 font-medium border-b border-gray-50 mb-1"
+                onClick={() => { setValue(searchTerm.trim()); setSearchTerm(''); setIsOpen(false); }}
+              >
+                Search for "{searchTerm}"
+              </li>
+            )}
+            {sortedFilteredOptions.length > 0 ? (
+              sortedFilteredOptions.map((opt, i) => (
                 <li 
                   key={i}
-                  className="px-3 py-2 text-xs text-gray-700 hover:bg-emerald-50 cursor-pointer capitalize font-medium"
+                  className={`px-3 py-2 text-xs cursor-pointer capitalize font-medium ${
+                    opt === value ? 'text-emerald-700 bg-emerald-50/50' : 'text-gray-700 hover:bg-emerald-50'
+                  }`}
                   onClick={() => {
                     setValue(opt);
                     setSearchTerm('');
                     setIsOpen(false);
                   }}
                 >
-                  {opt}
+                  <div className="flex items-center gap-2">
+                    {opt === value ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    ) : (
+                      <div className="w-3.5 h-3.5 shrink-0" />
+                    )}
+                    <span className="truncate">{opt}</span>
+                  </div>
                 </li>
               ))
             ) : (
-              <li className="px-3 py-2 text-xs text-gray-400 text-center">No match found</li>
+              !searchTerm.trim() && <li className="px-3 py-2 text-xs text-gray-400 text-center">No match found</li>
             )}
             {value && (
               <li 
@@ -528,6 +567,8 @@ export default function AdminRecruiters() {
   
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [sourceFilter, setSourceFilter] = useState('');
+  const [countryFilter, setCountryFilter] = useState('');
   const [activeTableTab, setActiveTableTab] = useState('All');
   
   const [selectedRecruiter, setSelectedRecruiter] = useState(null);
@@ -559,6 +600,9 @@ export default function AdminRecruiters() {
       if (activeTableTab === 'Pending') params.approved = false;
       if (statusFilter === 'approved') params.approved = true;
       else if (statusFilter === 'pending') params.approved = false;
+
+      if (sourceFilter) params.source = sourceFilter;
+      if (countryFilter) params.country = countryFilter;
 
       const { data } = await adminAPI.getRecruiters(params);
       setRecruiters(data.recruiters || []);
@@ -862,7 +906,17 @@ export default function AdminRecruiters() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-black text-gray-900">Filters</h3>
-                <button className="text-[11px] font-bold text-emerald-600 hover:underline">Clear All</button>
+                <button 
+                  onClick={() => {
+                    setStatusFilter('');
+                    setSourceFilter('');
+                    setCountryFilter('');
+                    fetchRecruiters();
+                  }}
+                  className="text-[11px] font-bold text-emerald-600 hover:underline"
+                >
+                  Clear All
+                </button>
               </div>
               
               <div className="space-y-4">
@@ -881,8 +935,8 @@ export default function AdminRecruiters() {
                   <FilterDropdown
                     fullWidth
                     label="All Sources"
-                    value={''}
-                    setValue={() => {}}
+                    value={sourceFilter}
+                    setValue={setSourceFilter}
                     options={['organic', 'referral', 'campaign']}
                   />
                 </div>
@@ -891,12 +945,15 @@ export default function AdminRecruiters() {
                   <FilterDropdown
                     fullWidth
                     label="All Countries"
-                    value={''}
-                    setValue={() => {}}
+                    value={countryFilter}
+                    setValue={setCountryFilter}
                     options={['india', 'united states', 'united kingdom']}
                   />
                 </div>
-                <button className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all mt-2">
+                <button 
+                  onClick={() => fetchRecruiters()}
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all mt-2"
+                >
                   Apply Filters
                 </button>
               </div>

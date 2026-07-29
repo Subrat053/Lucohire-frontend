@@ -305,7 +305,7 @@ export default function AiCareerCoach() {
         <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-6">
           {/* Robot Image */}
           <div className="w-24 h-24 md:w-32 md:h-32 shrink-0 flex items-center justify-center">
-            <img src="/ai-robot-coach.png" alt="AI Coach" className="w-[120%] h-[120%] object-contain" />
+            <img src="/ai-robot-coach.webp" alt="AI Coach" className="w-[120%] h-[120%] object-contain" />
           </div>
           
           {/* Header Text & Pills */}

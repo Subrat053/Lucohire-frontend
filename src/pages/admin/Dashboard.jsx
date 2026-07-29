@@ -239,7 +239,7 @@ const Dashboard = () => {
 
       {/* Row 3: Platform Overview | Quick Actions | System Health */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-        <div className="lg:col-span-5 h-[320px]">
+        <div className="lg:col-span-5 h-auto lg:h-[320px]">
           <Suspense fallback={<div className="bg-white rounded-xl border border-gray-100 h-full flex items-center justify-center text-xs text-gray-400 shadow-sm">Loading Chart...</div>}>
             <RevenueChart 
               data={stats.revenueTrend || []} 
@@ -247,10 +247,10 @@ const Dashboard = () => {
             />
           </Suspense>
         </div>
-        <div className="lg:col-span-4 h-[320px]">
+        <div className="lg:col-span-4 h-auto lg:h-[320px]">
           <QuickActions />
         </div>
-        <div className="lg:col-span-3 h-[320px]">
+        <div className="lg:col-span-3 h-auto lg:h-[320px]">
           <SystemHealth systemHealth={stats.systemHealth} />
         </div>
       </div>

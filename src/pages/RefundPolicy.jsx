@@ -50,7 +50,7 @@ const RefundPolicyPage = () => {
         description={t('static.refundDescription', 'Read the refund and cancellation policy for using Lucohire.')}
         canonicalPath="/refund-policy"
       />
-      <PolicyPageLayout data={data} isEditMode={false} imageUrl="/refund_illustration_1785319056153.png" fullPage={true} />
+      <PolicyPageLayout data={data} isEditMode={false} imageUrl="/refund_illustration_1785319056153.webp" fullPage={true} />
     </>
   );
 };

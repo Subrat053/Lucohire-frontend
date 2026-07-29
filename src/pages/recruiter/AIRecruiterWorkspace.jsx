@@ -371,7 +371,7 @@ export default function AIRecruiterWorkspace() {
                     <div className="relative w-40 h-40 sm:w-48 sm:h-48 lg:w-56 lg:h-56">
                       <div className="absolute inset-0 bg-white/40 blur-2xl rounded-full scale-110"></div>
                       <img
-                        src="/luco_ai_robot.png"
+                        src="/luco_ai_robot.webp"
                         alt="Luco AI"
                         className="w-full h-full object-contain relative z-10 drop-shadow-xl animate-float"
                       />

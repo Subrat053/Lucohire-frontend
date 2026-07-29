@@ -1,10 +1,141 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { HiSearch, HiBan, HiCheckCircle, HiChevronLeft, HiChevronRight, HiTrash, HiEye, HiX, HiUpload, HiDownload, HiInformationCircle } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { toAbsoluteMediaUrl } from '../../utils/media';
 import toast from 'react-hot-toast';
+import { ChevronDown, X, Check } from 'lucide-react';
+
+const FilterDropdown = ({ label, icon: Icon, value, setValue, options, placeholder, fullWidth = false, allowCustom = true }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+        if (allowCustom && searchTerm && !options.some(opt => opt.toLowerCase() === searchTerm.toLowerCase())) {
+          setValue(searchTerm);
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchTerm, options, setValue, allowCustom]);
+
+  const allOptions = Array.from(new Set([...options, ...(value && value !== 'all' ? [value] : [])]));
+  const filteredOptions = allOptions.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
+  const sortedFilteredOptions = [...filteredOptions].sort((a, b) => {
+    if (a === value) return -1;
+    if (b === value) return 1;
+    return a.localeCompare(b);
+  });
+
+  return (
+    <div className={`relative ${fullWidth ? 'w-full' : 'w-full sm:w-auto min-w-[150px]'}`} ref={wrapperRef}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center text-sm font-medium bg-white border rounded-xl px-4 py-2.5 cursor-pointer transition whitespace-nowrap ${fullWidth ? 'w-full justify-between' : 'justify-between'} ${isOpen ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-sm' : 'border-gray-200 hover:bg-gray-50/50 text-gray-700'}`}
+      >
+        <div className="flex items-center gap-2 overflow-hidden">
+          {Icon && <Icon className="w-4 h-4 shrink-0 text-gray-400" />}
+          <span className={`truncate ${value && value !== label ? "text-gray-900 capitalize" : "text-gray-700"}`}>
+            {(value === 'all' || value === '') ? label : value}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+          {(value && value !== 'all' && value !== label && value !== '') && (
+            <X 
+              className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                setValue('');
+              }}
+            />
+          )}
+          <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180 text-indigo-500' : 'text-gray-400'}`} />
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className={`absolute z-50 top-full mt-2 left-0 w-full min-w-[160px] bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden flex flex-col`}>
+          <div className="p-2 border-b border-gray-50">
+            <input
+              type="text"
+              autoFocus
+              className="w-full text-sm font-medium border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              placeholder={placeholder || `Search...`}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (allowCustom && searchTerm.trim()) {
+                    setValue(searchTerm.trim());
+                  } else if (sortedFilteredOptions.length > 0) {
+                    setValue(sortedFilteredOptions[0]);
+                  }
+                  setSearchTerm('');
+                  setIsOpen(false);
+                }
+              }}
+            />
+          </div>
+          <ul className="max-h-60 overflow-y-auto py-1">
+            {allowCustom && searchTerm.trim() && !options.some(opt => opt.toLowerCase() === searchTerm.trim().toLowerCase()) && (
+              <li
+                className="px-4 py-2.5 text-sm cursor-pointer hover:bg-indigo-50 text-blue-600 font-medium border-b border-gray-50 mb-1"
+                onClick={() => { setValue(searchTerm.trim()); setSearchTerm(''); setIsOpen(false); }}
+              >
+                Search for "{searchTerm}"
+              </li>
+            )}
+            {sortedFilteredOptions.length > 0 ? (
+              sortedFilteredOptions.map((opt, i) => (
+                <li 
+                  key={i}
+                  className={`px-4 py-2.5 text-sm cursor-pointer capitalize font-medium ${
+                    opt === value ? 'text-indigo-700 bg-indigo-50/50' : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setValue(opt);
+                    setSearchTerm('');
+                    setIsOpen(false);
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    {opt === value ? (
+                      <Check className="w-4 h-4 text-indigo-600 shrink-0" />
+                    ) : (
+                      <div className="w-4 h-4 shrink-0" />
+                    )}
+                    <span className="truncate">{opt}</span>
+                  </div>
+                </li>
+              ))
+            ) : (
+              !searchTerm.trim() && <li className="px-4 py-2.5 text-sm text-gray-400 text-center font-medium">No match found</li>
+            )}
+            {value && value !== 'all' && value !== label && value !== '' && (
+              <li 
+                className="px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 cursor-pointer border-t border-gray-50 mt-1 font-medium"
+                onClick={() => {
+                  setValue('');
+                  setSearchTerm('');
+                  setIsOpen(false);
+                }}
+              >
+                Clear selection
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const UserDetailModal = ({ userId, onClose }) => {
   const [detail, setDetail] = useState(null);
@@ -352,7 +483,7 @@ const AdminUsers = () => {
   const [deleteModal, setDeleteModal] = useState({ open: false, userId: null, userName: '' });
   const limit = 15;
 
-  useEffect(() => { fetchUsers(); }, [page, roleFilter]);
+  useEffect(() => { fetchUsers(); }, [page, roleFilter, statusFilter]);
 
   const fetchUsers = async () => {
     try {
@@ -471,26 +602,44 @@ const AdminUsers = () => {
             Search
           </button>
         </form>
-        <select
-          value={roleFilter}
-          onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-          className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">All Roles</option>
-          <option value="provider">Providers</option>
-          <option value="recruiter">Recruiters</option>
-          <option value="admin">Admins</option>
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-        </select>
+        <div className="w-full sm:w-auto">
+          <FilterDropdown
+            label="All Roles"
+            value={roleFilter}
+            setValue={val => {
+              const lower = val.toLowerCase();
+              if (val === '' || lower === 'all roles') setRoleFilter('');
+              else {
+                let mapped = val;
+                if (lower.includes('prov')) mapped = 'provider';
+                else if (lower.includes('rec')) mapped = 'recruiter';
+                else if (lower.includes('admin')) mapped = 'admin';
+                setRoleFilter(mapped);
+              }
+              setPage(1);
+            }}
+            options={['provider', 'recruiter', 'admin']}
+          />
+        </div>
+        <div className="w-full sm:w-auto">
+          <FilterDropdown
+            label="All Status"
+            value={statusFilter}
+            setValue={val => {
+              const lower = val.toLowerCase();
+              if (val === '' || lower === 'all status') setStatusFilter('');
+              else {
+                let mapped = val;
+                if (lower.includes('pend')) mapped = 'pending';
+                else if (lower.includes('app')) mapped = 'approved';
+                else if (lower.includes('rej')) mapped = 'rejected';
+                setStatusFilter(mapped);
+              }
+              setPage(1);
+            }}
+            options={['pending', 'approved', 'rejected']}
+          />
+        </div>
       </div>
 
       {/* Table */}

@@ -13,38 +13,48 @@ import { AlertTriangle, ShieldCheck } from 'lucide-react';
 const PLAN_THEME_BY_SLUG = {
   free: {
     tag: 'FREE', sub: 'For new recruiters', button: 'Get Started',
-    buttonClass: 'border-2 border-green-600 text-green-700 hover:bg-green-50 bg-white',
-    cardClass: 'border border-slate-200', bestFor: 'First-time recruiters',
-    tagClass: 'text-green-600',
+    buttonClass: 'border-2 border-slate-300 text-slate-600 hover:bg-slate-50 bg-white',
+    cardClass: 'border border-slate-200 bg-white',
+    bestFor: 'First-time recruiters',
+    tagClass: 'text-slate-500',
+    checkClass: 'text-slate-400',
     highlight: false
   },
   'ai-starter': {
     tag: 'AI STARTER', sub: 'For startups & small teams', button: 'Choose Plan',
-    buttonClass: 'bg-[#4a24ba] text-white hover:bg-[#381a91]',
-    cardClass: 'border border-slate-200', bestFor: 'Startups\nHire up to 10 positions/month',
+    buttonClass: 'bg-[#4a24ba] text-white hover:bg-[#381a91] shadow-md shadow-[#4a24ba]/20',
+    cardClass: 'border border-[#4a24ba]/20 bg-gradient-to-b from-white to-indigo-50/40',
+    bestFor: 'Startups\nHire up to 10 positions/month',
     highlight: false, featureBadge: 'Save 40+ hours/month', featureBadgeClass: 'bg-indigo-50 text-indigo-700',
-    tagClass: 'text-[#4a24ba]'
+    tagClass: 'text-[#4a24ba]',
+    checkClass: 'text-[#4a24ba]'
   },
   'ai-growth': {
     tag: 'AI GROWTH', sub: 'For growing companies', button: 'Choose Plan',
-    buttonClass: 'bg-[#4a24ba] text-white hover:bg-[#381a91]',
-    cardClass: 'border border-slate-200', bestFor: 'SMBs\nHire up to 50 positions/month',
-    highlight: false, featureBadge: 'Save 120+ hours/month', featureBadgeClass: 'bg-indigo-50 text-indigo-700',
-    tagClass: 'text-[#4a24ba]'
+    buttonClass: 'bg-[#4a24ba] text-white hover:bg-[#381a91] shadow-md shadow-[#4a24ba]/25',
+    cardClass: 'border border-[#4a24ba]/30 bg-white',
+    bestFor: 'SMBs\nHire up to 50 positions/month',
+    highlight: false, featureBadge: 'Save 120+ hours/month', featureBadgeClass: 'bg-[#4a24ba]/10 text-[#4a24ba]',
+    tagClass: 'text-[#4a24ba]',
+    checkClass: 'text-[#4a24ba]'
   },
   'ai-business': {
     tag: 'AI BUSINESS', sub: 'For agencies & teams', button: 'Choose Plan',
-    buttonClass: 'bg-[#ea580c] text-white hover:bg-[#c2410c]',
-    cardClass: 'border border-slate-200', bestFor: 'Agencies & Large Teams\nUnlimited hiring',
+    buttonClass: 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md shadow-orange-500/25',
+    cardClass: 'border border-orange-200 bg-gradient-to-b from-white to-orange-50/40',
+    bestFor: 'Agencies & Large Teams\nUnlimited hiring',
     highlight: false, featureBadge: 'Save 300+ hours/month', featureBadgeClass: 'bg-orange-50 text-orange-600',
-    tagClass: 'text-[#ea580c]'
+    tagClass: 'text-orange-600',
+    checkClass: 'text-orange-500'
   },
   enterprise: {
     tag: 'ENTERPRISE', sub: 'For large enterprises', button: 'Contact Sales',
     buttonClass: 'bg-slate-900 text-white hover:bg-black',
-    cardClass: 'border border-slate-200', bestFor: 'Large Enterprises &\nRecruitment Firms',
+    cardClass: 'border border-slate-200 bg-white',
+    bestFor: 'Large Enterprises &\nRecruitment Firms',
     highlight: false, isCustom: true,
-    tagClass: 'text-slate-900'
+    tagClass: 'text-slate-900',
+    checkClass: 'text-slate-400'
   },
 };
 
@@ -460,73 +470,78 @@ const RecruiterPlans = () => {
                   {visiblePlans.map(plan => {
                     const baseSlug = plan.slug?.toLowerCase().replace('-yearly', '').replace('-quarterly', '');
                     const theme = PLAN_THEME_BY_SLUG[baseSlug] || DEFAULT_THEME;
-                    const isCurrent = currentPlan === plan.slug;
+                    const currentBaseSlug = currentPlan?.toLowerCase().replace('-yearly', '').replace('-quarterly', '');
+                    const isCurrent = currentPlan === plan.slug || (baseSlug === 'free' && currentBaseSlug === 'free');
                     
                     return (
-                      <div key={plan._id} className={`bg-white rounded-3xl flex flex-col relative transition-transform hover:-translate-y-1 ${theme.cardClass || 'border border-slate-200'}`}>
+                      <div key={plan._id} className={`rounded-3xl flex flex-col relative transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[#4a24ba]/10 ${theme.cardClass || 'border border-slate-200 bg-white'}`}>
                         {theme.badge && (
-                          <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#4a24ba] text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap shadow-sm">
+                          <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#4a24ba] text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap shadow-md shadow-[#4a24ba]/30">
                             {theme.badge}
                           </div>
                         )}
-                        <div className="p-4 lg:p-5 flex flex-col flex-1">
-                          <div className="text-center mb-4">
-                            <h3 className={`text-sm font-black uppercase tracking-widest mb-1 ${theme.tagClass || 'text-slate-900'}`}>{theme.tag}</h3>
-                            <p className="text-[10px] text-slate-500 font-bold">
-                              {theme.sub}</p>
+                        <div className="p-5 lg:p-6 flex flex-col flex-1">
+                          {/* Plan name & subtitle */}
+                          <div className="text-center mb-5">
+                            <h3 className={`text-xs font-black uppercase tracking-widest mb-1 ${theme.tagClass || 'text-slate-900'}`}>{theme.tag}</h3>
+                            <p className="text-[11px] text-slate-500 font-medium">{theme.sub}</p>
                           </div>
-                          
-                          <div className="text-center mb-5 h-12 flex items-end justify-center">
+
+                          {/* Price block */}
+                          <div className="text-center mb-5 flex flex-col items-center justify-center">
                             {theme.isCustom ? (
-                              <div className="text-2xl font-black text-slate-900 mb-1">{t("Custom")}</div>
+                              <div className="text-3xl font-black text-slate-900 mb-1">{t("Custom")}</div>
                             ) : (
                               <div>
                                 <div className="flex justify-center items-end gap-1 mb-1">
                                   {plan.price === 0 ? (
-                                    <span className="text-2xl font-black text-slate-900">₹0</span>
+                                    <span className="text-3xl font-black text-slate-900">₹0</span>
                                   ) : (
                                     <>
-                                      <span className="text-2xl font-black text-slate-900">₹{plan.price.toLocaleString('en-IN')}</span>
-                                      <span className="text-[11px] text-slate-500 font-bold mb-1">{t("/month")}</span>
+                                      <span className="text-3xl font-black text-slate-900">₹{plan.price.toLocaleString('en-IN')}</span>
+                                      <span className="text-[11px] text-slate-400 font-bold mb-1">{t("/month")}</span>
                                     </>
                                   )}
                                 </div>
-                                <div className="text-[10px] font-bold text-slate-400">
+                                <div className="text-[10px] font-semibold text-slate-400">
                                   {plan.price === 0 ? 'Forever Free' : `Billed ${activePeriod.toLowerCase()}`}
                                 </div>
                               </div>
                             )}
                           </div>
 
+                          {/* CTA Button */}
                           <button 
                             onClick={() => !isCurrent && handlePurchaseClick(plan._id)}
                             disabled={isCurrent || paymentLoading}
-                            className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all mb-5 ${isCurrent ? 'bg-green-100 text-green-700' : theme.buttonClass}`}
+                            className={`w-full py-3 rounded-xl font-bold text-sm transition-all mb-5 ${isCurrent ? 'bg-green-100 text-green-700 border border-green-200' : theme.buttonClass}`}
                           >
-                            {isCurrent ? 'Current Plan' : theme.button}
+                            {isCurrent ? '✓ Current Plan' : theme.button}
                           </button>
 
-                          <div className="text-center mb-5">
-                            <p className="text-[9px] text-slate-500 font-bold mb-1">{t("Best for:")}</p>
-                            <p className="text-[10px] text-slate-800 font-black whitespace-pre-line leading-tight">{theme.bestFor}</p>
+                          {/* Best for */}
+                          <div className="text-center mb-4 pb-4 border-b border-slate-100">
+                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">{t("Best for")}</p>
+                            <p className={`text-[11px] font-black whitespace-pre-line leading-tight ${theme.tagClass || 'text-slate-800'}`}>{theme.bestFor}</p>
                           </div>
 
+                          {/* Time saving badge */}
                           {theme.featureBadge && (
-                            <div className="bg-indigo-50 text-indigo-700 text-[9px] font-black rounded-lg py-1 px-1.5 text-center mb-5 border border-indigo-100 flex items-center justify-center gap-1">
-                              <FaRegClock/> {theme.featureBadge}
+                            <div className={`text-[9px] font-black rounded-lg py-1.5 px-2 text-center mb-4 border flex items-center justify-center gap-1.5 ${theme.featureBadgeClass || 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
+                              <FaRegClock className="shrink-0" /> {theme.featureBadge}
                             </div>
                           )}
 
-                          <ul className="space-y-2 mt-auto">
+                          {/* Features list */}
+                          <ul className="space-y-2.5 mt-auto">
                             {(plan.features || []).slice(0,4).map((f, i) => (
-                              <li key={i} className="flex items-start gap-1.5 text-[10px] font-bold text-slate-600 leading-tight">
-                                <HiCheck className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                              <li key={i} className="flex items-start gap-2 text-[11px] font-semibold text-slate-600 leading-tight">
+                                <HiCheck className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${theme.checkClass || 'text-slate-400'}`} />
                                 {f}
                               </li>
                             ))}
                           </ul>
-                          
-                          <div className="mt-6 text-center text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer">{t("View all features →")}</div>
+
                         </div>
                       </div>
                     );
@@ -534,34 +549,33 @@ const RecruiterPlans = () => {
 
                   {/* Enterprise / Custom Plan card — always hardcoded, shown only when no active request */}
                   {!hasCustomRequest && (
-                    <div className="bg-white rounded-3xl flex flex-col relative transition-transform hover:-translate-y-1 border border-slate-200">
-                      <div className="p-4 lg:p-5 flex flex-col flex-1">
-                        <div className="text-center mb-4">
-                          <h3 className="text-sm font-black uppercase tracking-widest mb-1 text-slate-900">ENTERPRISE</h3>
-                          <p className="text-[10px] text-slate-500 font-bold">For large enterprises</p>
+                    <div className="rounded-3xl flex flex-col relative transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-slate-200/80 border border-slate-200 bg-white">
+                      <div className="p-5 lg:p-6 flex flex-col flex-1">
+                        <div className="text-center mb-5">
+                          <h3 className="text-xs font-black uppercase tracking-widest mb-1 text-slate-900">ENTERPRISE</h3>
+                          <p className="text-[11px] text-slate-500 font-medium">For large enterprises</p>
                         </div>
-                        <div className="text-center mb-5 h-12 flex items-end justify-center">
-                          <div className="text-2xl font-black text-slate-900 mb-1">{t('Custom')}</div>
+                        <div className="text-center mb-5 flex flex-col items-center justify-center">
+                          <div className="text-3xl font-black text-slate-900 mb-1">{t('Custom')}</div>
+                          <div className="text-[10px] font-semibold text-slate-400">Tailored pricing</div>
                         </div>
                         <button
                           onClick={() => setShowCustomPlanModal(true)}
-                          className="w-full py-2.5 rounded-xl font-bold text-xs transition-all mb-5 bg-slate-900 text-white hover:bg-black"
+                          className="w-full py-3 rounded-xl font-bold text-sm transition-all mb-5 bg-slate-900 text-white hover:bg-black"
                         >
                           Contact Sales
                         </button>
-                        <div className="text-center mb-5">
-                          <p className="text-[9px] text-slate-500 font-bold mb-1">{t('Best for:')}</p>
-                          <p className="text-[10px] text-slate-800 font-black whitespace-pre-line leading-tight">{`Large Enterprises &
-Recruitment Firms`}</p>
+                        <div className="text-center mb-4 pb-4 border-b border-slate-100">
+                          <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">{t('Best for')}</p>
+                          <p className="text-[11px] text-slate-800 font-black whitespace-pre-line leading-tight">{`Large Enterprises &\nRecruitment Firms`}</p>
                         </div>
-                        <ul className="space-y-2 mt-auto">
+                        <ul className="space-y-2.5 mt-auto">
                           {['Custom job postings', 'Dedicated account manager', 'Priority support', 'Custom integrations'].map((f, i) => (
-                            <li key={i} className="flex items-start gap-1.5 text-[10px] font-bold text-slate-600 leading-tight">
-                              <HiCheck className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />{f}
+                            <li key={i} className="flex items-start gap-2 text-[11px] font-semibold text-slate-600 leading-tight">
+                              <HiCheck className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5"/>{f}
                             </li>
                           ))}
                         </ul>
-                        <div className="mt-6 text-center text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer">{t('View all features →')}</div>
                       </div>
                     </div>
                   )}

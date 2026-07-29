@@ -273,7 +273,7 @@ const ApplicationSuccess = () => {
         {/* Earn extra income */}
         <div 
           className="rounded-3xl p-6 md:p-10 flex flex-col items-start justify-center relative overflow-hidden border border-emerald-50 w-full min-h-[300px] md:min-h-[350px]"
-          style={{ backgroundImage: "url('/freelance-banner-bg.png')", backgroundSize: "cover", backgroundPosition: "center right", backgroundRepeat: "no-repeat" }}
+          style={{ backgroundImage: "url('/freelance-banner-bg.webp')", backgroundSize: "cover", backgroundPosition: "center right", backgroundRepeat: "no-repeat" }}
         >
           {/* Gradient overlay to ensure text is readable on the left */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#f2faf7] via-[#f2faf7]/90 to-transparent w-[80%] md:w-2/3 z-0"></div>

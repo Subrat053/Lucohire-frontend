@@ -47,7 +47,7 @@ const AboutPage = () => {
         description={t('static.aboutDescription', 'Learn about Lucohire - The AI-Powered Career Platform.')}
         canonicalPath="/about"
       />
-      <PolicyPageLayout data={data} isEditMode={false} imageUrl="/image.png" />
+      <PolicyPageLayout data={data} isEditMode={false} imageUrl="/image.webp" />
     </>
   );
 };

@@ -71,10 +71,10 @@ export default function PageContentManager() {
 
   const getImageUrl = (key) => {
     switch(key) {
-      case 'privacy': return '/privacy_policy_illustration_1785319033161.png';
-      case 'terms': return '/terms_illustration_1785319045794.png';
-      case 'refund': return '/refund_illustration_1785319056153.png';
-      case 'about': return '/image.png';
+      case 'privacy': return '/privacy_policy_illustration_1785319033161.webp';
+      case 'terms': return '/terms_illustration_1785319045794.webp';
+      case 'refund': return '/refund_illustration_1785319056153.webp';
+      case 'about': return '/image.webp';
       default: return null;
     }
   };
