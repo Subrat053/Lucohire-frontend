@@ -226,7 +226,7 @@ const PricingPage = () => {
               </div>
             )}
 
-            <div id="pricing-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 lg:gap-4 items-stretch max-w-7xl xl:max-w-none mx-auto w-full">
+            <div id="pricing-grid" className={`grid grid-cols-1 md:grid-cols-2 ${displayedPlans.filter(p => !p.name.toLowerCase().includes('whatsapp')).length === 3 ? 'lg:grid-cols-3' : displayedPlans.filter(p => !p.name.toLowerCase().includes('whatsapp')).length === 4 ? 'lg:grid-cols-4 xl:grid-cols-4' : 'xl:grid-cols-5'} gap-4 lg:gap-6 xl:gap-8 items-stretch max-w-7xl mx-auto w-full pb-20`}>
               {displayedPlans.filter(p => !p.name.toLowerCase().includes('whatsapp')).map((p, idx) => {
                 const isFree = Number(p.price) === 0;
                 const filteredPlans = displayedPlans.filter(plan => !plan.name.toLowerCase().includes('whatsapp'));
@@ -236,7 +236,12 @@ const PricingPage = () => {
                 return (
                 <div
                   key={p._id}
-                  className={`relative flex flex-col justify-between rounded-3xl p-5 md:p-6 lg:p-7 border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                  onClick={(e) => {
+                    if (e.target.closest('button')) return;
+                    const btn = document.getElementById(`cta-btn-${p._id}`);
+                    if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}
+                  className={`relative cursor-pointer flex flex-col justify-between rounded-3xl p-5 md:p-6 lg:p-7 border transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-blue-500 ${
                     isPopular
                       ? "bg-slate-900 text-white border-slate-900 shadow-[0_20px_50px_rgba(15,23,42,0.15)] ring-2 ring-blue-500/20"
                       : "bg-white border-slate-200 shadow-sm text-gray-800"
@@ -269,30 +274,6 @@ const PricingPage = () => {
                     <p className={`mt-2 text-xs lg:text-sm leading-relaxed ${isPopular ? "text-gray-400" : "text-gray-500"}`}>
                       {p.description || (isFree ? 'For new recruiters' : 'For growing teams')}
                     </p>
-
-                    {/* CTA Button */}
-                    <div className="mt-6 mb-6">
-                      <button
-                        id={`cta-btn-${p._id}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCtaClick(p);
-                        }}
-                        className={`w-full py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${
-                          p.planType === 'custom'
-                            ? "bg-gray-900 text-white hover:bg-black"
-                            : isPopular
-                            ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
-                            : p.name.toLowerCase().includes('business')
-                            ? "bg-orange-500 text-white hover:bg-orange-600"
-                            : isFree
-                            ? "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
-                            : "bg-[#4a24ba] text-white hover:bg-[#381a91]"
-                        }`}
-                      >
-                        {p.planType === 'custom' ? 'Contact Sales' : isFree ? 'Get Started' : 'Choose Plan'}
-                      </button>
-                    </div>
 
                     {/* Metadata */}
                     <div className="flex flex-col items-center text-center space-y-3 mb-6">
@@ -334,6 +315,29 @@ const PricingPage = () => {
                     </ul>
                   </div>
 
+                  {/* CTA Button */}
+                  <div className="mt-8">
+                    <button
+                      id={`cta-btn-${p._id}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCtaClick(p);
+                      }}
+                      className={`w-full py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${
+                        p.planType === 'custom'
+                          ? "bg-gray-900 text-white hover:bg-black"
+                          : isPopular
+                          ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
+                          : p.name.toLowerCase().includes('business')
+                          ? "bg-orange-500 text-white hover:bg-orange-600"
+                          : isFree
+                          ? "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
+                          : "bg-[#4a24ba] text-white hover:bg-[#381a91]"
+                      }`}
+                    >
+                      {p.planType === 'custom' ? 'Contact Sales' : isFree ? 'Get Started' : 'Choose Plan'}
+                    </button>
+                  </div>
 
                 </div>
                 );
