@@ -613,10 +613,16 @@ const AdminLayout = ({ children }) => {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="relative w-56 h-full bg-white shadow-xl flex flex-col">
+          <aside className="relative w-64 h-full bg-[#0B1320] text-gray-300 shadow-xl flex flex-col overflow-y-auto">
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="absolute top-4 right-3 p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition z-50"
+            >
+              <HiX className="w-5 h-5" />
+            </button>
             {renderSidebarContent(() => setMobileOpen(false))}
           </aside>
         </div>

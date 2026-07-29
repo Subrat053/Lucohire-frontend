@@ -42,7 +42,7 @@ export default function AITips() {
         const activePlan = planRes?.subscription || planRes || {};
         const planStatus = activePlan?.subscriptionStatus || activePlan?.status || 'active';
         const tier = activePlan?.planSnapshot?.slug || activePlan?.planName || activePlan?.plan || activePlan?.tier || 'free';
-        isUserPro = planStatus === 'active' && ['basic', 'pro', 'premium', 'beta'].some(p => String(tier).toLowerCase().includes(p));
+        isUserPro = planStatus === 'active' && String(tier).toLowerCase() !== 'free';
       } catch {}
       
       const finalIsPro = isUserPro || user?.isPro || false;

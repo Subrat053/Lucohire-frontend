@@ -461,6 +461,44 @@ const Navbar = () => {
                 </div>
               )}
 
+              {isAuthenticated && (activeRole === "admin" || activeRole === "superadmin" || activeRole === "manager") && (
+                <div className="space-y-1 pt-2 border-t border-gray-100">
+                  <p className="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                    {t("admin.panel", "Admin Panel")}
+                  </p>
+                  {[
+                    { label: "Dashboard",          path: "/admin/dashboard",           icon: HiTrendingUp },
+                    { label: "Candidates",         path: "/admin/providers",           icon: HiUsers },
+                    { label: "Recruiters",         path: "/admin/recruiters",          icon: HiUsers },
+                    { label: "Users",              path: "/admin/users",               icon: HiUsers },
+                    { label: "Plans",              path: "/admin/plans",               icon: HiCreditCard },
+                    { label: "Payments",           path: "/admin/payments",            icon: HiCreditCard },
+                    { label: "Enquiries",          path: "/admin/enquiries",           icon: HiMail },
+                    { label: "Skills",             path: "/admin/skills",              icon: HiClipboardList },
+                    { label: "Job Roles",          path: "/admin/job-roles",           icon: HiClipboardList },
+                    { label: "Settings",           path: "/admin/settings",            icon: HiCog },
+                    { label: "WhatsApp",           path: "/admin/whatsapp",            icon: HiPhone },
+                    { label: "Contact Logs",       path: "/admin/contact-logs",        icon: HiMail },
+                    { label: "Change Password",    path: "/admin/change-password",     icon: HiLockClosed },
+                  ].map(({ label, path, icon: Icon }) => {
+                    const active = window.location.pathname === path;
+                    return (
+                      <Link
+                        key={path}
+                        to={path}
+                        onClick={(e) => handleNavClick(e, path, () => setMobileOpen(false))}
+                        className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-emerald-50 text-emerald-700" : "text-gray-600 hover:bg-gray-50"}`}
+                      >
+                        <Icon
+                          className={`w-4 h-4 ${active ? "text-emerald-600" : "text-gray-400"}`}
+                        />
+                        <span>{label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+
               {/* Language and Switch Actions */}
               <div className="space-y-2 pt-2 border-t border-gray-100">
                 <LanguageDropdown

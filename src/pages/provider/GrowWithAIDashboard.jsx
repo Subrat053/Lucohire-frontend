@@ -111,7 +111,7 @@ export default function GrowWithAIDashboard() {
         const activePlan = planRes?.subscription || planRes || {};
         const planStatus = activePlan?.subscriptionStatus || activePlan?.status || 'active';
         const tier = activePlan?.planSnapshot?.slug || activePlan?.planName || activePlan?.plan || activePlan?.tier || 'free';
-        const isUserPro = planStatus === 'active' && ['basic', 'pro', 'premium', 'beta'].some(p => String(tier).toLowerCase().includes(p));
+        const isUserPro = planStatus === 'active' && String(tier).toLowerCase() !== 'free';
         setIsPro(isUserPro || user?.isPro || false);
       } catch (e) {
         setIsPro(user?.isPro || false);

@@ -13,7 +13,7 @@ const RevenueChart = ({ data = [], onPeriodChange }) => {
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm h-full">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
         <div>
           <h3 className="text-sm font-bold text-gray-900">Platform Overview</h3>
         </div>
@@ -68,7 +68,7 @@ const RevenueChart = ({ data = [], onPeriodChange }) => {
         </ResponsiveContainer>
       </div>
 
-      <div className="flex items-center justify-center gap-6 mt-4">
+      <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-center gap-x-6 gap-y-2 mt-4">
         <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500"></div><span className="text-[10px] text-gray-500 font-medium">New Candidates</span></div>
         <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-purple-500"></div><span className="text-[10px] text-gray-500 font-medium">New Recruiters</span></div>
         <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500"></div><span className="text-[10px] text-gray-500 font-medium">New Jobs</span></div>

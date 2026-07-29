@@ -144,7 +144,7 @@ const Column = ({ title, count, colorClass, status, tasks, jobs, onMoveTask }) =
   return (
     <div 
       ref={setNodeRef}
-      className={`${status === 'todo' ? 'bg-gray-50/50 border-gray-100' : status === 'in-progress' ? 'bg-indigo-50/30 border-indigo-100/50' : 'bg-emerald-50/30 border-emerald-100/50'} rounded-2xl border p-4 flex flex-col h-full overflow-hidden transition-colors ${isOver ? 'ring-2 ring-indigo-400 bg-indigo-50/50' : ''}`}
+      className={`${status === 'todo' ? 'bg-gray-50/50 border-gray-100' : status === 'in-progress' ? 'bg-indigo-50/30 border-indigo-100/50' : 'bg-emerald-50/30 border-emerald-100/50'} rounded-2xl border p-4 flex flex-col h-auto lg:h-full overflow-hidden transition-colors ${isOver ? 'ring-2 ring-indigo-400 bg-indigo-50/50' : ''}`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -153,7 +153,7 @@ const Column = ({ title, count, colorClass, status, tasks, jobs, onMoveTask }) =
           <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar pb-10">
+      <div className="flex-1 lg:overflow-y-auto space-y-3 pr-2 custom-scrollbar pb-10">
         {tasks.map(task => (
           <TaskCard key={task._id || task.id} task={task} jobs={jobs} onMoveTask={onMoveTask} />
         ))}
@@ -319,7 +319,7 @@ const Tasks = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
         </div>
       ) : (
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-140px)] flex flex-col md:flex-row gap-6">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-[calc(100vh-140px)] h-auto lg:h-[calc(100vh-140px)] flex flex-col md:flex-row gap-6">
           
           {/* LEFT SIDEBAR: Job Selector */}
           <div className="w-full md:w-64 shrink-0 bg-white border border-gray-200 rounded-2xl flex flex-col overflow-hidden h-fit md:h-full">
@@ -375,7 +375,7 @@ const Tasks = () => {
               <span className="text-sm font-medium text-gray-500">{filteredTasks.length}{t("total tasks")}</span>
             </div>
             <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100%-40px)]">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[calc(100%-40px)]">
                 <Column title="To Do" count={todoTasks.length} colorClass="bg-gray-400" status="todo" tasks={todoTasks} jobs={jobs} onMoveTask={handleMoveTask} />
                 <Column title="In Progress" count={inProgressTasks.length} colorClass="bg-indigo-500" status="in-progress" tasks={inProgressTasks} jobs={jobs} onMoveTask={handleMoveTask} />
                 <Column title="Done" count={doneTasks.length} colorClass="bg-emerald-500" status="done" tasks={doneTasks} jobs={jobs} onMoveTask={handleMoveTask} />

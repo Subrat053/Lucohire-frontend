@@ -111,7 +111,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
         const activePlan = planRes?.subscription || planRes || {};
         const planStatus = activePlan?.subscriptionStatus || activePlan?.status || 'active';
         const tier = activePlan?.planSnapshot?.slug || activePlan?.planName || activePlan?.plan || activePlan?.tier || 'free';
-        const isUserPro = planStatus === 'active' && ['basic', 'pro', 'premium', 'beta'].some(p => String(tier).toLowerCase().includes(p));
+        const isUserPro = planStatus === 'active' && String(tier).toLowerCase() !== 'free';
         setIsPro(isUserPro);
         
         await fetchUsage();
@@ -1018,7 +1018,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                   
                   {/* Stats Grid */}
                   {marketInsights && (
-                     <div className="grid grid-cols-3 gap-4">
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                          <div className="bg-white border border-slate-100 shadow-sm p-4 rounded-xl flex flex-col items-center justify-center text-center">
                           <div className="w-10 h-10 rounded-full bg-blue-50/80 text-blue-500 flex items-center justify-center mb-2">
                             <BiBriefcase className="w-5 h-5" />

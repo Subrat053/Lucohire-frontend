@@ -598,7 +598,7 @@ const ProviderPlans = () => {
           if (days <= 0) return null;
 
           return (
-            <div className="lg:absolute lg:top-2 lg:left-2 mb-6 lg:mb-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-3.5 text-white shadow-md flex flex-col gap-2.5 z-10 w-full lg:w-auto min-w-[280px]">
+            <div className="lg:absolute lg:top-4 lg:left-2 mb-6 lg:mb-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-3 text-white shadow-md flex flex-col gap-2 z-10 w-full lg:w-auto min-w-[250px]">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-[9px] font-semibold text-emerald-100 uppercase tracking-wider mb-0.5">{t("Current Active Plan")}</h2>
@@ -621,8 +621,9 @@ const ProviderPlans = () => {
                   <RefreshCw className={`w-3.5 h-3.5 ${isAutoSubscription ? 'text-yellow-300' : 'text-emerald-200'}`} />
                   {t("Auto Subscription")}
                 </span>
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={async () => {
                     const nextState = !isAutoSubscription;
                     setIsAutoSubscription(nextState);
@@ -643,14 +644,14 @@ const ProviderPlans = () => {
                       isAutoSubscription ? 'translate-x-4' : 'translate-x-0'
                     }`}
                   />
-                </button>
+                </div>
               </div>
             </div>
           );
         })()}
 
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 lg:pl-24">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-emerald-950 tracking-tight mb-3">{t("Choose the Right Plan for Your")} <span className="text-emerald-600">{t("Career Growth")}</span>
           </h1>
           <p className="text-slate-500 text-base">{t(
@@ -661,23 +662,23 @@ const ProviderPlans = () => {
 
 
         {/* Duration Toggles */}
-        <div className="flex justify-center mb-10 relative">
-          <div className="bg-white border border-emerald-100 rounded-full p-1 inline-flex items-center relative shadow-sm">
+        <div className="flex justify-center mb-10 relative px-4 sm:px-0">
+          <div className="bg-white border border-emerald-100 rounded-2xl sm:rounded-full p-1.5 flex flex-col sm:flex-row sm:inline-flex items-stretch sm:items-center relative shadow-sm w-full sm:w-auto gap-1 sm:gap-0">
             <button
               onClick={() => setSelectedDuration(1)}
-              className={`relative z-10 px-6 py-2.5 text-sm font-bold rounded-full transition-colors ${selectedDuration === 1 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950'}`}
+              className={`relative z-10 w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-2.5 text-sm font-bold rounded-xl sm:rounded-full transition-colors flex items-center justify-center ${selectedDuration === 1 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950 bg-slate-50 sm:bg-transparent'}`}
             >{t("Monthly Plans")}</button>
             <button
               onClick={() => setSelectedDuration(3)}
-              className={`relative z-10 px-6 py-2.5 text-sm font-bold rounded-full transition-colors flex items-center gap-1.5 ${selectedDuration === 3 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950'}`}
-            >{t("Quarterly Plans")}<span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedDuration === 3 ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'}`}>{t("10% OFF")}</span>
+              className={`relative z-10 w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-2.5 text-sm font-bold rounded-xl sm:rounded-full transition-colors flex items-center justify-center gap-2 ${selectedDuration === 3 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950 bg-slate-50 sm:bg-transparent'}`}
+            >{t("Quarterly Plans")}<span className={`text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap ${selectedDuration === 3 ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'}`}>{t("10% OFF")}</span>
             </button>
             <button
               onClick={() => setSelectedDuration(12)}
-              className={`relative z-10 px-6 py-2.5 text-sm font-bold rounded-full transition-colors flex items-center gap-1.5 ${selectedDuration === 12 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950'}`}
-            >{t("Yearly Plans")}<span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedDuration === 12 ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'}`}>{t("20% OFF")}</span>
+              className={`relative z-10 w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-2.5 text-sm font-bold rounded-xl sm:rounded-full transition-colors flex items-center justify-center gap-2 ${selectedDuration === 12 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950 bg-slate-50 sm:bg-transparent'}`}
+            >{t("Yearly Plans")}<span className={`text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap ${selectedDuration === 12 ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'}`}>{t("20% OFF")}</span>
               {selectedDuration !== 12 && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">{t("BEST VALUE")}</div>
+                <div className="absolute top-0 right-2 -translate-y-1/2 sm:-top-3 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">{t("BEST VALUE")}</div>
               )}
             </button>
           </div>
@@ -817,7 +818,7 @@ const ProviderPlans = () => {
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead>
                 <tr className="border-b border-emerald-100">
-                  <th className="p-6 font-bold text-emerald-950 bg-slate-50 min-w-[200px]">
+                  <th className="p-6 font-bold text-emerald-950 bg-slate-50 min-w-[250px] whitespace-normal">
                     <div className="flex items-center gap-2">
                       <Target className="w-5 h-5 text-emerald-600" />{t("PLAN COMPARISON")}<br/>{t("AT A GLANCE")}</div>
                   </th>
@@ -845,7 +846,7 @@ const ProviderPlans = () => {
                   { label: 'Deep Career Reports (Claude)', basic: '—', pro: '—', premium: '10 reports / month' },
                 ].map((row, i) => (
                   <tr key={i} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 pl-6 text-xs font-semibold text-emerald-950">{row.label}</td>
+                    <td className="p-4 pl-6 text-xs font-semibold text-emerald-950 whitespace-normal min-w-[250px] max-w-[300px] leading-relaxed">{row.label}</td>
                     <td className="p-4 text-center text-xs text-slate-500">{row.basic}</td>
                     <td className="p-4 text-center text-xs text-slate-500 bg-teal-50/50">{row.pro}</td>
                     <td className="p-4 text-center text-xs text-slate-500">{row.premium}</td>
@@ -860,21 +861,23 @@ const ProviderPlans = () => {
         {/* Bottom Bar */}
         <div className="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <button 
+            <div 
+              role="button"
+              tabIndex={0}
               onClick={() => setIsAutoSubscription(!isAutoSubscription)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAutoSubscription ? 'bg-emerald-600' : 'bg-slate-300'}`}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${isAutoSubscription ? 'bg-emerald-600' : 'bg-slate-300'}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAutoSubscription ? 'translate-x-6' : 'translate-x-1'}`} />
-            </button>
+            </div>
             <div>
               <p className="text-sm font-bold text-emerald-950">{t("Auto Subscription")}</p>
               <p className="text-xs text-slate-500">{t("Your plan will auto-renew at the end of each billing cycle.")}</p>
             </div>
           </div>
-          <div className="flex items-center gap-6 text-xs font-bold text-slate-500">
-            <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-600" />{t("100% Secure Payments")}</div>
-            <div className="flex items-center gap-2"><RefreshCw className="w-4 h-4 text-emerald-600" />{t("Cancel Anytime")}</div>
-            <div className="flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-emerald-600" />{t("7-Day Money Back Guarantee (T&C Apply)")}</div>
+          <div className="flex flex-wrap justify-center md:justify-end items-center gap-3 sm:gap-6 text-xs font-bold text-slate-500 mt-4 md:mt-0">
+            <div className="flex items-center gap-1.5 sm:gap-2"><ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />{t("100% Secure Payments")}</div>
+            <div className="flex items-center gap-1.5 sm:gap-2"><RefreshCw className="w-4 h-4 text-emerald-600 shrink-0" />{t("Cancel Anytime")}</div>
+            <div className="flex items-center gap-1.5 sm:gap-2"><BadgeCheck className="w-4 h-4 text-emerald-600 shrink-0" />{t("7-Day Money Back Guarantee (T&C Apply)")}</div>
           </div>
         </div>
       </div>

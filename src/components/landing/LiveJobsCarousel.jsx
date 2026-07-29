@@ -126,32 +126,34 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
         
         {/* Previous Arrow Button */}
         {showPrevArrow && (
-          <button 
-            type="button"
+          <div 
             onClick={handleScrollPrev}
+            role="button"
+            tabIndex={0}
             aria-label="Previous"
-            className="absolute left-2 sm:left-3 top-[55%] -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center cursor-pointer text-gray-700 z-10 hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all"
+            className="absolute left-2 sm:left-3 top-[55%] -translate-y-1/2 w-8 h-8 min-h-[32px] bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center cursor-pointer text-gray-700 z-10 hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all"
           >
             <svg className="w-4 h-4 rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </button>
+          </div>
         )}
 
         {/* Next Arrow Button */}
         {showNextArrow && (
-          <button 
-            type="button"
+          <div 
             onClick={handleScrollNext}
+            role="button"
+            tabIndex={0}
             aria-label="Next"
-            className="absolute right-2 sm:right-3 top-[55%] -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center cursor-pointer text-gray-700 z-10 hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all"
+            className="absolute right-2 sm:right-3 top-[55%] -translate-y-1/2 w-8 h-8 min-h-[32px] bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center cursor-pointer text-gray-700 z-10 hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </button>
+          </div>
         )}
 
         <div 
           ref={carouselRef}
           onScroll={handleScrollEvent}
-          className="flex space-x-4 overflow-x-auto pb-4 pt-2 hide-scrollbar px-2 sm:px-10 scroll-smooth"
+          className="flex space-x-4 overflow-x-auto pb-4 pt-2 px-2 sm:px-10 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
           {isLoadingJobs ? (
             [1, 2, 3, 4, 5].map(i => (
@@ -208,12 +210,13 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
         {!isLoadingJobs && liveJobsList.length > 0 && TOTAL_PAGES > 1 && (
           <div className="flex justify-center items-center gap-1.5 mt-2">
             {Array.from({ length: TOTAL_PAGES }, (_, i) => i).map((pageIndex) => (
-              <button
+              <div
                 key={pageIndex}
-                type="button"
                 onClick={() => setCurrentPage(pageIndex)}
+                role="button"
+                tabIndex={0}
                 aria-label={`Go to page ${pageIndex + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                className={`h-1.5 min-h-[6px] rounded-full transition-all duration-300 cursor-pointer ${
                   currentPage === pageIndex
                     ? 'w-5 bg-blue-600'
                     : 'w-2 bg-blue-200 hover:bg-blue-300'

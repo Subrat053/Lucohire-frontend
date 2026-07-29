@@ -111,7 +111,7 @@ export default function ResumeToolkit() {
         const activePlan = planRes.value?.subscription || planRes.value || {};
         const planStatus = activePlan?.subscriptionStatus || activePlan?.status || 'active';
         const tier = activePlan?.planSnapshot?.slug || activePlan?.planName || activePlan?.plan || activePlan?.tier || 'free';
-        userIsPro = planStatus === 'active' && ['basic', 'pro', 'premium', 'beta'].some(p => String(tier).toLowerCase().includes(p));
+        userIsPro = planStatus === 'active' && String(tier).toLowerCase() !== 'free';
         setIsPro(userIsPro);
       }
 

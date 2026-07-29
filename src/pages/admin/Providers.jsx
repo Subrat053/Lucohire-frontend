@@ -1339,18 +1339,9 @@ export default function AdminProviders() {
             </div>
 
             {/* Pagination Footer */}
-            <div className="p-4 border-t border-gray-100 bg-white flex items-center justify-between">
+            <div className="p-4 border-t border-gray-100 bg-white">
               <div className="text-xs font-medium text-gray-500">
                 Showing <span className="font-bold text-gray-900">{providers.length > 0 ? 1 : 0}</span> to <span className="font-bold text-gray-900">{providers.length}</span> of {totals.total.toLocaleString()} candidates
-              </div>
-              <div className="flex items-center gap-2">
-                <button className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 text-xs font-bold">1</button>
-                <button className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
               </div>
             </div>
 

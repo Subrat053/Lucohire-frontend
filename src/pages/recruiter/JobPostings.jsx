@@ -279,9 +279,9 @@ const JobPostings = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse border border-gray-200 bg-white shadow-sm">
                     <thead className="bg-gradient-to-r from-gray-50 via-gray-100/50 to-gray-50 shadow-sm">
-                      <tr className="text-sm font-bold text-gray-700">
-                        <th className="py-3 px-4 border border-gray-200">{t("Job Title")}</th>
-                        <th className="py-3 px-4 border border-gray-200">{t("Location")}</th>
+                      <tr className="text-sm font-bold text-gray-700 whitespace-nowrap">
+                        <th className="py-3 px-4 border border-gray-200 min-w-[200px]">{t("Job Title")}</th>
+                        <th className="py-3 px-4 border border-gray-200 min-w-[120px]">{t("Location")}</th>
                         <th className="py-3 px-4 border border-gray-200 text-center">{t("Applicants")}</th>
                         <th className="py-3 px-4 border border-gray-200 text-center">{t("AI Match")}</th>
                         <th className="py-3 px-4 border border-gray-200">{t("Status")}</th>
@@ -405,7 +405,7 @@ const JobPostings = () => {
               
               {/* Pagination */}
               <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">{t("Rows per page:")}<select 
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">{t("Rows per page:")} <select 
                     value={rowsPerPage}
                     onChange={(e) => {
                       setRowsPerPage(Number(e.target.value));
@@ -419,16 +419,19 @@ const JobPostings = () => {
                     <option value={100}>100</option>
                   </select>
                 </div>
-                <div className="text-xs font-semibold text-gray-500">{t("Showing")}{filteredJobs.length > 0 ? ((currentPage - 1) * rowsPerPage) + 1 : 0}{t("to")}{Math.min(currentPage * rowsPerPage, filteredJobs.length)}{t("of")}{filteredJobs.length}{t("jobs")}</div>
+                <div className="text-xs font-semibold text-gray-500 text-center whitespace-nowrap">
+                  {t("Showing")} {filteredJobs.length > 0 ? ((currentPage - 1) * rowsPerPage) + 1 : 0} {t("to")} {Math.min(currentPage * rowsPerPage, filteredJobs.length)} {t("of")} {filteredJobs.length} {t("jobs")}
+                </div>
                 <div className="flex items-center gap-1">
                   <button 
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 font-bold flex items-center justify-center transition"
+                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 font-bold flex items-center justify-center transition shrink-0"
                   >
                     &lt;
                   </button>
-                  <div className="text-xs font-bold px-2 text-gray-700">{t("Page")}{currentPage}{t("of")}{totalPages || 1}
+                  <div className="text-xs font-bold px-2 text-gray-700 whitespace-nowrap">
+                    {t("Page")} {currentPage} {t("of")} {totalPages || 1}
                   </div>
                   <button 
                     disabled={currentPage >= totalPages}

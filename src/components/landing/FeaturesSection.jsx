@@ -108,7 +108,7 @@ export default function FeaturesSection() {
                 { icon: <Search className="w-7 h-7" />, title: t('AI Match'), desc: t('Get AI-matched jobs that fit you best.'), color: 'text-blue-600', bg: 'bg-blue-50' },
                 { icon: <Briefcase className="w-7 h-7" />, title: t('Get Hired'), desc: t('Apply, connect and get hired faster.'), color: 'text-blue-600', bg: 'bg-blue-50' },
               ].map((step, idx) => (
-                <div key={idx} className="flex items-center gap-4 sm:gap-6">
+                <div key={idx} className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
                   <div className="flex flex-col items-center text-center max-w-[130px]">
                     <div className={`w-14 h-14 ${step.bg} rounded-full flex items-center justify-center ${step.color} mb-3`}>
                       {step.icon}
@@ -134,7 +134,7 @@ export default function FeaturesSection() {
                 { icon: <Zap className="w-7 h-7" />, title: t('AI Shortlist'), desc: t('AI finds and shortlists the best matches.'), color: 'text-green-600', bg: 'bg-green-50' },
                 { icon: <CheckCircle2 className="w-7 h-7" />, title: t('Hire Faster'), desc: t('Connect, interview and hire the right talent.'), color: 'text-green-600', bg: 'bg-green-50' },
               ].map((step, idx) => (
-                <div key={idx} className="flex items-center gap-4 sm:gap-6">
+                <div key={idx} className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
                   <div className="flex flex-col items-center text-center max-w-[130px]">
                     <div className={`w-14 h-14 ${step.bg} rounded-full flex items-center justify-center ${step.color} mb-3`}>
                       {step.icon}
