@@ -87,7 +87,7 @@ const Footer = () => {
         { label: t('footer.findJobs', 'Find Jobs'), href: '/candidate-landing' },
         { label: t('footer.createProfile', 'Create Profile'), href: '/signup?role=candidate' },
         { label: t('footer.careerTips', 'Career Tips'), href: '/career-tips' },
-        { label: t('footer.pricing', 'Pricing'), href: '/pricing?tab=provider' },
+        { label: t('footer.pricing', 'Pricing'), href: '/pricing?tab=provider', ariaLabel: 'Pricing for Providers' },
         { label: t('footer.helpCenter', 'Help Center'), href: '/contact' },
       ],
     },
@@ -96,7 +96,7 @@ const Footer = () => {
       links: [
         { label: t('footer.postJob', 'Post a Job'), href: '/recruiter-discovery' },
         { label: t('footer.findCandidates', 'Find Candidates'), href: '/search' },
-        { label: t('footer.pricing', 'Pricing'), href: '/pricing?tab=recruiter' },
+        { label: t('footer.pricing', 'Pricing'), href: '/pricing?tab=recruiter', ariaLabel: 'Pricing for Recruiters' },
         { label: t('footer.resources', 'Resources'), href: '/resources' },
       ],
     },
@@ -198,7 +198,7 @@ const Footer = () => {
               {section.links.map((item) => {
                 return (
                   <li key={item.label}>
-                    <Link to={item.href} className="text-sm text-gray-400 hover:text-white transition-colors cursor-pointer">
+                    <Link to={item.href} className="text-sm text-gray-400 hover:text-white transition-colors cursor-pointer" aria-label={item.ariaLabel || item.label}>
                       {item.label}
                     </Link>
                   </li>

@@ -160,7 +160,7 @@ export default function FeaturesSection() {
       {/* 8. Trusted By */}
       <div className="w-full border-y border-gray-100 py-8 sm:py-10 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
-          <div className="flex justify-between items-center space-x-6 sm:space-x-8 opacity-60 grayscale hover:grayscale-0 transition duration-500 flex-nowrap overflow-x-auto hide-scrollbar">
+          <div className="flex justify-between items-center space-x-6 sm:space-x-8 grayscale hover:grayscale-0 transition duration-500 flex-nowrap overflow-x-auto hide-scrollbar">
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0"><span className="text-blue-500">G</span>oogle</h3>
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-gray-700">Microsoft</h3>
             <h3 className="text-lg sm:text-xl font-bold tracking-tighter shrink-0 text-blue-700">Infosys</h3>
