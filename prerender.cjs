@@ -19,7 +19,10 @@ const server = app.listen(PORT, '127.0.0.1', async () => {
     console.log(`Prerender server running on port ${PORT}`);
     
     try {
-        const browser = await puppeteer.launch({ headless: 'new' });
+        const browser = await puppeteer.launch({ 
+            headless: 'new',
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
         const page = await browser.newPage();
         
         for (const route of ROUTES_TO_PRERENDER) {
