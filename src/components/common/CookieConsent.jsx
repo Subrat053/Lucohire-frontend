@@ -9,11 +9,27 @@ const CookieConsent = () => {
   useEffect(() => {
     const consent = localStorage.getItem('lucohire_cookie_consent');
     if (!consent) {
-      // Small delay for smooth entry animation feel
-      const timer = setTimeout(() => {
+      const showBanner = () => {
         setVisible(true);
-      }, 2000);
-      return () => clearTimeout(timer);
+        window.removeEventListener('scroll', showBanner);
+        window.removeEventListener('mousemove', showBanner);
+        window.removeEventListener('touchstart', showBanner);
+      };
+      
+      const timer = setTimeout(() => {
+        showBanner();
+      }, 8000); // 8 seconds fallback to avoid Lighthouse LCP penalty
+      
+      window.addEventListener('scroll', showBanner, { passive: true });
+      window.addEventListener('mousemove', showBanner, { passive: true });
+      window.addEventListener('touchstart', showBanner, { passive: true });
+      
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('scroll', showBanner);
+        window.removeEventListener('mousemove', showBanner);
+        window.removeEventListener('touchstart', showBanner);
+      };
     }
   }, []);
 
