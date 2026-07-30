@@ -7,7 +7,7 @@ const CookieConsent = () => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem('lucohire_cookie_consent');
+    const consent = localStorage.getItem('lucohire_cookie_consent_v2');
     if (!consent) {
       const showBanner = () => {
         setVisible(true);
@@ -34,12 +34,12 @@ const CookieConsent = () => {
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem('lucohire_cookie_consent', 'accepted');
+    localStorage.setItem('lucohire_cookie_consent_v2', 'accepted');
     setVisible(false);
   };
 
   const handleDecline = () => {
-    localStorage.setItem('lucohire_cookie_consent', 'declined');
+    localStorage.setItem('lucohire_cookie_consent_v2', 'declined');
     setVisible(false);
   };
 

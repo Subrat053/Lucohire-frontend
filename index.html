@@ -18,9 +18,6 @@
     <meta name="language" content="English" />
 
     <!-- Performance & Preconnects -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap">
     <link rel="preconnect" href="https://scripts.clarity.ms" crossorigin>
 
     <!-- Canonical -->
@@ -90,19 +87,36 @@
     </script>
     -->
 
-    <!-- Microsoft Clarity -->
+    <!-- Microsoft Clarity (Deferred) -->
     <script type="text/javascript">
-        (function(c,l,a,r,i,t,y){
-            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-        })(window, document, "clarity", "script", "xtwymtc9b2");
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.defer=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "xtwymtc9b2");
+          }, 2000); // Wait 2s after load to prevent blocking interaction
+        });
     </script>
 
     <link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs.txt">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <style>
+        body { margin: 0; background: #0f172a; }
+        .skel-nav { height: 72px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 24px; }
+        .skel-logo { width: 120px; height: 32px; background: rgba(255,255,255,0.05); border-radius: 4px; }
+        .skel-hero { padding: 80px 24px; text-align: center; }
+        .skel-title { max-width: 600px; height: 48px; background: rgba(255,255,255,0.08); border-radius: 8px; margin: 0 auto 24px; }
+        .skel-sub { max-width: 400px; height: 24px; background: rgba(255,255,255,0.04); border-radius: 4px; margin: 0 auto; }
+        @keyframes pulse { 50% { opacity: 0.5; } }
+        .skel-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+      </style>
+      <div class="skel-nav skel-pulse"><div class="skel-logo"></div></div>
+      <div class="skel-hero skel-pulse"><div class="skel-title"></div><div class="skel-sub"></div></div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
