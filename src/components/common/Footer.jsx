@@ -87,7 +87,7 @@ const Footer = () => {
         { label: t('footer.findJobs', 'Find Jobs'), href: '/candidate-landing' },
         { label: t('footer.createProfile', 'Create Profile'), href: '/signup?role=candidate' },
         { label: t('footer.careerTips', 'Career Tips'), href: '/career-tips' },
-        { label: t('footer.pricing', 'Pricing'), href: '/pricing?tab=provider', ariaLabel: 'Pricing for Providers' },
+        { label: t('footer.pricing', 'Pricing'), href: '/pricing', ariaLabel: 'Pricing for Providers' },
         { label: t('footer.helpCenter', 'Help Center'), href: '/contact' },
       ],
     },
@@ -96,7 +96,7 @@ const Footer = () => {
       links: [
         { label: t('footer.postJob', 'Post a Job'), href: '/recruiter-discovery' },
         { label: t('footer.findCandidates', 'Find Candidates'), href: '/search' },
-        { label: t('footer.pricing', 'Pricing'), href: '/pricing?tab=recruiter', ariaLabel: 'Pricing for Recruiters' },
+        { label: t('footer.pricing', 'Pricing'), href: '/pricing', ariaLabel: 'Pricing for Recruiters' },
         { label: t('footer.resources', 'Resources'), href: '/resources' },
       ],
     },

@@ -21,6 +21,7 @@ const RecruiterRoutes = lazy(() => import("./routes/RecruiterRoutes"));
 const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
 const PartnerRoutes = lazy(() => import("./routes/PartnerRoutes"));
 const DashboardRedirect = lazy(() => import("./components/common/DashboardRedirect"));
+import LandingPageSkeleton from './components/landing/LandingPageSkeleton';
 
 function App() {
   const { user, profile, showWhatsAppPrompt, setShowWhatsAppPrompt } = useAuth();
@@ -90,6 +91,13 @@ function App() {
     };
   }, []);
 
+  const SuspenseFallback = () => {
+    if (window.location.pathname === '/') {
+      return <LandingPageSkeleton />;
+    }
+    return <PageLoader />;
+  };
+
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Toaster
@@ -108,7 +116,7 @@ function App() {
         <CookieConsent />
       </Suspense>
 
-      <Suspense fallback={<PageLoader />}>
+      <Suspense fallback={<SuspenseFallback />}>
         <Routes>
           {/* Provider Panel Routes */}
           <Route path="/provider/*" element={<ProviderRoutes />} />

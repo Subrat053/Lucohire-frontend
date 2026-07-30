@@ -13,11 +13,9 @@ const PricingPage = () => {
   const { user, isAuthenticated } = useAuth();
   const [searchParams] = useSearchParams();
 
-  const initialTab = isAuthenticated 
-    ? ((user?.activeRole === "recruiter" || user?.role === "recruiter") ? "recruiter" : "provider")
-    : (searchParams.get("tab") === "recruiter" || searchParams.get("role") === "recruiter"
-      ? "recruiter"
-      : "provider");
+  const initialTab = searchParams.get("tab") === "recruiter" || searchParams.get("role") === "recruiter"
+    ? "recruiter"
+    : "provider";
 
   const [activeTab, setActiveTab] = useState(initialTab);
   const [plans, setPlans] = useState([]);
@@ -30,17 +28,13 @@ const PricingPage = () => {
     : plans;
 
   useEffect(() => {
-    if (isAuthenticated) {
-      setActiveTab((user?.activeRole === "recruiter" || user?.role === "recruiter") ? "recruiter" : "provider");
-    } else {
-      const tab = searchParams.get("tab") || searchParams.get("role");
-      if (tab === "recruiter") {
-        setActiveTab("recruiter");
-      } else if (tab === "provider" || tab === "candidate") {
-        setActiveTab("provider");
-      }
+    const tab = searchParams.get("tab") || searchParams.get("role");
+    if (tab === "recruiter") {
+      setActiveTab("recruiter");
+    } else if (tab === "provider" || tab === "candidate") {
+      setActiveTab("provider");
     }
-  }, [searchParams, isAuthenticated, user]);
+  }, [searchParams]);
 
   useEffect(() => {
     fetchPlans();
@@ -104,8 +98,7 @@ const PricingPage = () => {
           </p>
 
           {/* Toggle Tabs */}
-          {!isAuthenticated && (
-            <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex justify-center">
             <div className="relative bg-white border border-gray-100 rounded-2xl p-1.5 flex gap-1 shadow-sm max-w-md w-full">
               <button
                 onClick={() => setActiveTab("provider")}
@@ -129,7 +122,6 @@ const PricingPage = () => {
               </button>
             </div>
           </div>
-          )}
         </div>
 
 
@@ -190,41 +182,7 @@ const PricingPage = () => {
               );
             })()}
 
-            {/* Billing period toggle — only for recruiter */}
-            {activeTab === 'recruiter' && (
-              <div className="flex justify-center mb-6">
-                <div className="bg-white border border-gray-100 rounded-2xl p-1 flex gap-1 shadow-sm">
-                  <button
-                    onClick={() => setBillingPeriod('monthly')}
-                    className={`px-5 py-2 text-sm font-semibold rounded-xl transition-all duration-300 ${
-                      billingPeriod === 'monthly' ? 'bg-[#4a24ba] text-white shadow-sm' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    Monthly
-                  </button>
-                  <button
-                    onClick={() => setBillingPeriod('quarterly')}
-                    className={`px-5 py-2 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center gap-2 ${
-                      billingPeriod === 'quarterly' ? 'bg-[#4a24ba] text-white shadow-sm' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    Quarterly <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
-                      billingPeriod === 'quarterly' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'
-                    }`}>Save 10%</span>
-                  </button>
-                  <button
-                    onClick={() => setBillingPeriod('yearly')}
-                    className={`px-5 py-2 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center gap-2 ${
-                      billingPeriod === 'yearly' ? 'bg-[#4a24ba] text-white shadow-sm' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    Yearly <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
-                      billingPeriod === 'yearly' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'
-                    }`}>Save 20%</span>
-                  </button>
-                </div>
-              </div>
-            )}
+
 
             <div id="pricing-grid" className={`grid grid-cols-1 md:grid-cols-2 ${displayedPlans.filter(p => !p.name.toLowerCase().includes('whatsapp')).length === 3 ? 'lg:grid-cols-3' : displayedPlans.filter(p => !p.name.toLowerCase().includes('whatsapp')).length === 4 ? 'lg:grid-cols-4 xl:grid-cols-4' : 'xl:grid-cols-5'} gap-4 lg:gap-6 xl:gap-8 items-stretch max-w-7xl mx-auto w-full pb-20`}>
               {displayedPlans.filter(p => !p.name.toLowerCase().includes('whatsapp')).map((p, idx) => {

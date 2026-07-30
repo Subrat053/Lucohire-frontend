@@ -22,7 +22,7 @@ import {
   FaWhatsapp,
 } from "react-icons/fa";
 import { MdVerified } from "react-icons/md";
-import { useGoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
 import { authAPI } from "../services/api";
 import toast from "react-hot-toast";
@@ -2525,4 +2525,10 @@ const AuthPage = () => {
   );
 };
 
-export default AuthPage;
+const AuthPageWrapper = (props) => (
+  <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
+    <AuthPage {...props} />
+  </GoogleOAuthProvider>
+);
+
+export default AuthPageWrapper;
