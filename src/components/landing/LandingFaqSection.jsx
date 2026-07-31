@@ -92,23 +92,23 @@ const LandingFaqSection = () => {
                   onClick={() => toggleFaq(idx)}
                   className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 font-bold text-gray-900 text-base sm:text-lg hover:text-blue-700 transition-colors text-left"
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
+                  <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
                     isOpen 
                       ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30 rotate-12' 
                       : 'bg-blue-50 text-blue-600 shadow-sm border border-blue-100/50 group-hover:scale-110'
                   }`}>
                     <HelpCircle className="w-5 h-5" />
-                  </div>
+                  </span>
 
-                  <span className="flex-1 font-bold text-gray-900 leading-tight">{item.question}</span>
+                  <span className="flex-1 font-bold text-gray-900 leading-tight text-left">{item.question}</span>
 
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
+                  <span className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
                     isOpen 
                       ? 'bg-blue-100 text-blue-700 rotate-180' 
                       : 'bg-gray-100 text-gray-500 group-hover:bg-blue-50 group-hover:text-blue-600'
                   }`}>
                     <ChevronDown className="w-4.5 h-4.5 transition-transform" />
-                  </div>
+                  </span>
                 </button>
 
                 <div 

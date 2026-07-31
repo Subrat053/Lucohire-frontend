@@ -162,7 +162,7 @@ const Navbar = () => {
                   aria-haspopup="true"
                   aria-controls="profile-dropdown-menu"
                 >
-                  <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
+                  <span className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center overflow-hidden inline-flex">
                     {user?.profilePhotoApproval?.status === "pending" &&
                     user?.profilePhotoApproval?.pendingUrl ? (
                       <img
@@ -205,7 +205,7 @@ const Navbar = () => {
                     ) : (
                       <HiUser className="text-indigo-600" aria-hidden="true" />
                     )}
-                  </div>
+                  </span>
                   <span className="max-w-24 truncate text-sm font-medium text-gray-700">
                     {user?.name?.split(" ")[0]}
                   </span>
@@ -255,11 +255,11 @@ const Navbar = () => {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-gray-50 focus:outline-none transition-colors border border-transparent hover:border-gray-200"
                 >
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center border border-indigo-200">
+                  <span className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center border border-indigo-200 inline-flex">
                     <span className="text-indigo-700 font-bold text-sm">
                       {location.state.recruiterData.name?.charAt(0)?.toUpperCase() || 'R'}
                     </span>
-                  </div>
+                  </span>
                   <span className="max-w-24 truncate text-sm font-medium text-gray-700">
                     {location.state.recruiterData.name?.split(" ")[0]}
                   </span>

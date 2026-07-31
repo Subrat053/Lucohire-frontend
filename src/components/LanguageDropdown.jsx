@@ -164,12 +164,12 @@ const LanguageDropdown = ({ mobile = false, onChangeComplete }) => {
         aria-haspopup="listbox"
         aria-controls="language-dropdown-menu"
       >
-        <div className="flex items-center space-x-2 min-w-0">
+        <span className="flex items-center space-x-2 min-w-0">
           <HiGlobeAlt className="text-indigo-500 w-4 h-4 shrink-0" aria-hidden="true" />
           <span className="text-sm font-semibold text-gray-700 truncate max-w-32">
             {activeLanguage?.label || 'English'}
           </span>
-        </div>
+        </span>
         <HiChevronDown className={`text-gray-500 w-4 h-4 transition shrink-0 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
