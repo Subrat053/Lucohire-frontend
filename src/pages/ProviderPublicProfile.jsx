@@ -232,10 +232,10 @@ const ProviderPublicProfile = () => {
       }
     },
     generateBreadcrumbSchema([
-      { name: "Home", item: "https://lucohire.com" },
-      { name: "Providers", item: "https://lucohire.com/search" },
-      { name: profile.city || "India", item: `https://lucohire.com/search?location=${profile.city || ""}` },
-      { name: userName, item: `https://lucohire.com/p/${id}` }
+      { name: "Home", item: "https://www.lucohire.com" },
+      { name: "Providers", item: "https://www.lucohire.com/search" },
+      { name: profile.city || "India", item: `https://www.lucohire.com/search?location=${profile.city || ""}` },
+      { name: userName, item: `https://www.lucohire.com/p/${id}` }
     ])
   ];
 

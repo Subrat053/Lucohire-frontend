@@ -115,12 +115,12 @@ export default function JobDetail() {
         image={job.companyLogo}
         schema={[
           generateBreadcrumbSchema([
-            { name: "Home", item: "https://lucohire.com" },
-            { name: "Jobs", item: "https://lucohire.com/jobs" },
-            { name: job.city || "Remote", item: `https://lucohire.com/jobs/${job.city ? job.city.toLowerCase() : "remote"}` },
-            { name: job.title, item: `https://lucohire.com/jobs/${job._id}` }
+            { name: "Home", item: "https://www.lucohire.com" },
+            { name: "Jobs", item: "https://www.lucohire.com/jobs" },
+            { name: job.city || "Remote", item: `https://www.lucohire.com/jobs/${job.city ? job.city.toLowerCase() : "remote"}` },
+            { name: job.title, item: `https://www.lucohire.com/jobs/${job._id}` }
           ]),
-          generateJobPostingSchema(job, "https://lucohire.com")
+          generateJobPostingSchema(job, "https://www.lucohire.com")
         ]}
       />
       {/* Back bar */}
