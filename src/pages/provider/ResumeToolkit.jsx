@@ -190,7 +190,7 @@ export default function ResumeToolkit() {
     // Resolve local /uploads paths to full backend URL
     if (!url.startsWith('http')) {
       const backendOrigin = import.meta.env.VITE_API_URL?.replace('/api', '')
-        || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
+        || '';
       url = `${backendOrigin}${url}`;
     }
     

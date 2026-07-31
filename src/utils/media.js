@@ -2,7 +2,7 @@ const getBackendBaseUrl = () => {
   const apiUrl = import.meta.env.VITE_API_URL || '';
   const withoutApi = apiUrl.replace(/\/api$/, '');
   const trimmed = withoutApi.replace(/\/$/, '');
-  return trimmed || 'http://localhost:5000';
+  return trimmed || '';
 };
 
 export const toAbsoluteMediaUrl = (url) => {

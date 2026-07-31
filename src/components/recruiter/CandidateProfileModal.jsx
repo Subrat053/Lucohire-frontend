@@ -30,7 +30,7 @@ export default function CandidateProfileModal({ isOpen, onClose, candidateProfil
   const getFullUrl = (url) => {
     if (!url || url === '/') return '';
     if (url.startsWith('http')) return url;
-    const apiUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5055/api';
+    const apiUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '/api';
     const backendUrl = apiUrl.replace(/\/api\/?$/, '');
     return `${backendUrl}${url}`;
   };

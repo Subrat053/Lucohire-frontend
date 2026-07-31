@@ -11,7 +11,7 @@ import axios from 'axios';
 import { X, Lock, ShieldCheck, CreditCard, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import OtpVerificationModal from '../otp/OtpVerificationModal';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 export default function UnlockCandidateModal({
   isOpen,

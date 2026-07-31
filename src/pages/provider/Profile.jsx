@@ -672,7 +672,7 @@ const ProviderProfile = () => {
       }
 
       if (err.code === 'auth/invalid-app-credential') {
-        toast.error("Verification failed (Invalid App Credential). Ensure 'localhost' is authorized in Firebase Console -> Authentication -> Settings -> Authorized Domains.");
+        toast.error("Verification failed (Invalid App Credential). Ensure your domain is authorized in Firebase Console -> Authentication -> Settings -> Authorized Domains.");
       } else if (err.code === 'auth/too-many-requests') {
         toast.error("Too many requests. Please try again later or use a test phone number.");
       } else {
