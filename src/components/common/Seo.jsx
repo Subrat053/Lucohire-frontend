@@ -12,10 +12,22 @@ const resolveBaseUrl = () => {
 
 const resolveCanonical = (canonicalPath) => {
   if (!canonicalPath) return '';
-  if (canonicalPath.startsWith('http://') || canonicalPath.startsWith('https://')) return canonicalPath;
-  const base = resolveBaseUrl();
-  if (!base) return canonicalPath;
-  return `${base}${canonicalPath.startsWith('/') ? '' : '/'}${canonicalPath}`;
+  
+  let url = '';
+  if (canonicalPath.startsWith('http://') || canonicalPath.startsWith('https://')) {
+    url = canonicalPath;
+  } else {
+    const base = resolveBaseUrl();
+    if (!base) url = canonicalPath;
+    else url = `${base}${canonicalPath.startsWith('/') ? '' : '/'}${canonicalPath}`;
+  }
+
+  // Force HTTPS for production canonicals to avoid HTTP->HTTPS canonical mismatch
+  if (!url.includes('localhost') && !url.includes('127.0.0.1')) {
+    url = url.replace(/^http:\/\//i, 'https://');
+  }
+  
+  return url;
 };
 
 const Seo = ({
@@ -30,13 +42,14 @@ const Seo = ({
   const resolvedDescription = description || defaultDescription;
   const canonical = resolveCanonical(canonicalPath);
   const resolvedImage = image ? resolveCanonical(image) : '';
+  const isNoIndex = robots.toLowerCase().includes('noindex');
 
   return (
     <Helmet>
       <title>{resolvedTitle}</title>
       <meta name="description" content={resolvedDescription} />
       <meta name="robots" content={robots} />
-      {canonical && <link rel="canonical" href={canonical} />}
+      {canonical && !isNoIndex && <link rel="canonical" href={canonical} />}
 
       <meta property="og:type" content="website" />
       <meta property="og:title" content={resolvedTitle} />

@@ -7,23 +7,7 @@ import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 
-const defaultFaqs = [
-  {
-    id: '1',
-    question: 'How does Lucohire AI candidate matching work?',
-    answer: 'Our AI algorithm parses candidate profiles, skills, and experience to automatically compute ATS scores and match them against active job posts in real-time.'
-  },
-  {
-    id: '2',
-    question: 'Is Lucohire free for job candidates?',
-    answer: 'Yes! Job candidates can create profiles, build resumes, get ATS score checks, and apply to job opportunities completely free of charge.'
-  },
-  {
-    id: '3',
-    question: 'How do recruiters post jobs and find talent?',
-    answer: 'Recruiters can sign up, purchase credits or subscriptions, post targeted job openings, and instantly browse AI-scored candidate matches.'
-  }
-];
+
 
 const AdminFaq = () => {
   const [faqs, setFaqs] = useState([]);
@@ -42,14 +26,20 @@ const AdminFaq = () => {
           const parsed = JSON.parse(data);
           if (Array.isArray(parsed)) {
             setFaqs(parsed);
+          } else if (parsed && Array.isArray(parsed.sections)) {
+            setFaqs(parsed.sections.map((s, i) => ({
+              id: String(i),
+              question: s.title || s.question,
+              answer: s.body || s.answer
+            })));
           } else {
-            setFaqs(defaultFaqs);
+            setFaqs([]);
           }
         } catch {
-          setFaqs(defaultFaqs);
+          setFaqs([]);
         }
       } else {
-        setFaqs(defaultFaqs);
+        setFaqs([]);
       }
     } catch {
       toast.error('Failed to load FAQ items');
@@ -90,7 +80,13 @@ const AdminFaq = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = JSON.stringify(faqs);
+      // Save it in the object format so it remains compatible with the FAQ Page (FaqLayout)
+      const payloadObj = {
+        badge: 'TRUSTED BY',
+        title: 'Frequently Asked Questions',
+        sections: faqs.map(f => ({ title: f.question, body: f.answer }))
+      };
+      const payload = JSON.stringify(payloadObj);
       await adminAPI.updateContent('faq', payload);
       toast.success('FAQ items saved successfully!');
     } catch {

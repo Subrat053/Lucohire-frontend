@@ -3,33 +3,13 @@ import { ChevronDown, Sparkles, HelpCircle } from 'lucide-react';
 import { adminAPI } from '../../services/api';
 import useTranslation from '../../hooks/useTranslation';
 
-const defaultLandingFaqs = [
-  {
-    id: '1',
-    question: 'How does Lucohire AI candidate matching work?',
-    answer: 'Our AI algorithm parses candidate profiles, skills, and experience to automatically compute ATS compatibility scores and match them against active job postings in real time.'
-  },
-  {
-    id: '2',
-    question: 'Is Lucohire free for job candidates?',
-    answer: 'Yes! Job candidates can create profiles, generate resumes, get ATS score checks, and apply to job opportunities completely free of charge.'
-  },
-  {
-    id: '3',
-    question: 'How do recruiters post jobs and find talent?',
-    answer: 'Recruiters can register, purchase credits or subscriptions, post targeted job openings, and instantly browse AI-scored candidate matches.'
-  },
-  {
-    id: '4',
-    question: 'What makes Lucohire different from traditional job boards?',
-    answer: 'Unlike static job boards, Lucohire features automated AI matching, verified provider pools, WhatsApp-first alerts, and real-time candidate unlock pipelines.'
-  }
-];
+
 
 const LandingFaqSection = () => {
   const { t } = useTranslation();
-  const [faqs, setFaqs] = useState(defaultLandingFaqs);
+  const [faqs, setFaqs] = useState([]);
   const [openIndex, setOpenIndex] = useState(0);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     adminAPI.getContent('faq')
@@ -38,11 +18,17 @@ const LandingFaqSection = () => {
         if (raw) {
           try {
             const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed) && parsed.length > 0) {
+            if (Array.isArray(parsed)) {
               setFaqs(parsed);
+            } else if (parsed && Array.isArray(parsed.sections)) {
+              setFaqs(parsed.sections.map((s, i) => ({
+                id: String(i),
+                question: s.title || s.question,
+                answer: s.body || s.answer
+              })));
             }
           } catch {
-            // keep fallback
+            // handle error if needed
           }
         }
       })
@@ -52,6 +38,8 @@ const LandingFaqSection = () => {
   const toggleFaq = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
+  if (faqs.length === 0) return null;
 
   return (
     <div className="w-full bg-slate-50 py-16 sm:py-24 relative overflow-hidden">
@@ -76,8 +64,8 @@ const LandingFaqSection = () => {
         </div>
 
         {/* Vertically Stacked Question Cards */}
-        <div className="w-full space-y-3 sm:space-y-4">
-          {faqs.map((item, idx) => {
+        <div className="w-full space-y-3 sm:space-y-4 relative">
+          {(showAll ? faqs : faqs.slice(0, 4)).map((item, idx) => {
             const isOpen = openIndex === idx;
             return (
               <div 
@@ -125,6 +113,35 @@ const LandingFaqSection = () => {
               </div>
             );
           })}
+
+          {/* Gradient Overlay and View More Button */}
+          {!showAll && faqs.length > 4 && (
+            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none flex items-end justify-center pb-2">
+              <button
+                onClick={() => setShowAll(true)}
+                className="pointer-events-auto flex items-center gap-2 px-6 py-2.5 bg-white text-blue-600 font-bold rounded-full shadow-md border border-blue-100 hover:bg-blue-50 transition-all hover:scale-105"
+              >
+                {t('landingFaq.viewMore', 'View All Questions')}
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* View Less Button */}
+          {showAll && faqs.length > 4 && (
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={() => {
+                  setShowAll(false);
+                  setOpenIndex(0);
+                }}
+                className="flex items-center gap-2 px-6 py-2.5 bg-white text-gray-600 font-bold rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-all hover:scale-105"
+              >
+                {t('landingFaq.viewLess', 'View Less')}
+                <ChevronDown className="w-4 h-4 rotate-180" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

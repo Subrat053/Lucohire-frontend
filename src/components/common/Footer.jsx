@@ -55,6 +55,7 @@ const Footer = () => {
     addressLine1: '',
     addressLine2: '',
     gstNumber: '',
+    footerCustomText: '',
     copyrightText: '',
     supportEmail: '',
     supportPhone: '',
@@ -278,21 +279,18 @@ const Footer = () => {
           <div className="flex flex-wrap items-center justify-center gap-6">
             {companyDetails.gstNumber && (
               <span className="text-xs bg-blue-900/60 border border-blue-700/40 text-blue-200 px-2.5 py-1 rounded-md font-mono font-medium">
-                GSTIN: {companyDetails.gstNumber}
+                {companyDetails.gstLabel || 'GSTIN'}: {companyDetails.gstNumber}
               </span>
             )}
             <div className="flex items-center gap-2">
               <Lock className="w-4 h-4 text-blue-700" />
               <span>Secure</span>
             </div>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-green-400" />
-              <span>GDPR Compliant</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FileCheck className="w-4 h-4 text-amber-400" />
-              <span>ISO 27001</span>
-            </div>
+            {companyDetails.footerCustomText && (
+              <div className="flex items-center gap-2 text-gray-400">
+                <span>{companyDetails.footerCustomText}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

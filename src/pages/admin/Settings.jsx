@@ -60,7 +60,9 @@ const AdminSettings = () => {
     footerDescription: "India's AI-powered hiring platform. Verified providers, fair distribution, WhatsApp-first.",
     addressLine1: '123 Business Avenue',
     addressLine2: 'Tech District, Bangalore 560001',
+    gstLabel: 'GSTIN',
     gstNumber: '29AABCU9603R1ZX',
+    footerCustomText: '',
     copyrightText: '© 2026 Lucohire. All rights reserved.',
     supportEmail: 'support@lucohire.com',
     supportPhone: '+91 98765 43210',
@@ -1355,15 +1357,36 @@ const AdminSettings = () => {
               />
             </div>
 
-            {/* GST / Tax Number */}
+            {/* Tax / Registration Number */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">GST/Tax Number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Registration Type & Number</label>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={companyDetails.gstLabel || ''}
+                  onChange={e => setCompanyDetails({...companyDetails, gstLabel: e.target.value})}
+                  className="w-1/3 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm transition-shadow uppercase"
+                  placeholder="e.g. GSTIN, UDYAM, CIN"
+                />
+                <input
+                  type="text"
+                  value={companyDetails.gstNumber || ''}
+                  onChange={e => setCompanyDetails({...companyDetails, gstNumber: e.target.value})}
+                  className="w-2/3 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm uppercase transition-shadow"
+                  placeholder="e.g. 29AABCU9603R1ZX"
+                />
+              </div>
+            </div>
+
+            {/* Custom Footer Badges / Text */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Custom Footer Text</label>
               <input
                 type="text"
-                value={companyDetails.gstNumber || ''}
-                onChange={e => setCompanyDetails({...companyDetails, gstNumber: e.target.value})}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm uppercase transition-shadow"
-                placeholder="e.g. 29AABCU9603R1ZX"
+                value={companyDetails.footerCustomText || ''}
+                onChange={e => setCompanyDetails({...companyDetails, footerCustomText: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm transition-shadow"
+                placeholder="e.g. Secure • GDPR Compliant • ISO 27001"
               />
             </div>
 

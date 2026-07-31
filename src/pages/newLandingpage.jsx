@@ -9,6 +9,7 @@ import {
   Globe2, ShieldAlert, Repeat, Languages, MessageCircle,
   BarChart3, Lock, CheckCircle2, Flame,
 } from "lucide-react";
+import LandingFaqSection from "../components/landing/LandingFaqSection";
 
 /* ─────────── Mock data (keeps providers.map dynamic) ─────────── */
 // type Provider = {
@@ -811,36 +812,7 @@ const Index = () => {
       </section>
 
       {/* ━━━━━━━━ FAQ ━━━━━━━━ */}
-      <section className="bg-[#F7F9FC] py-20">
-        <div className="max-w-3xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <SectionLabel>FAQ</SectionLabel>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Everything you wanted to ask.</h2>
-          </div>
-
-          <div className="space-y-3">
-            {[
-              { q: "Kya providers verified hote hain?", a: "Haan — Aadhaar + phone + selfie verification. Trust score 0-100 publicly visible." },
-              { q: "Lead milne ka process kaise kaam karta hai?", a: "AI top 5 matches WhatsApp pe bhejta hai. First reply, first deal. Fair rotation har 60 seconds." },
-              { q: "Free plan me kya milta hai?", a: "Profile, 2 skills, basic ranking, WhatsApp alerts, 1 city. Forever free for providers." },
-              { q: "Recruiter ke liye kya cost hai?", a: "Search free. Pay-per-unlock ya monthly plan — apni zarurat ke hisaab se chuno." },
-              { q: "Payment safe hai?", a: "Razorpay encrypted gateway. UPI, cards, netbanking — sab supported. Invoice WhatsApp pe milta hai." },
-              { q: "Refund policy?", a: "7-day money-back on Pro Boost & Business plans if you don't get a single matched lead." },
-            ].map((f, i) => (
-              <div key={f.q} className="bg-white border border-[#E7ECF4] rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between p-4 text-left"
-                >
-                  <span className="font-semibold text-sm text-[#081B3A]">{f.q}</span>
-                  <ChevronDown className={`w-4 h-4 text-[#6B7280] transition ${openFaq === i ? "rotate-180" : ""}`} />
-                </button>
-                {openFaq === i && <div className="px-4 pb-4 text-sm text-[#6B7280] leading-relaxed">{f.a}</div>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <LandingFaqSection />
 
       {/* ━━━━━━━━ CONTEST ━━━━━━━━ */}
       <section className="py-20">

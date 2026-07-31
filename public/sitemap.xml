@@ -41,19 +41,7 @@
     <lastmod>2026-07-29</lastmod>
   </url>
 
-  <!-- Discovery / lead-gen pages -->
-  <url>
-    <loc>https://www.lucohire.com/candidate-landing</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <lastmod>2026-07-29</lastmod>
-  </url>
-  <url>
-    <loc>https://www.lucohire.com/recruiter-discovery</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <lastmod>2026-07-29</lastmod>
-  </url>
+  <!-- Discovery / lead-gen pages (Removed as they are non-canonical) -->
 
   <!-- Resources & content -->
   <url>
