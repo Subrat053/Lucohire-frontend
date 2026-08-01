@@ -118,12 +118,8 @@ const ProviderPlans = () => {
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [error, setError] = useState('');
-  const [selectedSkills, setSelectedSkills] = useState([]);
-  const [selectedPincodes, setSelectedPincodes] = useState([]);
-  const [selectedCities, setSelectedCities] = useState([]);
   const [showGuaranteeModal, setShowGuaranteeModal] = useState(false);
   const [isAutoSubscription, setIsAutoSubscription] = useState(true);
-  const [showConfigModal, setShowConfigModal] = useState(false);
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [availableAddons, setAvailableAddons] = useState([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -186,32 +182,8 @@ const ProviderPlans = () => {
   const { user, profile } = useAuth();
 
   useEffect(() => {
-    if (!selectedPlan) {
-      setSelectedSkills([]);
-      setSelectedPincodes([]);
-      setSelectedCities([]);
-      return;
-    }
-
-    const defaultCity = profile?.city || profile?.location?.city || user?.providerProfile?.city || user?.profile?.city || user?.city || profile?.locationData?.city || '';
-    
-    const defaultPincode = profile?.location?.postalCode || profile?.pincode || user?.providerProfile?.pincode || user?.profile?.pincode || user?.pincode || profile?.locations?.[0] || profile?.nearestLocation || defaultCity || '';
-    
-    // Skills might be stored as an array of strings or objects. We'll try to extract them.
-    let rawSkills = profile?.skills || profile?.expandedSkills || user?.providerProfile?.skills || user?.profile?.skills || user?.skills || [];
-    if (!Array.isArray(rawSkills)) rawSkills = [rawSkills].filter(Boolean);
-    
-    // Extract skill strings if they are objects
-    const mappedSkills = rawSkills.map(s => typeof s === 'string' ? s : (s?.name || s?.skill || '')).filter(Boolean);
-    
-    const maxSkills = selectedPlan.maxSkills || 1;
-    const initialSkills = mappedSkills.length > 0 ? mappedSkills.slice(0, maxSkills) : [];
-
-    setSelectedSkills(initialSkills);
-    setSelectedPincodes(defaultPincode ? [defaultPincode] : []);
-    setSelectedCities(defaultCity ? [defaultCity] : []);
+    // Empty state cleanup since location is checked at checkout
   }, [selectedPlan, user, profile]);
-
 
   // =============================================================
   const initials = useMemo(() => {
@@ -346,9 +318,6 @@ const ProviderPlans = () => {
           planId: selectedPlan._id,
           durationMonths: selectedDuration,
           addonIds: selectedAddons,
-          selectedSkills,
-          selectedPincodes,
-          selectedCities,
         });
         setPricingPreview(preview?.pricing || null);
       } catch (_) {
@@ -357,70 +326,8 @@ const ProviderPlans = () => {
     };
 
     runPreview();
-  }, [selectedPlan, selectedDuration, selectedSkills, selectedPincodes, selectedCities, selectedAddons]);
+  }, [selectedPlan, selectedDuration, selectedAddons]);
 
-
-  const isConfigurationValid = useMemo(() => {
-    if (!selectedPlan) return false;
-    if (selectedPlan.slug === 'free') return true;
-    if (selectedPlan.slug === 'customise-plan') return true;
-
-    if (selectedPlan.slug === 'add-multiple-skills') {
-      return selectedSkills.length >= 1 && selectedSkills.length <= (selectedPlan.maxSkills || 5);
-    }
-    if (selectedPlan.coverageType === 'pincode' || selectedPlan.slug === 'one-pincode-top') {
-      return selectedSkills.length >= 1 && selectedSkills.length <= (selectedPlan.maxSkills || 1) && selectedPincodes.length === 1;
-    }
-    if (selectedPlan.coverageType === 'city' || selectedPlan.slug === 'top-in-city') {
-      return selectedSkills.length >= 1 && selectedSkills.length <= (selectedPlan.maxSkills || 1) && selectedCities.length === 1;
-    }
-    if (selectedPlan.coverageType === 'country' || selectedPlan.slug === 'show-top-in-country') {
-      return selectedSkills.length >= 1 && selectedSkills.length <= (selectedPlan.maxSkills || 1) && selectedCities.length === 1;
-    }
-
-    // Validation for Addons configuration
-    if (availableAddons.some(a => selectedAddons.includes(a._id) && a.slug === 'one-pincode-top') && selectedPincodes.length === 0) return false;
-    if (availableAddons.some(a => selectedAddons.includes(a._id) && a.slug === 'top-in-city') && selectedCities.length === 0) return false;
-    if (availableAddons.some(a => selectedAddons.includes(a._id) && a.slug === 'show-top-in-country') && selectedCities.length === 0) return false;
-
-    return true;
-  }, [selectedPlan, selectedSkills, selectedPincodes, selectedCities, selectedAddons, availableAddons]);
-
-  const summary = useMemo(() => {
-    if (!selectedPlan) return null;
-    const pricing = pricingPreview || buildLocalPreview(selectedPlan, selectedDuration);
-    
-    let coverage = 'Basic Coverage';
-    let skillsDisplay = selectedSkills.length > 0 ? selectedSkills.join(', ') : 'No skills selected';
-
-    if (selectedPlan.slug === 'add-multiple-skills') {
-      coverage = null; // Hide coverage from UI
-      skillsDisplay = `${selectedSkills.length} Skill(s) Selected`;
-    } else if (selectedPlan.slug === 'one-pincode-top') {
-      coverage = selectedPincodes[0] || 'No locality selected';
-      skillsDisplay = selectedSkills[0] || 'No skill selected';
-    } else if (selectedPlan.slug === 'top-in-city') {
-      coverage = `City: ${selectedCities[0] || 'No city selected'}`;
-      skillsDisplay = `${selectedSkills.length} Skill(s) Selected`;
-    } else if (selectedPlan.slug === 'show-top-in-country') {
-      coverage = `Country: ${selectedCities[0] || 'No country selected'}`;
-      skillsDisplay = `${selectedSkills.length} Skill(s) Selected`;
-    }
-
-    return {
-      planName: selectedPlan.name,
-      planType: 'Provider Boost',
-      coverage,
-      skills: skillsDisplay,
-      duration: `${selectedDuration} Month${selectedDuration > 1 ? 's' : ''}`,
-      subtotal: pricing?.subtotal || 0,
-      gstPercent: pricing?.taxRate || 0,
-      gstAmount: pricing?.taxAmount || 0,
-      totalAmount: pricing?.total || pricing?.subtotal || 0,
-      currencySymbol: pricing?.currencySymbol || selectedPlan?.currencySymbol || '₹',
-      taxName: 'GST',
-    };
-  }, [pricingPreview, selectedDuration, selectedPlan, selectedSkills, selectedPincodes, selectedCities]);
 
   const handleCancelPlan = async () => {
     try {
@@ -985,170 +892,6 @@ const ProviderPlans = () => {
             </div>
           </div>
       {/* Configuration & Checkout Modal */}
-      {showConfigModal && selectedPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-emerald-600/10 bg-linear-to-r from-emerald-600/5 to-transparent flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-extrabold text-emerald-950">{t("Configure Plan")}</h2>
-                <p className="text-xs text-slate-500 font-medium mt-1">{t("Set your coverage and complete checkout")}</p>
-              </div>
-              <button onClick={() => setShowConfigModal(false)} className="text-slate-400 hover:text-slate-600 text-3xl leading-none transition-colors hover:bg-slate-100 rounded-full w-10 h-10 flex items-center justify-center">&times;</button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto space-y-6">
-              
-              {/* Addons Selection */}
-              {availableAddons.length > 0 && (
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-emerald-500" /> Optional Add-ons
-                  </h3>
-                  <div className="space-y-3">
-                    {availableAddons.map(addon => {
-                      const displayMonthly = Number(addon.priceMonthly || addon.price || 0);
-                      return (
-                        <label key={addon._id} className="flex items-start gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:border-emerald-300 cursor-pointer transition-colors">
-                          <div className="mt-1">
-                            <input
-                              type="checkbox"
-                              checked={selectedAddons.includes(addon._id)}
-                              onChange={(e) => {
-                                if (e.target.checked) setSelectedAddons(prev => [...prev, addon._id]);
-                                else setSelectedAddons(prev => prev.filter(id => id !== addon._id));
-                              }}
-                              className="w-5 h-5 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-bold text-emerald-950">{addon.name}</div>
-                            <div className="text-xs text-slate-500 mt-1 line-clamp-2">{addon.description}</div>
-                            <div className="mt-2 font-extrabold text-emerald-700">
-                              +₹{displayMonthly}<span className="text-[10px] text-slate-500 font-medium">/mo</span>
-                            </div>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Coverage Selectors (Driven by Addons) */}
-              {availableAddons.some(a => selectedAddons.includes(a._id) && a.slug === 'one-pincode-top') && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t("Target Locality / Area")}</label>
-                  <LocationSearch
-                    value={selectedPincodes[0] || ''}
-                    onChange={(val) => { if (!val) setSelectedPincodes([]); }}
-                    onSelect={(item) => {
-                      if (item) {
-                        const pincode = item.raw?.address_components?.find(c => c.types.includes('postal_code'))?.long_name || item.pincode || '';
-                        const label = pincode ? `${item.formattedAddress} (${pincode})` : item.formattedAddress || item.name;
-                        setSelectedPincodes([label]);
-                      } else {
-                        setSelectedPincodes([]);
-                      }
-                    }}
-                    placeholder={t("Search and select locality/area")}
-                  />
-                </div>
-              )}
-
-              {availableAddons.some(a => selectedAddons.includes(a._id) && a.slug === 'top-in-city') && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t("Target City")}</label>
-                  <LocationSearch
-                    value={selectedCities[0] || ''}
-                    onChange={(val) => { if (!val) setSelectedCities([]); }}
-                    onSelect={(item) => {
-                      if (item) {
-                        const city = item.city || item.name || '';
-                        setSelectedCities([city]);
-                      } else {
-                        setSelectedCities([]);
-                      }
-                    }}
-                    placeholder={t("Search and select city")}
-                  />
-                </div>
-              )}
-
-              {availableAddons.some(a => selectedAddons.includes(a._id) && a.slug === 'show-top-in-country') && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t("Target Country")}</label>
-                  <select
-                    value={selectedCities[0] || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setSelectedCities(val ? [val] : []);
-                    }}
-                    className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] bg-white text-sm"
-                  >
-                    <option value="">{t("-- Select Country --")}</option>
-                    <option value="India">{t("India (IN)")}</option>
-                    <option value="United Arab Emirates">{t("United Arab Emirates (AE)")}</option>
-                    <option value="United States">{t("United States (US)")}</option>
-                    <option value="United Kingdom">{t("United Kingdom (UK)")}</option>
-                  </select>
-                </div>
-              )}
-
-              {/* Boost Skills Selector */}
-              {availableAddons.some(a => selectedAddons.includes(a._id) && ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(a.slug)) && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t("Select Target Skills (Max 5)")}</label>
-                  <SkillSearchSelect
-                    selected={selectedSkills}
-                    onAdd={(skill) => {
-                      if (selectedSkills.length >= 5) {
-                        toast.error(`Your plan allows max 5 skills.`);
-                        return;
-                      }
-                      setSelectedSkills([...selectedSkills, skill]);
-                    }}
-                    onRemove={(skill) => {
-                      setSelectedSkills(selectedSkills.filter(s => s !== skill));
-                    }}
-                    maxAllowed={5}
-                    plan={selectedPlan.slug}
-                  />
-                </div>
-              )}
-
-              {/* Premium Order Summary */}
-              <div className="bg-linear-to-br from-emerald-600/5 to-teal-600/5 border border-emerald-600/10 p-5 rounded-2xl space-y-4">
-                <h3 className="text-sm font-extrabold text-emerald-950 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <BadgeCheck className="w-5 h-5 text-emerald-600" />{t("Order Summary")}</h3>
-                <div className="flex justify-between items-center text-emerald-950">
-                  <span className="font-semibold">{selectedPlan.name}{t(" Plan (")}{selectedDuration}{t(" Month")}{selectedDuration > 1 ? 's' : ''}) + {selectedAddons.length} Add-on(s)</span>
-                </div>
-                <div className="pt-4 border-t border-emerald-600/10 flex justify-between items-center">
-                  <span className="font-extrabold text-emerald-950 text-lg">{t("Ready to Check out")}</span>
-                </div>
-              </div>
-
-              {/* Validation Warning */}
-              {!isConfigurationValid && (
-                <div className="text-xs text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-200 flex gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0" />{t("Please complete location and skill selection to proceed.")}</div>
-              )}
-
-            </div>
-            <div className="p-6 border-t border-emerald-100 bg-white">
-              <button
-                onClick={handleCheckout}
-                disabled={checkoutLoading || !isConfigurationValid}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl transition-all shadow-md flex justify-center items-center gap-2"
-              >
-                {checkoutLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
-                <Wallet className="w-4 h-4" />{t("Proceed to Payment")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Cancel Confirmation Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
