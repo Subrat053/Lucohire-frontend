@@ -685,8 +685,10 @@ const AdminPlans = () => {
 
       {/* Plans Display */}
       {(() => {
-        const landingPlans = plans.filter(p => p.showOnLandingPage);
-        const otherProviderPlans = plans.filter(p => p.type === 'provider' && !p.showOnLandingPage);
+        const topPlanSlugs = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'];
+        const landingPlans = plans.filter(p => p.showOnLandingPage && !topPlanSlugs.includes(p.slug));
+        const otherProviderPlans = plans.filter(p => p.type === 'provider' && !p.showOnLandingPage && !topPlanSlugs.includes(p.slug));
+        const topPlans = plans.filter(p => topPlanSlugs.includes(p.slug));
         const otherRecruiterPlans = plans.filter(p => p.type === 'recruiter' && !p.showOnLandingPage);
 
         return (
@@ -700,6 +702,17 @@ const AdminPlans = () => {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {landingPlans.sort((a,b) => (a.sortOrder || 0) - (b.sortOrder || 0)).map(plan => (
                     <PlanCard key={plan._id} plan={plan} formatPrice={formatPrice} openEdit={openEdit} handleDelete={handleDeleteClick} isLanding />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {topPlans.length > 0 && (
+              <div className="mb-8 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Top Plans (Add-ons)</h2>
+                <div className="flex flex-col gap-3">
+                  {topPlans.map(plan => (
+                    <TopPlanRow key={plan._id} plan={plan} loadPlans={loadPlans} />
                   ))}
                 </div>
               </div>
@@ -865,5 +878,51 @@ const PlanCard = ({ plan, formatPrice, openEdit, handleDelete, isLanding }) => (
     </div>
   </div>
 );
+
+const TopPlanRow = ({ plan, loadPlans }) => {
+  const [price, setPrice] = useState(plan.price || plan.priceMonthly || 0);
+  const [loading, setLoading] = useState(false);
+
+  const handleUpdate = async () => {
+    try {
+      setLoading(true);
+      await adminAPI.updatePlan(plan._id, { price: Number(price), priceMonthly: Number(price) });
+      toast.success(`${plan.name} price updated successfully`);
+      loadPlans();
+    } catch (err) {
+      toast.error('Failed to update price');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-xl">
+      <div className="flex flex-col">
+        <span className="font-bold text-gray-900 text-sm">{plan.name}</span>
+        <span className="text-xs text-gray-500">{plan.slug}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
+          <span className="px-3 text-gray-500 bg-gray-50 border-r border-gray-300 font-medium">₹</span>
+          <input
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="w-24 px-3 py-1.5 focus:outline-hidden"
+            placeholder="Price"
+          />
+        </div>
+        <button
+          onClick={handleUpdate}
+          disabled={loading}
+          className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-medium rounded-lg transition"
+        >
+          {loading ? 'Saving...' : 'Save'}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export default AdminPlans;

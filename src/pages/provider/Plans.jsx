@@ -890,6 +890,38 @@ const ProviderPlans = () => {
         </div>
         )}
 
+        {/* Top Plans Preview Section */}
+        {availableAddons.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-extrabold text-slate-800 mb-4 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-emerald-500" /> {t("Top Ranking Add-ons")}
+              <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full ml-2 uppercase">Optional</span>
+            </h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {availableAddons.map(addon => (
+                <div key={addon._id} className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col justify-between hover:border-emerald-200 hover:shadow-sm transition-all">
+                  <div>
+                    <h3 className="font-bold text-slate-900">{addon.name}</h3>
+                    <p className="text-xs text-slate-500 mt-1">{addon.description}</p>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <span className="font-extrabold text-emerald-700">₹{addon.priceMonthly || addon.price || 0}<span className="text-[10px] text-slate-500 font-medium">/mo</span></span>
+                    <button onClick={() => {
+                        setSelectedAddons(prev => prev.includes(addon._id) ? prev : [...prev, addon._id]);
+                        setShowConfigModal(true);
+                      }}
+                      className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      {t("Select")}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-slate-500 mt-3 text-center">{t("You can configure location and skills for these add-ons during checkout.")}</p>
+          </div>
+        )}
+
           
           {/* Important Disclaimers */}
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 shadow-sm relative overflow-hidden mb-8">
