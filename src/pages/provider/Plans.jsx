@@ -367,6 +367,17 @@ const ProviderPlans = () => {
     }
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window?.Razorpay) return resolve(true);
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const processCheckoutResponse = async (checkout, subscription, plan) => {
     if (checkout?.simulationMode) {
       const confirm = window.confirm('Simulation Mode: Click OK to simulate successful payment.');
@@ -390,7 +401,13 @@ const ProviderPlans = () => {
       }
     }
 
-    if (checkout?.paymentRequired && checkout?.paymentProvider === 'razorpay' && checkout?.orderId && window?.Razorpay) {
+    if (checkout?.paymentRequired && checkout?.paymentProvider === 'razorpay' && checkout?.orderId) {
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded || !window?.Razorpay) {
+        toast.error('Razorpay SDK failed to load. Please check your internet connection.');
+        return;
+      }
+
       const options = {
         key: checkout.publishableKey || checkout.keyId,
         amount: checkout.amount,
@@ -419,7 +436,7 @@ const ProviderPlans = () => {
       };
       const razorpay = new window.Razorpay(options);
       razorpay.open();
-    } else if (checkout?.paymentRequired && (checkout?.paymentProvider === 'stripe' || checkout?.url)) {
+    } else if (checkout?.paymentRequired && checkout?.paymentProvider === 'stripe' && checkout?.url) {
       toast.success('Redirecting to payment gateway...');
       window.location.href = checkout.url;
     } else if (!checkout?.paymentRequired) {
