@@ -18,6 +18,7 @@ import {
   MessageCircle,
   ShieldCheck,
   X,
+  Sparkles,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import RouteLoader from '../../components/common/RouteLoader';
