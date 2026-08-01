@@ -449,7 +449,9 @@ const ProviderPlans = () => {
     let resolvedPincode = profile?.location?.postalCode || profile?.pincode || user?.providerProfile?.pincode || user?.profile?.pincode || user?.pincode || profile?.locations?.[0] || profile?.nearestLocation;
     let resolvedCountry = profile?.country || profile?.location?.country || user?.country || user?.providerProfile?.country || user?.profile?.country;
 
-    if (!resolvedCity || !resolvedPincode || !resolvedCountry) {
+    const isLocationRequired = selectedAddons.length > 0;
+
+    if (isLocationRequired && (!resolvedCity || !resolvedPincode || !resolvedCountry)) {
       try {
         toast.loading(t('Detecting your location automatically...'), { id: 'loc-detect' });
         const loc = await detectNearestLocation();
@@ -459,14 +461,14 @@ const ProviderPlans = () => {
         toast.dismiss('loc-detect');
       } catch (err) {
         toast.dismiss('loc-detect');
-        toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before subscribing to a plan.'));
+        toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before subscribing to this location-based plan.'));
         navigate('/provider/profile');
         return;
       }
     }
 
-    if (!resolvedCity || !resolvedPincode || !resolvedCountry) {
-      toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before subscribing to a plan.'));
+    if (isLocationRequired && (!resolvedCity || !resolvedPincode || !resolvedCountry)) {
+      toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before subscribing to this location-based plan.'));
       navigate('/provider/profile');
       return;
     }
