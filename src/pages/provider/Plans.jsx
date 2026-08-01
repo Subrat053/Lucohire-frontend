@@ -124,6 +124,7 @@ const ProviderPlans = () => {
   const [selectedCities, setSelectedCities] = useState([]);
   const [showGuaranteeModal, setShowGuaranteeModal] = useState(false);
   const [isAutoSubscription, setIsAutoSubscription] = useState(true);
+  const [showConfigModal, setShowConfigModal] = useState(false);
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelConfirmed, setCancelConfirmed] = useState(false);
@@ -147,6 +148,18 @@ const ProviderPlans = () => {
         '/provider/dashboard',
     );
   }, [location.search, location.state?.returnTo]);
+
+  const isConfigurationValid = useMemo(() => {
+    const hasPincodeAddon = availableAddons.some(a => selectedAddons.includes(a._id) && a.slug === 'one-pincode-top');
+    const hasCityAddon = availableAddons.some(a => selectedAddons.includes(a._id) && a.slug === 'top-in-city');
+    const hasCountryAddon = availableAddons.some(a => selectedAddons.includes(a._id) && a.slug === 'show-top-in-country');
+    const hasMultipleSkillsAddon = availableAddons.some(a => selectedAddons.includes(a._id) && a.slug === 'add-multiple-skills');
+
+    if (hasPincodeAddon && selectedPincodes.length === 0) return false;
+    if ((hasCityAddon || hasCountryAddon) && selectedCities.length === 0) return false;
+    if (hasMultipleSkillsAddon && selectedSkills.length === 0) return false;
+    return true;
+  }, [availableAddons, selectedAddons, selectedPincodes, selectedCities, selectedSkills]);
 
   useEffect(() => {
     const fetchSkills = async () => {
