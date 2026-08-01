@@ -68,7 +68,11 @@ const coverageLabels = {
   custom: 'Custom Coverage',
 };
 
-const formatCurrency = (value) => `₹${Number(value || 0).toLocaleString()}`;
+const formatCurrency = (value, symbol = '₹') => {
+  const num = Number(value || 0);
+  const formatted = num % 1 === 0 ? num.toLocaleString('en-IN') : num.toFixed(2);
+  return `${symbol || '₹'}${formatted}`;
+};
 
 const buildLocalPreview = (plan, months) => {
   if (!plan) return null;
@@ -707,10 +711,15 @@ const ProviderPlans = () => {
               const isPremium = plan.price > 500;
               
               // Apply duration discounts properly
-              let displayPrice = plan.priceMonthly || plan.price;
-              let displayMonthly = displayPrice;
-              if (selectedDuration === 3) displayMonthly = displayPrice * 0.9;
-              if (selectedDuration === 12) displayMonthly = displayPrice * 0.8;
+              const baseMonthlyPrice = plan.priceMonthly || plan.price || 0;
+              let discountPercent = 0;
+              if (selectedDuration === 3) discountPercent = 10;
+              if (selectedDuration === 6) discountPercent = 15;
+              if (selectedDuration === 12) discountPercent = 20;
+
+              const totalOriginal = baseMonthlyPrice * selectedDuration;
+              const totalBilled = Math.round((totalOriginal * (1 - discountPercent / 100)) * 100) / 100;
+              const displayMonthly = Math.round((baseMonthlyPrice * (1 - discountPercent / 100)) * 100) / 100;
               
               return (
                 <div 
@@ -734,10 +743,23 @@ const ProviderPlans = () => {
                     <h3 className={`text-sm font-bold uppercase tracking-wider mb-2 ${isPro ? 'text-teal-600' : isPremium ? 'text-amber-600' : 'text-emerald-600'}`}>
                       {plan.name}
                     </h3>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-extrabold text-emerald-950">{formatCurrency(Math.round(displayMonthly), plan.currencySymbol)}</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-extrabold text-emerald-950">{formatCurrency(displayMonthly, plan.currencySymbol)}</span>
                       <span className="text-xs text-slate-500 font-semibold">{t("/month")}</span>
+                      {discountPercent > 0 && (
+                        <span className="text-xs text-slate-400 line-through font-medium">{formatCurrency(baseMonthlyPrice, plan.currencySymbol)}</span>
+                      )}
                     </div>
+                    {selectedDuration > 1 ? (
+                      <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/60 text-[11px] font-bold text-emerald-700">
+                        <span>{t("Billed")}: {formatCurrency(totalBilled, plan.currencySymbol)} {t("for")} {selectedDuration} {t("months")}</span>
+                        <span className="bg-emerald-600 text-white text-[9px] px-1.5 py-0.5 rounded font-extrabold">{discountPercent}% OFF</span>
+                      </div>
+                    ) : (
+                      <div className="mt-2.5 text-[11px] font-semibold text-slate-400">
+                        {t("Billed monthly")}
+                      </div>
+                    )}
                     <p className="text-xs text-slate-500 mt-2 h-4">{plan.description}</p>
                   </div>
                   <div className="flex-1">
