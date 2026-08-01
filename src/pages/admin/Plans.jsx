@@ -712,7 +712,7 @@ const AdminPlans = () => {
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Top Plans (Add-ons)</h2>
                 <div className="flex flex-col gap-3">
                   {topPlans.map(plan => (
-                    <TopPlanRow key={plan._id} plan={plan} loadPlans={loadPlans} />
+                    <TopPlanRow key={plan._id} plan={plan} loadPlans={fetchPlans} />
                   ))}
                 </div>
               </div>
