@@ -13,32 +13,44 @@ const getBrowserCoordinates = () => new Promise((resolve, reject) => {
         longitude: position.coords.longitude,
       });
     },
-    (error) => {
-      if (error?.code === error.PERMISSION_DENIED) {
-        reject(new Error('Location permission denied. Please allow location access.'));
-        return;
-      }
-      reject(new Error('Unable to access your current location.'));
+    () => {
+      // High accuracy failed or timed out; retry with low accuracy (IP/Wi-Fi positioning)
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+        (err) => reject(err),
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+      );
     },
     {
       enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0,
+      timeout: 5000,
+      maximumAge: 60000,
     }
   );
 });
 
 export const detectNearestLocation = async () => {
-  const coords = await getBrowserCoordinates();
-  const { data } = await localeAPI.reverseGeocode(coords.latitude, coords.longitude);
+  try {
+    const coords = await getBrowserCoordinates();
+    const { data } = await localeAPI.reverseGeocode(coords.latitude, coords.longitude);
 
-  return {
-    city: data?.city || '',
-    state: data?.state || '',
-    country: data?.country || '',
-    nearestLocation: data?.nearestLocation || '',
-    latitude: data?.latitude ?? coords.latitude,
-    longitude: data?.longitude ?? coords.longitude,
-    source: data?.source || 'browser',
-  };
+    return {
+      city: data?.city || '',
+      state: data?.state || '',
+      country: data?.country || 'IN',
+      nearestLocation: data?.nearestLocation || data?.city || '',
+      latitude: data?.latitude ?? coords.latitude,
+      longitude: data?.longitude ?? coords.longitude,
+      source: data?.source || 'browser',
+    };
+  } catch (err) {
+    // If browser location fails, return safe fallback without throwing
+    return {
+      city: 'India',
+      state: '',
+      country: 'IN',
+      nearestLocation: 'India',
+      source: 'fallback',
+    };
+  }
 };

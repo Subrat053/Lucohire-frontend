@@ -70,112 +70,123 @@ const LocationAutocomplete = ({
     setFetchingGeo(true);
     setLoading(true);
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        let normalized = null;
+    const handleSuccess = async (position) => {
+      const { latitude, longitude } = position.coords;
+      let normalized = null;
 
-        // 1. Try to get details using Google reverse geocoding first
+      // 1. Try to get details using Google reverse geocoding first
+      try {
+        const service = await getPlacesService();
+        if (service && service.reverseGeocode) {
+          const placeResult = await service.reverseGeocode(latitude, longitude);
+          normalized = service.normalizeGooglePlace(placeResult, locationContext);
+        }
+      } catch (geocodeErr) {
+        console.warn('Google reverse geocoding failed, trying OpenStreetMap Nominatim:', geocodeErr);
+      }
+
+      // 2. Fallback to OpenStreetMap Nominatim API directly from browser
+      if (!normalized) {
         try {
-          const service = await getPlacesService();
-          if (service && service.reverseGeocode) {
-            const placeResult = await service.reverseGeocode(latitude, longitude);
-            normalized = service.normalizeGooglePlace(placeResult, locationContext);
-          }
-        } catch (geocodeErr) {
-          console.warn('Google reverse geocoding failed, trying OpenStreetMap Nominatim:', geocodeErr);
-        }
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=en`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            if (data && data.display_name) {
+              const addr = data.address || {};
+              const city = addr.city || addr.town || addr.village || addr.suburb || addr.municipality || '';
+              const state = addr.state || addr.province || '';
+              const country = addr.country || '';
 
-        // 2. Fallback to OpenStreetMap Nominatim API directly from browser
-        if (!normalized) {
-          try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=en`
-            );
-            if (response.ok) {
-              const data = await response.json();
-              if (data && data.display_name) {
-                const addr = data.address || {};
-                const city = addr.city || addr.town || addr.village || addr.suburb || addr.municipality || '';
-                const state = addr.state || addr.province || '';
-                const country = addr.country || '';
-
-                normalized = {
-                  label: data.display_name,
-                  value: data.display_name,
-                  placeId: `nominatim-${data.place_id || Date.now()}`,
-                  city: city,
-                  locality: city,
-                  state: state,
-                  country: country,
-                  latitude: Number(latitude),
-                  longitude: Number(longitude),
-                  isFallbackSelection: true
-                };
-              }
-            }
-          } catch (nominatimErr) {
-            console.warn('Nominatim reverse geocoding failed, trying backend nearby API:', nominatimErr);
-          }
-        }
-
-        // 3. Fallback to backend nearby API
-        if (!normalized) {
-          try {
-            const { locationAPI } = await import('../../services/api');
-            const response = await locationAPI.nearby(latitude, longitude);
-            if (response?.data?.success && Array.isArray(response.data.data) && response.data.data.length > 0) {
-              const nearest = response.data.data[0];
               normalized = {
-                label: nearest.name,
-                value: nearest.name,
-                placeId: `nearby-${nearest.lat}-${nearest.lon}`,
-                city: nearest.name,
-                locality: nearest.name,
-                state: '',
-                country: '',
-                latitude: nearest.lat,
-                longitude: nearest.lon,
+                label: data.display_name,
+                value: data.display_name,
+                placeId: `nominatim-${data.place_id || Date.now()}`,
+                city: city,
+                locality: addr.suburb || addr.neighbourhood || city,
+                state: state,
+                country: country,
+                latitude: Number(latitude),
+                longitude: Number(longitude),
                 isFallbackSelection: true
               };
             }
-          } catch (backendErr) {
-            console.warn('Backend nearby API failed:', backendErr);
           }
+        } catch (nominatimErr) {
+          console.warn('Nominatim reverse geocoding failed, trying backend nearby API:', nominatimErr);
         }
+      }
 
-        // Apply result or show error toast
-        if (normalized) {
-          setInputValue(normalized.label);
-          if (onSelect) {
-            onSelect(normalized);
-          } else if (onChange) {
-            onChange(normalized);
+      // 3. Fallback to backend nearby API
+      if (!normalized) {
+        try {
+          const { locationAPI } = await import('../../services/api');
+          const response = await locationAPI.nearby(latitude, longitude);
+          if (response?.data?.success && Array.isArray(response.data.data) && response.data.data.length > 0) {
+            const nearest = response.data.data[0];
+            normalized = {
+              label: nearest.name,
+              value: nearest.name,
+              placeId: `nearby-${nearest.lat}-${nearest.lon}`,
+              city: nearest.name,
+              locality: nearest.name,
+              state: '',
+              country: '',
+              latitude: nearest.lat,
+              longitude: nearest.lon,
+              isFallbackSelection: true
+            };
           }
-          toast.success('Location updated successfully!');
-        } else {
-          toast.error('Could not determine address for your location. Try searching manually.');
+        } catch (backendErr) {
+          console.warn('Backend nearby API failed:', backendErr);
         }
+      }
 
-        setFetchingGeo(false);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-        let msg = 'Failed to fetch location';
-        if (error.code === error.PERMISSION_DENIED) {
-          msg = 'Location permission denied. Please allow location access in your browser settings.';
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          msg = 'Location information is unavailable.';
-        } else if (error.code === error.TIMEOUT) {
-          msg = 'Location request timed out.';
+      // Apply result or show error toast
+      if (normalized) {
+        setInputValue(normalized.label);
+        if (onSelect) {
+          onSelect(normalized);
+        } else if (onChange) {
+          onChange(normalized);
         }
-        toast.error(msg);
-        setFetchingGeo(false);
-        setLoading(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+        toast.success('Location updated successfully!');
+      } else {
+        toast.error('Could not determine address for your location. Try searching manually.');
+      }
+
+      setFetchingGeo(false);
+      setLoading(false);
+    };
+
+    const handleError = (error) => {
+      // Retry with low accuracy (IP/Wi-Fi positioning) before giving up
+      navigator.geolocation.getCurrentPosition(
+        handleSuccess,
+        (finalErr) => {
+          console.error('Geolocation error:', finalErr);
+          let msg = 'Failed to fetch location';
+          if (finalErr.code === finalErr.PERMISSION_DENIED) {
+            msg = 'Location permission denied. Please allow location access in your browser settings.';
+          } else if (finalErr.code === finalErr.POSITION_UNAVAILABLE) {
+            msg = 'Location information is unavailable.';
+          } else if (finalErr.code === finalErr.TIMEOUT) {
+            msg = 'Location request timed out.';
+          }
+          toast.error(msg);
+          setFetchingGeo(false);
+          setLoading(false);
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+      );
+    };
+
+    navigator.geolocation.getCurrentPosition(handleSuccess, handleError, {
+      enableHighAccuracy: true,
+      timeout: 4000,
+      maximumAge: 60000,
+    });
   };
 
   const containerRef = useRef(null);

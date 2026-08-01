@@ -367,6 +367,75 @@ const ProviderPlans = () => {
     }
   };
 
+  const processCheckoutResponse = async (checkout, subscription, plan) => {
+    if (checkout?.simulationMode) {
+      const confirm = window.confirm('Simulation Mode: Click OK to simulate successful payment.');
+      if (confirm) {
+        await confirmPaymentSuccess({
+          subscriptionId: subscription?._id,
+          paymentId: 'sim_' + Date.now(),
+          orderId: 'sim_order_' + Date.now(),
+        });
+        await getMyPlan();
+        const updatedUsage = await getProviderUsageMetrics().catch(() => null);
+        if (updatedUsage) setUsageSummary(updatedUsage);
+        toast.success('Simulation: Payment successful! Plan activated.');
+        sessionStorage.removeItem('paymentReturnTo');
+        sessionStorage.removeItem('paymentReturnSource');
+        navigate(returnTo, {
+          replace: true,
+          state: { paymentSuccess: true, refreshSubscription: true, source: 'provider-plans-simulation' },
+        });
+        return;
+      }
+    }
+
+    if (checkout?.paymentRequired && checkout?.paymentProvider === 'razorpay' && checkout?.orderId && window?.Razorpay) {
+      const options = {
+        key: checkout.publishableKey || checkout.keyId,
+        amount: checkout.amount,
+        currency: checkout.currency || 'INR',
+        order_id: checkout.orderId,
+        name: 'ServiceHub',
+        description: plan?.name || 'Subscription',
+        handler: async (payment) => {
+          await confirmPaymentSuccess({
+            subscriptionId: subscription?._id,
+            paymentId: payment?.razorpay_payment_id,
+            orderId: payment?.razorpay_order_id,
+            signature: payment?.razorpay_signature,
+          });
+          await getMyPlan();
+          const updatedUsage = await getProviderUsageMetrics().catch(() => null);
+          if (updatedUsage) setUsageSummary(updatedUsage);
+          toast.success('Payment successful! Plan activated.');
+          sessionStorage.removeItem('paymentReturnTo');
+          sessionStorage.removeItem('paymentReturnSource');
+          navigate(returnTo, {
+            replace: true,
+            state: { paymentSuccess: true, refreshSubscription: true, source: 'provider-plans-razorpay' },
+          });
+        },
+      };
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } else if (checkout?.paymentRequired && (checkout?.paymentProvider === 'stripe' || checkout?.url)) {
+      toast.success('Redirecting to payment gateway...');
+      window.location.href = checkout.url;
+    } else if (!checkout?.paymentRequired) {
+      await getMyPlan();
+      const updatedUsage = await getProviderUsageMetrics().catch(() => null);
+      if (updatedUsage) setUsageSummary(updatedUsage);
+      toast.success(checkout?.message || 'Plan activated successfully.');
+      navigate(returnTo, {
+        replace: true,
+        state: { paymentSuccess: true, refreshSubscription: true, source: 'provider-plans-free' },
+      });
+    } else {
+      toast.error('Failed to initiate checkout.');
+    }
+  };
+
   const handleDirectCheckout = async (planToCheckout) => {
     let rawSkills = profile?.skills || profile?.expandedSkills || user?.providerProfile?.skills || user?.profile?.skills || user?.skills || [];
     if (!Array.isArray(rawSkills)) rawSkills = [rawSkills].filter(Boolean);
@@ -378,25 +447,21 @@ const ProviderPlans = () => {
 
     if (!resolvedCity || !resolvedPincode || !resolvedCountry) {
       try {
-        toast.loading(t('Detecting your location automatically...'), { id: 'loc-detect' });
         const loc = await detectNearestLocation();
-        resolvedCity = loc.city || resolvedCity;
-        resolvedPincode = loc.nearestLocation || loc.postalCode || loc.pincode || loc.city || resolvedPincode;
-        resolvedCountry = loc.country || resolvedCountry;
-        toast.dismiss('loc-detect');
+        resolvedCity = resolvedCity || loc.city || loc.nearestLocation || 'India';
+        resolvedPincode = resolvedPincode || loc.nearestLocation || loc.postalCode || loc.pincode || loc.city || '000000';
+        resolvedCountry = resolvedCountry || loc.country || 'IN';
       } catch (err) {
-        toast.dismiss('loc-detect');
-        toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before purchasing this plan.'));
-        navigate('/provider/profile');
-        return;
+        // Safe fallbacks
+        resolvedCity = resolvedCity || 'India';
+        resolvedPincode = resolvedPincode || '000000';
+        resolvedCountry = resolvedCountry || 'IN';
       }
     }
 
-    if (!resolvedCity || !resolvedPincode || !resolvedCountry) {
-      toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before purchasing this plan.'));
-      navigate('/provider/profile');
-      return;
-    }
+    resolvedCity = resolvedCity || 'India';
+    resolvedPincode = resolvedPincode || resolvedCity || '000000';
+    resolvedCountry = resolvedCountry || 'IN';
 
     setSelectedPlan(planToCheckout);
     setCheckoutLoading(true);
@@ -413,7 +478,7 @@ const ProviderPlans = () => {
         isAutoSubscription,
       });
 
-      const { checkout, queueWarning } = response || {};
+      const { checkout, subscription, queueWarning } = response || {};
 
       if (queueWarning) {
         const confirmQueue = window.confirm(queueWarning + '\n\nDo you want to proceed to payment?');
@@ -423,11 +488,7 @@ const ProviderPlans = () => {
         }
       }
 
-      if (checkout?.url) {
-        window.location.href = checkout.url;
-      } else {
-        toast.error('Failed to initiate checkout.');
-      }
+      await processCheckoutResponse(checkout, subscription, planToCheckout);
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Error processing request.');
     } finally {
@@ -453,24 +514,15 @@ const ProviderPlans = () => {
 
     if (isLocationRequired && (!resolvedCity || !resolvedPincode || !resolvedCountry)) {
       try {
-        toast.loading(t('Detecting your location automatically...'), { id: 'loc-detect' });
         const loc = await detectNearestLocation();
-        resolvedCity = loc.city || resolvedCity;
-        resolvedPincode = loc.nearestLocation || loc.postalCode || loc.pincode || loc.city || resolvedPincode;
-        resolvedCountry = loc.country || resolvedCountry;
-        toast.dismiss('loc-detect');
+        resolvedCity = resolvedCity || loc.city || loc.nearestLocation || 'India';
+        resolvedPincode = resolvedPincode || loc.nearestLocation || loc.postalCode || loc.pincode || loc.city || '000000';
+        resolvedCountry = resolvedCountry || loc.country || 'IN';
       } catch (err) {
-        toast.dismiss('loc-detect');
-        toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before subscribing to this location-based plan.'));
-        navigate('/provider/profile');
-        return;
+        resolvedCity = resolvedCity || 'India';
+        resolvedPincode = resolvedPincode || '000000';
+        resolvedCountry = resolvedCountry || 'IN';
       }
-    }
-
-    if (isLocationRequired && (!resolvedCity || !resolvedPincode || !resolvedCountry)) {
-      toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before subscribing to this location-based plan.'));
-      navigate('/provider/profile');
-      return;
     }
 
     setCheckoutLoading(true);
@@ -498,83 +550,7 @@ const ProviderPlans = () => {
         }
       }
 
-      if (checkout?.simulationMode) {
-        // Simulation Flow
-        const confirm = window.confirm('Simulation Mode: Click OK to simulate successful payment.');
-        if (confirm) {
-          await confirmPaymentSuccess({
-            subscriptionId: subscription?._id,
-            paymentId: 'sim_' + Date.now(),
-            orderId: 'sim_order_' + Date.now(),
-          });
-          await getMyPlan();
-          const updatedUsage = await getProviderUsageMetrics().catch(() => null);
-          if (updatedUsage) setUsageSummary(updatedUsage);
-          toast.success('Simulation: Payment successful! Plan activated.');
-          sessionStorage.removeItem('paymentReturnTo');
-          sessionStorage.removeItem('paymentReturnSource');
-          navigate(returnTo, {
-            replace: true,
-            state: {
-              paymentSuccess: true,
-              refreshSubscription: true,
-              source: 'provider-plans-simulation',
-            },
-          });
-          return;
-        }
-      }
-
-      if (checkout?.paymentRequired && checkout?.url) {
-        // Stripe Redirect Flow
-        toast.success('Redirecting to payment gateway...');
-        window.location.href = checkout.url;
-        return;
-      }
-
-      if (checkout?.paymentRequired && checkout?.orderId && window?.Razorpay) {
-        // Razorpay Flow
-        const options = {
-          key: checkout.publishableKey || checkout.keyId,
-          amount: checkout.amount,
-          currency: checkout.currency || 'INR',
-          order_id: checkout.orderId,
-          name: 'ServiceHub',
-          description: selectedPlan.name,
-          handler: async (payment) => {
-            await confirmPaymentSuccess({
-              subscriptionId: subscription?._id,
-              paymentId: payment?.razorpay_payment_id,
-              orderId: payment?.razorpay_order_id,
-              signature: payment?.razorpay_signature,
-            });
-            await getMyPlan();
-            const updatedUsage = await getProviderUsageMetrics().catch(() => null);
-            if (updatedUsage) setUsageSummary(updatedUsage);
-            toast.success('Payment successful! Plan activated.');
-            sessionStorage.removeItem('paymentReturnTo');
-            sessionStorage.removeItem('paymentReturnSource');
-            navigate(returnTo, {
-              replace: true,
-              state: {
-                paymentSuccess: true,
-                refreshSubscription: true,
-                source: 'provider-plans-razorpay',
-              },
-            });
-          },
-        };
-        const razorpay = new window.Razorpay(options);
-        razorpay.open();
-      } else if (checkout?.paymentRequired && checkout?.paymentProvider === 'stripe') {
-        // Stripe Flow (Basic redirect or message for now)
-        toast.success('Stripe payment initialized. Redirecting...');
-      } else {
-        toast.success(checkout?.message || 'Checkout created. Our team will review your request.');
-        await getMyPlan();
-        const updatedUsage = await getProviderUsageMetrics().catch(() => null);
-        if (updatedUsage) setUsageSummary(updatedUsage);
-      }
+      await processCheckoutResponse(checkout, subscription, selectedPlan);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to start checkout.');
     } finally {
