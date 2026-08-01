@@ -367,6 +367,16 @@ const ProviderPlans = () => {
   };
 
   const handleDirectCheckout = async (planToCheckout) => {
+    const hasCity = profile?.city || profile?.location?.city || user?.providerProfile?.city || user?.profile?.city || user?.city || profile?.locationData?.city;
+    const hasPincode = profile?.location?.postalCode || profile?.pincode || user?.providerProfile?.pincode || user?.profile?.pincode || user?.pincode || profile?.locations?.[0] || profile?.nearestLocation;
+    const hasCountry = profile?.country || profile?.location?.country || user?.country || user?.providerProfile?.country || user?.profile?.country;
+
+    if (!hasCity || !hasPincode || !hasCountry) {
+      toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before purchasing this plan.'));
+      navigate('/provider/profile');
+      return;
+    }
+
     setSelectedPlan(planToCheckout);
     setCheckoutLoading(true);
     try {
@@ -427,9 +437,9 @@ const ProviderPlans = () => {
         durationMonths: selectedDuration,
         addonIds: selectedAddons,
         configuration: {
-          skills: selectedSkills,
-          pincodes: selectedPincodes,
-          cities: selectedCities,
+          skills: user?.skills || [],
+          pincodes: hasPincode ? [hasPincode] : [],
+          cities: hasCity ? [hasCity] : [],
         },
         isAutoSubscription,
       };
@@ -768,7 +778,7 @@ const ProviderPlans = () => {
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedPlan(plan);
-                          setShowConfigModal(true);
+                          handleCheckout();
                         }}
                         disabled={checkoutLoading}
                         className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-sm ${
@@ -814,14 +824,20 @@ const ProviderPlans = () => {
                   </div>
                   <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
                     <span className="font-extrabold text-emerald-700">₹{addon.priceMonthly || addon.price || 0}<span className="text-[10px] text-slate-500 font-medium">/mo</span></span>
-                    <button onClick={() => {
-                        setSelectedAddons(prev => prev.includes(addon._id) ? prev : [...prev, addon._id]);
-                        setShowConfigModal(true);
-                      }}
-                      className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg transition-colors"
-                    >
-                      {t("Select")}
-                    </button>
+                    <div className="flex gap-2">
+                      <button onClick={() => {
+                          setSelectedAddons(prev => prev.includes(addon._id) ? prev.filter(id => id !== addon._id) : [...prev, addon._id]);
+                        }}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors border ${selectedAddons.includes(addon._id) ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}
+                      >
+                        {selectedAddons.includes(addon._id) ? t("Selected") : t("Select")}
+                      </button>
+                      <button onClick={() => handleDirectCheckout(addon)}
+                        className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                      >
+                        {t("Purchase")}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
