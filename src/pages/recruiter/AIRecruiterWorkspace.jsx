@@ -56,10 +56,14 @@ export default function AIRecruiterWorkspace() {
   const [tasks, setTasks] = useState([]);
   const [aiInsights, setAiInsights] = useState([]);
   const [aiInsightsLoading, setAiInsightsLoading] = useState(true);
+  
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
 
   useEffect(() => {
     fetchConversations();
     fetchData();
+    fetchUsage();
   }, []);
 
   useEffect(() => {
@@ -72,6 +76,19 @@ export default function AIRecruiterWorkspace() {
       }, 100);
     }
   }, [messages, loading]);
+
+  const fetchUsage = async () => {
+    try {
+      const res = await recruiterAPI.getAiUsage();
+      if (res.data?.success) {
+        setAiUsage({ limits: res.data.limits || {}, usage: res.data.usage || {} });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUsageLoading(false);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -557,13 +574,20 @@ export default function AIRecruiterWorkspace() {
                     />
                     <button
                       onClick={() => handleSend()}
-                      disabled={loading || !chatInput.trim()}
-                      className="w-10 h-10 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg flex items-center justify-center transition shrink-0 ml-2 shadow-sm mb-0.5"
+                      disabled={loading || !chatInput.trim() || (aiUsage.limits.aiCopilot !== -1 && aiUsage.usage.aiCopilot >= (aiUsage.limits.aiCopilot || 0))}
+                      className="w-auto px-3 min-w-[3rem] h-10 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg flex flex-col items-center justify-center transition shrink-0 ml-2 shadow-sm mb-0.5"
                     >
                       {loading ? (
                         <FiLoader className="w-4 h-4 animate-spin" />
                       ) : (
-                        <FiSend className="w-4 h-4" />
+                        <div className="flex flex-col items-center justify-center h-full pt-1.5">
+                          <FiSend className="w-4 h-4" />
+                          {!usageLoading && aiUsage.limits.aiCopilot !== undefined && aiUsage.limits.aiCopilot !== -1 && (
+                            <span className="text-[9px] opacity-80 -mt-0.5">
+                              {Math.max(0, aiUsage.limits.aiCopilot - (aiUsage.usage.aiCopilot || 0))} left
+                            </span>
+                          )}
+                        </div>
                       )}
                     </button>
                   </div>

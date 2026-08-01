@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { providerAPI } from '../../services/api';
-import { getIncomeOpportunities } from '../../services/providerAIService';
+import { getIncomeOpportunities, getAiUsage } from '../../services/providerAIService';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import useTranslation from '../../hooks/useTranslation';
@@ -47,6 +47,9 @@ const ProviderDashboard = () => {
   const [incomeLoading, setIncomeLoading] = useState(true);
   const [incomeData, setIncomeData] = useState(null);
   const [incomeIsLocked, setIncomeIsLocked] = useState(false);
+
+  const [aiUsage, setAiUsage] = useState(null);
+  const [aiUsageLoading, setAiUsageLoading] = useState(true);
 
   const loadDashboard = useCallback(async (forceRefresh = false) => {
     const now = Date.now();
@@ -134,7 +137,23 @@ const ProviderDashboard = () => {
         if (!cancelled) setIncomeLoading(false);
       }
     };
+    
+    const fetchAiUsage = async () => {
+      try {
+        setAiUsageLoading(true);
+        const res = await getAiUsage();
+        if (!cancelled && res.data?.success) {
+          setAiUsage(res.data);
+        }
+      } catch (err) {
+        if (!cancelled) console.error('Failed to fetch AI usage:', err.message);
+      } finally {
+        if (!cancelled) setAiUsageLoading(false);
+      }
+    };
+    
     fetchIncomePaths();
+    fetchAiUsage();
     return () => { cancelled = true; };
   }, []);
 
@@ -234,6 +253,26 @@ const ProviderDashboard = () => {
           <h1 className="text-[28px] font-medium text-[#1a1b41] tracking-tight">Good afternoon, {user?.name ? user.name.split(' ')[0] : 'User'}! <span className="text-2xl">👋</span></h1>
           <p className="text-gray-500 font-medium text-sm mt-1">Your AI is working hard to find the best opportunities for you.</p>
         </div>
+        
+        {/* Plan & AI Limits */}
+        {!aiUsageLoading && aiUsage?.limits && (
+          <div className="bg-white rounded-xl border border-indigo-100 p-3 shadow-sm flex items-center gap-4 text-xs font-medium">
+            <div className="flex flex-col">
+              <span className="text-gray-500 mb-0.5">Current Plan</span>
+              <span className="text-indigo-600 font-bold capitalize bg-indigo-50 px-2 py-0.5 rounded text-[10px] uppercase tracking-wide border border-indigo-100 self-start">
+                {user?.plan?.name || user?.plan || 'Free'}
+              </span>
+            </div>
+            <div className="h-8 w-px bg-gray-100"></div>
+            <div className="flex flex-col">
+              <span className="text-gray-500 flex items-center gap-1"><Sparkles className="w-3 h-3 text-emerald-500"/> AI Credits</span>
+              <span className="text-gray-900 font-bold">
+                {aiUsage.limits.aiCareerAnalysis === -1 ? 'Unlimited' : 
+                  Math.max(0, (aiUsage.limits.aiCareerAnalysis || 0) - (aiUsage.usage?.aiCareerAnalysis || 0))} left
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">

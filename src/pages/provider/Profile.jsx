@@ -911,17 +911,18 @@ const ProviderProfile = () => {
 
   // Calculate max locations allowed by plan
   const maxLocations = (() => {
-    if (
-      !profileData ||
-      profileData.currentPlan === "free" ||
-      profileData.currentPlan === "provider-free-default" ||
-      !profileData.currentPlan
-    )
-      return 1;
     return Math.max(
       1,
-      Number(profileData.allowedPincodesCount || 1),
-      Number(profileData.allowedCitiesCount || 1),
+      Number(
+        subscriptionSummary?.allowedPincodes ||
+        profileData?.allowedPincodesCount ||
+        1
+      ),
+      Number(
+        subscriptionSummary?.allowedCities ||
+        profileData?.allowedCitiesCount ||
+        1
+      )
     );
   })();
 
@@ -1122,18 +1123,9 @@ const ProviderProfile = () => {
     }
 
     if (form.locations.length >= maxLocations) {
-      if (plan === "free") {
-        if (redirectCountdown !== null) return;
-        setShowUpgradePrompt(true);
-        setRedirectCountdown(3);
-        toast.error(
-          "Free tier is limited to 1 location. Redirecting to plans...",
-        );
-      } else {
-        toast.error(
-          `Your plan allows max ${maxLocations} location${maxLocations > 1 ? "s" : ""}. Upgrade to add more.`,
-        );
-      }
+      toast.error(
+        `Your plan allows max ${maxLocations} location${maxLocations > 1 ? "s" : ""}. Upgrade to add more.`
+      );
       return;
     }
 
@@ -1164,10 +1156,12 @@ const ProviderProfile = () => {
     });
   };
 
+  const maxSkills = subscriptionSummary?.allowedSkills || profileData?.allowedSkillsCount || 1;
+
   const addSkill = (skill, skillTier) => {
-    if (String(plan).toLowerCase() === "free" && form.skills.length >= 1) {
+    if (form.skills.length >= maxSkills) {
       setShowUpgradePrompt(true);
-      toast.error("for free plan you can only use one skill");
+      toast.error(`Your plan allows max ${maxSkills} role${maxSkills > 1 ? "s" : ""}. Upgrade to add more.`);
       return;
     }
     const nextForm = { ...form, skills: [...form.skills, skill] };
@@ -1179,7 +1173,7 @@ const ProviderProfile = () => {
   const removeSkill = (skill) => {
     const updated = form.skills.filter((s) => s !== skill);
     setForm({ ...form, skills: updated });
-    if (String(plan).toLowerCase() === "free" && updated.length <= 1) {
+    if (updated.length <= maxSkills) {
       setShowUpgradePrompt(false);
     }
   };
@@ -1388,11 +1382,11 @@ const ProviderProfile = () => {
       ...prev,
       skills: nextSkills.slice(
         0,
-        String(plan).toLowerCase() === "free" ? 1 : nextSkills.length,
+        maxSkills,
       ),
       locations: nextLocations.slice(
         0,
-        String(plan).toLowerCase() === "free" ? 1 : maxLocations,
+        maxLocations,
       ),
       city: firstLocation?.city || prev.city,
       state: firstLocation?.state || prev.state,
@@ -2359,7 +2353,7 @@ const ProviderProfile = () => {
                      <div className="flex items-center gap-2 mb-4">
                        <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Roles")}</h3>
                      </div>
-                     <p className="text-[13px] text-slate-500 mb-4">{t("Add roles relevant to your profession (e.g. Developer, Designer). Free plan is limited to 1 role.")}</p>
+                     <p className="text-[13px] text-slate-500 mb-4">{t(`Add roles relevant to your profession (e.g. Developer, Designer). Your plan allows up to ${subscriptionSummary?.planSnapshot?.maxSkills || profileData?.allowedSkillsCount || 1} role${(subscriptionSummary?.planSnapshot?.maxSkills || profileData?.allowedSkillsCount || 1) > 1 ? 's' : ''}.`)}</p>
                      
                      <div className="flex flex-col gap-4">
                        <SkillAutocomplete 
@@ -2388,7 +2382,7 @@ const ProviderProfile = () => {
                      <div className="flex items-center gap-2 mb-4">
                        <h3 className="font-extrabold text-slate-800 text-base tracking-tight">{t("Skills")}</h3>
                      </div>
-                     <p className="text-[13px] text-slate-500 mb-4">{t("Add specific skills (e.g. React, Node.js). No limit.")}</p>
+                     <p className="text-[13px] text-slate-500 mb-4">{t(`Add specific skills (e.g. React, Node.js). Your plan allows up to ${subscriptionSummary?.planSnapshot?.maxSkills || profileData?.allowedSkillsCount || 1} skill${(subscriptionSummary?.planSnapshot?.maxSkills || profileData?.allowedSkillsCount || 1) > 1 ? 's' : ''}.`)}</p>
                      
                      <div className="flex flex-col gap-4">
                        <SkillAutocomplete 

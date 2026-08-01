@@ -231,25 +231,51 @@ export default function GrowWithAIDashboard() {
     <div className="w-full p-4 md:p-6 lg:p-8 space-y-8 pb-20 relative">
       {/* Usage Banner */}
       {!usageLoading && (
-        <div className="bg-indigo-50/50 border border-indigo-100 px-6 py-3 rounded-2xl flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-600" />
-            <span className="text-sm font-medium text-indigo-900">
-              {(activeTab === 'interview' || activeTab === 'gps' || activeTab === 'barriers') && 'Refresh Insights Limit: '}
+        <div className="bg-white border border-gray-200 p-4 sm:px-6 sm:py-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm mb-6">
+          <div className="flex-1 w-full max-w-md">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-indigo-600" />
+              <span className="text-sm font-medium text-gray-700">
+                {(activeTab === 'interview' || activeTab === 'gps' || activeTab === 'barriers') ? t("AI Insights Usage") : t("AI Usage")}
+              </span>
+            </div>
+            
+            {(() => {
+              const map = { interview: 'refreshInsight', gps: 'refreshInsight', barriers: 'refreshInsight' };
+              if (activeTab === 'skillgap' || activeTab === 'ats') return <p className="text-sm text-gray-500">Select a supported tab to view limits.</p>;
+              const key = map[activeTab];
+              const limit = aiUsage.limits[key] || 0;
+              const used = aiUsage.usage[key] || 0;
               
-              {(() => {
-                const map = { interview: 'refreshInsight', gps: 'refreshInsight', barriers: 'refreshInsight' };
-                if (activeTab === 'skillgap' || activeTab === 'ats') return null;
-                const key = map[activeTab];
-                const limit = aiUsage.limits[key] || 0;
-                const used = aiUsage.usage[key] || 0;
-                if (limit === -1) return <span className="font-bold text-indigo-700 ml-1">{t("Unlimited")}</span>;
-                if (limit === 0) return <span className="font-bold text-red-600 ml-1">{t("Not included in plan")}</span>;
-                return <span className="font-bold text-indigo-700 ml-1">{Math.max(0, limit - used)} / {limit}{t("requests remaining")}</span>;
-              })()}
-            </span>
+              if (limit === -1) {
+                return <div className="text-sm font-bold text-green-600">{t("Unlimited Access")}</div>;
+              }
+              if (limit === 0) {
+                return <div className="text-sm font-bold text-red-500">{t("Not included in your current plan")}</div>;
+              }
+
+              const percentage = Math.min(100, Math.round((used / limit) * 100));
+              let barColor = 'bg-indigo-600';
+              if (percentage > 80) barColor = 'bg-amber-500';
+              if (percentage >= 100) barColor = 'bg-red-500';
+
+              return (
+                <div>
+                  <div className="flex justify-between text-xs mb-1.5 font-medium">
+                    <span className="text-gray-500">{used} used</span>
+                    <span className="text-gray-900">{limit} total</span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                    <div className={`h-2.5 rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${percentage}%` }}></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1.5">{Math.max(0, limit - used)} {t("requests remaining")}</p>
+                </div>
+              );
+            })()}
           </div>
-          <Link to="/provider/plans" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-100 px-3 py-1 rounded-full transition-colors">{t("Upgrade Plan")}</Link>
+          <Link to="/provider/plans" className="shrink-0 inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-700 font-semibold text-sm rounded-xl hover:bg-indigo-100 transition-colors border border-indigo-200">
+            {t("Upgrade Plan")}
+          </Link>
         </div>
       )}
       {/* Main Grid Layout */}

@@ -17,6 +17,7 @@ import {
   Crown,
   MessageCircle,
   ShieldCheck,
+  X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import RouteLoader from '../../components/common/RouteLoader';
@@ -85,6 +86,24 @@ const buildLocalPreview = (plan, months) => {
     taxName: plan.taxName || 'GST',
   };
 };
+
+const PROVIDER_FEATURES = [
+  { key: 'resumeOptimization', label: 'AI Optimize Resume' },
+  { key: 'autoAnalysisLimit', label: 'Profile Auto-Analysis' },
+  { key: 'careerHealthRefresh', label: 'Refresh Insights' },
+  { key: 'interviewQuestionsRefresh', label: 'Interview Questions' },
+  { key: 'careerGpsRefresh', label: 'AI Career GPS' },
+  { key: 'whyNotHiredRefresh', label: 'Why Not Hired' },
+  { key: 'skillGapRefresh', label: 'Skill Gap Report' },
+  { key: 'atsOptimizerRefresh', label: 'ATS Optimizer' },
+  { key: 'chatMessagesLimit', label: 'Chat Messages Limit' },
+  { key: 'dailyTasksRefresh', label: 'Daily Tasks' },
+  { key: 'careerPlanRefresh', label: 'Career Plan' },
+  { key: 'resourcesRefresh', label: 'Resources' },
+  { key: 'progressRefresh', label: 'Progress' },
+  { key: 'aiTipsRefresh', label: 'AI Tips Insight' },
+  { key: 'resumeScoreRefresh', label: 'Resume Score Refresh' }
+];
 
 const ProviderPlans = () => {
   const { t } = useTranslation();
@@ -464,8 +483,19 @@ const ProviderPlans = () => {
       return;
     }
 
+    const hasCity = profile?.city || profile?.location?.city || user?.providerProfile?.city || user?.profile?.city || user?.city || profile?.locationData?.city;
+    const hasPincode = profile?.location?.postalCode || profile?.pincode || user?.providerProfile?.pincode || user?.profile?.pincode || user?.pincode || profile?.locations?.[0] || profile?.nearestLocation;
+    const hasCountry = profile?.country || profile?.location?.country || user?.country || user?.providerProfile?.country || user?.profile?.country;
+
+    if (!hasCity || !hasPincode || !hasCountry) {
+      toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before subscribing to a plan.'));
+      navigate('/provider/profile');
+      return;
+    }
+
     setCheckoutLoading(true);
     try {
+
 
       const response = await purchaseFixedPlan({
         planId: selectedPlan._id,
@@ -481,7 +511,7 @@ const ProviderPlans = () => {
       if (queueWarning) {
         const confirmQueue = window.confirm(queueWarning + '\n\nDo you want to proceed to payment?');
         if (!confirmQueue) {
-          setLoadingAction('');
+          setCheckoutLoading(false);
           return;
         }
       }
@@ -690,59 +720,84 @@ const ProviderPlans = () => {
         </div>
 
         {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {plans.filter(p => ['basic-ai', 'pro-ai', 'premium-ai'].includes(p.slug)).sort((a,b) => a.price - b.price).map((plan) => {
-            const isPro = plan.slug === 'pro-ai';
-            const isPremium = plan.slug === 'premium-ai';
-            
-            // Apply duration discounts properly
-            let displayPrice = plan.priceMonthly || plan.price;
-            let displayMonthly = displayPrice;
-            if (selectedDuration === 3) displayMonthly = displayPrice * 0.9;
-            if (selectedDuration === 12) displayMonthly = displayPrice * 0.8;
-            
-            return (
-              <div 
-                key={plan._id} 
-                onClick={(e) => {
-                  if (!e.target.closest('button')) {
-                    document.getElementById(`plan-btn-${plan._id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }
-                }}
-                className="bg-white rounded-3xl p-6 relative flex flex-col border border-emerald-100 shadow-md transition-all duration-300 hover:border-2 hover:border-teal-600 hover:shadow-xl hover:scale-105 hover:z-10 cursor-pointer"
-              >
-                {isPro && (
-                  <></>
-                )}
-                {isPremium && (
-                  <div className="absolute top-4 right-4 text-amber-500">
-                    <Crown className="w-8 h-8" />
+        {plans.length === 0 ? (
+          <div className="text-center py-10">
+            <h3 className="text-xl font-bold text-slate-700">{t("No Plans Available")}</h3>
+            <p className="text-slate-500 mt-2">{t("There are currently no provider plans available. Please check back later.")}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            {[...plans].sort((a,b) => a.price - b.price).map((plan) => {
+              const isPro = plan.isPopular;
+              const isPremium = plan.price > 500;
+              
+              // Apply duration discounts properly
+              let displayPrice = plan.priceMonthly || plan.price;
+              let displayMonthly = displayPrice;
+              if (selectedDuration === 3) displayMonthly = displayPrice * 0.9;
+              if (selectedDuration === 12) displayMonthly = displayPrice * 0.8;
+              
+              return (
+                <div 
+                  key={plan._id} 
+                  onClick={(e) => {
+                    if (!e.target.closest('button')) {
+                      document.getElementById(`plan-btn-${plan._id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  }}
+                  className="bg-white rounded-3xl p-6 relative flex flex-col border border-emerald-100 shadow-md transition-all duration-300 hover:border-2 hover:border-teal-600 hover:shadow-xl hover:scale-105 hover:z-10 cursor-pointer"
+                >
+                  {isPro && (
+                    <></>
+                  )}
+                  {isPremium && (
+                    <div className="absolute top-4 right-4 text-amber-500">
+                      <Crown className="w-8 h-8" />
+                    </div>
+                  )}
+                  <div className="mb-6">
+                    <h3 className={`text-sm font-bold uppercase tracking-wider mb-2 ${isPro ? 'text-teal-600' : isPremium ? 'text-amber-600' : 'text-emerald-600'}`}>
+                      {plan.name}
+                    </h3>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-extrabold text-emerald-950">{formatCurrency(Math.round(displayMonthly), plan.currencySymbol)}</span>
+                      <span className="text-xs text-slate-500 font-semibold">{t("/month")}</span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2 h-4">{plan.description}</p>
                   </div>
-                )}
-                <div className="mb-6">
-                  <h3 className={`text-sm font-bold uppercase tracking-wider mb-2 ${isPro ? 'text-teal-600' : isPremium ? 'text-amber-600' : 'text-emerald-600'}`}>
-                    {plan.name}
-                  </h3>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-extrabold text-emerald-950">{formatCurrency(Math.round(displayMonthly), plan.currencySymbol)}</span>
-                    <span className="text-xs text-slate-500 font-semibold">{t("/month")}</span>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-2 h-4">{plan.description}</p>
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-bold text-emerald-950 mb-4 uppercase tracking-wider">
-                    {isPro ? 'EVERYTHING IN BASIC, PLUS' : isPremium ? 'EVERYTHING IN PRO, PLUS' : 'WHAT\'S INCLUDED'}
-                  </p>
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-emerald-950 mb-4 uppercase tracking-wider">
+                      {t('WHAT\'S INCLUDED')}
+                    </p>
                   <ul className="space-y-3">
-                    {plan.features.map((feature, i) => {
+                    {(plan.features || []).map((feature, i) => {
+                      if (!feature) return null;
                       const [name, val] = feature.split(':');
                       return (
-                        <li key={i} className="flex items-start justify-between text-xs gap-3">
+                        <li key={`f-${i}`} className="flex items-start justify-between text-xs gap-3">
                           <div className="flex items-start gap-2 text-emerald-950 font-medium">
                             <Check className="w-4 h-4 text-emerald-500 shrink-0" />
                             <span>{name.trim()}</span>
                           </div>
                           {val && <span className="text-slate-500 text-right shrink-0">{val.trim()}</span>}
+                        </li>
+                      );
+                    })}
+                    {plan.aiLimits && PROVIDER_FEATURES.map(({ key, label }) => {
+                      const val = plan.aiLimits[key];
+                      if (val === undefined || val === null) return null;
+                      const isIncluded = val !== 0;
+                      return (
+                        <li key={`ai-${key}`} className={`flex items-start justify-between text-xs gap-3 ${!isIncluded ? 'opacity-50' : ''}`}>
+                          <div className={`flex items-start gap-2 font-medium ${isIncluded ? 'text-emerald-950' : 'text-slate-500'}`}>
+                            {isIncluded ? (
+                              <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                            ) : (
+                              <X className="w-4 h-4 text-red-500 shrink-0" />
+                            )}
+                            <span className={!isIncluded ? 'line-through' : ''}>{label}</span>
+                          </div>
+                          {isIncluded && <span className="text-slate-500 text-right shrink-0 font-bold">{val === -1 ? 'Unlimited' : val}</span>}
                         </li>
                       );
                     })}
@@ -783,12 +838,8 @@ const ProviderPlans = () => {
                         id={`plan-btn-${plan._id}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (['basic-ai', 'pro-ai', 'premium-ai'].includes(plan.slug)) {
-                            handleDirectCheckout(plan);
-                          } else {
-                            setSelectedPlan(plan);
-                            setShowConfigModal(true);
-                          }
+                          setSelectedPlan(plan);
+                          setShowConfigModal(true);
                         }}
                         disabled={checkoutLoading}
                         className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-sm ${
@@ -816,6 +867,7 @@ const ProviderPlans = () => {
             );
           })}
         </div>
+        )}
 
           
           {/* Important Disclaimers */}
@@ -854,51 +906,7 @@ const ProviderPlans = () => {
             </div>
           </div>
 
-        {/* Comparison Table */}
-        <div className="bg-white rounded-3xl border border-emerald-100 shadow-sm overflow-hidden mb-8">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead>
-                <tr className="border-b border-emerald-100">
-                  <th className="p-6 font-bold text-emerald-950 bg-slate-50 min-w-[250px] whitespace-normal">
-                    <div className="flex items-center gap-2">
-                      <Target className="w-5 h-5 text-emerald-600" />{t("PLAN COMPARISON")}<br/>{t("AT A GLANCE")}</div>
-                  </th>
-                  <th className="p-6 text-center">
-                    <div className="text-xs font-bold text-emerald-600 uppercase">{t("BASIC AI")}</div>
-                    <div className="text-emerald-950 font-extrabold mt-1">{t("₹ 199/month")}</div>
-                  </th>
-                  <th className="p-6 text-center bg-teal-50">
-                    <div className="text-xs font-bold text-teal-600 uppercase">{t("PRO AI")}</div>
-                    <div className="text-emerald-950 font-extrabold mt-1">{t("₹ 499/month")}</div>
-                  </th>
-                  <th className="p-6 text-center">
-                    <div className="text-xs font-bold text-amber-600 uppercase">{t("PREMIUM AI CAREER COACH")}</div>
-                    <div className="text-emerald-950 font-extrabold mt-1">{t("₹ 999/month")}</div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-emerald-100">
-                {[
-                  { label: 'AI Career Analysis (Skill Gap, Why Not, Interview Prob, Resume, Career GPS)', basic: '5 requests / month', pro: '20 requests / month', premium: 'Unlimited' },
-                  { label: 'AI Chat Assistant', basic: '20 questions / month', pro: '200 questions / month', premium: 'Unlimited*' },
-                  { label: 'WhatsApp Alerts', basic: '20 / month', pro: '100 / month', premium: 'Unlimited*' },
-                  { label: 'Email Alerts', basic: '30 / month', pro: '200 / month', premium: 'Unlimited*' },
-                  { label: 'Job Alerts', basic: 'Daily', pro: 'Real-time', premium: 'Instant' },
-                  { label: 'Deep Career Reports (Claude)', basic: '—', pro: '—', premium: '10 reports / month' },
-                ].map((row, i) => (
-                  <tr key={i} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 pl-6 text-xs font-semibold text-emerald-950 whitespace-normal min-w-[250px] max-w-[300px] leading-relaxed">{row.label}</td>
-                    <td className="p-4 text-center text-xs text-slate-500">{row.basic}</td>
-                    <td className="p-4 text-center text-xs text-slate-500 bg-teal-50/50">{row.pro}</td>
-                    <td className="p-4 text-center text-xs text-slate-500">{row.premium}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="p-4 text-[10px] text-center text-[#94A3B8] border-t border-emerald-100">{t("* Fair usage policy applies to prevent spam.")}</div>
-          </div>
+        {/* Empty Comparison Table (Removed) */}
 
           {/* Bottom Bar */}
           <div className="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 mb-6">

@@ -63,7 +63,7 @@ export default defineConfig({
       'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
       'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://scripts.clarity.ms https://www.clarity.ms; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https://res.cloudinary.com https://flagcdn.com; connect-src 'self' http://localhost:5000 http://localhost:5173 ws://localhost:5173 wss://localhost:5000 wss://*.clarity.ms https://*.clarity.ms; frame-src 'self' https://www.youtube.com;",
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://scripts.clarity.ms https://www.clarity.ms https://checkout.razorpay.com https://cdn.razorpay.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https://res.cloudinary.com https://flagcdn.com; connect-src 'self' http://localhost:5000 http://localhost:5055 http://localhost:5173 ws://localhost:5173 ws://localhost:5055 wss://localhost:5000 wss://localhost:5055 wss://*.clarity.ms https://*.clarity.ms https://api.allorigins.win https://www.google-analytics.com https://analytics.google.com https://*.razorpay.com; worker-src 'self' blob:; frame-src 'self' https://www.youtube.com https://api.razorpay.com;",
     },
     proxy: {
       '/api': {

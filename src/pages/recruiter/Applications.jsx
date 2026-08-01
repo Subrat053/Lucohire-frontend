@@ -72,7 +72,7 @@ const UpgradeModal = ({ onClose, navigate }) => {
 };
 
 /* ── Application Card ────────────────────────────────────────────────── */
-const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock }) => {
+const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock, aiUsage, setAiUsage, usageLoading }) => {
   const {
     t
   } = useTranslation();
@@ -82,6 +82,36 @@ const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock })
   const [skillGapData, setSkillGapData] = useState(null);
   const [loadingSkillGap, setLoadingSkillGap] = useState(false);
   const navigate = useNavigate();
+
+  const handleGenerateSkillGap = async () => {
+    if (skillGapData) {
+      setShowSkillGap(!showSkillGap);
+      return;
+    }
+    
+    setLoadingSkillGap(true);
+    setShowSkillGap(true);
+    try {
+      const res = await recruiterAPI.getSkillGap({
+        providerId: provider._id,
+        jobId: job._id
+      });
+      setSkillGapData(res.data);
+      // Fetch updated usage if success
+      if (res.data) {
+          recruiterAPI.getAiUsage().then(usageRes => {
+              if (usageRes.data?.success && typeof setAiUsage === 'function') {
+                  setAiUsage({ limits: usageRes.data.limits || {}, usage: usageRes.data.usage || {} });
+              }
+          }).catch(() => {});
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to generate skill gap report');
+      setShowSkillGap(false);
+    } finally {
+      setLoadingSkillGap(false);
+    }
+  };
 
   const provider = application.provider;
   const job = application.jobPost;
@@ -117,27 +147,7 @@ const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock })
     }
   };
 
-  const handleGenerateSkillGap = async () => {
-    if (skillGapData) {
-      setShowSkillGap(!showSkillGap);
-      return;
-    }
-    
-    setLoadingSkillGap(true);
-    setShowSkillGap(true);
-    try {
-      const res = await recruiterAPI.getSkillGap({
-        providerId: provider._id,
-        jobId: job._id
-      });
-      setSkillGapData(res.data);
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to generate skill gap report');
-      setShowSkillGap(false);
-    } finally {
-      setLoadingSkillGap(false);
-    }
-  };
+
 
   return (
     <div className={`rounded-2xl border p-6 bg-white shadow-sm border-gray-100 hover:border-gray-200 transition-all space-y-4`}>
@@ -245,14 +255,22 @@ const ApplicationCard = ({ application, onStatusChange, planSummary, onUnlock })
       <div className="pt-2">
         <button
           onClick={handleGenerateSkillGap}
-          className={`px-4 py-2 text-xs font-bold rounded-xl border flex items-center justify-center gap-2 transition-all w-full sm:w-auto ${
+          disabled={!showSkillGap && (aiUsage?.limits?.customReports !== -1 && aiUsage?.usage?.customReports >= (aiUsage?.limits?.customReports || 0))}
+          className={`px-4 py-2 text-xs font-bold rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed ${
             showSkillGap 
               ? 'bg-purple-50 text-purple-700 border-purple-200'
               : 'bg-white text-gray-700 border-gray-200 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200'
           }`}
         >
-          <HiSparkles className={showSkillGap ? "text-purple-600" : "text-gray-400"} />
-          {showSkillGap ? 'Hide AI Match Analysis' : 'AI Match Analysis'}
+          <div className="flex items-center gap-2">
+            <HiSparkles className={showSkillGap ? "text-purple-600" : "text-gray-400"} />
+            {showSkillGap ? 'Hide AI Match Analysis' : 'AI Match Analysis'}
+          </div>
+          {!showSkillGap && !usageLoading && aiUsage?.limits?.customReports !== undefined && aiUsage?.limits?.customReports !== -1 && (
+             <span className="text-[10px] opacity-80 mt-[-2px] font-medium text-gray-500">
+                ({Math.max(0, aiUsage.limits.customReports - (aiUsage.usage.customReports || 0))} left)
+             </span>
+          )}
         </button>
       </div>
       {/* AI Skill Gap Panel */}
@@ -396,6 +414,17 @@ const RecruiterApplications = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [planSummary, setPlanSummary] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
+
+  useEffect(() => {
+    recruiterAPI.getAiUsage().then(res => {
+      if (res.data?.success) {
+        setAiUsage({ limits: res.data.limits || {}, usage: res.data.usage || {} });
+      }
+    }).catch(err => console.error(err))
+      .finally(() => setUsageLoading(false));
+  }, []);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -588,6 +617,9 @@ const RecruiterApplications = () => {
                 planSummary={planSummary}
                 onUnlock={handleUnlockProvider}
                 onStatusChange={() => fetchApplications(selectedJob)}
+                aiUsage={aiUsage}
+                setAiUsage={setAiUsage}
+                usageLoading={usageLoading}
               />
             ))}
           </div>

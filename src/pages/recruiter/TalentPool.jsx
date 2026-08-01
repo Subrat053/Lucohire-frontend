@@ -16,6 +16,17 @@ const TalentPool = () => {
   const [expandedJobId, setExpandedJobId] = useState(null);
   const [runningAI, setRunningAI] = useState(null);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
+
+  useEffect(() => {
+    recruiterAPI.getAiUsage().then(res => {
+      if (res.data?.success) {
+        setAiUsage({ limits: res.data.limits || {}, usage: res.data.usage || {} });
+      }
+    }).catch(err => console.error(err))
+      .finally(() => setUsageLoading(false));
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -43,6 +54,12 @@ const TalentPool = () => {
       await recruiterAPI.runAIEvaluation(jobId);
       toast.success('AI Analysis complete!');
       await fetchData(); // Refresh data to show new scores
+      
+      recruiterAPI.getAiUsage().then(usageRes => {
+        if (usageRes.data?.success) {
+          setAiUsage({ limits: usageRes.data.limits || {}, usage: usageRes.data.usage || {} });
+        }
+      });
     } catch (err) {
       toast.error('Failed to run AI analysis');
     } finally {
@@ -101,13 +118,22 @@ const TalentPool = () => {
                       {job.candidates?.length > topCandidates.length && (
                         <button 
                           onClick={(e) => handleRunAI(job._id, e)}
-                          disabled={runningAI === job._id}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition flex items-center gap-2"
+                          disabled={runningAI === job._id || (aiUsage.limits.aiCopilot !== -1 && aiUsage.usage.aiCopilot >= (aiUsage.limits.aiCopilot || 0))}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition flex flex-col items-center justify-center gap-0.5"
                         >
                           {runningAI === job._id ? (
-                            <><FiLoader className="w-4 h-4 animate-spin" />{t("Analyzing...")}</>
+                            <div className="flex items-center gap-2"><FiLoader className="w-4 h-4 animate-spin" />{t("Analyzing...")}</div>
                           ) : (
-                            <><HiSparkles className="w-4 h-4" />{t("Run AI Analysis")}</>
+                            <>
+                              <div className="flex items-center gap-2">
+                                <HiSparkles className="w-4 h-4" />{t("Run AI Analysis")}
+                              </div>
+                              {!usageLoading && aiUsage.limits.aiCopilot !== undefined && aiUsage.limits.aiCopilot !== -1 && (
+                                <span className="text-[10px] opacity-80 mt-[-2px] font-medium">
+                                  ({Math.max(0, aiUsage.limits.aiCopilot - (aiUsage.usage.aiCopilot || 0))} left)
+                                </span>
+                              )}
+                            </>
                           )}
                         </button>
                       )}

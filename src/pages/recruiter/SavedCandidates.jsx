@@ -25,6 +25,8 @@ const Candidates = () => {
   const [searchMessage, setSearchMessage] = useState(null);
   const [layout, setLayout] = useState('list');
   const [candidateScores, setCandidateScores] = useState({});
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [shortlistedIds, setShortlistedIds] = useState(new Set());
   const [shortlistingId, setShortlistingId] = useState(null); // id being toggled
@@ -150,6 +152,14 @@ const Candidates = () => {
       } else {
         setCandidates([]);
       }
+      
+      // refresh usage after search
+      recruiterAPI.getAiUsage().then(usageRes => {
+        if (usageRes.data?.success) {
+          setAiUsage({ limits: usageRes.data.limits || {}, usage: usageRes.data.usage || {} });
+        }
+      });
+      
     } catch (error) {
       console.error(error);
       toast.error('Failed to fetch candidates');
@@ -341,8 +351,19 @@ const Candidates = () => {
               />
             </div>
             <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
-              <button onClick={() => handleSearch()} disabled={loading || aiParsing} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-medium text-sm hover:bg-indigo-700 transition disabled:opacity-70">
-                {aiParsing ? <><FiLoader className="w-4 h-4 animate-spin" /> Analyzing...</> : <><FiSearch className="w-4 h-4" /> Search</>}
+              <button 
+                onClick={() => handleSearch()} 
+                disabled={loading || aiParsing || (aiUsage.limits.aiCandidateSearch !== -1 && aiUsage.usage.aiCandidateSearch >= (aiUsage.limits.aiCandidateSearch || 0))} 
+                className="flex-1 md:flex-none flex flex-col items-center justify-center bg-indigo-600 text-white px-5 py-2 h-[42px] rounded-xl font-medium hover:bg-indigo-700 transition disabled:opacity-70"
+              >
+                <div className="flex items-center gap-2 text-sm">
+                  {aiParsing ? <><FiLoader className="w-4 h-4 animate-spin" /> Analyzing...</> : <><FiSearch className="w-4 h-4" /> Search</>}
+                </div>
+                {!usageLoading && aiUsage.limits.aiCandidateSearch !== undefined && aiUsage.limits.aiCandidateSearch !== -1 && (
+                  <span className="text-[10px] opacity-80 mt-[-2px]">
+                    ({Math.max(0, aiUsage.limits.aiCandidateSearch - (aiUsage.usage.aiCandidateSearch || 0))} left)
+                  </span>
+                )}
               </button>
             </div>
           </div>

@@ -105,7 +105,19 @@ const Dashboard = () => {
   const [aiInsights, setAiInsights] = useState([]);
   const [aiInsightsLoading, setAiInsightsLoading] = useState(true);
   
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
+  
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    recruiterAPI.getAiUsage().then(res => {
+      if (res.data?.success) {
+        setAiUsage({ limits: res.data.limits || {}, usage: res.data.usage || {} });
+      }
+    }).catch(err => console.error(err))
+      .finally(() => setUsageLoading(false));
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
@@ -288,15 +300,46 @@ const Dashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* AI Limits Widget */}
+            {!usageLoading && aiUsage && aiUsage.limits && Object.keys(aiUsage.limits).length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col p-5">
+                <h2 className="text-lg font-bold text-gray-900 mb-4">{t("AI Plan Limits")}</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {Object.entries(aiUsage.limits).map(([key, limit]) => {
+                    if (key === '_id') return null;
+                    const used = aiUsage.usage[key] || 0;
+                    const remaining = limit === -1 ? 'Unlimited' : Math.max(0, limit - used);
+                    const percentage = limit === -1 ? 0 : Math.min(100, (used / limit) * 100);
+                    return (
+                      <div key={key} className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="text-xs text-gray-500 font-bold mb-1 capitalize">{key.replace(/ai/g, '').replace(/([A-Z])/g, ' $1').trim()}</div>
+                        <div className="text-xl font-black text-gray-900">{remaining} <span className="text-xs font-bold text-gray-400">{limit !== -1 && 'left'}</span></div>
+                        {limit !== -1 && (
+                          <div className="w-full bg-gray-200 rounded-full h-1 mt-2">
+                            <div className={`h-1 rounded-full ${percentage > 80 ? 'bg-red-500' : 'bg-indigo-600'}`} style={{ width: `${percentage}%` }}></div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right Column (1/3 width) - AI Insights */}
           <div className="bg-gradient-to-b from-indigo-50/50 to-white rounded-2xl border border-indigo-100 shadow-sm p-5 h-full flex flex-col">
             <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-gray-900">{t("AI Insights for You")}</h2>
-                <FiAlertCircle className="w-4 h-4 text-gray-400" />
-              </div>
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <HiSparkles className="w-5 h-5 text-indigo-500" />
+                {t("Luco AI Insights")}
+              </h2>
+              {!usageLoading && aiUsage.limits.customReports !== undefined && aiUsage.limits.customReports !== -1 && (
+                <span className="text-xs font-semibold px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100 shadow-sm">
+                  {Math.max(0, aiUsage.limits.customReports - (aiUsage.usage.customReports || 0))} insights left
+                </span>
+              )}
             </div>
             
             <div className="flex-1 flex flex-col justify-center space-y-4 mb-4 relative">

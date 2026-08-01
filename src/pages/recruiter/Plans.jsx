@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { HiCheck, HiOutlineLightningBolt, HiX, HiClock } from 'react-icons/hi';
 import { FaRegClock, FaChartLine, FaWallet, FaShieldAlt, FaHeadset, FaRocket, FaSearch } from 'react-icons/fa';
 import { paymentAPI, recruiterAPI } from '../../services/api';
-import useStripePayment from '../../hooks/useStripePayment';
+import useRazorpay from '../../hooks/useRazorpay';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { useLocale } from '../../context/LocaleContext';
@@ -87,7 +87,7 @@ const RecruiterPlans = () => {
   const [currentPlan, setCurrentPlan] = useState('free');
   const [planEndDate, setPlanEndDate] = useState(null);
   const [activePeriod, setActivePeriod] = useState('Monthly');
-  const { initiatePayment, loading: paymentLoading } = useStripePayment();
+  const { initiatePayment, loading: paymentLoading } = useRazorpay();
   const { formatPrice } = useLocale();
 
   const [showBreakdownModal, setShowBreakdownModal] = useState(false);

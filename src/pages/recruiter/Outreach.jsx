@@ -27,8 +27,19 @@ const Outreach = () => {
 
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedBoost, setSelectedBoost] = useState(null);
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
   
   const mockCandidateNames = ["Aarav Sharma", "Priya Patel", "Rohan Gupta", "Ananya Singh", "Vikram Reddy", "Sneha Joshi", "Kabir Khan", "Nisha Desai"];
+
+  useEffect(() => {
+    recruiterAPI.getAiUsage().then(res => {
+      if (res.data?.success) {
+        setAiUsage({ limits: res.data.limits || {}, usage: res.data.usage || {} });
+      }
+    }).catch(err => console.error(err))
+      .finally(() => setUsageLoading(false));
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -60,6 +71,12 @@ const Outreach = () => {
       // Update UI
       setCampaigns([res.data.campaign, ...campaigns]);
       setIsModalOpen(false);
+      
+      recruiterAPI.getAiUsage().then(usageRes => {
+        if (usageRes.data?.success) {
+          setAiUsage({ limits: usageRes.data.limits || {}, usage: usageRes.data.usage || {} });
+        }
+      });
     } catch (err) {
       toast.error('Failed to start campaign');
     } finally {
@@ -388,13 +405,22 @@ const Outreach = () => {
               </button>
               <button 
                 onClick={handleRunCampaign}
-                disabled={runningCampaign || loadingPreview || !previewData?.totalMatchCount}
-                className="px-8 py-2.5 text-sm font-extrabold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                disabled={runningCampaign || loadingPreview || !previewData?.totalMatchCount || (aiUsage.limits.outreachCampaigns !== -1 && aiUsage.usage.outreachCampaigns >= (aiUsage.limits.outreachCampaigns || 0))}
+                className="px-8 py-2.5 text-sm font-extrabold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl transition-all duration-300 flex flex-col items-center justify-center gap-0.5 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
                 {runningCampaign ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 ) : (
-                  <><HiSparkles className="w-4 h-4" />{t("Start Campaign")}</>
+                  <>
+                    <div className="flex items-center gap-2">
+                      <HiSparkles className="w-4 h-4" />{t("Start Campaign")}
+                    </div>
+                    {!usageLoading && aiUsage.limits.outreachCampaigns !== undefined && aiUsage.limits.outreachCampaigns !== -1 && (
+                      <span className="text-[10px] opacity-80 mt-[-2px] font-medium">
+                        ({Math.max(0, aiUsage.limits.outreachCampaigns - (aiUsage.usage.outreachCampaigns || 0))} left)
+                      </span>
+                    )}
+                  </>
                 )}
               </button>
             </div>

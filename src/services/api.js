@@ -259,6 +259,7 @@ export const recruiterAPI = {
   getOutreachAnalytics: () => API.get("/recruiter/reports/outreach-analytics"),
   getAiInsights: () => API.get("/recruiter/reports/ai-insights"),
   getCustomExportsData: () => API.get("/recruiter/reports/custom-exports"),
+  getAiUsage: () => API.get("/recruiter/ai/usage"),
   getDashboardInsights: () => API.post("/recruiter/ai/dashboard-insights"),
   getDashboard: () => API.get("/recruiter/dashboard"),
   getJobPostings: () => API.get("/recruiter/jobs"),

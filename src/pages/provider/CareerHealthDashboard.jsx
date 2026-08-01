@@ -517,17 +517,42 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
         <div id="report-content" className="pt-2">
         {/* Usage Banner */}
         {!usageLoading && (
-          <div className="bg-emerald-50/50 border border-emerald-100 px-6 py-3 rounded-2xl flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-emerald-600" />
-              <span className="text-sm font-medium text-emerald-900">{t("Career Health AI Limit:")}{(() => {
-                  const limit = aiUsage.limits['careerHealth'] || 0;
-                  const used = aiUsage.usage['careerHealth'] || 0;
-                  if (limit === -1) return <span className="font-bold text-emerald-700 ml-1">{t("Unlimited")}</span>;
-                  if (limit === 0) return <span className="font-bold text-red-600 ml-1">{t("Not included in plan")}</span>;
-                  return <span className="font-bold text-emerald-700 ml-1">{Math.max(0, limit - used)} / {limit}{t("requests remaining")}</span>;
-                })()}
-              </span>
+          <div className="bg-white border border-gray-200 p-4 sm:px-6 sm:py-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm mb-6">
+            <div className="flex-1 w-full max-w-md">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-4 h-4 text-emerald-600" />
+                <span className="text-sm font-medium text-gray-700">{t("Career Health AI Limit")}</span>
+              </div>
+              
+              {(() => {
+                const limit = aiUsage.limits['careerHealth'] || 0;
+                const used = aiUsage.usage['careerHealth'] || 0;
+                
+                if (limit === -1) {
+                  return <div className="text-sm font-bold text-green-600">{t("Unlimited Access")}</div>;
+                }
+                if (limit === 0) {
+                  return <div className="text-sm font-bold text-red-500">{t("Not included in your current plan")}</div>;
+                }
+
+                const percentage = Math.min(100, Math.round((used / limit) * 100));
+                let barColor = 'bg-emerald-600';
+                if (percentage > 80) barColor = 'bg-amber-500';
+                if (percentage >= 100) barColor = 'bg-red-500';
+
+                return (
+                  <div>
+                    <div className="flex justify-between text-xs mb-1.5 font-medium">
+                      <span className="text-gray-500">{used} used</span>
+                      <span className="text-gray-900">{limit} total</span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                      <div className={`h-2.5 rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${percentage}%` }}></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1.5">{Math.max(0, limit - used)} {t("requests remaining")}</p>
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex items-center gap-3">
               {isPro && (

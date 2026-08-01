@@ -57,6 +57,8 @@ const PostJob = () => {
   const [submitted, setSubmitted] = useState(false);
   const [matchCount, setMatchCount] = useState(0);
   const [stepError, setStepError] = useState('');
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
   const draftTimerRef = useRef(null);
   const [form, setForm] = useState({
     title: '', skill: '', city: '', budgetMin: '', budgetMax: '',
@@ -84,19 +86,30 @@ const PostJob = () => {
   }, []);
 
   useEffect(() => {
-    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
-    draftTimerRef.current = setTimeout(() => {
+    const fetchUsage = async () => {
       try {
+        const res = await recruiterAPI.getAiUsage();
+        if (res.data?.success) {
+          setAiUsage({ limits: res.data.limits || {}, usage: res.data.usage || {} });
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setUsageLoading(false);
+      }
+    };
+    fetchUsage();
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (form.title || form.description || form.skill) {
         const payload = { ...form, aiPrompt };
         localStorage.setItem('recruiter:postJobDraft', JSON.stringify(payload));
-      } catch (_) {
-        // ignore draft save errors
       }
-    }, 400);
-
-    return () => {
-      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
-    };
+    } catch (_) {
+      // ignore
+    }
   }, [form, aiPrompt]);
 
   const handleGenerateAI = async () => {
@@ -151,6 +164,12 @@ const PostJob = () => {
 
       setAiMeta({ status: data.aiStatus, model: data.model });
       toast.success(t('recruiter.aiGenerated', 'AI draft generated. Review and edit before posting.'));
+      // re-fetch usage after success
+      recruiterAPI.getAiUsage().then(res => {
+        if (res.data?.success) {
+          setAiUsage({ limits: res.data.limits || {}, usage: res.data.usage || {} });
+        }
+      });
     } catch (err) {
       toast.error(err.response?.data?.message || t('recruiter.aiGenerationFailed', 'AI generation failed'));
     } finally {
@@ -293,10 +312,15 @@ const PostJob = () => {
               <button
                 type="button"
                 onClick={handleGenerateAI}
-                disabled={aiGenerating}
-                className="px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
+                disabled={aiGenerating || (aiUsage.limits.aiJdGenerator !== -1 && aiUsage.usage.aiJdGenerator >= (aiUsage.limits.aiJdGenerator || 0))}
+                className="px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60 flex flex-col items-center justify-center"
               >
-                {aiGenerating ? t('common.generating', 'Generating…') : t('recruiter.generateWithAI', 'Generate with AI')}
+                <span>{aiGenerating ? t('common.generating', 'Generating…') : t('recruiter.generateWithAI', 'Generate with AI')}</span>
+                {!usageLoading && aiUsage.limits.aiJdGenerator !== undefined && aiUsage.limits.aiJdGenerator !== -1 && (
+                  <span className="text-[10px] opacity-80 mt-0.5">
+                    ({Math.max(0, aiUsage.limits.aiJdGenerator - (aiUsage.usage.aiJdGenerator || 0))} left)
+                  </span>
+                )}
               </button>
             </div>
             {aiMeta && (

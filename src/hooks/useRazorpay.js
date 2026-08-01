@@ -6,12 +6,32 @@ import toast from 'react-hot-toast';
  * Custom hook for Razorpay payment flow
  * Handles: simulation mode auto-complete, Razorpay checkout modal, verification
  */
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 export default function useRazorpay() {
   const [loading, setLoading] = useState(false);
 
   const initiatePayment = useCallback(async ({ planId, planName, userEmail, userName, onSuccess, onFailure }) => {
     setLoading(true);
     try {
+      const res = await loadRazorpayScript();
+      if (!res) {
+        toast.error('Failed to load Razorpay SDK. Please check your connection.');
+        setLoading(false);
+        return;
+      }
       // Step 1: Create order on backend
       const { data } = await paymentAPI.createOrder({ planId });
 
