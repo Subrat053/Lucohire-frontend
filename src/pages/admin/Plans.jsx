@@ -20,25 +20,41 @@ const emptyPlan = {
   availableCountries: [],
   countryPricing: [],
   aiLimits: {
-    // Limits will be undefined by default
+    chatAssistant: 0,
+    aiCareerAnalysis: 0,
+    atsScore: 0,
+    skillGapReport: 0,
+    whyNotHired: 0,
+    interviewCallProb: 0,
+    resumeImprovement: 0,
+    careerGps: 0,
+    salaryInsights: 0,
+    mockInterview: 0,
+    claudeDeepReports: 0,
   }
 };
 const PLAN_TIERS = [
-  { label: 'Basic', slug: 'basic' },
-  { label: 'Pro', slug: 'pro' },
-  { label: 'Max', slug: 'max' },
+  { label: 'Free', slug: 'free', group: 'Main' },
+  { label: 'Starter', slug: 'starter', group: 'Main' },
+  { label: 'Business', slug: 'business', group: 'Main' },
+  { label: 'Enterprise', slug: 'enterprise', group: 'Main' },
+  { label: 'Basic (Legacy)', slug: 'basic', group: 'Legacy' },
+  { label: 'Pro (Legacy)', slug: 'pro', group: 'Legacy' },
+  { label: 'Featured (Legacy)', slug: 'featured', group: 'Legacy' },
 ];
 const DURATION_OPTIONS = [
   { label: 'Monthly', value: 30 },
   { label: '3 Monthly', value: 90 },
+  { label: 'Semi Annually', value: 180 },
   { label: 'Annually', value: 365 },
 ];
 const DURATION_LABEL_BY_VALUE = {
   30: 'Monthly',
   90: '3 Monthly',
+  180: 'Semi Annually',
   365: 'Annually'
 };
-const TIER_ORDER = { basic: 0, pro: 1, max: 2 };
+const TIER_ORDER = { free: 0, starter: 1, business: 2, enterprise: 3 };
 
 const SEED_COUNTRY_CURRENCIES = {
   IN: { name: "India", currency: "INR", symbol: "₹", tax: 18, taxName: "GST" },
@@ -163,10 +179,8 @@ const AdminPlans = () => {
       let apiCountries = [];
       if (res.ok) {
         const data = await res.json();
-        
-        if (Array.isArray(data)) {
-          apiCountries = data
-            .filter(c => c.cca2 && c.name?.common)
+        apiCountries = data
+          .filter(c => c.cca2 && c.name?.common)
           .map(c => {
             const countryCode = c.cca2.toUpperCase();
             const countryName = c.name.common;
@@ -196,12 +210,10 @@ const AdminPlans = () => {
               countryName,
               currency,
               currencySymbol,
+              defaultTaxName,
               defaultTaxPercent
             };
           });
-        } else {
-          // Silently fallback if allorigins returns unexpected format
-        }
       } else {
         throw new Error("RestCountries API returned non-ok status");
       }
@@ -325,7 +337,7 @@ const AdminPlans = () => {
       return;
     }
     if (!DURATION_OPTIONS.some((opt) => opt.value === Number(form.duration))) {
-      toast.error('Duration must be Monthly, 3 Monthly, or Annually');
+      toast.error('Duration must be Monthly, 3 Monthly, Semi Annually, or Annually');
       return;
     }
 
@@ -491,15 +503,305 @@ const AdminPlans = () => {
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm"
                 >
                   <option value="">Select plan tier</option>
-                  {PLAN_TIERS.map((tier) => (
-                    <option key={tier.slug} value={tier.slug}>{tier.label}</option>
+                  {['Main', 'Legacy'].map(group => (
+                    <optgroup key={group} label={group}>
+                      {PLAN_TIERS.filter(t => t.group === group).map((tier) => (
+                        <option key={tier.slug} value={tier.slug}>{tier.label}</option>
+                      ))}
+                    </optgroup>
                   ))}
                   {form.slug && !PLAN_TIERS.some(t => t.slug === form.slug) && (
-                    <option value={form.slug}>{form.slug} (Current)</option>
+                    <optgroup label="Current Custom Tier">
+                      <option value={form.slug}>{form.slug} (Current)</option>
+                    </optgroup>
                   )}
                 </select>
               </div>
 
+              {/* Available Countries (Multiselect) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Available Countries</label>
+                <div className="flex flex-wrap gap-1.5 mb-1 max-h-36 overflow-y-auto border border-gray-200 p-2.5 rounded-xl bg-gray-50">
+                  {countriesList.length === 0 ? (
+                    <p className="text-xs text-gray-500 italic">No countries configured in Country Master.</p>
+                  ) : (
+                    countriesList.map(c => {
+                      const isSelected = form.availableCountries.includes(c.countryCode);
+                      return (
+                        <button
+                          key={c.countryCode}
+                          type="button"
+                          onClick={() => {
+                            const next = isSelected
+                              ? form.availableCountries.filter(code => code !== c.countryCode)
+                              : [...form.availableCountries, c.countryCode];
+                            setForm(f => ({ ...f, availableCountries: next }));
+                          }}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition flex items-center gap-1 ${
+                            isSelected
+                              ? 'bg-indigo-50 text-indigo-700 border-blue-300'
+                              : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                          }`}
+                        >
+                          {c.countryName} ({c.countryCode})
+                          {isSelected && <HiCheck className="w-3.5 h-3.5" />}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+                <p className="text-[11px] text-gray-400">Keep empty to allow purchase from any country. If countries are specified, only users from those countries can buy this plan.</p>
+              </div>
+
+              {/* Country Pricing Configuration Grid */}
+              <div className="border-t border-gray-100 pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-gray-900">Country Pricing Configuration</h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const configuredCodes = form.countryPricing.map(cp => cp.countryCode);
+                      const nextCountry = countriesList.find(c => !configuredCodes.includes(c.countryCode)) || countriesList[0];
+                      
+                      if (!nextCountry) {
+                        toast.error('Please configure countries in Country Master first.');
+                        return;
+                      }
+
+                      setForm(f => ({
+                        ...f,
+                        countryPricing: [
+                          ...f.countryPricing,
+                          {
+                            countryCode: nextCountry.countryCode,
+                            countryName: nextCountry.countryName,
+                            currency: nextCountry.currency,
+                            currencySymbol: nextCountry.currencySymbol,
+                            basePrice: 0,
+                            discountedPrice: 0,
+                            taxName: nextCountry.defaultTaxName || 'GST',
+                            taxPercent: nextCountry.defaultTaxPercent || 0,
+                            isTaxInclusive: false,
+                            isActive: true
+                          }
+                        ]
+                      }));
+                    }}
+                    className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-xs font-bold transition flex items-center gap-1"
+                  >
+                    <HiPlus className="w-4 h-4" /> Add Country Pricing
+                  </button>
+                </div>
+
+                {form.countryPricing.length === 0 ? (
+                  <p className="text-xs text-gray-500 italic bg-gray-50 p-3 rounded-xl border border-dashed border-gray-200">
+                    No country pricing configured. It will fall back to using default base price.
+                  </p>
+                ) : (
+                  <div className="space-y-3 max-h-[35vh] overflow-y-auto pr-1">
+                    {form.countryPricing.map((cp, idx) => (
+                      <div key={idx} className="bg-gray-50 p-3.5 rounded-xl border border-gray-200 space-y-3 relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setForm(f => ({
+                              ...f,
+                              countryPricing: f.countryPricing.filter((_, i) => i !== idx)
+                            }));
+                          }}
+                          className="absolute top-2 right-2 text-red-700 hover:text-red-700 p-1 hover:bg-red-50 rounded-lg"
+                        >
+                          <HiTrash className="w-4 h-4" />
+                        </button>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Country</label>
+                            <select
+                              value={cp.countryCode}
+                              onChange={(e) => {
+                                const code = e.target.value;
+                                const found = countriesList.find(c => c.countryCode === code);
+                                if (found) {
+                                  setForm(f => {
+                                    const next = [...f.countryPricing];
+                                    next[idx] = {
+                                      ...next[idx],
+                                      countryCode: found.countryCode,
+                                      countryName: found.countryName,
+                                      currency: found.currency,
+                                      currencySymbol: found.currencySymbol,
+                                      taxName: found.defaultTaxName || 'GST',
+                                      taxPercent: found.defaultTaxPercent || 0
+                                    };
+                                    return { ...f, countryPricing: next };
+                                  });
+                                }
+                              }}
+                              className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:ring-1 focus:ring-indigo-500 outline-none font-semibold text-gray-800"
+                            >
+                              {countriesList.map(c => (
+                                <option key={c.countryCode} value={c.countryCode}>{c.countryName} ({c.countryCode})</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Currency & Symbol</label>
+                            <div className="flex gap-1.5 items-center">
+                              <input
+                                type="text"
+                                value={cp.currency}
+                                placeholder="INR"
+                                onChange={(e) => {
+                                  const val = e.target.value.toUpperCase();
+                                  setForm(f => {
+                                    const next = [...f.countryPricing];
+                                    next[idx].currency = val;
+                                    return { ...f, countryPricing: next };
+                                  });
+                                }}
+                                className="w-1/2 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none uppercase font-mono"
+                              />
+                              <input
+                                type="text"
+                                value={cp.currencySymbol}
+                                placeholder="₹"
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setForm(f => {
+                                    const next = [...f.countryPricing];
+                                    next[idx].currencySymbol = val;
+                                    return { ...f, countryPricing: next };
+                                  });
+                                }}
+                                className="w-1/2 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Base Price</label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-1.5 text-xs text-gray-400 font-bold">{cp.currencySymbol}</span>
+                              <input
+                                type="number"
+                                min="0"
+                                required
+                                value={cp.basePrice}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setForm(f => {
+                                    const next = [...f.countryPricing];
+                                    next[idx].basePrice = val;
+                                    return { ...f, countryPricing: next };
+                                  });
+                                }}
+                                className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Discounted Price</label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-1.5 text-xs text-gray-400 font-bold">{cp.currencySymbol}</span>
+                              <input
+                                type="number"
+                                min="0"
+                                value={cp.discountedPrice}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setForm(f => {
+                                    const next = [...f.countryPricing];
+                                    next[idx].discountedPrice = val;
+                                    return { ...f, countryPricing: next };
+                                  });
+                                }}
+                                className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Tax Name & %</label>
+                            <div className="flex gap-1.5 items-center">
+                              <input
+                                type="text"
+                                value={cp.taxName}
+                                placeholder="GST"
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setForm(f => {
+                                    const next = [...f.countryPricing];
+                                    next[idx].taxName = val;
+                                    return { ...f, countryPricing: next };
+                                  });
+                                }}
+                                className="w-1/2 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none"
+                              />
+                              <input
+                                type="number"
+                                min="0"
+                                value={cp.taxPercent}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setForm(f => {
+                                    const next = [...f.countryPricing];
+                                    next[idx].taxPercent = val;
+                                    return { ...f, countryPricing: next };
+                                  });
+                                }}
+                                className="w-1/2 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 pt-3.5">
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={cp.isTaxInclusive}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  setForm(f => {
+                                    const next = [...f.countryPricing];
+                                    next[idx].isTaxInclusive = checked;
+                                    return { ...f, countryPricing: next };
+                                  });
+                                }}
+                                className="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              />
+                              <span className="text-[11px] font-medium text-gray-700">Tax Inclusive</span>
+                            </label>
+
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={cp.isActive}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  setForm(f => {
+                                    const next = [...f.countryPricing];
+                                    next[idx].isActive = checked;
+                                    return { ...f, countryPricing: next };
+                                  });
+                                }}
+                                className="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              />
+                              <span className="text-[11px] font-medium text-gray-700">Active</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {form.type === 'provider' && (
                 <>
@@ -516,165 +818,75 @@ const AdminPlans = () => {
                     </div>
                   </div>
                   
-                  {/* AI Limits Section - Page Wise */}
-                  <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 mt-2 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-sm text-purple-900 flex items-center gap-2">
-                        <HiStar className="w-4 h-4 text-purple-600" />
-                        AI Feature Limits (-1 for unlimited)
-                      </h3>
-                      <div className="text-sm font-semibold text-purple-700 bg-purple-100 px-3 py-1 rounded-full">
-                        Est. Cost: $
-                        {(() => {
-                          const features = [
-                            'resumeOptimization', 'careerHealthRefresh', 'interviewQuestionsRefresh', 'careerGpsRefresh',
-                            'whyNotHiredRefresh', 'skillGapRefresh', 'atsOptimizerRefresh', 'chatMessagesLimit',
-                            'dailyTasksRefresh', 'careerPlanRefresh', 'resourcesRefresh', 'progressRefresh',
-                            'aiTipsRefresh', 'resumeScoreRefresh', 'autoAnalysisLimit'
-                          ];
-                          let totalCredits = 0;
-                          let hasUnlimited = false;
-                          features.forEach(f => {
-                            const val = form.aiLimits?.[f] || 0;
-                            if (val === -1) hasUnlimited = true;
-                            else if (val > 0) totalCredits += val;
-                          });
-                          if (hasUnlimited) return "Unlimited (Varies)";
-                          return '₹' + (totalCredits * 0.42).toFixed(2);
-                        })()}
-                        <span className="text-xs text-purple-500 font-normal ml-1">(@ ₹0.42/credit)</span>
-                      </div>
-                    </div>
-                    
-                    {[
-                      { page: 'Profile', features: [ { key: 'resumeOptimization', label: 'AI Optimize Resume' }, { key: 'autoAnalysisLimit', label: 'Profile Auto-Analysis' } ] },
-                      { page: 'Career Health', features: [ { key: 'careerHealthRefresh', label: 'Refresh Insights' } ] },
-                      { page: 'Grow With AI', features: [ 
-                          { key: 'interviewQuestionsRefresh', label: 'Interview Questions' },
-                          { key: 'careerGpsRefresh', label: 'AI Career GPS' },
-                          { key: 'whyNotHiredRefresh', label: 'Why Not Hired' },
-                          { key: 'skillGapRefresh', label: 'Skill Gap Report' },
-                          { key: 'atsOptimizerRefresh', label: 'ATS Optimizer' }
-                      ] },
-                      { page: 'AI Career Coach', features: [
-                          { key: 'chatMessagesLimit', label: 'Chat Messages Limit' },
-                          { key: 'dailyTasksRefresh', label: 'Daily Tasks' },
-                          { key: 'careerPlanRefresh', label: 'Career Plan' },
-                          { key: 'resourcesRefresh', label: 'Resources' },
-                          { key: 'progressRefresh', label: 'Progress' }
-                      ] },
-                      { page: 'AI Tips', features: [ { key: 'aiTipsRefresh', label: 'Refresh Insight' } ] },
-                      { page: 'Resume Toolkit', features: [ { key: 'resumeScoreRefresh', label: 'Resume Score Refresh' } ] }
-                    ].map((group, gIdx) => (
-                      <div key={gIdx} className="bg-white p-3 rounded-lg border border-purple-100 shadow-sm">
-                        <h4 className="font-semibold text-xs text-gray-800 mb-2 border-b pb-1">{group.page}</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {group.features.map(field => {
-                            const isEnabled = form.aiLimits?.[field.key] !== undefined;
-                            return (
-                              <div key={field.key} className="flex items-center gap-2 bg-gray-50 p-2 rounded-md border border-gray-100">
-                                <input 
-                                  type="checkbox" 
-                                  checked={isEnabled}
-                                  onChange={(e) => {
-                                    const checked = e.target.checked;
-                                    setForm(f => ({
-                                      ...f,
-                                      aiLimits: { ...f.aiLimits, [field.key]: checked ? 0 : undefined }
-                                    }));
-                                  }}
-                                  className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-                                />
-                                <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                                  <span className="text-xs font-medium text-gray-700 truncate" title={field.label}>{field.label}</span>
-                                  {isEnabled && (
-                                    <input 
-                                      type="number" min="-1" 
-                                      value={form.aiLimits?.[field.key] !== undefined ? form.aiLimits[field.key] : 0} 
-                                      onChange={e => {
-                                        const val = e.target.value;
-                                        setForm(f => ({ 
-                                          ...f, 
-                                          aiLimits: { ...f.aiLimits, [field.key]: val === "" ? "" : Number(val) } 
-                                        }));
-                                      }}
-                                      className="w-16 px-1.5 py-1 text-xs border border-purple-300 rounded focus:ring-1 focus:ring-purple-500" 
-                                    />
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-              {form.type === 'recruiter' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Unlock Credits</label>
-                    <input type="number" min="-1" value={form.unlockCredits} onChange={e => setForm(f => ({ ...f, unlockCredits: Number(e.target.value) }))}
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
-                  </div>
-                  
-                  {/* Recruiter Usage Limits Section */}
-                  <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-2">
-                    <h3 className="font-bold text-sm text-blue-900 mb-3 flex items-center gap-2">
-                      <HiStar className="w-4 h-4 text-blue-600" />
-                      Recruiter Feature Limits (-1 for unlimited)
+                  {/* AI Limits Section */}
+                  <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 mt-2">
+                    <h3 className="font-bold text-sm text-purple-900 mb-3 flex items-center gap-2">
+                      <HiStar className="w-4 h-4 text-purple-600" />
+                      AI Feature Limits (-1 for unlimited)
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {[
-                        { key: 'aiJdGenerator', label: 'AI JD Generator' },
-                        { key: 'aiJdParsing', label: 'JD Parsing & Match' },
-                        { key: 'aiCopilot', label: 'AI Copilot' },
-                        { key: 'jobPostLimit', label: 'Job Posts Limit' },
-                        { key: 'jobBoostJobsLimit', label: 'Job Boosts (Total Jobs)' },
-                        { key: 'jobBoostDaysLimit', label: 'Job Boosts (Total Days)' },
-                        { key: 'outreachCampaigns', label: 'Outreach Campaigns' },
-                        { key: 'directMessaging', label: 'Direct Messaging' },
-                        { key: 'customReports', label: 'Custom Reports' },
+                        { key: 'chatAssistant', label: 'Chat Assistant' },
+                        { key: 'aiCareerAnalysis', label: 'Career Analysis' },
+                        { key: 'atsScore', label: 'ATS Score' },
+                        { key: 'skillGapReport', label: 'Skill Gap' },
+                        { key: 'whyNotHired', label: 'Why Not Hired' },
+                        { key: 'interviewCallProb', label: 'Interview Prob' },
+                        { key: 'resumeImprovement', label: 'Resume Improv.' },
+                        { key: 'careerGps', label: 'Career GPS' },
+                        { key: 'salaryInsights', label: 'Salary Insights' },
+                        { key: 'mockInterview', label: 'Mock Interview' },
+                        { key: 'claudeDeepReports', label: 'Deep Reports' },
                       ].map(field => (
                         <div key={field.key}>
                           <label className="block text-xs font-medium text-gray-700 mb-1 truncate" title={field.label}>{field.label}</label>
-                          <input type="number" min="-1" value={form.aiLimits?.[field.key] !== undefined ? form.aiLimits[field.key] : 0} 
-                            onChange={e => {
-                              const val = e.target.value;
-                              setForm(f => ({ 
-                                ...f, 
-                                aiLimits: { ...f.aiLimits, [field.key]: val === "" ? "" : Number(val) } 
-                              }));
-                            }}
-                            className="w-full px-2 py-1.5 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" />
+                          <input type="number" min="-1" value={form.aiLimits?.[field.key] || 0} 
+                            onChange={e => setForm(f => ({ 
+                              ...f, 
+                              aiLimits: { ...f.aiLimits, [field.key]: Number(e.target.value) } 
+                            }))}
+                            className="w-full px-2 py-1.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm" />
                         </div>
                       ))}
                     </div>
                   </div>
                 </>
               )}
-
+              {form.type === 'recruiter' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Unlock Credits</label>
+                  <input type="number" min="0" value={form.unlockCredits} onChange={e => setForm(f => ({ ...f, unlockCredits: Number(e.target.value) }))}
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Features</label>
+                {form.features.map((f, i) => (
+                  <div key={i} className="flex gap-2 mb-2">
+                    <input value={f} onChange={e => updateFeature(i, e.target.value)} placeholder={`Feature ${i + 1}`}
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
+                    {form.features.length > 1 && (
+                      <button type="button" onClick={() => removeFeature(i)} className="p-2 text-red-700 hover:bg-red-50 rounded-lg"><HiTrash className="w-4 h-4" /></button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" onClick={addFeature} className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">+ Add Feature</button>
+              </div>
               <div className="grid grid-cols-2 gap-4">
-                {/* Active Status toggle removed as per admin rules */}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))}
+                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                  <span className="text-sm font-medium text-gray-700">Active Status</span>
+                </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={form.showOnLandingPage} onChange={e => setForm(f => ({ ...f, showOnLandingPage: e.target.checked }))}
                     className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
                   <span className="text-sm font-medium text-gray-700">Show on Landing Page</span>
                 </label>
               </div>
-              {/* Check plan limits for creation */}
-              {!editingPlan && ((form.type === 'provider' && plans.filter(p => p.type === 'provider' && p.isActive).length >= 3) || (form.type === 'recruiter' && plans.filter(p => p.type === 'recruiter' && p.isActive).length >= 3)) && (
-                <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg mt-2 border border-red-100">
-                  Maximum of 3 active plans allowed for {form.type}. You cannot create any more.
-                </div>
-              )}
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowForm(false)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition font-medium text-sm text-gray-750">Cancel</button>
-                <button 
-                  type="submit" 
-                  disabled={!editingPlan && ((form.type === 'provider' && plans.filter(p => p.type === 'provider' && p.isActive).length >= 3) || (form.type === 'recruiter' && plans.filter(p => p.type === 'recruiter' && p.isActive).length >= 3))}
-                  className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                <button type="submit" className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium text-sm">
                   {editingPlan ? 'Update Plan' : 'Create Plan'}
                 </button>
               </div>
@@ -769,9 +981,10 @@ const AdminPlans = () => {
 };
 
 const PlanCard = ({ plan, formatPrice, openEdit, handleDelete, isLanding }) => (
-  <div className={`bg-white rounded-2xl border-2 p-5 relative transition-all hover:shadow-md flex flex-col justify-between ${isLanding ? 'border-indigo-200 shadow-sm' : 'border-gray-100'}`}>
+  <div className={`bg-white rounded-2xl border-2 p-5 relative transition-all hover:shadow-md flex flex-col justify-between ${plan.isActive ? (isLanding ? 'border-indigo-200 shadow-sm' : 'border-gray-100') : 'border-red-200 opacity-60'}`}>
     <div>
       {isLanding && <span className="absolute -top-2.5 left-4 px-2 py-0.5 bg-indigo-600 text-white text-[10px] rounded-full font-bold uppercase tracking-wider">On Landing Page</span>}
+      {!plan.isActive && <span className="absolute top-3 right-3 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">Inactive</span>}
       <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
       <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-0.5">{plan.type} • {plan.slug}</p>
       
@@ -826,33 +1039,6 @@ const PlanCard = ({ plan, formatPrice, openEdit, handleDelete, isLanding }) => (
           </li>
         ))}
       </ul>
-    </div>
-
-    <div className="mt-4 space-y-2">
-      {/* AI Limits Display */}
-      {plan.aiLimits && Object.entries(plan.aiLimits).some(([_, val]) => val !== 0 && val !== undefined && val !== null) && (
-        <div className="bg-purple-50 rounded-xl p-3 border border-purple-100 text-xs">
-          <div className="font-bold text-purple-900 border-b border-purple-200/60 pb-1 mb-1.5">Feature Limits</div>
-          <div className="space-y-1 text-purple-800">
-            {Object.entries(plan.aiLimits).map(([key, val]) => {
-              if (val === 0 || val === undefined || val === null) return null;
-              const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-              return (
-                <div key={key} className="flex justify-between items-center">
-                  <span>{formattedKey}</span>
-                  <span className="font-bold">{val === -1 ? 'Unlimited' : val}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-      
-      {plan.type === 'recruiter' && plan.unlockCredits > 0 && (
-        <div className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded inline-block">
-          Unlock Credits: {plan.unlockCredits}
-        </div>
-      )}
     </div>
 
     <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
