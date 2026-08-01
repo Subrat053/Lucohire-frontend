@@ -33,6 +33,7 @@ import {
   cancelSubscription,
   toggleAutoRenew,
 } from '../../services/providerPlanService';
+import { detectNearestLocation } from '../../utils/location';
 import { useAuth } from '../../context/AuthContext';
 import useTranslation from '../../hooks/useTranslation';
 import GuaranteeModal from '../../components/common/GuaranteeModal';
@@ -367,11 +368,31 @@ const ProviderPlans = () => {
   };
 
   const handleDirectCheckout = async (planToCheckout) => {
-    const hasCity = profile?.city || profile?.location?.city || user?.providerProfile?.city || user?.profile?.city || user?.city || profile?.locationData?.city;
-    const hasPincode = profile?.location?.postalCode || profile?.pincode || user?.providerProfile?.pincode || user?.profile?.pincode || user?.pincode || profile?.locations?.[0] || profile?.nearestLocation;
-    const hasCountry = profile?.country || profile?.location?.country || user?.country || user?.providerProfile?.country || user?.profile?.country;
+    let rawSkills = profile?.skills || profile?.expandedSkills || user?.providerProfile?.skills || user?.profile?.skills || user?.skills || [];
+    if (!Array.isArray(rawSkills)) rawSkills = [rawSkills].filter(Boolean);
+    const resolvedSkills = rawSkills.map(s => typeof s === 'string' ? s : (s?.name || s?.skill || '')).filter(Boolean);
 
-    if (!hasCity || !hasPincode || !hasCountry) {
+    let resolvedCity = profile?.city || profile?.location?.city || user?.providerProfile?.city || user?.profile?.city || user?.city || profile?.locationData?.city;
+    let resolvedPincode = profile?.location?.postalCode || profile?.pincode || user?.providerProfile?.pincode || user?.profile?.pincode || user?.pincode || profile?.locations?.[0] || profile?.nearestLocation;
+    let resolvedCountry = profile?.country || profile?.location?.country || user?.country || user?.providerProfile?.country || user?.profile?.country;
+
+    if (!resolvedCity || !resolvedPincode || !resolvedCountry) {
+      try {
+        toast.loading(t('Detecting your location automatically...'), { id: 'loc-detect' });
+        const loc = await detectNearestLocation();
+        resolvedCity = loc.city || resolvedCity;
+        resolvedPincode = loc.nearestLocation || loc.postalCode || loc.pincode || loc.city || resolvedPincode;
+        resolvedCountry = loc.country || resolvedCountry;
+        toast.dismiss('loc-detect');
+      } catch (err) {
+        toast.dismiss('loc-detect');
+        toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before purchasing this plan.'));
+        navigate('/provider/profile');
+        return;
+      }
+    }
+
+    if (!resolvedCity || !resolvedPincode || !resolvedCountry) {
       toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before purchasing this plan.'));
       navigate('/provider/profile');
       return;
@@ -385,9 +406,9 @@ const ProviderPlans = () => {
         durationMonths: selectedDuration,
         addonIds: [],
         configuration: {
-            skills: [],
-            pincodes: [],
-            cities: [],
+            skills: resolvedSkills,
+            pincodes: resolvedPincode ? [resolvedPincode] : [],
+            cities: resolvedCity ? [resolvedCity] : [],
         },
         isAutoSubscription,
       });
@@ -420,11 +441,31 @@ const ProviderPlans = () => {
       return;
     }
 
-    const hasCity = profile?.city || profile?.location?.city || user?.providerProfile?.city || user?.profile?.city || user?.city || profile?.locationData?.city;
-    const hasPincode = profile?.location?.postalCode || profile?.pincode || user?.providerProfile?.pincode || user?.profile?.pincode || user?.pincode || profile?.locations?.[0] || profile?.nearestLocation;
-    const hasCountry = profile?.country || profile?.location?.country || user?.country || user?.providerProfile?.country || user?.profile?.country;
+    let rawSkills = profile?.skills || profile?.expandedSkills || user?.providerProfile?.skills || user?.profile?.skills || user?.skills || [];
+    if (!Array.isArray(rawSkills)) rawSkills = [rawSkills].filter(Boolean);
+    const resolvedSkills = rawSkills.map(s => typeof s === 'string' ? s : (s?.name || s?.skill || '')).filter(Boolean);
 
-    if (!hasCity || !hasPincode || !hasCountry) {
+    let resolvedCity = profile?.city || profile?.location?.city || user?.providerProfile?.city || user?.profile?.city || user?.city || profile?.locationData?.city;
+    let resolvedPincode = profile?.location?.postalCode || profile?.pincode || user?.providerProfile?.pincode || user?.profile?.pincode || user?.pincode || profile?.locations?.[0] || profile?.nearestLocation;
+    let resolvedCountry = profile?.country || profile?.location?.country || user?.country || user?.providerProfile?.country || user?.profile?.country;
+
+    if (!resolvedCity || !resolvedPincode || !resolvedCountry) {
+      try {
+        toast.loading(t('Detecting your location automatically...'), { id: 'loc-detect' });
+        const loc = await detectNearestLocation();
+        resolvedCity = loc.city || resolvedCity;
+        resolvedPincode = loc.nearestLocation || loc.postalCode || loc.pincode || loc.city || resolvedPincode;
+        resolvedCountry = loc.country || resolvedCountry;
+        toast.dismiss('loc-detect');
+      } catch (err) {
+        toast.dismiss('loc-detect');
+        toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before subscribing to a plan.'));
+        navigate('/provider/profile');
+        return;
+      }
+    }
+
+    if (!resolvedCity || !resolvedPincode || !resolvedCountry) {
       toast.error(t('Please complete your location details (Country, City, Pincode) in your profile before subscribing to a plan.'));
       navigate('/provider/profile');
       return;
@@ -437,9 +478,9 @@ const ProviderPlans = () => {
         durationMonths: selectedDuration,
         addonIds: selectedAddons,
         configuration: {
-          skills: user?.skills || [],
-          pincodes: hasPincode ? [hasPincode] : [],
-          cities: hasCity ? [hasCity] : [],
+          skills: resolvedSkills,
+          pincodes: resolvedPincode ? [resolvedPincode] : [],
+          cities: resolvedCity ? [resolvedCity] : [],
         },
         isAutoSubscription,
       };
