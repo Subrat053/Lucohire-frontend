@@ -204,9 +204,13 @@ const NotificationBell = () => {
       </button>
 
       {open && (
-        <div id="notifications-dropdown" className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <h4 className="font-bold text-gray-900 text-sm">Notifications</h4>
+        <>
+          {/* Mobile backdrop */}
+          <div className="fixed inset-0 bg-black/20 z-[90] sm:hidden" onClick={() => setOpen(false)} aria-hidden="true"></div>
+          
+          <div id="notifications-dropdown" className="fixed top-20 left-1/2 -translate-x-1/2 w-[90vw] max-w-sm max-h-[80vh] flex flex-col sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-80 sm:left-auto sm:translate-x-0 sm:translate-y-0 sm:max-h-none bg-white rounded-2xl shadow-2xl sm:shadow-xl border border-gray-100 z-[100] sm:z-50 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
+              <h4 className="font-bold text-gray-900 text-sm">Notifications</h4>
             <div className="flex items-center gap-2">
                {unreadCount > 0 && (
                 <button
@@ -229,7 +233,7 @@ const NotificationBell = () => {
             </div>
           </div>
 
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-[60vh] sm:max-h-96 overflow-y-auto">
             {loading && notifications.length === 0 ? (
               <div className="text-center py-8 text-gray-400 text-sm">Loading...</div>
             ) : notifications.length === 0 ? (
@@ -285,6 +289,7 @@ const NotificationBell = () => {
             )}
           </div>
         </div>
+        </>
       )}
     </div>
   );

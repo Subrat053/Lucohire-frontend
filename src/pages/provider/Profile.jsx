@@ -1880,6 +1880,7 @@ const ProviderProfile = () => {
               />
               {activeTab === "Personal" && (
                 <>
+                  <div className="hidden md:block">
                   {/* Basic Information Card */}
                   <div id="basic-info-card" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6 relative">
                     <h3 className="font-extrabold text-slate-800 text-lg tracking-tight">{t("Basic Information")}</h3>
@@ -2221,9 +2222,9 @@ const ProviderProfile = () => {
                           <h4 className="text-[14px] font-bold text-slate-800">{t("Public SEO Profile")}</h4>
                           <p className="text-[12px] text-slate-500 mt-0.5">{t("Allow your profile to be indexed by search engines and viewed publicly.")}</p>
                         </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
+                        <label className="inline-flex items-center cursor-pointer">
                           <input type="checkbox" className="sr-only peer" checked={!!form.isPublicProfile} onChange={(e) => setForm({ ...form, isPublicProfile: e.target.checked })} />
-                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                          <div className="relative w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                         </label>
                       </div>
 
@@ -2234,14 +2235,14 @@ const ProviderProfile = () => {
                             "Showcase your freelance profile and receive direct calls or WhatsApp enquiries from verified clients—with your consent."
                           )}</p>
                         </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
+                        <label className="inline-flex items-center cursor-pointer">
                           <input 
                             type="checkbox" 
                             className="sr-only peer" 
                             checked={!!form.whatsappConsent} 
                             onChange={(e) => setForm({ ...form, whatsappConsent: e.target.checked })}
                           />
-                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                          <div className="relative w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                         </label>
                       </div>
 
@@ -2262,6 +2263,290 @@ const ProviderProfile = () => {
                             className="text-emerald-600 font-bold underline hover:text-emerald-700"
                           >
                             {t("Terms and Conditions")}
+                          </button>
+                        </label>
+                      </div>
+                    </div>
+                    </div>
+                  </div>
+
+                  {/* MOBILE PERSONAL TAB START */}
+                  <div className="md:hidden flex flex-col gap-4">
+                    {/* Hero/Header Card */}
+                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col items-center text-center relative">
+                      <div className="w-24 h-24 rounded-full border border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center relative mb-4 group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                        {avatarSrc ? (
+                          <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <UserIcon className="w-10 h-10 text-slate-300" />
+                        )}
+                        <div className="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center backdrop-blur-[2px] transition">
+                          <Camera className="w-5 h-5 text-white" />
+                        </div>
+                        {uploading && (
+                          <div className="absolute inset-0 bg-white/60 flex items-center justify-center backdrop-blur-sm">
+                            <RefreshCw className="w-4 h-4 text-emerald-600 animate-spin" />
+                          </div>
+                        )}
+                        <div className="absolute bottom-0 right-1 bg-white text-emerald-600 rounded-full p-1.5 shadow border border-slate-200">
+                          <Camera className="w-3 h-3" />
+                        </div>
+                      </div>
+                      <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+                      
+                      <div className="w-full relative mt-2 mb-3">
+                        <input
+                          type="text"
+                          value={form.name}
+                          onChange={(e) => setForm({ ...form, name: e.target.value, profileName: e.target.value })}
+                          placeholder={t("Full Name")}
+                          className="w-full text-center text-lg font-bold text-slate-800 outline-none placeholder:text-slate-400 bg-transparent"
+                        />
+                      </div>
+                      <div className="w-full relative">
+                        <input
+                          type="text"
+                          value={form.skills?.[0] || ""}
+                          onChange={(e) => {
+                            const skill = e.target.value;
+                            setForm(prev => ({ ...prev, skills: skill ? [skill] : [] }))
+                          }}
+                          placeholder={t("Headline (e.g. UI/UX Designer)")}
+                          className="w-full text-center text-sm font-medium text-slate-600 outline-none placeholder:text-slate-400 bg-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Contact & Location Card */}
+                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <PhoneIcon className="w-4 h-4 text-emerald-600" />
+                        <h3 className="font-bold text-slate-800 text-sm tracking-tight">{t("Contact Info")}</h3>
+                      </div>
+                      
+                      <div className="flex flex-col gap-4">
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                          <input
+                            type="email"
+                            value={form.email || ""}
+                            onChange={(e) => setForm({ ...form, email: e.target.value })}
+                            disabled={!!profileData?.user?.isEmailVerified}
+                            placeholder={t("Email")}
+                            className={`w-full pl-9 pr-3 py-2.5 text-[13px] rounded-xl border border-slate-200 outline-none transition text-slate-700 placeholder:text-slate-400 ${
+                              profileData?.user?.isEmailVerified ? "bg-slate-50 cursor-not-allowed text-slate-500" : "focus:border-emerald-500"
+                            }`}
+                          />
+                        </div>
+                        
+                        <div className="border border-slate-200 rounded-xl [&>div]:border-none [&_input]:text-[13px] focus-within:border-emerald-500 overflow-hidden">
+                           <CountryPhoneInput
+                             variant="profile"
+                             countryCode={form.countryCode || "+91"}
+                             nationalNumber={form.nationalNumber || ""}
+                             onChange={(phoneData) =>
+                               setForm((prev) => ({
+                                 ...prev,
+                                 countryCode: phoneData.countryCode,
+                                 nationalNumber: phoneData.nationalNumber,
+                                 phone: phoneData.fullPhone,
+                               }))
+                             }
+                           />
+                        </div>
+
+                        <div className="relative border border-slate-200 rounded-xl focus-within:border-emerald-500 overflow-hidden">
+                          <div className="w-full [&_input]:border-none [&_input]:text-[13px]">
+                            <LocationSearch
+                               iconClassName="text-slate-400 w-4 h-4"
+                               value={form.city}
+                               onChange={(value) => setForm(prev => ({ ...prev, city: value }))}
+                               onSelect={(item) => {
+                                 if(item) setForm(prev => ({ ...prev, city: item.city || item.name || "" }));
+                               }}
+                               placeholder={t("Current Location")}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="relative">
+                          <Link2 className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                          <input
+                            type="text"
+                            value={form.portfolioLinks?.[0]?.url || ""}
+                            onChange={(e) => setForm({ ...form, portfolioLinks: e.target.value ? [{ platform: 'LinkedIn', url: e.target.value }] : [] })}
+                            placeholder={t("LinkedIn Profile (Optional)")}
+                            className="w-full pl-9 pr-3 py-2.5 text-[13px] rounded-xl border border-slate-200 outline-none focus:border-emerald-500 text-slate-700 placeholder:text-slate-400"
+                          />
+                        </div>
+
+                        {profileData?.whatsappFreelancePlanActive && (
+                          <div className="relative">
+                            <span className="absolute left-3 top-2.5 font-bold text-slate-400 text-sm">₹</span>
+                            <input
+                              type="text"
+                              value={form.pricing || ""}
+                              onChange={(e) => setForm({ ...form, pricing: e.target.value, pricingType: 'hourly' })}
+                              placeholder={t("Hourly Rate")}
+                              className="w-full pl-7 pr-3 py-2.5 text-[13px] rounded-xl border border-slate-200 outline-none focus:border-emerald-500 text-slate-700 placeholder:text-slate-400"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Professional Summary */}
+                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col h-[260px]">
+                      <div className="flex items-center gap-2 mb-3">
+                        <UserIcon className="w-4 h-4 text-emerald-600" />
+                        <h3 className="font-bold text-slate-800 text-sm tracking-tight">{t("Professional Summary")}</h3>
+                      </div>
+                      
+                      <div className="relative flex-1 flex flex-col border border-slate-200 rounded-xl p-1 focus-within:border-emerald-500 overflow-hidden">
+                        <textarea
+                          value={form.description}
+                          onChange={(e) => setForm({ ...form, description: e.target.value })}
+                          placeholder={t("Write a short summary about yourself...")}
+                          className="w-full h-full px-2 py-2 text-[13px] outline-none resize-none text-slate-700 bg-transparent"
+                        />
+                        <div className="flex items-center justify-between p-2 pt-1 mt-auto bg-white border-t border-transparent">
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {form.description?.length || 0}{t("/ 600")}</span>
+                          <button 
+                            type="button" 
+                            onClick={handleSuggestAI} 
+                            disabled={isSuggestingAI}
+                            className="text-emerald-700 text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 disabled:opacity-50 transition-colors">
+                            {isSuggestingAI ? (
+                              <span className="w-3 h-3 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Sparkles className="w-3 h-3" />
+                            )}
+                            {isSuggestingAI ? 'Generating...' : 'Suggest with AI'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Current Job Details */}
+                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Briefcase className="w-4 h-4 text-emerald-600" />
+                        <h3 className="font-bold text-slate-800 text-sm tracking-tight">{t("Current Job Details")}</h3>
+                      </div>
+                      
+                      <div className="flex flex-col gap-4">
+                        <div>
+                          <input
+                            type="text"
+                            value={form.designation}
+                            onChange={(e) => setForm({ ...form, designation: e.target.value })}
+                            placeholder={t("Current Designation")}
+                            className="w-full px-3 py-2.5 text-[13px] rounded-xl border border-slate-200 outline-none focus:border-emerald-500 text-slate-700 placeholder:text-slate-400"
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            value={form.company}
+                            onChange={(e) => setForm({ ...form, company: e.target.value })}
+                            placeholder={t("Company (Optional)")}
+                            className="w-full px-3 py-2.5 text-[13px] rounded-xl border border-slate-200 outline-none focus:border-emerald-500 text-slate-700 placeholder:text-slate-400"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <CreatableAutocomplete 
+                              value={form.experience || ''} 
+                              onChange={(val) => setForm({ ...form, experience: val })}
+                              onBlur={(val) => {
+                                if (val === '0' || val.toLowerCase() === 'fresher') setForm({ ...form, experience: 'Fresher' });
+                                else if (!isNaN(val) && val.trim() !== '') setForm({ ...form, experience: val === '1' ? '1 Year' : `${val} Years` });
+                              }}
+                              options={["Fresher", "1 Year", "2 Years", "3 Years", "4 Years", "5 Years"]}
+                              placeholder={t("Experience")}
+                            />
+                          </div>
+                          <div>
+                            <CreatableAutocomplete 
+                              value={form.noticePeriod || ''} 
+                              onChange={(val) => setForm({ ...form, noticePeriod: val })}
+                              onBlur={(val) => {
+                                if (val === '0' || val.toLowerCase() === 'immediate') setForm({ ...form, noticePeriod: 'Immediate' });
+                                else if (!isNaN(val) && val.trim() !== '') setForm({ ...form, noticePeriod: `${val} Days` });
+                              }}
+                              options={["Immediate", "15 Days", "30 Days", "60 Days"]}
+                              placeholder={t("Notice Period")}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contact Visibility */}
+                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                      <h3 className="font-bold text-slate-800 text-sm mb-3">{t("Contact Visibility")}</h3>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className={`relative border rounded-xl p-3 flex flex-col justify-center items-center text-center gap-1 transition-all ${form.contactVisibility === "both" ? "border-emerald-500 bg-emerald-50/20" : "border-slate-200"}`} onClick={() => setForm({ ...form, contactVisibility: "both" })}>
+                          <ShieldCheck className={`w-5 h-5 ${form.contactVisibility === "both" ? "text-emerald-600" : "text-slate-400"}`} />
+                          <span className="font-bold text-[11px] text-slate-700 leading-tight">{t("Phone & Email")}</span>
+                        </div>
+                        <div className={`relative border rounded-xl p-3 flex flex-col justify-center items-center text-center gap-1 transition-all ${form.contactVisibility === "email_only" ? "border-emerald-500 bg-emerald-50/20" : "border-slate-200"}`} onClick={() => setForm({ ...form, contactVisibility: "email_only" })}>
+                          <Mail className={`w-5 h-5 ${form.contactVisibility === "email_only" ? "text-emerald-600" : "text-slate-400"}`} />
+                          <span className="font-bold text-[11px] text-slate-700 leading-tight">{t("Email Only")}</span>
+                        </div>
+                        <div className={`relative border rounded-xl p-3 flex flex-col justify-center items-center text-center gap-1 transition-all ${form.contactVisibility === "phone_only" ? "border-emerald-500 bg-emerald-50/20" : "border-slate-200"}`} onClick={() => setForm({ ...form, contactVisibility: "phone_only" })}>
+                          <PhoneIcon className={`w-5 h-5 ${form.contactVisibility === "phone_only" ? "text-emerald-600" : "text-slate-400"}`} />
+                          <span className="font-bold text-[11px] text-slate-700 leading-tight">{t("Phone Only")}</span>
+                        </div>
+                        <div className={`relative border rounded-xl p-3 flex flex-col justify-center items-center text-center gap-1 transition-all ${form.contactVisibility === "none" ? "border-emerald-500 bg-emerald-50/20" : "border-slate-200"}`} onClick={() => setForm({ ...form, contactVisibility: "none" })}>
+                          <EyeOff className={`w-5 h-5 ${form.contactVisibility === "none" ? "text-emerald-600" : "text-slate-400"}`} />
+                          <span className="font-bold text-[11px] text-slate-700 leading-tight">{t("Hide All")}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Preferences & Toggles */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
+                      <div className="flex items-center justify-between p-4 border-b border-slate-100">
+                        <div className="pr-4">
+                          <h4 className="text-[13px] font-bold text-slate-800">{t("Public SEO Profile")}</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{t("Allow search engines to index your profile.")}</p>
+                        </div>
+                        <label className="inline-flex items-center cursor-pointer shrink-0">
+                          <input type="checkbox" className="sr-only peer" checked={!!form.isPublicProfile} onChange={(e) => setForm({ ...form, isPublicProfile: e.target.checked })} />
+                          <div className="relative w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 border-b border-slate-100">
+                        <div className="pr-4">
+                          <h4 className="text-[13px] font-bold text-slate-800">{t("WhatsApp Consent")}</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{t("Receive direct enquiries from clients.")}</p>
+                        </div>
+                        <label className="inline-flex items-center cursor-pointer shrink-0">
+                          <input type="checkbox" className="sr-only peer" checked={!!form.whatsappConsent} onChange={(e) => setForm({ ...form, whatsappConsent: e.target.checked })} />
+                          <div className="relative w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                      </div>
+
+                      <div className="flex items-start gap-3 p-4 bg-slate-50/50">
+                        <input
+                          type="checkbox"
+                          id="termsConsentCheckboxMobile"
+                          checked={agreedToTerms}
+                          onChange={(e) => setAgreedToTerms(e.target.checked)}
+                          className="mt-0.5 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 shrink-0"
+                        />
+                        <label htmlFor="termsConsentCheckboxMobile" className="text-[12px] text-slate-700 font-medium cursor-pointer">
+                          {t("I have read and agree to the")}{" "}
+                          <button
+                            type="button"
+                            onClick={() => setShowTermsModal(true)}
+                            className="text-emerald-600 font-bold underline hover:text-emerald-700 transition-colors"
+                          >
+                            {t("Terms & Conditions")}
                           </button>
                         </label>
                       </div>
@@ -2416,7 +2701,7 @@ const ProviderProfile = () => {
                      <div className="space-y-4">
                        {form.previousExperience?.map((exp, i) => (
                          <div key={i} className="relative grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border border-slate-100 rounded-xl bg-slate-50">
-                           <button type="button" onClick={() => setForm({ ...form, previousExperience: form.previousExperience.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-700">&times;</button>
+                           <button type="button" onClick={() => setForm({ ...form, previousExperience: form.previousExperience.filter((_, idx) => idx !== i) })} className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all text-xl shadow-sm hover:shadow-md" aria-label="Remove">&times;</button>
                            
                            <div className="sm:col-span-1">
                              <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Company Name")}</label>
@@ -2451,8 +2736,8 @@ const ProviderProfile = () => {
                      
                      <div className="space-y-4">
                        {form.projects?.map((proj, i) => (
-                         <div key={i} className="border border-slate-200 rounded-xl p-4 relative bg-slate-50">
-                           <button type="button" onClick={() => setForm({ ...form, projects: form.projects.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-700">&times;</button>
+                         <div key={i} className="border border-slate-200 rounded-xl p-4 pr-14 sm:pr-16 relative bg-slate-50">
+                           <button type="button" onClick={() => setForm({ ...form, projects: form.projects.filter((_, idx) => idx !== i) })} className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all text-xl shadow-sm hover:shadow-md" aria-label="Remove">&times;</button>
                            <div className="grid grid-cols-2 gap-4">
                              <div className="col-span-2">
                                <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Project Name")}</label>
@@ -2494,8 +2779,8 @@ const ProviderProfile = () => {
                      
                      <div className="space-y-4">
                        {form.education?.map((edu, i) => (
-                         <div key={i} className="border border-slate-200 rounded-xl p-4 relative">
-                           <button type="button" onClick={() => setForm({ ...form, education: form.education.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-700">&times;</button>
+                         <div key={i} className="border border-slate-200 rounded-xl p-4 pr-14 sm:pr-16 relative">
+                           <button type="button" onClick={() => setForm({ ...form, education: form.education.filter((_, idx) => idx !== i) })} className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all text-xl shadow-sm hover:shadow-md" aria-label="Remove">&times;</button>
                            <div className="grid grid-cols-2 gap-4">
                              <div>
                                <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Institution")}</label>
@@ -2529,8 +2814,8 @@ const ProviderProfile = () => {
                     
                     <div className="space-y-4">
                       {form.certifications?.map((cert, i) => (
-                        <div key={i} className="border border-slate-200 rounded-xl p-4 relative">
-                          <button type="button" onClick={() => setForm({ ...form, certifications: form.certifications.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-700">&times;</button>
+                        <div key={i} className="border border-slate-200 rounded-xl p-4 pr-14 sm:pr-16 relative">
+                          <button type="button" onClick={() => setForm({ ...form, certifications: form.certifications.filter((_, idx) => idx !== i) })} className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all text-xl shadow-sm hover:shadow-md" aria-label="Remove">&times;</button>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Certification Name")}</label>
@@ -2560,8 +2845,8 @@ const ProviderProfile = () => {
                     
                     <div className="space-y-4">
                       {form.achievements?.map((ach, i) => (
-                        <div key={i} className="border border-slate-200 rounded-xl p-4 relative">
-                          <button type="button" onClick={() => setForm({ ...form, achievements: form.achievements.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-700">&times;</button>
+                        <div key={i} className="border border-slate-200 rounded-xl p-4 pr-14 sm:pr-16 relative">
+                          <button type="button" onClick={() => setForm({ ...form, achievements: form.achievements.filter((_, idx) => idx !== i) })} className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all text-xl shadow-sm hover:shadow-md" aria-label="Remove">&times;</button>
                           <div className="grid grid-cols-1 gap-4">
                             <div>
                               <label className="block text-[12px] font-bold text-slate-600 mb-1.5">{t("Title")}</label>
@@ -2592,8 +2877,8 @@ const ProviderProfile = () => {
                      
                      <div className="space-y-4">
                        {form.portfolioLinks?.map((link, i) => (
-                         <div key={i} className="border border-slate-200 rounded-xl p-4 relative">
-                           <button type="button" onClick={() => setForm({ ...form, portfolioLinks: form.portfolioLinks.filter((_, idx) => idx !== i) })} className="absolute top-4 right-4 text-slate-400 hover:text-red-700">&times;</button>
+                         <div key={i} className="border border-slate-200 rounded-xl p-4 pr-14 sm:pr-16 relative">
+                           <button type="button" onClick={() => setForm({ ...form, portfolioLinks: form.portfolioLinks.filter((_, idx) => idx !== i) })} className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all text-xl shadow-sm hover:shadow-md" aria-label="Remove">&times;</button>
                            
                            {link.status && link.status !== 'pending' && (
                              <div className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 inline-block rounded mb-3 ${link.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
@@ -2717,10 +3002,11 @@ const ProviderProfile = () => {
                             toast.error(err.message || t('Failed to load resume preview'));
                           }
                         }}
-                        className="px-4 py-2 text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded-lg transition-colors flex items-center gap-2 font-bold text-[13px] shrink-0"
+                        className="px-3 py-2 sm:px-4 sm:py-2 text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded-lg transition-colors flex items-center gap-2 font-bold text-[12px] sm:text-[13px] shrink-0"
                       >
                         <Eye className="w-4 h-4" />
-                        {t('View Resume')}
+                        <span className="hidden sm:inline">{t('View Resume')}</span>
+                        <span className="sm:hidden">{t('View')}</span>
                       </button>
                     </div>
                   )}

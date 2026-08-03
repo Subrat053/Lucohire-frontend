@@ -51,7 +51,7 @@ export default function AITips() {
       fetchUsage();
       fetchProfile();
       fetchTopJobs();
-      fetchAICareerReport(finalIsPro);
+      fetchAICareerReport(finalIsPro, true);
     };
     init();
   }, [user]);
@@ -107,7 +107,9 @@ export default function AITips() {
     }
   };
 
-  const fetchAICareerReport = async (isUserPro) => {
+  const [needsGen, setNeedsGen] = useState(false);
+
+  const fetchAICareerReport = async (isUserPro, cachedOnly = false) => {
     try {
       setLoading(true);
       setError(null);
@@ -141,11 +143,14 @@ export default function AITips() {
       const fileHash = state?.fileHash || localStorage.getItem('lastResumeHash');
       const parsedData = state?.parsedData;
       
-      const payload = { fileHash, parsedData };
+      const payload = { fileHash, parsedData, cachedOnly };
       
       const response = await getAICareerReport(payload);
       if (response?.data?.data) {
         setReportData(response.data.data);
+        setNeedsGen(false);
+      } else if (response?.data?.success && response?.data?.needsGeneration) {
+        setNeedsGen(true);
       } else {
         setError("To generate your AI Career Report, please upload your resume or complete your profile details.");
       }
@@ -164,6 +169,24 @@ export default function AITips() {
       <div className="flex flex-col items-center justify-center py-20 min-h-[60vh]">
         <LoadingSpinner size="lg" className="text-indigo-600 mb-4" />
         <p className="text-gray-500 font-medium">{t("Analyzing your profile to generate AI Career Tips...")}</p>
+      </div>
+    );
+  }
+
+  if (needsGen) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-8 text-center mt-10">
+          <Sparkles className="w-12 h-12 text-indigo-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-indigo-900 mb-2">{t("AI Career Tips Ready")}</h2>
+          <p className="text-indigo-700 mb-6 max-w-md mx-auto">{t("Your profile has changed or you haven't generated this yet. Click below to generate your personalized AI Career Tips.")}</p>
+          <button
+            onClick={() => fetchAICareerReport(isPro, false)}
+            className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors gap-2"
+          >
+            <Sparkles className="w-5 h-5" /> {t("Generate Analysis (1 Credit)")}
+          </button>
+        </div>
       </div>
     );
   }

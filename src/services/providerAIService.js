@@ -16,8 +16,11 @@ export function getAiUsage() {
   return API.get('/provider/ai/usage', { timeout: 30000 });
 }
 
-export function getResumeToolkit(force = false) {
-  return API.get(`/provider/ai/resume-toolkit${force ? '?force=true' : ''}`, { timeout: 45000 });
+export function getResumeToolkit(force = false, cachedOnly = false) {
+  let url = '/provider/ai/resume-toolkit?';
+  if (force) url += 'force=true&';
+  if (cachedOnly) url += 'cachedOnly=true&';
+  return API.get(url, { timeout: 45000 });
 }
 
 export function testAIParser(payload) {

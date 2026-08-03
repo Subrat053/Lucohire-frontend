@@ -117,14 +117,16 @@ export default function GrowWithAIDashboard() {
         setIsPro(user?.isPro || false);
       }
       fetchUsage();
-      fetchGPS();
-      fetchBarriers();
-      fetchReport();
+      fetchGPS(true);
+      fetchBarriers(true);
+      fetchReport(true);
     };
     fetchPlanAndData();
   }, [fileHash, parsedData, user]);
 
-  const fetchReport = async () => {
+  const [reportNeedsGen, setReportNeedsGen] = useState(false);
+
+  const fetchReport = async (cachedOnly = false) => {
     try {
       setReportLoading(true);
       if (!isPro) {
@@ -132,9 +134,12 @@ export default function GrowWithAIDashboard() {
         setReportLoading(false);
         return;
       }
-      const { data } = await getAICareerReport({ fileHash, parsedData });
+      const { data } = await getAICareerReport({ fileHash, parsedData, cachedOnly });
       if (data?.success && data?.data) {
         setReportData(data.data);
+        setReportNeedsGen(false);
+      } else if (data?.success && data?.needsGeneration) {
+        setReportNeedsGen(true);
       }
     } catch (error) {
       console.error('Failed to fetch AI report', error);
@@ -157,7 +162,8 @@ export default function GrowWithAIDashboard() {
     }
   };
 
-  const fetchGPS = async () => {
+  const [gpsNeedsGen, setGpsNeedsGen] = useState(false);
+  const fetchGPS = async (cachedOnly = false) => {
     try {
       setGpsLoading(true);
       setErrorMessage(null);
@@ -169,11 +175,14 @@ export default function GrowWithAIDashboard() {
         return;
       }
 
-      const { data } = await getCareerGPS({ fileHash, parsedData });
-      if (data.success) {
+      const { data } = await getCareerGPS({ fileHash, parsedData, cachedOnly });
+      if (data.success && data.data) {
         setGpsData(data.data);
         setGpsLocked(false);
+        setGpsNeedsGen(false);
         if (fileHash) localStorage.setItem('lastResumeHash', fileHash);
+      } else if (data.success && data.needsGeneration) {
+        setGpsNeedsGen(true);
       }
     } catch (error) {
       console.error("Failed to fetch GPS data:", error);
@@ -187,7 +196,8 @@ export default function GrowWithAIDashboard() {
     }
   };
 
-  const fetchBarriers = async () => {
+  const [barriersNeedsGen, setBarriersNeedsGen] = useState(false);
+  const fetchBarriers = async (cachedOnly = false) => {
     try {
       setBarriersLoading(true);
       
@@ -198,10 +208,13 @@ export default function GrowWithAIDashboard() {
         return;
       }
 
-      const { data } = await getHiringBarriers({ fileHash, parsedData });
-      if (data.success) {
+      const { data } = await getHiringBarriers({ fileHash, parsedData, cachedOnly });
+      if (data.success && data.data) {
         setBarriersData(data.data);
         setBarriersLocked(false);
+        setBarriersNeedsGen(false);
+      } else if (data.success && data.needsGeneration) {
+        setBarriersNeedsGen(true);
       }
     } catch (error) {
       console.error("Failed to fetch Hiring Barriers data:", error);
@@ -409,8 +422,8 @@ export default function GrowWithAIDashboard() {
               return (limit !== -1 && (limit === 0 || used >= limit)) ? 'opacity-30 pointer-events-none' : '';
             })() ? 'opacity-30 pointer-events-none' : ''}>
               
-              {activeTab === 'gps' && <CareerGPSPanel loading={gpsLoading} data={gpsData} isLocked={gpsLocked} isPro={isPro} />}
-              {activeTab === 'barriers' && <HiringBarriersPanel loading={barriersLoading} data={barriersData} isLocked={barriersLocked} gpsData={gpsData} isPro={isPro} />}
+              {activeTab === 'gps' && <CareerGPSPanel loading={gpsLoading} data={gpsData} isLocked={gpsLocked} isPro={isPro} needsGen={gpsNeedsGen} onGenerate={() => fetchGPS(false)} />}
+              {activeTab === 'barriers' && <HiringBarriersPanel loading={barriersLoading} data={barriersData} isLocked={barriersLocked} gpsData={gpsData} isPro={isPro} needsGen={barriersNeedsGen} onGenerate={() => fetchBarriers(false)} />}
               {activeTab === 'skillgap' && <SkillGapPanel fileHash={fileHash} parsedData={parsedData} isPro={isPro} />}
               {activeTab === 'ats' && <AtsOptimizerPanel fileHash={fileHash} parsedData={parsedData} isPro={isPro} />}
               {activeTab === 'interview' && <InterviewQuestionsPanel key={refreshInterviewTrigger} isPro={isPro} fileHash={fileHash} parsedData={parsedData} />}
@@ -434,6 +447,13 @@ export default function GrowWithAIDashboard() {
             <ul className="space-y-3.5 mb-6">
               {reportLoading ? (
                 <div className="flex justify-center py-4"><div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div></div>
+              ) : reportNeedsGen ? (
+                <div className="text-center py-4">
+                  <p className="text-[11px] text-gray-500 mb-3">{t("New analysis available.")}</p>
+                  <button onClick={() => fetchReport(false)} className="px-4 py-2 bg-[#0f766e] text-white text-[11px] font-bold rounded-lg shadow-sm hover:bg-teal-800 transition-all flex items-center justify-center gap-1.5 w-full">
+                    <Sparkles className="w-3.5 h-3.5" /> {t("Generate AI Report (1 Credit)")}
+                  </button>
+                </div>
               ) : reportData?.top_strengths ? (
                 reportData.top_strengths.slice(0, 4).map((strength, i) => (
                   <li key={i} className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
@@ -454,12 +474,14 @@ export default function GrowWithAIDashboard() {
                 </>
               )}
             </ul>
-            <button 
-              onClick={() => isPro && setIsAiReportModalOpen(true)}
-              className={`w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition flex justify-center items-center gap-1.5 ${!isPro ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {t("View Full AI Analysis")}<ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            {!reportNeedsGen && (
+              <button 
+                onClick={() => isPro && setIsAiReportModalOpen(true)}
+                className={`w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition flex justify-center items-center gap-1.5 ${!isPro ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {t("View Full AI Analysis")}<ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
           {/* AI Coach */}
@@ -493,15 +515,15 @@ export default function GrowWithAIDashboard() {
                 <div className="w-6 h-6 rounded-full bg-[#075E54] flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
                 <h3 className="font-bold text-gray-900 text-[14px]">{t("WhatsApp AI Alerts")}</h3>
               </div>
-              <button
+              <div
                 onClick={() => {
                   setWhatsappEnabled(!whatsappEnabled);
                   toast.success(whatsappEnabled ? "WhatsApp alerts disabled" : "WhatsApp alerts enabled!");
                 }}
-                className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out flex items-center ${whatsappEnabled ? 'bg-[#075E54]' : 'bg-gray-200'}`}
+                className={`w-11 h-6 min-w-[44px] min-h-[24px] max-h-[24px] shrink-0 rounded-full p-[2px] cursor-pointer transition-colors duration-200 ease-in-out flex items-center box-border ${whatsappEnabled ? 'bg-[#075E54]' : 'bg-gray-200'}`}
               >
-                <div className={`w-4 h-4 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out ${whatsappEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
-              </button>
+                <div className={`w-5 h-5 min-w-[20px] min-h-[20px] rounded-full bg-white shadow-sm transform transition-transform duration-200 ease-in-out ${whatsappEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
+              </div>
             </div>
             <p className="text-[11px] text-gray-500 mb-4 font-medium">
               {whatsappEnabled ? t("You will receive updates on your phone.") : t("Stay updated on the go!")}
@@ -533,15 +555,15 @@ export default function GrowWithAIDashboard() {
                 <h3 className="font-bold text-gray-900 text-[14px]">{t("Earn Extra Income")}</h3>
                 <span className="bg-orange-50 text-orange-600 border border-orange-100 text-[9px] font-bold px-1.5 py-0.5 rounded-full hidden sm:inline-block">{t("New")}</span>
               </div>
-              <button
+              <div
                 onClick={() => {
                   setFreelanceEnabled(!freelanceEnabled);
                   toast.success(freelanceEnabled ? "Freelance discovery paused" : "Freelance mode activated!");
                 }}
-                className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out flex items-center ${freelanceEnabled ? 'bg-[#0f766e]' : 'bg-gray-200'}`}
+                className={`w-11 h-6 min-w-[44px] min-h-[24px] max-h-[24px] shrink-0 rounded-full p-[2px] cursor-pointer transition-colors duration-200 ease-in-out flex items-center box-border ${freelanceEnabled ? 'bg-[#0f766e]' : 'bg-gray-200'}`}
               >
-                <div className={`w-4 h-4 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out ${freelanceEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
-              </button>
+                <div className={`w-5 h-5 min-w-[20px] min-h-[20px] rounded-full bg-white shadow-sm transform transition-transform duration-200 ease-in-out ${freelanceEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
+              </div>
             </div>
             
             <div className="flex items-center justify-between gap-2 mb-5 mt-4">
@@ -579,7 +601,7 @@ export default function GrowWithAIDashboard() {
 // SUB-PANELS
 // -------------------------------------------------------------------------
 
-function CareerGPSPanel({ loading, data, isLocked, isPro }) {
+function CareerGPSPanel({ loading, data, isLocked, isPro, needsGen, onGenerate }) {
   const {
     t
   } = useTranslation();
@@ -591,6 +613,20 @@ function CareerGPSPanel({ loading, data, isLocked, isPro }) {
       <div className="flex flex-col items-center justify-center py-20 min-h-[40vh]">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0f766e] mb-4"></div>
         <p className="text-[13px] font-bold text-gray-500">{t("Calculating your optimal career trajectory...")}</p>
+      </div>
+    );
+  }
+  if (needsGen) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 min-h-[40vh]">
+        <div className="bg-teal-50 text-teal-700 p-4 rounded-full mb-4">
+          <Sparkles className="w-8 h-8" />
+        </div>
+        <h3 className="text-lg font-bold text-gray-900 mb-2">{t("AI Career GPS Ready")}</h3>
+        <p className="text-[13px] text-gray-500 max-w-md text-center mb-6">{t("Your profile has changed or you haven't generated this yet. Generate your AI Career GPS to see your optimal career trajectory.")}</p>
+        <button onClick={onGenerate} className="px-6 py-2.5 bg-[#0f766e] text-white text-sm font-bold rounded-xl shadow-sm hover:bg-teal-800 transition-all flex items-center gap-2">
+          <Sparkles className="w-4 h-4" /> {t("Generate AI Analysis (1 Credit)")}
+        </button>
       </div>
     );
   }
