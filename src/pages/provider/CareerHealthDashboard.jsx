@@ -991,8 +991,8 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                 {activeModal === 'improvement' && t("Full Improvement Plan")}
                 {activeModal === 'roadmap' && t("Complete Career Roadmap")}
               </h2>
-              <button onClick={() => setActiveModal(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 transition shadow-sm border border-red-600">
-                <span className="text-xl font-medium">&times;</span>
+              <button onClick={() => setActiveModal(null)} className="w-8 h-8 min-w-[32px] min-h-[32px] aspect-square flex-none flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 transition shadow-sm border border-red-600" aria-label="Close modal">
+                <span className="text-xl font-medium leading-none mb-[2px]">&times;</span>
               </button>
             </div>
             <div className="p-6 overflow-y-auto bg-slate-50 flex-1">

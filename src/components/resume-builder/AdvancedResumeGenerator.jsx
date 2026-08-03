@@ -244,8 +244,8 @@ function AdvancedResumeBuilderInner({ profileData }) {
             </div>
 
           {/* Right Area: Preview Container */}
-          <div className="w-full lg:flex-1 bg-slate-100/50 rounded-2xl p-6 lg:p-8 flex overflow-x-auto overflow-y-auto custom-scrollbar border border-slate-200 shadow-inner max-h-[85vh]">
-            <div className="mx-auto flex flex-col min-w-[794px] gap-4 py-4">
+          <div className="w-full lg:flex-1 bg-slate-100/50 rounded-2xl p-2 sm:p-6 lg:p-8 flex overflow-x-auto overflow-y-auto custom-scrollbar border border-slate-200 shadow-inner max-h-[85vh]">
+            <div className="mx-auto flex flex-col min-w-[794px] gap-4 py-4 [zoom:0.42] sm:[zoom:0.65] md:[zoom:0.85] lg:[zoom:1]">
               <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 shadow-sm animate-pulse">
                 <span>{t("Hover over a block and click to open the inline editor form.")}</span>
               </div>

@@ -40,24 +40,24 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
 
         
         {/* Main Job Search Bar */}
-        <form onSubmit={handleJobSearch} className="w-full max-w-3xl bg-white border border-gray-200 rounded-2xl shadow-sm p-1.5 flex flex-col sm:flex-row items-center relative z-10 hover:shadow-md transition gap-1.5 sm:gap-0 mt-1">
+        <form onSubmit={handleJobSearch} className="w-full max-w-3xl bg-white border border-gray-200 rounded-2xl shadow-sm p-2 sm:p-2.5 flex flex-col sm:flex-row items-center relative z-10 hover:shadow-md transition gap-2 sm:gap-2.5 mt-1">
           <JobSearchAutocomplete
             value={jobSearch}
             onChange={setJobSearch}
             onSelect={setJobSearch}
             placeholder={t("Search jobs by title, skills, or company")}
             liveJobsList={liveJobsList}
+            className="!bg-gray-50 !border !border-gray-100 !rounded-lg focus-within:!border-blue-500 focus-within:!ring-1 focus-within:!ring-blue-500 transition-all !py-0.5 sm:!py-1"
           />
-          <div className="hidden sm:block w-px h-6 bg-gray-200 mx-1"></div>
-          <div className="flex-1 flex items-center px-4 py-1 sm:py-0 w-full sm:w-auto bg-transparent border-none relative">
+          <div className="flex-1 flex items-center w-full sm:w-auto relative">
             <LocationSearch
               value={jobLocation}
               onChange={setJobLocation}
               onSelect={(loc) => setJobLocation(loc ? loc.name || loc.city || loc.label : '')}
               placeholder={t("All Locations")}
               className="w-full flex-1"
-              iconClassName="!left-0 w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
-              inputClassName="!border-none !rounded-none !bg-transparent !ring-0 focus:!ring-0 w-full focus:!bg-transparent hover:!bg-transparent !shadow-none !text-[11px] sm:!text-sm text-gray-700 !py-1.5 sm:!py-2 !pl-6 sm:!pl-8 !pr-8"
+              iconClassName="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+              inputClassName="!border-gray-100 !rounded-lg !bg-gray-50 focus:!border-blue-500 focus:!ring-1 focus:!ring-blue-500 w-full !shadow-none !text-sm text-gray-900 !py-2 sm:!py-2.5 !pl-9 !pr-8"
             />
           </div>
           <button 

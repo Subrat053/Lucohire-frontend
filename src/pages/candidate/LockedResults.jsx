@@ -24,6 +24,8 @@ const LockedResults = () => {
   const [jobsLoading, setJobsLoading] = useState(true);
   const { saveUserSession } = useAuth();
   const [confirmationResult, setConfirmationResult] = useState(null);
+  
+  const recaptchaVerifierRef = useRef(null);
 
   const { formData } = location.state || {};
 
@@ -62,21 +64,13 @@ const LockedResults = () => {
   };
 
   useEffect(() => {
-    if (showOtpModal) {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-guest', {
-          size: 'invisible',
-          callback: () => {},
-        });
-        window.recaptchaVerifier.render().catch(console.error);
+    return () => {
+      if (recaptchaVerifierRef.current) {
+        try { recaptchaVerifierRef.current.clear(); } catch(e) {}
+        recaptchaVerifierRef.current = null;
       }
-    } else {
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-        window.recaptchaVerifier = null;
-      }
-    }
-  }, [showOtpModal]);
+    };
+  }, []);
 
   const handlePhoneSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -88,10 +82,19 @@ const LockedResults = () => {
     setLoading(true);
 
     try {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-guest', { size: 'invisible' });
+      if (!recaptchaVerifierRef.current) {
+        const uniqueId = `recaptcha-guest-${Date.now()}`;
+        const container = document.createElement('div');
+        container.id = uniqueId;
+        document.body.appendChild(container);
+
+        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, container, { 
+          size: 'invisible',
+          callback: () => {}
+        });
       }
-      const appVerifier = window.recaptchaVerifier;
+      
+      const appVerifier = recaptchaVerifierRef.current;
       const formattedPhone = phoneState.startsWith('+') 
         ? '+' + phoneState.replace(/\D/g, '') 
         : `+91${phoneState.replace(/\D/g, '')}`;
@@ -104,9 +107,9 @@ const LockedResults = () => {
       console.error('Send OTP Error:', err);
       toast.error('Failed to send OTP. Try again or format with +CountryCode');
       // Reset recaptcha on error
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-        window.recaptchaVerifier = null;
+      if (recaptchaVerifierRef.current) {
+        try { recaptchaVerifierRef.current.clear(); } catch(e) {}
+        recaptchaVerifierRef.current = null;
       }
     } finally {
       setLoading(false);
@@ -419,7 +422,6 @@ const LockedResults = () => {
       {/* OTP Modal */}
       {showOtpModal && !isVerified && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div id="recaptcha-container-guest"></div>
           <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md relative animate-fade-in">
             <button 
               onClick={() => setShowOtpModal(false)}

@@ -34,7 +34,7 @@ export default function ResumeToolkit() {
   // Re-fetch whenever profile is saved (same trigger as GrowWithAI)
   const fileHash = location.state?.fileHash || localStorage.getItem('lastResumeHash');
 
-  useEffect(() => { fetchAll(false); }, [fileHash]);
+  useEffect(() => { fetchAll(false, true); }, [fileHash]);
 
   useEffect(() => {
     if (window.location.hash === '#enhance-resume' || sessionStorage.getItem('scroll_to_enhance') === 'true') {
@@ -96,7 +96,9 @@ export default function ResumeToolkit() {
     toast.success(t('AI analysis refreshed'));
   };
 
-  const fetchAll = async (force = false) => {
+  const [needsGen, setNeedsGen] = useState(false);
+
+  const fetchAll = async (force = false, cachedOnly = false) => {
     try {
       setLoading(true);
       
@@ -135,23 +137,28 @@ export default function ResumeToolkit() {
       const hasResume = p?.resumeApproval?.pendingUrl || p?.resumeUrl;
 
       if (userIsPro) {
-        const toolkitRes = await getResumeToolkit(force).catch(() => null);
+        const toolkitRes = await getResumeToolkit(force, cachedOnly).catch(() => null);
         if (toolkitRes?.data?.data) {
           setData(toolkitRes.data.data);
           setMissingData(false);
+          setNeedsGen(false);
+        } else if (toolkitRes?.data?.success && toolkitRes?.data?.needsGeneration) {
+          setNeedsGen(true);
+          setData(fallback());
         } else if (
           toolkitRes?.data?.code === 'REQUIRED_DATA_MISSING' ||
           !toolkitRes?.data?.success
         ) {
           setMissingData(true);
+          setNeedsGen(false);
           setData(fallback());
         } else {
           setData(fallback());
         }
       } else {
         setData(fallback());
-        setMissingData(!hasResume);
       }
+      setMissingData(!hasResume);
 
 
     } catch (err) {
@@ -351,7 +358,7 @@ export default function ResumeToolkit() {
       </div>
 
       {/* Missing data banner */}
-      {missingData && (
+      {missingData && !needsGen && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
@@ -367,6 +374,27 @@ export default function ResumeToolkit() {
             className="shrink-0 px-4 py-2 bg-amber-600 text-white text-xs font-bold rounded-xl hover:bg-amber-700 transition"
           >
             {t('Complete Profile')} →
+          </button>
+        </div>
+      )}
+
+      {/* Needs Generation banner */}
+      {needsGen && (
+        <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+              <Sparkles className="w-4 h-4 text-teal-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-teal-900">{t('AI Resume Analysis Ready')}</p>
+              <p className="text-xs text-teal-800 mt-0.5">{t('Your profile has changed or you haven\'t generated this yet. Click below to generate your analysis.')}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => fetchAll(false)}
+            className="shrink-0 px-4 py-2 bg-[#0f766e] text-white text-xs font-bold rounded-xl hover:bg-teal-800 transition flex items-center gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5" /> {t('Generate (1 Credit)')}
           </button>
         </div>
       )}

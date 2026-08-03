@@ -100,7 +100,7 @@ const JobSearchAutocomplete = ({
       <input 
         type="text" 
         placeholder={placeholder} 
-        className="w-full bg-transparent border-none focus:ring-0 text-gray-700 ml-2 py-1.5 sm:py-2 outline-none text-[11px] sm:text-sm font-medium"
+        className="w-full bg-transparent border-none focus:ring-0 ml-2 py-1.5 sm:py-2 outline-none text-sm text-gray-900"
         value={inputValue}
         onChange={handleInputChange}
         onFocus={() => showRecommendations(inputValue)}

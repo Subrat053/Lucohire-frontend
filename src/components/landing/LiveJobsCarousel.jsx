@@ -208,7 +208,7 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
         
         {/* Dynamic Pagination Dots */}
         {!isLoadingJobs && liveJobsList.length > 0 && TOTAL_PAGES > 1 && (
-          <div className="flex justify-center items-center gap-1.5 mt-2">
+          <div className="flex justify-end items-center gap-1.5 mt-2 pr-2 sm:pr-4">
             {Array.from({ length: TOTAL_PAGES }, (_, i) => i).map((pageIndex) => (
               <div
                 key={pageIndex}

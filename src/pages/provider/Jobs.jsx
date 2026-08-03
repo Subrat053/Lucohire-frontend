@@ -643,19 +643,19 @@ const JobCard = ({
 
           {/* If no plan, overlay banner at the bottom */}
           {!hasActivePlan && (
-            <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col justify-end">
-               <div className="bg-[#eff6ff] border border-blue-100 rounded-lg p-2.5 flex gap-2.5 items-center">
+            <Link to="/provider/my-plan" className="absolute inset-x-0 bottom-0 z-10 flex flex-col justify-end group cursor-pointer hover:opacity-95 transition-opacity">
+               <div className="bg-[#eff6ff] border border-blue-100 rounded-lg p-2.5 flex gap-2.5 items-center justify-center group-hover:bg-blue-50 transition-colors">
                   <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-blue-50">
                     <HiOutlineLockClosed className="w-3.5 h-3.5 text-blue-600" />
                   </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-xs font-bold text-[#1e3a8a] truncate">Want more clarity?</span>
-                    <Link to="/provider/my-plan" className="text-[10px] text-blue-600 hover:underline mt-0.5 truncate">
+                  <div className="flex flex-col min-w-0 items-center">
+                    <span className="text-xs font-bold text-[#1e3a8a] truncate text-center">Want more clarity?</span>
+                    <span className="text-[10px] text-blue-600 mt-0.5 truncate text-center">
                       Unlock complete insights
-                    </Link>
+                    </span>
                   </div>
                </div>
-            </div>
+            </Link>
           )}
         </div>
       </div>
@@ -1154,7 +1154,7 @@ const ProviderJobs = () => {
                     onChange={(e) => {
                       const val = e.target.value;
                       // Only allow numbers or specific strings like "Fresher"
-                      if (val === "" || val === "Fresher" || /^[0-9+ -a-zA-Z]+$/.test(val)) {
+                      if (val === "" || val === "Fresher" || /^[0-9+ a-zA-Z-]+$/.test(val)) {
                         setFilters((f) => ({ ...f, experience: val }));
                       }
                       setShowExpDropdown(true);

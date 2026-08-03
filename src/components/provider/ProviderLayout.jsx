@@ -506,7 +506,7 @@ const ProviderLayout = ({ children }) => {
             </div>
           )}
 
-          <main className="flex-1 overflow-auto p-0">{children}</main>
+          <main className="flex-1 overflow-auto p-0 pb-28">{children}</main>
           {profile?.whatsappFreelancePlanActive !== true && (
             <div className="fixed bottom-6 right-6 z-50">
               <button
