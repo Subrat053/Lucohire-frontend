@@ -45,6 +45,9 @@ export default function JobDetails() {
   const [boostDays, setBoostDays] = useState(1);
   const [isBoosting, setIsBoosting] = useState(false);
 
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
+
   useEffect(() => {
     fetchData();
   }, [jobId]);
@@ -52,18 +55,24 @@ export default function JobDetails() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [jobRes, appsRes] = await Promise.all([
+      setUsageLoading(true);
+      const [jobRes, appsRes, usageRes] = await Promise.all([
         recruiterAPI.getJobById(jobId),
-        recruiterAPI.getJobApplications(jobId)
+        recruiterAPI.getJobApplications(jobId),
+        recruiterAPI.getAiUsage().catch(() => ({ data: { limits: {}, usage: {} } }))
       ]);
       setJob(jobRes.data);
       // The backend returns an array directly, so appsRes.data IS the array
       setApplications(Array.isArray(appsRes.data) ? appsRes.data : (appsRes.data.applications || []));
+      if (usageRes.data?.success) {
+        setAiUsage({ limits: usageRes.data.limits || {}, usage: usageRes.data.usage || {} });
+      }
     } catch (err) {
       console.error(err);
       toast.error('Failed to load job details');
     } finally {
       setLoading(false);
+      setUsageLoading(false);
     }
   };
 
@@ -148,6 +157,10 @@ export default function JobDetails() {
     }
   };
 
+  const isBoostLimitReached = !usageLoading && 
+    aiUsage.limits?.jobBoostJobsLimit !== -1 && 
+    (aiUsage.usage?.jobBoostJobsLimit || 0) >= (aiUsage.limits?.jobBoostJobsLimit || 0);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center pb-24">
@@ -211,7 +224,17 @@ export default function JobDetails() {
                 </span>
               )}
               {!job.isBoosted && (
-                <button onClick={() => setBoostModalOpen(true)} className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+                <button 
+                  onClick={() => {
+                    if (isBoostLimitReached) {
+                      toast.error(`Boost limit reached (${aiUsage.usage?.jobBoostJobsLimit}/${aiUsage.limits?.jobBoostJobsLimit}). Please upgrade your plan.`);
+                      return;
+                    }
+                    setBoostModalOpen(true);
+                  }}
+                  disabled={isBoostLimitReached}
+                  className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0"
+                >
                   <HiSparkles className="w-4 h-4" />{t("Boost Job")}
                 </button>
               )}

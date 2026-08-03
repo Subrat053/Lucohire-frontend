@@ -475,22 +475,32 @@ const PostJob = () => {
           </div>
 
           {/* ── Submit ──────────────────────────────────────────────── */}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => navigate('/recruiter/dashboard')}
-              className="flex-1 border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition text-sm"
-            >
-              {t('common.cancel', 'Cancel')}
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm shadow-md disabled:opacity-70"
-            >
-              <HiSave className="w-5 h-5" />
-              {loading ? t('common.posting', 'Posting…') : t('recruiter.postJobNow', 'Post Job Now')}
-            </button>
+          <div className="flex flex-col gap-2 pt-4">
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/recruiter/dashboard')}
+                className="flex-1 border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition text-sm"
+              >
+                {t('common.cancel', 'Cancel')}
+              </button>
+              <button
+                type="submit"
+                disabled={loading || (!usageLoading && aiUsage.limits.jobPostLimit !== -1 && (aiUsage.usage?.activeJobs || 0) >= (aiUsage.limits.jobPostLimit || 0))}
+                className="flex-[2] bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm shadow-md disabled:opacity-50 disabled:cursor-not-allowed relative group"
+              >
+                <HiSave className="w-5 h-5" />
+                {loading ? t('common.posting', 'Posting…') : (!usageLoading && aiUsage.limits.jobPostLimit !== -1 && (aiUsage.usage?.activeJobs || 0) >= (aiUsage.limits.jobPostLimit || 0)) ? 'Limit Reached' : t('recruiter.postJobNow', 'Post Job Now')}
+              </button>
+            </div>
+            {!usageLoading && aiUsage.limits.jobPostLimit !== -1 && (
+              <p className="text-center text-xs text-gray-500 font-medium">
+                Active Jobs: {aiUsage.usage?.activeJobs || 0} / {aiUsage.limits.jobPostLimit || 0}
+                {(aiUsage.usage?.activeJobs || 0) >= (aiUsage.limits.jobPostLimit || 0) && (
+                  <span className="text-red-500 block mt-1">You have reached your active job limit.</span>
+                )}
+              </p>
+            )}
           </div>
         </form>
       </div>

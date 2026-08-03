@@ -14,6 +14,8 @@ export default function CustomReportsPage() {
 
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
   const [selectedMetrics, setSelectedMetrics] = useState(['hires', 'funnel', 'sources']);
   const [reportName, setReportName] = useState('');
   const [format, setFormat] = useState('PDF');
@@ -21,12 +23,25 @@ export default function CustomReportsPage() {
 
   React.useEffect(() => {
     import('../../services/api').then(({ recruiterAPI }) => {
-      recruiterAPI.getCustomExportsData()
-        .then(res => setData(res.data.data))
-        .catch(console.error)
-        .finally(() => setLoading(false));
+      Promise.all([
+        recruiterAPI.getCustomExportsData(),
+        recruiterAPI.getAiUsage().catch(() => ({ data: { limits: {}, usage: {} } }))
+      ]).then(([res, usageRes]) => {
+        setData(res.data.data);
+        if (usageRes.data?.success) {
+          setAiUsage({ limits: usageRes.data.limits || {}, usage: usageRes.data.usage || {} });
+        }
+      }).catch(console.error)
+        .finally(() => {
+          setLoading(false);
+          setUsageLoading(false);
+        });
     });
   }, []);
+
+  const isCustomReportsLimitReached = !usageLoading && 
+    aiUsage.limits?.customReports !== -1 && 
+    (aiUsage.usage?.customReports || 0) >= (aiUsage.limits?.customReports || 0);
 
   if (loading || !data) return <div className="p-12 text-center text-gray-500 font-bold">{t("Loading reports...")}</div>;
 
@@ -48,6 +63,16 @@ export default function CustomReportsPage() {
     setSelectedMetrics(prev =>
       prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
     );
+  };
+
+  const handleGenerateReport = () => {
+    if (isCustomReportsLimitReached) {
+      import('react-hot-toast').then(({ default: toast }) => {
+        toast.error(`Custom Reports limit reached (${aiUsage.usage?.customReports || 0}/${aiUsage.limits?.customReports || 0}). Please upgrade your plan.`);
+      });
+      return;
+    }
+    // Proceed with generation logic if exists
   };
 
   return (
@@ -131,8 +156,13 @@ export default function CustomReportsPage() {
             </div>
           </div>
           <div className="flex flex-wrap gap-3 mt-6 pt-5 border-t border-indigo-100">
-            <button className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition">
-              <FiDownload />{t("Generate Report")}</button>
+            <button 
+              onClick={handleGenerateReport}
+              disabled={isCustomReportsLimitReached}
+              className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FiDownload />{t("Generate Report")}
+            </button>
             <button className="flex items-center gap-2 border border-indigo-200 text-indigo-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-50 transition">{t("Save Template")}</button>
             <button className="flex items-center gap-2 border border-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition">{t("Preview")}</button>
           </div>

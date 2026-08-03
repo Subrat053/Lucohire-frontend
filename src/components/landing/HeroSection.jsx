@@ -34,9 +34,9 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
         </div> */}
 
         {/* Main Headline */}
-        <h1 className="text-[26px] sm:text-3xl md:text-4xl lg:text-[42px] font-bold text-[#0B1536] mb-4 sm:mb-5 text-center tracking-tight leading-tight px-2">
+        <h2 className="text-[26px] sm:text-3xl md:text-4xl lg:text-[40px] font-bold text-[#0B1536] mb-4 sm:mb-5 text-center tracking-tight leading-tight px-2">
           {t("One Platform.")} <span className="text-blue-600">{t("Endless Opportunities.")}</span>
-        </h1>
+        </h2>
 
         
         {/* Main Job Search Bar */}

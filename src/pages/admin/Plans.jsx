@@ -24,6 +24,7 @@ const emptyPlan = {
   }
 };
 const PLAN_TIERS = [
+  { label: 'Free', slug: 'free' },
   { label: 'Basic', slug: 'basic' },
   { label: 'Pro', slug: 'pro' },
   { label: 'Max', slug: 'max' },
@@ -613,44 +614,95 @@ const AdminPlans = () => {
               )}
               {form.type === 'recruiter' && (
                 <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Unlock Credits</label>
-                    <input type="number" min="-1" value={form.unlockCredits} onChange={e => setForm(f => ({ ...f, unlockCredits: Number(e.target.value) }))}
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
-                  </div>
-                  
                   {/* Recruiter Usage Limits Section */}
-                  <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-2">
-                    <h3 className="font-bold text-sm text-blue-900 mb-3 flex items-center gap-2">
-                      <HiStar className="w-4 h-4 text-blue-600" />
-                      Recruiter Feature Limits (-1 for unlimited)
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {[
-                        { key: 'aiJdGenerator', label: 'AI JD Generator' },
-                        { key: 'aiJdParsing', label: 'JD Parsing & Match' },
-                        { key: 'aiCopilot', label: 'AI Copilot' },
-                        { key: 'jobPostLimit', label: 'Job Posts Limit' },
-                        { key: 'jobBoostJobsLimit', label: 'Job Boosts (Total Jobs)' },
-                        { key: 'jobBoostDaysLimit', label: 'Job Boosts (Total Days)' },
-                        { key: 'outreachCampaigns', label: 'Outreach Campaigns' },
-                        { key: 'directMessaging', label: 'Direct Messaging' },
-                        { key: 'customReports', label: 'Custom Reports' },
-                      ].map(field => (
-                        <div key={field.key}>
-                          <label className="block text-xs font-medium text-gray-700 mb-1 truncate" title={field.label}>{field.label}</label>
-                          <input type="number" min="-1" value={form.aiLimits?.[field.key] !== undefined ? form.aiLimits[field.key] : 0} 
-                            onChange={e => {
-                              const val = e.target.value;
-                              setForm(f => ({ 
-                                ...f, 
-                                aiLimits: { ...f.aiLimits, [field.key]: val === "" ? "" : Number(val) } 
-                              }));
-                            }}
-                            className="w-full px-2 py-1.5 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" />
-                        </div>
-                      ))}
+                  <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-sm text-blue-900 flex items-center gap-2">
+                        <HiStar className="w-4 h-4 text-blue-600" />
+                        Recruiter Feature Limits (-1 for unlimited)
+                      </h3>
                     </div>
+
+                    {[
+                      { 
+                        category: 'Core Allowances', 
+                        features: [
+                          { key: 'unlockCredits', label: 'Profile Unlock Credits', isTopLevel: true },
+                          { key: 'jobPostLimit', label: 'Active Job Posts Limit' }
+                        ]
+                      },
+                      { 
+                        category: 'Job Sourcing & Boosts', 
+                        features: [
+                          { key: 'jobBoostJobsLimit', label: 'Total Jobs to Boost' },
+                          { key: 'jobBoostDaysLimit', label: 'Total Boost Days' },
+                          { key: 'outreachCampaigns', label: 'Outreach Campaigns' },
+                          { key: 'directMessaging', label: 'Direct Messaging' }
+                        ]
+                      },
+                      { 
+                        category: 'AI Suite & Reports', 
+                        features: [
+                          { key: 'aiJdGenerator', label: 'AI JD Generator' },
+                          { key: 'aiJdParsing', label: 'JD Parsing & Smart Match' },
+                          { key: 'aiCopilot', label: 'AI Copilot Assistant' },
+                          { key: 'interviewKits', label: 'AI Interview Kits' },
+                          { key: 'customReports', label: 'Custom Data Reports' }
+                        ]
+                      }
+                    ].map((group, gIdx) => (
+                      <div key={gIdx} className="bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
+                        <h4 className="font-semibold text-xs text-gray-800 mb-2 border-b pb-1">{group.category}</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {group.features.map(field => {
+                            const isEnabled = field.isTopLevel ? form[field.key] !== undefined : form.aiLimits?.[field.key] !== undefined;
+                            
+                            return (
+                              <div key={field.key} className="flex items-center gap-2 bg-gray-50 p-2 rounded-md border border-gray-100">
+                                <input 
+                                  type="checkbox" 
+                                  checked={isEnabled}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    if (field.isTopLevel) {
+                                      setForm(f => ({ ...f, [field.key]: checked ? 0 : undefined }));
+                                    } else {
+                                      setForm(f => ({
+                                        ...f,
+                                        aiLimits: { ...f.aiLimits, [field.key]: checked ? 0 : undefined }
+                                      }));
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                />
+                                <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                                  <span className="text-xs font-medium text-gray-700 truncate" title={field.label}>{field.label}</span>
+                                  {isEnabled && (
+                                    <input 
+                                      type="number" min="-1" 
+                                      value={field.isTopLevel ? (form[field.key] !== undefined ? form[field.key] : 0) : (form.aiLimits?.[field.key] !== undefined ? form.aiLimits[field.key] : 0)} 
+                                      onChange={e => {
+                                        const val = e.target.value;
+                                        const numVal = val === "" ? "" : Number(val);
+                                        if (field.isTopLevel) {
+                                          setForm(f => ({ ...f, [field.key]: numVal }));
+                                        } else {
+                                          setForm(f => ({ 
+                                            ...f, 
+                                            aiLimits: { ...f.aiLimits, [field.key]: numVal } 
+                                          }));
+                                        }
+                                      }}
+                                      className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </>
               )}
@@ -872,9 +924,11 @@ const PlanCard = ({ plan, formatPrice, openEdit, handleDelete, isLanding }) => (
       <button onClick={() => openEdit(plan)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 transition text-sm font-medium">
         <HiPencil className="w-4 h-4" /> Edit
       </button>
-      <button onClick={() => handleDelete(plan)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition text-sm font-medium">
-        <HiTrash className="w-4 h-4" /> Delete
-      </button>
+      {String(plan.slug).toLowerCase() !== 'free' && (
+        <button onClick={() => handleDelete(plan)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition text-sm font-medium">
+          <HiTrash className="w-4 h-4" /> Delete
+        </button>
+      )}
     </div>
   </div>
 );

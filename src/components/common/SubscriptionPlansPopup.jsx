@@ -56,7 +56,8 @@ const SubscriptionPlansPopup = ({ role, currentPlan = 'free', open, onClose, red
       try {
         const api = role === 'provider' ? providerAPI : recruiterAPI;
         const { data } = await api.getPlans();
-        setPlans(Array.isArray(data) ? data : []);
+        const allPlans = Array.isArray(data) ? data : [];
+        setPlans(allPlans.filter(plan => String(plan.slug || '').toLowerCase() !== 'free'));
       } catch {
         toast.error('Failed to load subscription plans');
       } finally {
