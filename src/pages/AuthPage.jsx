@@ -1103,7 +1103,7 @@ const AuthPage = () => {
     } catch (err) {
       console.error("Firebase Send OTP Error:", err);
       resetRecaptcha();
-      toast.error(err.message || "Failed to send OTP");
+      toast.error(err.code?.replace('auth/', '').replace(/-/g, ' ') || err.message || "Failed to send OTP", { duration: 5000 });
     } finally {
       setLoading(false);
     }

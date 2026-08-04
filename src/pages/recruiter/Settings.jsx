@@ -27,7 +27,7 @@ const INDUSTRY_OPTIONS = [
 ];
 
 const SCard = ({ children, className = '' }) => (
-  <div className={`bg-white rounded-xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
+  <div className={`bg-white rounded-none sm:rounded-xl border-y sm:border border-gray-100 shadow-none sm:shadow-sm -mx-4 sm:mx-0 ${className}`}>{children}</div>
 );
 
 export default function Settings() {

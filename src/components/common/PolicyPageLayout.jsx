@@ -77,7 +77,7 @@ export default function PolicyPageLayout({ data = {}, onChange, isEditMode, imag
       <div className={`max-w-6xl mx-auto ${fullPage ? 'bg-white' : 'bg-white sm:bg-white/80 sm:backdrop-blur-md shadow-none sm:shadow-lg rounded-none sm:rounded-2xl overflow-hidden border-none sm:border sm:border-white/50'} ${isEditMode ? 'my-8' : ''}`}>
         
         {/* Top Content Section (2 columns on desktop) */}
-        <div className="p-5 sm:p-12 lg:px-16 flex flex-col lg:flex-row gap-8 lg:gap-20 border-b border-gray-100 items-stretch bg-white">
+        <div className="px-5 py-5 sm:p-12 lg:px-16 flex flex-col lg:flex-row gap-8 lg:gap-20 border-b border-gray-100 items-stretch bg-white">
           
           {/* Left Column: Text */}
           <div className="flex-1 space-y-10 flex flex-col justify-center">
@@ -152,7 +152,7 @@ export default function PolicyPageLayout({ data = {}, onChange, isEditMode, imag
                   onChange={v => updateSection(0, 'body', v)} 
                   isEditMode={isEditMode} 
                   placeholder="Section body text..."
-                  className="text-gray-700 leading-loose text-base whitespace-pre-wrap pl-4"
+                  className="text-gray-700 leading-loose text-base whitespace-pre-wrap pl-0 sm:pl-4 text-left"
                 />
               </div>
             )}
@@ -179,12 +179,12 @@ export default function PolicyPageLayout({ data = {}, onChange, isEditMode, imag
         </div>
 
         {/* Bottom Content Section (Full width) */}
-        <div className="p-5 sm:p-12 lg:px-16 bg-white">
+        <div className="px-5 py-5 sm:p-12 lg:px-16 bg-white">
           <div className="space-y-12 w-full max-w-none">
             {remainingSections.map((section, idx) => {
               const actualIndex = idx + 1; // Since we skipped the first section
               return (
-                <div key={actualIndex} className="relative group space-y-3 sm:space-y-4 w-full bg-gray-50/50 hover:bg-blue-50/30 p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-transparent hover:border-blue-100 transition-colors">
+                <div key={actualIndex} className="relative group space-y-3 sm:space-y-4 w-full bg-transparent sm:bg-gray-50/50 hover:bg-transparent sm:hover:bg-blue-50/30 py-4 sm:p-8 rounded-none sm:rounded-3xl border border-transparent sm:hover:border-blue-100 transition-colors">
                   {isEditMode && (
                     <div className="absolute -left-4 top-8 opacity-0 group-hover:opacity-100 transition flex flex-col gap-1 z-10">
                       <button 
@@ -217,7 +217,7 @@ export default function PolicyPageLayout({ data = {}, onChange, isEditMode, imag
                     onChange={v => updateSection(actualIndex, 'title', v)} 
                     isEditMode={isEditMode} 
                     placeholder="Section Header"
-                    className="text-2xl font-bold text-gray-900 flex items-center gap-3 before:content-[''] before:block before:w-8 before:h-1 before:bg-blue-500 before:rounded-full"
+                    className="text-2xl font-bold text-gray-900 flex items-center gap-3 before:content-[''] before:hidden sm:before:block before:w-8 before:h-1 before:bg-blue-500 before:rounded-full"
                   />
                   
                   <EditableText 
@@ -226,7 +226,7 @@ export default function PolicyPageLayout({ data = {}, onChange, isEditMode, imag
                     onChange={v => updateSection(actualIndex, 'body', v)} 
                     isEditMode={isEditMode} 
                     placeholder="Section body text..."
-                    className="text-gray-700 leading-loose text-base whitespace-pre-wrap ml-11"
+                    className="text-gray-700 leading-loose text-base whitespace-pre-wrap ml-0 sm:ml-11 text-left"
                   />
                 </div>
               );
