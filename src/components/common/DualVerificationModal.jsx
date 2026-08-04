@@ -123,13 +123,23 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
       setConfirmationResult(confResult);
       toast.success('OTP sent to phone');
     } catch (err) {
-      if (err.code === 'auth/internal-error') return; // Ignore error caused by unmounting due to 409 conflict
+      if (err.code === 'auth/internal-error') return;
       console.error('Send Phone OTP Error:', err);
-      if (err.message && err.message.includes('CAPTCHA_CHECK_FAILED')) {
-        toast.error('Firebase Auth Domain not authorized. Add your domain to Firebase Console.');
-      } else {
-        toast.error('Failed to send OTP to phone. Format must be +CountryCode');
+      
+      let msg = err.message || 'Failed to send OTP';
+      // Make it more user-friendly for common Firebase errors
+      if (msg.includes('INVALID_APP_CREDENTIAL')) {
+        msg = 'reCAPTCHA/App Credential Error: Please check Firebase Authorized Domains (auth/invalid-app-credential).';
+      } else if (msg.includes('TOO_MANY_ATTEMPTS_TRY_LATER')) {
+        msg = 'Too many attempts. Please try again later (auth/too-many-requests).';
+      } else if (msg.includes('CAPTCHA_CHECK_FAILED')) {
+        msg = 'reCAPTCHA verification failed: Hostname match not found. Add domain to reCAPTCHA enterprise.';
+      } else if (err.code) {
+        // Fallback to error code if message is unhelpful
+        msg = err.code.replace('auth/', '').replace(/-/g, ' ') + ' - ' + msg;
       }
+
+      toast.error(msg, { duration: 10000 }); // Increased duration to 10 seconds
     }
   };
 
@@ -217,8 +227,8 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-2 sm:p-4">
-      <div className="bg-white rounded-3xl w-full max-w-lg p-4 sm:p-8 relative shadow-2xl max-h-[95vh] overflow-y-auto">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4 sm:p-4">
+      <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-sm sm:max-w-lg p-5 sm:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
         <button onClick={handleBack} className="absolute top-3 right-3 sm:top-6 sm:right-6 text-gray-400 hover:text-gray-700 transition">
           <FiX className="w-6 h-6" />
         </button>
@@ -231,25 +241,25 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
               </span>
             </div>
             
-            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2 text-center">Verify your account</h2>
-            <p className="text-gray-500 mb-8 text-sm text-center">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 mb-1 sm:mb-2 text-center">Verify your account</h2>
+            <p className="text-gray-500 mb-5 sm:mb-8 text-xs sm:text-sm text-center">
               {activeView === 'email' 
                 ? `We've sent an OTP to your email address`
                 : `We've sent an OTP to your mobile number`
               }
             </p>
 
-            <div className="space-y-8">
+            <div className="space-y-5 sm:space-y-8">
               {/* Email Section */}
               {activeView === 'email' && (
                 <div className="animate-fade-in">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm font-semibold text-gray-900">Email Address</span>
-                    <button onClick={handleBack} className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1">
-                      {recruiterData?.email} <FiEdit2 className="w-3 h-3" />
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-1 sm:gap-0">
+                    <span className="text-xs sm:text-sm font-semibold text-gray-900">Email Address</span>
+                    <button onClick={handleBack} className="text-[11px] sm:text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1 truncate max-w-full">
+                      <span className="truncate">{recruiterData?.email}</span> <FiEdit2 className="w-3 h-3 shrink-0" />
                     </button>
                   </div>
-                  <div className="flex gap-1.5 sm:gap-2 justify-center sm:justify-between mb-4">
+                  <div className="flex gap-1 sm:gap-2 justify-center sm:justify-between mb-4">
                     {emailOtp.map((digit, idx) => (
                       <input
                         key={idx}
@@ -259,13 +269,13 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                         value={digit}
                         onChange={(e) => handleOtpChange(idx, e.target.value, 'email')}
                         onKeyDown={(e) => handleOtpKeyDown(idx, e, 'email')}
-                        className="w-9 h-11 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-blue-600 focus:ring-0 outline-none transition-colors"
+                        className="w-10 h-10 sm:w-12 sm:h-14 text-center text-base sm:text-xl font-bold border-2 border-gray-200 rounded-lg sm:rounded-xl focus:border-blue-600 focus:ring-0 outline-none transition-colors"
                       />
                     ))}
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-gray-500 mb-6 gap-2 sm:gap-0">
-                    <span className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row justify-between items-center text-[11px] sm:text-sm text-gray-500 mb-5 sm:mb-6 gap-2 sm:gap-0">
+                    <span className="flex items-center gap-1.5 sm:gap-2">
                       <FiCheckCircle className="text-green-500 shrink-0" /> Didn't receive the OTP?
                     </span>
                     <button onClick={sendEmailOtp} className="text-purple-600 font-semibold hover:underline">
@@ -276,7 +286,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                   <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
                     <button 
                       onClick={handleBack}
-                      className="w-full sm:w-auto px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition flex items-center justify-center gap-2"
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-200 text-gray-700 rounded-lg sm:rounded-xl font-bold hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm sm:text-base"
                     >
                       <FiArrowLeft /> Back
                     </button>
@@ -285,7 +295,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                         if (emailOtp.join('').length === 6) setActiveView('phone');
                         else toast.error('Please enter complete Email OTP');
                       }}
-                      className="w-full sm:flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition"
+                      className="w-full sm:flex-1 py-2.5 sm:py-3 bg-purple-600 text-white rounded-lg sm:rounded-xl font-bold hover:bg-purple-700 transition text-sm sm:text-base"
                     >
                       Continue
                     </button>
@@ -296,13 +306,13 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
               {/* Phone Section */}
               {activeView === 'phone' && (
                 <div className="animate-fade-in">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm font-semibold text-gray-900">Mobile Number</span>
-                    <button onClick={handleBack} className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-1 sm:gap-0">
+                    <span className="text-xs sm:text-sm font-semibold text-gray-900">Mobile Number</span>
+                    <button onClick={handleBack} className="text-[11px] sm:text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1">
                       {recruiterData?.phone} <FiEdit2 className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="flex gap-1.5 sm:gap-2 justify-center sm:justify-between mb-4">
+                  <div className="flex gap-1 sm:gap-2 justify-center sm:justify-between mb-4">
                     {phoneOtp.map((digit, idx) => (
                       <input
                         key={idx}
@@ -312,13 +322,13 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                         value={digit}
                         onChange={(e) => handleOtpChange(idx, e.target.value, 'phone')}
                         onKeyDown={(e) => handleOtpKeyDown(idx, e, 'phone')}
-                        className="w-9 h-11 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none transition-colors"
+                        className="w-10 h-10 sm:w-12 sm:h-14 text-center text-base sm:text-xl font-bold border-2 border-gray-200 rounded-lg sm:rounded-xl focus:border-purple-600 focus:ring-0 outline-none transition-colors"
                       />
                     ))}
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-gray-500 mb-6 gap-2 sm:gap-0">
-                    <span className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row justify-between items-center text-[11px] sm:text-sm text-gray-500 mb-5 sm:mb-6 gap-2 sm:gap-0">
+                    <span className="flex items-center gap-1.5 sm:gap-2">
                       <FiCheckCircle className="text-green-500 shrink-0" /> Didn't receive the OTP?
                     </span>
                     <button onClick={sendPhoneOtp} className="text-purple-600 font-semibold hover:underline">
@@ -329,14 +339,14 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                   <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
                     <button 
                       onClick={() => setActiveView('email')}
-                      className="w-full sm:w-auto px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition flex items-center justify-center gap-2"
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-200 text-gray-700 rounded-lg sm:rounded-xl font-bold hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm sm:text-base"
                     >
                       <FiArrowLeft /> Back
                     </button>
                     <button
                       onClick={handleVerifyDual}
                       disabled={loading}
-                      className="w-full sm:flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 disabled:opacity-70 transition flex items-center justify-center gap-2"
+                      className="w-full sm:flex-1 py-2.5 sm:py-3 bg-purple-600 text-white rounded-lg sm:rounded-xl font-bold hover:bg-purple-700 disabled:opacity-70 transition flex items-center justify-center gap-2 text-sm sm:text-base"
                     >
                       {loading ? (
                          <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -344,9 +354,9 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                          </svg>
                       ) : (
-                        <FiCheckCircle />
+                        <FiCheckCircle className="shrink-0" />
                       )}
-                      {loading ? 'Verifying...' : 'Verify & Unlock Candidates'}
+                      <span className="truncate">{loading ? 'Verifying...' : 'Verify & Unlock Candidates'}</span>
                     </button>
                   </div>
                 </div>

@@ -138,23 +138,23 @@ const ProviderContacted = () => {
       <div className="max-w-4xl mx-auto">
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-emerald-950 mb-2">{t("Recruiter")}<span className="text-teal-600 drop-shadow-sm">{t("Messages")}</span>
+        <div className="text-left mb-8">
+          <h1 className="text-3xl font-extrabold text-emerald-950 mb-2">{t("Recruiter")} <span className="text-black drop-shadow-sm">{t("Messages")}</span>
           </h1>
           <p className="text-gray-500 text-sm">{t("See who has reached out to you about your applications")}</p>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-2xl p-5 text-center shadow-xs border border-gray-100">
             <p className="text-3xl font-black text-emerald-950">{applications.length}</p>
             <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">{t("Total Applications")}</p>
           </div>
           <div className="bg-white rounded-2xl p-5 text-center shadow-xs border border-gray-100">
-            <p className="text-3xl font-black text-amber-600">{contactedApps.length}</p>
+            <p className="text-3xl font-black text-black">{contactedApps.length}</p>
             <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">{t("Recruiters Contacted")}</p>
           </div>
-          <div className="bg-white rounded-2xl p-5 text-center shadow-xs border border-gray-100">
+          <div className="col-span-2 sm:col-span-1 bg-white rounded-2xl p-5 text-center shadow-xs border border-gray-100">
             <p className="text-3xl font-black text-emerald-650">{acceptedApps.length}</p>
             <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">{t("Jobs Accepted")}</p>
           </div>
@@ -173,7 +173,7 @@ const ProviderContacted = () => {
                 onClick={() => setFilterType(tab.id)}
                 className={`px-4 py-2.5 rounded-xl transition text-xs font-extrabold uppercase tracking-wider ${
                   filterType === tab.id
-                    ? 'bg-emerald-950 text-white shadow-xs border-0'
+                    ? 'bg-emerald-100 text-emerald-800 shadow-xs border-0'
                     : 'text-gray-700 hover:text-emerald-950 hover:bg-gray-55'
                 }`}
               >

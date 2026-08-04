@@ -295,7 +295,7 @@ const Transactions = () => {
       </div>
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Ledger & Transactions: 2 Columns */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs">
+        <div className="lg:col-span-2 bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-100 p-4 sm:p-6 shadow-none sm:shadow-xs -mx-4 sm:mx-0">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl font-bold text-slate-950 flex items-center gap-2">
@@ -377,7 +377,7 @@ const Transactions = () => {
 
         {/* Payout & Withdrawal Settings panel */}
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs">
+          <div className="bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-100 p-4 sm:p-6 shadow-none sm:shadow-xs -mx-4 sm:mx-0">
             <h3 className="text-lg font-bold mb-4 text-slate-900 flex items-center gap-2">
               <Settings className="w-5 h-5 text-indigo-600" />{t("Payout Settings")}</h3>
             
@@ -441,7 +441,7 @@ const Transactions = () => {
             </div>
           </div>
 
-          <div className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-lg">
+          <div className="bg-slate-900 text-white rounded-none sm:rounded-3xl p-4 sm:p-6 border-y sm:border border-slate-800 shadow-none sm:shadow-lg -mx-4 sm:mx-0">
             <h3 className="text-sm font-bold mb-3 flex items-center gap-2 text-indigo-400">
               <Info className="w-4 h-4 text-indigo-400" />{t("Withdrawal Rules")}</h3>
             <div className="space-y-3 text-[11px]">

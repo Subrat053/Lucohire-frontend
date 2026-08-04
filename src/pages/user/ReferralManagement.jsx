@@ -222,44 +222,44 @@ const ReferralManagement = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center space-x-4">
-          <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
-            <Users size={24} />
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-10">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 flex items-center space-x-3 sm:space-x-4">
+          <div className="p-2.5 sm:p-3 bg-emerald-50 rounded-xl text-emerald-600 shrink-0">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">
+            <p className="text-[11px] sm:text-sm text-gray-500 font-medium capitalize sm:uppercase tracking-wide sm:tracking-wider leading-tight sm:leading-normal mb-1 sm:mb-0">
               Total Referrals
             </p>
-            <h3 className="text-2xl font-bold text-gray-900">
+            <h3 className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
               {stats?.user?.totalReferrals}
             </h3>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center space-x-4">
-          <div className="p-3 bg-green-50 rounded-xl text-green-700">
-            <Wallet size={24} />
+        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 flex items-center space-x-3 sm:space-x-4">
+          <div className="p-2.5 sm:p-3 bg-green-50 rounded-xl text-green-700 shrink-0">
+            <Wallet className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">
+            <p className="text-[11px] sm:text-sm text-gray-500 font-medium capitalize sm:uppercase tracking-wide sm:tracking-wider leading-tight sm:leading-normal mb-1 sm:mb-0">
               Wallet Balance
             </p>
-            <h3 className="text-2xl font-bold text-gray-900">
+            <h3 className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
               ₹{stats?.user?.referralWalletBalance}
             </h3>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center space-x-4">
-          <div className="p-3 bg-teal-50 rounded-xl text-teal-600">
-            <TrendingUp size={24} />
+        <div className="col-span-2 md:col-span-1 bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 flex items-center justify-center md:justify-start space-x-3 sm:space-x-4">
+          <div className="p-2.5 sm:p-3 bg-teal-50 rounded-xl text-teal-600 shrink-0">
+            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">
+            <p className="text-[11px] sm:text-sm text-gray-500 font-medium capitalize sm:uppercase tracking-wide sm:tracking-wider leading-tight sm:leading-normal mb-1 sm:mb-0">
               Total Earnings
             </p>
-            <h3 className="text-2xl font-bold text-gray-900">
+            <h3 className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
               ₹{stats?.user?.totalReferralCommission}
             </h3>
           </div>
@@ -267,7 +267,7 @@ const ReferralManagement = () => {
       </div>
 
       {/* Referral Link Card */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-3xl p-8 text-white mb-12 relative overflow-hidden shadow-xl">
+      <div className="bg-emerald-600 rounded-3xl p-8 text-white mb-12 relative overflow-hidden shadow-xl">
         <div className="relative z-10">
           <h2 className="text-2xl font-bold mb-4 flex items-center">
             <Share2 className="mr-2" /> Share your link
@@ -315,7 +315,7 @@ const ReferralManagement = () => {
 
       {/* Withdrawal Section */}
       {!isProvider && (
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-12">
+        <div className="bg-white rounded-none sm:rounded-3xl p-4 sm:p-8 shadow-none sm:shadow-sm border-y sm:border border-gray-100 mb-12 -mx-4 sm:mx-0">
           <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
             <CreditCard className="mr-2 text-emerald-600" /> Withdrawal Settings
           </h2>
@@ -488,7 +488,7 @@ const ReferralManagement = () => {
         </div>
       )}
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-12">
+      <div className="bg-white rounded-none sm:rounded-3xl shadow-none sm:shadow-sm border-y sm:border border-gray-100 overflow-hidden mb-12 -mx-4 sm:mx-0">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
           <h3 className="text-lg font-bold text-gray-900">
             Recent Referrals
