@@ -212,19 +212,25 @@ export default function AITips() {
     <div className="w-full p-4 md:p-6 lg:p-8 space-y-8 pb-20 relative bg-slate-50 min-h-screen">
       {/* Usage Banner */}
       {!usageLoading && (
-        <div className="bg-indigo-50/50 border border-indigo-100 px-6 py-3 rounded-2xl flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-600" />
-            <span className="text-sm font-medium text-indigo-900">{t("Career Report Limit:")}{(() => {
+        <div className="bg-emerald-50/50 border border-emerald-100 p-3 md:px-6 md:py-3 rounded-2xl flex items-center justify-between gap-3 md:gap-2">
+          {/* Left side text container */}
+          <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2">
+            <Sparkles className="hidden md:block w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="text-[13px] md:text-sm font-medium text-emerald-900">{t("Career Report Limit:")}</span>
+            {(() => {
                 const limit = aiUsage.limits['careerReport'] || 0;
                 const used = aiUsage.usage['careerReport'] || 0;
-                if (limit === -1) return <span className="font-bold text-indigo-700 ml-1">{t("Unlimited")}</span>;
-                if (limit === 0) return <span className="font-bold text-red-600 ml-1">{t("Not included in plan")}</span>;
-                return <span className="font-bold text-indigo-700 ml-1">{Math.max(0, limit - used)} / {limit}{t("requests remaining")}</span>;
+                if (limit === -1) return <span className="text-[12px] md:text-sm font-bold text-emerald-700">{t("Unlimited")}</span>;
+                if (limit === 0) return <span className="text-[12px] md:text-sm font-bold text-red-600">{t("Not included")}</span>;
+                return (
+                  <span className="text-[12px] md:text-sm font-bold text-emerald-700">
+                    {Math.max(0, limit - used)}/{limit} {t("requests remaining")}
+                  </span>
+                );
               })()}
-            </span>
           </div>
-          <Link to="/provider/plans" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-100 px-3 py-1 rounded-full transition-colors">{t("Upgrade Plan")}</Link>
+          
+          <Link to="/provider/plans" className="shrink-0 flex items-center justify-center text-center text-[11px] md:text-xs font-black text-emerald-700 hover:text-emerald-900 bg-emerald-100 px-4 md:px-3 py-1.5 md:py-1 rounded-full transition-colors whitespace-nowrap">{t("Upgrade Plan")}</Link>
         </div>
       )}
       {/* UI Block Overlay for Pro users who reached their limit */}
@@ -521,12 +527,16 @@ export default function AITips() {
               <div className="flex items-center justify-between mb-5">
                 <div>
                   <h2 className="text-[15px] font-bold text-gray-900 flex items-center gap-2">{t("AI Recommended Jobs")}{!isPro && <Lock className="w-4 h-4 text-gray-300" />}</h2>
-                  <p className="text-[11px] text-gray-500 mt-1 font-medium">{t("Jobs picked by AI based on your profile & activity")}</p>
+                  <p className="text-xs text-gray-600 mt-1 font-medium">{t("Jobs picked by AI based on your profile & activity")}</p>
                 </div>
                 {!isPro ? (
                   <span className="text-[11px] font-bold text-gray-400 flex items-center gap-1"><Lock className="w-3 h-3"/> {t("Locked")}</span>
                 ) : (
-                  <Link to="/provider/job-for-me" className="text-[11px] font-bold text-[#0f766e] flex items-center gap-1 hover:underline">{t("View All Matches")}<ArrowRight className="w-3.5 h-3.5" /></Link>
+                  <Link to="/provider/job-for-me" className="text-[11px] font-bold text-[#0f766e] flex items-center gap-1 hover:underline">
+                    <span className="hidden md:inline">{t("View All Matches")}</span>
+                    <span className="md:hidden">{t("View")}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 )}
               </div>
 
@@ -560,8 +570,8 @@ export default function AITips() {
                     </div>
                     
                     <div className="mb-4">
-                      <div className="text-[#0f766e] font-black text-[13px] leading-none">{92 - idx}{t("% Match")}</div>
-                      <div className="text-[#0f766e]/80 text-[10px] font-bold mt-1">{t("Excellent")}</div>
+                      <div className="text-black font-black text-[13px] leading-none">{92 - idx}{t("% Match")}</div>
+                      <div className="text-black text-[10px] font-bold mt-1">{t("Excellent")}</div>
                     </div>
                     
                     <div className="space-y-2 mb-5">

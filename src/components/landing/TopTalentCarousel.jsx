@@ -189,7 +189,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
         </h2>
       
         {/* Filters Bar */}
-        <form onSubmit={onSearchSubmit} className="bg-white p-2.5 sm:p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 mb-8 sm:mb-10">
+        <form onSubmit={onSearchSubmit} className="bg-white p-2.5 sm:p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 mb-8 sm:mb-10">
           <div className="flex-1 min-w-[180px] relative" ref={searchContainerRef}>
             <div className="flex items-center bg-gray-50 rounded-lg px-3 py-2 border border-gray-100 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
               <Search className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
@@ -277,67 +277,72 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
         {/* Candidate Cards Carousel */}
         <div className="relative">
           {/* Left Arrow */}
-          <button 
-            type="button"
+          <div 
+            role="button"
             aria-label="Previous"
             onClick={() => scrollCarousel('left')}
-            className="absolute -left-3 sm:-left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition"
+            className="absolute -left-3 sm:-left-4 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 shadow-md flex items-center justify-center hover:bg-gray-50 transition shrink-0 overflow-hidden cursor-pointer"
+            style={{ borderRadius: '50%', width: '36px', height: '36px', minWidth: '36px', minHeight: '36px' }}
           >
             <ChevronLeft className="w-4 h-4 text-gray-700" />
-          </button>
+          </div>
 
           <div ref={carouselRef} className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar scroll-smooth px-1">
             {displayTalent.map(candidate => (
-              <div key={candidate._id} className="min-w-[380px] max-w-[380px] sm:min-w-[420px] sm:max-w-[420px] bg-white rounded-3xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex-shrink-0 flex flex-col relative overflow-hidden">
+              <div key={candidate._id} className="w-full sm:w-[420px] sm:max-w-[420px] bg-white rounded-3xl p-4 sm:p-5 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex-shrink-0 flex flex-col relative overflow-hidden">
                 
                 {/* Top Section */}
-                <div className="flex gap-4 mb-5">
-                  {/* Left: Avatar with Available Now pill */}
-                  <div className="relative shrink-0">
+                <div className="flex gap-4 mb-4 sm:mb-5">
+                  <div className="relative shrink-0 sm:pb-0 pb-6">
                     {candidate.profilePhoto ? (
                       <img 
                         src={candidate.profilePhoto} 
                         alt={candidate.profileName} 
                         referrerPolicy="no-referrer"
-                        className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-1 ring-gray-100" 
+                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover ring-1 ring-gray-100" 
                         onError={(e) => {
                           e.target.onerror = null;
                           e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.profileName || 'U')}&background=e0e7ff&color=4f46e5`;
                         }}
                       />
                     ) : (
-                      <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center text-3xl font-bold ring-1 ring-gray-100 ${candidate.avatarBg || 'bg-blue-100 text-blue-700'}`}>
+                      <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-3xl font-bold ring-1 ring-gray-100 ${candidate.avatarBg || 'bg-blue-100 text-blue-700'}`}>
                         {candidate.profileName?.substring(0, 2).toUpperCase() || 'UN'}
                       </div>
                     )}
-                    <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-green-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
-                      <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+                    {/* Mobile: Absolute position below Avatar */}
+                    <div className="flex sm:hidden absolute -bottom-3 left-1/2 -translate-x-1/2 items-center gap-1 bg-green-50 text-green-700 text-[9px] font-bold px-1.5 py-0.5 rounded border border-green-200 uppercase tracking-wider text-center whitespace-nowrap z-10 shadow-sm">
+                      <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse shrink-0"></div>
                       {t("Available")}
                     </div>
                   </div>
                   
                   {/* Right: Info */}
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    <div className="flex justify-between items-start mb-1">
+                    <div className="flex justify-between items-start mb-0.5">
                       <div className="flex items-center gap-1.5">
                         <h3 className="text-lg font-bold text-gray-900 tracking-tight truncate">{candidate.profileName}</h3>
-                        <BadgeCheck className="w-5 h-5 text-blue-600 fill-blue-600/10" strokeWidth={2.5} />
+                        <BadgeCheck className="w-4 h-4 text-blue-600 fill-blue-600/10" strokeWidth={2.5} />
                       </div>
-                      <MoreVertical className="w-4 h-4 text-gray-400 cursor-pointer" />
+                      {/* Desktop: Right-aligned Available Badge */}
+                      <div className="hidden sm:flex items-center gap-1 bg-green-50 text-green-700 text-[9px] font-bold px-1.5 py-0.5 rounded border border-green-200 uppercase tracking-wider shrink-0 mt-1">
+                        <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse shrink-0"></div>
+                        {t("Available")}
+                      </div>
                     </div>
                     
-                    <p className="text-[13px] font-bold text-indigo-700 mb-2 truncate">
+                    <p className="text-[12px] font-bold text-indigo-700 mb-1 sm:mb-1.5 truncate">
                       {(candidate.roles && candidate.roles.length > 0) ? candidate.roles.join(', ') : (candidate.primaryRole || t('Freelancer'))}
                     </p>
                     
-                    <div className="flex flex-col gap-1.5 text-[12px] text-gray-700 font-medium">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 text-[11px] text-gray-700 font-medium">
+                      <div className="flex items-center gap-1.5 leading-none">
+                        <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                         <span className="truncate">{candidate.city || t('India')}</span>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-gray-400" />
-                        {t("Last active:")} <span className="text-green-700 font-bold ml-0.5">{t("Today")}</span>
+                      <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1 sm:mt-0 leading-none">
+                        <Clock className="w-2.5 h-2.5 shrink-0" />
+                        <span className="truncate">{t("Last active:")} <span className="text-gray-900 font-bold">{t("Today")}</span></span>
                       </div>
                     </div>
                   </div>
@@ -391,15 +396,15 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
                 </div>
 
                 {/* Rate & Verifications */}
-                <div className="flex gap-4 mb-5 border-t border-gray-100 pt-5">
-                  <div className="flex-1 bg-[#f0fdf4] rounded-xl p-3 flex flex-col justify-center border border-green-100">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Wallet className="w-4 h-4 text-green-700" />
-                      <span className="text-[11px] text-green-800 font-bold uppercase tracking-wider">{t("Hourly Rate")}</span>
+                <div className="flex items-center gap-3 mb-4 border-t border-gray-100 pt-3">
+                  <div className="flex-1 bg-[#f0fdf4] rounded-xl p-2.5 flex flex-col justify-center border border-green-100">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <Wallet className="w-3.5 h-3.5 text-green-700" />
+                      <span className="text-[10px] text-green-800 font-bold uppercase tracking-wider">{t("Hourly Rate")}</span>
                     </div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-xl font-black text-gray-900">₹{candidate.hourlyRate || '1200'}</span>
-                      <span className="text-[12px] font-bold text-gray-500">{t("/hr")}</span>
+                      <span className="text-lg font-black text-gray-900">₹{candidate.hourlyRate || '1200'}</span>
+                      <span className="text-[11px] font-bold text-gray-500">{t("/hr")}</span>
                     </div>
                   </div>
 
@@ -446,12 +451,19 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
             ))}
           </div>
 
+          {/* Carousel dots */}
+          <div className="flex justify-center mt-4 mb-6 gap-1.5">
+            {displayTalent.map((_, i) => (
+              <div key={i} className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+            ))}
+          </div>
+
           {/* View All Button */}
           {displayTalent.length > 0 && (
-            <div className="mt-8 flex justify-center">
+            <div className="flex justify-center">
               <Link 
                 to="/search"
-                className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-bold py-2.5 px-6 rounded-full shadow-sm text-sm transition-all flex items-center gap-2 block"
+                className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-bold py-2.5 px-6 rounded-2xl shadow-sm text-sm transition-all flex items-center gap-2 block"
               >
                 View All Talent <ArrowRight className="w-4 h-4" />
               </Link>
@@ -459,21 +471,15 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
           )}
 
           {/* Right Arrow */}
-          <button 
-            type="button"
+          <div 
+            role="button"
             aria-label="Next"
             onClick={() => scrollCarousel('right')}
-            className="absolute -right-3 sm:-right-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition"
+            className="absolute -right-3 sm:-right-4 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 shadow-md flex items-center justify-center hover:bg-gray-50 transition shrink-0 overflow-hidden cursor-pointer"
+            style={{ borderRadius: '50%', width: '36px', height: '36px', minWidth: '36px', minHeight: '36px' }}
           >
             <ChevronRight className="w-4 h-4 text-gray-700" />
-          </button>
-        </div>
-
-        {/* Carousel dots */}
-        <div className="flex justify-center mt-4 gap-1.5">
-          {displayTalent.map((_, i) => (
-            <div key={i} className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-          ))}
+          </div>
         </div>
       </div>
     </div>

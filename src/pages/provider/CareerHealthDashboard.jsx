@@ -517,7 +517,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
         <div id="report-content" className="pt-2">
         {/* Usage Banner */}
         {!usageLoading && (
-          <div className="bg-white border border-gray-200 p-4 sm:px-6 sm:py-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm mb-6">
+          <div className="bg-white border border-gray-200 p-4 sm:px-6 sm:py-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 shadow-sm mb-6">
             <div className="flex-1 w-full max-w-md">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4 text-emerald-600" />
@@ -554,12 +554,12 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                 );
               })()}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
               {isPro && (
                 <button
                   onClick={handleImprove}
                   disabled={improving || (aiUsage.limits['careerHealth'] !== -1 && aiUsage.usage['careerHealth'] >= aiUsage.limits['careerHealth'])}
-                  className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-1.5 rounded-full transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                  className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 w-full sm:w-auto"
                 >
                   {improving ? (
                     <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>{t("Refreshing...")}</>
@@ -568,7 +568,9 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                   )}
                 </button>
               )}
-              <Link to="/provider/plans" className="text-xs font-bold text-emerald-600 hover:text-emerald-800 bg-emerald-100 px-3 py-1.5 rounded-full transition-colors">{t("Upgrade Plan")}</Link>
+              <Link to="/provider/plans" className="text-xs font-bold text-emerald-600 hover:text-emerald-800 bg-emerald-100 px-4 py-2 rounded-xl transition-colors flex justify-center items-center w-full sm:w-auto">
+                {t("Upgrade Plan")}
+              </Link>
             </div>
           </div>
         )}

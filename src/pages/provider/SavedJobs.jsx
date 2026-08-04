@@ -275,10 +275,18 @@ const SavedJobs = () => {
     if (tab === 'active' && (job.status === 'closed' || job.status === 'expired')) return false; 
     
     if (filterWorkMode && filterWorkMode !== 'All') {
-      const mode = (job.workMode || '').toLowerCase();
+      let modeStr = '';
+      if (Array.isArray(job.workMode)) {
+        modeStr = job.workMode.join(' ').toLowerCase();
+      } else {
+        modeStr = String(job.workMode || 'Hybrid').toLowerCase();
+      }
+      
       let fMode = filterWorkMode.toLowerCase();
       if (fMode === 'on-site') fMode = 'onsite';
-      if (!mode.includes(fMode)) return false;
+      
+      const normalizedModeStr = modeStr.replace(/-/g, '');
+      if (!normalizedModeStr.includes(fMode)) return false;
     }
     return true;
   });

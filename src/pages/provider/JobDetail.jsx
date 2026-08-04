@@ -168,6 +168,13 @@ export default function JobDetail() {
         const topData = jobRes.status === "fulfilled" ? jobRes.value.data : null;
         const jobData = topData?.job || topData;
         if (!jobData) { toast.error("Job not found"); navigate(-1); return; }
+        
+        if (topData?.isExternal !== undefined) {
+          jobData.isExternal = topData.isExternal;
+        } else if (jobData.source && jobData.source !== 'internal') {
+          jobData.isExternal = true;
+        }
+        
         setJob(jobData);
         setHasApplied(!!topData?.hasApplied);
         setSaved(!!topData?.isSaved);
@@ -211,7 +218,7 @@ export default function JobDetail() {
 
   const handleSave = useCallback(async () => {
     try {
-      await providerAPI.toggleSaveJob(job._id, job.isExternal || job.source !== 'internal');
+      await providerAPI.toggleSaveJob(job._id, !!job.isExternal);
       setSaved(s => !s);
     } catch { toast.error("Could not save job"); }
   }, [job]);

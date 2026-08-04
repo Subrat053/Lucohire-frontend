@@ -713,11 +713,11 @@ export default function ResumeToolkit() {
             {contentTools.map((tool, idx) => (
               <div key={idx} className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm flex flex-col hover:shadow-md transition cursor-pointer" onClick={tool.action}>
                 <div className="flex items-center gap-2 mb-2">
-                  <tool.icon className={`w-4 h-4 ${tool.color}`} />
-                  <h4 className="text-xs font-bold text-gray-900 leading-tight">{t(tool.title)}</h4>
+                  <tool.icon className={`w-5 h-5 ${tool.color}`} />
+                  <h4 className="text-sm font-bold text-gray-900 leading-tight">{t(tool.title)}</h4>
                 </div>
-                <p className="text-[10px] text-gray-500 mb-4 flex-1">{t(tool.desc)}</p>
-                <button className="text-xs font-bold text-teal-700 flex items-center gap-1 hover:text-teal-900 transition">{t(tool.btn)} →</button>
+                <p className="text-xs text-gray-500 mb-4 flex-1">{t(tool.desc)}</p>
+                <button className="text-[13px] font-bold text-teal-700 flex items-center gap-1 hover:text-teal-900 transition">{t(tool.btn)} →</button>
               </div>
             ))}
           </div>

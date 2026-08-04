@@ -244,49 +244,49 @@ export default function GrowWithAIDashboard() {
     <div className="w-full p-4 md:p-6 lg:p-8 space-y-8 pb-20 relative">
       {/* Usage Banner */}
       {!usageLoading && (
-        <div className="bg-white border border-gray-200 p-4 sm:px-6 sm:py-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm mb-6">
+        <div className="bg-emerald-50 border border-emerald-100 p-4 sm:px-6 sm:py-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm mb-6">
           <div className="flex-1 w-full max-w-md">
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-indigo-600" />
-              <span className="text-sm font-medium text-gray-700">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              <span className="text-sm font-medium text-emerald-900">
                 {(activeTab === 'interview' || activeTab === 'gps' || activeTab === 'barriers') ? t("AI Insights Usage") : t("AI Usage")}
               </span>
             </div>
             
             {(() => {
               const map = { interview: 'refreshInsight', gps: 'refreshInsight', barriers: 'refreshInsight' };
-              if (activeTab === 'skillgap' || activeTab === 'ats') return <p className="text-sm text-gray-500">Select a supported tab to view limits.</p>;
+              if (activeTab === 'skillgap' || activeTab === 'ats') return <p className="text-sm text-emerald-700">Select a supported tab to view limits.</p>;
               const key = map[activeTab];
               const limit = aiUsage.limits[key] || 0;
               const used = aiUsage.usage[key] || 0;
               
               if (limit === -1) {
-                return <div className="text-sm font-bold text-green-600">{t("Unlimited Access")}</div>;
+                return <div className="text-sm font-bold text-emerald-700">{t("Unlimited Access")}</div>;
               }
               if (limit === 0) {
-                return <div className="text-sm font-bold text-red-500">{t("Not included in your current plan")}</div>;
+                return <div className="text-sm font-bold text-red-600">{t("Not included in your current plan")}</div>;
               }
 
               const percentage = Math.min(100, Math.round((used / limit) * 100));
-              let barColor = 'bg-indigo-600';
+              let barColor = 'bg-emerald-500';
               if (percentage > 80) barColor = 'bg-amber-500';
               if (percentage >= 100) barColor = 'bg-red-500';
 
               return (
                 <div>
                   <div className="flex justify-between text-xs mb-1.5 font-medium">
-                    <span className="text-gray-500">{used} used</span>
+                    <span className="text-emerald-700">{used} used</span>
                     <span className="text-gray-900">{limit} total</span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                  <div className="w-full bg-emerald-200/50 rounded-full h-2.5 overflow-hidden">
                     <div className={`h-2.5 rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${percentage}%` }}></div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1.5">{Math.max(0, limit - used)} {t("requests remaining")}</p>
+                  <p className="text-xs text-emerald-700 mt-1.5">{Math.max(0, limit - used)} {t("requests remaining")}</p>
                 </div>
               );
             })()}
           </div>
-          <Link to="/provider/plans" className="shrink-0 inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-700 font-semibold text-sm rounded-xl hover:bg-indigo-100 transition-colors border border-indigo-200">
+          <Link to="/provider/plans" className="shrink-0 inline-flex items-center justify-center px-4 py-2 bg-emerald-100 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-200 font-bold text-sm rounded-xl transition-colors shadow-sm">
             {t("Upgrade Plan")}
           </Link>
         </div>

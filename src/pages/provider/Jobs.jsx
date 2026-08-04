@@ -424,7 +424,7 @@ const JobCard = ({
             </div>
           </div>
         </div>
-        <div className="flex flex-col justify-center gap-1.5 w-full pr-6 xl:pr-0 min-w-0">
+        <div className="flex flex-col justify-center gap-1.5 w-full pr-6 xl:pr-8 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-bold text-gray-900 text-lg leading-tight truncate">
               {job.title}

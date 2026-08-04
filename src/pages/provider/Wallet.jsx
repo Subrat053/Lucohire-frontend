@@ -392,10 +392,10 @@ const Wallet = () => {
               <thead>
                 <tr className="border-b border-slate-100 text-xs font-bold text-slate-400">
                   <th className="py-3 px-2 uppercase">{t('wallet.txnId', 'Txn Details')}</th>
-                  <th className="py-3 px-2 uppercase">{t('wallet.txnType', 'Type')}</th>
+                  <th className="py-3 px-2 uppercase hidden sm:table-cell">{t('wallet.txnType', 'Type')}</th>
                   <th className="py-3 px-2 uppercase">{t('wallet.txnAmount', 'Amount')}</th>
                   <th className="py-3 px-2 uppercase">{t('wallet.txnStatus', 'Status')}</th>
-                  <th className="py-3 px-2 uppercase">{t('wallet.txnDate', 'Date')}</th>
+                  <th className="py-3 px-2 uppercase hidden sm:table-cell">{t('wallet.txnDate', 'Date')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
@@ -405,10 +405,14 @@ const Wallet = () => {
                       <td className="py-4 px-2">
                         <div>
                           <p className="font-semibold text-slate-800">{txn.description}</p>
-                          <p className="text-[10px] text-slate-400 font-mono mt-0.5">{t("ID:")}{txn._id}</p>
+                          <div className="sm:hidden flex flex-col gap-1 mt-1">
+                            <span className="text-[10px] text-slate-500 font-medium capitalize">{txn.type ? txn.type.replace(/_/g, ' ') : ''}</span>
+                            <span className="text-[10px] text-slate-400">{new Date(txn.createdAt).toLocaleDateString()}</span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-mono mt-0.5 hidden sm:block">{t("ID:")}{txn._id}</p>
                         </div>
                       </td>
-                      <td className="py-4 px-2">
+                      <td className="py-4 px-2 hidden sm:table-cell">
                         <span className={`px-2 py-0.5 rounded-md font-bold uppercase tracking-wider text-[9px] ${
                           txn.type === 'earning' || txn.type === 'provider_task_earning' ? 'bg-emerald-50 text-emerald-700' :
                           txn.type === 'withdrawal' || txn.type === 'withdrawal_request' ? 'bg-orange-50 text-orange-700' :
@@ -438,7 +442,7 @@ const Wallet = () => {
                           {txn.status}
                         </span>
                       </td>
-                      <td className="py-4 px-2 text-slate-400">
+                      <td className="py-4 px-2 text-slate-400 hidden sm:table-cell">
                         {new Date(txn.createdAt).toLocaleDateString()} {new Date(txn.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </td>
                     </tr>

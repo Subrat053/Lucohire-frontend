@@ -260,7 +260,7 @@ const ProviderDashboard = () => {
             <div className="flex flex-col">
               <span className="text-gray-500 mb-0.5">Current Plan</span>
               <span className="text-indigo-600 font-bold capitalize bg-indigo-50 px-2 py-0.5 rounded text-[10px] uppercase tracking-wide border border-indigo-100 self-start">
-                {user?.plan?.name || user?.plan || 'Free'}
+                {aiUsage?.planName || user?.plan?.name || user?.plan || 'Free'}
               </span>
             </div>
             <div className="h-8 w-px bg-gray-100"></div>
@@ -283,54 +283,48 @@ const ProviderDashboard = () => {
           {/* Top Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Top Matches */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-col items-center justify-center text-center hover:border-teal-100 transition-colors cursor-pointer" onClick={() => navigate('/provider/job-for-me')}>
-              <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center mb-3 shrink-0">
-                <Briefcase className="w-5 h-5 text-[#0d8765]" />
-              </div>
-              <div className="text-xs font-medium text-gray-500 mb-1">Top Matches</div>
-              <div className="text-2xl font-medium text-[#1a1b41] mb-2">{activeJobsCount}</div>
-              <div className="text-[10px] font-medium text-[#0d8765]">New matches today</div>
-              <div className="text-[10px] font-medium text-[#0d8765] mt-1 flex items-center gap-1">{newMatchesTodayCount > 0 ? `↑ ${newMatchesTodayCount} new` : 'No new today'}</div>
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm flex flex-col items-center justify-center text-center hover:border-teal-100 transition-colors cursor-pointer min-h-[140px]" onClick={() => navigate('/provider/job-for-me')}>
+              <div className="text-3xl font-bold text-emerald-600 mb-1">{activeJobsCount}</div>
+              <div className="text-sm font-medium text-gray-500 mb-3">Top Matches</div>
+              <div className="text-[11px] font-medium text-gray-500">New matches today</div>
+              <div className="text-[11px] font-medium text-gray-500 mt-1">{newMatchesTodayCount > 0 ? `↑ ${newMatchesTodayCount} new` : 'No new today'}</div>
             </div>
             {/* Applications */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-col items-center justify-center text-center hover:border-purple-100 transition-colors cursor-pointer" onClick={() => navigate('/provider/applied-jobs')}>
-              <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center mb-3 shrink-0">
-                <FileText className="w-5 h-5 text-purple-600" />
-              </div>
-              <div className="text-xs font-medium text-gray-500 mb-1">Applications</div>
-              <div className="text-2xl font-medium text-[#1a1b41] mb-2">{applicationsCount}</div>
-              <div className="text-[10px] font-medium text-gray-500">Active applications</div>
-              <div className="text-[10px] font-medium text-purple-600 mt-1">{inReviewApplicationsCount} in review</div>
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm flex flex-col items-center justify-center text-center hover:border-purple-100 transition-colors cursor-pointer min-h-[140px]" onClick={() => navigate('/provider/applied-jobs')}>
+              <div className="text-3xl font-bold text-emerald-600 mb-1">{applicationsCount}</div>
+              <div className="text-sm font-medium text-gray-500 mb-3">Applications</div>
+              <div className="text-[11px] font-medium text-gray-500">Active applications</div>
+              <div className="text-[11px] font-medium text-gray-500 mt-1">{inReviewApplicationsCount} in review</div>
             </div>
             {/* Saved Jobs */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-col items-center justify-center text-center hover:border-yellow-100 transition-colors cursor-pointer" onClick={() => navigate('/provider/saved-jobs')}>
-              <div className="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center mb-3 shrink-0">
-                <Bookmark className="w-5 h-5 text-yellow-600" />
-              </div>
-              <div className="text-xs font-medium text-gray-500 mb-1">Saved Jobs</div>
-              <div className="text-2xl font-medium text-[#1a1b41] mb-2">{savedJobsCount}</div>
-              <div className="text-[10px] font-medium text-gray-500">Jobs you saved</div>
-              <div className="text-[10px] font-medium text-yellow-600 mt-1">{newSavedTodayCount > 0 ? `↑ ${newSavedTodayCount} new` : 'Recently saved'}</div>
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm flex flex-col items-center justify-center text-center hover:border-yellow-100 transition-colors cursor-pointer min-h-[140px]" onClick={() => navigate('/provider/saved-jobs')}>
+              <div className="text-3xl font-bold text-emerald-600 mb-1">{savedJobsCount}</div>
+              <div className="text-sm font-medium text-gray-500 mb-3">Saved Jobs</div>
+              <div className="text-[11px] font-medium text-gray-500">Jobs you saved</div>
+              <div className="text-[11px] font-medium text-gray-500 mt-1">{newSavedTodayCount > 0 ? `↑ ${newSavedTodayCount} new` : 'Recently saved'}</div>
             </div>
             {/* Resume Score */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-col items-center justify-center text-center cursor-pointer" onClick={() => navigate('/provider/resume-toolkit')}>
-              <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center mb-3 shrink-0">
-                <Sparkles className="w-5 h-5 text-[#0d8765]" />
-              </div>
-              <div className="text-xs font-medium text-gray-500 mb-1">Resume Score</div>
-              <div className="text-2xl font-medium text-[#1a1b41] mb-2">{resumeScore}%</div>
-              <div className="text-[10px] font-medium text-[#0d8765]">Excellent</div>
-              <div className="text-[10px] font-medium text-[#0d8765] mt-1 flex items-center gap-1 hover:underline">Improve <ArrowRight className="w-3 h-3" /></div>
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm flex flex-col items-center justify-center text-center cursor-pointer min-h-[140px]" onClick={() => navigate('/provider/resume-toolkit')}>
+              <div className="text-3xl font-bold text-emerald-600 mb-1">{resumeScore}%</div>
+              <div className="text-sm font-medium text-gray-500 mb-3">Resume Score</div>
+              <div className="text-[11px] font-medium text-gray-500">Excellent</div>
+              <div className="text-[11px] font-medium text-gray-500 mt-1 hover:underline">Improve</div>
             </div>
           </div>
 
           {/* Top Job Matches for You */}
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[17px] font-extrabold text-[#1a1b41] flex items-center gap-2">
-                Top Job Matches for You <span className="text-[10px] bg-emerald-50 text-[#0d8765] px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><Sparkles className="w-3 h-3" /> AI Powered</span>
+            <div className="flex items-start sm:items-center justify-between mb-4">
+              <h2 className="text-[17px] font-extrabold text-[#1a1b41] leading-tight">
+                Top Job Matches for <br className="sm:hidden" />
+                <span className="inline-flex items-center gap-2 mt-1 sm:mt-0">
+                  You
+                  <span className="text-[10px] bg-emerald-50 text-[#0d8765] px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><Sparkles className="w-3 h-3" /> AI Powered</span>
+                </span>
               </h2>
-              <Link to="/provider/job-for-me" className="text-xs font-bold text-[#0d8765] hover:underline flex items-center gap-1">View All Matches <ArrowRight className="w-4 h-4" /></Link>
+              <Link to="/provider/job-for-me" className="text-xs font-bold text-[#0d8765] hover:underline flex items-center gap-1 mt-1 sm:mt-0 shrink-0">
+                View All <span className="hidden sm:inline">Matches</span> <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
             
             <div className="flex overflow-x-auto gap-4 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
@@ -531,10 +525,10 @@ const ProviderDashboard = () => {
                 </div>
               </div>
               
-              <ul className="space-y-2 mb-6 text-[12px] text-teal-100 font-medium">
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#075E54] shrink-0" /> Weekend Projects</li>
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#075E54] shrink-0" /> Part-time Work</li>
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#075E54] shrink-0" /> Instant Alerts</li>
+              <ul className="list-disc pl-4 space-y-2 mb-6 text-[12px] text-teal-100 font-medium">
+                <li>Weekend Projects</li>
+                <li>Part-time Work</li>
+                <li>Instant Alerts</li>
               </ul>
               
               <div className="flex justify-between items-end mb-4 px-1">

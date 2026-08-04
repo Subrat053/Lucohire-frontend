@@ -98,12 +98,14 @@ const navItems = [
     path: "/provider/my-plan",
     icon: HiPhone,
   },
+  /*
   {
     label: "My Refunds",
     fallback: "My Refunds",
     path: "/provider/refunds",
     icon: HiClock,
   },
+  */
   {
     label: "Refer & Earn",
     fallback: "Refer & Earn",

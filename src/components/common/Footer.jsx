@@ -115,10 +115,10 @@ const Footer = () => {
 
   return (
     <footer className="bg-[#081B3A] text-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-14 sm:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 sm:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-10">
         {/* Brand Column */}
         <div className="col-span-1 md:col-span-2 lg:col-span-1">
-          <div className="flex items-center gap-2.5 mb-4">
+          <div className="flex items-center gap-2 mb-3">
             <div className="w-14 h-14 bg-white rounded-full overflow-hidden flex items-center justify-center">
               <img src="/lucohire.webp" alt="Lucohire Logo" className="w-full h-full object-cover" />
             </div>
@@ -131,13 +131,13 @@ const Footer = () => {
           </div>
 
           {/* Dynamic Footer Short Description / Tagline */}
-          <p className="text-sm text-gray-400 leading-relaxed mb-4">
+          <p className="text-sm text-gray-400 leading-relaxed mb-3">
             {companyDetails.footerDescription || t('footer.description', "India's AI-powered hiring platform. Verified providers, fair distribution, WhatsApp-first.")}
           </p>
 
           {/* Government Certification / Registration Details Box */}
           {companyDetails.registrationDetails && (
-            <div className="my-4 p-3 bg border border-emerald-500/30 rounded-xl text-xs text-emerald-200 bg-emerald-950/40 flex items-start gap-2.5">
+            <div className="my-3 p-2.5 bg border border-emerald-500/30 rounded-xl text-xs text-emerald-200 bg-emerald-950/40 flex items-start gap-2">
               <Award className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold text-white block mb-0.5">Government Registration & Certification</span>
@@ -148,7 +148,7 @@ const Footer = () => {
 
           {/* Address & Contact Info if present */}
           {(companyDetails.addressLine1 || companyDetails.supportEmail || companyDetails.supportPhone) && (
-            <div className="space-y-1.5 text-xs text-gray-400 mt-3 pt-3 border-t border-blue-900/50">
+            <div className="space-y-1 text-xs text-gray-400 mt-2 pt-2 border-t border-blue-900/50">
               {companyDetails.addressLine1 && (
                 <div className="flex items-start gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
@@ -156,13 +156,13 @@ const Footer = () => {
                 </div>
               )}
               {companyDetails.supportEmail && (
-                <a href={`mailto:${companyDetails.supportEmail}`} className="flex items-center gap-1.5 hover:text-white transition">
+                <a href={`mailto:${companyDetails.supportEmail}`} className="flex items-center gap-1.5 hover:text-white transition !min-h-0 !py-0.5">
                   <Mail className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
                   <span>{companyDetails.supportEmail}</span>
                 </a>
               )}
               {companyDetails.supportPhone && (
-                <a href={`tel:${companyDetails.supportPhone}`} className="flex items-center gap-1.5 hover:text-white transition">
+                <a href={`tel:${companyDetails.supportPhone}`} className="flex items-center gap-1.5 hover:text-white transition !min-h-0 !py-0.5">
                   <Phone className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
                   <span>{companyDetails.supportPhone}</span>
                 </a>
@@ -171,7 +171,7 @@ const Footer = () => {
           )}
           
           {/* Social Icons */}
-          <div className="flex flex-wrap items-center gap-3.5 mt-5">
+          <div className="flex flex-wrap items-center gap-2.5 mt-3">
             {getSocialEntries(socials).map((item, idx) => {
               const key = (item.key || '').toLowerCase();
               const IconComp = ICON_MAP[key] || FaGlobe;
@@ -181,7 +181,7 @@ const Footer = () => {
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-full bg-blue-900/50 hover:bg-blue-600 text-gray-300 hover:text-white flex items-center justify-center transition-all shadow-xs"
+                  className="w-8 h-8 rounded-full bg-blue-900/50 hover:bg-blue-600 text-gray-300 hover:text-white flex items-center justify-center transition-all shadow-xs !min-h-0"
                   title={item.name || key}
                 >
                   <IconComp size={15} />
@@ -193,19 +193,15 @@ const Footer = () => {
 
         {/* Dynamic Navigation Link Columns */}
         {sections.map((section) => (
-          <div key={section.title}>
-            <h3 className="font-semibold text-white mb-5 sm:mb-6">{section.title}</h3>
-            <ul className="space-y-4">
-              {section.links.map((item) => {
-                return (
-                  <li key={item.label}>
-                    <Link to={item.href} className="text-sm text-gray-400 hover:text-white transition-colors cursor-pointer" aria-label={item.ariaLabel || item.label}>
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+          <div key={section.title} className="h-max flex flex-col justify-start">
+            <h3 className="font-semibold text-white mb-2 sm:mb-6">{section.title}</h3>
+            <div className="flex flex-col gap-2 sm:gap-4 justify-start">
+              {section.links.map((item) => (
+                <Link key={item.label} to={item.href} className="text-sm text-gray-400 hover:text-white transition-colors cursor-pointer !min-h-0 !py-0 block leading-tight" aria-label={item.ariaLabel || item.label}>
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
         ))}
 

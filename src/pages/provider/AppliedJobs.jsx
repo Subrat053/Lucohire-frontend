@@ -113,7 +113,7 @@ export default function AppliedJobs() {
           
           {/* Tabs & Controls */}
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-slate-200 pb-2">
-            <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {TABS.map(tab => (
                 <button
                   key={tab.id}
@@ -274,9 +274,9 @@ export default function AppliedJobs() {
                       </div>
 
                       {/* Right: Actions */}
-                      <div className="shrink-0 w-full lg:w-40 flex flex-col items-stretch gap-2 border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6 mt-4 lg:mt-0">
-                        <Link to={`/provider/job/${job._id}`} className="text-center py-2 px-4 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm">View Job</Link>
-                        <Link to={`/provider/application-success/${app._id}`} state={{ job, application: app }} className="text-center py-2 px-4 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition shadow-sm">View Application</Link>
+                      <div className="shrink-0 w-full lg:w-40 flex flex-row lg:flex-col items-center justify-center lg:items-stretch gap-3 lg:gap-2 border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6 mt-4 lg:mt-0">
+                        <Link to={`/provider/job/${job._id}`} className="flex-1 lg:flex-none text-center py-2.5 lg:py-2 px-4 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm">View Job</Link>
+                        <Link to={`/provider/application-success/${app._id}`} state={{ job, application: app }} className="flex-1 lg:flex-none text-center py-2.5 lg:py-2 px-4 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition shadow-sm">View Application</Link>
                       </div>
 
                     </div>
@@ -432,16 +432,16 @@ export default function AppliedJobs() {
           </div>
 
           {/* Need Help? */}
-          <div className="bg-[#1e3a8a] rounded-2xl border border-blue-900 p-5 shadow-sm relative overflow-hidden flex items-center gap-4 text-white">
+          <div className="bg-[#0f766e] rounded-2xl border border-[#0b5952] p-5 shadow-sm relative overflow-hidden flex items-center gap-4 text-white">
              <div className="flex-1 relative z-10">
                <h3 className="font-bold text-sm mb-1">Need Help?</h3>
-               <p className="text-[11px] font-medium text-blue-100 mb-3 leading-relaxed">Chat with us on WhatsApp.<br/>We're here to help you 9 AM - 9 PM</p>
-               <button onClick={() => toast('Feature in progress')} className="text-[11px] font-bold text-blue-900 bg-white rounded-full px-4 py-2 flex items-center gap-1.5 hover:bg-blue-50 shadow-sm transition w-fit">
+               <p className="text-[11px] font-medium text-emerald-100 mb-3 leading-relaxed">Chat with us on WhatsApp.<br/>We're here to help you 9 AM - 9 PM</p>
+               <button onClick={() => toast('Feature in progress')} className="text-[11px] font-bold text-[#0f766e] bg-white rounded-full px-4 py-2 flex items-center gap-1.5 hover:bg-emerald-50 shadow-sm transition w-fit">
                  Chat Now on WhatsApp <FaWhatsapp className="w-3.5 h-3.5 text-[#075E54]" />
                </button>
              </div>
              <div className="w-[80px] shrink-0 flex items-end justify-end pt-2 relative z-10">
-                <div className="w-16 h-16 rounded-full bg-blue-100/20 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-100/20 flex items-center justify-center">
                   <span className="text-3xl">👩‍💼</span>
                 </div>
              </div>

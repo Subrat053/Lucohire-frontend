@@ -1709,6 +1709,9 @@ const ProviderProfile = () => {
         // Refresh resume-toolkit data on next visit by setting a flag
         localStorage.setItem('resumeToolkitRefresh', Date.now().toString());
       }
+      
+      // Redirect to Explore Opportunities (Job matches) after saving
+      navigate('/provider/job-for-me');
     } catch (err) {
       if (err.response?.data?.upgradeRequired) {
         toast.error(err.response.data.message);
@@ -2247,16 +2250,16 @@ const ProviderProfile = () => {
                       </div>
 
                       {/* Terms and Conditions Checkbox */}
-                      <div className="flex items-start sm:items-center gap-3 p-4 border border-slate-200 rounded-xl bg-slate-50/50 hover:border-emerald-300 transition-colors mt-4">
+                      <div className="flex items-center gap-3 p-4 border border-slate-200 rounded-xl bg-slate-50/50 hover:border-emerald-300 transition-colors mt-4">
                         <input
                           type="checkbox"
                           id="termsConsentCheckbox"
                           checked={agreedToTerms}
                           onChange={(e) => setAgreedToTerms(e.target.checked)}
-                          className="mt-0.5 sm:mt-0 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer accent-emerald-600"
+                          className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer accent-emerald-600 shrink-0"
                         />
                         <label htmlFor="termsConsentCheckbox" className="text-[13px] text-slate-700 font-medium cursor-pointer select-none">
-                          {t("I have read and agree to the")}{" "}
+                          {t("I have read and agree to the")}&nbsp;
                           <button
                             type="button"
                             onClick={() => setShowTermsModal(true)}
@@ -2531,16 +2534,16 @@ const ProviderProfile = () => {
                         </label>
                       </div>
 
-                      <div className="flex items-start gap-3 p-4 bg-slate-50/50">
+                      <div className="flex items-center gap-3 p-4 bg-slate-50/50">
                         <input
                           type="checkbox"
                           id="termsConsentCheckboxMobile"
                           checked={agreedToTerms}
                           onChange={(e) => setAgreedToTerms(e.target.checked)}
-                          className="mt-0.5 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 shrink-0"
+                          className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 shrink-0"
                         />
-                        <label htmlFor="termsConsentCheckboxMobile" className="text-[12px] text-slate-700 font-medium cursor-pointer">
-                          {t("I have read and agree to the")}{" "}
+                        <label htmlFor="termsConsentCheckboxMobile" className="text-[12px] text-slate-700 font-medium cursor-pointer select-none">
+                          {t("I have read and agree to the")}&nbsp;
                           <button
                             type="button"
                             onClick={() => setShowTermsModal(true)}
