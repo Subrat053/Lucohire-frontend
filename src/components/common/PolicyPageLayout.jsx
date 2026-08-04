@@ -66,7 +66,7 @@ export default function PolicyPageLayout({ data = {}, onChange, isEditMode, imag
   const remainingSections = data.sections && data.sections.length > 1 ? data.sections.slice(1) : [];
 
   return (
-    <div className={`min-h-screen font-sans ${fullPage ? 'bg-white' : 'bg-gradient-to-br from-[#F8F9FA] via-[#F0F4FF] to-white'} ${isEditMode ? '' : (fullPage ? 'pt-8 pb-16 px-4 sm:px-6 lg:px-8' : 'py-12 px-4 sm:px-6 lg:px-8')}`}>
+    <div className={`min-h-screen font-sans ${fullPage ? 'bg-white' : 'bg-gradient-to-br from-[#F8F9FA] via-[#F0F4FF] to-white'} ${isEditMode ? '' : (fullPage ? 'pt-4 sm:pt-8 pb-16 px-0 sm:px-6 lg:px-8' : 'py-6 sm:py-12 px-0 sm:px-6 lg:px-8')}`}>
       
       {isEditMode && (
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 text-center text-sm font-bold shadow-md relative z-50">
@@ -74,10 +74,10 @@ export default function PolicyPageLayout({ data = {}, onChange, isEditMode, imag
         </div>
       )}
 
-      <div className={`max-w-6xl mx-auto ${fullPage ? 'bg-white' : 'bg-white/80 backdrop-blur-md shadow-lg rounded-2xl overflow-hidden border border-white/50'} ${isEditMode ? 'my-8' : ''}`}>
+      <div className={`max-w-6xl mx-auto ${fullPage ? 'bg-white' : 'bg-white sm:bg-white/80 sm:backdrop-blur-md shadow-none sm:shadow-lg rounded-none sm:rounded-2xl overflow-hidden border-none sm:border sm:border-white/50'} ${isEditMode ? 'my-8' : ''}`}>
         
         {/* Top Content Section (2 columns on desktop) */}
-        <div className="p-8 sm:p-12 lg:px-16 flex flex-col lg:flex-row gap-12 lg:gap-20 border-b border-gray-100 items-stretch bg-white">
+        <div className="p-5 sm:p-12 lg:px-16 flex flex-col lg:flex-row gap-8 lg:gap-20 border-b border-gray-100 items-stretch bg-white">
           
           {/* Left Column: Text */}
           <div className="flex-1 space-y-10 flex flex-col justify-center">
@@ -179,12 +179,12 @@ export default function PolicyPageLayout({ data = {}, onChange, isEditMode, imag
         </div>
 
         {/* Bottom Content Section (Full width) */}
-        <div className="p-8 sm:p-12 lg:px-16 bg-white">
+        <div className="p-5 sm:p-12 lg:px-16 bg-white">
           <div className="space-y-12 w-full max-w-none">
             {remainingSections.map((section, idx) => {
               const actualIndex = idx + 1; // Since we skipped the first section
               return (
-                <div key={actualIndex} className="relative group space-y-4 w-full bg-gray-50/50 hover:bg-blue-50/30 p-8 rounded-3xl border border-transparent hover:border-blue-100 transition-colors">
+                <div key={actualIndex} className="relative group space-y-3 sm:space-y-4 w-full bg-gray-50/50 hover:bg-blue-50/30 p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-transparent hover:border-blue-100 transition-colors">
                   {isEditMode && (
                     <div className="absolute -left-4 top-8 opacity-0 group-hover:opacity-100 transition flex flex-col gap-1 z-10">
                       <button 

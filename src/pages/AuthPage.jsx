@@ -399,8 +399,8 @@ const ProgressBar = ({ filled = 1, total = 2 }) => (
 const TrustRow = () => {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-b border-gray-100 py-3 mb-6">
-      <div className="flex items-center gap-1.5 text-xs text-gray-700">
+    <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:items-center sm:justify-between border-t border-b border-gray-100 py-3 mb-6">
+      <div className="flex items-center gap-1.5 text-xs text-gray-700 order-1">
         <div className="w-7 h-7 bg-emerald-100 rounded-full flex items-center justify-center">
           <svg
             className="w-4 h-4 text-emerald-800"
@@ -412,19 +412,23 @@ const TrustRow = () => {
         </div>
         {t("auth.signup2Step", "2-Step Signup")}
       </div>
-      <div className="hidden sm:block w-px h-7 bg-gray-200" />
-      <div className="flex items-center gap-1.5 text-xs text-gray-700">
-        <div className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center">
-          <HiCheckCircle className="w-4 h-4 text-red-700" />
-        </div>
-        {t("auth.noPasswordReq", "No Password Required")}
-      </div>
-      <div className="hidden sm:block w-px h-7 bg-gray-200" />
-      <div className="flex items-center gap-1.5 text-xs text-gray-700">
+      
+      <div className="hidden sm:block w-px h-7 bg-gray-200 order-2" />
+      
+      <div className="flex items-center gap-1.5 text-xs text-gray-700 order-3 sm:order-5">
         <div className="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center">
           <HiShieldCheck className="w-4 h-4 text-green-700" />
         </div>
         {t("auth.secure100", "100% Secure")}
+      </div>
+
+      <div className="hidden sm:block w-px h-7 bg-gray-200 order-4" />
+
+      <div className="flex items-center gap-1.5 text-xs text-gray-700 order-5 sm:order-3 col-span-2 sm:col-span-1">
+        <div className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center">
+          <HiCheckCircle className="w-4 h-4 text-red-700" />
+        </div>
+        {t("auth.noPasswordReq", "No Password Required")}
       </div>
     </div>
   );
@@ -2316,7 +2320,7 @@ const AuthPage = () => {
       {/* Back button */}
       <Link
         to="/"
-        className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-gray-800 lg:text-white transition text-xs sm:text-sm font-medium z-30 bg-black/10 lg:bg-black/30 hover:bg-black/20 lg:hover:bg-black/50 backdrop-blur-md rounded-full px-4 py-2 shadow-lg"
+        className="absolute top-8 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-gray-800 lg:text-white transition text-xs sm:text-sm font-medium z-30 bg-black/10 lg:bg-black/30 hover:bg-black/20 lg:hover:bg-black/50 backdrop-blur-md rounded-full px-4 py-2 shadow-lg"
       >
         <HiArrowLeft className="w-4 h-4" /> {t("navbar.home")}
       </Link>
@@ -2327,9 +2331,7 @@ const AuthPage = () => {
       {/* Right panel (Form) */}
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-12 relative overflow-y-auto">
         <div className="lg:hidden flex items-center gap-2 mb-8">
-          <div className="w-10 h-10 bg-emerald-800 rounded-xl flex items-center justify-center shadow">
-            <FaRocket className="w-5 h-5 text-white" />
-          </div>
+          <img src="/lucohire.webp" alt="Lucohire" className="w-10 h-10 object-contain" />
           <span className="text-xl font-extrabold text-gray-900">
             Lucohire
           </span>
