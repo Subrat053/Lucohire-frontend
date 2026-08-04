@@ -24,7 +24,6 @@ const emptyPlan = {
   }
 };
 const PLAN_TIERS = [
-  { label: 'Free', slug: 'free' },
   { label: 'Basic', slug: 'basic' },
   { label: 'Pro', slug: 'pro' },
   { label: 'Max', slug: 'max' },

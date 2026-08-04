@@ -12,6 +12,7 @@ import LocationSearch from '../../components/LocationSearch';
 import useTranslation from '../../hooks/useTranslation';
 import toast from 'react-hot-toast';
 import { getPlacePredictions, getPlaceDetails, normalizeGooglePlace } from '../../services/googlePlacesService';
+import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
 
 /* ── Illustration ─────────────────────────────────────────────────── */
 const PostJobIllustration = () => (
@@ -53,6 +54,7 @@ const PostJob = () => {
   const [loading, setLoading] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
+  const [showPlans, setShowPlans] = useState(false);
   const [aiMeta, setAiMeta] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [matchCount, setMatchCount] = useState(0);
@@ -237,7 +239,12 @@ const PostJob = () => {
       }
       toast.success(t('recruiter.jobPostedSuccess', 'Job posted! {{count}} providers notified.', { count: data.matchedCount || 0 }));
     } catch (err) {
-      toast.error(err.response?.data?.message || t('recruiter.failedPostJob', 'Failed to post job'));
+      if (err.response?.data?.upgradeRequired) {
+        toast.error(err.response.data.message || "Limit Reached");
+        setShowPlans(true);
+      } else {
+        toast.error(err.response?.data?.message || t('recruiter.failedPostJob', 'Failed to post job'));
+      }
     } finally {
       setLoading(false);
     }
@@ -504,6 +511,13 @@ const PostJob = () => {
           </div>
         </form>
       </div>
+      
+      <SubscriptionPlansPopup 
+        open={showPlans} 
+        onClose={() => setShowPlans(false)} 
+        role="recruiter" 
+        reason="job_post_limit" 
+      />
     </div>
   );
 };

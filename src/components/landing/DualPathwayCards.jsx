@@ -33,27 +33,27 @@ export default function DualPathwayCards({ user }) {
           <div className="mt-4 sm:mt-auto flex flex-wrap items-center justify-start sm:justify-between gap-y-3 gap-x-4 sm:gap-x-0 w-full">
             <div className="flex flex-col items-center gap-1.5 text-blue-600">
               <Target className="w-4 h-4" strokeWidth={2.5} />
-              <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("AI Match")}</span>
+              <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("AI Match")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-gray-700">
               <FileText className="w-4 h-4" strokeWidth={2.5} />
-              <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Resume Score")}</span>
+              <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("Resume Score")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-gray-700">
               <PieChart className="w-4 h-4" strokeWidth={2.5} />
-              <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Skill Insights")}</span>
+              <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("Skill Insights")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-gray-700">
               <TrendingUp className="w-4 h-4" strokeWidth={2.5} />
-              <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Career Tips")}</span>
+              <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("Career Tips")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-gray-700">
               <Globe className="w-4 h-4" strokeWidth={2.5} />
-              <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Global Jobs")}</span>
+              <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("Global Jobs")}</span>
             </div>
           </div>
         </Link>
@@ -78,27 +78,27 @@ export default function DualPathwayCards({ user }) {
           <div className="mt-4 sm:mt-auto flex flex-wrap items-center justify-start sm:justify-between gap-y-3 gap-x-4 sm:gap-x-0 w-full">
             <div className="flex flex-col items-center gap-1.5 text-green-500">
               <Users className="w-4 h-4" strokeWidth={2.5} />
-              <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Verified Talent")}</span>
+              <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("Verified Talent")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-green-500">
               <ShieldCheck className="w-4 h-4" strokeWidth={2.5} />
-              <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Post Jobs Free")}</span>
+              <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("Post Jobs Free")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-green-500">
               <Send className="w-4 h-4" strokeWidth={2.5} />
-              <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("Smart Shortlist")}</span>
+              <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("Smart Shortlist")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-green-500">
               <MessageCircle className="w-4 h-4" strokeWidth={2.5} />
-              <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("WhatsApp Connect")}</span>
+              <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("WhatsApp Connect")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
             <div className="flex flex-col items-center gap-1.5 text-green-500">
               <Award className="w-4 h-4" strokeWidth={2.5} />
-              <span className="text-[9px] font-bold text-gray-700 whitespace-nowrap">{t("AI Ranking")}</span>
+              <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("AI Ranking")}</span>
             </div>
           </div>
         </Link>

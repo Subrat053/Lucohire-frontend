@@ -9,6 +9,7 @@ import { HiOutlineLocationMarker } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { toOptimizedMediaUrl } from '../../utils/media';
 import { useAuth } from '../../context/AuthContext';
+import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
 
 const TAG_COLORS = ['bg-purple-50 text-purple-700 border-purple-100','bg-indigo-50 text-indigo-700 border-indigo-100','bg-emerald-50 text-emerald-700 border-emerald-100','bg-orange-50 text-orange-700 border-orange-100','bg-rose-50 text-rose-700 border-rose-100','bg-gray-100 text-gray-700 border-gray-200'];
 
@@ -22,6 +23,7 @@ const CandidateDetails = () => {
   const [candidate, setCandidate] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showPlans, setShowPlans] = useState(false);
   const [showMoreActions, setShowMoreActions] = useState(false);
   const moreActionsRef = useRef(null);
   const [contactUnlocked, setContactUnlocked] = useState(false);
@@ -95,8 +97,10 @@ const CandidateDetails = () => {
     if (!isAuthenticated) return toast.error(t('Please login first'));
     if ((user?.activeRole || user?.role) !== 'recruiter') return toast.error(t('Only recruiters can unlock contacts'));
     
-    if (!usageLoading && aiUsage.limits.profileUnlocks !== -1 && aiUsage.usage.profileUnlocks >= (aiUsage.limits.profileUnlocks || 0)) {
-      return toast.error(t('Profile unlock limit reached.'));
+    if (!usageLoading && aiUsage.limits.unlockCredits !== -1 && (aiUsage.usage.unlockCredits || 0) >= (aiUsage.limits.unlockCredits || 0)) {
+      toast.error(t('Profile unlock limit reached.'));
+      setShowPlans(true);
+      return;
     }
 
     setUnlocking(true);
@@ -107,11 +111,18 @@ const CandidateDetails = () => {
       // Update local usage state
       setAiUsage(prev => ({
         ...prev,
-        usage: { ...prev.usage, profileUnlocks: (prev.usage.profileUnlocks || 0) + 1 }
+        usage: { ...prev.usage, unlockCredits: (prev.usage.unlockCredits || 0) + 1 }
       }));
       
       toast.success(t('Contact unlocked!'));
-    } catch (err) { toast.error(err.response?.data?.message || t('Failed to unlock')); }
+    } catch (err) { 
+      if (err.response?.data?.upgradeRequired) {
+        toast.error(err.response.data.message || t('Profile unlock limit reached.'));
+        setShowPlans(true);
+      } else {
+        toast.error(err.response?.data?.message || t('Failed to unlock')); 
+      }
+    }
     finally { setUnlocking(false); }
   };
 
@@ -614,6 +625,12 @@ const CandidateDetails = () => {
           </div>
         </div>
       </div>
+      <SubscriptionPlansPopup 
+        open={showPlans} 
+        onClose={() => setShowPlans(false)} 
+        role="recruiter" 
+        reason="unlock_limit" 
+      />
     </div>
   );
 };

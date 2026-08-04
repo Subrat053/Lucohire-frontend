@@ -25,9 +25,7 @@ const LockedResults = () => {
   const { saveUserSession } = useAuth();
   const [confirmationResult, setConfirmationResult] = useState(null);
   
-  const recaptchaVerifierRef = useRef(null);
-
-  const { formData } = location.state || {};
+  const formData = location.state?.formData || {};
 
   useEffect(() => {
     if (formData?.phone) {
@@ -65,9 +63,9 @@ const LockedResults = () => {
 
   useEffect(() => {
     return () => {
-      if (recaptchaVerifierRef.current) {
-        try { recaptchaVerifierRef.current.clear(); } catch(e) {}
-        recaptchaVerifierRef.current = null;
+      if (window.recaptchaVerifier) {
+        try { window.recaptchaVerifier.clear(); } catch(e) {}
+        window.recaptchaVerifier = null;
       }
     };
   }, []);
@@ -75,29 +73,22 @@ const LockedResults = () => {
   const handlePhoneSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
 
-    if (!phoneState) {
-      return toast.error('Please enter a valid phone number');
+    if (!phoneState || phoneState.length !== 10) {
+      return toast.error('Please enter a valid 10-digit mobile number');
     }
 
     setLoading(true);
 
     try {
-      if (!recaptchaVerifierRef.current) {
-        const uniqueId = `recaptcha-guest-${Date.now()}`;
-        const container = document.createElement('div');
-        container.id = uniqueId;
-        document.body.appendChild(container);
-
-        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, container, { 
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 
           size: 'invisible',
           callback: () => {}
         });
       }
       
-      const appVerifier = recaptchaVerifierRef.current;
-      const formattedPhone = phoneState.startsWith('+') 
-        ? '+' + phoneState.replace(/\D/g, '') 
-        : `+91${phoneState.replace(/\D/g, '')}`;
+      const appVerifier = window.recaptchaVerifier;
+      const formattedPhone = `+91${phoneState.replace(/\D/g, '')}`;
       
       const confResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
       setConfirmationResult(confResult);
@@ -105,11 +96,11 @@ const LockedResults = () => {
       toast.success('OTP sent successfully');
     } catch (err) {
       console.error('Send OTP Error:', err);
-      toast.error('Failed to send OTP. Try again or format with +CountryCode');
+      toast.error(err.message || 'Failed to send OTP. Please try again.');
       // Reset recaptcha on error
-      if (recaptchaVerifierRef.current) {
-        try { recaptchaVerifierRef.current.clear(); } catch(e) {}
-        recaptchaVerifierRef.current = null;
+      if (window.recaptchaVerifier) {
+        try { window.recaptchaVerifier.clear(); } catch(e) {}
+        window.recaptchaVerifier = null;
       }
     } finally {
       setLoading(false);
@@ -419,6 +410,9 @@ const LockedResults = () => {
         </div>
       </div>
 
+      {/* Invisible reCAPTCHA container */}
+      <div id="recaptcha-container"></div>
+
       {/* OTP Modal */}
       {showOtpModal && !isVerified && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -443,15 +437,16 @@ const LockedResults = () => {
                   <form onSubmit={handlePhoneSubmit} className="w-full">
                     <div className="mb-6 text-left relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <FiPhone className="text-gray-400" />
+                        <span className="text-gray-500 font-medium">+91</span>
                       </div>
                       <input 
-                        type="text"
+                        type="tel"
                         value={phoneState}
-                        onChange={(e) => setPhoneState(e.target.value)}
-                        placeholder="+919876543210"
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        onChange={(e) => setPhoneState(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        placeholder="9876543210"
+                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                         required
+                        maxLength="10"
                       />
                     </div>
                     

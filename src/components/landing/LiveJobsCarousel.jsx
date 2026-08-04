@@ -110,7 +110,7 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 pb-1">
       <div className="max-w-7xl mx-auto bg-[#f4f7ff] border border-blue-100 rounded-[24px] p-3 sm:p-4 relative shadow-sm">
-        <div className="flex justify-between items-center mb-3 px-2 sm:px-4">
+        <div className="flex justify-between items-center mb-1 sm:mb-3 px-2 sm:px-4">
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-200"></div>
             <h3 className="font-extrabold text-[#0B1536] text-lg">{t("Live Jobs")}</h3>
@@ -153,7 +153,7 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
         <div 
           ref={carouselRef}
           onScroll={handleScrollEvent}
-          className="flex space-x-4 overflow-x-auto pb-4 pt-2 px-2 sm:px-10 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          className="flex space-x-4 overflow-x-auto pb-4 pt-0 sm:pt-2 px-2 sm:px-10 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
           {isLoadingJobs ? (
             [1, 2, 3, 4, 5].map(i => (
