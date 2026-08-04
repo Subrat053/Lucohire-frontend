@@ -68,24 +68,24 @@ const ProviderLeads = () => {
                   )}
                   <p className="text-xs text-gray-400 mt-1">{new Date(lead.createdAt).toLocaleString()}</p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1 sm:space-x-2">
                   {lead.isUnlocked && lead.recruiter?.phone && (
-                    <a href={`tel:${lead.recruiter.phone}`} className="p-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100">
-                      <HiPhone className="w-5 h-5" />
+                    <a href={`tel:${lead.recruiter.phone}`} className="shrink-0 w-7 h-7 sm:w-9 sm:h-9 aspect-square p-0 bg-green-50 text-green-700 rounded-full hover:bg-green-100 flex items-center justify-center">
+                      <HiPhone className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                     </a>
                   )}
                   {lead.isUnlocked && lead.recruiter?.email && (
-                    <a href={`mailto:${lead.recruiter.email}`} className="p-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100">
-                      <HiMail className="w-5 h-5" />
+                    <a href={`mailto:${lead.recruiter.email}`} className="shrink-0 w-7 h-7 sm:w-9 sm:h-9 aspect-square p-0 bg-teal-50 text-teal-600 rounded-full hover:bg-teal-100 flex items-center justify-center">
+                      <HiMail className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                     </a>
                   )}
                   {lead.status === 'new' && (
                     <>
-                      <button onClick={() => updateStatus(lead._id, 'contacted')} className="p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700" title="Mark Contacted">
-                        <HiCheck className="w-5 h-5" />
+                      <button onClick={() => updateStatus(lead._id, 'contacted')} className="shrink-0 w-7 h-7 sm:w-9 sm:h-9 aspect-square p-0 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 flex items-center justify-center" title="Mark Contacted">
+                        <HiCheck className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                       </button>
-                      <button onClick={() => updateStatus(lead._id, 'rejected')} className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700" title="Reject">
-                        <HiXIcon className="w-5 h-5" />
+                      <button onClick={() => updateStatus(lead._id, 'rejected')} className="shrink-0 w-7 h-7 sm:w-9 sm:h-9 aspect-square p-0 bg-red-600 text-white rounded-full hover:bg-red-700 flex items-center justify-center" title="Reject">
+                        <HiXIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                       </button>
                     </>
                   )}

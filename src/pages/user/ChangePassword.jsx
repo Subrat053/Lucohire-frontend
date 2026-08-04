@@ -101,19 +101,18 @@ const ChangePassword = () => {
 
 
       {/* ── Main Change Password Form ── */}
-      <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-        <div className="bg-emerald-950 p-8 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl -mr-16 -mt-16" />
-          <div className="relative z-10">
-            <h2 className="text-2xl font-black">Change Password</h2>
-            <p className="text-slate-400 text-sm mt-1">Update your account security settings</p>
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden">
+        <div className="bg-white border-b border-slate-200 p-6 sm:p-8 sm:pb-5 pb-5">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">Change Password</h2>
+            <p className="text-slate-500 font-medium text-sm mt-1.5">Update your account security settings</p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-4">
           {/* New Password */}
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">
+            <label className="block text-sm font-bold text-slate-700 mb-0">
               New Password
             </label>
             <div className="relative group">
@@ -159,7 +158,7 @@ const ChangePassword = () => {
 
           {/* Confirm New Password */}
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">
+            <label className="block text-sm font-bold text-slate-700 mb-0">
               Confirm New Password
             </label>
             <div className="relative group">
@@ -183,7 +182,7 @@ const ChangePassword = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-16 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-emerald-200 hover:shadow-emerald-300 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full h-14 bg-emerald-600 text-white rounded-xl font-bold text-lg hover:bg-emerald-700 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
               {loading ? (
                 <div className="w-6 h-6 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />

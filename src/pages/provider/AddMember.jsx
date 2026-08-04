@@ -57,8 +57,8 @@ const AddMember = () => {
                 </div>
               </div>
 
-              <form onSubmit={handleInvite} className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <form onSubmit={handleInvite} className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
                   {/* Full Name */}
                   <div className="relative">
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1">{t("Full Name *")}</label>

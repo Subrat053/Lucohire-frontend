@@ -302,24 +302,48 @@ export default function AiCareerCoach() {
       {/* AI Chat */}
       {/* AI Chat */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.05)] p-5 md:p-8 mb-6">
-        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-6">
-          {/* Robot Image */}
-          <div className="w-24 h-24 md:w-32 md:h-32 shrink-0 flex items-center justify-center">
+        {/* Mobile Header Layout */}
+        <div className="md:hidden">
+          <div className="relative mb-6">
+            <h2 className="text-xl font-extrabold text-[#1a1b41] flex items-center gap-2 mb-0.5">
+              Hi {user?.name?.split(' ')[0] || 'Ananya'}! <span className="text-2xl">👋</span>
+            </h2>
+            <p className="text-gray-500 text-[13px] font-medium leading-snug max-w-[75%] text-left">
+              I'm your AI Career Coach. I'll help you take the right steps every day to reach your dream role.
+            </p>
+            
+            <div className="absolute top-0 right-0 w-16 h-16 shrink-0 flex items-center justify-center bg-emerald-50 rounded-full">
+              <img src="/ai-robot-coach.webp" alt="AI Coach" className="w-[85%] h-[85%] object-contain" />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2 mb-6">
+            {['Improve My Resume', 'Find Better Jobs', 'Prepare for Interview', 'Salary Negotiation Tips'].map((action, i) => (
+              <button key={i} onClick={() => handleQuickChip(action)}
+                className="px-3 py-2.5 bg-white border border-gray-100 shadow-sm hover:border-gray-200 hover:bg-gray-50 rounded-xl text-xs font-bold text-gray-700 transition-all text-center flex items-center justify-center">
+                {action}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop Header Layout (Original) */}
+        <div className="hidden md:flex flex-row gap-6 items-center mb-6">
+          <div className="w-32 h-32 shrink-0 flex items-center justify-center">
             <img src="/ai-robot-coach.webp" alt="AI Coach" className="w-[120%] h-[120%] object-contain" />
           </div>
           
-          {/* Header Text & Pills */}
           <div className="flex-1">
-            <h2 className="text-xl md:text-2xl font-extrabold text-[#1a1b41] flex items-center gap-2 mb-2">
+            <h2 className="text-2xl font-extrabold text-[#1a1b41] flex items-center gap-2 mb-2">
               Hi {user?.name?.split(' ')[0] || 'Ananya'}! <span>👋</span>
             </h2>
-            <p className="text-gray-500 text-xs md:text-sm font-medium mb-4">
+            <p className="text-gray-500 text-sm font-medium mb-4">
               I'm your AI Career Coach. I'll help you take the right steps every day to reach your dream role.
             </p>
             
             <div className="flex flex-wrap gap-2">
               {['Improve My Resume', 'Find Better Jobs', 'Prepare for Interview', 'Salary Negotiation Tips'].map((action, i) => (
-                <button key={i} onClick={() => handleQuickChip(action)}
+                <button key={`desktop-${i}`} onClick={() => handleQuickChip(action)}
                   className="px-4 py-2 bg-white border border-gray-100 shadow-sm hover:border-gray-200 hover:bg-gray-50 rounded-xl text-xs font-bold text-gray-700 transition-all">
                   {action}
                 </button>
@@ -354,16 +378,16 @@ export default function AiCareerCoach() {
         )}
 
         {/* Input Form */}
-        <form onSubmit={handleSendMessage} className="relative mb-4">
+        <form onSubmit={handleSendMessage} className="flex gap-3 mb-4">
           <input
             type="text" value={chatMessage} onChange={e => setChatMessage(e.target.value)}
             placeholder="Ask me anything about your career..."
-            className="w-full pl-5 pr-14 py-3.5 rounded-2xl border border-gray-100 shadow-sm focus:border-[#0d8765] focus:ring-2 focus:ring-emerald-50 focus:outline-none text-sm font-medium transition-all"
+            className="flex-1 px-5 py-3.5 rounded-2xl border border-gray-100 shadow-sm focus:border-[#0d8765] focus:ring-2 focus:ring-emerald-50 focus:outline-none text-sm font-medium transition-all min-w-0"
             disabled={chatLoading}
           />
           <button type="submit" disabled={chatLoading || !chatMessage.trim()}
-            className="absolute right-2 top-2 bottom-2 aspect-square bg-[#0d8765] hover:bg-[#096c4f] text-white rounded-xl flex items-center justify-center transition-colors disabled:opacity-40 shadow-sm">
-            <Send className="w-4 h-4" />
+            className="w-[52px] h-[52px] shrink-0 bg-[#0d8765] hover:bg-[#096c4f] text-white rounded-2xl flex items-center justify-center transition-colors disabled:opacity-40 shadow-sm">
+            <Send className="w-5 h-5" />
           </button>
         </form>
 
@@ -440,12 +464,13 @@ export default function AiCareerCoach() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-base font-bold flex items-center gap-1.5">
-            <Calendar className="w-6 h-6 text-indigo-500" /> All Tasks
+            All Tasks
             <span className="text-sm text-gray-400 font-semibold ml-1">({completedCount}/{tasks.length} done)</span>
           </h3>
           <button onClick={handleTasksRefresh} disabled={refreshingTasks}
-            className="flex items-center gap-1 text-sm font-bold text-[#0f766e] hover:text-teal-800 disabled:opacity-50 transition-colors">
-            <RefreshCw className={`w-5 h-5 ${refreshingTasks ? 'animate-spin' : ''}`} /> Refresh Tasks
+            className="flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-lg bg-gray-50 border border-gray-100 gap-1 text-sm font-bold text-[#0f766e] hover:text-teal-800 hover:bg-gray-100 disabled:opacity-50 transition-colors">
+            <RefreshCw className={`w-5 h-5 ${refreshingTasks ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh Tasks</span>
           </button>
         </div>
         {/* Progress bar */}
@@ -650,26 +675,49 @@ export default function AiCareerCoach() {
 
       {/* AI Insights */}
       {aiInsights.length > 0 && (
-        <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-4 shadow-sm">
-          <h3 className="text-base font-bold mb-3 flex items-center gap-1.5 text-indigo-900">
-            <Sparkles className="w-6 h-6 text-indigo-500" /> AI Coach Insights
-          </h3>
-          <div className="space-y-3">
-            {aiInsights.map((insight, idx) => (
-              <div key={idx} className="flex gap-3 bg-white/60 p-3 rounded-xl border border-indigo-50/50">
-                <div className="shrink-0 mt-0.5">
-                  {insight.type === 'strength' && <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-green-700" /></div>}
-                  {insight.type === 'improvement' && <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center"><Target className="w-4 h-4 text-orange-600" /></div>}
-                  {insight.type === 'opportunity' && <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center"><Sparkles className="w-4 h-4 text-purple-600" /></div>}
+        <>
+          {/* Mobile Layout (New style) */}
+          <div className="md:hidden bg-gray-50 border border-gray-100 rounded-2xl p-4 shadow-sm mb-6">
+            <h3 className="text-base font-bold mb-3 flex items-center gap-1.5 text-gray-900">
+              <Sparkles className="w-6 h-6 text-emerald-600" /> AI Coach Insights
+            </h3>
+            <div className="space-y-3">
+              {aiInsights.map((insight, idx) => (
+                <div key={idx} className="flex gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                  <div className="shrink-0 mt-0.5">
+                    <CheckCircle2 className="w-5 h-5 text-gray-600" />
+                  </div>
+                  <div>
+                    <p className="text-base font-bold uppercase tracking-wider mb-0.5 text-emerald-500">{insight.type}</p>
+                    <p className={`text-sm font-medium text-gray-900 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{insight.message}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-base font-bold uppercase tracking-wider mb-0.5 text-indigo-500">{insight.type}</p>
-                  <p className={`text-sm font-medium text-indigo-950 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{insight.message}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+
+          {/* Desktop Layout (Original style) */}
+          <div className="hidden md:block bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-4 shadow-sm mb-6">
+            <h3 className="text-base font-bold mb-3 flex items-center gap-1.5 text-indigo-900">
+              <Sparkles className="w-6 h-6 text-indigo-500" /> AI Coach Insights
+            </h3>
+            <div className="space-y-3">
+              {aiInsights.map((insight, idx) => (
+                <div key={`desktop-${idx}`} className="flex gap-3 bg-white/60 p-3 rounded-xl border border-indigo-50/50">
+                  <div className="shrink-0 mt-0.5">
+                    {insight.type === 'strength' && <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-green-700" /></div>}
+                    {insight.type === 'improvement' && <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center"><Target className="w-4 h-4 text-orange-600" /></div>}
+                    {insight.type === 'opportunity' && <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center"><Sparkles className="w-4 h-4 text-purple-600" /></div>}
+                  </div>
+                  <div>
+                    <p className="text-base font-bold uppercase tracking-wider mb-0.5 text-indigo-500">{insight.type}</p>
+                    <p className={`text-sm font-medium text-indigo-950 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{insight.message}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
       )}
 
       {/* Today's Tasks Progress */}
@@ -898,8 +946,8 @@ export default function AiCareerCoach() {
             <p className="text-gray-500 text-sm mt-0.5">Your personal AI coach to help you grow and land your dream role.</p>
           </div>
           <button onClick={() => setSettingsOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg hover:border-gray-300 font-semibold text-sm transition-colors shadow-sm">
-            <Settings className="w-5 h-5" /> Settings
+            className="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 bg-white border border-gray-200 rounded-lg hover:border-gray-300 font-semibold text-sm transition-colors shadow-sm">
+            <Settings className="w-5 h-5" /> <span className="hidden sm:inline">Settings</span>
           </button>
         </div>
 

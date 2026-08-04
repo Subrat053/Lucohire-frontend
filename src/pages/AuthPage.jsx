@@ -399,32 +399,32 @@ const ProgressBar = ({ filled = 1, total = 2 }) => (
 const TrustRow = () => {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-b border-gray-100 py-3 mb-6">
-      <div className="flex items-center gap-1.5 text-xs text-gray-700">
-        <div className="w-7 h-7 bg-emerald-100 rounded-full flex items-center justify-center">
+    <div className="flex flex-row items-center justify-between gap-1 sm:gap-3 border-t border-b border-gray-100 py-2 sm:py-3 mb-4 sm:mb-6">
+      <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-700">
+        <div className="w-5 h-5 sm:w-7 sm:h-7 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
           <svg
-            className="w-4 h-4 text-emerald-800"
+            className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-800"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
             <path d="M3 4h14v2H3V4zm0 5h10v2H3V9zm0 5h12v2H3v-2z" />
           </svg>
         </div>
-        {t("auth.signup2Step", "2-Step Signup")}
+        <span className="whitespace-nowrap">{t("auth.signup2Step", "2-Step Signup")}</span>
       </div>
-      <div className="hidden sm:block w-px h-7 bg-gray-200" />
-      <div className="flex items-center gap-1.5 text-xs text-gray-700">
-        <div className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center">
-          <HiCheckCircle className="w-4 h-4 text-red-700" />
+      <div className="w-px h-5 sm:h-7 bg-gray-200" />
+      <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-700">
+        <div className="w-5 h-5 sm:w-7 sm:h-7 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+          <HiCheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-red-700" />
         </div>
-        {t("auth.noPasswordReq", "No Password Required")}
+        <span className="whitespace-nowrap">{t("auth.noPasswordReq", "No Password Required")}</span>
       </div>
-      <div className="hidden sm:block w-px h-7 bg-gray-200" />
-      <div className="flex items-center gap-1.5 text-xs text-gray-700">
-        <div className="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center">
-          <HiShieldCheck className="w-4 h-4 text-green-700" />
+      <div className="w-px h-5 sm:h-7 bg-gray-200" />
+      <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-700">
+        <div className="w-5 h-5 sm:w-7 sm:h-7 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+          <HiShieldCheck className="w-3 h-3 sm:w-4 sm:h-4 text-green-700" />
         </div>
-        {t("auth.secure100", "100% Secure")}
+        <span className="whitespace-nowrap">{t("auth.secure100", "100% Secure")}</span>
       </div>
     </div>
   );
@@ -2231,7 +2231,7 @@ const AuthPage = () => {
             <TrustRow />
           </div>
 
-          <div className="mb-5">
+          <div className="mb-3 sm:mb-5">
             <div className="flex items-center gap-2 mb-1">
               <HiUser className="w-5 h-5 text-emerald-600" />
               <h3 className="text-base font-bold text-gray-800">
@@ -2284,7 +2284,7 @@ const AuthPage = () => {
             )}
           </BlueBtn>
 
-          <p className="text-center text-sm text-gray-500 mt-3">
+          <p className="text-center text-sm text-gray-500 mt-2 sm:mt-3">
             {t("auth.noAccount")}{" "}
             <button
               type="button"
@@ -2325,14 +2325,17 @@ const AuthPage = () => {
       <LeftPanel mode={mode} />
 
       {/* Right panel (Form) */}
-      <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-12 relative overflow-y-auto">
-        <div className="lg:hidden flex items-center gap-2 mb-8">
-          <div className="w-10 h-10 bg-emerald-800 rounded-xl flex items-center justify-center shadow">
-            <FaRocket className="w-5 h-5 text-white" />
+      <div className="flex-1 flex flex-col justify-start lg:justify-center px-6 sm:px-12 lg:px-16 pt-16 sm:pt-24 pb-12 lg:py-12 relative overflow-y-auto">
+        <div className="lg:hidden flex items-center gap-1 mb-4 mr-auto sm:mx-auto">
+          <img src="/logo.webp" alt="Lucohire Logo" className="w-11 h-11 object-contain shrink-0" />
+          <div className="leading-none flex flex-col justify-center">
+            <p className="font-bold text-[#081B3A] text-lg tracking-tight leading-none">
+              Lucohire
+            </p>
+            <p className="text-[10px] font-semibold text-[#6B7280] mt-1 leading-none whitespace-nowrap">
+              AI-Powered Global Jobs &amp; Hiring Platform
+            </p>
           </div>
-          <span className="text-xl font-extrabold text-gray-900">
-            Lucohire
-          </span>
         </div>
 
         <div className="w-full max-w-md mx-auto relative z-10 auth-page-card">

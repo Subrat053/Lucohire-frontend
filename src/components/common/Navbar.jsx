@@ -412,7 +412,7 @@ const Navbar = () => {
                     { label: "Applied Jobs",     path: "/provider/applied-jobs",     icon: HiClipboardList },
                     { label: "Saved Jobs",       path: "/provider/saved-jobs",       icon: HiOutlineBookmark },
                     { label: "My Plan",          path: "/provider/my-plan",          icon: HiPhone },
-                    { label: "My Refunds",       path: "/provider/refunds",          icon: HiClock },
+                    // { label: "My Refunds",       path: "/provider/refunds",          icon: HiClock },
                     { label: "Refer & Earn",     path: "/provider/referrals",        icon: HiPlusCircle },
                     { label: "Add Member",       path: "/provider/add-member",       icon: HiUserAdd },
                     { label: "Messages",         path: "/provider/contacted",        icon: HiMail },
