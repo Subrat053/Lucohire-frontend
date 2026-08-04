@@ -14,6 +14,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import LocationSearch from '../../components/LocationSearch';
 import InstantHirePanel from '../../components/recruiter/InstantHirePanel';
 import CompareProvidersModal from '../../components/recruiter/CompareProvidersModal';
+import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
 
 const TIER_COLORS = {
   unskilled: 'bg-emerald-100 text-emerald-700',
@@ -187,6 +188,7 @@ const FindProviders = () => {
   const [providers, setProviders] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(false);
+  const [showPlans, setShowPlans] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [unlocking, setUnlocking] = useState(null);
   const [subscription, setSubscription] = useState(null);
@@ -362,10 +364,12 @@ const FindProviders = () => {
         }));
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to unlock';
-      toast.error(msg);
-      if (msg.toLowerCase().includes('unlock') || msg.toLowerCase().includes('plan') || msg.toLowerCase().includes('credits') || msg.toLowerCase().includes('upgrade')) {
-        navigate('/recruiter/plans');
+      if (err.response?.data?.upgradeRequired) {
+        toast.error(err.response.data.message || 'Limit reached');
+        setShowPlans(true);
+      } else {
+        const msg = err.response?.data?.message || 'Failed to unlock';
+        toast.error(msg);
       }
     } finally {
       setUnlocking(null);

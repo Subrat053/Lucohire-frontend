@@ -44,6 +44,8 @@ const JobPostings = () => {
 
   const [jobs, setJobs] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(25);
@@ -57,20 +59,34 @@ const JobPostings = () => {
   const fetchJobs = async () => {
     try {
       setLoading(true);
-      const [jobsRes, tasksRes] = await Promise.all([
+      setUsageLoading(true);
+      const [jobsRes, tasksRes, usageRes] = await Promise.all([
         recruiterAPI.getJobPostings(),
-        recruiterAPI.getTasks().catch(() => ({ data: [] }))
+        recruiterAPI.getTasks().catch(() => ({ data: [] })),
+        recruiterAPI.getAiUsage().catch(() => ({ data: { limits: {}, usage: {} } }))
       ]);
       setJobs(jobsRes.data.jobs || []);
       setTasks(tasksRes.data || []);
+      if (usageRes.data?.success) {
+        setAiUsage({ limits: usageRes.data.limits || {}, usage: usageRes.data.usage || {} });
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+      setUsageLoading(false);
     }
   };
 
+  const isBoostLimitReached = !usageLoading && 
+    aiUsage.limits?.jobBoostJobsLimit !== -1 && 
+    (aiUsage.usage?.jobBoostJobsLimit || 0) >= (aiUsage.limits?.jobBoostJobsLimit || 0);
+
   const openBoostModal = (job) => {
+    if (isBoostLimitReached) {
+      toast.error(`Boost limit reached (${aiUsage.usage?.jobBoostJobsLimit}/${aiUsage.limits?.jobBoostJobsLimit}). Please upgrade your plan.`);
+      return;
+    }
     setJobToBoost(job);
     setBoostDays(1);
     setBoostModalOpen(true);
@@ -332,7 +348,11 @@ const JobPostings = () => {
                               <Link to={`/recruiter/jobs/${job._id}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-200 bg-gradient-to-br from-white to-indigo-50 text-xs font-bold text-indigo-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
                                 <FiEye className="w-3.5 h-3.5" />{t("View")}
                               </Link>
-                              <button onClick={() => openBoostModal(job)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-purple-200 bg-gradient-to-br from-white to-purple-50 text-xs font-bold text-purple-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                              <button 
+                                onClick={() => openBoostModal(job)} 
+                                disabled={isBoostLimitReached}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-purple-200 bg-gradient-to-br from-white to-purple-50 text-xs font-bold text-purple-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0"
+                              >
                                 <HiSparkles className="w-3.5 h-3.5" />{t("Boost")}
                               </button>
                             </div>
@@ -395,7 +415,11 @@ const JobPostings = () => {
                         <Link to={`/recruiter/jobs/${job._id}`} className="flex-1 flex justify-center items-center gap-2 px-3 py-2 rounded-lg border border-indigo-200 bg-gradient-to-br from-white to-indigo-50 text-xs font-bold text-indigo-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
                           <FiEye className="w-4 h-4" />{t("View")}
                         </Link>
-                        <button onClick={() => openBoostModal(job)} className="flex-1 flex justify-center items-center gap-2 px-3 py-2 rounded-lg border border-purple-200 bg-gradient-to-br from-white to-purple-50 text-xs font-bold text-purple-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                        <button 
+                          onClick={() => openBoostModal(job)} 
+                          disabled={isBoostLimitReached}
+                          className="flex-1 flex justify-center items-center gap-2 px-3 py-2 rounded-lg border border-purple-200 bg-gradient-to-br from-white to-purple-50 text-xs font-bold text-purple-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0"
+                        >
                           <HiSparkles className="w-4 h-4" />{t("Boost")}
                         </button>
                       </div>

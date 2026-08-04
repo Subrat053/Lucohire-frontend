@@ -509,37 +509,42 @@ export default function AIRecruiterWorkspace() {
                       </p>
                     </div>
                   )}
-                  {messages.map((msg, i) => (
-                    <div
-                      key={i}
-                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} max-w-full`}
-                    >
+                  {messages.map((msg, i) => {
+                    const isLimitReached = !usageLoading && aiUsage.limits.aiCopilot !== -1 && aiUsage.usage.aiCopilot >= (aiUsage.limits.aiCopilot || 0);
+                    const shouldBlur = isLimitReached && msg.role === "assistant";
+                    
+                    return (
                       <div
-                        className={`flex gap-3 max-w-[85%] ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                        key={i}
+                        className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} max-w-full`}
                       >
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === "user" ? "bg-indigo-100 text-indigo-600" : "bg-purple-600 text-white shadow-md"}`}
+                          className={`flex gap-3 max-w-[85%] ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
                         >
-                          {msg.role === "user" ? (
-                            <FiUser className="w-4 h-4" />
-                          ) : (
-                            <FaRobot className="w-4 h-4" />
-                          )}
-                        </div>
-                        <div
-                          className={`px-4 py-3 rounded-2xl text-[13px] leading-relaxed shadow-sm ${msg.role === "user" ? "bg-indigo-600 text-white rounded-tr-sm" : "bg-white border border-gray-100 text-gray-800 rounded-tl-sm"}`}
-                        >
-                          {msg.role === "user" ? (
-                            msg.content
-                          ) : (
-                            <div className="prose prose-sm prose-p:my-1 prose-headings:my-2 prose-ul:my-1 max-w-none text-gray-800">
-                              <ReactMarkdown>{msg.content}</ReactMarkdown>
-                            </div>
-                          )}
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === "user" ? "bg-indigo-100 text-indigo-600" : "bg-purple-600 text-white shadow-md"}`}
+                          >
+                            {msg.role === "user" ? (
+                              <FiUser className="w-4 h-4" />
+                            ) : (
+                              <FaRobot className="w-4 h-4" />
+                            )}
+                          </div>
+                          <div
+                            className={`px-4 py-3 rounded-2xl text-[13px] leading-relaxed shadow-sm ${msg.role === "user" ? "bg-indigo-600 text-white rounded-tr-sm" : "bg-white border border-gray-100 text-gray-800 rounded-tl-sm"} ${shouldBlur ? "blur-sm select-none" : ""}`}
+                          >
+                            {msg.role === "user" ? (
+                              msg.content
+                            ) : (
+                              <div className="prose prose-sm prose-p:my-1 prose-headings:my-2 prose-ul:my-1 max-w-none text-gray-800">
+                                <ReactMarkdown>{msg.content}</ReactMarkdown>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {loading && (
                     <div className="flex justify-start">
                       <div className="flex gap-3">

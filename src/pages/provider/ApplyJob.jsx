@@ -4,6 +4,7 @@ import { HiArrowLeft, HiOutlineBriefcase, HiOutlineOfficeBuilding } from "react-
 import toast from "react-hot-toast";
 import { providerAPI } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import SubscriptionPlansPopup from "../../components/common/SubscriptionPlansPopup";
 
 const ApplyJob = () => {
   const { jobId } = useParams();
@@ -15,6 +16,7 @@ const ApplyJob = () => {
   
   const [coverLetter, setCoverLetter] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [showPlans, setShowPlans] = useState(false);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -43,7 +45,12 @@ const ApplyJob = () => {
         replace: true
       });
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to apply");
+      if (err.response?.data?.upgradeRequired) {
+        toast.error(err.response.data.message || "Limit reached");
+        setShowPlans(true);
+      } else {
+        toast.error(err.response?.data?.message || "Failed to apply");
+      }
     } finally {
       setLoadingSubmit(false);
     }
@@ -118,6 +125,13 @@ const ApplyJob = () => {
           </div>
         </form>
       </div>
+      
+      <SubscriptionPlansPopup 
+        open={showPlans} 
+        onClose={() => setShowPlans(false)} 
+        role="provider" 
+        reason="job_apply_limit" 
+      />
     </div>
   );
 };

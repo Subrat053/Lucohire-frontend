@@ -13,11 +13,25 @@ const CandidateInterviewKit = () => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(true);
   const [interviewKit, setInterviewKit] = useState(null);
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
   const hasGenerated = useRef(false);
 
   useEffect(() => {
+    fetchUsage();
     fetchCandidateAndGenerateKit();
   }, [id]);
+
+  const fetchUsage = async () => {
+    try {
+      const usageRes = await recruiterAPI.getAiUsage();
+      setAiUsage({ limits: usageRes.data.limits || {}, usage: usageRes.data.usage || {} });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUsageLoading(false);
+    }
+  };
 
   const fetchCandidateAndGenerateKit = async () => {
     try {
@@ -202,7 +216,7 @@ const CandidateInterviewKit = () => {
 
         {interviewKit && !generating && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-6 md:p-8 space-y-8">
+            <div className={`p-6 md:p-8 space-y-8 ${!usageLoading && aiUsage.limits.interviewKits !== -1 && aiUsage.usage.interviewKits >= (aiUsage.limits.interviewKits || 0) ? 'blur-md select-none pointer-events-none' : ''}`}>
               
               {/* Technical */}
               <div>

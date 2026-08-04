@@ -118,7 +118,7 @@ const TalentPool = () => {
                       {job.candidates?.length > topCandidates.length && (
                         <button 
                           onClick={(e) => handleRunAI(job._id, e)}
-                          disabled={runningAI === job._id || (aiUsage.limits.aiCopilot !== -1 && aiUsage.usage.aiCopilot >= (aiUsage.limits.aiCopilot || 0))}
+                          disabled={runningAI === job._id || (aiUsage.limits.aiJdParsing !== -1 && aiUsage.usage.aiJdParsing >= (aiUsage.limits.aiJdParsing || 0))}
                           className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition flex flex-col items-center justify-center gap-0.5"
                         >
                           {runningAI === job._id ? (
@@ -128,9 +128,9 @@ const TalentPool = () => {
                               <div className="flex items-center gap-2">
                                 <HiSparkles className="w-4 h-4" />{t("Run AI Analysis")}
                               </div>
-                              {!usageLoading && aiUsage.limits.aiCopilot !== undefined && aiUsage.limits.aiCopilot !== -1 && (
+                              {!usageLoading && aiUsage.limits.aiJdParsing !== undefined && aiUsage.limits.aiJdParsing !== -1 && (
                                 <span className="text-[10px] opacity-80 mt-[-2px] font-medium">
-                                  ({Math.max(0, aiUsage.limits.aiCopilot - (aiUsage.usage.aiCopilot || 0))} left)
+                                  ({Math.max(0, aiUsage.limits.aiJdParsing - (aiUsage.usage.aiJdParsing || 0))} left)
                                 </span>
                               )}
                             </>
@@ -162,6 +162,7 @@ const TalentPool = () => {
                               
                               // Check if there is an AI evaluation for this candidate
                               const evaluation = topCandidates.find(e => e.candidateId?._id === providerProfile._id);
+                              const isParsingLimitReached = !usageLoading && aiUsage.limits.aiJdParsing !== -1 && aiUsage.usage.aiJdParsing >= (aiUsage.limits.aiJdParsing || 0);
 
                               return (
                                 <div key={providerProfile._id} className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col md:flex-row gap-6 shadow-sm hover:shadow-md transition">
@@ -184,7 +185,7 @@ const TalentPool = () => {
                                     <div className="mt-auto">
                                       <div className="text-xs text-gray-500 font-semibold mb-1 uppercase tracking-wider">{t("AI Match Score")}</div>
                                       {evaluation ? (
-                                        <div className="flex items-end gap-1">
+                                        <div className={`flex items-end gap-1 ${isParsingLimitReached ? 'blur-sm select-none' : ''}`}>
                                           <span className="text-3xl font-black text-emerald-600 leading-none">{evaluation.score}</span>
                                           <span className="text-sm font-bold text-gray-400 mb-1">/100</span>
                                         </div>
@@ -200,7 +201,7 @@ const TalentPool = () => {
                                       <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">{t("AI Reasoning")}</span>
                                     </div>
                                     {evaluation ? (
-                                      <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                                      <p className={`text-gray-700 text-sm leading-relaxed mb-4 ${isParsingLimitReached ? 'blur-sm select-none' : ''}`}>
                                         {evaluation.reasoning}
                                       </p>
                                     ) : (
