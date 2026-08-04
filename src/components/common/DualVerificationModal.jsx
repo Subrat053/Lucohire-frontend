@@ -217,9 +217,9 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-3xl w-full max-w-lg p-5 md:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
-        <button onClick={handleBack} className="absolute top-4 right-4 md:top-6 md:right-6 text-gray-400 hover:text-gray-700 transition">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-2 sm:p-4">
+      <div className="bg-white rounded-3xl w-full max-w-lg p-4 sm:p-8 relative shadow-2xl max-h-[95vh] overflow-y-auto">
+        <button onClick={handleBack} className="absolute top-3 right-3 sm:top-6 sm:right-6 text-gray-400 hover:text-gray-700 transition">
           <FiX className="w-6 h-6" />
         </button>
 
@@ -259,7 +259,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                         value={digit}
                         onChange={(e) => handleOtpChange(idx, e.target.value, 'email')}
                         onKeyDown={(e) => handleOtpKeyDown(idx, e, 'email')}
-                        className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none transition-colors"
+                        className="w-9 h-11 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-blue-600 focus:ring-0 outline-none transition-colors"
                       />
                     ))}
                   </div>
@@ -312,7 +312,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                         value={digit}
                         onChange={(e) => handleOtpChange(idx, e.target.value, 'phone')}
                         onKeyDown={(e) => handleOtpKeyDown(idx, e, 'phone')}
-                        className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none transition-colors"
+                        className="w-9 h-11 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none transition-colors"
                       />
                     ))}
                   </div>
