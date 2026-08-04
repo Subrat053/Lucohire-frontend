@@ -88,7 +88,7 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
         </div>
         
         {/* 3. Dual Pathway Cards or Jobs */}
-        <div className="w-full mt-8 sm:mt-10">
+        <div className="w-full mt-4 sm:mt-10">
           {user ? (
             <div className="-mt-4 w-full">
               <LiveJobsCarousel isLoadingJobs={isLoadingJobs} liveJobsList={liveJobsList} onJobClick={onJobClick} />
@@ -100,7 +100,7 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
       </div>
       
       {!user && (
-        <div className="w-full mt-8 sm:mt-10">
+        <div className="w-full mt-5 sm:mt-10 mb-1 sm:mb-0">
           <LiveJobsCarousel isLoadingJobs={isLoadingJobs} liveJobsList={liveJobsList} onJobClick={onJobClick} />
         </div>
       )}

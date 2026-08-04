@@ -114,12 +114,12 @@ const LandingFaqSection = () => {
             );
           })}
 
-          {/* Gradient Overlay and View More Button */}
+          {/* View More Button */}
           {!showAll && faqs.length > 4 && (
-            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none flex items-end justify-center pb-2">
+            <div className="flex justify-center pt-6 pb-2">
               <button
                 onClick={() => setShowAll(true)}
-                className="pointer-events-auto flex items-center gap-2 px-6 py-2.5 bg-white text-blue-600 font-bold rounded-full shadow-md border border-blue-100 hover:bg-blue-50 transition-all hover:scale-105"
+                className="flex items-center gap-2 px-6 py-2.5 bg-white text-blue-600 font-bold rounded-full shadow-md border border-blue-100 hover:bg-blue-50 transition-all hover:scale-105"
               >
                 {t('landingFaq.viewMore', 'View All Questions')}
                 <ChevronDown className="w-4 h-4" />
