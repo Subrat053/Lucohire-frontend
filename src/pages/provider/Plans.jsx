@@ -628,38 +628,6 @@ const ProviderPlans = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Auto Subscription Toggle */}
-              <div className="flex items-center justify-between gap-3 pt-2 border-t border-white/20">
-                <span className="flex items-center gap-1.5 text-emerald-100 text-[11px] font-semibold">
-                  <RefreshCw className={`w-3.5 h-3.5 ${isAutoSubscription ? 'text-yellow-300' : 'text-emerald-200'}`} />
-                  {t("Auto Subscription")}
-                </span>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={async () => {
-                    const nextState = !isAutoSubscription;
-                    setIsAutoSubscription(nextState);
-                    try {
-                      const res = await toggleAutoRenew(nextState);
-                      toast.success(res.message || (nextState ? t("Auto Subscription Enabled") : t("Auto Subscription Disabled")));
-                    } catch (err) {
-                      toast.success(nextState ? t("Auto Subscription Enabled") : t("Auto Subscription Disabled"));
-                    }
-                  }}
-                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    isAutoSubscription ? 'bg-emerald-400' : 'bg-slate-700/60'
-                  }`}
-                  aria-label="Toggle Auto Subscription"
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                      isAutoSubscription ? 'translate-x-4' : 'translate-x-0'
-                    }`}
-                  />
-                </div>
-              </div>
             </div>
           );
         })()}
@@ -807,25 +775,11 @@ const ProviderPlans = () => {
                       return (
                         <button
                           id={`plan-btn-${plan._id}`}
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            const nextState = !isAutoSubscription;
-                            setIsAutoSubscription(nextState);
-                            try {
-                              const res = await toggleAutoRenew(nextState);
-                              toast.success(res.message || (nextState ? t("Auto Renewal Enabled") : t("Auto Renewal Cancelled")));
-                            } catch (err) {
-                              toast.success(nextState ? t("Auto Renewal Enabled") : t("Auto Renewal Cancelled"));
-                            }
-                          }}
-                          className={`w-full py-3 rounded-xl font-bold text-sm border transition-all shadow-sm flex items-center justify-center gap-2 ${
-                            isAutoSubscription 
-                              ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200' 
-                              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
-                          }`}
+                          disabled
+                          className="w-full py-3 rounded-xl font-bold text-sm transition-all shadow-sm flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default"
                         >
-                          <RefreshCw className="w-4 h-4" />
-                          {isAutoSubscription ? t("Cancel Renewal") : t("Enable Renewal")}
+                          <BadgeCheck className="w-5 h-5" />
+                          {t("Current Plan")}
                         </button>
                       );
                     }

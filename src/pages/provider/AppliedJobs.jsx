@@ -108,7 +108,11 @@ export default function AppliedJobs() {
                 {counts.all}
               </span>
             </h1>
-            <p className="text-sm text-slate-500 mt-1">{t("Track your applications and stay updated on their progress")}</p>
+            <p className="text-sm text-slate-500 mt-1">
+              {t("Track your applications and stay updated")}
+              <br className="sm:hidden" />
+              {t("on their progress")}
+            </p>
           </div>
           
           {/* Tabs & Controls */}
@@ -128,11 +132,18 @@ export default function AppliedJobs() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">{t("Sort by")}<select className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                  <option>{t("Recently Applied")}</option>
-                  <option>{t("Status Updates")}</option>
-                </select>
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-slate-600 font-medium">
+                {t("Sort by")}
+                <div className="relative">
+                  <select className="bg-white border border-slate-200 rounded-md sm:rounded-lg pl-2 pr-6 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none">
+                    <option>{t("Recently Applied")}</option>
+                    <option>{t("Status Updates")}</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-1.5 flex items-center pointer-events-none">
+                    <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -432,22 +443,22 @@ export default function AppliedJobs() {
           </div>
 
           {/* Need Help? */}
-          <div className="bg-[#0f766e] rounded-2xl border border-[#0b5952] p-5 shadow-sm relative overflow-hidden flex items-center gap-4 text-white">
+          <div className="bg-emerald-100 rounded-2xl border border-emerald-200 p-5 shadow-sm relative overflow-hidden flex items-center gap-4 text-emerald-950">
              <div className="flex-1 relative z-10">
                <h3 className="font-bold text-sm mb-1">Need Help?</h3>
-               <p className="text-[11px] font-medium text-emerald-100 mb-3 leading-relaxed">Chat with us on WhatsApp.<br/>We're here to help you 9 AM - 9 PM</p>
-               <button onClick={() => toast('Feature in progress')} className="text-[11px] font-bold text-[#0f766e] bg-white rounded-full px-4 py-2 flex items-center gap-1.5 hover:bg-emerald-50 shadow-sm transition w-fit">
-                 Chat Now on WhatsApp <FaWhatsapp className="w-3.5 h-3.5 text-[#075E54]" />
+               <p className="text-[11px] font-medium text-emerald-800 mb-3 leading-relaxed">Chat with us on WhatsApp.<br/>We're here to help you 9 AM - 9 PM</p>
+               <button onClick={() => toast('Feature in progress')} className="text-[11px] font-bold text-white bg-[#0f766e] border border-[#0b5952] rounded-lg px-4 py-2 flex items-center gap-1.5 hover:bg-[#0b5952] shadow-sm transition w-fit">
+                 Chat Now on WhatsApp <FaWhatsapp className="w-4 h-4 text-white" />
                </button>
              </div>
              <div className="w-[80px] shrink-0 flex items-end justify-end pt-2 relative z-10">
-                <div className="w-16 h-16 rounded-full bg-emerald-100/20 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-200/60 flex items-center justify-center">
                   <span className="text-3xl">👩‍💼</span>
                 </div>
              </div>
              {/* Decorative circles */}
-             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4"></div>
+             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+             <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-500/10 rounded-full translate-y-1/2 -translate-x-1/4"></div>
           </div>
         </div>
 

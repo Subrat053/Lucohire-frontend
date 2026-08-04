@@ -58,24 +58,24 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
   };
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-4 sm:p-6 space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+        <div className="lg:col-span-2 bg-gray-50/50 p-4 sm:p-6 rounded-2xl border border-gray-100">
           <h3 className="text-[15px] font-bold text-gray-900 mb-2 flex items-center gap-2">
-            <Search className="text-[#0f766e] w-5 h-5" />{t("ATS Resume Optimizer")}</h3>
+            <Search className="text-emerald-600 w-5 h-5" />{t("ATS Resume Optimizer")}</h3>
           <p className="text-gray-500 mb-5 text-[12px] font-medium">{t(
             "Paste the target Job Description to see how an ATS evaluates your resume. We will suggest actionable improvements."
           )}</p>
           <textarea
             value={jd}
             onChange={(e) => setJd(e.target.value)}
-            className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0f766e] focus:border-[#0f766e] text-[12px] outline-none transition shadow-inner font-medium text-gray-700"
+            className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 text-[12px] outline-none transition shadow-inner font-medium text-gray-700"
             placeholder={t("Paste Target Job Description here...")}
           />
           <button
             onClick={handleOptimize}
             disabled={loading || !jd.trim()}
-            className="mt-4 bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-[12px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
+            className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-[12px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
           >
             {loading ? (
               <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>{t("Optimizing...")}</>
@@ -85,16 +85,16 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
           </button>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 flex flex-col items-center justify-center text-center shadow-sm">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 flex flex-col items-center justify-center text-center shadow-sm">
           <h3 className="text-[14px] font-bold text-gray-800 mb-4">{t("Profile ATS Score")}</h3>
           <div className="w-[100px] h-[100px] relative mb-4">
             <CircularProgressbar 
               value={toolkitAtsScore || parsedData?.profileCompletion || 65} 
               strokeWidth={8} 
-              styles={buildStyles({ pathColor: '#0f766e', trailColor: '#ccfbf1' })}
+              styles={buildStyles({ pathColor: '#059669', trailColor: '#ccfbf1' })}
             />
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-[24px] font-black text-[#0f766e]">{toolkitAtsScore || parsedData?.profileCompletion || 65}</span>
+              <span className="text-[24px] font-black text-emerald-600">{toolkitAtsScore || parsedData?.profileCompletion || 65}</span>
             </div>
           </div>
           <p className="text-[12px] text-gray-500 font-medium px-4">
@@ -112,11 +112,11 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
         const totalBoost = tipBoosts.reduce((a, b) => a + b, 0);
 
         return (
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm animate-fadeIn">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm animate-fadeIn">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
               <div>
                 <h3 className="text-[15px] font-bold text-gray-800 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#0f766e]" />
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
                   {t("Personalized Profile Improvements")}
                 </h3>
                 <p className="text-[12px] text-gray-500 font-medium mt-0.5">
@@ -138,7 +138,7 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
                 return (
                   <li key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[12px] text-gray-700 bg-gray-50/70 p-3.5 px-4 rounded-xl border border-gray-100/80 font-medium leading-relaxed hover:bg-emerald-50/30 transition">
                     <div className="flex items-start gap-3">
-                      <CheckCircle2 className="text-[#0f766e] w-4.5 h-4.5 shrink-0 mt-0.5" />
+                      <CheckCircle2 className="text-emerald-600 w-4.5 h-4.5 shrink-0 mt-0.5" />
                       <span dangerouslySetInnerHTML={{ __html: bulletText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                     </div>
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100/80 text-emerald-800 text-[11px] font-bold shrink-0 border border-emerald-200/80 self-end sm:self-auto">
@@ -188,10 +188,10 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
               <div className="w-[64px] h-[64px] shrink-0 relative">
                 <CircularProgressbar 
                   value={data.ats_score_after || 0} strokeWidth={8} 
-                  styles={buildStyles({ pathColor: '#0f766e', trailColor: '#ccfbf1' })}
+                  styles={buildStyles({ pathColor: '#059669', trailColor: '#ccfbf1' })}
                 />
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-[18px] font-black text-[#0f766e]">{data.ats_score_after}</span>
+                  <span className="text-[18px] font-black text-emerald-600">{data.ats_score_after}</span>
                 </div>
               </div>
               <div>
@@ -383,7 +383,7 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
 
             <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
               <h4 className="text-[14px] font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Target className="text-[#0f766e] w-4 h-4" />
+                <Target className="text-emerald-600 w-4 h-4" />
                 {t("Specific Recommendations (Bullet Points)")}
               </h4>
               <ul className="space-y-3">
@@ -391,7 +391,7 @@ export default function AtsOptimizerPanel({ fileHash, parsedData }) {
                   if (typeof bullet !== 'string') return null;
                   return (
                     <li key={i} className="flex gap-3 text-[12px] text-gray-700 bg-gray-50/50 p-3 rounded-xl border border-gray-100 font-medium leading-relaxed">
-                      <CheckCircle2 className="text-[#0f766e] w-4 h-4 shrink-0 mt-0.5" />
+                      <CheckCircle2 className="text-emerald-600 w-4 h-4 shrink-0 mt-0.5" />
                       <span dangerouslySetInnerHTML={{ __html: bullet.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                     </li>
                   );

@@ -80,7 +80,7 @@ const SavedJobCard = ({ job, onUnsave, onViewDetails }) => {
         </h3>
         <div className="text-[13px] text-gray-700 font-medium mb-3 flex items-center gap-1.5">
           {job.companyName || "Company Name"} 
-          <HiCheckCircle className="w-4 h-4 text-blue-500" />
+          <HiCheckCircle className="w-4 h-4 text-emerald-500" />
         </div>
         
         {/* Info row */}
@@ -516,7 +516,7 @@ const SavedJobs = () => {
                   <div 
                     key={rec._id || idx} 
                     onClick={() => rec._id && navigate(`/provider/job/${rec._id}`)}
-                    className="flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-blue-50/50 cursor-pointer transition"
+                    className="flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-emerald-100 hover:bg-emerald-50/50 cursor-pointer transition"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center font-bold text-gray-700 shrink-0">
                       {rec.title?.substring(0, 2).toUpperCase() || 'JB'}
@@ -524,18 +524,18 @@ const SavedJobs = () => {
                     <div>
                       <h4 className="text-sm font-bold text-gray-900">{rec.title}</h4>
                       <p className="text-xs text-gray-500 mt-0.5">{rec.companyName} • {rec.city}</p>
-                      <p className="text-[10px] text-[#1d4ed8] font-bold mt-1">{rec.matchScore || 80}% Match</p>
+                      <p className="text-[10px] text-emerald-600 font-bold mt-1">{rec.matchScore || 80}% Match</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <button onClick={() => navigate('/provider/job-for-me')} className="w-full mt-4 py-2 text-sm font-bold text-[#1d4ed8] hover:bg-blue-50 rounded-lg transition">View all recommendations</button>
+              <button onClick={() => navigate('/provider/job-for-me')} className="w-full mt-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-50 rounded-lg transition">View all recommendations</button>
             </div>
 
             {/* Get Notified First Widget */}
-            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl border border-blue-100 p-6 shadow-xs relative overflow-hidden">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                <HiBell className="w-5 h-5 text-[#1d4ed8]" />
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-50 rounded-2xl border border-emerald-100 p-6 shadow-xs relative overflow-hidden">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+                <HiBell className="w-5 h-5 text-emerald-600" />
               </div>
               <h3 className="font-bold text-gray-900 mb-2">Get Notified First</h3>
               <p className="text-xs text-gray-700 mb-4 leading-relaxed">Turn on alerts for jobs matching your saved criteria and never miss an opportunity.</p>
@@ -543,8 +543,8 @@ const SavedJobs = () => {
                 onClick={() => setAlertEnabled(!alertEnabled)}
                 className={`w-full py-2.5 text-sm font-bold rounded-lg transition shadow-sm flex items-center justify-center gap-2 ${
                   alertEnabled 
-                    ? "bg-blue-50 text-[#1d4ed8] border border-blue-200 hover:bg-blue-100" 
-                    : "bg-[#1d4ed8] hover:bg-blue-700 text-white"
+                    ? "bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100" 
+                    : "bg-emerald-600 hover:bg-emerald-700 text-white"
                 }`}
               >
                 {alertEnabled ? (
@@ -560,10 +560,10 @@ const SavedJobs = () => {
               <h3 className="font-bold text-gray-900 mb-3 text-sm">Quick Actions</h3>
               <div className="space-y-2">
 
-                <Link to="/provider/applied-jobs" className="block text-sm text-gray-700 hover:text-[#1d4ed8] hover:bg-gray-50 px-3 py-2 rounded-lg transition font-medium">
+                <Link to="/provider/applied-jobs" className="block text-sm text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-lg transition font-medium">
                   View Application History
                 </Link>
-                <Link to="/provider/profile" className="block text-sm text-gray-700 hover:text-[#1d4ed8] hover:bg-gray-50 px-3 py-2 rounded-lg transition font-medium">
+                <Link to="/provider/profile" className="block text-sm text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-lg transition font-medium">
                   Update Profile
                 </Link>
               </div>

@@ -682,7 +682,7 @@ const PayoutSettings = () => {
               <button
                 type="submit"
                 disabled={initiatingPhoneChange}
-                className="w-full py-3 bg-emerald-950 hover:bg-emerald-900 text-white rounded-xl text-xs font-extrabold tracking-wide uppercase transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold tracking-wide uppercase transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {initiatingPhoneChange ? t('payout.updatingStatus', 'Initiating...') : t('payout.changePhoneBtn', 'Update Mobile Number')}
               </button>

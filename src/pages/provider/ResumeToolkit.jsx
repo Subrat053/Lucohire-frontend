@@ -306,7 +306,7 @@ export default function ResumeToolkit() {
   ];
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 pb-12">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto flex flex-col gap-5 pb-12">
       <input 
         type="file" 
         ref={fileInputRef} 
@@ -317,24 +317,29 @@ export default function ResumeToolkit() {
 
       {/* Usage Limit Banner */}
       {!loading && (
-        <div className="bg-indigo-50/50 border border-indigo-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-indigo-600" />
-            <span className="text-sm font-medium text-indigo-900">{t("Toolkit AI Refresh Limit:")}{(() => {
+        <div className="bg-white border border-slate-200 p-3 md:px-6 md:py-3 rounded-2xl flex items-center justify-between gap-3 md:gap-2 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2">
+            <Sparkles className="hidden md:block w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="text-[13px] md:text-sm font-medium text-emerald-900">{t("Toolkit AI Limit:")}</span>
+            {(() => {
                 const limit = aiUsage.limits['resumeImprovement'] || 0;
                 const used = aiUsage.usage['resumeImprovement'] || 0;
-                if (limit === -1) return <span className="font-bold text-indigo-700 ml-1">{t("Unlimited")}</span>;
-                if (limit === 0) return <span className="font-bold text-red-600 ml-1">{t("Not included in free plan")}</span>;
-                return <span className="font-bold text-indigo-700 ml-1">{Math.max(0, limit - used)} / {limit} {t("requests remaining")}</span>;
+                if (limit === -1) return <span className="text-[12px] md:text-sm font-bold text-emerald-700">{t("Unlimited")}</span>;
+                if (limit === 0) return <span className="text-[12px] md:text-sm font-bold text-red-600">{t("Not included")}</span>;
+                return (
+                  <span className="text-[12px] md:text-sm font-bold text-emerald-700">
+                    {Math.max(0, limit - used)}/{limit} {t("requests remaining")}
+                  </span>
+                );
               })()}
-            </span>
           </div>
-          <Link to="/provider/plans" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-white border border-indigo-200 px-4 py-1.5 rounded-full transition-colors hover:bg-indigo-50">{t("Upgrade Plan")}</Link>
+          
+          <Link to="/provider/plans" className="shrink-0 flex items-center justify-center text-center text-[11px] md:text-xs font-black text-emerald-700 hover:text-emerald-900 bg-emerald-100 px-4 md:px-3 py-1.5 md:py-1 rounded-lg transition-colors whitespace-nowrap">{t("Upgrade Plan")}</Link>
         </div>
       )}
 
       {/* ── Header ── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 -mt-2">
         <div>
           <button
             onClick={() => navigate(-1)}
@@ -342,14 +347,14 @@ export default function ResumeToolkit() {
           >
             <ArrowLeft className="w-4 h-4" /> {t('Back')}
           </button>
-          <h1 className="text-3xl font-extrabold text-gray-900">{t('Resume & Profile Toolkit')}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('Resume & Profile Toolkit')}</h1>
           <p className="text-gray-500 text-sm mt-1">{t('Build a stronger profile that gets you more interviews')}</p>
         </div>
         {isPro && (
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="px-4 py-2.5 rounded-xl bg-teal-700 text-white text-sm font-bold hover:bg-teal-800 transition flex items-center gap-2 shadow-md disabled:opacity-60"
+            className="self-start md:self-auto px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 transition flex items-center gap-2 shadow-md disabled:opacity-60"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             {refreshing ? t('Analyzing...') : t('Refresh AI Analysis')}
@@ -489,7 +494,7 @@ export default function ResumeToolkit() {
         {/* AI Suggestions */}
         <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col">
           <div className="flex items-center gap-2 mb-1">
-            <Zap className="w-4 h-4 text-blue-500" />
+            <Zap className="w-4 h-4 text-emerald-500" />
             <h2 className="text-sm font-bold text-gray-900">{t('AI Suggestions for You')}</h2>
           </div>
           <p className="text-xs text-gray-500 mb-5">
@@ -501,9 +506,9 @@ export default function ResumeToolkit() {
           </p>
           <div className="space-y-3 mb-5 flex-1">
             {aiSuggestions.length > 0 ? aiSuggestions.map((sug, idx) => (
-              <div key={idx} className={`flex gap-3 items-start bg-blue-50 p-3 rounded-2xl border border-blue-100 ${!isPro ? 'blur-[2.5px] select-none opacity-80' : ''}`}>
-                <div className="w-8 h-8 rounded-xl bg-white border border-blue-100 flex items-center justify-center shrink-0 shadow-sm mt-1">
-                  <FileText className="w-3.5 h-3.5 text-blue-600" />
+              <div key={idx} className={`flex gap-3 items-start bg-slate-50 p-3 rounded-2xl border border-slate-200 ${!isPro ? 'blur-[2.5px] select-none opacity-80' : ''}`}>
+                <div className="w-9 h-9 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
+                  <FileText className="w-4 h-4 text-emerald-600" />
                 </div>
                 <div className="flex-1">
                   {typeof sug === 'string' ? (

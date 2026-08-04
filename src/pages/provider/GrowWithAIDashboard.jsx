@@ -232,7 +232,7 @@ export default function GrowWithAIDashboard() {
           <p className="text-red-600 mb-6 max-w-md mx-auto">{errorMessage}</p>
           <Link
             to="/provider/profile"
-            className="inline-flex items-center px-6 py-3 bg-[#0f766e] hover:bg-teal-800 text-white font-bold rounded-xl transition-colors gap-2"
+            className="inline-flex items-center px-6 py-3 bg-[#059669] hover:bg-teal-800 text-white font-bold rounded-xl transition-colors gap-2"
           >{t("Go to Profile")}<ArrowRight className="w-5 h-5" />
           </Link>
         </div>
@@ -241,54 +241,33 @@ export default function GrowWithAIDashboard() {
   }
 
   return (
-    <div className="w-full p-4 md:p-6 lg:p-8 space-y-8 pb-20 relative">
+    <div className="w-full p-4 md:p-6 lg:p-8 flex flex-col gap-6 pb-20 relative">
       {/* Usage Banner */}
       {!usageLoading && (
-        <div className="bg-emerald-50 border border-emerald-100 p-4 sm:px-6 sm:py-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm mb-6">
-          <div className="flex-1 w-full max-w-md">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-emerald-600" />
-              <span className="text-sm font-medium text-emerald-900">
-                {(activeTab === 'interview' || activeTab === 'gps' || activeTab === 'barriers') ? t("AI Insights Usage") : t("AI Usage")}
-              </span>
-            </div>
-            
+        <div className="bg-white border border-slate-200 p-3 md:px-6 md:py-3 rounded-2xl flex items-center justify-between gap-3 md:gap-2 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2">
+            <Sparkles className="hidden md:block w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="text-[13px] md:text-sm font-medium text-emerald-900">
+              {(activeTab === 'interview' || activeTab === 'gps' || activeTab === 'barriers') ? t("AI Insights Limit:") : t("AI Limit:")}
+            </span>
             {(() => {
               const map = { interview: 'refreshInsight', gps: 'refreshInsight', barriers: 'refreshInsight' };
-              if (activeTab === 'skillgap' || activeTab === 'ats') return <p className="text-sm text-emerald-700">Select a supported tab to view limits.</p>;
+              if (activeTab === 'skillgap' || activeTab === 'ats') return <span className="text-[12px] md:text-sm font-bold text-emerald-700">{t("Select supported tab")}</span>;
               const key = map[activeTab];
               const limit = aiUsage.limits[key] || 0;
               const used = aiUsage.usage[key] || 0;
               
-              if (limit === -1) {
-                return <div className="text-sm font-bold text-emerald-700">{t("Unlimited Access")}</div>;
-              }
-              if (limit === 0) {
-                return <div className="text-sm font-bold text-red-600">{t("Not included in your current plan")}</div>;
-              }
-
-              const percentage = Math.min(100, Math.round((used / limit) * 100));
-              let barColor = 'bg-emerald-500';
-              if (percentage > 80) barColor = 'bg-amber-500';
-              if (percentage >= 100) barColor = 'bg-red-500';
-
+              if (limit === -1) return <span className="text-[12px] md:text-sm font-bold text-emerald-700">{t("Unlimited")}</span>;
+              if (limit === 0) return <span className="text-[12px] md:text-sm font-bold text-red-600">{t("Not included")}</span>;
               return (
-                <div>
-                  <div className="flex justify-between text-xs mb-1.5 font-medium">
-                    <span className="text-emerald-700">{used} used</span>
-                    <span className="text-gray-900">{limit} total</span>
-                  </div>
-                  <div className="w-full bg-emerald-200/50 rounded-full h-2.5 overflow-hidden">
-                    <div className={`h-2.5 rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${percentage}%` }}></div>
-                  </div>
-                  <p className="text-xs text-emerald-700 mt-1.5">{Math.max(0, limit - used)} {t("requests remaining")}</p>
-                </div>
+                <span className="text-[12px] md:text-sm font-bold text-emerald-700">
+                  {Math.max(0, limit - used)}/{limit} {t("requests remaining")}
+                </span>
               );
             })()}
           </div>
-          <Link to="/provider/plans" className="shrink-0 inline-flex items-center justify-center px-4 py-2 bg-emerald-100 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-200 font-bold text-sm rounded-xl transition-colors shadow-sm">
-            {t("Upgrade Plan")}
-          </Link>
+          
+          <Link to="/provider/plans" className="shrink-0 flex items-center justify-center text-center text-[11px] md:text-xs font-black text-emerald-700 hover:text-emerald-900 bg-emerald-100 px-4 md:px-3 py-1.5 md:py-1 rounded-lg transition-colors whitespace-nowrap">{t("Upgrade Plan")}</Link>
         </div>
       )}
       {/* Main Grid Layout */}
@@ -353,7 +332,7 @@ export default function GrowWithAIDashboard() {
                   }
                 }}
                 disabled={!isPro || (activeTab === 'gps' && gpsLoading) || (activeTab === 'barriers' && barriersLoading) || (activeTab === 'interview' && interviewLoading) || activeTab === 'skillgap' || activeTab === 'ats'}
-                className={`bg-[#0f766e] hover:bg-teal-800 text-white px-4 py-2.5 rounded-xl text-[13px] font-bold flex items-center gap-2 shadow-sm transition ${(activeTab === 'skillgap' || activeTab === 'ats') ? 'hidden' : ''} disabled:opacity-50`}
+                className={`bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-[13px] font-bold flex items-center gap-2 shadow-sm transition ${(activeTab === 'skillgap' || activeTab === 'ats') ? 'hidden' : ''} disabled:opacity-50`}
               >
                 <Sparkles className="w-4 h-4" />{t("Refresh Insights")}</button>
             </div>
@@ -373,8 +352,8 @@ export default function GrowWithAIDashboard() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-2 px-5 text-[13.5px] font-bold transition-all duration-300 whitespace-nowrap flex items-center gap-2 rounded-full border ${
                   activeTab === tab.id 
-                    ? 'bg-gradient-to-r from-[#0f766e] to-[#0d5c56] text-white border-transparent shadow-md shadow-[#0f766e]/25 transform scale-[1.02]' 
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-[#0f766e]/30 hover:bg-[#f8fcfb]'
+                    ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white border-transparent shadow-md shadow-emerald-600/25 transform scale-[1.02]' 
+                    : 'bg-white text-gray-700 border-gray-200 hover:border-emerald-600/30 hover:bg-emerald-50/50'
                 }`}
               >
                 <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-gray-400'}`} /> 
@@ -406,7 +385,7 @@ export default function GrowWithAIDashboard() {
                         ? "Your current plan does not include access to this feature. Upgrade to unlock."
                         : `You have used all ${limit} requests for this feature in the current billing cycle.`}
                     </p>
-                    <Link to="/provider/plans" className="px-6 py-3 bg-[#0f766e] text-white font-bold rounded-xl hover:bg-teal-800 transition shadow-sm">{t("Upgrade Plan")}</Link>
+                    <Link to="/provider/plans" className="px-6 py-3 bg-[#059669] text-white font-bold rounded-xl hover:bg-teal-800 transition shadow-sm">{t("Upgrade Plan")}</Link>
                   </div>
                 );
               }
@@ -439,7 +418,7 @@ export default function GrowWithAIDashboard() {
           {/* AI Summary */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-5 h-5 text-[#0f766e]" />
+              <Sparkles className="w-5 h-5 text-[#059669]" />
               <h3 className="font-bold text-gray-900 text-[14px]">{t("AI Summary")}</h3>
             </div>
             <p className="text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">{t("Here's what AI thinks about your job search progress.")}</p>
@@ -450,27 +429,27 @@ export default function GrowWithAIDashboard() {
               ) : reportNeedsGen ? (
                 <div className="text-center py-4">
                   <p className="text-[11px] text-gray-500 mb-3">{t("New analysis available.")}</p>
-                  <button onClick={() => fetchReport(false)} className="px-4 py-2 bg-[#0f766e] text-white text-[11px] font-bold rounded-lg shadow-sm hover:bg-teal-800 transition-all flex items-center justify-center gap-1.5 w-full">
+                  <button onClick={() => fetchReport(false)} className="px-4 py-2 bg-[#059669] text-white text-[11px] font-bold rounded-lg shadow-sm hover:bg-teal-800 transition-all flex items-center justify-center gap-1.5 w-full">
                     <Sparkles className="w-3.5 h-3.5" /> {t("Generate AI Report (1 Credit)")}
                   </button>
                 </div>
               ) : reportData?.top_strengths ? (
                 reportData.top_strengths.slice(0, 4).map((strength, i) => (
                   <li key={i} className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                    <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
                     <span className={!isPro ? "blur-[4px] select-none pointer-events-none" : ""}>{strength}</span>
                   </li>
                 ))
               ) : (
                 <>
                   <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                    <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Your profile is well optimized")}</li>
+                    <Check className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />{t("Your profile is well optimized")}</li>
                   <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                    <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("You have strong skills for your roles")}</li>
+                    <Check className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />{t("You have strong skills for your roles")}</li>
                   <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                    <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Keep applying consistently")}</li>
+                    <Check className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />{t("Keep applying consistently")}</li>
                   <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
-                    <Check className="w-4 h-4 text-[#0f766e] shrink-0 mt-0.5" />{t("Improve these skills to get more interviews")}</li>
+                    <Check className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />{t("Improve these skills to get more interviews")}</li>
                 </>
               )}
             </ul>
@@ -499,12 +478,12 @@ export default function GrowWithAIDashboard() {
               <p className="text-[11px] text-gray-700 leading-relaxed font-medium">{t(
                 "Hi! I analyzed your profile and applications. Would you like me to suggest some ways to improve your chances?"
               )}</p>
-              <div className="absolute -left-8 top-0 w-8 h-8 bg-[#0f766e] shadow-sm rounded-full flex items-center justify-center">
+              <div className="absolute -left-8 top-0 w-8 h-8 bg-[#059669] shadow-sm rounded-full flex items-center justify-center">
                 <Bot className="w-4 h-4 text-white" />
               </div>
             </div>
             
-            <button onClick={() => isPro && window.dispatchEvent(new CustomEvent('open-ai-coach'))} className={`w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-[#0f766e] hover:bg-gray-50 transition flex justify-center items-center gap-1.5 ${isPro ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}>{t("Chat with AI Coach")}<ArrowRight className="w-3.5 h-3.5" />
+            <button onClick={() => isPro && window.dispatchEvent(new CustomEvent('open-ai-coach'))} className={`w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-[#059669] hover:bg-gray-50 transition flex justify-center items-center gap-1.5 ${isPro ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}>{t("Chat with AI Coach")}<ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -560,7 +539,7 @@ export default function GrowWithAIDashboard() {
                   setFreelanceEnabled(!freelanceEnabled);
                   toast.success(freelanceEnabled ? "Freelance discovery paused" : "Freelance mode activated!");
                 }}
-                className={`w-11 h-6 min-w-[44px] min-h-[24px] max-h-[24px] shrink-0 rounded-full p-[2px] cursor-pointer transition-colors duration-200 ease-in-out flex items-center box-border ${freelanceEnabled ? 'bg-[#0f766e]' : 'bg-gray-200'}`}
+                className={`w-11 h-6 min-w-[44px] min-h-[24px] max-h-[24px] shrink-0 rounded-full p-[2px] cursor-pointer transition-colors duration-200 ease-in-out flex items-center box-border ${freelanceEnabled ? 'bg-[#059669]' : 'bg-gray-200'}`}
               >
                 <div className={`w-5 h-5 min-w-[20px] min-h-[20px] rounded-full bg-white shadow-sm transform transition-transform duration-200 ease-in-out ${freelanceEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
               </div>
@@ -572,14 +551,14 @@ export default function GrowWithAIDashboard() {
                   ? t("We are actively finding freelance projects for you.") 
                   : t("Discover freelance projects matching your skills.")}
               </p>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-colors ${freelanceEnabled ? 'bg-[#0f766e] border-[#0f766e]' : 'bg-[#0f766e]/10 border-[#0f766e]/20'}`}>
-                <Briefcase className={`w-5 h-5 transition-colors ${freelanceEnabled ? 'text-white' : 'text-[#0f766e]'}`} />
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-colors ${freelanceEnabled ? 'bg-[#059669] border-[#059669]' : 'bg-[#059669]/10 border-[#059669]/20'}`}>
+                <Briefcase className={`w-5 h-5 transition-colors ${freelanceEnabled ? 'text-white' : 'text-[#059669]'}`} />
               </div>
             </div>
 
             <button 
               onClick={() => navigate('/provider/jobs?type=freelance')}
-              className={`w-full py-2.5 border rounded-xl text-[11px] font-bold transition flex justify-center items-center gap-1.5 shadow-sm ${freelanceEnabled ? 'border-[#0f766e] bg-[#0f766e] text-white hover:bg-[#115e59]' : 'border-[#0f766e]/20 bg-[#0f766e]/5 text-[#0f766e] hover:bg-[#0f766e]/10'}`}
+              className={`w-full py-2.5 border rounded-xl text-[11px] font-bold transition flex justify-center items-center gap-1.5 shadow-sm ${freelanceEnabled ? 'border-[#059669] bg-[#059669] text-white hover:bg-[#115e59]' : 'border-[#059669]/20 bg-[#059669]/5 text-[#059669] hover:bg-[#059669]/10'}`}
             >
               {t("Explore Freelance Jobs")}<ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -611,7 +590,7 @@ function CareerGPSPanel({ loading, data, isLocked, isPro, needsGen, onGenerate }
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 min-h-[40vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0f766e] mb-4"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#059669] mb-4"></div>
         <p className="text-[13px] font-bold text-gray-500">{t("Calculating your optimal career trajectory...")}</p>
       </div>
     );
@@ -624,7 +603,7 @@ function CareerGPSPanel({ loading, data, isLocked, isPro, needsGen, onGenerate }
         </div>
         <h3 className="text-lg font-bold text-gray-900 mb-2">{t("AI Career GPS Ready")}</h3>
         <p className="text-[13px] text-gray-500 max-w-md text-center mb-6">{t("Your profile has changed or you haven't generated this yet. Generate your AI Career GPS to see your optimal career trajectory.")}</p>
-        <button onClick={onGenerate} className="px-6 py-2.5 bg-[#0f766e] text-white text-sm font-bold rounded-xl shadow-sm hover:bg-teal-800 transition-all flex items-center gap-2">
+        <button onClick={onGenerate} className="px-6 py-2.5 bg-[#059669] text-white text-sm font-bold rounded-xl shadow-sm hover:bg-teal-800 transition-all flex items-center gap-2">
           <Sparkles className="w-4 h-4" /> {t("Generate AI Analysis (1 Credit)")}
         </button>
       </div>
@@ -648,7 +627,7 @@ function CareerGPSPanel({ loading, data, isLocked, isPro, needsGen, onGenerate }
         </div>
         <div className="bg-teal-50/50 p-5 rounded-2xl border border-teal-100 flex flex-col justify-center">
           <p className="text-[11px] font-bold text-teal-700 mb-1">{t("RECOMMENDED NEXT ROLE")}</p>
-          <h3 className={`text-[18px] font-black text-[#0f766e] ${blurClass}`}>{data.recommended_next_role}</h3>
+          <h3 className={`text-[18px] font-black text-[#059669] ${blurClass}`}>{data.recommended_next_role}</h3>
         </div>
       </div>
       <div className="mb-8">
@@ -744,7 +723,7 @@ function HiringBarriersPanel({ loading, data, isLocked, gpsData, isPro }) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 min-h-[40vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0f766e] mb-4"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#059669] mb-4"></div>
         <p className="text-[13px] font-bold text-gray-500">{t("Analyzing your hiring barriers...")}</p>
       </div>
     );
@@ -782,8 +761,8 @@ function HiringBarriersPanel({ loading, data, isLocked, gpsData, isPro }) {
       </div>
       <div className="mb-8">
         <h4 className="text-[14px] font-bold text-gray-900 mb-3">{t("Top Reason You Aren't Getting Hired")}</h4>
-        <div className="bg-red-50/50 border border-red-100 p-4 rounded-xl text-red-800 text-[13px] font-bold flex items-start gap-3">
-           <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
+        <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-xl text-emerald-800 text-[13px] font-bold flex items-start gap-3">
+           <AlertCircle className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
            <span className={blurClass}>{data.top_reasons?.[0] || "Needs more data."}</span>
         </div>
       </div>
@@ -795,7 +774,7 @@ function HiringBarriersPanel({ loading, data, isLocked, gpsData, isPro }) {
             <ul className="space-y-2.5">
               {data.top_reasons.slice(1).map((reason, i) => (
                 <li key={i} className="flex items-start gap-2.5 text-gray-700 text-[12px] font-medium">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
                   <span className={blurClass}>{reason}</span>
                 </li>
               ))}
@@ -894,12 +873,12 @@ function SkillGapPanel({ fileHash, parsedData, isPro }) {
       {/* Input area */}
       <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
         <h3 className="text-[15px] font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <FileSearch className="text-[#0f766e] w-5 h-5" />{t("Test AI Skill Gap Analysis")}</h3>
+          <FileSearch className="text-[#059669] w-5 h-5" />{t("Test AI Skill Gap Analysis")}</h3>
         <p className="text-gray-500 mb-5 text-[12px] font-medium">{t("Paste a Job Description here to see how your resume holds up against it.")}</p>
         <textarea
           value={jd}
           onChange={(e) => setJd(e.target.value)}
-          className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0f766e] focus:border-[#0f766e] text-[12px] outline-none transition shadow-inner font-medium text-gray-700"
+          className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#059669] focus:border-[#059669] text-[12px] outline-none transition shadow-inner font-medium text-gray-700"
           placeholder={t("Paste Job Description here...")}
         />
         {!isPro ? (
@@ -914,7 +893,7 @@ function SkillGapPanel({ fileHash, parsedData, isPro }) {
           <button
             onClick={handleAnalyze}
             disabled={loading || !jd.trim()}
-            className="mt-4 bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-[12px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
+            className="mt-4 bg-[#059669] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-[12px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
           >
             {loading ? (
               <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>{t("Analyzing...")}</>
@@ -934,7 +913,7 @@ function SkillGapPanel({ fileHash, parsedData, isPro }) {
                 value={data.job_match_score || 0} 
                 strokeWidth={10} 
                 styles={buildStyles({ 
-                  pathColor: data.job_match_score > 75 ? '#0f766e' : data.job_match_score > 50 ? '#f59e0b' : '#ef4444', 
+                  pathColor: data.job_match_score > 75 ? '#059669' : data.job_match_score > 50 ? '#f59e0b' : '#ef4444', 
                   trailColor: '#e2e8f0' 
                 })}
               />
@@ -1036,14 +1015,14 @@ function AtsOptimizerPanel({ fileHash, parsedData, isPro }) {
     <div className="p-6 space-y-8">
       <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
         <h3 className="text-[15px] font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <Search className="text-[#0f766e] w-5 h-5" />{t("ATS Resume Optimizer")}</h3>
+          <Search className="text-[#059669] w-5 h-5" />{t("ATS Resume Optimizer")}</h3>
         <p className="text-gray-500 mb-5 text-[12px] font-medium">{t(
           "Paste the target Job Description to see how an ATS evaluates your resume. We will suggest actionable improvements."
         )}</p>
         <textarea
           value={jd}
           onChange={(e) => setJd(e.target.value)}
-          className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0f766e] focus:border-[#0f766e] text-[12px] outline-none transition shadow-inner font-medium text-gray-700"
+          className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#059669] focus:border-[#059669] text-[12px] outline-none transition shadow-inner font-medium text-gray-700"
           placeholder={t("Paste Target Job Description here...")}
         />
         {!isPro ? (
@@ -1058,7 +1037,7 @@ function AtsOptimizerPanel({ fileHash, parsedData, isPro }) {
           <button
             onClick={handleOptimize}
             disabled={loading || !jd.trim()}
-            className="mt-4 bg-[#0f766e] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-[12px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
+            className="mt-4 bg-[#059669] hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-[12px] font-bold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
           >
             {loading ? (
               <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>{t("Optimizing...")}</>
@@ -1104,10 +1083,10 @@ function AtsOptimizerPanel({ fileHash, parsedData, isPro }) {
               <div className="w-[64px] h-[64px] shrink-0 relative">
                 <CircularProgressbar 
                   value={data.ats_score_after || 0} strokeWidth={8} 
-                  styles={buildStyles({ pathColor: '#0f766e', trailColor: '#ccfbf1' })}
+                  styles={buildStyles({ pathColor: '#059669', trailColor: '#ccfbf1' })}
                 />
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className={`text-[18px] font-black text-[#0f766e] ${blurClass}`}>{data.ats_score_after}</span>
+                  <span className={`text-[18px] font-black text-[#059669] ${blurClass}`}>{data.ats_score_after}</span>
                 </div>
               </div>
               <div>
@@ -1154,11 +1133,11 @@ function AtsOptimizerPanel({ fileHash, parsedData, isPro }) {
 
             <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
               <h4 className="text-[14px] font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Briefcase className="text-[#0f766e] w-4 h-4" />{t("Improved Experience Bullets")}</h4>
+                <Briefcase className="text-[#059669] w-4 h-4" />{t("Improved Experience Bullets")}</h4>
               <ul className="space-y-3">
                 {(data.improved_experience_bullets || []).map((bullet, i) => (
                   <li key={i} className={`flex gap-3 text-[12px] text-gray-700 bg-gray-50/50 p-3 rounded-xl border border-gray-100 font-medium leading-relaxed ${blurClass}`}>
-                    <CheckCircle2 className="text-[#0f766e] w-4 h-4 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="text-[#059669] w-4 h-4 shrink-0 mt-0.5" />
                     <span dangerouslySetInnerHTML={{ __html: bullet.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                   </li>
                 ))}
@@ -1247,7 +1226,7 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
         <>
       <div className="mb-6">
         <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
-          <MessageSquare className="text-[#0f766e] w-6 h-6" /> {t("Interview Questions")}
+          <MessageSquare className="text-[#059669] w-6 h-6" /> {t("Interview Questions")}
         </h2>
         <p className="text-gray-500 text-[13px] font-medium mt-1">
           {t("AI-generated questions tailored to your profile and target roles.")}
@@ -1262,7 +1241,7 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
             onClick={() => setActiveCategory(cat)}
             className={`px-4 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
               activeCategory === cat 
-                ? 'bg-[#0f766e] text-white shadow-sm' 
+                ? 'bg-emerald-600 text-white shadow-sm' 
                 : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
             }`}
           >
@@ -1276,10 +1255,10 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
           const globalIdx = `${activeCategory}-${i}`;
           const isRevealed = revealed[globalIdx];
           return (
-            <div key={globalIdx} className="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm transition-all hover:border-[#0f766e]/30">
+            <div key={globalIdx} className="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm transition-all hover:border-[#059669]/30">
               <div className="flex justify-between items-start gap-4">
                 <div>
-                  <span className="text-[10px] font-bold text-[#0f766e] bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-md mb-3 inline-block capitalize">
+                  <span className="text-[10px] font-bold text-[#059669] bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-md mb-3 inline-block capitalize">
                     {activeCategory}
                   </span>
                   <h4 className={`text-[14px] font-bold text-gray-900 mb-2 ${blurClass}`}>
@@ -1315,7 +1294,7 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${isRevealed ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}
               >
                 <div className={`text-[13px] text-gray-700 font-medium bg-teal-50/50 border border-teal-100 p-4 rounded-xl leading-relaxed whitespace-pre-wrap ${blurClass}`}>
-                  <strong className="text-[#0f766e] block mb-1">{t("Suggested Answer / Framework:")}</strong> 
+                  <strong className="text-[#059669] block mb-1">{t("Suggested Answer / Framework:")}</strong> 
                   {item.a}
                 </div>
               </div>
@@ -1332,13 +1311,13 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
         )}
 
         {isPro && questions[activeCategory].length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-[#0f766e]/20 rounded-2xl bg-teal-50/30">
-            <MessageSquare className="w-10 h-10 text-[#0f766e]/40 mb-3" />
+          <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-[#059669]/20 rounded-2xl bg-teal-50/30">
+            <MessageSquare className="w-10 h-10 text-[#059669]/40 mb-3" />
             <h3 className="text-gray-900 font-bold mb-1">Ready for {activeCategory} questions?</h3>
             <p className="text-sm text-gray-500 mb-5 max-w-sm text-center">Generate your first batch of AI-tailored {activeCategory} interview questions to practice.</p>
             <button 
               onClick={() => fetchQuestions(activeCategory)}
-              className="bg-[#0f766e] hover:bg-teal-800 text-white px-6 py-2.5 rounded-xl font-bold transition flex items-center gap-2"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold transition flex items-center gap-2"
             >
               <Bot className="w-4 h-4" /> Generate Questions
             </button>
@@ -1347,7 +1326,7 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
 
         {loading && (
           <div className="flex justify-center p-4">
-            <Loader2 className="w-6 h-6 text-[#0f766e] animate-spin" />
+            <Loader2 className="w-6 h-6 text-[#059669] animate-spin" />
           </div>
         )}
 
@@ -1355,7 +1334,7 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
           <div className="flex justify-center mt-6">
             <button 
               onClick={() => fetchQuestions(activeCategory)}
-              className="bg-gray-50 hover:bg-gray-100 text-[#0f766e] border border-gray-200 px-6 py-2.5 rounded-xl font-bold transition flex items-center gap-2"
+              className="bg-gray-50 hover:bg-gray-100 text-emerald-700 border border-gray-200 px-6 py-2.5 rounded-xl font-bold transition flex items-center gap-2"
             >
               <Sparkles className="w-4 h-4" /> Load More Questions
             </button>

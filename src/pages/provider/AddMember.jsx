@@ -49,19 +49,19 @@ const AddMember = () => {
 
           <div className="grid grid-cols-1 gap-8 items-start">
             {/* Left Column - Form Card */}
-            <div className="bg-white rounded-3xl p-2 sm:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.03)] border border-gray-100 transition-all duration-300">
-              <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50">
+            <div className="bg-white rounded-3xl p-4 sm:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.03)] border border-gray-100 transition-all duration-300">
+              <div className="flex items-center justify-between mb-1 pb-2 border-b border-gray-50">
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">{t("Member Details")}</h2>
                   <p className="text-xs text-gray-400">{t("Fill in the fields to send an official onboarding invite link.")}</p>
                 </div>
               </div>
 
-              <form onSubmit={handleInvite} className="space-y-4 sm:space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
+              <form onSubmit={handleInvite} className="space-y-2 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   {/* Full Name */}
                   <div className="relative">
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1">{t("Full Name *")}</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 leading-none !min-h-0 !p-0 !block">{t("Full Name *")}</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                       <input
@@ -70,14 +70,14 @@ const AddMember = () => {
                         required
                         value={inviteData.name}
                         onChange={(e) => setInviteData({ ...inviteData, name: e.target.value })}
-                        className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm placeholder-gray-400 text-gray-800"
+                        className="w-full pl-11 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm placeholder-gray-400 text-gray-800"
                       />
                     </div>
                   </div>
 
                   {/* Email Address */}
                   <div className="relative">
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1">{t("Email Address *")}</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 leading-none !min-h-0 !p-0 !block">{t("Email Address *")}</label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                       <input
@@ -86,14 +86,14 @@ const AddMember = () => {
                         required
                         value={inviteData.email}
                         onChange={(e) => setInviteData({ ...inviteData, email: e.target.value })}
-                        className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm placeholder-gray-400 text-gray-800"
+                        className="w-full pl-11 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm placeholder-gray-400 text-gray-800"
                       />
                     </div>
                   </div>
 
                   {/* Phone (Optional) */}
                   <div className="relative">
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1">{t("Phone Number (Optional)")}</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 leading-none !min-h-0 !p-0 !block">{t("Phone Number (Optional)")}</label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                       <input
@@ -101,20 +101,20 @@ const AddMember = () => {
                         placeholder={t("e.g. +91 98765 43210")}
                         value={inviteData.phone}
                         onChange={(e) => setInviteData({ ...inviteData, phone: e.target.value })}
-                        className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm placeholder-gray-400 text-gray-800"
+                        className="w-full pl-11 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm placeholder-gray-400 text-gray-800"
                       />
                     </div>
                   </div>
 
                   {/* Role Select */}
                   <div className="relative">
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1">{t("Assign Platform Role *")}</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 leading-none !min-h-0 !p-0 !block">{t("Assign Platform Role *")}</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                       <select
                         value={inviteData.role}
                         onChange={(e) => setInviteData({ ...inviteData, role: e.target.value })}
-                        className="w-full pl-11 pr-10 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm text-gray-800 appearance-none cursor-pointer"
+                        className="w-full pl-11 pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-gray-50/50 focus:bg-white transition-all duration-200 shadow-sm text-gray-800 appearance-none cursor-pointer"
                       >
                         <option value="provider">{t("Service Provider")}</option>
                         <option value="recruiter">{t("Recruiter / Client")}</option>
@@ -132,7 +132,7 @@ const AddMember = () => {
                   <button
                     type="submit"
                     disabled={inviting}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-[0_4px_14px_rgba(79,70,229,0.3)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.45)] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed select-none"
+                    className="w-full flex items-center justify-center gap-2 py-3 sm:py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-[0_4px_14px_rgba(79,70,229,0.3)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.45)] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed select-none"
                   >
                     {inviting ? (
                       <>
