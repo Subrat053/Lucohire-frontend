@@ -181,7 +181,7 @@ export default function FeaturesSection() {
           
           {/* Candidates Love */}
           <div>
-            <h3 className="text-lg sm:text-xl font-bold text-blue-600 mb-6 sm:mb-8 text-center sm:text-left">{t("Why Candidates Love Lucohire")}</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-blue-600 mb-6 sm:mb-8 text-left">{t("Why Candidates Love Lucohire")}</h3>
             <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:gap-y-6">
               {[
                 { icon: <Search className="w-4 h-4" />, title: t('AI Resume Analysis'), desc: t('Get AI feedback to improve your resume.') },
@@ -206,7 +206,7 @@ export default function FeaturesSection() {
 
           {/* Recruiters Love */}
           <div>
-            <h3 className="text-lg sm:text-xl font-bold text-green-700 mb-6 sm:mb-8 text-center sm:text-left">{t("Why Recruiters Love Lucohire")}</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-green-700 mb-6 sm:mb-8 text-left">{t("Why Recruiters Love Lucohire")}</h3>
             <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:gap-y-6">
               {[
                 { icon: <Users className="w-4 h-4" />, title: t('Verified Talent Pool'), desc: t('Hire from trusted and verified professionals.') },
@@ -234,7 +234,7 @@ export default function FeaturesSection() {
       {/* 10. Bottom Stats */}
       <div className="w-full border-t border-gray-100 py-8 sm:py-10 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap justify-between items-center gap-6">
+          <div className="grid grid-cols-2 gap-y-6 gap-x-4 sm:flex sm:flex-wrap sm:justify-between sm:items-center sm:gap-6">
             <div className="flex items-center">
               <Briefcase className="w-5 h-5 text-blue-600 mr-2.5" />
               <div>
@@ -242,7 +242,7 @@ export default function FeaturesSection() {
                 <div className="text-[11px] text-gray-500">{t("Jobs Posted Today")}</div>
               </div>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center ml-2.5 sm:ml-0">
               <Users className="w-5 h-5 text-green-500 mr-2.5" />
               <div>
                 <div className="font-bold text-gray-900">1.5L+</div>
@@ -256,7 +256,7 @@ export default function FeaturesSection() {
                 <div className="text-[11px] text-gray-500">{t("Active Recruiters")}</div>
               </div>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center ml-2.5 sm:ml-0">
               <MapPin className="w-5 h-5 text-blue-600 mr-2.5" />
               <div>
                 <div className="font-bold text-gray-900">5+</div>

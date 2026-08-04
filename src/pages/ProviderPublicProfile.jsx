@@ -17,6 +17,7 @@ import useTranslation from '../hooks/useTranslation';
 import Seo from '../components/common/Seo';
 import SafeExternalLink from '../components/common/SafeExternalLink';
 import { generateBreadcrumbSchema } from '../utils/seoSchemas';
+import SubscriptionPlansPopup from '../components/common/SubscriptionPlansPopup';
 
 const ProviderPublicProfile = () => {
   const { t } = useTranslation();
@@ -29,6 +30,7 @@ const ProviderPublicProfile = () => {
   const [loading, setLoading] = useState(true);
   const [contactUnlocked, setContactUnlocked] = useState(false);
   const [contactInfo, setContactInfo] = useState(null);
+  const [showPlans, setShowPlans] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   
   const [activeTab, setActiveTab] = useState('about'); // 'about' or 'reviews'
@@ -136,12 +138,17 @@ const ProviderPublicProfile = () => {
       setContactInfo(data.contact || data.contactInfo);
       toast.success(t('recruiter.contactUnlocked', 'Contact unlocked!'));
     } catch (err) {
-      const msg = err.response?.data?.message || t('recruiter.failedUnlock', 'Failed to unlock');
-      if (msg.toLowerCase().includes('unlock') || msg.toLowerCase().includes('plan') || msg.toLowerCase().includes('credits') || msg.toLowerCase().includes('upgrade')) {
-        toast.error(msg);
-        navigate('/recruiter/plans');
+      if (err.response?.data?.upgradeRequired) {
+        toast.error(err.response.data.message || t('recruiter.failedUnlock', 'Limit reached'));
+        setShowPlans(true);
       } else {
-        toast.error(msg);
+        const msg = err.response?.data?.message || t('recruiter.failedUnlock', 'Failed to unlock');
+        if (msg.toLowerCase().includes('unlock') || msg.toLowerCase().includes('plan') || msg.toLowerCase().includes('credits') || msg.toLowerCase().includes('upgrade')) {
+          toast.error(msg);
+          navigate('/recruiter/plans');
+        } else {
+          toast.error(msg);
+        }
       }
     } finally {
       setUnlocking(false);
@@ -549,6 +556,13 @@ const ProviderPublicProfile = () => {
           </div>
         </div>
       </div>
+      
+      <SubscriptionPlansPopup 
+        open={showPlans} 
+        onClose={() => setShowPlans(false)} 
+        role="recruiter" 
+        reason="unlock_limit" 
+      />
     </div>
   );
 };

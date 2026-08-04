@@ -196,7 +196,7 @@ export default function TopTalentCarousel({ displayTalent, talentSearch, setTale
               <input 
                 type="text" 
                 placeholder={t("Search talent by skills or name")} 
-                className="bg-transparent border-none focus:ring-0 text-sm w-full outline-none"
+                className="bg-transparent border-none focus:ring-0 text-lg sm:text-sm w-full outline-none truncate"
                 value={talentSearch}
                 onChange={(e) => {
                   setTalentSearch(e.target.value);

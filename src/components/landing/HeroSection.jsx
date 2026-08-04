@@ -34,9 +34,9 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
         </div> */}
 
         {/* Main Headline */}
-        <h1 className="text-[26px] sm:text-3xl md:text-4xl lg:text-[42px] font-bold text-[#0B1536] mb-4 sm:mb-5 text-center tracking-tight leading-tight px-2">
-          {t("One Platform.")} <span className="text-blue-600">{t("Endless Opportunities.")}</span>
-        </h1>
+        <h2 className="text-[26px] sm:text-3xl md:text-4xl lg:text-[40px] font-bold text-[#0B1536] mt-6 sm:mt-0 mb-4 sm:mb-5 text-center tracking-tight leading-tight px-2">
+          {t("One Platform.")} <br className="block sm:hidden" /> <span className="text-blue-600">{t("Endless Opportunities.")}</span>
+        </h2>
 
         
         {/* Main Job Search Bar */}
@@ -57,7 +57,7 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
               placeholder={t("All Locations")}
               className="w-full flex-1"
               iconClassName="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
-              inputClassName="!border-gray-100 !rounded-lg !bg-gray-50 focus:!border-blue-500 focus:!ring-1 focus:!ring-blue-500 w-full !shadow-none !text-sm text-gray-900 !py-2 sm:!py-2.5 !pl-9 !pr-8"
+              inputClassName="!border-gray-100 !rounded-lg !bg-gray-50 focus:!border-blue-500 focus:!ring-1 focus:!ring-blue-500 w-full !shadow-none !text-lg sm:!text-sm text-gray-900 truncate !py-2 sm:!py-2.5 !pl-9 !pr-8"
             />
           </div>
           <button 

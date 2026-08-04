@@ -9,6 +9,7 @@ import { HiOutlineLocationMarker } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { toOptimizedMediaUrl } from '../../utils/media';
 import { useAuth } from '../../context/AuthContext';
+import SubscriptionPlansPopup from '../../components/common/SubscriptionPlansPopup';
 
 const TAG_COLORS = ['bg-purple-50 text-purple-700 border-purple-100','bg-indigo-50 text-indigo-700 border-indigo-100','bg-emerald-50 text-emerald-700 border-emerald-100','bg-orange-50 text-orange-700 border-orange-100','bg-rose-50 text-rose-700 border-rose-100','bg-gray-100 text-gray-700 border-gray-200'];
 
@@ -22,6 +23,7 @@ const CandidateDetails = () => {
   const [candidate, setCandidate] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showPlans, setShowPlans] = useState(false);
   const [showMoreActions, setShowMoreActions] = useState(false);
   const moreActionsRef = useRef(null);
   const [contactUnlocked, setContactUnlocked] = useState(false);
@@ -34,6 +36,9 @@ const CandidateDetails = () => {
   const [addingNote, setAddingNote] = useState(false);
   const [addingTag, setAddingTag] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
 
   const listStr = sessionStorage.getItem('currentCandidateList');
   const candidateList = listStr ? JSON.parse(listStr) : [];
@@ -54,6 +59,12 @@ const CandidateDetails = () => {
   useEffect(() => {
     const h = (e) => { if (moreActionsRef.current && !moreActionsRef.current.contains(e.target)) setShowMoreActions(false); };
     document.addEventListener('mousedown', h);
+    
+    recruiterAPI.getAiUsage().then(res => {
+      setAiUsage({ limits: res.data.limits || {}, usage: res.data.usage || {} });
+      setUsageLoading(false);
+    }).catch(() => setUsageLoading(false));
+
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
@@ -85,12 +96,33 @@ const CandidateDetails = () => {
   const handleUnlock = async () => {
     if (!isAuthenticated) return toast.error(t('Please login first'));
     if ((user?.activeRole || user?.role) !== 'recruiter') return toast.error(t('Only recruiters can unlock contacts'));
+    
+    if (!usageLoading && aiUsage.limits.unlockCredits !== -1 && (aiUsage.usage.unlockCredits || 0) >= (aiUsage.limits.unlockCredits || 0)) {
+      toast.error(t('Profile unlock limit reached.'));
+      setShowPlans(true);
+      return;
+    }
+
     setUnlocking(true);
     try {
       const { data } = await recruiterAPI.unlockContact(id);
       setContactUnlocked(true); setContactInfo(data.contact || data.contactInfo);
+      
+      // Update local usage state
+      setAiUsage(prev => ({
+        ...prev,
+        usage: { ...prev.usage, unlockCredits: (prev.usage.unlockCredits || 0) + 1 }
+      }));
+      
       toast.success(t('Contact unlocked!'));
-    } catch (err) { toast.error(err.response?.data?.message || t('Failed to unlock')); }
+    } catch (err) { 
+      if (err.response?.data?.upgradeRequired) {
+        toast.error(err.response.data.message || t('Profile unlock limit reached.'));
+        setShowPlans(true);
+      } else {
+        toast.error(err.response?.data?.message || t('Failed to unlock')); 
+      }
+    }
     finally { setUnlocking(false); }
   };
 
@@ -363,7 +395,7 @@ const CandidateDetails = () => {
                           {contactInfo.whatsappNumber && <button onClick={() => handleWhatsApp(contactInfo.whatsappNumber)} className="p-2 text-green-700 bg-white hover:bg-green-50 rounded-lg border border-green-100 shadow-sm transition"><FaWhatsapp className="w-4 h-4"/></button>}
                           {contactInfo.email && <button onClick={() => openGmail(contactInfo.email)} className="p-2 text-blue-600 bg-white hover:bg-blue-50 rounded-lg border border-blue-100 shadow-sm transition"><FiMail className="w-4 h-4"/></button>}
                         </>) : (<>
-                          <button onClick={handleUnlock} disabled={unlocking} className="flex items-center gap-1.5 bg-white text-indigo-700 px-3.5 py-2 rounded-lg text-[13px] font-bold hover:bg-indigo-50 border border-indigo-100 shadow-sm disabled:opacity-60">
+                          <button onClick={handleUnlock} disabled={unlocking || (!contactUnlocked && !usageLoading && aiUsage.limits.profileUnlocks !== -1 && aiUsage.usage.profileUnlocks >= (aiUsage.limits.profileUnlocks || 0))} className="flex items-center gap-1.5 bg-white text-indigo-700 px-3.5 py-2 rounded-lg text-[13px] font-bold hover:bg-indigo-50 border border-indigo-100 shadow-sm disabled:opacity-60">
                             <FiPhoneCall className="w-3.5 h-3.5"/>{unlocking ? 'Unlocking...' : t('Contact')}
                           </button>
                           <button onClick={handleUnlock} className="p-2 text-green-700 bg-white hover:bg-green-50 rounded-lg border border-green-100 shadow-sm"><FaWhatsapp className="w-4 h-4"/></button>
@@ -483,7 +515,7 @@ const CandidateDetails = () => {
                 <button onClick={handleScheduleInterview} className="w-full bg-indigo-600 text-white rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 shadow-sm transition">
                   <FiCalendar className="w-4 h-4"/> Schedule Interview
                 </button>
-                <button onClick={contactUnlocked ? () => contactInfo?.email && openGmail(contactInfo.email) : handleUnlock} disabled={unlocking} className="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-gray-50 shadow-sm disabled:opacity-60 transition">
+                <button onClick={contactUnlocked ? () => contactInfo?.email && openGmail(contactInfo.email) : handleUnlock} disabled={unlocking || (!contactUnlocked && !usageLoading && aiUsage.limits.profileUnlocks !== -1 && aiUsage.usage.profileUnlocks >= (aiUsage.limits.profileUnlocks || 0))} className="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-gray-50 shadow-sm disabled:opacity-60 transition">
                   <FiPhoneCall className="w-4 h-4"/> {contactUnlocked ? 'Contact Candidate' : 'Unlock Contact'}
                 </button>
                 <button 
@@ -593,6 +625,12 @@ const CandidateDetails = () => {
           </div>
         </div>
       </div>
+      <SubscriptionPlansPopup 
+        open={showPlans} 
+        onClose={() => setShowPlans(false)} 
+        role="recruiter" 
+        reason="unlock_limit" 
+      />
     </div>
   );
 };
