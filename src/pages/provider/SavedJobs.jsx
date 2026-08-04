@@ -725,6 +725,7 @@ const SavedJobs = () => {
             >
               View all recommendations
             </button>
+
           </div>
 
           {/* Get Notified First Widget */}

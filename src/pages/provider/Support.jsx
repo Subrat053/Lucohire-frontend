@@ -216,7 +216,7 @@ const Support = () => {
         <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-white shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+              <div className="hidden md:flex w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl items-center justify-center shrink-0">
                 <HiSparkles className="w-6 h-6" />
               </div>
               <div>
@@ -233,7 +233,7 @@ const Support = () => {
                 navigate('/provider/support');
               }}
               title="Reset Chat"
-              className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-100"
+              className="text-xs font-bold md:font-medium text-red-600 md:bg-red-50 hover:text-red-700 md:hover:bg-red-100 md:px-3 md:py-1.5 p-1 md:border md:border-red-100 rounded-lg transition-colors"
             >{t("End Chat")}</button>
           </div>
         </div>

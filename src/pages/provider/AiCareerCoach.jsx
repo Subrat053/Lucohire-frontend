@@ -286,7 +286,7 @@ export default function AiCareerCoach() {
   if (loading || !data) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#0f766e] border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#059669] border-t-transparent" />
         <p className="text-sm text-gray-500 font-medium">Your AI coach is preparing your dashboard...</p>
       </div>
     );
@@ -361,7 +361,7 @@ export default function AiCareerCoach() {
                   {msg.text}
                 </div>
                 {msg.isUpgradePrompt && (
-                  <Link to="/provider/plans" className="text-xs bg-[#0f766e] hover:bg-teal-800 text-white px-4 py-2 rounded-xl transition shadow-sm font-bold w-max">
+                  <Link to="/provider/plans" className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl transition shadow-sm font-bold w-max">
                     Purchase Plan to See Features
                   </Link>
                 )}
@@ -411,7 +411,7 @@ export default function AiCareerCoach() {
             <span className="text-sm font-semibold text-gray-400 ml-1">({completedCount}/{tasks.length})</span>
           </h3>
           <button onClick={() => setActiveTab('Daily Tasks')}
-            className="text-sm font-bold text-[#0f766e] hover:text-teal-800 flex items-center gap-1 transition-colors">
+            className="text-sm font-bold text-emerald-700 hover:text-teal-800 flex items-center gap-1 transition-colors">
             View All <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -432,15 +432,15 @@ export default function AiCareerCoach() {
             <div className="flex flex-wrap gap-8 items-center">
               <div>
                 <p className="text-base font-bold text-gray-500 uppercase tracking-wider">Target Role</p>
-                <p className={`font-extrabold text-[#0f766e] text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.role || '—'}</p>
+                <p className={`font-extrabold text-emerald-700 text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.role || '—'}</p>
               </div>
               <div>
                 <p className="text-base font-bold text-gray-500 uppercase tracking-wider">Timeline</p>
-                <p className={`font-extrabold text-[#0f766e] text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.time || '—'}</p>
+                <p className={`font-extrabold text-emerald-700 text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.time || '—'}</p>
               </div>
               {isPro && (
                 <button onClick={() => setGoalModalOpen(true)}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-white border border-teal-200 hover:border-[#0f766e] text-[#0f766e] font-bold text-sm rounded-lg transition-all">
+                  className="flex items-center gap-1 px-3 py-1.5 bg-white border border-teal-200 hover:border-[#059669] text-emerald-700 font-bold text-sm rounded-lg transition-all">
                   <Edit2 className="w-4 h-4" /> Update Goal
                 </button>
               )}
@@ -450,7 +450,7 @@ export default function AiCareerCoach() {
             <p className="text-sm font-bold text-gray-900 mb-1">Next Milestone</p>
             <p className={`text-base font-medium text-gray-700 line-clamp-2 mb-2 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.currentMilestone}</p>
             <div className={`h-1.5 w-full bg-teal-100/50 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}>
-              <div className="h-full bg-[#0f766e] rounded-full transition-all" style={{ width: `${currentGoal.completion || 0}%` }} />
+              <div className="h-full bg-emerald-600 rounded-full transition-all" style={{ width: `${currentGoal.completion || 0}%` }} />
             </div>
             <p className={`text-base font-bold text-gray-500 mt-1 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.completion || 0}% Completed</p>
           </div>
@@ -468,14 +468,14 @@ export default function AiCareerCoach() {
             <span className="text-sm text-gray-400 font-semibold ml-1">({completedCount}/{tasks.length} done)</span>
           </h3>
           <button onClick={handleTasksRefresh} disabled={refreshingTasks}
-            className="flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-lg bg-gray-50 border border-gray-100 gap-1 text-sm font-bold text-[#0f766e] hover:text-teal-800 hover:bg-gray-100 disabled:opacity-50 transition-colors">
+            className="flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-lg bg-gray-50 border border-gray-100 gap-1 text-sm font-bold text-emerald-700 hover:text-teal-800 hover:bg-gray-100 disabled:opacity-50 transition-colors">
             <RefreshCw className={`w-5 h-5 ${refreshingTasks ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh Tasks</span>
           </button>
         </div>
         {/* Progress bar */}
         <div className="h-1.5 w-full bg-gray-100 rounded-full mb-4 overflow-hidden">
-          <div className="h-full bg-[#0f766e] rounded-full transition-all duration-500" style={{ width: `${tasks.length ? (completedCount / tasks.length) * 100 : 0}%` }} />
+          <div className="h-full bg-emerald-600 rounded-full transition-all duration-500" style={{ width: `${tasks.length ? (completedCount / tasks.length) * 100 : 0}%` }} />
         </div>
         <div className="space-y-2">
           {tasks.map((task, idx) => (
@@ -499,7 +499,7 @@ export default function AiCareerCoach() {
           </h3>
           {isPro && (
             <button onClick={() => setGoalModalOpen(true)}
-              className="flex items-center gap-1 px-2.5 py-1 bg-white border border-teal-200 hover:border-[#0f766e] text-[#0f766e] font-bold text-base rounded-lg transition-all">
+              className="flex items-center gap-1 px-2.5 py-1 bg-white border border-teal-200 hover:border-[#059669] text-emerald-700 font-bold text-base rounded-lg transition-all">
               <Edit2 className="w-4 h-4" /> Edit
             </button>
           )}
@@ -507,15 +507,15 @@ export default function AiCareerCoach() {
         <div className="flex gap-6 mb-3">
           <div>
             <p className="text-base font-bold text-gray-500 uppercase">Target Role</p>
-            <p className={`font-extrabold text-[#0f766e] text-lg ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.role}</p>
+            <p className={`font-extrabold text-emerald-700 text-lg ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.role}</p>
           </div>
           <div>
             <p className="text-base font-bold text-gray-500 uppercase">Timeline</p>
-            <p className={`font-extrabold text-[#0f766e] text-lg ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.time}</p>
+            <p className={`font-extrabold text-emerald-700 text-lg ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.time}</p>
           </div>
           <div>
             <p className="text-base font-bold text-gray-500 uppercase">Progress</p>
-            <p className={`font-extrabold text-[#0f766e] text-lg ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.completion || 0}%</p>
+            <p className={`font-extrabold text-emerald-700 text-lg ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.completion || 0}%</p>
           </div>
         </div>
         <p className={`text-sm text-gray-700 font-medium ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>📌 {currentGoal.currentMilestone}</p>
@@ -528,12 +528,12 @@ export default function AiCareerCoach() {
           <div className="absolute top-2 bottom-2 left-[18px] w-0.5 bg-gray-100" />
           {careerRoadmap.map((step, i) => (
             <div key={i} className="flex items-start justify-between relative z-10 pl-6">
-              <div className={`absolute left-0 w-4 h-4 rounded-full border-2 mt-0.5 ${i === 0 ? 'border-[#0f766e] bg-[#0f766e]' : i === 1 ? 'border-indigo-400 bg-white' : 'border-gray-300 bg-white'}`} style={{ left: '5px' }} />
+              <div className={`absolute left-0 w-4 h-4 rounded-full border-2 mt-0.5 ${i === 0 ? 'border-[#059669] bg-emerald-600' : i === 1 ? 'border-indigo-400 bg-white' : 'border-gray-300 bg-white'}`} style={{ left: '5px' }} />
               <div>
                 <p className={`font-bold text-sm ${i === 0 ? 'text-gray-900' : 'text-gray-500'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{step.title}</p>
                 {step.timeframe && <p className={`text-base text-gray-400 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{step.timeframe}</p>}
               </div>
-              <span className={`px-2 py-0.5 text-sm font-bold rounded-md shrink-0 ${step.status === 'Current' ? 'bg-teal-50 text-[#0f766e]' : step.status === 'Next Step' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-500'}`}>
+              <span className={`px-2 py-0.5 text-sm font-bold rounded-md shrink-0 ${step.status === 'Current' ? 'bg-teal-50 text-emerald-700' : step.status === 'Next Step' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-500'}`}>
                 {step.status}
               </span>
             </div>
@@ -553,8 +553,8 @@ export default function AiCareerCoach() {
           ]).map((m, i) => (
             <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl border ${m.done ? 'bg-teal-50/40 border-teal-100' : 'bg-gray-50 border-gray-100'}`}>
               <div className="flex items-center gap-2.5">
-                {m.done ? <CheckCircle2 className="w-6 h-6 text-[#0f766e] shrink-0" /> : <Circle className="w-6 h-6 text-gray-300 shrink-0" />}
-                <span className={`text-sm font-bold ${m.done ? 'text-[#0f766e]' : 'text-gray-700'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{m.title}</span>
+                {m.done ? <CheckCircle2 className="w-6 h-6 text-emerald-700 shrink-0" /> : <Circle className="w-6 h-6 text-gray-300 shrink-0" />}
+                <span className={`text-sm font-bold ${m.done ? 'text-emerald-700' : 'text-gray-700'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{m.title}</span>
               </div>
               <span className={`text-base font-semibold text-gray-400 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{m.date}</span>
             </div>
@@ -573,13 +573,13 @@ export default function AiCareerCoach() {
             <div key={idx} className="p-3 bg-white border border-gray-100 rounded-2xl hover:shadow-md hover:border-teal-100 transition-all cursor-pointer group"
               onClick={() => handleRecommendedAction(rec)}>
               <div className="flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-teal-50 text-[#0f766e] shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-teal-50 text-emerald-700 shrink-0 group-hover:scale-110 transition-transform">
                   <Sparkles className="w-6 h-6" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm font-bold text-gray-900 leading-tight mb-1 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{rec.title}</p>
                   <p className={`text-base text-gray-500 line-clamp-2 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{rec.description}</p>
-                  <div className="flex items-center gap-1 text-[#0f766e] font-bold text-base mt-2">
+                  <div className="flex items-center gap-1 text-emerald-700 font-bold text-base mt-2">
                     {rec.actionText || 'Learn How'} <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
@@ -646,7 +646,7 @@ export default function AiCareerCoach() {
             <CircularProgressbar
               value={progressStats.percentage || 0}
               text={`${progressStats.percentage || 0}%`}
-              styles={buildStyles({ pathColor: '#0f766e', textColor: '#0f766e', trailColor: '#f1f5f9', textSize: '26px' })}
+              styles={buildStyles({ pathColor: '#059669', textColor: '#059669', trailColor: '#f1f5f9', textSize: '26px' })}
               strokeWidth={12}
             />
           </div>
@@ -664,7 +664,7 @@ export default function AiCareerCoach() {
                     <span>{bar.label}</span><span className={`${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{bar.val}%</span>
                   </div>
                   <div className={`h-1.5 bg-gray-100 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}>
-                    <div className="h-full bg-[#0f766e] rounded-full" style={{ width: `${bar.val}%` }} />
+                    <div className="h-full bg-emerald-600 rounded-full" style={{ width: `${bar.val}%` }} />
                   </div>
                 </div>
               ))}
@@ -744,15 +744,15 @@ export default function AiCareerCoach() {
             <CircularProgressbar
               value={progressStats.percentage || 0}
               text={`${progressStats.percentage || 0}%`}
-              styles={buildStyles({ pathColor: '#0f766e', textColor: '#0f766e', trailColor: '#f1f5f9', textSize: '28px' })}
+              styles={buildStyles({ pathColor: '#059669', textColor: '#059669', trailColor: '#f1f5f9', textSize: '28px' })}
               strokeWidth={12}
             />
           </div>
           <div>
-            <h4 className="font-bold text-[#0f766e] text-sm">Overall Progress</h4>
+            <h4 className="font-bold text-emerald-700 text-sm">Overall Progress</h4>
             <p className={`text-base text-gray-500 leading-tight ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>You're on the right track!</p>
             <button onClick={() => setActiveTab('Progress')}
-              className="text-base font-bold text-[#0f766e] flex items-center gap-0.5 mt-1">
+              className="text-base font-bold text-emerald-700 flex items-center gap-0.5 mt-1">
               View Details <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -765,7 +765,7 @@ export default function AiCareerCoach() {
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-base font-bold">Career Roadmap</h3>
-          <button onClick={() => { setActiveTab('Career Plan'); setFullPlanModalOpen(true); }} className="text-sm font-bold text-[#0f766e] flex items-center gap-1">
+          <button onClick={() => { setActiveTab('Career Plan'); setFullPlanModalOpen(true); }} className="text-sm font-bold text-emerald-700 flex items-center gap-1">
             Full Plan <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -773,9 +773,9 @@ export default function AiCareerCoach() {
           <div className="absolute top-2 bottom-2 left-[17px] w-0.5 bg-gray-100" />
           {careerRoadmap.map((step, i) => (
             <div key={i} className="flex items-center justify-between relative z-10 pl-7">
-              <div className={`absolute w-4 h-4 rounded-full border-2 bg-white ${i === 0 ? 'border-[#0f766e] bg-[#0f766e]' : 'border-gray-300'}`} style={{ left: '3.5px' }} />
+              <div className={`absolute w-4 h-4 rounded-full border-2 bg-white ${i === 0 ? 'border-[#059669] bg-emerald-600' : 'border-gray-300'}`} style={{ left: '3.5px' }} />
               <span className={`font-bold text-sm ${i === 0 ? 'text-gray-900' : 'text-gray-500'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{step.title}</span>
-              <span className={`px-2 py-0.5 text-sm font-bold rounded-md ${step.status === 'Current' ? 'bg-teal-50 text-[#0f766e]' : step.status === 'Next Step' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-500'}`}>
+              <span className={`px-2 py-0.5 text-sm font-bold rounded-md ${step.status === 'Current' ? 'bg-teal-50 text-emerald-700' : step.status === 'Next Step' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-500'}`}>
                 {step.status === 'Future' ? <span className={`${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{step.timeframe}</span> : step.status}
               </span>
             </div>
@@ -818,7 +818,7 @@ export default function AiCareerCoach() {
       { icon: <Folder className="w-5 h-5" />, title: 'Add Case Studies to Your Portfolio', desc: 'Show real projects to stand out.', action: 'Learn How', bg: 'bg-indigo-50 text-indigo-500', link: '/provider/resume-toolkit' },
       { icon: <MousePointerClick className="w-5 h-5" />, title: 'Improve Interaction Design Skills', desc: 'Highly in demand for UI/UX roles.', action: 'Start Learning', bg: 'bg-orange-50 text-orange-500', link: '/provider/ai-tips' },
       { icon: <BrainCircuit className="w-5 h-5" />, title: 'Prepare for Product Design Interviews', desc: 'Most asked questions & how to answer.', action: 'Practice Now', bg: 'bg-blue-50 text-blue-500', link: '/provider/grow-with-ai' },
-      { icon: <Banknote className="w-5 h-5" />, title: 'Understand Salary Benchmarks', desc: 'Know your worth in the market.', action: 'View Insights', bg: 'bg-teal-50 text-[#0f766e]', link: '/provider/career-health' }
+      { icon: <Banknote className="w-5 h-5" />, title: 'Understand Salary Benchmarks', desc: 'Know your worth in the market.', action: 'View Insights', bg: 'bg-teal-50 text-emerald-700', link: '/provider/career-health' }
     ],
     'Skill Building': [
       { icon: <BookOpen className="w-5 h-5" />, title: 'Master Advanced Prototyping', desc: 'Learn Figma interactive components.', action: 'Start Course', bg: 'bg-purple-50 text-purple-500', link: '/provider/ai-tips' },
@@ -849,7 +849,7 @@ export default function AiCareerCoach() {
             <button 
               key={tab}
               onClick={() => setActiveRecTab(tab)}
-              className={`px-4 py-1.5 rounded-full font-bold text-sm whitespace-nowrap border transition-colors ${activeRecTab === tab ? 'bg-emerald-50 text-[#0f766e] border-emerald-100' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}
+              className={`px-4 py-1.5 rounded-full font-bold text-sm whitespace-nowrap border transition-colors ${activeRecTab === tab ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}
             >
               {tab}
             </button>
@@ -870,7 +870,7 @@ export default function AiCareerCoach() {
               {card.desc}
             </p>
             {isPro ? (
-              <button onClick={() => navigate(card.link)} className="w-full py-2 border border-gray-200 text-[#0f766e] font-bold text-xs rounded-xl hover:bg-teal-50 flex items-center justify-center gap-1 mt-auto transition-colors">
+              <button onClick={() => navigate(card.link)} className="w-full py-2 border border-gray-200 text-emerald-700 font-bold text-xs rounded-xl hover:bg-teal-50 flex items-center justify-center gap-1 mt-auto transition-colors">
                 {card.action} <ArrowRight className="w-3.5 h-3.5" />
               </button>
             ) : (
@@ -893,14 +893,14 @@ export default function AiCareerCoach() {
         <div className="flex flex-wrap items-center gap-8 pt-2">
           <div>
             <p className="text-xs font-bold text-gray-500 mb-1">Target Role</p>
-            <p className={`text-[#0f766e] font-extrabold text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>Senior UI/UX Designer</p>
+            <p className={`text-emerald-700 font-extrabold text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>Senior UI/UX Designer</p>
           </div>
           <div>
             <p className="text-xs font-bold text-gray-500 mb-1">Target Time</p>
-            <p className={`text-[#0f766e] font-extrabold text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>2 Years</p>
+            <p className={`text-emerald-700 font-extrabold text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>2 Years</p>
           </div>
           {isPro && (
-            <button onClick={() => setGoalModalOpen(true)} className="px-5 py-2.5 rounded-xl border-2 border-[#0f766e] text-[#0f766e] font-bold text-sm hover:bg-teal-50 transition-colors ml-auto sm:ml-0 bg-white shadow-sm">
+            <button onClick={() => setGoalModalOpen(true)} className="px-5 py-2.5 rounded-xl border-2 border-[#059669] text-emerald-700 font-bold text-sm hover:bg-teal-50 transition-colors ml-auto sm:ml-0 bg-white shadow-sm">
               Update Goal
             </button>
           )}
@@ -911,10 +911,10 @@ export default function AiCareerCoach() {
 
       <div className="flex-1 relative w-full flex items-center lg:pl-4">
         <div className="max-w-md relative z-10 w-full">
-          <h4 className="font-bold text-[#0f766e] text-base mb-1">Next Milestone</h4>
+          <h4 className="font-bold text-emerald-700 text-base mb-1">Next Milestone</h4>
           <p className={`text-gray-700 text-sm mb-4 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>Strengthen your portfolio and gain advanced UI interaction skills.</p>
           <div className={`w-3/4 bg-emerald-200/50 h-2.5 rounded-full mb-1 ${!isPro ? 'blur-[2px] opacity-80' : ''}`}>
-            <div className="bg-[#0f766e] h-2.5 rounded-full" style={{ width: '60%' }} />
+            <div className="bg-emerald-600 h-2.5 rounded-full" style={{ width: '60%' }} />
           </div>
           <p className={`text-xs font-bold text-gray-700 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>60% Completed</p>
         </div>
@@ -923,8 +923,8 @@ export default function AiCareerCoach() {
           <svg width="200" height="150" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M100 60 L20 150 L180 150 Z" fill="#d1fae5" />
             <path d="M140 40 L60 150 L220 150 Z" fill="#a7f3d0" />
-            <path d="M140 40 L140 20" stroke="#0f766e" strokeWidth="3" />
-            <path d="M140 20 L165 25 L140 35" fill="#0f766e" />
+            <path d="M140 40 L140 20" stroke="#059669" strokeWidth="3" />
+            <path d="M140 20 L165 25 L140 35" fill="#059669" />
           </svg>
         </div>
       </div>
@@ -955,7 +955,7 @@ export default function AiCareerCoach() {
         <div className="flex gap-3 mt-4 overflow-x-auto scrollbar-hide pb-2">
           {TABS.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`px-5 py-2.5 text-[15px] font-bold rounded-xl whitespace-nowrap transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md ${activeTab === tab ? 'bg-[#0f766e] text-white shadow-[#0f766e]/20' : 'bg-white text-gray-700 border border-[#0f766e] hover:bg-[#0f766e]/5 hover:text-[#0f766e]'}`}>
+              className={`px-5 py-2.5 text-[15px] font-bold rounded-xl whitespace-nowrap transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md ${activeTab === tab ? 'bg-emerald-600 text-white shadow-[#059669]/20' : 'bg-white text-gray-700 border border-[#059669] hover:bg-emerald-600/5 hover:text-emerald-700'}`}>
               {tab}
             </button>
           ))}
@@ -988,19 +988,19 @@ export default function AiCareerCoach() {
                 <label className="text-sm font-bold text-gray-700 block mb-1">Target Role</label>
                 <input value={goalRole} onChange={e => setGoalRole(e.target.value)}
                   placeholder="e.g. Senior Full Stack Developer"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base focus:border-[#0f766e] focus:outline-none" />
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base focus:border-[#059669] focus:outline-none" />
               </div>
               <div>
                 <label className="text-sm font-bold text-gray-700 block mb-1">Timeline</label>
                 <select value={goalTimeline} onChange={e => setGoalTimeline(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base focus:border-[#0f766e] focus:outline-none">
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base focus:border-[#059669] focus:outline-none">
                   <option value="">Select timeline...</option>
                   {['6 Months', '1 Year', '1.5 Years', '2 Years', '3 Years', '5 Years'].map(t => <option key={t}>{t}</option>)}
                 </select>
               </div>
             </div>
             <button onClick={handleGoalSave} disabled={goalLoading}
-              className="w-full mt-4 py-2.5 bg-[#0f766e] hover:bg-teal-800 text-white font-bold text-base rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+              className="w-full mt-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
               {goalLoading ? <><div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generating...</> : <><Check className="w-6 h-6" /> Save & Regenerate Roadmap</>}
             </button>
           </div>
@@ -1038,7 +1038,7 @@ export default function AiCareerCoach() {
               </div>
               {isPro && (
                 <button onClick={() => { setSettingsOpen(false); setGoalModalOpen(true); }}
-                  className="w-full py-2 border-2 border-[#0f766e] text-[#0f766e] font-bold text-base rounded-xl hover:bg-teal-50 transition-colors flex items-center justify-center gap-2">
+                  className="w-full py-2 border-2 border-[#059669] text-emerald-700 font-bold text-base rounded-xl hover:bg-teal-50 transition-colors flex items-center justify-center gap-2">
                   <Edit2 className="w-5 h-5" /> Update Career Goal
                 </button>
               )}
@@ -1059,9 +1059,9 @@ function TaskRow({ task, idx, onToggle, onStart, expanded, isPro = true }) {
   return (
     <div className={`flex items-center justify-between p-2.5 bg-gray-50/50 hover:bg-gray-50 border border-gray-100 rounded-xl transition-colors group ${task.status === 'completed' ? 'opacity-70' : ''}`}>
       <div className="flex items-center gap-3 min-w-0">
-        <button onClick={() => isPro && onToggle(idx)} className={`transition-colors shrink-0 ${isPro ? 'text-gray-300 hover:text-[#0f766e]' : 'text-gray-300 cursor-not-allowed'}`}>
+        <button onClick={() => isPro && onToggle(idx)} className={`transition-colors shrink-0 ${isPro ? 'text-gray-300 hover:text-emerald-700' : 'text-gray-300 cursor-not-allowed'}`}>
           {task.status === 'completed'
-            ? <CheckCircle2 className="w-5 h-5 text-[#0f766e]" />
+            ? <CheckCircle2 className="w-5 h-5 text-emerald-700" />
             : <Circle className="w-5 h-5" />}
         </button>
         <div className={`p-1 rounded-md shrink-0 ${task.type === 'resume' ? 'bg-purple-100 text-purple-600' : task.type === 'job' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>
@@ -1075,8 +1075,8 @@ function TaskRow({ task, idx, onToggle, onStart, expanded, isPro = true }) {
       {!isPro ? (
         <span className="shrink-0 ml-2 text-gray-400"><Lock className="w-4 h-4" /></span>
       ) : task.status === 'completed'
-        ? <span className="px-2 py-0.5 bg-teal-50 text-[#0f766e] font-bold text-base rounded-lg shrink-0 ml-2">Done</span>
-        : <button onClick={() => onToggle(idx)} className="ml-2 px-3 py-1 bg-white border border-gray-200 group-hover:border-[#0f766e] text-gray-700 group-hover:text-[#0f766e] font-bold text-base rounded-lg transition-all shrink-0">Finish</button>
+        ? <span className="px-2 py-0.5 bg-teal-50 text-emerald-700 font-bold text-base rounded-lg shrink-0 ml-2">Done</span>
+        : <button onClick={() => onToggle(idx)} className="ml-2 px-3 py-1 bg-white border border-gray-200 group-hover:border-[#059669] text-gray-700 group-hover:text-emerald-700 font-bold text-base rounded-lg transition-all shrink-0">Finish</button>
       }
     </div>
   );

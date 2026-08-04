@@ -210,9 +210,8 @@ export default function AITips() {
 
   return (
     <div className="w-full p-4 md:p-6 lg:p-8 space-y-8 pb-20 relative bg-slate-50 min-h-screen">
-      {/* Usage Banner */}
       {!usageLoading && (
-        <div className="bg-emerald-50/50 border border-emerald-100 p-3 md:px-6 md:py-3 rounded-2xl flex items-center justify-between gap-3 md:gap-2">
+        <div className="bg-white border border-slate-200 p-3 md:px-6 md:py-3 rounded-2xl flex items-center justify-between gap-3 md:gap-2 shadow-sm">
           {/* Left side text container */}
           <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2">
             <Sparkles className="hidden md:block w-4 h-4 text-emerald-600 shrink-0" />
@@ -314,7 +313,7 @@ export default function AITips() {
                   <CircularProgressbar 
                     value={reportData?.top_job_roles?.[0]?.match_percentage || 92} 
                     strokeWidth={8} 
-                    styles={buildStyles({ pathColor: '#0f766e', trailColor: '#f1f5f9' })}
+                    styles={buildStyles({ pathColor: '#059669', trailColor: '#f1f5f9' })}
                   />
                 </div>
                 <div className="z-10 relative md:mt-2 w-full">
@@ -482,19 +481,19 @@ export default function AITips() {
                       <div className="flex justify-between text-[13px] md:text-[11px] font-bold text-gray-700 mb-1.5">
                         <span>{t("Format & Structure")}</span> <span className={`text-[#0f766e] ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{(reportData?.resume_score?.impact > 70) ? 'Good' : 'Average'}</span>
                       </div>
-                      <div className={`h-1.5 bg-gray-200 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}><div className="h-full bg-[#0f766e] rounded-full" style={{width: `${reportData?.resume_score?.impact || 80}%`}}></div></div>
+                      <div className={`h-1.5 bg-gray-200 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}><div className="h-full bg-emerald-600 rounded-full" style={{width: `${reportData?.resume_score?.impact || 80}%`}}></div></div>
                     </div>
                     <div>
                       <div className="flex justify-between text-[13px] md:text-[11px] font-bold text-gray-700 mb-1.5">
                         <span>{t("Content Depth")}</span> <span className={`text-[#0f766e] ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{(reportData?.resume_score?.brevity > 70) ? 'Good' : 'Average'}</span>
                       </div>
-                      <div className={`h-1.5 bg-gray-200 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}><div className="h-full bg-[#0f766e] rounded-full" style={{width: `${reportData?.resume_score?.brevity || 75}%`}}></div></div>
+                      <div className={`h-1.5 bg-gray-200 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}><div className="h-full bg-emerald-600 rounded-full" style={{width: `${reportData?.resume_score?.brevity || 75}%`}}></div></div>
                     </div>
                     <div>
                       <div className="flex justify-between text-[13px] md:text-[11px] font-bold text-gray-700 mb-1.5">
                         <span>{t("Keywords Optimization")}</span> <span className={`${reportData?.resume_score?.skills_match > 70 ? 'text-[#0f766e]' : 'text-orange-500'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{(reportData?.resume_score?.skills_match > 70) ? 'Good' : 'Average'}</span>
                       </div>
-                      <div className={`h-1.5 bg-gray-200 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}><div className={`h-full ${reportData?.resume_score?.skills_match > 70 ? 'bg-[#0f766e]' : 'bg-orange-400'} rounded-full`} style={{width: `${reportData?.resume_score?.skills_match || 50}%`}}></div></div>
+                      <div className={`h-1.5 bg-gray-200 rounded-full overflow-hidden ${!isPro ? 'blur-[2px] opacity-80' : ''}`}><div className={`h-full ${reportData?.resume_score?.skills_match > 70 ? 'bg-emerald-600' : 'bg-orange-400'} rounded-full`} style={{width: `${reportData?.resume_score?.skills_match || 50}%`}}></div></div>
                     </div>
                   </div>
                   {!isPro ? (
@@ -690,7 +689,7 @@ export default function AITips() {
                 <p className={`text-[13px] md:text-[11px] text-gray-700 leading-relaxed font-medium ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{t(
                   "Hi Ananya! I analyzed your profile and applications. Would you like me to suggest some ways to improve your chances?"
                 )}</p>
-                <div className="absolute -left-8 top-0 w-8 h-8 bg-[#0f766e] shadow-sm rounded-full flex items-center justify-center">
+                <div className="absolute -left-8 top-0 w-8 h-8 bg-emerald-600 shadow-sm rounded-full flex items-center justify-center">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
               </div>

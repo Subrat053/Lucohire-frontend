@@ -50,14 +50,14 @@ const ProviderLeads = () => {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{t("My Leads (")}{leads.length})</h1>
       {leads.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-2.5">
           {leads.map((lead) => (
-            <div key={lead._id} className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition">
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+            <div key={lead._id} className="bg-white rounded-2xl border border-gray-100 py-2 px-3 hover:shadow-sm transition">
+              <div className="flex flex-row justify-between items-center gap-2">
                 <div>
                   <div className="flex items-center space-x-2 mb-1">
                     <h3 className="font-semibold text-gray-900">{lead.recruiter?.name || 'Unknown Recruiter'}</h3>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[lead.status] || ''}`}>{lead.status}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${statusColors[lead.status] || ''}`}>{lead.status}</span>
                   </div>
                   <p className="text-sm text-gray-500 capitalize">{lead.type?.replace(/_/g, ' ')}</p>
                   {lead.jobPost && (
@@ -66,26 +66,26 @@ const ProviderLeads = () => {
                       <span>{lead.jobPost.title} - {lead.jobPost.city}</span>
                     </div>
                   )}
-                  <p className="text-xs text-gray-400 mt-1">{new Date(lead.createdAt).toLocaleString()}</p>
+                  <p className="text-[10px] sm:text-xs text-gray-400 mt-1">{new Date(lead.createdAt).toLocaleString()}</p>
                 </div>
-                <div className="flex items-center space-x-1 sm:space-x-2">
+                <div className="flex items-center space-x-1.5 shrink-0">
                   {lead.isUnlocked && lead.recruiter?.phone && (
-                    <a href={`tel:${lead.recruiter.phone}`} className="shrink-0 w-7 h-7 sm:w-9 sm:h-9 aspect-square p-0 bg-green-50 text-green-700 rounded-full hover:bg-green-100 flex items-center justify-center">
-                      <HiPhone className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                    <a href={`tel:${lead.recruiter.phone}`} className="flex-none w-8 h-8 min-w-8 min-h-8 aspect-square sm:w-10 sm:h-10 sm:min-w-10 sm:min-h-10 p-0 bg-green-50 text-green-700 rounded-full hover:bg-green-100 flex items-center justify-center overflow-hidden">
+                      <HiPhone className="w-4 h-4 sm:w-5 sm:h-5" />
                     </a>
                   )}
                   {lead.isUnlocked && lead.recruiter?.email && (
-                    <a href={`mailto:${lead.recruiter.email}`} className="shrink-0 w-7 h-7 sm:w-9 sm:h-9 aspect-square p-0 bg-teal-50 text-teal-600 rounded-full hover:bg-teal-100 flex items-center justify-center">
-                      <HiMail className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                    <a href={`mailto:${lead.recruiter.email}`} className="flex-none w-8 h-8 min-w-8 min-h-8 aspect-square sm:w-10 sm:h-10 sm:min-w-10 sm:min-h-10 p-0 bg-teal-50 text-teal-600 rounded-full hover:bg-teal-100 flex items-center justify-center overflow-hidden">
+                      <HiMail className="w-4 h-4 sm:w-5 sm:h-5" />
                     </a>
                   )}
                   {lead.status === 'new' && (
                     <>
-                      <button onClick={() => updateStatus(lead._id, 'contacted')} className="shrink-0 w-7 h-7 sm:w-9 sm:h-9 aspect-square p-0 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 flex items-center justify-center" title="Mark Contacted">
-                        <HiCheck className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                      <button onClick={() => updateStatus(lead._id, 'contacted')} className="flex-none !w-6 !h-6 !min-w-[24px] !min-h-[24px] !max-w-[24px] !max-h-[24px] sm:!w-7 sm:!h-7 sm:!min-w-[28px] sm:!min-h-[28px] sm:!max-w-[28px] sm:!max-h-[28px] p-0 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 flex items-center justify-center overflow-hidden aspect-square" title="Mark Contacted">
+                        <HiCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
-                      <button onClick={() => updateStatus(lead._id, 'rejected')} className="shrink-0 w-7 h-7 sm:w-9 sm:h-9 aspect-square p-0 bg-red-600 text-white rounded-full hover:bg-red-700 flex items-center justify-center" title="Reject">
-                        <HiXIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                      <button onClick={() => updateStatus(lead._id, 'rejected')} className="flex-none !w-6 !h-6 !min-w-[24px] !min-h-[24px] !max-w-[24px] !max-h-[24px] sm:!w-7 sm:!h-7 sm:!min-w-[28px] sm:!min-h-[28px] sm:!max-w-[28px] sm:!max-h-[28px] p-0 bg-red-600 text-white rounded-full hover:bg-red-700 flex items-center justify-center overflow-hidden aspect-square" title="Reject">
+                        <HiXIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
                     </>
                   )}

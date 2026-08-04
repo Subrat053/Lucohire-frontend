@@ -517,60 +517,38 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
         <div id="report-content" className="pt-2">
         {/* Usage Banner */}
         {!usageLoading && (
-          <div className="bg-white border border-gray-200 p-4 sm:px-6 sm:py-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 shadow-sm mb-6">
-            <div className="flex-1 w-full max-w-md">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-emerald-600" />
-                <span className="text-sm font-medium text-gray-700">{t("Career Health AI Limit")}</span>
-              </div>
-              
+          <div className="bg-white border border-slate-200 p-3 md:px-6 md:py-3 rounded-2xl flex items-center justify-between gap-3 md:gap-2 shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2">
+              <Sparkles className="hidden md:block w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-[13px] md:text-sm font-medium text-emerald-900">{t("Career Health AI Limit:")}</span>
               {(() => {
                 const limit = aiUsage.limits['careerHealth'] || 0;
                 const used = aiUsage.usage['careerHealth'] || 0;
-                
-                if (limit === -1) {
-                  return <div className="text-sm font-bold text-green-600">{t("Unlimited Access")}</div>;
-                }
-                if (limit === 0) {
-                  return <div className="text-sm font-bold text-red-500">{t("Not included in your current plan")}</div>;
-                }
-
-                const percentage = Math.min(100, Math.round((used / limit) * 100));
-                let barColor = 'bg-emerald-600';
-                if (percentage > 80) barColor = 'bg-amber-500';
-                if (percentage >= 100) barColor = 'bg-red-500';
-
+                if (limit === -1) return <span className="text-[12px] md:text-sm font-bold text-emerald-700">{t("Unlimited")}</span>;
+                if (limit === 0) return <span className="text-[12px] md:text-sm font-bold text-red-600">{t("Not included")}</span>;
                 return (
-                  <div>
-                    <div className="flex justify-between text-xs mb-1.5 font-medium">
-                      <span className="text-gray-500">{used} used</span>
-                      <span className="text-gray-900">{limit} total</span>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                      <div className={`h-2.5 rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${percentage}%` }}></div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1.5">{Math.max(0, limit - used)} {t("requests remaining")}</p>
-                  </div>
+                  <span className="text-[12px] md:text-sm font-bold text-emerald-700">
+                    {Math.max(0, limit - used)}/{limit} {t("requests remaining")}
+                  </span>
                 );
               })()}
             </div>
-            <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+            
+            <div className="flex items-center gap-2">
               {isPro && (
                 <button
                   onClick={handleImprove}
                   disabled={improving || (aiUsage.limits['careerHealth'] !== -1 && aiUsage.usage['careerHealth'] >= aiUsage.limits['careerHealth'])}
-                  className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 w-full sm:w-auto"
+                  className="shrink-0 flex items-center justify-center text-center text-[11px] md:text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 md:py-1 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
                 >
                   {improving ? (
-                    <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>{t("Refreshing...")}</>
+                    <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></div>{t("Refreshing...")}</>
                   ) : (
-                    <><Sparkles className="w-3 h-3" />{t("Refresh Insights")}</>
+                    <><Sparkles className="w-3 h-3 mr-1 hidden sm:block" />{t("Refresh")}</>
                   )}
                 </button>
               )}
-              <Link to="/provider/plans" className="text-xs font-bold text-emerald-600 hover:text-emerald-800 bg-emerald-100 px-4 py-2 rounded-xl transition-colors flex justify-center items-center w-full sm:w-auto">
-                {t("Upgrade Plan")}
-              </Link>
+              <Link to="/provider/plans" className="shrink-0 flex items-center justify-center text-center text-[11px] md:text-xs font-black text-emerald-700 hover:text-emerald-900 bg-emerald-100 px-4 md:px-3 py-1.5 md:py-1 rounded-lg transition-colors whitespace-nowrap">{t("Upgrade Plan")}</Link>
             </div>
           </div>
         )}

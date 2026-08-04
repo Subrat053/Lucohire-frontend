@@ -1,15 +1,15 @@
 import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect } from 'react';
-import { HiEye, HiSearch, HiLockOpen, HiClock, HiCreditCard, HiRefresh } from 'react-icons/hi';
+import { HiEye, HiSearch, HiLockOpen, HiClock, HiCreditCard, HiRefresh, HiChevronDown } from 'react-icons/hi';
 import { providerAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 
 const typeConfig = {
-  profile_view: { label: 'Profile View', icon: HiEye, color: 'bg-teal-100 text-teal-600' },
+  profile_view: { label: 'Profile View', icon: HiEye, color: 'bg-emerald-100 text-emerald-600' },
   search: { label: 'Search Appearance', icon: HiSearch, color: 'bg-amber-100 text-amber-600' },
   contact_unlock: { label: 'Contact Unlocked', icon: HiLockOpen, color: 'bg-green-100 text-green-700' },
-  job_match: { label: 'Job Match', icon: HiClock, color: 'bg-teal-100 text-teal-600' },
+  job_match: { label: 'Job Match', icon: HiClock, color: 'bg-emerald-100 text-emerald-600' },
 };
 
 const ProviderHistory = () => {
@@ -21,7 +21,16 @@ const ProviderHistory = () => {
   const [loading, setLoading] = useState(true);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
   const [filter, setFilter] = useState('');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  const filterOptions = [
+    { value: '', label: t('All Activity') },
+    { value: 'profile_view', label: t('Profile Views') },
+    { value: 'contact_unlock', label: t('Contact Unlocks') },
+    { value: 'search', label: t('Search Appearances') },
+    { value: 'job_match', label: t('Job Matches') },
+  ];
+  const currentFilterLabel = filterOptions.find(o => o.value === filter)?.label || t('All Activity');
   useEffect(() => { 
     fetchHistory(); 
     fetchPayments();
@@ -67,7 +76,7 @@ const ProviderHistory = () => {
           <p className="text-xs text-gray-500 mt-1">{t("View all your past transactions, plan subscriptions, and activity history.")}</p>
         </div>
 
-        <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
+        <div className="flex items-center self-start w-fit gap-2 bg-gray-100 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab('payments')}
             className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
@@ -165,14 +174,30 @@ const ProviderHistory = () => {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-900">{t("Account Activity Logs")}</h2>
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-teal-400">
-              <option value="">{t("All Activity")}</option>
-              <option value="profile_view">{t("Profile Views")}</option>
-              <option value="contact_unlock">{t("Contact Unlocks")}</option>
-              <option value="search">{t("Search Appearances")}</option>
-              <option value="job_match">{t("Job Matches")}</option>
-            </select>
+            <div className="relative">
+              <button 
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                onBlur={() => setTimeout(() => setDropdownOpen(false), 200)}
+                className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none hover:bg-gray-50 focus:ring-2 focus:ring-emerald-400 bg-white"
+              >
+                {currentFilterLabel}
+                <HiChevronDown className="text-gray-400 w-4 h-4 shrink-0" />
+              </button>
+              
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 py-1 w-48 bg-white border border-gray-100 rounded-xl shadow-lg z-10">
+                  {filterOptions.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setFilter(opt.value); setDropdownOpen(false); }}
+                      className={`block w-full text-left px-4 py-2 text-sm hover:bg-emerald-50 ${filter === opt.value ? 'text-emerald-600 font-medium' : 'text-gray-700'}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           {filtered.length === 0 ? (
             <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">
@@ -186,14 +211,14 @@ const ProviderHistory = () => {
             const cfg = typeConfig[item.type] || typeConfig.profile_view;
             const Icon = cfg.icon;
             return (
-              <div key={i} className="flex items-center gap-4 p-4 hover:bg-gray-50 transition">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${cfg.color}`}>
+              <div key={i} className="flex items-center gap-3 sm:gap-4 p-4 hover:bg-gray-50 transition">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-gray-100 text-gray-500">
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900">
                     {cfg.label}
-                    {item.user?.name && <span className="text-gray-500 font-normal">{t("by")}{item.user.name}</span>}
+                    {item.user?.name && <span className="text-gray-500 font-normal"> {t("by")} {item.user.name}</span>}
                   </p>
                   <p className="text-xs text-gray-400">
                     {new Date(item.createdAt).toLocaleString()}
@@ -201,7 +226,7 @@ const ProviderHistory = () => {
                     {item.searchCity && <span>{t("· City:")}{item.searchCity}</span>}
                   </p>
                 </div>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${cfg.color}`}>
+                <span className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap shrink-0 ${cfg.color}`}>
                   {cfg.label}
                 </span>
               </div>
