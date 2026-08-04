@@ -308,12 +308,14 @@ export default function AiCareerCoach() {
             <h2 className="text-xl font-extrabold text-[#1a1b41] flex items-center gap-2 mb-0.5">
               Hi {user?.name?.split(' ')[0] || 'Ananya'}! <span className="text-2xl">👋</span>
             </h2>
-            <p className="text-gray-500 text-[13px] font-medium leading-snug max-w-[75%] text-left">
-              I'm your AI Career Coach. I'll help you take the right steps every day to reach your dream role.
+            <p className="text-gray-500 text-[13px] font-medium leading-snug max-w-[60%] text-left">
+              I'm your AI Career Coach.<br/>
+              I'll help you take the<br/>
+              right steps.
             </p>
             
-            <div className="absolute top-0 right-0 w-16 h-16 shrink-0 flex items-center justify-center bg-emerald-50 rounded-full">
-              <img src="/ai-robot-coach.webp" alt="AI Coach" className="w-[85%] h-[85%] object-contain" />
+            <div className="absolute -top-2 -right-2 w-28 h-28 shrink-0 flex items-center justify-center">
+              <img src="/ai-robot-coach.webp" alt="AI Coach" className="w-full h-full object-contain" />
             </div>
           </div>
           
@@ -338,7 +340,7 @@ export default function AiCareerCoach() {
               Hi {user?.name?.split(' ')[0] || 'Ananya'}! <span>👋</span>
             </h2>
             <p className="text-gray-500 text-sm font-medium mb-4">
-              I'm your AI Career Coach. I'll help you take the right steps every day to reach your dream role.
+              I'm your AI Career Coach. I'll help you take the right steps.
             </p>
             
             <div className="flex flex-wrap gap-2">
@@ -407,7 +409,7 @@ export default function AiCareerCoach() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-base font-bold flex items-center gap-1.5">
-            <Calendar className="w-6 h-6 text-indigo-500" /> Today's Plan
+            Today's Plan
             <span className="text-sm font-semibold text-gray-400 ml-1">({completedCount}/{tasks.length})</span>
           </h3>
           <button onClick={() => setActiveTab('Daily Tasks')}
@@ -429,14 +431,14 @@ export default function AiCareerCoach() {
             <h3 className="text-base font-bold flex items-center gap-1.5 mb-2">
               Your Career Goal <Target className="w-6 h-6 text-red-700" />
             </h3>
-            <div className="flex flex-wrap gap-8 items-center">
+            <div className="flex flex-wrap gap-4 sm:gap-8 items-center">
               <div>
-                <p className="text-base font-bold text-gray-500 uppercase tracking-wider">Target Role</p>
-                <p className={`font-extrabold text-emerald-700 text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.role || '—'}</p>
+                <p className="text-base font-medium text-gray-500">Target Role</p>
+                <p className={`font-semibold text-emerald-700 text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.role || '—'}</p>
               </div>
               <div>
-                <p className="text-base font-bold text-gray-500 uppercase tracking-wider">Timeline</p>
-                <p className={`font-extrabold text-emerald-700 text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.time || '—'}</p>
+                <p className="text-base font-medium text-gray-500">Timeline</p>
+                <p className={`font-semibold text-emerald-700 text-base ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{currentGoal.time || '—'}</p>
               </div>
               {isPro && (
                 <button onClick={() => setGoalModalOpen(true)}
@@ -764,18 +766,18 @@ export default function AiCareerCoach() {
       {/* Career Roadmap (sidebar) */}
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-base font-bold">Career Roadmap</h3>
+          <h3 className="text-base font-medium">Career Roadmap</h3>
           <button onClick={() => { setActiveTab('Career Plan'); setFullPlanModalOpen(true); }} className="text-sm font-bold text-emerald-700 flex items-center gap-1">
             Full Plan <ArrowRight className="w-4 h-4" />
           </button>
         </div>
         <div className="relative pl-3 space-y-3">
-          <div className="absolute top-2 bottom-2 left-[17px] w-0.5 bg-gray-100" />
+          <div className="absolute top-2 bottom-2 left-[19px] w-0.5 bg-gray-200" />
           {careerRoadmap.map((step, i) => (
             <div key={i} className="flex items-center justify-between relative z-10 pl-7">
-              <div className={`absolute w-4 h-4 rounded-full border-2 bg-white ${i === 0 ? 'border-[#059669] bg-emerald-600' : 'border-gray-300'}`} style={{ left: '3.5px' }} />
-              <span className={`font-bold text-sm ${i === 0 ? 'text-gray-900' : 'text-gray-500'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{step.title}</span>
-              <span className={`px-2 py-0.5 text-sm font-bold rounded-md ${step.status === 'Current' ? 'bg-teal-50 text-emerald-700' : step.status === 'Next Step' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-500'}`}>
+              <div className={`absolute w-4 h-4 rounded-full border-2 bg-white left-0 ${i === 0 ? 'border-[#059669] bg-emerald-600' : 'border-gray-300'}`} />
+              <span className={`font-medium text-sm ${i === 0 ? 'text-gray-900' : 'text-gray-500'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{step.title}</span>
+              <span className={`px-2 py-0.5 text-xs font-medium rounded-md ${step.status === 'Current' ? 'bg-teal-50 text-emerald-700' : step.status === 'Next Step' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-500'}`}>
                 {step.status === 'Future' ? <span className={`${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{step.timeframe}</span> : step.status}
               </span>
             </div>
@@ -1067,17 +1069,16 @@ function TaskRow({ task, idx, onToggle, onStart, expanded, isPro = true }) {
         <div className={`p-1 rounded-md shrink-0 ${task.type === 'resume' ? 'bg-purple-100 text-purple-600' : task.type === 'job' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>
           {task.type === 'resume' ? <FileText className="w-4 h-4" /> : task.type === 'job' ? <Briefcase className="w-4 h-4" /> : <Award className="w-4 h-4" />}
         </div>
-        <div className="min-w-0">
-          <p className={`font-bold text-sm truncate ${task.status === 'completed' ? 'line-through text-gray-400' : 'text-gray-900'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{task.title}</p>
-          {expanded && <p className={`text-base text-gray-500 truncate ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{task.description}</p>}
+        <div className={`min-w-0 ${isPro ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`} onClick={() => isPro && onToggle(idx)}>
+          <p className={`font-medium text-sm leading-tight ${task.status === 'completed' ? 'line-through text-gray-400' : 'text-gray-900'} ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{task.title}</p>
+          {expanded && <p className={`text-sm text-gray-500 mt-0.5 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{task.description}</p>}
         </div>
       </div>
       {!isPro ? (
         <span className="shrink-0 ml-2 text-gray-400"><Lock className="w-4 h-4" /></span>
-      ) : task.status === 'completed'
-        ? <span className="px-2 py-0.5 bg-teal-50 text-emerald-700 font-bold text-base rounded-lg shrink-0 ml-2">Done</span>
-        : <button onClick={() => onToggle(idx)} className="ml-2 px-3 py-1 bg-white border border-gray-200 group-hover:border-[#059669] text-gray-700 group-hover:text-emerald-700 font-bold text-base rounded-lg transition-all shrink-0">Finish</button>
-      }
+      ) : task.status === 'completed' ? (
+        <span className="px-4 py-1.5 bg-teal-50 text-emerald-700 font-bold text-sm rounded-lg shrink-0 ml-2 shadow-sm">Done</span>
+      ) : null}
     </div>
   );
 }

@@ -547,17 +547,17 @@ export default function ResumeToolkit() {
             {resumeTools.map((tool, idx) => {
               const locked = tool.pro && !isPro;
               return (
-                <div key={idx} className={`bg-white rounded-3xl border border-gray-100 p-5 shadow-sm flex flex-col transition hover:shadow-md ${locked ? 'opacity-70' : ''}`}>
-                  <div className={`w-9 h-9 rounded-2xl ${tool.bg} flex items-center justify-center mb-3`}>
+                <div key={idx} className={`bg-white rounded-xl md:rounded-3xl border border-gray-100 p-5 shadow-sm flex flex-col transition hover:shadow-md ${locked ? 'opacity-70' : ''}`}>
+                  <div className={`hidden md:flex w-9 h-9 rounded-2xl ${tool.bg} items-center justify-center mb-3`}>
                     <tool.icon className={`w-4 h-4 ${tool.color}`} />
                   </div>
-                  <div className="flex items-center gap-1 mb-1">
-                    <h4 className="text-xs font-extrabold text-gray-900 leading-tight">{t(tool.title)}</h4>
-                    {locked && <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold ml-1">PRO</span>}
+                  <div className="flex items-center gap-1 mb-2">
+                    <h4 className="text-sm font-semibold text-gray-900 leading-tight">{t(tool.title)}</h4>
+                    {locked && <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold ml-1">PRO</span>}
                   </div>
-                  <p className="text-[10px] text-gray-500 mb-4 flex-1">{t(tool.desc)}</p>
+                  <p className="text-xs text-gray-500 mb-4 flex-1">{t(tool.desc)}</p>
                   <button
-                    className={`text-xs font-bold flex items-center gap-1 ${locked ? 'text-amber-600 hover:text-amber-800' : 'text-teal-700 hover:text-teal-900'} transition`}
+                    className={`text-sm font-bold flex items-center gap-1 ${locked ? 'text-amber-600 hover:text-amber-800' : 'text-teal-700 hover:text-teal-900'} transition`}
                     onClick={() => locked ? navigate('/provider/my-plan') : tool.action()}
                   >
                     {locked ? t('Upgrade to Pro') : t(tool.btn)} →
@@ -569,40 +569,43 @@ export default function ResumeToolkit() {
         </div>
 
         {/* WhatsApp Updates — functional */}
-        <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm flex flex-col">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center">
-              <FaWhatsapp className="w-4 h-4 text-green-500" />
-            </div>
-            <h3 className="text-sm font-bold text-gray-900">{t('Stay Updated on WhatsApp')}</h3>
-          </div>
-          <p className="text-xs text-gray-500 mb-4 leading-relaxed">{t('Get real-time updates about your resume score, profile views & job opportunities.')}</p>
-          <div className="space-y-2 mb-6 flex-1">
-            {['Resume score updates', 'Profile views by recruiters', 'New job matches', 'Application tips & reminders'].map((item) => (
-              <div key={item} className="flex items-start gap-2">
-                <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-[11px] text-gray-700">{t(item)}</span>
+        <div className="bg-emerald-100 rounded-3xl p-5 shadow-sm border border-emerald-200 flex flex-col justify-between relative overflow-hidden lg:mt-10">
+          {/* Decorative circles */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          
+          <div className="relative z-10 flex flex-col h-full">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h2 className="text-base font-bold text-gray-900 leading-tight mt-1">{t('Stay Updated on WhatsApp')}</h2>
+              <div className="w-12 h-12 bg-emerald-200/60 rounded-full flex items-center justify-center shrink-0">
+                <span className="text-xl">👩‍💼</span>
               </div>
-            ))}
+            </div>
+            
+            <p className="text-[11px] text-gray-700 mb-4 flex-1 pr-4">
+              {t('Get real-time updates about your resume score & profile views.')}
+            </p>
+            <button
+              onClick={handleEnableWhatsApp}
+              className={`w-full font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-1.5 transition shadow-sm text-[11px] ${whatsappEnabled ? 'bg-red-50 border border-red-200 text-red-700 hover:bg-red-100' : 'bg-[#0f766e] border border-[#0b5952] text-white hover:bg-[#0b5952]'}`}
+            >
+              {whatsappEnabled ? t('Disable Updates') : t('Enable Updates')} <FaWhatsapp className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-red-500' : 'text-white'}`} />
+            </button>
           </div>
-          <button
-            onClick={handleEnableWhatsApp}
-            className={`w-full font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition ${whatsappEnabled ? 'bg-red-50 border border-red-200 text-red-700 hover:bg-red-100' : 'border border-gray-200 text-teal-800 hover:bg-gray-50'}`}
-          >
-            {whatsappEnabled
-              ? <>{t('Disable WhatsApp Updates')}</>
-              : <>{t('Enable WhatsApp Updates')} <FaWhatsapp className="w-4 h-4 text-green-500" /></>
-            }
-          </button>
         </div>
       </div>
 
       {/* ── Row 3: Resume Overview (real data, full width) ── */}
       <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-        <h3 className="text-base font-bold text-gray-900 mb-5">{t('Your Resume')}</h3>
+        <div className="flex items-center gap-3 mb-5">
+          {/* Mobile-only logo replacement for the large thumbnail */}
+          <div className="md:hidden w-9 h-9 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
+            <FileText className="w-4 h-4 text-emerald-600" />
+          </div>
+          <h3 className="text-base font-bold text-gray-900">{t('Your Resume')}</h3>
+        </div>
         <div className="flex flex-col md:flex-row gap-6 mb-5">
-          {/* PDF preview thumbnail */}
-          <div className="w-28 h-36 bg-white rounded-xl border border-gray-200 shrink-0 shadow-sm overflow-hidden relative group">
+          {/* PDF preview thumbnail (hidden on mobile) */}
+          <div className="hidden md:block w-28 h-36 bg-white rounded-xl border border-gray-200 shrink-0 shadow-sm overflow-hidden relative group">
             {resumeUrl ? (
               <button type="button" onClick={handlePreviewResume} disabled={previewLoading} className="block w-full h-full text-left focus:outline-none">
                 {/* Mini Resume Skeleton (Resume in short) */}
@@ -653,11 +656,11 @@ export default function ResumeToolkit() {
               {[
                 { label: 'ATS Score', val: `${resumeStats.atsScore}%`, color: 'text-teal-700' },
                 { label: 'Readability', val: t(resumeStats.readability), color: 'text-teal-700' },
-                { label: 'Sections', val: resumeStats.sections, color: 'text-indigo-600' },
-                { label: 'Keywords', val: resumeStats.keywords, color: 'text-orange-500' },
+                { label: 'Sections', val: resumeStats.sections, color: 'text-teal-700' },
+                { label: 'Keywords', val: resumeStats.keywords, color: 'text-teal-700' },
               ].map(({ label, val, color }) => (
                 <div key={label} className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
-                  <div className="text-[10px] text-gray-500 font-bold mb-1">{t(label)}</div>
+                  <div className="text-xs text-gray-500 font-bold mb-1">{t(label)}</div>
                   <div className={`text-lg font-black ${color} ${!isPro ? 'blur-[2.5px] select-none opacity-80' : ''}`}>{val}</div>
                 </div>
               ))}
@@ -716,36 +719,42 @@ export default function ResumeToolkit() {
           <h3 className="text-base font-bold text-gray-900 mb-4">{t('Profile & Content Tools')}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {contentTools.map((tool, idx) => (
-              <div key={idx} className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm flex flex-col hover:shadow-md transition cursor-pointer" onClick={tool.action}>
-                <div className="flex items-center gap-2 mb-2">
-                  <tool.icon className={`w-5 h-5 ${tool.color}`} />
-                  <h4 className="text-sm font-bold text-gray-900 leading-tight">{t(tool.title)}</h4>
+              <div key={idx} className="bg-white rounded-xl md:rounded-3xl border border-gray-100 p-5 shadow-sm flex flex-col hover:shadow-md transition cursor-pointer" onClick={tool.action}>
+                <div className="flex items-center gap-2 mb-3">
+                  <tool.icon className={`hidden md:flex w-5 h-5 ${tool.color}`} />
+                  <h4 className="text-base font-semibold text-gray-900 leading-tight">{t(tool.title)}</h4>
                 </div>
-                <p className="text-xs text-gray-500 mb-4 flex-1">{t(tool.desc)}</p>
-                <button className="text-[13px] font-bold text-teal-700 flex items-center gap-1 hover:text-teal-900 transition">{t(tool.btn)} →</button>
+                <p className="text-sm text-gray-500 mb-4 flex-1">{t(tool.desc)}</p>
+                <button className="text-sm font-bold text-teal-700 flex items-center gap-1 hover:text-teal-900 transition">{t(tool.btn)} →</button>
               </div>
             ))}
           </div>
         </div>
 
         {/* Need Help? — functional WhatsApp chat */}
-        <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm flex flex-col relative overflow-hidden">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center">
-              <FaWhatsapp className="w-4 h-4 text-green-500" />
+        <div className="bg-emerald-100 rounded-3xl p-5 shadow-sm border border-emerald-200 flex flex-col justify-between relative overflow-hidden lg:mt-10">
+          {/* Decorative circles */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          
+          <div className="relative z-10 flex flex-col h-full">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h2 className="text-base font-bold text-gray-900 leading-tight mt-1">{t('Need Help?')}</h2>
+              <div className="w-12 h-12 bg-emerald-200/60 rounded-full flex items-center justify-center shrink-0">
+                <span className="text-xl">👩🏻‍💻</span>
+              </div>
             </div>
-            <h3 className="text-sm font-bold text-gray-900">{t('Need Help?')}</h3>
-          </div>
-          <p className="text-[11px] text-gray-500 leading-relaxed mb-2 w-3/4">{t('Chat with our career experts on WhatsApp')}</p>
-          <p className="text-[9px] text-gray-400 mb-6">📅 {t('Mon – Sat, 9 AM – 9 PM')}</p>
-          <button
-            onClick={handleOpenWhatsAppHelp}
-            className="w-36 border border-gray-200 text-teal-800 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-gray-50 transition"
-          >
-            {t('Chat on WhatsApp')} <FaWhatsapp className="w-3.5 h-3.5 text-green-500" />
-          </button>
-          <div className="absolute -bottom-4 -right-4 w-28 h-28 bg-teal-50 rounded-full flex items-center justify-center pointer-events-none">
-            <span className="text-3xl translate-y-1">👩🏻‍💻</span>
+            
+            <p className="text-[11px] text-gray-700 mb-1 pr-4">
+              {t('Chat with our career experts on WhatsApp')}
+            </p>
+            <p className="text-[9px] text-gray-500 mb-4 font-medium flex-1">📅 {t('Mon – Sat, 9 AM – 9 PM')}</p>
+            
+            <button
+              onClick={handleOpenWhatsAppHelp}
+              className="w-full font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-1.5 transition shadow-sm text-[11px] bg-[#0f766e] border border-[#0b5952] text-white hover:bg-[#0b5952]"
+            >
+              {t('Chat on WhatsApp')} <FaWhatsapp className="w-3.5 h-3.5 text-white" />
+            </button>
           </div>
         </div>
         </div>

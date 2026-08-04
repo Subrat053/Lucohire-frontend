@@ -517,7 +517,7 @@ const ProviderDashboard = () => {
               </div>
               
               <div className="flex justify-between items-start mb-6">
-                <p className="text-teal-50 text-[13px] leading-snug font-medium max-w-[160px]">
+                <p className="text-teal-50 text-[13px] leading-snug font-medium max-w-[200px]">
                   Get nearby freelance projects on WhatsApp.
                 </p>
                 <div className="w-12 h-12 flex items-center justify-center text-4xl mt-[-10px]">
@@ -525,7 +525,7 @@ const ProviderDashboard = () => {
                 </div>
               </div>
               
-              <ul className="list-disc pl-4 space-y-2 mb-6 text-[12px] text-teal-100 font-medium">
+              <ul className="list-disc list-inside pl-0 space-y-2 mb-6 text-[12px] text-teal-100 font-medium">
                 <li>Weekend Projects</li>
                 <li>Part-time Work</li>
                 <li>Instant Alerts</li>
@@ -539,7 +539,7 @@ const ProviderDashboard = () => {
               <button onClick={handleWhatsappCheckout} className="w-full bg-white hover:bg-gray-50 text-[#0b5d49] font-extrabold py-3.5 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
                 Enable Alerts <FaWhatsapp className="w-4 h-4 text-[#075E54]" />
               </button>
-              <div className="text-center text-[10px] text-teal-300 mt-3 font-medium">Cancel anytime</div>
+              <div className="text-center text-sm text-teal-300 mt-3 font-medium">Cancel anytime</div>
             </div>
           </div>
           
@@ -549,14 +549,14 @@ const ProviderDashboard = () => {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="font-extrabold text-[#1a1b41] text-[15px]">AI Coach</h3>
-                  <span className="bg-purple-50 text-purple-600 text-[10px] font-extrabold px-2 py-0.5 rounded-full tracking-wider">Premium</span>
+                  <span className="bg-emerald-50 text-emerald-600 text-[10px] font-extrabold px-2 py-0.5 rounded-full tracking-wider">Premium</span>
                 </div>
                 <p className="text-[12px] text-gray-500 font-medium leading-relaxed max-w-[150px]">
                   Get personalized career guidance and improve your chances.
                 </p>
               </div>
-              <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center shrink-0 border border-purple-100/50 shadow-inner">
-                <Bot className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center shrink-0 border border-emerald-100/50 shadow-inner">
+                <Bot className="w-6 h-6 text-emerald-600" />
               </div>
             </div>
             

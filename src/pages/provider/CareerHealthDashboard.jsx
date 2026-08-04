@@ -517,10 +517,10 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
         <div id="report-content" className="pt-2">
         {/* Usage Banner */}
         {!usageLoading && (
-          <div className="bg-white border border-slate-200 p-3 md:px-6 md:py-3 rounded-2xl flex items-center justify-between gap-3 md:gap-2 shadow-sm">
+          <div className="bg-white border border-slate-200 p-3 md:px-6 md:py-3 rounded-2xl flex items-center justify-between gap-3 md:gap-2 shadow-sm mb-6">
             <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2">
               <Sparkles className="hidden md:block w-4 h-4 text-emerald-600 shrink-0" />
-              <span className="text-[13px] md:text-sm font-medium text-emerald-900">{t("Career Health AI Limit:")}</span>
+              <span className="text-[13px] md:text-sm font-medium text-emerald-900 mr-1 md:mr-0">{t("Career Health AI Limit:")}</span>
               {(() => {
                 const limit = aiUsage.limits['careerHealth'] || 0;
                 const used = aiUsage.usage['careerHealth'] || 0;
@@ -548,7 +548,7 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
                   )}
                 </button>
               )}
-              <Link to="/provider/plans" className="shrink-0 flex items-center justify-center text-center text-[11px] md:text-xs font-black text-emerald-700 hover:text-emerald-900 bg-emerald-100 px-4 md:px-3 py-1.5 md:py-1 rounded-lg transition-colors whitespace-nowrap">{t("Upgrade Plan")}</Link>
+              <Link to="/provider/plans" className="shrink-0 flex items-center justify-center text-center text-[11px] md:text-xs font-black text-emerald-700 hover:text-emerald-900 bg-emerald-100 px-3 md:px-3 py-1 md:py-1 rounded-lg transition-colors whitespace-nowrap">{t("Upgrade Plan")}</Link>
             </div>
           </div>
         )}
