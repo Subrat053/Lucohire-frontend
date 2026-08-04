@@ -8,18 +8,20 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email) return toast.error("Please enter your email");
+    setErrorMsg("");
+    if (!email) return setErrorMsg("Please enter your email");
 
     setLoading(true);
     try {
       await authAPI.forgotPassword({ email });
       setSubmitted(true);
-      toast.success("Reset instructions sent if email exists");
+      toast.success("Password reset instructions sent");
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Something went wrong");
+      setErrorMsg(error?.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -69,6 +71,11 @@ const ForgotPassword = () => {
                     placeholder="Enter your registered email"
                   />
                 </div>
+                {errorMsg && (
+                  <p className="mt-2 text-sm font-bold text-red-500">
+                    {errorMsg}
+                  </p>
+                )}
               </div>
 
               <div>

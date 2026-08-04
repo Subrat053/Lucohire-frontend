@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { 
   User, Briefcase, ChevronRight, Target, FileText, PieChart, TrendingUp, Globe,
   Users, ShieldCheck, Send, MessageCircle, Award
@@ -36,22 +37,22 @@ export default function DualPathwayCards({ user }) {
               <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("AI Match")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
-            <div className="flex flex-col items-center gap-1.5 text-gray-700">
+            <div className="flex flex-col items-center gap-1.5 text-green-500">
               <FileText className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("Resume Score")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
-            <div className="flex flex-col items-center gap-1.5 text-gray-700">
+            <div className="flex flex-col items-center gap-1.5 text-green-500">
               <PieChart className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("Skill Insights")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
-            <div className="flex flex-col items-center gap-1.5 text-gray-700">
+            <div className="flex flex-col items-center gap-1.5 text-green-500">
               <TrendingUp className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("Career Tips")}</span>
             </div>
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
-            <div className="flex flex-col items-center gap-1.5 text-gray-700">
+            <div className="flex flex-col items-center gap-1.5 text-green-500">
               <Globe className="w-4 h-4" strokeWidth={2.5} />
               <span className="text-[11px] sm:text-[9px] font-medium sm:font-bold text-gray-700 whitespace-nowrap">{t("Global Jobs")}</span>
             </div>
