@@ -125,7 +125,11 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
     } catch (err) {
       if (err.code === 'auth/internal-error') return; // Ignore error caused by unmounting due to 409 conflict
       console.error('Send Phone OTP Error:', err);
-      toast.error('Failed to send OTP to phone. Format must be +CountryCode');
+      if (err.message && err.message.includes('CAPTCHA_CHECK_FAILED')) {
+        toast.error('Firebase Auth Domain not authorized. Add your domain to Firebase Console.');
+      } else {
+        toast.error('Failed to send OTP to phone. Format must be +CountryCode');
+      }
     }
   };
 
@@ -214,8 +218,8 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-3xl w-full max-w-lg p-8 relative shadow-2xl">
-        <button onClick={handleBack} className="absolute top-6 right-6 text-gray-400 hover:text-gray-700 transition">
+      <div className="bg-white rounded-3xl w-full max-w-lg p-5 md:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+        <button onClick={handleBack} className="absolute top-4 right-4 md:top-6 md:right-6 text-gray-400 hover:text-gray-700 transition">
           <FiX className="w-6 h-6" />
         </button>
 
@@ -245,7 +249,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                       {recruiterData?.email} <FiEdit2 className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="flex gap-2 justify-between mb-4">
+                  <div className="flex gap-1.5 sm:gap-2 justify-center sm:justify-between mb-4">
                     {emailOtp.map((digit, idx) => (
                       <input
                         key={idx}
@@ -255,24 +259,24 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                         value={digit}
                         onChange={(e) => handleOtpChange(idx, e.target.value, 'email')}
                         onKeyDown={(e) => handleOtpKeyDown(idx, e, 'email')}
-                        className="w-12 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none transition-colors"
+                        className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none transition-colors"
                       />
                     ))}
                   </div>
                   
-                  <div className="flex justify-between items-center text-sm text-gray-500 mb-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-gray-500 mb-6 gap-2 sm:gap-0">
                     <span className="flex items-center gap-2">
-                      <FiCheckCircle className="text-green-500" /> Didn't receive the OTP?
+                      <FiCheckCircle className="text-green-500 shrink-0" /> Didn't receive the OTP?
                     </span>
                     <button onClick={sendEmailOtp} className="text-purple-600 font-semibold hover:underline">
                       Resend OTP
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
                     <button 
                       onClick={handleBack}
-                      className="px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition flex items-center gap-2"
+                      className="w-full sm:w-auto px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition flex items-center justify-center gap-2"
                     >
                       <FiArrowLeft /> Back
                     </button>
@@ -281,7 +285,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                         if (emailOtp.join('').length === 6) setActiveView('phone');
                         else toast.error('Please enter complete Email OTP');
                       }}
-                      className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition"
+                      className="w-full sm:flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition"
                     >
                       Continue
                     </button>
@@ -298,7 +302,7 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                       {recruiterData?.phone} <FiEdit2 className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="flex gap-2 justify-between mb-4">
+                  <div className="flex gap-1.5 sm:gap-2 justify-center sm:justify-between mb-4">
                     {phoneOtp.map((digit, idx) => (
                       <input
                         key={idx}
@@ -308,31 +312,31 @@ const DualVerificationModal = ({ isOpen, onClose, recruiterData }) => {
                         value={digit}
                         onChange={(e) => handleOtpChange(idx, e.target.value, 'phone')}
                         onKeyDown={(e) => handleOtpKeyDown(idx, e, 'phone')}
-                        className="w-12 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none transition-colors"
+                        className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none transition-colors"
                       />
                     ))}
                   </div>
                   
-                  <div className="flex justify-between items-center text-sm text-gray-500 mb-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-gray-500 mb-6 gap-2 sm:gap-0">
                     <span className="flex items-center gap-2">
-                      <FiCheckCircle className="text-green-500" /> Didn't receive the OTP?
+                      <FiCheckCircle className="text-green-500 shrink-0" /> Didn't receive the OTP?
                     </span>
                     <button onClick={sendPhoneOtp} className="text-purple-600 font-semibold hover:underline">
                       Resend OTP
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
                     <button 
                       onClick={() => setActiveView('email')}
-                      className="px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition flex items-center gap-2"
+                      className="w-full sm:w-auto px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition flex items-center justify-center gap-2"
                     >
                       <FiArrowLeft /> Back
                     </button>
                     <button
                       onClick={handleVerifyDual}
                       disabled={loading}
-                      className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 disabled:opacity-70 transition flex items-center justify-center gap-2"
+                      className="w-full sm:flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 disabled:opacity-70 transition flex items-center justify-center gap-2"
                     >
                       {loading ? (
                          <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
