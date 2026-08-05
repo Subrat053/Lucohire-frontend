@@ -887,6 +887,10 @@ const AuthPage = () => {
       auth,
       RecaptchaVerifier: firebaseAuth.RecaptchaVerifier,
       signInWithPhoneNumber: firebaseAuth.signInWithPhoneNumber,
+      GoogleAuthProvider: firebaseAuth.GoogleAuthProvider,
+      signInWithPopup: firebaseAuth.signInWithPopup,
+      signInWithRedirect: firebaseAuth.signInWithRedirect,
+      getRedirectResult: firebaseAuth.getRedirectResult,
     };
 
     return firebaseRef.current;
@@ -1419,12 +1423,12 @@ const AuthPage = () => {
     }
   });
 
-  const handleGoogleAuthSuccess = async (accessToken) => {
+  const handleGoogleAuthSuccess = async (firebaseToken) => {
     setLoading(true);
 
     try {
       const { data } = await authAPI.googleLogin({
-        accessToken,
+        firebaseToken,
         roles: mode === "register" ? selectedRoles : undefined,
         activeRole:
           mode === "register"
@@ -1447,35 +1451,25 @@ const AuthPage = () => {
     }
   };
 
-  const triggerGoogleLogin = useGoogleLogin({
-    onSuccess: (tokenResponse) => {
-      console.log("[GOOGLE OAUTH SUCCESS]", tokenResponse);
-      toast.success("Google popup success! Token received. Contacting backend...");
-      if (tokenResponse?.access_token) {
-        handleGoogleAuthSuccess(tokenResponse.access_token);
-      } else {
-        toast.error("Google authentication failed to return access token.");
-        setLoading(false);
-      }
-    },
-    onError: (err) => {
-      console.error("[GOOGLE OAUTH ERROR]", err);
-      toast.error("Google OAuth Error: " + JSON.stringify(err));
-      setLoading(false);
-    },
-    onNonOAuthError: (err) => {
-      console.warn("[GOOGLE OAUTH NON-OAUTH ERROR]", err);
-      toast.error("Google popup closed or blocked: " + JSON.stringify(err));
-      setLoading(false);
-    }
-  });
-
-  const handleGoogleAuth = () => {
+  const handleGoogleAuth = async () => {
     setLoading(true);
     try {
-      triggerGoogleLogin();
+      const fb = await loadFirebaseAuth();
+      const provider = new fb.GoogleAuthProvider();
+      
+      const result = await fb.signInWithPopup(fb.auth, provider);
+      
+      const firebaseToken = await result.user.getIdToken(true);
+      
+      toast.success("Google popup success! Contacting backend...");
+      await handleGoogleAuthSuccess(firebaseToken);
     } catch (err) {
-      console.error("[GOOGLE AUTH TRIGGER ERROR]", err);
+      console.error("[FIREBASE GOOGLE AUTH ERROR]", err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        toast.error("Google popup closed.");
+      } else {
+        toast.error("Google Login Error: " + (err.message || "Unknown error"));
+      }
       setLoading(false);
     }
   };
