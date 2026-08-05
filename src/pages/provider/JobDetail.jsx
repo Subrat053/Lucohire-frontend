@@ -391,14 +391,14 @@ export default function JobDetail() {
                   {hasActivePlan ? (
                     <ul className="space-y-2.5 mb-4">
                       {(aiInsights?.whyMatch || [])
-                        .slice(0, 3)
+                        .slice(0, 1)
                         .map((point, i) => (
                           <li
                             key={i}
                             className="flex items-start gap-2.5 text-[13px] text-gray-700 font-medium"
                           >
-                            <HiCheckCircle className="w-[18px] h-[18px] text-emerald-500 shrink-0" />
-                            <span>{point}</span>
+                            <HiCheckCircle className="w-[18px] h-[18px] text-emerald-500 shrink-0 mt-0.5" />
+                            <span className="line-clamp-3 sm:line-clamp-none">{point}</span>
                           </li>
                         ))}
                       {(!aiInsights?.whyMatch || aiInsights.whyMatch.length === 0) && (
@@ -1074,7 +1074,7 @@ export default function JobDetail() {
                   </p>
                 </div>
                 <p
-                  className={`text-[11px] text-gray-700 leading-relaxed font-medium ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}
+                  className={`text-[11px] text-gray-700 leading-relaxed font-medium line-clamp-3 sm:line-clamp-none ${!hasActivePlan ? "blur-md opacity-50 select-none" : ""}`}
                 >
                   {hasActivePlan
                     ? aiInsights?.whyMatch?.[0] ||
