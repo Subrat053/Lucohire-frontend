@@ -68,23 +68,55 @@ export default function JobDetail() {
   }, [navigate]);
 
   const handleApply = () => {
-    toast.error("Please sign in to apply for jobs.");
-    navigate("/login");
+    navigate("/candidate-landing");
   };
 
-  const handleShare = (platform) => {
-    const url = window.location.href;
+  const handleShare = async (platform) => {
+    const publicUrl = `${window.location.origin}/job/${job._id}`;
     const text = `Check out this job: ${job?.title}`;
-    const links = {
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(text + " " + url)}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-      copy: null,
-    };
-    if (platform === "copy") {
-      navigator.clipboard.writeText(url);
-      toast.success("Link copied!");
+    
+    if (platform === "copy" || platform === "native") {
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: job?.title || "Job", text: text, url: publicUrl });
+          return;
+        } catch (error) {
+          console.error("Native share failed/aborted:", error);
+        }
+      }
+      
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(publicUrl);
+          toast.success("Link copied!");
+        } else {
+          const textArea = document.createElement("textarea");
+          textArea.value = publicUrl;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          textArea.style.top = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            toast.success("Link copied!");
+          } catch (err) {
+            console.error('Fallback copy failed', err);
+            toast.error("Could not copy link");
+          }
+          textArea.remove();
+        }
+      } catch (err) {
+        console.error("Clipboard copy failed", err);
+        toast.error("Could not copy link");
+      }
     } else {
+      const links = {
+        whatsapp: `https://wa.me/?text=${encodeURIComponent(text + " " + publicUrl)}`,
+        linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(publicUrl)}`,
+        twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(publicUrl)}`,
+      };
       window.open(links[platform], "_blank");
     }
   };
@@ -130,9 +162,9 @@ export default function JobDetail() {
             <HiArrowLeft className="w-4 h-4" /> Back to Jobs
           </button>
         </div>
-      </div>
-      <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
-        {/* ── Left Column ── */}
+      <div className="relative w-full">
+        <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
+          {/* ── Left Column ── */}
         <div className="space-y-5">
 
           {/* ── Company Header ── */}
@@ -164,7 +196,7 @@ export default function JobDetail() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button onClick={() => handleShare("copy")} className="flex items-center gap-1.5 text-[13px] font-bold text-gray-700 hover:bg-gray-50 px-3 py-1.5 rounded-xl transition">
+                  <button onClick={() => handleShare("native")} className="flex items-center gap-1.5 text-[13px] font-bold text-gray-700 hover:bg-gray-50 px-3 py-1.5 rounded-xl transition">
                     <HiShare className="w-4 h-4" /> Share
                   </button>
                 </div>
@@ -194,14 +226,22 @@ export default function JobDetail() {
                 </div>
                 
                 {/* Save button and info row */}
-                <div className="flex items-center justify-between border-t border-gray-100 mt-6 pt-5">
-                  <button
-                    onClick={() => handleSave()}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold border transition ${false ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"}`}
-                  >
-                    {false ? <HiBookmark className="w-[18px] h-[18px]" /> : <HiOutlineBookmark className="w-[18px] h-[18px]" />}
-                    {false ? "Saved" : "Save"}
-                  </button>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-t border-gray-100 mt-6 pt-5 gap-4">
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <button
+                      onClick={() => handleSave()}
+                      className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold border transition ${false ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"}`}
+                    >
+                      {false ? <HiBookmark className="w-[18px] h-[18px]" /> : <HiOutlineBookmark className="w-[18px] h-[18px]" />}
+                      {false ? "Saved" : "Save"}
+                    </button>
+                    <button
+                      onClick={() => handleApply()}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm"
+                    >
+                      Apply Now
+                    </button>
+                  </div>
                   <div className="flex flex-col items-end gap-1">
                     <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-500"><HiClock className="w-3.5 h-3.5 text-emerald-500" /> Apply takes less than 2 minutes</span>
                     <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-500"><HiCheckCircle className="w-3.5 h-3.5 text-emerald-500" /> No cover letter required</span>
@@ -303,7 +343,6 @@ export default function JobDetail() {
               )}
             </div>
           )}
-
         </div>
 
         {/* ── Right Column ── */}
@@ -342,5 +381,7 @@ export default function JobDetail() {
         </div>
       </div>
     </div>
+    </div>
+  </div>
   );
 }

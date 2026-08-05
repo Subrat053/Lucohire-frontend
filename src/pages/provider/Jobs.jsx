@@ -522,63 +522,87 @@ const JobCard = ({
            <HiOutlineLockClosed className="w-4 h-4 text-blue-600" />
         </div>
 
-        <div className={`relative min-h-[110px] pb-6 ${hasActivePlan ? 'space-y-3' : 'space-y-0.5'}`}>
+        <div className={`relative min-h-[110px] pb-6 ${hasActivePlan ? 'space-y-5' : 'space-y-0.5'}`}>
           {/* List of insights — labels always visible, values blurred for free users */}
 
-          <div className="flex items-start gap-2 w-full">
-            <HiSparkles className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" />
-            <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">AI Match Score</span>
-            <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
-              <span className="text-xs text-gray-500 leading-snug">
+          <div className={hasActivePlan ? "text-xs leading-[1.8] w-full" : "flex items-start gap-2 w-full"}>
+            {!hasActivePlan && <HiSparkles className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" />}
+            <span className={hasActivePlan ? "font-semibold text-gray-700" : "font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0"}>
+              {hasActivePlan && <HiSparkles className="inline-block w-4 h-4 text-purple-500 mr-1.5 align-text-bottom" />}
+              AI Match Score {hasActivePlan && <span className="text-gray-300 mx-1.5 font-normal">•</span>}
+            </span>
+            {!hasActivePlan && <span className="text-gray-300 shrink-0 text-xs">•</span>}
+            {hasActivePlan ? (
+              <span className="text-gray-500">
                 {matchScore}% match
               </span>
-            </div>
+            ) : (
+              <div className="flex-1 blur-sm select-none opacity-60">
+                <span className="text-xs text-gray-500 leading-snug">
+                  {matchScore}% match
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-start gap-2 w-full">
-            <HiCheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
-            <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Top Strength</span>
-            <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
-              <span className="text-xs text-gray-500 leading-snug">
-                {!hasActivePlan
-                  ? "React"
-                  : aiInsights
-                    ? (aiInsights.matchedSkills?.length > 0 ? aiInsights.matchedSkills.join(", ") : "General experience")
-                    : "Generating..."}
+          <div className={hasActivePlan ? "text-xs leading-[1.8] w-full" : "flex items-start gap-2 w-full"}>
+            {!hasActivePlan && <HiCheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />}
+            <span className={hasActivePlan ? "font-semibold text-gray-700" : "font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0"}>
+              {hasActivePlan && <HiCheckCircle className="inline-block w-4 h-4 text-green-500 mr-1.5 align-text-bottom" />}
+              Top Strength {hasActivePlan && <span className="text-gray-300 mx-1.5 font-normal">•</span>}
+            </span>
+            {!hasActivePlan && <span className="text-gray-300 shrink-0 text-xs">•</span>}
+            {hasActivePlan ? (
+              <span className="text-gray-500">
+                {aiInsights ? (aiInsights.matchedSkills?.length > 0 ? aiInsights.matchedSkills.join(", ") : "General experience") : "Generating..."}
               </span>
-            </div>
+            ) : (
+              <div className="flex-1 blur-sm select-none opacity-60">
+                <span className="text-xs text-gray-500 leading-snug">
+                  React
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-start gap-2 w-full">
-            <HiCurrencyRupee className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Salary Benchmark</span>
-            <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
-              <span className="text-xs text-gray-500 leading-snug">
-                {!hasActivePlan
-                  ? "₹12L - ₹18L per annum"
-                  : aiInsights
-                    ? (aiInsights.salaryInsight || "Data not available")
-                    : "Generating..."}
+          <div className={hasActivePlan ? "text-xs leading-[1.8] w-full" : "flex items-start gap-2 w-full"}>
+            {!hasActivePlan && <HiCurrencyRupee className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
+            <span className={hasActivePlan ? "font-semibold text-gray-700" : "font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0"}>
+              {hasActivePlan && <HiCurrencyRupee className="inline-block w-4 h-4 text-emerald-600 mr-1.5 align-text-bottom" />}
+              Salary Benchmark {hasActivePlan && <span className="text-gray-300 mx-1.5 font-normal">•</span>}
+            </span>
+            {!hasActivePlan && <span className="text-gray-300 shrink-0 text-xs">•</span>}
+            {hasActivePlan ? (
+              <span className="text-gray-500">
+                {aiInsights ? (aiInsights.salaryInsight || "Data not available") : "Generating..."}
               </span>
-            </div>
+            ) : (
+              <div className="flex-1 blur-sm select-none opacity-60">
+                <span className="text-xs text-gray-500 leading-snug">
+                  ₹12L - ₹18L per annum
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-start gap-2 w-full">
-            <HiExclamationCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
-            <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">My Missing Skills for this job</span>
-            <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
-              <span className="text-xs text-gray-500 leading-snug">
-                {!hasActivePlan
-                  ? "Figma"
-                  : aiInsights
-                    ? (aiInsights.missingSkills?.length > 0 ? aiInsights.missingSkills.join(", ") : "None")
-                    : "Generating..."}
+          <div className={hasActivePlan ? "text-xs leading-[1.8] w-full" : "flex items-start gap-2 w-full"}>
+            {!hasActivePlan && <HiExclamationCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />}
+            <span className={hasActivePlan ? "font-semibold text-gray-700" : "font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0"}>
+              {hasActivePlan && <HiExclamationCircle className="inline-block w-4 h-4 text-orange-500 mr-1.5 align-text-bottom" />}
+              My Missing Skills for this job {hasActivePlan && <span className="text-gray-300 mx-1.5 font-normal">•</span>}
+            </span>
+            {!hasActivePlan && <span className="text-gray-300 shrink-0 text-xs">•</span>}
+            {hasActivePlan ? (
+              <span className="text-gray-500">
+                {aiInsights ? (aiInsights.missingSkills?.length > 0 ? aiInsights.missingSkills.join(", ") : "None") : "Generating..."}
               </span>
-            </div>
+            ) : (
+              <div className="flex-1 blur-sm select-none opacity-60">
+                <span className="text-xs text-gray-500 leading-snug">
+                  Figma
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-start gap-2 w-full">
@@ -596,49 +620,64 @@ const JobCard = ({
             </div>
           </div>
 
-          <div className="flex items-start gap-2 w-full">
-            <HiOutlineMail className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
-            <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Why you may get rejected?</span>
-            <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
-              <span className="text-xs text-gray-500 leading-snug">
-                {!hasActivePlan
-                  ? "Portfolio."
-                  : aiInsights
-                    ? (aiInsights.hireBlocker || "No major blockers found.")
-                    : "Generating..."}
+          <div className={hasActivePlan ? "text-xs leading-[1.8] w-full" : "flex items-start gap-2 w-full"}>
+            {!hasActivePlan && <HiOutlineMail className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />}
+            <span className={hasActivePlan ? "font-semibold text-gray-700" : "font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0"}>
+              {hasActivePlan && <HiOutlineMail className="inline-block w-4 h-4 text-red-700 mr-1.5 align-text-bottom" />}
+              Why you may get rejected? {hasActivePlan && <span className="text-gray-300 mx-1.5 font-normal">•</span>}
+            </span>
+            {!hasActivePlan && <span className="text-gray-300 shrink-0 text-xs">•</span>}
+            {hasActivePlan ? (
+              <span className="text-gray-500">
+                {aiInsights ? (aiInsights.hireBlocker || "No major blockers found.") : "Generating..."}
               </span>
-            </div>
+            ) : (
+              <div className="flex-1 blur-sm select-none opacity-60">
+                <span className="text-xs text-gray-500 leading-snug">
+                  Portfolio.
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-start gap-2 w-full">
-            <HiOutlinePhone className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" />
-            <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Interview Probability</span>
-            <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
-              <span className="text-xs text-gray-500 leading-snug">
-                {!hasActivePlan
-                  ? "Based on call probability 65%"
-                  : aiInsights
-                    ? (aiInsights.interviewProbability != null ? `Interview probability: ${aiInsights.interviewProbability}%` : "Not enough data")
-                    : "Generating..."}
+          <div className={hasActivePlan ? "text-xs leading-[1.8] w-full" : "flex items-start gap-2 w-full"}>
+            {!hasActivePlan && <HiOutlinePhone className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" />}
+            <span className={hasActivePlan ? "font-semibold text-gray-700" : "font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0"}>
+              {hasActivePlan && <HiOutlinePhone className="inline-block w-4 h-4 text-teal-500 mr-1.5 align-text-bottom" />}
+              Interview Probability {hasActivePlan && <span className="text-gray-300 mx-1.5 font-normal">•</span>}
+            </span>
+            {!hasActivePlan && <span className="text-gray-300 shrink-0 text-xs">•</span>}
+            {hasActivePlan ? (
+              <span className="text-gray-500">
+                {aiInsights ? (aiInsights.interviewProbability != null ? `Interview probability: ${aiInsights.interviewProbability}%` : "Not enough data") : "Generating..."}
               </span>
-            </div>
+            ) : (
+              <div className="flex-1 blur-sm select-none opacity-60">
+                <span className="text-xs text-gray-500 leading-snug">
+                  Based on call probability 65%
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-start gap-2 w-full">
-            <HiOutlineBriefcase className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-            <span className="font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0">Similar Jobs</span>
-            <span className="text-gray-300 shrink-0 text-xs">•</span>
-            <div className={`flex-1 ${!hasActivePlan ? 'blur-sm select-none opacity-60' : ''}`}>
-              <span className="text-xs text-gray-500 leading-snug">
-                {!hasActivePlan
-                  ? "12 similar jobs found"
-                  : aiInsights
-                    ? (aiInsights.similarJobsCount ? `${aiInsights.similarJobsCount} similar jobs found` : `${(job._id?.charCodeAt(0) || 10) % 25 + 5} similar jobs found`)
-                    : "Generating..."}
+          <div className={hasActivePlan ? "text-xs leading-[1.8] w-full" : "flex items-start gap-2 w-full"}>
+            {!hasActivePlan && <HiOutlineBriefcase className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />}
+            <span className={hasActivePlan ? "font-semibold text-gray-700" : "font-semibold text-xs text-gray-700 whitespace-nowrap shrink-0"}>
+              {hasActivePlan && <HiOutlineBriefcase className="inline-block w-4 h-4 text-blue-500 mr-1.5 align-text-bottom" />}
+              Similar Jobs {hasActivePlan && <span className="text-gray-300 mx-1.5 font-normal">•</span>}
+            </span>
+            {!hasActivePlan && <span className="text-gray-300 shrink-0 text-xs">•</span>}
+            {hasActivePlan ? (
+              <span className="text-gray-500">
+                {aiInsights ? (aiInsights.similarJobsCount ? `${aiInsights.similarJobsCount} similar jobs found` : `${(job._id?.charCodeAt(0) || 10) % 25 + 5} similar jobs found`) : "Generating..."}
               </span>
-            </div>
+            ) : (
+              <div className="flex-1 blur-sm select-none opacity-60">
+                <span className="text-xs text-gray-500 leading-snug">
+                  12 similar jobs found
+                </span>
+              </div>
+            )}
           </div>
 
           {/* If no plan, overlay banner at the bottom */}
