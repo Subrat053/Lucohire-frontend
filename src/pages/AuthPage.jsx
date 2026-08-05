@@ -744,17 +744,22 @@ const AuthPage = () => {
 
     return () => clearInterval(timerRef.current);
   }, [mode]);
+  const hasRedirectedRef = useRef(false);
 
-  const redirectToDashboard = (userRole) => {
+  const redirectToDashboard = (userRole, isNewUserOverride = null) => {
+    if (hasRedirectedRef.current) return;
+    
     const params = new URLSearchParams(location.search);
     const redirectParam = params.get("redirect");
-    const isNewUser = roleSelectionData?.isNewUser || false;
+    const isNewUser = isNewUserOverride !== null ? isNewUserOverride : (roleSelectionData?.isNewUser || false);
 
     if (redirectParam) {
+      hasRedirectedRef.current = true;
       navigate(redirectParam, { replace: true, state: { isNewUser } });
       return;
     }
 
+    hasRedirectedRef.current = true;
     switch (userRole) {
       case "provider":
         if (isNewUser) {
@@ -962,7 +967,7 @@ const AuthPage = () => {
         }!`,
       );
 
-      redirectToDashboard(selectedRole);
+      redirectToDashboard(selectedRole, roleSelectionData?.isNewUser || false);
     } catch (err) {
       toast.error("Failed to switch role. Please try again.");
     } finally {
