@@ -346,8 +346,8 @@ const LeftPanel = ({ mode }) => {
         className="absolute inset-0 bg-cover bg-center opacity-50 transition-transform duration-1000 hover:scale-105"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')" }}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-gray-900/60 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-gray-900 via-gray-900/40 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-r from-gray-900/60 to-transparent" />
 
       {/* Content */}
       <div className="relative z-10 animate-fade-in">
@@ -1452,10 +1452,15 @@ const AuthPage = () => {
       toast.error(t("auth.googleCancelled"));
       setLoading(false);
     },
+    onNonOAuthError: () => {
+      // Handles popup closed by user or blocked popup
+      setLoading(false);
+    }
   });
 
   const handleGoogleAuth = () => {
-    setLoading(true);
+    // Only set loading once we get a success response (handled in handleGoogleAuthSuccess)
+    // to prevent the page from getting stuck if the popup is blocked or closed.
     triggerGoogleLogin();
   };
 
