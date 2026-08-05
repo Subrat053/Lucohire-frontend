@@ -914,21 +914,14 @@ const ProviderJobs = () => {
   const [nearbyOnly, setNearbyOnly] = useState(false);
   const [radius, setRadius] = useState(50);
   const [userCoords, setUserCoords] = useState(null);
-  const [showLocationModal, setShowLocationModal] = useState(false);
 
   const requestLocation = () => {
-    setShowLocationModal(false);
-    setLoading(true);
-    
-    if (navigator.permissions) {
-      navigator.permissions.query({ name: 'geolocation' }).then(result => {
-        if (result.state === 'prompt') {
-          toast("Please allow location access in your browser to see nearby jobs", { icon: '📍' });
-        } else if (result.state === 'denied') {
-          toast.error("Location access is denied. Please enable it in your browser settings.");
-        }
-      }).catch(console.error);
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
     }
+
+    setLoading(true);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -939,22 +932,22 @@ const ProviderJobs = () => {
         setUserCoords(coords);
         setNearbyOnly(true);
         setLoading(false);
+        toast.success("Nearby jobs loaded!", { icon: '📍' });
       },
       (error) => {
         setLoading(false);
         console.error("Geolocation error:", error);
+        
+        // Error code 1 means Permission Denied. 
+        // On mobile, this happens automatically WITHOUT A PROMPT if the site is not HTTPS (e.g. testing on local IP).
         if (error.code === 1) {
-          if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            toast.error("Location access blocked. Mobile browsers require HTTPS (or localhost) for location features.");
-          } else {
-            toast.error("Location access denied. Please allow location permissions in your device/browser settings.");
-          }
+          toast.error("Location permission denied. Ensure you are using HTTPS or check your browser settings.");
         } else if (error.code === 2) {
-          toast.error("Location information is unavailable on this device.");
+          toast.error("Location unavailable. Please ensure Location/GPS is enabled.");
         } else if (error.code === 3) {
-          toast.error("Location request timed out. Please try again or check your signal.");
+          toast.error("Location request timed out. Please try again.");
         } else {
-          toast.error("Location access denied or unavailable. Please enable location permissions.");
+          toast.error("Unable to retrieve location.");
         }
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
@@ -968,12 +961,7 @@ const ProviderJobs = () => {
       if (userCoords) {
         setNearbyOnly(true);
       } else {
-        const isMobile = window.innerWidth < 768;
-        if (isMobile) {
-          setShowLocationModal(true);
-        } else {
-          requestLocation();
-        }
+        requestLocation();
       }
     }
   };
@@ -1415,33 +1403,6 @@ const ProviderJobs = () => {
           companyFallbackName={recruiterProfileTarget.name}
           onClose={() => setRecruiterProfileTarget(null)}
         />
-      )}
-      {showLocationModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl animate-fade-in">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner border border-emerald-200">
-              <HiLocationMarker className="w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-extrabold text-gray-900 mb-2">Allow Location Access</h3>
-            <p className="text-sm text-gray-500 mb-6 font-medium leading-relaxed">
-              We need your location to show you the best freelance projects and jobs near you.
-            </p>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={requestLocation}
-                className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-sm"
-              >
-                Allow Location
-              </button>
-              <button
-                onClick={() => setShowLocationModal(false)}
-                className="w-full text-gray-500 font-bold py-3 hover:bg-gray-100 rounded-xl transition"
-              >
-                Not Now
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

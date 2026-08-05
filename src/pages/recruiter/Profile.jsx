@@ -239,6 +239,9 @@ const RecruiterProfile = () => {
       await fetchUser();
       await fetchProfile();
       toast.success('Profile saved!');
+      
+      // Redirect to explore candidates after saving
+      navigate('/recruiter/candidates');
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to save profile');
     } finally {

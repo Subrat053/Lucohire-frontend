@@ -744,21 +744,36 @@ const AuthPage = () => {
 
     return () => clearInterval(timerRef.current);
   }, [mode]);
+  const hasRedirectedRef = useRef(false);
 
-  const redirectToDashboard = (userRole) => {
+  const redirectToDashboard = (userRole, isNewUserOverride = null) => {
+    if (hasRedirectedRef.current) return;
+    
     const params = new URLSearchParams(location.search);
     const redirectParam = params.get("redirect");
+    const isNewUser = isNewUserOverride !== null ? isNewUserOverride : (roleSelectionData?.isNewUser || false);
+
     if (redirectParam) {
-      navigate(redirectParam, { replace: true });
+      hasRedirectedRef.current = true;
+      navigate(redirectParam, { replace: true, state: { isNewUser } });
       return;
     }
 
+    hasRedirectedRef.current = true;
     switch (userRole) {
       case "provider":
-        navigate("/provider/job-for-me", { replace: true });
+        if (isNewUser) {
+          navigate("/provider/profile", { replace: true, state: { isNewUser } });
+        } else {
+          navigate("/provider/job-for-me", { replace: true });
+        }
         break;
       case "recruiter":
-        navigate("/recruiter/candidates", { replace: true });
+        if (isNewUser) {
+          navigate("/recruiter/candidates", { replace: true, state: { isNewUser } });
+        } else {
+          navigate("/recruiter/candidates", { replace: true });
+        }
         break;
 
       case "manager":
@@ -887,6 +902,10 @@ const AuthPage = () => {
       auth,
       RecaptchaVerifier: firebaseAuth.RecaptchaVerifier,
       signInWithPhoneNumber: firebaseAuth.signInWithPhoneNumber,
+      GoogleAuthProvider: firebaseAuth.GoogleAuthProvider,
+      signInWithPopup: firebaseAuth.signInWithPopup,
+      signInWithRedirect: firebaseAuth.signInWithRedirect,
+      getRedirectResult: firebaseAuth.getRedirectResult,
     };
 
     return firebaseRef.current;
@@ -948,7 +967,7 @@ const AuthPage = () => {
         }!`,
       );
 
-      redirectToDashboard(selectedRole);
+      redirectToDashboard(selectedRole, roleSelectionData?.isNewUser || false);
     } catch (err) {
       toast.error("Failed to switch role. Please try again.");
     } finally {
@@ -980,8 +999,10 @@ const AuthPage = () => {
       savedUser?.roles?.includes("provider") &&
       savedUser?.roles?.includes("recruiter");
 
-    if (hasMultipleRoles) {
-      setRoleSelectionData(authData);
+    const hasNoRole = !savedUser?.roles || savedUser.roles.length === 0;
+
+    if (hasMultipleRoles || hasNoRole) {
+      setRoleSelectionData({ ...authData, isNewUser: hasNoRole });
       return; // Stop redirection, let the modal show
     }
 
@@ -1419,12 +1440,12 @@ const AuthPage = () => {
     }
   });
 
-  const handleGoogleAuthSuccess = async (accessToken) => {
+  const handleGoogleAuthSuccess = async (firebaseToken) => {
     setLoading(true);
 
     try {
       const { data } = await authAPI.googleLogin({
-        accessToken,
+        firebaseToken,
         roles: mode === "register" ? selectedRoles : undefined,
         activeRole:
           mode === "register"
@@ -1447,23 +1468,27 @@ const AuthPage = () => {
     }
   };
 
-  const triggerGoogleLogin = useGoogleLogin({
-    onSuccess: (tokenResponse) =>
-      handleGoogleAuthSuccess(tokenResponse.access_token),
-    onError: () => {
-      toast.error(t("auth.googleCancelled"));
-      setLoading(false);
-    },
-    onNonOAuthError: () => {
-      // Handles popup closed by user or blocked popup
+  const handleGoogleAuth = async () => {
+    setLoading(true);
+    try {
+      const fb = await loadFirebaseAuth();
+      const provider = new fb.GoogleAuthProvider();
+      
+      const result = await fb.signInWithPopup(fb.auth, provider);
+      
+      const firebaseToken = await result.user.getIdToken(true);
+      
+      toast.success("Google popup success! Contacting backend...");
+      await handleGoogleAuthSuccess(firebaseToken);
+    } catch (err) {
+      console.error("[FIREBASE GOOGLE AUTH ERROR]", err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        toast.error("Google popup closed.");
+      } else {
+        toast.error("Google Login Error: " + (err.message || "Unknown error"));
+      }
       setLoading(false);
     }
-  });
-
-  const handleGoogleAuth = () => {
-    // Only set loading once we get a success response (handled in handleGoogleAuthSuccess)
-    // to prevent the page from getting stuck if the popup is blocked or closed.
-    triggerGoogleLogin();
   };
 
   useEffect(() => {
@@ -2381,25 +2406,28 @@ const AuthPage = () => {
 
       {/* Role Selection Modal */}
       {roleSelectionData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-md">
-          <div className="bg-white/10 backdrop-blur-3xl border border-white/20 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
-            <h3 className="text-2xl font-black text-white mb-2">
-              {t("auth.welcomeBack") || "Welcome Back!"}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-md w-full relative animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              {roleSelectionData?.isNewUser
+                ? "Welcome to Lucohire!"
+                : (t("auth.welcomeBack") || "Welcome Back!")}
             </h3>
-            <p className="text-white text-sm mb-8">
-              You have both a candidate and recruiter profile. Which one would
-              you like to access?
+            <p className="text-gray-500 mb-6 text-sm">
+              {roleSelectionData?.isNewUser
+                ? "What role would you like to create?"
+                : "You have both a candidate and recruiter profile. Which one would you like to access?"}
             </p>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               <button
                 onClick={() => handleRoleSelection("provider")}
                 disabled={loading}
-                className="w-full py-4 px-6 rounded-2xl border border-white/60 bg-white/40 hover:border-teal-400 hover:bg-white/70 shadow-sm transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 shadow-sm transition-all flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed text-left"
               >
-                <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-200 transition-colors shrink-0">
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -2412,8 +2440,8 @@ const AuthPage = () => {
                     />
                   </svg>
                 </div>
-                <div className="text-left">
-                  <div className="font-bold text-gray-900 text-lg">
+                <div>
+                  <div className="font-bold text-gray-900 text-sm group-hover:text-emerald-700 transition-colors">
                     Candidate Profile
                   </div>
                   <div className="text-xs text-gray-500">
@@ -2425,11 +2453,11 @@ const AuthPage = () => {
               <button
                 onClick={() => handleRoleSelection("recruiter")}
                 disabled={loading}
-                className="w-full py-4 px-6 rounded-2xl border border-white/60 bg-white/40 hover:border-emerald-500 hover:bg-white/70 shadow-sm transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 shadow-sm transition-all flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed text-left"
               >
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:bg-emerald-200 transition-colors shrink-0">
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -2442,8 +2470,8 @@ const AuthPage = () => {
                     />
                   </svg>
                 </div>
-                <div className="text-left">
-                  <div className="font-bold text-gray-900 text-lg">
+                <div>
+                  <div className="font-bold text-gray-900 text-sm group-hover:text-emerald-700 transition-colors">
                     Recruiter Profile
                   </div>
                   <div className="text-xs text-gray-500">
