@@ -250,7 +250,7 @@ const ProviderPlans = () => {
           return !isTopPlan;
         });
         const addons = planList.filter(p =>
-          ADDON_SLUGS.includes(p.slug)
+          ADDON_SLUGS.includes(p.slug) && p.slug !== 'whatsapp-alerts-monthly'
         );
         setPlans(filteredPlans);
         setAvailableAddons(addons);
