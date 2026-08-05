@@ -166,7 +166,7 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
               <div 
                 key={job._id || job.id} 
                 onClick={() => onJobClick && onJobClick(job)}
-                className="w-[190px] sm:w-[260px] h-full bg-white border border-gray-100/80 rounded-[20px] p-3 sm:p-5 flex-shrink-0 cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.05)] hover:shadow-[0_15px_40px_-5px_rgba(0,0,0,0.12)] hover:border-blue-200 transition-all duration-300 flex flex-col relative transform hover:-translate-y-1.5"
+                className="w-[190px] sm:w-[260px] h-full bg-white border border-gray-100/80 rounded-[20px] p-3 sm:p-5 flex-shrink-0 cursor-pointer hover:border-blue-200 transition-all duration-300 flex flex-col relative transform hover:-translate-y-1.5"
               >
                 <div className="mb-2 sm:mb-2.5 flex justify-between items-start">
                   <CompanyLogo company={job.companyName || job.recruiter?.name || 'Company'} className="text-lg" />
@@ -192,8 +192,8 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
                 {/* Bottom Tags */}
                 <div className="mt-auto border-t border-gray-100 pt-2 flex items-center justify-between gap-1 sm:gap-2">
                   <div className="flex flex-wrap gap-1 sm:gap-1.5 overflow-hidden max-h-5">
-                    <span className="bg-[#f4f7fa] text-[#4b5563] text-[8px] sm:text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border border-gray-200/60 shadow-sm whitespace-nowrap">{job.workMode || 'Full-time'}</span>
-                    <span className="bg-[#f4f7fa] text-[#4b5563] text-[8px] sm:text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border border-gray-200/60 shadow-sm whitespace-nowrap">{job.jobType || 'On-site'}</span>
+                    <span className="bg-[#f4f7fa] text-[#4b5563] text-[8px] sm:text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border border-gray-200/60 whitespace-nowrap">{job.workMode || 'Full-time'}</span>
+                    <span className="bg-[#f4f7fa] text-[#4b5563] text-[8px] sm:text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border border-gray-200/60 whitespace-nowrap">{job.jobType || 'On-site'}</span>
                   </div>
                   <div className="text-[8px] sm:text-[9px] text-gray-500 font-semibold shrink-0">{job.createdAt ? new Date(job.createdAt).toLocaleDateString() : t('2m ago')}</div>
                 </div>
