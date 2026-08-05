@@ -437,6 +437,16 @@ const ProviderProfile = () => {
   const [pendingTab, setPendingTab] = useState(null);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
+  const [showNewUserWarning, setShowNewUserWarning] = useState(location.state?.isNewUser || false);
+
+  useEffect(() => {
+    if (showNewUserWarning) {
+      const timer = setTimeout(() => {
+        setShowNewUserWarning(false);
+      }, 25000);
+      return () => clearTimeout(timer);
+    }
+  }, [showNewUserWarning]);
 
   const [profileData, setProfileData] = useState(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
@@ -1566,7 +1576,7 @@ const ProviderProfile = () => {
         card.classList.add("ring-2", "ring-red-500", "animate-pulse");
         setTimeout(() => card.classList.remove("ring-2", "ring-red-500", "animate-pulse"), 3000);
       }
-      toast.error(msg);
+      toast(msg, { icon: "⚠️", duration: 8000 });
     }, 100);
   };
 
@@ -1576,7 +1586,10 @@ const ProviderProfile = () => {
       return goToError("Personal", "basic-info-card", "Please add at least one service location / city (Location is mandatory)");
     }
     if (form.skills.length === 0) {
-      return goToError("Personal", "role-skills-card", "Please select at least one role (Role is mandatory)");
+      return goToError("Personal", "role-skills-card", "Please select at least one speciality/skill (Speciality is mandatory)");
+    }
+    if (!form.roles || form.roles.length === 0) {
+      return goToError("Personal", "role-skills-card", "Please select at least one job role (Job Role is mandatory)");
     }
     const cleanPhone = form.phone || "";
     const nationalDigits = String(form.nationalNumber || "").replace(/\D/g, "");
@@ -1588,15 +1601,6 @@ const ProviderProfile = () => {
       if (whatsappDigits.length < 7) {
         return goToError("Personal", "basic-info-card", "Please enter a valid WhatsApp number.");
       }
-    }
-    if (!form.pricing) {
-      return goToError("Preferences", "rate-payout-card", "Please enter a valid payout / pricing rate (Payout is mandatory)");
-    }
-    if (!form.pricingType) {
-      return goToError("Preferences", "rate-payout-card", "Please select a pricing unit (Pricing Unit is mandatory)");
-    }
-    if (!form.jobType || form.jobType.length === 0) {
-      return goToError("Preferences", "rate-payout-card", "Please select a job type (Job Type is mandatory)");
     }
     if (
       !form.tier ||
@@ -1870,6 +1874,21 @@ const ProviderProfile = () => {
               ))}
             </div>
           </div>
+
+          {showNewUserWarning && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg shadow-sm">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700 font-medium">
+                    Please fill your required details to get accurate job recommendations.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Main Content */}

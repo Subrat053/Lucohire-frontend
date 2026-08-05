@@ -748,17 +748,27 @@ const AuthPage = () => {
   const redirectToDashboard = (userRole) => {
     const params = new URLSearchParams(location.search);
     const redirectParam = params.get("redirect");
+    const isNewUser = roleSelectionData?.isNewUser || false;
+
     if (redirectParam) {
-      navigate(redirectParam, { replace: true });
+      navigate(redirectParam, { replace: true, state: { isNewUser } });
       return;
     }
 
     switch (userRole) {
       case "provider":
-        navigate("/provider/job-for-me", { replace: true });
+        if (isNewUser) {
+          navigate("/provider/profile", { replace: true, state: { isNewUser } });
+        } else {
+          navigate("/provider/job-for-me", { replace: true });
+        }
         break;
       case "recruiter":
-        navigate("/recruiter/candidates", { replace: true });
+        if (isNewUser) {
+          navigate("/recruiter/profile", { replace: true, state: { isNewUser } });
+        } else {
+          navigate("/recruiter/candidates", { replace: true });
+        }
         break;
 
       case "manager":
@@ -984,8 +994,10 @@ const AuthPage = () => {
       savedUser?.roles?.includes("provider") &&
       savedUser?.roles?.includes("recruiter");
 
-    if (hasMultipleRoles) {
-      setRoleSelectionData(authData);
+    const hasNoRole = !savedUser?.roles || savedUser.roles.length === 0;
+
+    if (hasMultipleRoles || hasNoRole) {
+      setRoleSelectionData({ ...authData, isNewUser: hasNoRole });
       return; // Stop redirection, let the modal show
     }
 
@@ -2392,11 +2404,14 @@ const AuthPage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-md">
           <div className="bg-white/10 backdrop-blur-3xl border border-white/20 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
             <h3 className="text-2xl font-black text-white mb-2">
-              {t("auth.welcomeBack") || "Welcome Back!"}
+              {roleSelectionData?.isNewUser
+                ? "Welcome to Lucohire!"
+                : (t("auth.welcomeBack") || "Welcome Back!")}
             </h3>
             <p className="text-white text-sm mb-8">
-              You have both a candidate and recruiter profile. Which one would
-              you like to access?
+              {roleSelectionData?.isNewUser
+                ? "What role would you like to create?"
+                : "You have both a candidate and recruiter profile. Which one would you like to access?"}
             </p>
 
             <div className="flex flex-col gap-4">
