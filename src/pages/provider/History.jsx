@@ -1,6 +1,7 @@
 import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect } from 'react';
-import { HiEye, HiSearch, HiLockOpen, HiClock, HiCreditCard, HiRefresh, HiChevronDown } from 'react-icons/hi';
+import { useNavigate } from 'react-router-dom';
+import { HiEye, HiSearch, HiLockOpen, HiClock, HiCreditCard, HiRefresh, HiChevronDown, HiDownload } from 'react-icons/hi';
 import { providerAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -14,6 +15,7 @@ const typeConfig = {
 
 const ProviderHistory = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('payments'); // 'payments' | 'activity'
   const [history, setHistory] = useState([]);
@@ -130,6 +132,7 @@ const ProviderHistory = () => {
                     <th className="py-3 px-4">{t("Amount")}</th>
                     <th className="py-3 px-4">{t("Status")}</th>
                     <th className="py-3 px-4 text-right">{t("Transaction ID")}</th>
+                    <th className="py-3 px-4 text-center">{t("Invoice")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -160,6 +163,17 @@ const ProviderHistory = () => {
                       </td>
                       <td className="py-3.5 px-4 text-right text-xs font-mono text-gray-400">
                         {item.transactionId || item.stripePaymentIntentId || item._id?.substring(0, 12) || '—'}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        {(item.status === 'completed' || item.status === 'paid') && (
+                          <button
+                            onClick={() => navigate('/provider/my-plan', { state: { invoiceData: item } })}
+                            className="p-1.5 text-gray-400 hover:text-emerald-600 bg-gray-50 hover:bg-emerald-50 rounded-lg transition border border-gray-100 hover:border-emerald-200 inline-flex items-center justify-center"
+                            title={t("Download Invoice")}
+                          >
+                            <HiDownload className="w-4 h-4" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
