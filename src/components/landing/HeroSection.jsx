@@ -100,7 +100,7 @@ export default function HeroSection({ user, jobSearch, setJobSearch, jobLocation
       </div>
       
       {!user && (
-        <div className="w-full mt-5 sm:mt-10 mb-1 sm:mb-0 px-4 sm:px-0">
+        <div className="w-full mt-5 sm:mt-10 mb-1 sm:mb-0 px-4 sm:px-6 lg:px-8">
           <LiveJobsCarousel isLoadingJobs={isLoadingJobs} liveJobsList={liveJobsList} onJobClick={onJobClick} />
         </div>
       )}

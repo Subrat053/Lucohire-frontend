@@ -339,35 +339,38 @@ export default function GrowWithAIDashboard() {
             </div>
           </div>
 
-          {/* Eye-Catchy Button Tabs */}
-          <div className="flex gap-4 md:gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] max-md:pb-0 md:pb-3 pt-2 pl-2 -ml-2 pr-4 max-md:border-b max-md:border-gray-200">
-            {[
-              { id: 'interview', icon: MessageSquare, label: 'Interview Questions' },
-              { id: 'gps', icon: TrendingUp, label: 'AI Career GPS' },
-              { id: 'barriers', icon: AlertCircle, label: 'Why Am I Not Getting Hired?' },
-              { id: 'skillgap', icon: FileSearch, label: 'Skill Gap Report' },
-              { id: 'ats', icon: Search, label: 'ATS Optimizer' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`transition-all duration-300 whitespace-nowrap flex items-center gap-2 
-                  max-md:pb-3 max-md:text-[14px] max-md:font-bold max-md:-mb-px max-md:border-b-[3px] max-md:rounded-none
-                  md:py-2 md:px-4 md:text-[13px] md:font-bold md:rounded-xl md:border
-                  ${
-                  activeTab === tab.id 
-                    ? 'max-md:border-emerald-600 max-md:text-emerald-700 md:bg-emerald-600 md:text-white md:border-transparent md:shadow-md md:shadow-emerald-600/25' 
-                    : 'max-md:border-transparent max-md:text-gray-500 max-md:hover:border-gray-300 md:bg-white md:text-gray-700 md:border-gray-200 md:hover:border-emerald-600/30 md:hover:bg-emerald-50/50'
-                }`}
-              >
-                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'max-md:text-emerald-600 md:text-white' : 'text-gray-400'}`} /> 
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          {/* Unified Nested Box for Main Tabs and Panel */}
+          <div className="max-md:border max-md:border-gray-200 max-md:rounded-2xl max-md:bg-white max-md:shadow-[0_2px_12px_rgba(0,0,0,0.02)] max-md:overflow-hidden max-md:mb-6">
+            {/* Main Tabs */}
+            <div className="flex max-md:border-b max-md:border-gray-100 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] md:gap-3 md:pb-3 pt-2 md:pl-2 md:-ml-2 md:pr-4 md:border-b md:border-gray-200">
+              {[
+                { id: 'interview', icon: MessageSquare, label: 'Interview Questions' },
+                { id: 'gps', icon: TrendingUp, label: 'AI Career GPS' },
+                { id: 'barriers', icon: AlertCircle, label: 'Why Am I Not Getting Hired?' },
+                { id: 'skillgap', icon: FileSearch, label: 'Skill Gap Report' },
+                { id: 'ats', icon: Search, label: 'ATS Optimizer' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`transition-all duration-300 whitespace-nowrap flex items-center gap-2 relative
+                    max-md:py-3.5 max-md:px-5 max-md:text-[14.5px] max-md:font-bold max-md:border-b-2
+                    md:px-4 md:py-2.5 md:rounded-xl md:font-semibold md:text-sm md:border
+                    ${
+                      activeTab === tab.id
+                        ? "max-md:border-emerald-600 max-md:text-emerald-700 max-md:bg-white md:bg-emerald-600 md:text-white md:shadow-sm md:border-emerald-600"
+                        : "max-md:border-transparent max-md:text-gray-500 max-md:hover:text-gray-700 max-md:hover:bg-gray-50 md:bg-white md:text-gray-600 md:border-gray-200 md:hover:bg-gray-50 md:hover:text-gray-900"
+                    }
+                  `}
+                >
+                  <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-emerald-600' : 'text-gray-400'}`} /> 
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
-          {/* Locked State Overlay Logic */}
-          <div className="relative bg-white rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)] min-h-[400px]">
+            {/* Locked State Overlay Logic */}
+            <div className="relative min-h-[400px] md:bg-white md:rounded-2xl md:border md:border-gray-100 md:shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
             {!usageLoading && isPro && (() => {
               if (activeTab === 'skillgap' || activeTab === 'ats') return null;
               const map = { gps: 'refreshInsight', barriers: 'refreshInsight', interview: 'refreshInsight' };
@@ -413,6 +416,7 @@ export default function GrowWithAIDashboard() {
               
 
             </div>
+          </div>
           </div>
         </div>
 
@@ -1236,76 +1240,81 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
           {t("AI-generated questions tailored to your profile and target roles.")}
         </p>
       </div>
-      
-      {/* Category Tabs */}
-      <div className="flex max-md:gap-8 md:gap-2 mb-6 border-b md:border-b-0 border-gray-200">
-        {['technical', 'behavioural', 'hr'].map(cat => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`capitalize transition-all whitespace-nowrap 
-              max-md:-mb-px max-md:pb-3 max-md:text-[15.5px] max-md:font-bold max-md:border-b-[3px]
-              md:px-4 md:py-2 md:rounded-xl md:text-sm md:font-bold md:border
-              ${
-                activeCategory === cat 
-                  ? 'max-md:border-emerald-600 max-md:text-emerald-700 md:bg-emerald-600 md:text-white md:shadow-sm md:border-emerald-600' 
-                  : 'max-md:border-transparent max-md:text-gray-400 max-md:hover:border-gray-300 md:bg-white md:text-gray-700 md:border-gray-200 md:hover:bg-gray-50'
-              }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+      {/* Unified Nested Box for Tabs and Questions */}
+      <div className="mb-4 md:mb-0 max-md:border max-md:border-gray-200 max-md:rounded-2xl max-md:bg-white max-md:shadow-sm max-md:overflow-hidden">
+        {/* Category Tabs */}
+        <div className="flex max-md:border-b max-md:border-gray-100 overflow-x-auto [&::-webkit-scrollbar]:hidden md:gap-2 md:mb-6">
+          {['technical', 'behavioural', 'hr'].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`capitalize transition-all whitespace-nowrap
+                max-md:flex-1 max-md:py-3.5 max-md:px-4 max-md:text-[14.5px] max-md:font-bold max-md:text-center max-md:border-b-2
+                md:px-4 md:py-2 md:rounded-xl md:text-sm md:font-bold md:border
+                ${
+                  activeCategory === cat 
+                    ? 'max-md:border-emerald-600 max-md:text-emerald-700 max-md:bg-white md:bg-emerald-600 md:text-white md:border-transparent md:shadow-md md:shadow-emerald-600/25' 
+                    : 'max-md:border-transparent max-md:text-gray-500 max-md:hover:text-gray-700 max-md:hover:bg-gray-50 md:bg-white md:text-gray-700 md:border-gray-200 md:hover:border-emerald-600/30 md:hover:bg-emerald-50/50'
+                }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
 
-      <div className="space-y-4">
-        {questions[activeCategory].map((item, i) => {
-          const globalIdx = `${activeCategory}-${i}`;
-          const isRevealed = revealed[globalIdx];
-          return (
-            <div key={globalIdx} className="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm transition-all hover:border-[#059669]/30">
-              <div className="flex flex-col items-start text-left w-full">
-                <div className="flex justify-between items-center w-full mb-3">
-                  <span className="text-[10px] font-bold text-[#059669] bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-md inline-block capitalize">
-                    {activeCategory}
-                  </span>
-                  {isPro && (
-                    <button 
-                      onClick={() => toggleReveal(globalIdx)}
-                      className="text-emerald-600 hover:text-emerald-800 text-[13px] font-bold transition flex items-center gap-1"
-                      title={isRevealed ? "Hide Answer" : "View Answer"}
-                    >
-                      {isRevealed ? (
-                        <span>{t("Hide Answer")}</span>
-                      ) : (
-                        <>
-                          <span>{t("View Answer")}</span> <ArrowRight className="w-3.5 h-3.5" />
-                        </>
+
+        <div className="max-md:p-2 sm:max-md:p-4">
+          <div className="max-md:space-y-6 max-md:divide-y max-md:divide-gray-100 md:space-y-4">
+            {questions[activeCategory].map((item, i) => {
+              const globalIdx = `${activeCategory}-${i}`;
+              const isRevealed = revealed[globalIdx];
+              return (
+                <div key={globalIdx} className={`max-md:pt-6 max-md:first:pt-2 md:bg-white md:border md:border-gray-100 md:rounded-2xl md:p-5 md:shadow-sm md:hover:shadow-md md:hover:border-emerald-600/30 md:transition-all md:group ${i !== 0 ? 'max-md:mt-6' : ''}`}>
+                  <div className="flex flex-col items-start text-left w-full">
+                    <div className="flex justify-between items-center w-full mb-3">
+                      <span className="text-[10px] font-bold text-[#059669] bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-md inline-block capitalize">
+                        {activeCategory}
+                      </span>
+                      {isPro && (
+                        <button 
+                          onClick={() => toggleReveal(globalIdx)}
+                          className="text-emerald-600 hover:text-emerald-800 text-[13px] font-bold transition flex items-center gap-1"
+                          title={isRevealed ? "Hide Answer" : "View Answer"}
+                        >
+                          {isRevealed ? (
+                            <span>{t("Hide Answer")}</span>
+                          ) : (
+                            <>
+                              <span>{t("View Answer")}</span> <ArrowRight className="w-3.5 h-3.5" />
+                            </>
+                          )}
+                        </button>
                       )}
-                    </button>
-                  )}
+                    </div>
+                    <h4 className={`text-[14px] font-medium text-gray-800 w-full mb-1 ${blurClass}`}>
+                      {item.q}
+                    </h4>
+                  </div>
+                  
+                  <div 
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${isRevealed ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}
+                  >
+                    <div className={`text-[13px] text-gray-700 font-medium bg-teal-50/50 border border-teal-100 p-4 rounded-xl leading-relaxed whitespace-pre-wrap ${blurClass}`}>
+                      <strong className="text-[#059669] block mb-1">{t("Suggested Answer / Framework:")}</strong> 
+                      {item.a}
+                    </div>
+                  </div>
                 </div>
-                <h4 className={`text-[14px] font-medium text-gray-800 w-full mb-1 ${blurClass}`}>
-                  {item.q}
-                </h4>
-              </div>
-              
-              <div 
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${isRevealed ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}
-              >
-                <div className={`text-[13px] text-gray-700 font-medium bg-teal-50/50 border border-teal-100 p-4 rounded-xl leading-relaxed whitespace-pre-wrap ${blurClass}`}>
-                  <strong className="text-[#059669] block mb-1">{t("Suggested Answer / Framework:")}</strong> 
-                  {item.a}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
 
         {!isPro && questions[activeCategory].length === 0 && (
-          <div className="text-center p-8 border-2 border-dashed border-gray-200 rounded-2xl">
-            <Lock className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-gray-900 font-bold mb-1">Premium Feature</h3>
-            <p className="text-sm text-gray-500">Upgrade to unlock tailored AI interview questions.</p>
+          <div className="text-center p-8 m-4 border-2 border-dashed border-gray-200 rounded-2xl">
+            <Lock className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+            <h3 className="text-gray-900 font-bold mb-1">{t("Unlock Interview Questions")}</h3>
+            <p className="text-gray-500 text-[13px] mb-4">{t("Get AI-generated questions tailored to your profile.")}</p>
+            <Link to="/provider/plans" className="inline-flex px-4 py-2 bg-[#059669] text-white text-[13px] font-bold rounded-lg hover:bg-teal-800 transition shadow-sm">{t("Upgrade to Pro")}</Link>
           </div>
         )}
 
@@ -1339,6 +1348,7 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
             </button>
           </div>
         )}
+      </div>
       </div>
       </>
       )}

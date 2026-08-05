@@ -293,7 +293,9 @@ const SavedJobs = () => {
   };
 
   const fetchAiInsights = async (jobsToAnalyze) => {
+    if (!jobsToAnalyze || jobsToAnalyze.length === 0) return;
     setAiInsightsLoading(true);
+    
     try {
       const cacheKey = "saved_jobs_ai_insights";
       const cachedStr = sessionStorage.getItem(cacheKey);
@@ -304,47 +306,13 @@ const SavedJobs = () => {
         } catch (e) {}
       }
 
-      // Use cache if it's less than 60 minutes old
+      let insightsMap = {};
       if (
         cachedData &&
         cachedData.timestamp &&
         Date.now() - cachedData.timestamp < 60 * 60 * 1000
       ) {
-        setJobs((prevJobs) =>
-          prevJobs.map((job) => {
-            if (cachedData.insightsMap[job._id]) {
-              return {
-                ...job,
-                matchScore: cachedData.insightsMap[job._id].matchScore || 0,
-                aiMatchedSkills:
-                  cachedData.insightsMap[job._id].matchedSkills || [],
-                aiMissingSkills:
-                  cachedData.insightsMap[job._id].missingSkills || [],
-              };
-            }
-            return job;
-          }),
-        );
-        setAiInsightsLoading(false);
-        return;
-      }
-
-      const response = await providerAPI.getJobAiInsights(jobsToAnalyze);
-      if (response.data?.success && response.data?.data) {
-        const insightsMap = {};
-        response.data.data.forEach((item) => {
-          insightsMap[item.jobId] = item.insights;
-        });
-
-        // Save to cache
-        sessionStorage.setItem(
-          cacheKey,
-          JSON.stringify({
-            timestamp: Date.now(),
-            insightsMap,
-          }),
-        );
-
+        insightsMap = { ...cachedData.insightsMap };
         setJobs((prevJobs) =>
           prevJobs.map((job) => {
             if (insightsMap[job._id]) {
@@ -358,6 +326,56 @@ const SavedJobs = () => {
             return job;
           }),
         );
+      }
+
+      // Find jobs that need fetching (limit to first 15 to avoid excessive looping on large saved lists)
+      const jobsToFetch = jobsToAnalyze.filter(j => !insightsMap[j._id]).slice(0, 15);
+      
+      if (jobsToFetch.length > 0) {
+        for (const j of jobsToFetch) {
+          try {
+            const payload = [{
+              _id: j._id || j.id,
+              title: j.title,
+              skill: j.skill,
+              requirements: j.requirements,
+              experienceRequired: j.experienceRequired,
+              location: j.city || j.workLocation || j.location || 'Unknown'
+            }];
+            const response = await providerAPI.getJobAiInsights(payload);
+            
+            if (response.data?.success && response.data.data.length > 0) {
+              const item = response.data.data[0];
+              insightsMap[item.jobId] = item.insights;
+              
+              // Update state progressively
+              setJobs((prevJobs) =>
+                prevJobs.map((job) => {
+                  if (job._id === item.jobId || job.id === item.jobId) {
+                    return {
+                      ...job,
+                      matchScore: item.insights.matchScore || 0,
+                      aiMatchedSkills: item.insights.matchedSkills || [],
+                      aiMissingSkills: item.insights.missingSkills || [],
+                    };
+                  }
+                  return job;
+                })
+              );
+              
+              // Update cache progressively
+              sessionStorage.setItem(
+                cacheKey,
+                JSON.stringify({
+                  timestamp: Date.now(),
+                  insightsMap,
+                })
+              );
+            }
+          } catch (error) {
+            console.error("Failed to load AI insight for job:", j._id, error);
+          }
+        }
       }
     } catch (err) {
       console.error("Failed to load AI insights for jobs", err);
