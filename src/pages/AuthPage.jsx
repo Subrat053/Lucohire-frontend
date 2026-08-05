@@ -770,7 +770,7 @@ const AuthPage = () => {
         break;
       case "recruiter":
         if (isNewUser) {
-          navigate("/recruiter/profile", { replace: true, state: { isNewUser } });
+          navigate("/recruiter/candidates", { replace: true, state: { isNewUser } });
         } else {
           navigate("/recruiter/candidates", { replace: true });
         }
@@ -2406,28 +2406,28 @@ const AuthPage = () => {
 
       {/* Role Selection Modal */}
       {roleSelectionData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-md">
-          <div className="bg-white/10 backdrop-blur-3xl border border-white/20 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
-            <h3 className="text-2xl font-black text-white mb-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-md w-full relative animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
               {roleSelectionData?.isNewUser
                 ? "Welcome to Lucohire!"
                 : (t("auth.welcomeBack") || "Welcome Back!")}
             </h3>
-            <p className="text-white text-sm mb-8">
+            <p className="text-gray-500 mb-6 text-sm">
               {roleSelectionData?.isNewUser
                 ? "What role would you like to create?"
                 : "You have both a candidate and recruiter profile. Which one would you like to access?"}
             </p>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               <button
                 onClick={() => handleRoleSelection("provider")}
                 disabled={loading}
-                className="w-full py-4 px-6 rounded-2xl border border-white/60 bg-white/40 hover:border-teal-400 hover:bg-white/70 shadow-sm transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 shadow-sm transition-all flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed text-left"
               >
-                <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-200 transition-colors shrink-0">
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -2440,8 +2440,8 @@ const AuthPage = () => {
                     />
                   </svg>
                 </div>
-                <div className="text-left">
-                  <div className="font-bold text-gray-900 text-lg">
+                <div>
+                  <div className="font-bold text-gray-900 text-sm group-hover:text-emerald-700 transition-colors">
                     Candidate Profile
                   </div>
                   <div className="text-xs text-gray-500">
@@ -2453,11 +2453,11 @@ const AuthPage = () => {
               <button
                 onClick={() => handleRoleSelection("recruiter")}
                 disabled={loading}
-                className="w-full py-4 px-6 rounded-2xl border border-white/60 bg-white/40 hover:border-emerald-500 hover:bg-white/70 shadow-sm transition-all flex items-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 shadow-sm transition-all flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed text-left"
               >
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:bg-emerald-200 transition-colors shrink-0">
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -2470,8 +2470,8 @@ const AuthPage = () => {
                     />
                   </svg>
                 </div>
-                <div className="text-left">
-                  <div className="font-bold text-gray-900 text-lg">
+                <div>
+                  <div className="font-bold text-gray-900 text-sm group-hover:text-emerald-700 transition-colors">
                     Recruiter Profile
                   </div>
                   <div className="text-xs text-gray-500">
