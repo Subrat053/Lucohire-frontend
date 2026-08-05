@@ -914,46 +914,60 @@ const ProviderJobs = () => {
   const [nearbyOnly, setNearbyOnly] = useState(false);
   const [radius, setRadius] = useState(50);
   const [userCoords, setUserCoords] = useState(null);
-  const [showLocationModal, setShowLocationModal] = useState(false);
 
   const requestLocation = () => {
-    setShowLocationModal(false);
-    setLoading(true);
-    
-    if (navigator.permissions) {
-      navigator.permissions.query({ name: 'geolocation' }).then(result => {
-        if (result.state === 'prompt') {
-          toast("Please allow location access in your browser to see nearby jobs", { icon: '📍' });
-        } else if (result.state === 'denied') {
-          toast.error("Location access is denied. Please enable it in your browser settings.");
-        }
-      }).catch(console.error);
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
     }
 
+    // Check for HTTP on non-localhost (mobile Chrome/Safari blocks geolocation over insecure HTTP)
+    if (window.location.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+      toast.error("Location access requires HTTPS. Please access via https://", { duration: 5000 });
+      return;
+    }
+
+    setLoading(true);
+
+    const onLocationSuccess = (position) => {
+      const coords = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+      setUserCoords(coords);
+      setNearbyOnly(true);
+      setLoading(false);
+      toast.success("Nearby jobs loaded!", { icon: '📍' });
+    };
+
+    const onLocationError = (error) => {
+      console.warn("Primary geolocation failed, attempting low-accuracy fallback:", error);
+
+      // Fallback attempt: low accuracy (cell tower / Wi-Fi / IP) which works indoors and on mobile with GPS off
+      navigator.geolocation.getCurrentPosition(
+        onLocationSuccess,
+        (finalErr) => {
+          setLoading(false);
+          console.error("Final geolocation error:", finalErr);
+          if (finalErr.code === 1) {
+            toast.error("Location permission denied. Please allow location access in your browser/device settings.");
+          } else if (finalErr.code === 2) {
+            toast.error("Location info unavailable. Please ensure Location/GPS is enabled on your phone.");
+          } else if (finalErr.code === 3) {
+            toast.error("Location request timed out. Please try again.");
+          } else {
+            toast.error("Unable to retrieve location.");
+          }
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+      );
+    };
+
+    // First attempt: try high accuracy with 6s timeout for fast mobile response
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const coords = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        setUserCoords(coords);
-        setNearbyOnly(true);
-        setLoading(false);
-      },
-      (error) => {
-        setLoading(false);
-        console.error("Geolocation error:", error);
-        if (error.code === 1) {
-          toast.error("Location access denied. Please allow location permissions in your device/browser settings.");
-        } else if (error.code === 2) {
-          toast.error("Location information is unavailable on this device.");
-        } else if (error.code === 3) {
-          toast.error("Location request timed out. Please try again or check your signal.");
-        } else {
-          toast.error("Location access denied or unavailable. Please enable location permissions.");
-        }
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      onLocationSuccess,
+      onLocationError,
+      { enableHighAccuracy: true, timeout: 6000, maximumAge: 60000 }
     );
   };
 
@@ -964,12 +978,7 @@ const ProviderJobs = () => {
       if (userCoords) {
         setNearbyOnly(true);
       } else {
-        const isMobile = window.innerWidth < 768;
-        if (isMobile) {
-          setShowLocationModal(true);
-        } else {
-          requestLocation();
-        }
+        requestLocation();
       }
     }
   };
@@ -1411,33 +1420,6 @@ const ProviderJobs = () => {
           companyFallbackName={recruiterProfileTarget.name}
           onClose={() => setRecruiterProfileTarget(null)}
         />
-      )}
-      {showLocationModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl animate-fade-in">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner border border-emerald-200">
-              <HiLocationMarker className="w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-extrabold text-gray-900 mb-2">Allow Location Access</h3>
-            <p className="text-sm text-gray-500 mb-6 font-medium leading-relaxed">
-              We need your location to show you the best freelance projects and jobs near you.
-            </p>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={requestLocation}
-                className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-sm"
-              >
-                Allow Location
-              </button>
-              <button
-                onClick={() => setShowLocationModal(false)}
-                className="w-full text-gray-500 font-bold py-3 hover:bg-gray-100 rounded-xl transition"
-              >
-                Not Now
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

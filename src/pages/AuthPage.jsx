@@ -1448,22 +1448,35 @@ const AuthPage = () => {
   };
 
   const triggerGoogleLogin = useGoogleLogin({
-    onSuccess: (tokenResponse) =>
-      handleGoogleAuthSuccess(tokenResponse.access_token),
-    onError: () => {
+    onSuccess: (tokenResponse) => {
+      console.log("[GOOGLE OAUTH SUCCESS]", tokenResponse);
+      if (tokenResponse?.access_token) {
+        handleGoogleAuthSuccess(tokenResponse.access_token);
+      } else {
+        toast.error("Google authentication failed to return access token.");
+        setLoading(false);
+      }
+    },
+    onError: (err) => {
+      console.error("[GOOGLE OAUTH ERROR]", err);
       toast.error(t("auth.googleCancelled"));
       setLoading(false);
     },
-    onNonOAuthError: () => {
+    onNonOAuthError: (err) => {
+      console.warn("[GOOGLE OAUTH NON-OAUTH ERROR]", err);
       // Handles popup closed by user or blocked popup
       setLoading(false);
     }
   });
 
   const handleGoogleAuth = () => {
-    // Only set loading once we get a success response (handled in handleGoogleAuthSuccess)
-    // to prevent the page from getting stuck if the popup is blocked or closed.
-    triggerGoogleLogin();
+    setLoading(true);
+    try {
+      triggerGoogleLogin();
+    } catch (err) {
+      console.error("[GOOGLE AUTH TRIGGER ERROR]", err);
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
