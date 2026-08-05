@@ -313,11 +313,6 @@ const Dashboard = () => {
                 <HiSparkles className="w-5 h-5 text-indigo-500" />
                 {t("Luco AI Insights")}
               </h2>
-              {!usageLoading && aiUsage.limits.customReports !== undefined && aiUsage.limits.customReports !== -1 && (
-                <span className="text-xs font-semibold px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100 shadow-sm">
-                  {Math.max(0, aiUsage.limits.customReports - (aiUsage.usage.customReports || 0))} insights left
-                </span>
-              )}
             </div>
             
             <div className="flex-1 flex flex-col justify-center space-y-4 mb-4 relative">
