@@ -2,7 +2,7 @@ import useTranslation from "../../hooks/useTranslation";
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { 
-  Lock, Sparkles, Briefcase, TrendingUp, AlertCircle, CheckCircle2, ArrowRight, FileSearch, Search, Check, Info, Bot, MapPin, Heart, ChevronRight, Bookmark, MessageSquare, Eye, EyeOff, Loader2
+  Lock, Sparkles, Briefcase, TrendingUp, AlertCircle, CheckCircle2, ArrowRight, FileSearch, Search, Check, Info, Bot, MapPin, Heart, ChevronRight, Bookmark, MessageSquare, Eye, EyeOff, Loader2, RefreshCw
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { getCareerGPS, getHiringBarriers, getSkillGap, getAtsOptimizer, getAiUsage, improveCareerGPS, improveHiringBarriers, improveSkillGap, getAICareerReport, getInterviewQuestions, refreshInterviewQuestions } from '../../services/providerAIService';
@@ -334,12 +334,13 @@ export default function GrowWithAIDashboard() {
                 disabled={!isPro || (activeTab === 'gps' && gpsLoading) || (activeTab === 'barriers' && barriersLoading) || (activeTab === 'interview' && interviewLoading) || activeTab === 'skillgap' || activeTab === 'ats'}
                 className={`bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-[13px] font-bold flex items-center gap-2 shadow-sm transition ${(activeTab === 'skillgap' || activeTab === 'ats') ? 'hidden' : ''} disabled:opacity-50`}
               >
-                <Sparkles className="w-4 h-4" />{t("Refresh Insights")}</button>
+                <RefreshCw className={`w-4 h-4 ${(activeTab === 'gps' && gpsLoading) || (activeTab === 'barriers' && barriersLoading) || (activeTab === 'interview' && interviewLoading) ? 'animate-spin' : ''}`} />{t("Refresh Insights")}
+              </button>
             </div>
           </div>
 
           {/* Eye-Catchy Button Tabs */}
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 pt-1">
+          <div className="flex gap-4 md:gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] max-md:pb-0 md:pb-3 pt-2 pl-2 -ml-2 pr-4 max-md:border-b max-md:border-gray-200">
             {[
               { id: 'interview', icon: MessageSquare, label: 'Interview Questions' },
               { id: 'gps', icon: TrendingUp, label: 'AI Career GPS' },
@@ -350,13 +351,16 @@ export default function GrowWithAIDashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-2 px-5 text-[13.5px] font-bold transition-all duration-300 whitespace-nowrap flex items-center gap-2 rounded-full border ${
+                className={`transition-all duration-300 whitespace-nowrap flex items-center gap-2 
+                  max-md:pb-3 max-md:text-[14px] max-md:font-bold max-md:-mb-px max-md:border-b-[3px] max-md:rounded-none
+                  md:py-2 md:px-4 md:text-[13px] md:font-bold md:rounded-xl md:border
+                  ${
                   activeTab === tab.id 
-                    ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white border-transparent shadow-md shadow-emerald-600/25 transform scale-[1.02]' 
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-emerald-600/30 hover:bg-emerald-50/50'
+                    ? 'max-md:border-emerald-600 max-md:text-emerald-700 md:bg-emerald-600 md:text-white md:border-transparent md:shadow-md md:shadow-emerald-600/25' 
+                    : 'max-md:border-transparent max-md:text-gray-500 max-md:hover:border-gray-300 md:bg-white md:text-gray-700 md:border-gray-200 md:hover:border-emerald-600/30 md:hover:bg-emerald-50/50'
                 }`}
               >
-                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-gray-400'}`} /> 
+                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'max-md:text-emerald-600 md:text-white' : 'text-gray-400'}`} /> 
                 {tab.label}
               </button>
             ))}
@@ -419,36 +423,36 @@ export default function GrowWithAIDashboard() {
           <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-5 h-5 text-[#059669]" />
-              <h3 className="font-bold text-gray-900 text-[14px]">{t("AI Summary")}</h3>
+              <h3 className="font-bold text-gray-900 max-md:text-[18px] md:text-[14px]">{t("AI Summary")}</h3>
             </div>
-            <p className="text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">{t("Here's what AI thinks about your job search progress.")}</p>
+            <p className="max-md:text-[15px] md:text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">{t("Here's what AI thinks about your job search progress.")}</p>
             
             <ul className="space-y-3.5 mb-6">
               {reportLoading ? (
                 <div className="flex justify-center py-4"><div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div></div>
               ) : reportNeedsGen ? (
                 <div className="text-center py-4">
-                  <p className="text-[11px] text-gray-500 mb-3">{t("New analysis available.")}</p>
-                  <button onClick={() => fetchReport(false)} className="px-4 py-2 bg-[#059669] text-white text-[11px] font-bold rounded-lg shadow-sm hover:bg-teal-800 transition-all flex items-center justify-center gap-1.5 w-full">
+                  <p className="max-md:text-[15px] md:text-[11px] text-gray-500 mb-3">{t("New analysis available.")}</p>
+                  <button onClick={() => fetchReport(false)} className="px-4 py-2 bg-[#059669] text-white max-md:text-[15px] md:text-[11px] font-bold rounded-lg shadow-sm hover:bg-teal-800 transition-all flex items-center justify-center gap-1.5 w-full">
                     <Sparkles className="w-3.5 h-3.5" /> {t("Generate AI Report (1 Credit)")}
                   </button>
                 </div>
               ) : reportData?.top_strengths ? (
                 reportData.top_strengths.slice(0, 4).map((strength, i) => (
-                  <li key={i} className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                  <li key={i} className="flex items-start gap-2 max-md:text-[15px] md:text-[11px] font-bold text-gray-700">
                     <Check className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
                     <span className={!isPro ? "blur-[4px] select-none pointer-events-none" : ""}>{strength}</span>
                   </li>
                 ))
               ) : (
                 <>
-                  <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                  <li className="flex items-start gap-2 max-md:text-[15px] md:text-[11px] font-bold text-gray-700">
                     <Check className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />{t("Your profile is well optimized")}</li>
-                  <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                  <li className="flex items-start gap-2 max-md:text-[15px] md:text-[11px] font-bold text-gray-700">
                     <Check className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />{t("You have strong skills for your roles")}</li>
-                  <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                  <li className="flex items-start gap-2 max-md:text-[15px] md:text-[11px] font-bold text-gray-700">
                     <Check className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />{t("Keep applying consistently")}</li>
-                  <li className="flex items-start gap-2 text-[11px] font-bold text-gray-700">
+                  <li className="flex items-start gap-2 max-md:text-[15px] md:text-[11px] font-bold text-gray-700">
                     <Check className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />{t("Improve these skills to get more interviews")}</li>
                 </>
               )}
@@ -456,7 +460,7 @@ export default function GrowWithAIDashboard() {
             {!reportNeedsGen && (
               <button 
                 onClick={() => isPro && setIsAiReportModalOpen(true)}
-                className={`w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition flex justify-center items-center gap-1.5 ${!isPro ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full py-2.5 border border-gray-200 rounded-xl max-md:text-[15px] md:text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition flex justify-center items-center gap-1.5 ${!isPro ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {t("View Full AI Analysis")}<ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -468,14 +472,14 @@ export default function GrowWithAIDashboard() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Bot className="w-5 h-5 text-gray-700" />
-                <h3 className="font-bold text-gray-900 text-[14px]">{t("AI Coach")}</h3>
+                <h3 className="font-bold text-gray-900 max-md:text-[18px] md:text-[14px]">{t("AI Coach")}</h3>
               </div>
-              <span className="bg-indigo-50 text-indigo-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-indigo-100">{t("Premium")}</span>
+              <span className="bg-indigo-50 text-indigo-600 max-md:text-[12px] md:text-[9px] font-bold px-2 py-0.5 rounded-full border border-indigo-100">{t("Premium")}</span>
             </div>
-            <p className="text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">{t("Get personalized guidance to move ahead in your career.")}</p>
+            <p className="max-md:text-[15px] md:text-[11px] text-gray-500 mb-5 leading-relaxed font-medium">{t("Get personalized guidance to move ahead in your career.")}</p>
             
             <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl rounded-tr-sm mb-5 relative ml-6">
-              <p className="text-[11px] text-gray-700 leading-relaxed font-medium">{t(
+              <p className="max-md:text-[15px] md:text-[11px] text-gray-700 leading-relaxed font-medium">{t(
                 "Hi! I analyzed your profile and applications. Would you like me to suggest some ways to improve your chances?"
               )}</p>
               <div className="absolute -left-8 top-0 w-8 h-8 bg-[#059669] shadow-sm rounded-full flex items-center justify-center">
@@ -483,7 +487,7 @@ export default function GrowWithAIDashboard() {
               </div>
             </div>
             
-            <button onClick={() => isPro && window.dispatchEvent(new CustomEvent('open-ai-coach'))} className={`w-full py-2.5 border border-gray-200 rounded-xl text-[11px] font-bold text-[#059669] hover:bg-gray-50 transition flex justify-center items-center gap-1.5 ${isPro ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}>{t("Chat with AI Coach")}<ArrowRight className="w-3.5 h-3.5" />
+            <button onClick={() => isPro && window.dispatchEvent(new CustomEvent('open-ai-coach'))} className={`w-full py-2.5 border border-gray-200 rounded-xl max-md:text-[15px] md:text-[11px] font-bold text-[#059669] hover:bg-gray-50 transition flex justify-center items-center gap-1.5 ${isPro ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}>{t("Chat with AI Coach")}<ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -492,7 +496,7 @@ export default function GrowWithAIDashboard() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-[#075E54] flex items-center justify-center"><FaWhatsapp className="w-3.5 h-3.5 text-white" /></div>
-                <h3 className="font-bold text-gray-900 text-[14px]">{t("WhatsApp AI Alerts")}</h3>
+                <h3 className="font-bold text-gray-900 max-md:text-[18px] md:text-[14px]">{t("WhatsApp AI Alerts")}</h3>
               </div>
               <div
                 onClick={() => {
@@ -504,15 +508,15 @@ export default function GrowWithAIDashboard() {
                 <div className={`w-5 h-5 min-w-[20px] min-h-[20px] rounded-full bg-white shadow-sm transform transition-transform duration-200 ease-in-out ${whatsappEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
               </div>
             </div>
-            <p className="text-[11px] text-gray-500 mb-4 font-medium">
+            <p className="max-md:text-[15px] md:text-[11px] text-gray-500 mb-4 font-medium">
               {whatsappEnabled ? t("You will receive updates on your phone.") : t("Stay updated on the go!")}
             </p>
             
             <ul className={`space-y-3 mb-6 transition-opacity duration-200 ${whatsappEnabled ? 'opacity-100' : 'opacity-60'}`}>
-              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#075E54]' : 'text-gray-400'}`} />{t("New job matches")}</li>
-              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#075E54]' : 'text-gray-400'}`} />{t("Application status updates")}</li>
-              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#075E54]' : 'text-gray-400'}`} />{t("Interview reminders")}</li>
-              <li className="flex items-center gap-2 text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#075E54]' : 'text-gray-400'}`} />{t("Salary drops & more")}</li>
+              <li className="flex items-center gap-2 max-md:text-[15px] md:text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#075E54]' : 'text-gray-400'}`} />{t("New job matches")}</li>
+              <li className="flex items-center gap-2 max-md:text-[15px] md:text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#075E54]' : 'text-gray-400'}`} />{t("Application status updates")}</li>
+              <li className="flex items-center gap-2 max-md:text-[15px] md:text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#075E54]' : 'text-gray-400'}`} />{t("Interview reminders")}</li>
+              <li className="flex items-center gap-2 max-md:text-[15px] md:text-[11px] font-bold text-gray-700"><Check className={`w-3.5 h-3.5 ${whatsappEnabled ? 'text-[#075E54]' : 'text-gray-400'}`} />{t("Salary drops & more")}</li>
             </ul>
             
             <button 
@@ -520,7 +524,7 @@ export default function GrowWithAIDashboard() {
                 setWhatsappEnabled(!whatsappEnabled);
                 toast.success(whatsappEnabled ? "WhatsApp alerts disabled" : "WhatsApp alerts enabled!");
               }}
-              className={`w-full py-2.5 border rounded-xl text-[11px] font-bold transition flex justify-center items-center gap-2 ${whatsappEnabled ? 'border-[#075E54]/20 bg-[#075E54]/10 text-[#04433B] hover:bg-[#075E54]/20' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+              className={`w-full py-2.5 border rounded-xl max-md:text-[15px] md:text-[11px] font-bold transition flex justify-center items-center gap-2 ${whatsappEnabled ? 'border-[#075E54]/20 bg-[#075E54]/10 text-[#04433B] hover:bg-[#075E54]/20' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
             >
               {whatsappEnabled ? t("Manage Alert Settings") : t("Enable WhatsApp Alerts")}<FaWhatsapp className={`w-4 h-4 ${whatsappEnabled ? 'text-[#04433B]' : 'text-[#075E54]'}`} />
             </button>
@@ -531,8 +535,8 @@ export default function GrowWithAIDashboard() {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-orange-50 border border-orange-100 rounded-lg flex items-center justify-center text-[10px]">💰</div>
-                <h3 className="font-bold text-gray-900 text-[14px]">{t("Earn Extra Income")}</h3>
-                <span className="bg-orange-50 text-orange-600 border border-orange-100 text-[9px] font-bold px-1.5 py-0.5 rounded-full hidden sm:inline-block">{t("New")}</span>
+                <h3 className="font-bold text-gray-900 max-md:text-[18px] md:text-[14px]">{t("Earn Extra Income")}</h3>
+                <span className="bg-orange-50 text-orange-600 border border-orange-100 max-md:text-[12px] md:text-[9px] font-bold px-1.5 py-0.5 rounded-full hidden sm:inline-block">{t("New")}</span>
               </div>
               <div
                 onClick={() => {
@@ -546,19 +550,19 @@ export default function GrowWithAIDashboard() {
             </div>
             
             <div className="flex items-center justify-between gap-2 mb-5 mt-4">
-              <p className="text-[11px] text-gray-700 leading-relaxed max-w-[130px] font-medium">
+              <p className="max-md:text-[15px] md:text-[11px] text-gray-700 leading-relaxed max-w-[130px] font-medium">
                 {freelanceEnabled 
                   ? t("We are actively finding freelance projects for you.") 
                   : t("Discover freelance projects matching your skills.")}
               </p>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-colors ${freelanceEnabled ? 'bg-[#059669] border-[#059669]' : 'bg-[#059669]/10 border-[#059669]/20'}`}>
+              <div className={`w-10 h-10 rounded-xl hidden md:flex items-center justify-center border transition-colors ${freelanceEnabled ? 'bg-[#059669] border-[#059669]' : 'bg-[#059669]/10 border-[#059669]/20'}`}>
                 <Briefcase className={`w-5 h-5 transition-colors ${freelanceEnabled ? 'text-white' : 'text-[#059669]'}`} />
               </div>
             </div>
 
             <button 
               onClick={() => navigate('/provider/jobs?type=freelance')}
-              className={`w-full py-2.5 border rounded-xl text-[11px] font-bold transition flex justify-center items-center gap-1.5 shadow-sm ${freelanceEnabled ? 'border-[#059669] bg-[#059669] text-white hover:bg-[#115e59]' : 'border-[#059669]/20 bg-[#059669]/5 text-[#059669] hover:bg-[#059669]/10'}`}
+              className={`w-full py-2.5 border rounded-xl max-md:text-[15px] md:text-[11px] font-bold transition flex justify-center items-center gap-1.5 shadow-sm ${freelanceEnabled ? 'border-[#059669] bg-[#059669] text-white hover:bg-[#115e59]' : 'border-[#059669]/20 bg-[#059669]/5 text-[#059669] hover:bg-[#059669]/10'}`}
             >
               {t("Explore Freelance Jobs")}<ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -1224,9 +1228,9 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
         </div>
       ) : (
         <>
-      <div className="mb-6">
-        <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
-          <MessageSquare className="text-[#059669] w-6 h-6" /> {t("Interview Questions")}
+      <div className="mb-6 text-left">
+        <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2 justify-start">
+          <MessageSquare className="text-[#059669] w-6 h-6 hidden md:block" /> {t("Interview Questions")}
         </h2>
         <p className="text-gray-500 text-[13px] font-medium mt-1">
           {t("AI-generated questions tailored to your profile and target roles.")}
@@ -1234,16 +1238,19 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
       </div>
       
       {/* Category Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-100 pb-2">
+      <div className="flex max-md:gap-8 md:gap-2 mb-6 border-b md:border-b-0 border-gray-200">
         {['technical', 'behavioural', 'hr'].map(cat => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
-              activeCategory === cat 
-                ? 'bg-emerald-600 text-white shadow-sm' 
-                : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-            }`}
+            className={`capitalize transition-all whitespace-nowrap 
+              max-md:-mb-px max-md:pb-3 max-md:text-[15.5px] max-md:font-bold max-md:border-b-[3px]
+              md:px-4 md:py-2 md:rounded-xl md:text-sm md:font-bold md:border
+              ${
+                activeCategory === cat 
+                  ? 'max-md:border-emerald-600 max-md:text-emerald-700 md:bg-emerald-600 md:text-white md:shadow-sm md:border-emerald-600' 
+                  : 'max-md:border-transparent max-md:text-gray-400 max-md:hover:border-gray-300 md:bg-white md:text-gray-700 md:border-gray-200 md:hover:bg-gray-50'
+              }`}
           >
             {cat}
           </button>
@@ -1256,38 +1263,30 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
           const isRevealed = revealed[globalIdx];
           return (
             <div key={globalIdx} className="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm transition-all hover:border-[#059669]/30">
-              <div className="flex justify-between items-start gap-4">
-                <div>
-                  <span className="text-[10px] font-bold text-[#059669] bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-md mb-3 inline-block capitalize">
+              <div className="flex flex-col items-start text-left w-full">
+                <div className="flex justify-between items-center w-full mb-3">
+                  <span className="text-[10px] font-bold text-[#059669] bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-md inline-block capitalize">
                     {activeCategory}
                   </span>
-                  <h4 className={`text-[14px] font-bold text-gray-900 mb-2 ${blurClass}`}>
-                    {item.q}
-                  </h4>
-                </div>
-                {isPro && (
-                  <button 
-                    onClick={() => toggleReveal(globalIdx)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition shrink-0 flex items-center gap-1.5 shadow-xs ${
-                      isRevealed 
-                        ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200/80' 
-                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/80'
-                    }`}
-                    title={isRevealed ? "Hide Answer" : "View Answer"}
-                  >
-                    {isRevealed ? (
-                      <>
-                        <EyeOff className="w-3.5 h-3.5 text-rose-500" />
+                  {isPro && (
+                    <button 
+                      onClick={() => toggleReveal(globalIdx)}
+                      className="text-emerald-600 hover:text-emerald-800 text-[13px] font-bold transition flex items-center gap-1"
+                      title={isRevealed ? "Hide Answer" : "View Answer"}
+                    >
+                      {isRevealed ? (
                         <span>{t("Hide Answer")}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{t("View Answer")}</span>
-                      </>
-                    )}
-                  </button>
-                )}
+                      ) : (
+                        <>
+                          <span>{t("View Answer")}</span> <ArrowRight className="w-3.5 h-3.5" />
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <h4 className={`text-[14px] font-medium text-gray-800 w-full mb-1 ${blurClass}`}>
+                  {item.q}
+                </h4>
               </div>
               
               <div 
@@ -1311,10 +1310,10 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
         )}
 
         {isPro && questions[activeCategory].length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-[#059669]/20 rounded-2xl bg-teal-50/30">
-            <MessageSquare className="w-10 h-10 text-[#059669]/40 mb-3" />
+          <div className="flex flex-col items-start md:items-center justify-center p-6 md:p-10 border-2 border-dashed border-[#059669]/20 rounded-2xl bg-teal-50/30">
+            <MessageSquare className="w-10 h-10 text-[#059669]/40 mb-3 hidden md:block" />
             <h3 className="text-gray-900 font-bold mb-1">Ready for {activeCategory} questions?</h3>
-            <p className="text-sm text-gray-500 mb-5 max-w-sm text-center">Generate your first batch of AI-tailored {activeCategory} interview questions to practice.</p>
+            <p className="text-sm text-gray-500 mb-5 max-w-sm text-left md:text-center">Generate your first batch of AI-tailored {activeCategory} interview questions to practice.</p>
             <button 
               onClick={() => fetchQuestions(activeCategory)}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold transition flex items-center gap-2"
@@ -1331,12 +1330,12 @@ function InterviewQuestionsPanel({ isPro, fileHash, parsedData }) {
         )}
 
         {isPro && questions[activeCategory].length > 0 && questions[activeCategory].length < 15 && !loading && (
-          <div className="flex justify-center mt-6">
+          <div className="flex justify-start md:justify-center mt-6">
             <button 
               onClick={() => fetchQuestions(activeCategory)}
               className="bg-gray-50 hover:bg-gray-100 text-emerald-700 border border-gray-200 px-6 py-2.5 rounded-xl font-bold transition flex items-center gap-2"
             >
-              <Sparkles className="w-4 h-4" /> Load More Questions
+              <Sparkles className="w-4 h-4 hidden md:block" /> {t("Load More Questions")}
             </button>
           </div>
         )}

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { toPng } from 'html-to-image';
+import { jsPDF } from 'jspdf';
 import {
   BadgeCheck,
   BadgePercent,
@@ -19,6 +21,12 @@ import {
   ShieldCheck,
   X,
   Sparkles,
+  ArrowRight,
+  Clock,
+  Download,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import RouteLoader from '../../components/common/RouteLoader';
@@ -44,14 +52,14 @@ import { safeReturnPath } from '../../utils/navigation';
 
 const DURATION_OPTIONS = Array.from({ length: 12 }, (_, index) => {
   const months = index + 1;
-  const discount = { 3: 10, 6: 15, 12: 25 }[months] || 0;
+  const discount = { 3: 10, 6: 15, 12: 20 }[months] || 0;
   return {
     months,
     label: `${months} Month${months > 1 ? 's' : ''}`,
     badge: discount ? `Save ${discount}%` : '',
   };
 });
-const DISCOUNT_BY_MONTHS = { 1: 0, 3: 10, 6: 15, 12: 25 };
+const DISCOUNT_BY_MONTHS = { 1: 0, 3: 10, 6: 15, 12: 20 };
 
 const planIconMap = {
   'add-multiple-skills': BadgeCheck,
@@ -76,9 +84,12 @@ const formatCurrency = (value, symbol = '₹') => {
 
 const buildLocalPreview = (plan, months) => {
   if (!plan) return null;
+  const isAddon = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(plan.slug);
+  const effectiveMonths = isAddon ? 1 : months;
+  
   const monthlyPrice = Number(plan.priceMonthly || plan.price || 0);
-  const discountPercent = DISCOUNT_BY_MONTHS[months] || 0;
-  const subtotal = Math.max(0, Math.round(monthlyPrice * months * (1 - discountPercent / 100) * 100) / 100);
+  const discountPercent = DISCOUNT_BY_MONTHS[effectiveMonths] || 0;
+  const subtotal = Math.max(0, Math.round(monthlyPrice * effectiveMonths * (1 - discountPercent / 100) * 100) / 100);
   const taxPercent = plan.gstPercent || 0;
   const gstAmount = 0;
   const totalAmount = subtotal;
@@ -122,20 +133,25 @@ const ProviderPlans = () => {
   const [pricingPreview, setPricingPreview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState('');
   const [showGuaranteeModal, setShowGuaranteeModal] = useState(false);
   const [isAutoSubscription, setIsAutoSubscription] = useState(true);
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [availableAddons, setAvailableAddons] = useState([]);
+  const [paymentSuccessData, setPaymentSuccessData] = useState(location.state?.invoiceData || null);
+  const isHistoricalInvoice = !!location.state?.invoiceData;
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelConfirmed, setCancelConfirmed] = useState(false);
   const [cancelBankMethod, setCancelBankMethod] = useState(null);
+  const [isInvoiceMinimized, setIsInvoiceMinimized] = useState(false);
 
   const [availableSkills, setAvailableSkills] = useState([]);
   const [skillsLoading, setSkillsLoading] = useState(false);
   const [finalizingPayment, setFinalizingPayment] = useState(false);
   const [usageSummary, setUsageSummary] = useState(null);
   const [activePlanData, setActivePlanData] = useState(null);
+  const [providerProfileData, setProviderProfileData] = useState(null);
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
@@ -218,11 +234,12 @@ const ProviderPlans = () => {
       setError('');
       try {
         setHistoryLoading(true);
-        const [planList, myPlan, usageMetrics, paymentsRes] = await Promise.all([
+        const [planList, myPlan, usageMetrics, paymentsRes, profileRes] = await Promise.all([
           getProviderPlans(),
           getMyPlan(),
           getProviderUsageMetrics().catch(() => null),
-          providerAPI.getMyPayments().catch(() => null)
+          providerAPI.getMyPayments().catch(() => null),
+          providerAPI.getProfile().catch(() => null)
         ]);
         const filteredPlans = planList.filter(p => {
           const isTopPlan = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(p.slug);
@@ -235,6 +252,9 @@ const ProviderPlans = () => {
         setAvailableAddons(addons);
         setUsageSummary(usageMetrics);
         setActivePlanData(myPlan);
+        if (profileRes?.data) {
+          setProviderProfileData(profileRes.data);
+        }
         if (paymentsRes?.data) {
           const list = Array.isArray(paymentsRes.data) ? paymentsRes.data : (paymentsRes.data.data || paymentsRes.data.payments || []);
           setPaymentHistory(list);
@@ -246,15 +266,10 @@ const ProviderPlans = () => {
         if (myPlan?.subscription?.planId) {
           const existing = planList.find((plan) => String(plan._id) === String(myPlan.subscription.planId));
           if (existing) {
-            setSelectedPlan(existing);
             setSelectedDuration(Number(myPlan.subscription.durationMonths || 1));
           }
         }
 
-        if (!selectedPlan && planList.length) {
-          const popular = planList.find((plan) => plan.isPopular);
-          setSelectedPlan(popular || planList[0]);
-        }
       } catch (err) {
         setError('Failed to load plans. Please try again.');
       } finally {
@@ -386,7 +401,7 @@ const ProviderPlans = () => {
     if (checkout?.simulationMode) {
       const confirm = window.confirm('Simulation Mode: Click OK to simulate successful payment.');
       if (confirm) {
-        await confirmPaymentSuccess({
+        const confirmRes = await confirmPaymentSuccess({
           subscriptionId: subscription?._id,
           paymentId: 'sim_' + Date.now(),
           orderId: 'sim_order_' + Date.now(),
@@ -397,10 +412,10 @@ const ProviderPlans = () => {
         toast.success('Simulation: Payment successful! Plan activated.');
         sessionStorage.removeItem('paymentReturnTo');
         sessionStorage.removeItem('paymentReturnSource');
-        navigate(returnTo, {
-          replace: true,
-          state: { paymentSuccess: true, refreshSubscription: true, source: 'provider-plans-simulation' },
-        });
+        
+        // Show success UI locally
+        setPaymentSuccessData(confirmRes?.subscription || subscription);
+        window.scrollTo(0, 0);
         return;
       }
     }
@@ -420,7 +435,7 @@ const ProviderPlans = () => {
         name: 'ServiceHub',
         description: plan?.name || 'Subscription',
         handler: async (payment) => {
-          await confirmPaymentSuccess({
+          const confirmRes = await confirmPaymentSuccess({
             subscriptionId: subscription?._id,
             paymentId: payment?.razorpay_payment_id,
             orderId: payment?.razorpay_order_id,
@@ -432,10 +447,10 @@ const ProviderPlans = () => {
           toast.success('Payment successful! Plan activated.');
           sessionStorage.removeItem('paymentReturnTo');
           sessionStorage.removeItem('paymentReturnSource');
-          navigate(returnTo, {
-            replace: true,
-            state: { paymentSuccess: true, refreshSubscription: true, source: 'provider-plans-razorpay' },
-          });
+          
+          // Show success UI locally
+          setPaymentSuccessData(confirmRes?.subscription || subscription);
+          window.scrollTo(0, 0);
         },
       };
       const razorpay = new window.Razorpay(options);
@@ -448,10 +463,9 @@ const ProviderPlans = () => {
       const updatedUsage = await getProviderUsageMetrics().catch(() => null);
       if (updatedUsage) setUsageSummary(updatedUsage);
       toast.success(checkout?.message || 'Plan activated successfully.');
-      navigate(returnTo, {
-        replace: true,
-        state: { paymentSuccess: true, refreshSubscription: true, source: 'provider-plans-free' },
-      });
+      
+      setPaymentSuccessData(subscription);
+      window.scrollTo(0, 0);
     } else {
       toast.error('Failed to initiate checkout.');
     }
@@ -581,11 +595,249 @@ const ProviderPlans = () => {
 
   if (loading) {
     return <RouteLoader />;
+  };
+
+  const handleDownloadPdf = async () => {
+    const element = document.getElementById('invoice-preview');
+    if (!element) return;
+    
+    setIsDownloading(true);
+
+    // Temporarily hide the download and pay buttons for the PDF
+    const actionButtons = element.querySelectorAll('.no-print');
+    actionButtons.forEach(btn => btn.style.display = 'none');
+    
+    // Show the invoice number for the PDF
+    const invoiceNumElements = element.querySelectorAll('.pdf-only');
+    invoiceNumElements.forEach(el => el.style.display = 'block');
+
+    // Force A4 aspect ratio on the element before capturing
+    const originalMinHeight = element.style.minHeight;
+    element.style.minHeight = `${element.offsetWidth * 1.414}px`;
+
+    try {
+      // Use html-to-image because html2canvas (used by html2pdf) doesn't support Tailwind v4's oklch colors
+      const dataUrl = await toPng(element, { quality: 0.98, pixelRatio: 2 });
+      
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: 'a4'
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`lucohire-invoice-${(selectedPlan?.name || 'receipt').toLowerCase()}-${new Date().getTime()}.pdf`);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      toast.error(t("Failed to generate PDF"));
+    } finally {
+      element.style.minHeight = originalMinHeight;
+      actionButtons.forEach(btn => btn.style.display = '');
+      invoiceNumElements.forEach(el => el.style.display = 'none');
+      setIsDownloading(false);
+    }
+  };
+
+  if (paymentSuccessData) {
+    const invoiceNumber = `INV-${(paymentSuccessData._id || 'PAYMENT').toString().slice(-6).toUpperCase()}`;
+    const rawAmount = paymentSuccessData.finalAmount || paymentSuccessData.totalAmount || paymentSuccessData.subtotal || 0;
+    const amount = Math.round(rawAmount * 100) / 100;
+    const currency = paymentSuccessData.currency || 'INR';
+    const addonsTotal = (paymentSuccessData.selectedAddons || []).reduce((acc, addon) => acc + (addon.totalPrice || addon.price || 0), 0);
+    const basePlanAmount = Math.round(Math.max(0, amount - addonsTotal) * 100) / 100;
+
+    
+    return (
+      <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8 font-sans flex flex-col items-center justify-center">
+        <div className="w-full max-w-3xl bg-white border border-slate-200 rounded-xl shadow-sm p-8 text-center animate-in zoom-in duration-500">
+          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Check className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-800 mb-2">{isHistoricalInvoice ? t("Invoice Details") : t("Payment Successful!")}</h2>
+          {!isHistoricalInvoice && (
+            <p className="text-slate-500 mb-8">{t("Your subscription has been activated and an invoice has been sent to your email.")}</p>
+          )}
+          
+          {/* Invoice Summary */}
+          <div className="bg-slate-50 rounded-xl pt-0 text-left border border-slate-200 mb-8 relative font-sans overflow-hidden flex flex-col z-0" id="invoice-preview">
+            
+            {/* Watermark Logo */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-[0.06]">
+              <img src="/lucologo.png" alt="" className="w-full max-w-2xl scale-110 object-contain" />
+            </div>
+
+            {/* Company & Date Details */}
+            <div className="bg-emerald-50 flex flex-col md:flex-row justify-between items-start md:items-start mb-6 md:mb-8 gap-4 md:gap-6 pb-6 border-b border-emerald-100 p-6 relative z-10">
+              <div className="hidden md:flex items-start gap-4">
+                <div className="w-16 h-16 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center shrink-0">
+                  <img src="/lucologo.png" alt="Lucohire Logo" className="w-full h-auto object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Lucohire Inc.</h2>
+                  <p className="text-sm font-medium text-slate-600 mt-0.5">AI-Powered Global Jobs & Hiring Platform</p>
+                  <div className="mt-3 text-xs text-slate-500 space-y-1">
+                    <p className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> SUPERTECH ECO VILLAGE-2,</p>
+                    <p className="pl-5">GAUTAM BUDDHA NAGAR, 201306, INDIA</p>
+                    <p className="flex items-center gap-1.5 mt-1.5"><MessageCircle className="w-3.5 h-3.5" /> support@lucohire.com</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-left md:text-right w-full md:w-auto flex flex-row md:flex-col items-center md:items-end justify-between h-auto md:h-full md:min-h-[80px]">
+                <div className="text-left md:text-right w-full flex justify-between md:block items-center">
+                  <div className="mb-2">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("Invoice")}</p>
+                    <p className="text-sm font-bold text-slate-800">{invoiceNumber}</p>
+                  </div>
+                  <div className="mb-2">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("Date & Time")}</p>
+                    <p className="text-sm font-medium text-slate-800">
+                      {paymentSuccessData.createdAt 
+                        ? `${new Date(paymentSuccessData.createdAt).toLocaleDateString()} - ${new Date(paymentSuccessData.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                        : `${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                    </p>
+                  </div>
+                  <div className="pdf-only hidden">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("Terms")}</p>
+                    <p className="text-sm font-medium text-slate-600">Auto-renewing</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Invoice Items Table */}
+            <div className="px-6 relative z-10">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-slate-800">
+                    <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[140px] sm:w-1/2">{t("Description")}</th>
+                    <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">{t("Amount")}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  <tr className="hover:bg-slate-50 transition-colors">
+                    <td className="py-4 px-4">
+                      <p className="font-bold text-slate-800">{paymentSuccessData.planSnapshot?.name || 'Subscription'}</p>
+                      <p className="text-xs text-slate-500 mt-1">{t("Subscription fee")}</p>
+                      <div className="mt-2 text-[11px] text-slate-600 flex flex-col gap-0.5">
+                        <p><span className="font-medium text-slate-500">{t("Starting Date")}:</span> {new Date(paymentSuccessData.createdAt || Date.now()).toLocaleDateString()}</p>
+                        <p><span className="font-medium text-slate-500">{t("Next Billing Date")}:</span> {paymentSuccessData.endDate ? new Date(paymentSuccessData.endDate).toLocaleDateString() : (() => { const d = new Date(paymentSuccessData.createdAt || Date.now()); const dur = paymentSuccessData.planSnapshot?.durationMonths || paymentSuccessData.durationMonths || selectedDuration; if (Number(dur) === 12) d.setDate(d.getDate() + 365); else if (Number(dur) === 3) d.setDate(d.getDate() + 90); else d.setDate(d.getDate() + 30); return d.toLocaleDateString(); })()}</p>
+                        <p><span className="font-medium text-slate-500">{t("Auto Renewal")}:</span> <span className="text-emerald-600 font-bold">On</span></p>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-right font-bold text-slate-800">
+                      {currency === 'INR' ? '₹' : '$'}{basePlanAmount}
+                    </td>
+                  </tr>
+                  {(paymentSuccessData.selectedAddons || []).map((addon, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-4 px-4">
+                        <p className="font-bold text-slate-800">{addon.description || addon.name || 'Add-on'}</p>
+                        <p className="text-xs text-slate-500 mt-1">{t("Monthly Add-on fee")}</p>
+                        <div className="mt-2 text-[11px] text-slate-600 flex flex-col gap-0.5">
+                          <p><span className="font-medium text-slate-500">{t("Starting Date")}:</span> {new Date(paymentSuccessData.createdAt || Date.now()).toLocaleDateString()}</p>
+                          <p><span className="font-medium text-slate-500">{t("Next Billing Date")}:</span> {(() => { const d = new Date(paymentSuccessData.createdAt || Date.now()); d.setDate(d.getDate() + 30); return d.toLocaleDateString(); })()}</p>
+                          <p><span className="font-medium text-slate-500">{t("Auto Renewal")}:</span> <span className="text-emerald-600 font-bold">On</span></p>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-right font-bold text-slate-800">
+                        {currency === 'INR' ? '₹' : '$'}{addon.totalPrice || addon.price || 0}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Invoice Totals */}
+            <div className="flex flex-col items-end justify-end mt-8 border-t border-slate-200 pt-6 px-6 relative z-10">
+              <div className="w-full sm:w-80 space-y-3">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-medium text-slate-500">{t("Subtotal")}</span>
+                  <span className="font-bold text-slate-800">{currency === 'INR' ? '₹' : '$'}{amount}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-medium text-slate-500">{t("Taxes & Fees")}</span>
+                  <span className="font-medium text-slate-500 text-xs italic">{t("Calculated at checkout")}</span>
+                </div>
+                <div className="border-t-2 border-slate-800 pt-3 mt-3 flex justify-between items-center">
+                  <span className="font-black text-slate-800 text-lg">{t("Total Due")}</span>
+                  <span className="font-black text-slate-900 text-xl">
+                    {currency === 'INR' ? '₹' : '$'}{amount}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bill To Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mt-10 pt-8 border-t border-slate-200 gap-6 px-6 relative z-10">
+              <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">{t("Bill To")}</p>
+                <p className="text-base font-bold text-slate-800">{user?.name || "Provider Name"}</p>
+                <p className="text-sm font-medium text-slate-700 mt-0.5">
+                  {providerProfileData?.skills?.[0] || profile?.skills?.[0] || user?.providerProfile?.skills?.[0] || user?.skills?.[0] || profile?.headline || user?.headline || profile?.title || user?.title || user?.providerProfile?.speciality || user?.speciality || profile?.speciality || "Specialized Services"}
+                </p>
+                {user?.email && <p className="text-sm text-slate-600 mt-0.5">{user.email}</p>}
+                {(providerProfileData?.phone || profile?.phone || user?.providerProfile?.phone || user?.phone) && (
+                  <p className="text-sm text-slate-600 mt-0.5">
+                    {providerProfileData?.phone || profile?.phone || user?.providerProfile?.phone || user?.phone}
+                  </p>
+                )}
+                <p className="text-sm text-slate-600 mt-0.5">
+                  {(() => {
+                    const getStr = (val) => {
+                      if (!val) return null;
+                      if (typeof val === 'string') return val;
+                      if (typeof val === 'object') return val.city || val.name || val.formattedAddress;
+                      return null;
+                    };
+                    const pLoc = getStr(providerProfileData?.location) || getStr(providerProfileData?.city) || getStr(providerProfileData?.locationData);
+                    const profLoc = getStr(profile?.location) || getStr(profile?.city) || getStr(profile?.locationData);
+                    const uLoc = getStr(user?.providerProfile?.location) || getStr(user?.providerProfile?.city) || getStr(user?.location) || getStr(user?.city);
+                    return pLoc || profLoc || uLoc || "Noida, UP";
+                  })()}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-auto pt-6 pb-6 border-t border-slate-200 text-center px-6">
+              <p className="text-sm font-medium text-slate-600">
+                {t("This is a computer-generated invoice. No signature is required.")}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button 
+              onClick={handleDownloadPdf}
+              disabled={isDownloading}
+              className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              {isDownloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {t("Download Invoice")}
+            </button>
+            <button 
+              onClick={() => {
+                setPaymentSuccessData(null);
+                navigate('/provider/dashboard');
+              }}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <ArrowRight className="w-4 h-4" />
+              {t("Go to Dashboard")}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-7xl mx-auto relative">
+      <div className="mx-auto relative">
         {/* Active Plan Display Top Left */}
         {(() => {
           if (!activePlanData || !activePlanData.subscription || activePlanData.subscription.subscriptionStatus !== 'active' || activePlanData.plan?.slug === 'free') return null;
@@ -644,27 +896,55 @@ const ProviderPlans = () => {
 
 
         {/* Duration Toggles */}
-        <div className="flex justify-center mb-10 relative px-4 sm:px-0">
-          <div className="bg-white border border-emerald-100 rounded-2xl sm:rounded-full p-1.5 flex flex-col sm:flex-row sm:inline-flex items-stretch sm:items-center relative shadow-sm w-full sm:w-auto gap-1 sm:gap-0">
-            <button
-              onClick={() => setSelectedDuration(1)}
-              className={`relative z-10 w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-2.5 text-sm font-bold rounded-xl sm:rounded-full transition-colors flex items-center justify-center ${selectedDuration === 1 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950 bg-slate-50 sm:bg-transparent'}`}
-            >{t("Monthly Plans")}</button>
-            <button
-              onClick={() => setSelectedDuration(3)}
-              className={`relative z-10 w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-2.5 text-sm font-bold rounded-xl sm:rounded-full transition-colors flex items-center justify-center gap-2 ${selectedDuration === 3 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950 bg-slate-50 sm:bg-transparent'}`}
-            >{t("Quarterly Plans")}<span className={`text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap ${selectedDuration === 3 ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'}`}>{t("10% OFF")}</span>
-            </button>
-            <button
-              onClick={() => setSelectedDuration(12)}
-              className={`relative z-10 w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-2.5 text-sm font-bold rounded-xl sm:rounded-full transition-colors flex items-center justify-center gap-2 ${selectedDuration === 12 ? 'text-white bg-emerald-600 shadow' : 'text-slate-500 hover:text-emerald-950 bg-slate-50 sm:bg-transparent'}`}
-            >{t("Yearly Plans")}<span className={`text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap ${selectedDuration === 12 ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'}`}>{t("20% OFF")}</span>
-              {selectedDuration !== 12 && (
-                <div className="absolute top-0 right-2 -translate-y-1/2 sm:-top-3 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">{t("BEST VALUE")}</div>
-              )}
-            </button>
-          </div>
-        </div>
+        {(() => {
+          const sortedPlans = [...plans].sort((a, b) => a.price - b.price);
+          const lowestPaidPlan = sortedPlans.find(p => p.price > 0) || sortedPlans[0];
+          const baseMonthlyPrice = lowestPaidPlan ? (lowestPaidPlan.priceMonthly || lowestPaidPlan.price || 0) : 0;
+          const currencySymbol = lowestPaidPlan?.currencySymbol || '₹';
+
+          const getDisplayPrice = (duration) => {
+            if (!lowestPaidPlan) return '';
+            let discountPercent = 0;
+            if (duration === 3) discountPercent = 10;
+            if (duration === 6) discountPercent = 15;
+            if (duration === 12) discountPercent = 20;
+            const displayMonthly = Math.round((baseMonthlyPrice * (1 - discountPercent / 100)) * 100) / 100;
+            return formatCurrency(displayMonthly, currencySymbol);
+          };
+
+          return (
+            <div className="flex justify-center mb-10 relative px-4 sm:px-0">
+              <div className="sm:bg-white sm:border sm:border-emerald-100 sm:rounded-full sm:p-1.5 flex flex-col sm:flex-row sm:inline-flex items-stretch sm:items-center relative sm:shadow-sm w-full sm:w-auto gap-3 sm:gap-0">
+                <button
+                  onClick={() => setSelectedDuration(1)}
+                  className={`relative z-10 w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-2.5 text-sm font-bold rounded-xl sm:rounded-full transition-colors flex items-center justify-center ${selectedDuration === 1 ? 'text-white bg-emerald-600 shadow border border-transparent' : 'text-slate-500 hover:text-emerald-950 bg-white sm:bg-transparent shadow-sm sm:shadow-none border border-emerald-100 sm:border-transparent'}`}
+                >
+                  <span className="sm:hidden">{t("Monthly")} {getDisplayPrice(1) ? `(${getDisplayPrice(1)}/mo)` : ''}</span>
+                  <span className="hidden sm:inline">{t("Monthly Plans")}</span>
+                </button>
+                <button
+                  onClick={() => setSelectedDuration(3)}
+                  className={`relative z-10 w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-2.5 text-sm font-bold rounded-xl sm:rounded-full transition-colors flex items-center justify-center gap-2 ${selectedDuration === 3 ? 'text-white bg-emerald-600 shadow border border-transparent' : 'text-slate-500 hover:text-emerald-950 bg-white sm:bg-transparent shadow-sm sm:shadow-none border border-emerald-100 sm:border-transparent'}`}
+                >
+                  <span className="sm:hidden">{t("Quarterly")} {getDisplayPrice(3) ? `(${getDisplayPrice(3)}/mo)` : ''}</span>
+                  <span className="hidden sm:inline">{t("Quarterly Plans")}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap ${selectedDuration === 3 ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'}`}>{t("10% OFF")}</span>
+                </button>
+                <button
+                  onClick={() => setSelectedDuration(12)}
+                  className={`relative z-10 w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-2.5 text-sm font-bold rounded-xl sm:rounded-full transition-colors flex items-center justify-center gap-2 ${selectedDuration === 12 ? 'text-white bg-emerald-600 shadow border border-transparent' : 'text-slate-500 hover:text-emerald-950 bg-white sm:bg-transparent shadow-sm sm:shadow-none border border-emerald-100 sm:border-transparent'}`}
+                >
+                  <span className="sm:hidden">{t("Yearly")} {getDisplayPrice(12) ? `(${getDisplayPrice(12)}/mo)` : ''}</span>
+                  <span className="hidden sm:inline">{t("Yearly Plans")}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap ${selectedDuration === 12 ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'}`}>{t("20% OFF")}</span>
+                  {selectedDuration !== 12 && (
+                    <div className="absolute top-0 right-2 -translate-y-1/2 sm:-top-3 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">{t("BEST VALUE")}</div>
+                  )}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Pricing Cards Grid */}
         {plans.length === 0 ? (
@@ -789,24 +1069,37 @@ const ProviderPlans = () => {
                         id={`plan-btn-${plan._id}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedPlan(plan);
-                          handleCheckout();
+                          if (selectedPlan?._id === plan._id) {
+                            setSelectedPlan(null); // Allow unselecting
+                          } else {
+                            const isCurrentPlanAddon = selectedPlan && ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(selectedPlan.slug);
+                            if (isCurrentPlanAddon) {
+                              setSelectedAddons([selectedPlan._id]);
+                            }
+                            setSelectedPlan(plan);
+                            setIsInvoiceMinimized(false);
+                            // Scroll to addons section
+                            setTimeout(() => {
+                              document.getElementById('addons-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 100);
+                          }
                         }}
-                        disabled={checkoutLoading}
-                        className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-sm ${
-                          isPro 
-                            ? 'bg-teal-600 hover:bg-teal-700 text-white' 
-                            : isPremium
-                              ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                        className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-sm border-2 ${
+                          selectedPlan?._id === plan._id
+                            ? 'bg-emerald-600 text-white border-emerald-600 ring-4 ring-emerald-600/20'
+                            : isPro 
+                              ? 'bg-teal-600 hover:bg-teal-700 text-white border-transparent' 
+                              : isPremium
+                                ? 'bg-amber-500 hover:bg-amber-600 text-white border-transparent'
+                                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
                         }`}
                       >
-                        {checkoutLoading && selectedPlan?._id === plan._id ? (
+                        {selectedPlan?._id === plan._id ? (
                           <span className="flex items-center justify-center gap-2">
-                            <RefreshCw className="w-4 h-4 animate-spin" /> {t("Processing...")}
+                            <Check className="w-5 h-5" /> {t("Selected")}
                           </span>
                         ) : (
-                          `${t("Get Started with")} ${plan.name.split(' ')[0]}`
+                          `${t("Select")} ${plan.name.split(' ')[0]}`
                         )}
                       </button>
                     );
@@ -822,7 +1115,7 @@ const ProviderPlans = () => {
 
         {/* Top Plans Preview Section */}
         {availableAddons.length > 0 && (
-          <div className="mb-8">
+          <div id="addons-section" className="mb-8 scroll-mt-24">
             <h2 className="text-xl font-extrabold text-slate-800 mb-4 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-emerald-500" /> {t("Top Ranking Add-ons")}
               <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full ml-2 uppercase">Optional</span>
@@ -838,11 +1131,29 @@ const ProviderPlans = () => {
                     <span className="font-extrabold text-emerald-700">₹{addon.priceMonthly || addon.price || 0}<span className="text-[10px] text-slate-500 font-medium">/mo</span></span>
                     <div className="flex gap-2">
                       <button onClick={() => {
-                          setSelectedAddons(prev => prev.includes(addon._id) ? prev.filter(id => id !== addon._id) : [...prev, addon._id]);
+                          const isAddonSelected = selectedAddons.includes(addon._id);
+                          const isBasePlanAddon = selectedPlan?._id === addon._id;
+                          
+                          if (isBasePlanAddon) {
+                            setSelectedPlan(null);
+                          } else if (isAddonSelected) {
+                            setSelectedAddons([]);
+                          } else {
+                            if (selectedPlan && !['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(selectedPlan.slug)) {
+                              setSelectedAddons([addon._id]);
+                            } else {
+                              setSelectedPlan(addon);
+                              setSelectedAddons([]);
+                            }
+                            setIsInvoiceMinimized(false);
+                            setTimeout(() => {
+                              document.getElementById('invoice-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 100);
+                          }
                         }}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors border ${selectedAddons.includes(addon._id) ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors border ${selectedPlan?._id === addon._id || selectedAddons.includes(addon._id) ? 'bg-emerald-50 text-emerald-700 border-emerald-200 ring-2 ring-emerald-500/20' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}
                       >
-                        {selectedAddons.includes(addon._id) ? t("Selected") : t("Select")}
+                        {selectedPlan?._id === addon._id || selectedAddons.includes(addon._id) ? t("Selected") : t("Select")}
                       </button>
                       <button onClick={() => handleDirectCheckout(addon)}
                         className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg transition-colors shadow-sm"
@@ -855,6 +1166,255 @@ const ProviderPlans = () => {
               ))}
             </div>
             <p className="text-xs text-slate-500 mt-3 text-center">{t("You can configure location and skills for these add-ons during checkout.")}</p>
+          </div>
+        )}
+
+        {/* Invoice Preview */}
+        {selectedPlan && (
+          <div className="w-full mb-16 animate-in slide-in-from-bottom-8 duration-500">
+            <div id="invoice-preview" className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden p-6 sm:p-10 font-sans">
+              
+              {/* Order Summary Header */}
+              <div className="flex justify-between items-center mb-4 md:mb-6 pb-4 border-b border-slate-200">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-xl md:text-2xl font-black text-slate-900">{t("Order Summary")}</h3>
+                  {isInvoiceMinimized && (
+                    <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">1 {t("Item")}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => setIsInvoiceMinimized(!isInvoiceMinimized)} 
+                    className="no-print p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+                    title={isInvoiceMinimized ? t("Expand Summary") : t("Minimize Summary")}
+                  >
+                    {isInvoiceMinimized ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {!isInvoiceMinimized && (
+                <>
+                  {/* Company & Date Details */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-start mb-6 md:mb-8 gap-4 md:gap-6">
+                <div className="hidden md:flex items-start gap-4">
+                  <div className="w-16 h-16 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center shrink-0">
+                    <img src="/lucologo.png" alt="Lucohire Logo" className="w-full h-auto object-contain" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Lucohire Inc.</h2>
+                    <p className="text-sm font-medium text-slate-600 mt-0.5">AI-Powered Global Jobs & Hiring Platform</p>
+                    <div className="mt-3 text-xs text-slate-500 space-y-1">
+                      <p className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> SUPERTECH ECO VILLAGE-2,</p>
+                      <p className="pl-5">GAUTAM BUDDHA NAGAR, 201306, INDIA</p>
+                      <p className="flex items-center gap-1.5 mt-1.5"><MessageCircle className="w-3.5 h-3.5" /> support@lucohire.com</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-left md:text-right w-full md:w-auto flex flex-row md:flex-col items-center md:items-end justify-between h-auto md:h-full md:min-h-[80px]">
+                  <div className="text-left md:text-right w-full flex justify-between md:block items-center">
+                    <div className="pdf-only hidden mb-2">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("Invoice Number")}</p>
+                      <p className="text-sm font-bold text-slate-800">INV-{new Date().getTime().toString().slice(-6)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("Date")}</p>
+                      <p className="text-sm font-medium text-slate-800">{new Date().toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Invoice Items Table */}
+              <div>
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b-2 border-slate-800">
+                      <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[140px] sm:w-1/2">{t("Description")}</th>
+                      <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">{t("Billing Cycle")}</th>
+                      <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">{t("Amount")}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {/* Base Plan Row */}
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="py-4 px-4">
+                        <p className="font-bold text-slate-800">
+                          {selectedPlan.name} {['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(selectedPlan?.slug) ? '' : t("Plan")}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(selectedPlan?.slug) ? t("Monthly Add-on fee") : t("Base subscription fee")}
+                        </p>
+                        <div className="mt-2 text-[11px] text-slate-600">
+                          <p><span className="font-medium text-slate-500">{t("Next Billing Date")}:</span> {(() => { const d = new Date(); const isAddon = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(selectedPlan?.slug); const dur = isAddon ? 1 : Number(selectedDuration); if (dur === 12) d.setDate(d.getDate() + 365); else if (dur === 3) d.setDate(d.getDate() + 90); else d.setDate(d.getDate() + 30); return d.toLocaleDateString(); })()}</p>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-medium capitalize">
+                          <Clock className="w-3 h-3" />
+                          {['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(selectedPlan?.slug) ? 1 : selectedDuration}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-right font-bold text-slate-800">
+                        <div className="flex items-center justify-end gap-3">
+                          <span>
+                            {formatCurrency(
+                              buildLocalPreview(selectedPlan, selectedDuration).subtotal,
+                              selectedPlan.currencySymbol
+                            )}
+                          </span>
+                          <button 
+                            onClick={() => setSelectedPlan(null)} 
+                            className="no-print text-slate-400 hover:text-red-500 transition-colors p-1"
+                            title={t("Remove item")}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {/* Add-on Row */}
+                    {selectedAddons.length > 0 && availableAddons.find(a => a._id === selectedAddons[0]) && (
+                      <tr className="hover:bg-slate-50 transition-colors group/row relative">
+                        <td className="py-4 px-4">
+                          <div className="font-bold text-slate-800 flex items-start gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-[2px]" />
+                            <span className="leading-tight">{availableAddons.find(a => a._id === selectedAddons[0]).name}</span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1">{t("Optional Add-on")}</p>
+                          <div className="mt-2 text-[11px] text-slate-600">
+                            <p><span className="font-medium text-slate-500">{t("Next Billing Date")}:</span> {(() => { const d = new Date(); d.setDate(d.getDate() + 30); return d.toLocaleDateString(); })()}</p>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-medium capitalize">
+                            <Clock className="w-3 h-3" />
+                            1
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-right font-bold text-slate-800 relative">
+                          <div className="flex items-center justify-end gap-3">
+                            {formatCurrency(
+                              availableAddons.find(a => a._id === selectedAddons[0]).priceMonthly || availableAddons.find(a => a._id === selectedAddons[0]).price,
+                              selectedPlan.currencySymbol
+                            )}
+                            <button 
+                              onClick={() => setSelectedAddons([])}
+                              className="no-print opacity-0 group-hover/row:opacity-100 transition-opacity p-1 hover:bg-red-100 text-red-500 rounded-full"
+                              title={t("Remove item")}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Invoice Totals */}
+              <div className="flex flex-col items-end justify-end mt-8 border-t border-slate-200 pt-6">
+                <div className="w-full sm:w-80 space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium text-slate-500">{t("Subtotal")}</span>
+                    <span className="font-bold text-slate-800">
+                      {formatCurrency(
+                        buildLocalPreview(selectedPlan, selectedDuration).subtotal + 
+                        (selectedAddons.length > 0 ? (availableAddons.find(a => a._id === selectedAddons[0])?.priceMonthly || availableAddons.find(a => a._id === selectedAddons[0])?.price || 0) : 0),
+                        selectedPlan.currencySymbol
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium text-slate-500">{t("Taxes & Fees")}</span>
+                    <span className="font-medium text-slate-500 text-xs italic">{t("Calculated at checkout")}</span>
+                  </div>
+                  <div className="border-t-2 border-slate-800 pt-3 mt-3 flex justify-between items-center">
+                    <span className="font-black text-slate-800 text-lg">{t("Total Due")}</span>
+                    <span className="font-black text-slate-900 text-2xl">
+                      {formatCurrency(
+                        buildLocalPreview(selectedPlan, selectedDuration).subtotal + 
+                        (selectedAddons.length > 0 ? (availableAddons.find(a => a._id === selectedAddons[0])?.priceMonthly || availableAddons.find(a => a._id === selectedAddons[0])?.price || 0) : 0),
+                        selectedPlan.currencySymbol
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bill To Section & Actions */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-end mt-10 pt-8 border-t border-slate-200 gap-6">
+                {location.pathname !== '/provider/my-plan' ? (
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">{t("Bill To")}</p>
+                    <p className="text-base font-bold text-slate-800">{user?.name || "Provider Name"}</p>
+                    <p className="text-sm font-medium text-slate-700 mt-0.5">
+                      {providerProfileData?.skills?.[0] || profile?.skills?.[0] || user?.providerProfile?.skills?.[0] || user?.skills?.[0] || profile?.headline || user?.headline || profile?.title || user?.title || user?.providerProfile?.speciality || user?.speciality || profile?.speciality || "Specialized Services"}
+                    </p>
+                    {user?.email && <p className="text-sm text-slate-600 mt-0.5">{user.email}</p>}
+                    {(providerProfileData?.phone || profile?.phone || user?.providerProfile?.phone || user?.phone) && (
+                      <p className="text-sm text-slate-600 mt-0.5">
+                        {providerProfileData?.phone || profile?.phone || user?.providerProfile?.phone || user?.phone}
+                      </p>
+                    )}
+                    <p className="text-sm text-slate-600 mt-0.5">
+                      {(() => {
+                        const getStr = (val) => {
+                          if (!val) return null;
+                          if (typeof val === 'string') return val;
+                          if (typeof val === 'object') return val.city || val.name || val.formattedAddress;
+                          return null;
+                        };
+                        const pLoc = getStr(providerProfileData?.location) || getStr(providerProfileData?.city) || getStr(providerProfileData?.locationData);
+                        const profLoc = getStr(profile?.location) || getStr(profile?.city) || getStr(profile?.locationData);
+                        const uLoc = getStr(user?.providerProfile?.location) || getStr(user?.providerProfile?.city) || getStr(user?.location) || getStr(user?.city);
+                        return pLoc || profLoc || uLoc || "Noida, UP";
+                      })()}
+                    </p>
+                  </div>
+                ) : (
+                  <div /> // Empty div to maintain flex layout for checkout button on the right
+                )}
+
+                <div className="no-print flex flex-col items-start md:items-end gap-3 w-full md:w-auto">
+                  <p className="text-xs text-slate-500 flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                    {activePlanData?.subscription?.subscriptionStatus === 'active' && String(activePlanData?.subscription?.planId) === String(selectedPlan?._id) && activePlanData?.subscription?.durationMonths === selectedDuration && selectedAddons.length === 0
+                      ? t("You are currently subscribed to this exact plan.")
+                      : t("Proceed to secure payment gateway.")}
+                  </p>
+                  <button 
+                    onClick={handleCheckout}
+                    disabled={checkoutLoading || (activePlanData?.subscription?.subscriptionStatus === 'active' && String(activePlanData?.subscription?.planId) === String(selectedPlan?._id) && activePlanData?.subscription?.durationMonths === selectedDuration && selectedAddons.length === 0)}
+                    className={`w-full sm:w-auto font-bold py-3.5 px-8 rounded-lg transition-colors shadow-md flex items-center justify-center gap-2 ${
+                      activePlanData?.subscription?.subscriptionStatus === 'active' && String(activePlanData?.subscription?.planId) === String(selectedPlan?._id) && activePlanData?.subscription?.durationMonths === selectedDuration && selectedAddons.length === 0
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default shadow-none'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-70'
+                    }`}
+                  >
+                    {checkoutLoading ? (
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                    ) : activePlanData?.subscription?.subscriptionStatus === 'active' && String(activePlanData?.subscription?.planId) === String(selectedPlan?._id) && activePlanData?.subscription?.durationMonths === selectedDuration && selectedAddons.length === 0 ? (
+                      <>
+                        <BadgeCheck className="w-5 h-5" />
+                        {t("Current Plan")}
+                      </>
+                    ) : (
+                      <>
+                        <Wallet className="w-4 h-4" />
+                        {t("Proceed")}
+                        <ArrowRight className="w-4 h-4 ml-1" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+                </>
+              )}
+            </div>
           </div>
         )}
 
@@ -919,6 +1479,7 @@ const ProviderPlans = () => {
               <div className="flex items-center gap-1.5 sm:gap-2"><BadgeCheck className="w-4 h-4 text-emerald-600 shrink-0" />{t("7-Day Money Back Guarantee (T&C Apply)")}</div>
             </div>
           </div>
+
       {/* Configuration & Checkout Modal */}
       {/* Cancel Confirmation Modal */}
       {showCancelModal && (

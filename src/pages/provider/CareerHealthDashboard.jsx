@@ -596,15 +596,15 @@ export default function CareerHealthDashboard({ tab = 'overview' }) {
               <div className={`text-xs text-slate-500 mt-1 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{marketScore >= 80 ? 'Excellent opportunities in your field' : marketScore >= 60 ? 'Moderate opportunities available' : 'Tough market conditions'}</div>
             </div>
             <div className="mt-2 grid grid-cols-3 gap-2">
-              <div className="text-center bg-slate-50 rounded p-1.5 border border-slate-100">
+              <div className="text-left sm:text-center bg-slate-50 rounded p-1.5 border border-slate-100">
                 <div className="text-[10px] text-slate-500 font-medium">{t("Job Trend")}</div>
                 <div className={`text-xs font-bold text-slate-700 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{displayData.market_demand_breakdown?.job_openings_trend || 0}/100</div>
               </div>
-              <div className="text-center bg-slate-50 rounded p-1.5 border border-slate-100">
+              <div className="text-left sm:text-center bg-slate-50 rounded p-1.5 border border-slate-100">
                 <div className="text-[10px] text-slate-500 font-medium">{t("Remote")}</div>
                 <div className={`text-xs font-bold text-slate-700 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{displayData.market_demand_breakdown?.remote_opportunities || 0}/100</div>
               </div>
-              <div className="text-center bg-slate-50 rounded p-1.5 border border-slate-100">
+              <div className="text-left sm:text-center bg-slate-50 rounded p-1.5 border border-slate-100">
                 <div className="text-[10px] text-slate-500 font-medium">{t("Growth")}</div>
                 <div className={`text-xs font-bold text-slate-700 ${!isPro ? 'blur-[4px] opacity-80 select-none' : ''}`}>{displayData.market_demand_breakdown?.industry_growth_rate || 0}/100</div>
               </div>
