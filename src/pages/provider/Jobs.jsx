@@ -921,12 +921,6 @@ const ProviderJobs = () => {
       return;
     }
 
-    // Check for HTTP on non-localhost (mobile Chrome/Safari blocks geolocation over insecure HTTP)
-    if (window.location.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
-      toast.error("Location access requires HTTPS. Please access via https://", { duration: 5000 });
-      return;
-    }
-
     setLoading(true);
 
     const onLocationSuccess = (position) => {
@@ -941,18 +935,18 @@ const ProviderJobs = () => {
     };
 
     const onLocationError = (error) => {
-      console.warn("Primary geolocation failed, attempting low-accuracy fallback:", error);
+      console.warn("High-accuracy geolocation failed, trying low-accuracy fallback:", error);
 
-      // Fallback attempt: low accuracy (cell tower / Wi-Fi / IP) which works indoors and on mobile with GPS off
+      // Fallback: low accuracy uses cell tower/Wi-Fi, works indoors and on mobile without GPS
       navigator.geolocation.getCurrentPosition(
         onLocationSuccess,
         (finalErr) => {
           setLoading(false);
-          console.error("Final geolocation error:", finalErr);
+          console.error("Geolocation final error:", finalErr);
           if (finalErr.code === 1) {
             toast.error("Location permission denied. Please allow location access in your browser/device settings.");
           } else if (finalErr.code === 2) {
-            toast.error("Location info unavailable. Please ensure Location/GPS is enabled on your phone.");
+            toast.error("Location unavailable. Please ensure Location/GPS is enabled on your phone.");
           } else if (finalErr.code === 3) {
             toast.error("Location request timed out. Please try again.");
           } else {
@@ -963,7 +957,7 @@ const ProviderJobs = () => {
       );
     };
 
-    // First attempt: try high accuracy with 6s timeout for fast mobile response
+    // First try high accuracy (GPS), fall back automatically if it times out
     navigator.geolocation.getCurrentPosition(
       onLocationSuccess,
       onLocationError,
