@@ -946,9 +946,17 @@ const ProviderJobs = () => {
           (error) => {
             setLoading(false);
             console.error("Geolocation error:", error);
-            toast.error("Location access denied or unavailable. Please enable location permissions in your browser.");
+            if (error.code === 1) {
+              toast.error("Location access denied. Please allow location permissions in your device/browser settings.");
+            } else if (error.code === 2) {
+              toast.error("Location information is unavailable on this device.");
+            } else if (error.code === 3) {
+              toast.error("Location request timed out. Please try again or check your signal.");
+            } else {
+              toast.error("Location access denied or unavailable. Please enable location permissions.");
+            }
           },
-          { enableHighAccuracy: true, timeout: 10000 }
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
         );
       }
     }
