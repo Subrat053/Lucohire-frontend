@@ -1450,6 +1450,7 @@ const AuthPage = () => {
   const triggerGoogleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
       console.log("[GOOGLE OAUTH SUCCESS]", tokenResponse);
+      toast.success("Google popup success! Token received. Contacting backend...");
       if (tokenResponse?.access_token) {
         handleGoogleAuthSuccess(tokenResponse.access_token);
       } else {
@@ -1459,12 +1460,12 @@ const AuthPage = () => {
     },
     onError: (err) => {
       console.error("[GOOGLE OAUTH ERROR]", err);
-      toast.error(t("auth.googleCancelled"));
+      toast.error("Google OAuth Error: " + JSON.stringify(err));
       setLoading(false);
     },
     onNonOAuthError: (err) => {
       console.warn("[GOOGLE OAUTH NON-OAUTH ERROR]", err);
-      // Handles popup closed by user or blocked popup
+      toast.error("Google popup closed or blocked: " + JSON.stringify(err));
       setLoading(false);
     }
   });
