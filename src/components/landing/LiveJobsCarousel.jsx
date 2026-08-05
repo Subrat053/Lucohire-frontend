@@ -108,8 +108,8 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
   const showNextArrow = !isLoadingJobs && liveJobsList.length > 0 && (currentPage < TOTAL_PAGES - 1 || !scrollState.isAtEnd);
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 pb-1">
-      <div className="max-w-7xl mx-auto bg-[#f4f7ff] border border-blue-100 rounded-[24px] p-2 sm:p-4 relative shadow-sm">
+    <div className="w-full px-0 sm:px-6 lg:px-8 pb-0 sm:pb-1">
+      <div className="max-w-7xl mx-auto bg-[#f4f7ff] border border-blue-100 rounded-[20px] sm:rounded-[24px] p-2 sm:p-4 relative shadow-sm">
         <div className="flex justify-between items-center mb-1 sm:mb-3 px-2 sm:px-4">
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-200"></div>
@@ -208,7 +208,7 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
         
         {/* Dynamic Pagination Dots */}
         {!isLoadingJobs && liveJobsList.length > 0 && TOTAL_PAGES > 1 && (
-          <div className="flex justify-center items-center gap-1.5 mt-3 mb-2 sm:mt-2 sm:mb-0">
+          <div className="flex justify-center items-center gap-1.5 mt-1 mb-0 sm:mt-2 sm:mb-0">
             {Array.from({ length: TOTAL_PAGES }, (_, i) => i).map((pageIndex) => (
               <div
                 key={pageIndex}
@@ -216,7 +216,7 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
                 role="button"
                 tabIndex={0}
                 aria-label={`Go to page ${pageIndex + 1}`}
-                className="w-8 h-8 flex items-center justify-center cursor-pointer group"
+                className="h-4 px-1 flex items-center justify-center cursor-pointer group"
               >
                 <div 
                   className={`h-1.5 min-h-[6px] rounded-full transition-all duration-300 ${

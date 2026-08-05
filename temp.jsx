@@ -502,7 +502,7 @@ export default function JobDetail() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="font-extrabold text-xl sm:text-2xl text-gray-900 tracking-tighter">
+                      <span className="font-extrabold text-2xl sm:text-3xl text-gray-900 tracking-tighter">
                         {matchScore}%
                       </span>
                     </div>
@@ -542,19 +542,19 @@ export default function JobDetail() {
                         .map((point, i) => (
                           <li
                             key={i}
-                            className="text-[15px] sm:text-[13px] text-gray-700 font-medium"
+                            className="flex items-start gap-2.5 text-[15px] sm:text-[13px] text-gray-700 font-medium"
                           >
+                            <HiCheckCircle className="w-[18px] h-[18px] text-emerald-500 shrink-0 mt-0.5" />
                             <span className="line-clamp-3 sm:line-clamp-none">
-                              <HiCheckCircle className="inline-block w-[18px] h-[18px] text-emerald-500 mr-1.5 align-text-bottom sm:align-text-top" />
                               {point}
                             </span>
                           </li>
                         ))}
                       {(!aiInsights?.whyMatch ||
                         aiInsights.whyMatch.length === 0) && (
-                        <li className="text-[15px] sm:text-[13px] font-medium text-amber-700">
+                        <li className="flex items-start gap-2.5 text-[15px] sm:text-[13px] font-medium text-amber-700">
+                          <HiCheckCircle className="w-[18px] h-[18px] text-emerald-500 shrink-0 opacity-0" />
                           <span>
-                            <HiCheckCircle className="inline-block w-[18px] h-[18px] text-emerald-500 mr-1.5 opacity-0 align-text-bottom sm:align-text-top" />
                             {aiInsights?.improve ||
                               "Improve skills to increase match score"}
                           </span>
@@ -925,34 +925,32 @@ export default function JobDetail() {
             </div>
             <div className="space-y-4">
               {/* AI Match Score */}
-              <div className={hasActivePlan ? "text-[15px] sm:text-[13px] leading-relaxed w-full" : "flex items-start gap-2 w-full"}>
-                {!hasActivePlan && <HiSparkles className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" />}
-                <span className={hasActivePlan ? "font-semibold text-gray-700 mr-1.5" : "font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0"}>
-                  {hasActivePlan && <HiSparkles className="inline-block w-4 h-4 text-purple-500 mr-1.5 align-text-bottom sm:align-text-top" />}
-                  AI Match Score {hasActivePlan && <span className="text-gray-300 ml-0.5 font-normal">•</span>}
+              <div className="flex items-start gap-2 w-full">
+                <HiSparkles className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0">
+                  AI Match Score
                 </span>
-                {!hasActivePlan && <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>}
+                <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>
                 <div
-                  className={hasActivePlan ? "inline" : "flex-1 blur-sm select-none opacity-60"}
+                  className={`flex-1 ${!hasActivePlan ? "blur-sm select-none opacity-60" : ""}`}
                 >
-                  <span className={`font-bold text-gray-900 ${!hasActivePlan ? 'text-[15px] sm:text-[13px] leading-snug' : ''}`}>
+                  <span className="text-[15px] sm:text-[13px] font-bold text-gray-900 leading-snug">
                     {matchScore}% match based on your profile
                   </span>
                 </div>
               </div>
 
               {/* Top Strength */}
-              <div className={hasActivePlan ? "text-[15px] sm:text-[13px] leading-relaxed w-full" : "flex items-start gap-2 w-full"}>
-                {!hasActivePlan && <HiCheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />}
-                <span className={hasActivePlan ? "font-semibold text-gray-700 mr-1.5" : "font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0"}>
-                  {hasActivePlan && <HiCheckCircle className="inline-block w-4 h-4 text-green-500 mr-1.5 align-text-bottom sm:align-text-top" />}
-                  Top Strength {hasActivePlan && <span className="text-gray-300 ml-0.5 font-normal">•</span>}
+              <div className="flex items-start gap-2 w-full">
+                <HiCheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0">
+                  Top Strength
                 </span>
-                {!hasActivePlan && <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>}
+                <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>
                 <div
-                  className={hasActivePlan ? "inline" : "flex-1 blur-sm select-none opacity-60"}
+                  className={`flex-1 ${!hasActivePlan ? "blur-sm select-none opacity-60" : ""}`}
                 >
-                  <span className={`text-gray-500 ${!hasActivePlan ? 'text-[15px] sm:text-[13px] leading-snug' : ''}`}>
+                  <span className="text-[15px] sm:text-[13px] text-gray-500 leading-snug">
                     {!hasActivePlan
                       ? "React, UI/UX Design, JavaScript"
                       : aiInsights
@@ -965,17 +963,16 @@ export default function JobDetail() {
               </div>
 
               {/* Most Demanded Skill */}
-              <div className={hasActivePlan ? "text-[15px] sm:text-[13px] leading-relaxed w-full" : "flex items-start gap-2 w-full"}>
-                {!hasActivePlan && <HiOutlineBriefcase className="w-4 h-4 text-pink-500 shrink-0 mt-0.5" />}
-                <span className={hasActivePlan ? "font-semibold text-gray-700 mr-1.5" : "font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0"}>
-                  {hasActivePlan && <HiOutlineBriefcase className="inline-block w-4 h-4 text-pink-500 mr-1.5 align-text-bottom sm:align-text-top" />}
-                  Most Demanded Skill {hasActivePlan && <span className="text-gray-300 ml-0.5 font-normal">•</span>}
+              <div className="flex items-start gap-2 w-full">
+                <HiOutlineBriefcase className="w-4 h-4 text-pink-500 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0">
+                  Most Demanded Skill
                 </span>
-                {!hasActivePlan && <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>}
+                <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>
                 <div
-                  className={hasActivePlan ? "inline" : "flex-1 blur-sm select-none opacity-60"}
+                  className={`flex-1 ${!hasActivePlan ? "blur-sm select-none opacity-60" : ""}`}
                 >
-                  <span className={`text-gray-500 ${!hasActivePlan ? 'text-[15px] sm:text-[13px] leading-snug' : ''}`}>
+                  <span className="text-[15px] sm:text-[13px] text-gray-500 leading-snug">
                     {!hasActivePlan
                       ? "Java / Spring Boot"
                       : aiInsights
@@ -988,17 +985,16 @@ export default function JobDetail() {
                 </div>
               </div>
               {/* Interview Probability */}
-              <div className={hasActivePlan ? "text-[15px] sm:text-[13px] leading-relaxed w-full" : "flex items-start gap-2 w-full"}>
-                {!hasActivePlan && <HiPhone className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" />}
-                <span className={hasActivePlan ? "font-semibold text-gray-700 mr-1.5" : "font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0"}>
-                  {hasActivePlan && <HiPhone className="inline-block w-4 h-4 text-teal-500 mr-1.5 align-text-bottom sm:align-text-top" />}
-                  Interview Probability {hasActivePlan && <span className="text-gray-300 ml-0.5 font-normal">•</span>}
+              <div className="flex items-start gap-2 w-full">
+                <HiPhone className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0">
+                  Interview Probability
                 </span>
-                {!hasActivePlan && <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>}
+                <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>
                 <div
-                  className={hasActivePlan ? "inline" : "flex-1 blur-sm select-none opacity-60"}
+                  className={`flex-1 ${!hasActivePlan ? "blur-sm select-none opacity-60" : ""}`}
                 >
-                  <span className={`font-bold text-gray-900 ${!hasActivePlan ? 'text-[15px] sm:text-[13px] leading-snug' : ''}`}>
+                  <span className="text-[15px] sm:text-[13px] font-bold text-gray-900 leading-snug">
                     {!hasActivePlan
                       ? "Good Chance (78%)"
                       : aiInsights
@@ -1009,17 +1005,16 @@ export default function JobDetail() {
               </div>
 
               {/* Missing Skills */}
-              <div className={hasActivePlan ? "text-[15px] sm:text-[13px] leading-relaxed w-full" : "flex items-start gap-2 w-full"}>
-                {!hasActivePlan && <HiExclamationCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />}
-                <span className={hasActivePlan ? "font-semibold text-gray-700 mr-1.5" : "font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0"}>
-                  {hasActivePlan && <HiExclamationCircle className="inline-block w-4 h-4 text-orange-500 mr-1.5 align-text-bottom sm:align-text-top" />}
-                  Missing Skills {hasActivePlan && <span className="text-gray-300 ml-0.5 font-normal">•</span>}
+              <div className="flex items-start gap-2 w-full">
+                <HiExclamationCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0">
+                  Missing Skills
                 </span>
-                {!hasActivePlan && <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>}
+                <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>
                 <div
-                  className={hasActivePlan ? "inline" : "flex-1 blur-sm select-none opacity-60"}
+                  className={`flex-1 ${!hasActivePlan ? "blur-sm select-none opacity-60" : ""}`}
                 >
-                  <span className={`text-gray-500 ${!hasActivePlan ? 'text-[15px] sm:text-[13px] leading-snug' : ''}`}>
+                  <span className="text-[15px] sm:text-[13px] text-gray-500 leading-snug">
                     {!hasActivePlan
                       ? "Figma, Bootstrap, HTML5"
                       : aiInsights
@@ -1032,17 +1027,16 @@ export default function JobDetail() {
               </div>
 
               {/* Why you may get rejected */}
-              <div className={hasActivePlan ? "text-[15px] sm:text-[13px] leading-relaxed w-full" : "flex items-start gap-2 w-full"}>
-                {!hasActivePlan && <HiOutlineMail className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />}
-                <span className={hasActivePlan ? "font-semibold text-gray-700 mr-1.5" : "font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0"}>
-                  {hasActivePlan && <HiOutlineMail className="inline-block w-4 h-4 text-red-700 mr-1.5 align-text-bottom sm:align-text-top" />}
-                  Why you may get rejected {hasActivePlan && <span className="text-gray-300 ml-0.5 font-normal">•</span>}
+              <div className="flex items-start gap-2 w-full">
+                <HiOutlineMail className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0">
+                  Why you may get rejected
                 </span>
-                {!hasActivePlan && <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>}
+                <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>
                 <div
-                  className={hasActivePlan ? "inline" : "flex-1 blur-sm select-none opacity-60"}
+                  className={`flex-1 ${!hasActivePlan ? "blur-sm select-none opacity-60" : ""}`}
                 >
-                  <span className={`text-gray-500 ${!hasActivePlan ? 'text-[15px] sm:text-[13px] leading-snug' : ''}`}>
+                  <span className="text-[15px] sm:text-[13px] text-gray-500 leading-snug">
                     {!hasActivePlan
                       ? "Portfolio lacks strong mobile UI/UX examples."
                       : aiInsights
@@ -1053,17 +1047,16 @@ export default function JobDetail() {
               </div>
 
               {/* Salary Benchmark */}
-              <div className={hasActivePlan ? "text-[15px] sm:text-[13px] leading-relaxed w-full" : "flex items-start gap-2 w-full"}>
-                {!hasActivePlan && <HiCurrencyRupee className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
-                <span className={hasActivePlan ? "font-semibold text-gray-700 mr-1.5" : "font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0"}>
-                  {hasActivePlan && <HiCurrencyRupee className="inline-block w-4 h-4 text-emerald-600 mr-1.5 align-text-bottom sm:align-text-top" />}
-                  Salary Benchmark {hasActivePlan && <span className="text-gray-300 ml-0.5 font-normal">•</span>}
+              <div className="flex items-start gap-2 w-full">
+                <HiCurrencyRupee className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <span className="font-semibold text-[15px] sm:text-[13px] text-gray-700 whitespace-nowrap shrink-0">
+                  Salary Benchmark
                 </span>
-                {!hasActivePlan && <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>}
+                <span className="text-gray-300 shrink-0 text-[15px] sm:text-[13px]">•</span>
                 <div
-                  className={hasActivePlan ? "inline" : "flex-1 blur-sm select-none opacity-60"}
+                  className={`flex-1 ${!hasActivePlan ? "blur-sm select-none opacity-60" : ""}`}
                 >
-                  <span className={`text-gray-500 ${!hasActivePlan ? 'text-[15px] sm:text-[13px] leading-snug' : ''}`}>
+                  <span className="text-[15px] sm:text-[13px] text-gray-500 leading-snug">
                     {!hasActivePlan
                       ? "₹12L - ₹18L per annum"
                       : aiInsights
@@ -1335,7 +1328,7 @@ export default function JobDetail() {
             </ul>
           </div>
         </div>
-      </div>
+      </div></div></div></div>
 
     {/* ── Similar Jobs for You ── */}
       <div className="max-w-7xl mx-auto px-4 pb-12">
@@ -1437,6 +1430,5 @@ export default function JobDetail() {
         />
       )}
     </div>
-  </div>
-  );
+    );
 }
