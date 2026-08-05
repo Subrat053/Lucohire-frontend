@@ -397,16 +397,19 @@ export default function JobDetail() {
                             key={i}
                             className="flex items-start gap-2.5 text-[13px] text-gray-700 font-medium"
                           >
-                            {point}
                             <HiCheckCircle className="w-[18px] h-[18px] text-emerald-500 shrink-0" />
+                            <span>{point}</span>
                           </li>
                         ))}
-                      <li className="flex items-start gap-2.5 text-[13px] font-medium text-amber-700">
-                        <span>
-                          {aiInsights?.improve ||
-                            "Improve skills to increase match score"}
-                        </span>
-                      </li>
+                      {(!aiInsights?.whyMatch || aiInsights.whyMatch.length === 0) && (
+                        <li className="flex items-start gap-2.5 text-[13px] font-medium text-amber-700">
+                          <HiCheckCircle className="w-[18px] h-[18px] text-emerald-500 shrink-0 opacity-0" />
+                          <span>
+                            {aiInsights?.improve ||
+                              "Improve skills to increase match score"}
+                          </span>
+                        </li>
+                      )}
                     </ul>
                   ) : (
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center mt-2">
@@ -455,7 +458,7 @@ export default function JobDetail() {
                 >
                   Apply Now
                 </button>
-                <div className="flex items-start gap-2.5">
+                <div className="hidden sm:flex items-start gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
                     <HiClock className="w-4 h-4 text-gray-400" />
                   </div>
