@@ -576,8 +576,8 @@ export default function JobDetail() {
                 </div>
 
                 {/* Info row */}
-                <div className="flex items-center justify-end border-t border-gray-100 mt-5 pt-4">
-                  <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4">
+                <div className="flex items-center justify-start border-t border-gray-100 mt-5 pt-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                     <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-500">
                       <HiClock className="w-3.5 h-3.5 text-emerald-500" /> Apply
                       takes less than 2 minutes
@@ -592,117 +592,153 @@ export default function JobDetail() {
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex items-center gap-6 sm:gap-8 px-2">
-            {["Overview", "About Company"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-2 text-[14px] sm:text-[15px] font-bold border-b-2 transition-colors ${activeTab === tab ? "border-emerald-600 text-emerald-700" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          {/* ── Tab Content ── */}
-          {activeTab === "Overview" && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-7">
-              {/* Overview */}
-              <section>
-                <h2 className="font-extrabold text-[15px] text-gray-900 flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                    <HiOfficeBuilding className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  Overview
-                </h2>
-                {job.description && (
-                  <div
-                    className="text-[14px] text-gray-700 leading-relaxed prose prose-sm max-w-none px-1"
-                    dangerouslySetInnerHTML={{
-                      __html: getSafeHtml(job.description),
-                    }}
-                  />
-                )}
-              </section>
-
-              {/* Requirements */}
-              {job.requirements && job.requirements.length > 0 && (
-                <section className="border-t border-gray-100 pt-5">
-                  <div className="w-full flex items-center justify-between font-extrabold text-[15px] text-gray-900">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-                        <HiBriefcase className="w-4 h-4 text-purple-600" />
-                      </div>
-                      Requirements
-                    </div>
-                  </div>
-                  <p className="text-[13px] text-gray-700 mt-2 px-10">
-                    {job.requirements.join(", ")}
-                  </p>
-                </section>
-              )}
-
-              {/* Benefits & Perks */}
-              {job.benefits && job.benefits.length > 0 && (
-                <section className="border-t border-gray-100 pt-5">
-                  <div className="w-full flex items-center justify-between font-extrabold text-[15px] text-gray-900">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                        <HiSparkles className="w-4 h-4 text-emerald-600" />
-                      </div>
-                      Benefits & Perks
-                    </div>
-                  </div>
-                  <ul className="text-[13px] text-gray-700 mt-2 px-10 list-disc list-inside">
-                    {job.benefits.map((benefit, i) => (
-                      <li key={i}>{benefit}</li>
-                    ))}
-                  </ul>
-                </section>
-              )}
+          {/* ── Tabs & Content ── */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="flex items-center gap-6 sm:gap-8 px-6 bg-gray-50/50 border-b border-gray-100">
+              {["Overview", "About Company"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`py-4 text-[14px] sm:text-[15px] font-bold border-b-2 transition-colors ${activeTab === tab ? "border-emerald-600 text-emerald-700 -mb-[1px]" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
-          )}
 
-          {activeTab === "About Company" && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm flex flex-col items-start">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-2xl border border-gray-100 flex items-center justify-center overflow-hidden bg-gray-50 shadow-sm">
-                  {job.companyLogo ? (
-                    <img
-                      src={job.companyLogo}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="font-extrabold text-2xl text-gray-900">
-                      {job.companyName?.substring(0, 1) || "C"}
-                    </span>
+            <div className="p-6">
+              {activeTab === "Overview" && (
+                <div className="space-y-7">
+                  {/* Overview */}
+                  <section>
+                    <h2 className="font-extrabold text-[15px] text-gray-900 flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                        <HiOfficeBuilding className="w-4 h-4 text-emerald-600" />
+                      </div>
+                      Overview
+                    </h2>
+                    {job.description && (
+                      <div
+                        className="text-[14px] text-gray-700 leading-relaxed prose prose-sm max-w-none px-1"
+                        dangerouslySetInnerHTML={{
+                          __html: getSafeHtml(job.description),
+                        }}
+                      />
+                    )}
+                  </section>
+
+                  {/* Requirements */}
+                  {job.requirements && job.requirements.length > 0 && (
+                    <section className="border-t border-gray-100 pt-5">
+                      <div className="w-full flex items-center justify-between font-extrabold text-[15px] text-gray-900">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                            <HiBriefcase className="w-4 h-4 text-purple-600" />
+                          </div>
+                          Requirements
+                        </div>
+                      </div>
+                      <p className="text-[13px] text-gray-700 mt-2 px-10">
+                        {job.requirements.join(", ")}
+                      </p>
+                    </section>
+                  )}
+
+                  {/* Benefits & Perks */}
+                  {job.benefits && job.benefits.length > 0 && (
+                    <section className="border-t border-gray-100 pt-5">
+                      <div className="w-full flex items-center justify-between font-extrabold text-[15px] text-gray-900">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                            <HiSparkles className="w-4 h-4 text-emerald-600" />
+                          </div>
+                          Benefits & Perks
+                        </div>
+                      </div>
+                      <ul className="text-[13px] text-gray-700 mt-2 px-10 list-disc list-inside">
+                        {job.benefits.map((benefit, i) => (
+                          <li key={i}>{benefit}</li>
+                        ))}
+                      </ul>
+                    </section>
                   )}
                 </div>
-                <div>
-                  <h3 className="font-extrabold text-xl text-gray-900">
-                    {job.companyName || job.recruiter?.name || "Company"}
-                  </h3>
-                  <p className="text-[13px] font-medium text-gray-500 mt-0.5">
-                    {job.city || "Headquarters"}
-                  </p>
+              )}
+
+              {activeTab === "About Company" && (
+                <div className="flex flex-col items-start w-full">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-[52px] h-[52px] rounded-xl bg-white border border-gray-100 shadow-sm flex flex-col items-center justify-center overflow-hidden shrink-0">
+                      {job.companyLogo ? (
+                        <img
+                          src={job.companyLogo}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="font-extrabold text-[18px] text-gray-900 capitalize">
+                          {job.companyName?.substring(0, 1) || "C"}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-extrabold text-[15px] text-gray-900 mb-0.5">
+                        {job.companyName || job.recruiter?.name || "Company"}
+                      </p>
+                      <p className="text-[11px] font-medium text-gray-500 flex items-center gap-1">
+                        <span className="text-yellow-400">★</span> 4.6 (12.4K reviews)
+                      </p>
+                    </div>
+                  </div>
+                  {job.companyDescription ? (
+                    <div
+                      className="text-[13px] font-medium text-gray-700 leading-relaxed mb-4 w-full"
+                      dangerouslySetInnerHTML={{
+                        __html: job.companyDescription.replace(/<img[^>]*>/g, ""),
+                      }}
+                    />
+                  ) : (
+                    <p className="text-[13px] font-medium text-gray-700 leading-relaxed mb-4">
+                      {job.companyInfo ||
+                        "A leading company providing exceptional services and opportunities across multiple sectors. Join us to build impactful solutions at scale."}
+                    </p>
+                  )}
+                  <div className="space-y-2.5 text-[12px] font-medium text-gray-700 mb-4">
+                    <div className="flex items-center gap-2.5">
+                      <HiOfficeBuilding className="w-[18px] h-[18px] text-gray-400" />{" "}
+                      <div>
+                        <p className="text-[10px] text-gray-400 leading-none">
+                          Industry
+                        </p>
+                        <p className="font-bold text-gray-700">
+                          IT Services & Consulting
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <HiUsers className="w-[18px] h-[18px] text-gray-400" />{" "}
+                      <div>
+                        <p className="text-[10px] text-gray-400 leading-none">
+                          Company Size
+                        </p>
+                        <p className="font-bold text-gray-700">10,001+ employees</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <HiLocationMarker className="w-[18px] h-[18px] text-gray-400" />{" "}
+                      <div>
+                        <p className="text-[10px] text-gray-400 leading-none">
+                          Headquarters
+                        </p>
+                        <p className="font-bold text-gray-700">
+                          {job.city || "India"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              {job.companyDescription ? (
-                <div
-                  className="text-[13px] text-gray-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: job.companyDescription.replace(/<img[^>]*>/g, ""),
-                  }}
-                />
-              ) : (
-                <p className="text-gray-500 text-[14px]">
-                  No detailed information is available for this company at the
-                  moment.
-                </p>
               )}
             </div>
-          )}
+          </div>
 
           {/* ── Similar Jobs for You ── */}
           <div>
@@ -971,71 +1007,6 @@ export default function JobDetail() {
             </div>
           </div>
 
-          {/* About the Company */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <h3 className="font-extrabold text-[15px] text-gray-900 mb-4">
-              About the Company
-            </h3>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-[52px] h-[52px] rounded-xl bg-white border border-gray-100 shadow-sm flex flex-col items-center justify-center overflow-hidden shrink-0">
-                {job.companyLogo ? (
-                  <img
-                    src={job.companyLogo}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="font-extrabold text-[18px] text-gray-900 capitalize">
-                    {job.companyName?.substring(0, 1) || "C"}
-                  </span>
-                )}
-              </div>
-              <div>
-                <p className="font-extrabold text-[15px] text-gray-900 mb-0.5">
-                  {job.companyName || job.recruiter?.name || "Company"}
-                </p>
-                <p className="text-[11px] font-medium text-gray-500 flex items-center gap-1">
-                  <span className="text-yellow-400">★</span> 4.6 (12.4K reviews)
-                </p>
-              </div>
-            </div>
-            <p className="text-[13px] font-medium text-gray-700 leading-relaxed mb-4">
-              {job.companyInfo ||
-                "A leading company providing exceptional services and opportunities across multiple sectors. Join us to build impactful solutions at scale."}
-            </p>
-            <div className="space-y-2.5 text-[12px] font-medium text-gray-700 mb-4">
-              <div className="flex items-center gap-2.5">
-                <HiOfficeBuilding className="w-[18px] h-[18px] text-gray-400" />{" "}
-                <div>
-                  <p className="text-[10px] text-gray-400 leading-none">
-                    Industry
-                  </p>
-                  <p className="font-bold text-gray-700">
-                    IT Services & Consulting
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <HiUsers className="w-[18px] h-[18px] text-gray-400" />{" "}
-                <div>
-                  <p className="text-[10px] text-gray-400 leading-none">
-                    Company Size
-                  </p>
-                  <p className="font-bold text-gray-700">10,001+ employees</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <HiLocationMarker className="w-[18px] h-[18px] text-gray-400" />{" "}
-                <div>
-                  <p className="text-[10px] text-gray-400 leading-none">
-                    Headquarters
-                  </p>
-                  <p className="font-bold text-gray-700">
-                    {job.city || "India"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* ── AI Insights for You (Sidebar) ── */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
