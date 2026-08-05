@@ -1412,15 +1412,6 @@ const ProviderJobs = () => {
           onClose={() => setRecruiterProfileTarget(null)}
         />
       )}
-      <ApplicationModal
-        isOpen={showApplicationModal}
-        onClose={() => {
-          setShowApplicationModal(false);
-          setSelectedJobForApplication(null);
-        }}
-        job={selectedJobForApplication}
-      />
-
       {showLocationModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl animate-fade-in">
