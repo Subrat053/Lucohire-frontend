@@ -940,9 +940,10 @@ const ProviderJobs = () => {
 
   const handleToggleSave = async (job) => {
     try {
-      const res = await providerAPI.toggleSaveJob(job._id, !!job.isExternal);
+      const jobId = job._id || job.id;
+      const res = await providerAPI.toggleSaveJob(jobId, !!job.isExternal);
       if (res.data?.isSaved !== undefined) {
-        setJobs(prev => prev.map(j => j._id === job._id ? { ...j, isSaved: res.data.isSaved } : j));
+        setJobs(prev => prev.map(j => (j._id || j.id) === jobId ? { ...j, isSaved: res.data.isSaved } : j));
         toast.success(res.data.message || (res.data.isSaved ? "Job saved!" : "Job removed from saved jobs."));
       }
     } catch (err) {
@@ -1375,18 +1376,20 @@ const ProviderJobs = () => {
                 <p className="text-sm text-gray-500 mb-3">
                   {pagination.total}{t("job")}{pagination.total !== 1 ? "s" : ""}{" "}{t("found")}</p>
                 <div className="flex flex-col gap-4">
-                  {jobs.map((job) => (
+                  {jobs.map((job) => {
+                    const jobId = job._id || job.id;
+                    return (
                     <JobCard
-                      key={job._id}
+                      key={jobId}
                       job={job}
-                      onViewDetails={() => navigate(`/provider/job/${job._id}`)}
-                      onApplyNow={() => navigate(`/provider/job/${job._id}/apply`)}
-                      aiInsights={aiInsightsMap[job._id]}
+                      onViewDetails={() => navigate(`/provider/job/${jobId}`)}
+                      onApplyNow={() => navigate(`/provider/job/${jobId}/apply`)}
+                      aiInsights={aiInsightsMap[jobId]}
                       onRecruiterClick={handleRecruiterClick}
-                      hasActivePlan={aiInsightsMap[job._id]?._isMock !== true}
+                      hasActivePlan={aiInsightsMap[jobId]?._isMock !== true}
                       onToggleSave={handleToggleSave}
                     />
-                  ))}
+                  )})}
                 </div>
                 {/* Pagination */}
                 {pagination.pages > 0 && (

@@ -945,25 +945,19 @@ export default function AiCareerCoach() {
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-extrabold tracking-tight text-gray-900">AI Career Coach</h1>
             </div>
-            <p className="text-gray-500 text-sm mt-0.5">Your personal AI coach to help you grow<br /> and land your dream role.</p>
+            <p className="text-gray-500 text-sm mt-0.5">Your personal AI coach to help you grow and land your dream role.</p>
           </div>
           <button onClick={() => setSettingsOpen(true)}
-            className="flex items-center justify-center gap-1.5 max-md:mr-2 max-md:p-1 md:px-3 md:py-1.5 max-md:bg-transparent md:bg-white border max-md:border-transparent md:border-gray-200 rounded-lg hover:border-gray-300 font-semibold text-sm transition-colors max-md:shadow-none md:shadow-sm">
-            <Settings className="w-6 h-6" /> <span className="hidden sm:inline">Settings</span>
+            className="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 bg-white border border-gray-200 rounded-lg hover:border-gray-300 font-semibold text-sm transition-colors shadow-sm">
+            <Settings className="w-5 h-5" /> <span className="hidden sm:inline">Settings</span>
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex mt-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] max-md:border-b max-md:border-gray-100 max-md:-mx-6 max-md:px-6 md:gap-3 md:pb-2">
+        <div className="flex gap-3 mt-4 overflow-x-auto scrollbar-hide pb-2">
           {TABS.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`whitespace-nowrap transition-all duration-300
-                max-md:flex-1 max-md:py-3.5 max-md:px-4 max-md:text-[14.5px] max-md:font-bold max-md:text-center max-md:border-b-2
-                md:px-5 md:py-2.5 md:text-[15px] md:font-bold md:rounded-xl md:transform md:hover:-translate-y-0.5 md:shadow-sm md:hover:shadow-md md:border
-                ${activeTab === tab 
-                  ? 'max-md:border-emerald-600 max-md:text-emerald-700 max-md:bg-white md:bg-emerald-600 md:text-white md:border-transparent md:shadow-[#059669]/20' 
-                  : 'max-md:border-transparent max-md:text-gray-500 max-md:hover:text-gray-700 max-md:hover:bg-gray-50 md:bg-white md:text-gray-700 md:border-[#059669] md:hover:bg-emerald-600/5 md:hover:text-emerald-700'
-                }`}>
+              className={`px-5 py-2.5 text-[15px] font-bold rounded-xl whitespace-nowrap transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md ${activeTab === tab ? 'bg-emerald-600 text-white shadow-[#059669]/20' : 'bg-white text-gray-700 border border-[#059669] hover:bg-emerald-600/5 hover:text-emerald-700'}`}>
               {tab}
             </button>
           ))}
