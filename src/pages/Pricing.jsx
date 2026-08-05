@@ -84,7 +84,7 @@ const PricingPage = () => {
         canonicalPath="/pricing"
       />
 
-      <div className="max-w-[90rem] mx-auto px-6 lg:px-8 relative">
+      <div className="max-w-360 mx-auto px-6 lg:px-8 relative">
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto mb-16 lg:translate-x-8 xl:translate-x-12">
           <span className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-100 text-blue-600 text-[11px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full mb-4">
@@ -144,7 +144,7 @@ const PricingPage = () => {
                       const grid = document.getElementById('pricing-grid');
                       if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }}
-                    className="w-full max-w-sm lg:max-w-none bg-gradient-to-br from-green-50 to-emerald-50/90 backdrop-blur-sm border border-green-200 rounded-3xl p-5 flex flex-col items-start gap-3 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                    className="w-full max-w-sm lg:max-w-none bg-linear-to-br from-green-50 to-emerald-50/90 backdrop-blur-sm border border-green-200 rounded-3xl p-5 flex flex-col items-start gap-3 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
                   >
                     <div className="flex items-center gap-3 w-full">
                       <div className="w-10 h-10 rounded-xl bg-green-100 text-green-700 flex items-center justify-center shrink-0">

@@ -715,16 +715,26 @@ const AdminPlans = () => {
                 </label>
               </div>
               {/* Check plan limits for creation */}
-              {!editingPlan && ((form.type === 'provider' && plans.filter(p => p.type === 'provider' && p.isActive).length >= 3) || (form.type === 'recruiter' && plans.filter(p => p.type === 'recruiter' && p.isActive).length >= 3)) && (
-                <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg mt-2 border border-red-100">
-                  Maximum of 3 active plans allowed for {form.type}. You cannot create any more.
-                </div>
-              )}
+              {!editingPlan && (() => {
+                const addonSlugs = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills', 'whatsapp-alerts', 'whatsapp-alerts-monthly'];
+                const providerCount = plans.filter(p => p.type === 'provider' && p.isActive && !addonSlugs.includes(p.slug)).length;
+                const recruiterCount = plans.filter(p => p.type === 'recruiter' && p.isActive && !addonSlugs.includes(p.slug)).length;
+                const atLimit = (form.type === 'provider' && providerCount >= 3) || (form.type === 'recruiter' && recruiterCount >= 3);
+                return atLimit ? (
+                  <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg mt-2 border border-red-100">
+                    Maximum of 3 active plans allowed for {form.type}. You cannot create any more.
+                  </div>
+                ) : null;
+              })()}
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={() => setShowForm(false)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition font-medium text-sm text-gray-750">Cancel</button>
                 <button 
                   type="submit" 
-                  disabled={!editingPlan && ((form.type === 'provider' && plans.filter(p => p.type === 'provider' && p.isActive).length >= 3) || (form.type === 'recruiter' && plans.filter(p => p.type === 'recruiter' && p.isActive).length >= 3))}
+                  disabled={!editingPlan && (() => {
+                    const addonSlugs = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills', 'whatsapp-alerts', 'whatsapp-alerts-monthly'];
+                    const count = plans.filter(p => p.type === form.type && p.isActive && !addonSlugs.includes(p.slug)).length;
+                    return count >= 3;
+                  })()}
                   className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                   {editingPlan ? 'Update Plan' : 'Create Plan'}
                 </button>
@@ -736,10 +746,10 @@ const AdminPlans = () => {
 
       {/* Plans Display */}
       {(() => {
-        const topPlanSlugs = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'];
+        const topPlanSlugs = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills', 'whatsapp-alerts', 'whatsapp-alerts-monthly'];
         const landingPlans = plans.filter(p => p.showOnLandingPage && !topPlanSlugs.includes(p.slug));
         const otherProviderPlans = plans.filter(p => p.type === 'provider' && !p.showOnLandingPage && !topPlanSlugs.includes(p.slug));
-        const topPlans = plans.filter(p => topPlanSlugs.includes(p.slug));
+        const topPlans = plans.filter(p => topPlanSlugs.includes(p.slug) && p.slug !== 'whatsapp-alerts-monthly');
         const otherRecruiterPlans = plans.filter(p => p.type === 'recruiter' && !p.showOnLandingPage);
 
         return (

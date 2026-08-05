@@ -5,7 +5,7 @@ import { getIncomeOpportunities, getAiUsage } from '../../services/providerAISer
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import useTranslation from '../../hooks/useTranslation';
-import { confirmPaymentSuccess } from '../../services/providerPlanService';
+import { confirmPaymentSuccess, purchaseFixedPlan } from '../../services/providerPlanService';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { 
@@ -181,10 +181,20 @@ const ProviderDashboard = () => {
 
   const handleWhatsappCheckout = async () => {
     try {
+      if (!dashboard?.subscription?.whatsappPlanId) {
+        toast.error('WhatsApp plan configuration not found.');
+        return;
+      }
       toast.loading('Redirecting to checkout...', { id: 'whatsapp-checkout' });
-      const { data } = await providerAPI.checkoutWhatsappPlan();
-      if (data?.checkout?.url) {
-        window.location.href = data.checkout.url;
+      const payload = {
+        planId: dashboard.subscription.whatsappPlanId,
+        durationMonths: 1,
+        isAutoSubscription: false,
+      };
+      const response = await purchaseFixedPlan(payload);
+      const { checkout } = response || {};
+      if (checkout?.url) {
+        window.location.href = checkout.url;
       } else {
         toast.error('Could not get checkout URL', { id: 'whatsapp-checkout' });
       }
@@ -532,14 +542,22 @@ const ProviderDashboard = () => {
               </ul>
               
               <div className="flex justify-between items-end mb-4 px-1">
-                <div className="text-sm font-extrabold">Just ₹1/day</div>
-                <div className="text-[11px] text-teal-200/70 font-medium">Only ₹30/month</div>
+                <div className="text-sm font-extrabold">Just ₹{Math.max(1, Math.round((dashboard?.subscription?.whatsappPlanPrice || 30) / 30))}/day</div>
+                <div className="text-[11px] text-teal-200/70 font-medium">Only ₹{dashboard?.subscription?.whatsappPlanPrice || 30}/month</div>
               </div>
               
-              <button onClick={handleWhatsappCheckout} className="w-full bg-white hover:bg-gray-50 text-[#0b5d49] font-extrabold py-3.5 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
-                Enable Alerts <FaWhatsapp className="w-4 h-4 text-[#075E54]" />
-              </button>
-              <div className="text-center text-sm text-teal-300 mt-3 font-medium">Cancel anytime</div>
+              {dashboard?.subscription?.whatsappPlanEndDate && new Date(dashboard.subscription.whatsappPlanEndDate) > new Date() ? (
+                <div className="w-full bg-[#0d735a] border border-[#138e71] text-white font-extrabold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 shadow-sm">
+                  Active - Valid until {new Date(dashboard.subscription.whatsappPlanEndDate).toLocaleDateString()}
+                </div>
+              ) : (
+                <>
+                  <button onClick={handleWhatsappCheckout} className="w-full bg-white hover:bg-gray-50 text-[#0b5d49] font-extrabold py-3.5 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
+                    Enable Alerts <FaWhatsapp className="w-4 h-4 text-[#075E54]" />
+                  </button>
+                  <div className="text-center text-sm text-teal-300 mt-3 font-medium">Cancel anytime</div>
+                </>
+              )}
             </div>
           </div>
           

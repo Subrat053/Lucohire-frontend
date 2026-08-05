@@ -28,6 +28,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import RouteLoader from '../../components/common/RouteLoader';
 import {
@@ -50,6 +51,8 @@ import LocationSearch from '../../components/LocationSearch';
 import SkillSearchSelect from '../../components/common/SkillSearchSelect';
 import { safeReturnPath } from '../../utils/navigation';
 
+const ADDON_SLUGS = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills', 'whatsapp-alerts', 'whatsapp-alerts-monthly'];
+
 const DURATION_OPTIONS = Array.from({ length: 12 }, (_, index) => {
   const months = index + 1;
   const discount = { 3: 10, 6: 15, 12: 20 }[months] || 0;
@@ -67,6 +70,7 @@ const planIconMap = {
   'top-in-city': Building2,
   'show-top-in-country': Globe2,
   'customise-plan': SlidersHorizontal,
+  'whatsapp-alerts': MessageCircle,
 };
 
 const coverageLabels = {
@@ -84,7 +88,7 @@ const formatCurrency = (value, symbol = '₹') => {
 
 const buildLocalPreview = (plan, months) => {
   if (!plan) return null;
-  const isAddon = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(plan.slug);
+  const isAddon = ADDON_SLUGS.includes(plan.slug);
   const effectiveMonths = isAddon ? 1 : months;
   
   const monthlyPrice = Number(plan.priceMonthly || plan.price || 0);
@@ -242,11 +246,11 @@ const ProviderPlans = () => {
           providerAPI.getProfile().catch(() => null)
         ]);
         const filteredPlans = planList.filter(p => {
-          const isTopPlan = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(p.slug);
+          const isTopPlan = ADDON_SLUGS.includes(p.slug);
           return !isTopPlan;
         });
         const addons = planList.filter(p =>
-          ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(p.slug)
+          ADDON_SLUGS.includes(p.slug)
         );
         setPlans(filteredPlans);
         setAvailableAddons(addons);
@@ -1072,7 +1076,7 @@ const ProviderPlans = () => {
                           if (selectedPlan?._id === plan._id) {
                             setSelectedPlan(null); // Allow unselecting
                           } else {
-                            const isCurrentPlanAddon = selectedPlan && ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(selectedPlan.slug);
+                            const isCurrentPlanAddon = selectedPlan && ADDON_SLUGS.includes(selectedPlan.slug);
                             if (isCurrentPlanAddon) {
                               setSelectedAddons([selectedPlan._id]);
                             }
@@ -1116,56 +1120,132 @@ const ProviderPlans = () => {
         {/* Top Plans Preview Section */}
         {availableAddons.length > 0 && (
           <div id="addons-section" className="mb-8 scroll-mt-24">
-            <h2 className="text-xl font-extrabold text-slate-800 mb-4 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-500" /> {t("Top Ranking Add-ons")}
-              <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full ml-2 uppercase">Optional</span>
-            </h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {availableAddons.map(addon => (
-                <div key={addon._id} className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col justify-between hover:border-emerald-200 hover:shadow-sm transition-all">
-                  <div>
-                    <h3 className="font-bold text-slate-900">{addon.name}</h3>
-                    <p className="text-xs text-slate-500 mt-1">{addon.description}</p>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span className="font-extrabold text-emerald-700">₹{addon.priceMonthly || addon.price || 0}<span className="text-[10px] text-slate-500 font-medium">/mo</span></span>
-                    <div className="flex gap-2">
-                      <button onClick={() => {
-                          const isAddonSelected = selectedAddons.includes(addon._id);
-                          const isBasePlanAddon = selectedPlan?._id === addon._id;
-                          
-                          if (isBasePlanAddon) {
-                            setSelectedPlan(null);
-                          } else if (isAddonSelected) {
-                            setSelectedAddons([]);
-                          } else {
-                            if (selectedPlan && !['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(selectedPlan.slug)) {
-                              setSelectedAddons([addon._id]);
-                            } else {
-                              setSelectedPlan(addon);
-                              setSelectedAddons([]);
-                            }
-                            setIsInvoiceMinimized(false);
-                            setTimeout(() => {
-                              document.getElementById('invoice-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }, 100);
-                          }
-                        }}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors border ${selectedPlan?._id === addon._id || selectedAddons.includes(addon._id) ? 'bg-emerald-50 text-emerald-700 border-emerald-200 ring-2 ring-emerald-500/20' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}
-                      >
-                        {selectedPlan?._id === addon._id || selectedAddons.includes(addon._id) ? t("Selected") : t("Select")}
-                      </button>
-                      <button onClick={() => handleDirectCheckout(addon)}
-                        className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg transition-colors shadow-sm"
-                      >
-                        {t("Purchase")}
-                      </button>
+            {availableAddons.filter(a => !a.slug.includes('whatsapp')).length > 0 && (
+              <>
+                <h2 className="text-xl font-extrabold text-slate-800 mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-emerald-500" /> {t("Visibility Add-ons")}
+                  <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full ml-2 uppercase">Optional</span>
+                </h2>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                  {availableAddons.filter(a => !a.slug.includes('whatsapp')).map(addon => {
+                    const Icon = planIconMap[addon.slug] || Sparkles;
+                    return (
+                    <div key={addon._id} className={`bg-white border border-slate-200 hover:border-emerald-200 rounded-2xl p-4 flex flex-col justify-between hover:shadow-sm transition-all`}>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className={`p-1.5 rounded-lg bg-emerald-50 text-emerald-600`}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <h3 className="font-bold text-slate-900">{addon.name}</h3>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">{addon.description}</p>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <span className="font-extrabold text-emerald-700">₹{addon.priceMonthly || addon.price || 0}<span className="text-[10px] text-slate-500 font-medium">/mo</span></span>
+                        <div className="flex gap-2">
+                          <button onClick={() => {
+                              const isAddonSelected = selectedAddons.includes(addon._id);
+                              const isBasePlanAddon = selectedPlan?._id === addon._id;
+                              
+                              if (isBasePlanAddon) {
+                                setSelectedPlan(null);
+                              } else if (isAddonSelected) {
+                                setSelectedAddons(selectedAddons.filter(id => id !== addon._id));
+                              } else {
+                                if (selectedPlan && !ADDON_SLUGS.includes(selectedPlan.slug)) {
+                                  const waAddon = availableAddons.find(a => a.slug === 'whatsapp-alerts');
+                                  const newAddons = waAddon && selectedAddons.includes(waAddon._id) ? [waAddon._id] : [];
+                                  setSelectedAddons([...newAddons, addon._id]);
+                                } else {
+                                  setSelectedPlan(addon);
+                                  setSelectedAddons([]);
+                                }
+                                setIsInvoiceMinimized(false);
+                                setTimeout(() => {
+                                  document.getElementById('invoice-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }, 100);
+                              }
+                            }}
+                            className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors border ${selectedPlan?._id === addon._id || selectedAddons.includes(addon._id) ? 'bg-emerald-50 text-emerald-700 border-emerald-200 ring-2 ring-emerald-500/20' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}
+                          >
+                            {selectedPlan?._id === addon._id || selectedAddons.includes(addon._id) ? t("Selected") : t("Select")}
+                          </button>
+                          <button onClick={() => handleDirectCheckout(addon)}
+                            className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                          >
+                            {t("Purchase")}
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-            <p className="text-xs text-slate-500 mt-3 text-center">{t("You can configure location and skills for these add-ons during checkout.")}</p>
+              </>
+            )}
+
+            {availableAddons.filter(a => a.slug.includes('whatsapp')).length > 0 && (
+              <>
+                <h2 className="text-xl font-extrabold text-slate-800 mb-4 flex items-center gap-2">
+                  <FaWhatsapp className="w-5 h-5 text-[#25D366]" /> {t("Freelance Add-ons")}
+                  <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full ml-2 uppercase">Optional</span>
+                </h2>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {availableAddons.filter(a => a.slug.includes('whatsapp')).map(addon => {
+                    const Icon = planIconMap[addon.slug] || FaWhatsapp;
+                    return (
+                    <div key={addon._id} className={`bg-white border border-[#25D366]/30 hover:border-[#25D366] rounded-2xl p-4 flex flex-col justify-between hover:shadow-sm transition-all`}>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className={`p-1.5 rounded-lg bg-[#25D366]/10 text-[#25D366]`}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <h3 className="font-bold text-slate-900">{addon.name}</h3>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">{addon.description}</p>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <span className="font-extrabold text-emerald-700">₹{addon.priceMonthly || addon.price || 0}<span className="text-[10px] text-slate-500 font-medium">/mo</span></span>
+                        <div className="flex gap-2">
+                          <button onClick={() => {
+                              const isAddonSelected = selectedAddons.includes(addon._id);
+                              const isBasePlanAddon = selectedPlan?._id === addon._id;
+                              
+                              if (isBasePlanAddon) {
+                                setSelectedPlan(null);
+                              } else if (isAddonSelected) {
+                                setSelectedAddons(selectedAddons.filter(id => id !== addon._id));
+                              } else {
+                                if (selectedPlan && !ADDON_SLUGS.includes(selectedPlan.slug)) {
+                                  setSelectedAddons([...selectedAddons, addon._id]);
+                                } else {
+                                  setSelectedPlan(addon);
+                                  setSelectedAddons([]);
+                                }
+                                setIsInvoiceMinimized(false);
+                                setTimeout(() => {
+                                  document.getElementById('invoice-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }, 100);
+                              }
+                            }}
+                            className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors border ${selectedPlan?._id === addon._id || selectedAddons.includes(addon._id) ? 'bg-[#25D366]/10 text-[#075E54] border-[#25D366] ring-2 ring-[#25D366]/20' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}
+                          >
+                            {selectedPlan?._id === addon._id || selectedAddons.includes(addon._id) ? t("Selected") : t("Select")}
+                          </button>
+                          <button onClick={() => handleDirectCheckout(addon)}
+                            className="text-xs font-bold text-white bg-[#25D366] hover:bg-[#1DA851] px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                          >
+                            {t("Purchase")}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+            <p className="text-xs text-slate-500 mt-5 text-center">{t("You can configure location and skills for these add-ons during checkout.")}</p>
           </div>
         )}
 
@@ -1241,19 +1321,19 @@ const ProviderPlans = () => {
                     <tr className="hover:bg-slate-50 transition-colors">
                       <td className="py-4 px-4">
                         <p className="font-bold text-slate-800">
-                          {selectedPlan.name} {['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(selectedPlan?.slug) ? '' : t("Plan")}
+                          {selectedPlan.name} {ADDON_SLUGS.includes(selectedPlan?.slug) ? '' : t("Plan")}
                         </p>
                         <p className="text-xs text-slate-500 mt-1">
-                          {['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(selectedPlan?.slug) ? t("Monthly Add-on fee") : t("Base subscription fee")}
+                          {ADDON_SLUGS.includes(selectedPlan?.slug) ? t("Monthly Add-on fee") : t("Base subscription fee")}
                         </p>
                         <div className="mt-2 text-[11px] text-slate-600">
-                          <p><span className="font-medium text-slate-500">{t("Next Billing Date")}:</span> {(() => { const d = new Date(); const isAddon = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(selectedPlan?.slug); const dur = isAddon ? 1 : Number(selectedDuration); if (dur === 12) d.setDate(d.getDate() + 365); else if (dur === 3) d.setDate(d.getDate() + 90); else d.setDate(d.getDate() + 30); return d.toLocaleDateString(); })()}</p>
+                          <p><span className="font-medium text-slate-500">{t("Next Billing Date")}:</span> {(() => { const d = new Date(); const isAddon = ADDON_SLUGS.includes(selectedPlan?.slug); const dur = isAddon ? 1 : Number(selectedDuration); if (dur === 12) d.setDate(d.getDate() + 365); else if (dur === 3) d.setDate(d.getDate() + 90); else d.setDate(d.getDate() + 30); return d.toLocaleDateString(); })()}</p>
                         </div>
                       </td>
                       <td className="py-4 px-4 text-center">
                         <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-medium capitalize">
                           <Clock className="w-3 h-3" />
-                          {['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills'].includes(selectedPlan?.slug) ? 1 : selectedDuration}
+                          {ADDON_SLUGS.includes(selectedPlan?.slug) ? 1 : selectedDuration}
                         </span>
                       </td>
                       <td className="py-4 px-4 text-right font-bold text-slate-800">
