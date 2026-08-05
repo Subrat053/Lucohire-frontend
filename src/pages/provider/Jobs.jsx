@@ -923,45 +923,34 @@ const ProviderJobs = () => {
 
     setLoading(true);
 
-    const onLocationSuccess = (position) => {
-      const coords = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-      };
-      setUserCoords(coords);
-      setNearbyOnly(true);
-      setLoading(false);
-      toast.success("Nearby jobs loaded!", { icon: '📍' });
-    };
-
-    const onLocationError = (error) => {
-      console.warn("High-accuracy geolocation failed, trying low-accuracy fallback:", error);
-
-      // Fallback: low accuracy uses cell tower/Wi-Fi, works indoors and on mobile without GPS
-      navigator.geolocation.getCurrentPosition(
-        onLocationSuccess,
-        (finalErr) => {
-          setLoading(false);
-          console.error("Geolocation final error:", finalErr);
-          if (finalErr.code === 1) {
-            toast.error("Location permission denied. Please allow location access in your browser/device settings.");
-          } else if (finalErr.code === 2) {
-            toast.error("Location unavailable. Please ensure Location/GPS is enabled on your phone.");
-          } else if (finalErr.code === 3) {
-            toast.error("Location request timed out. Please try again.");
-          } else {
-            toast.error("Unable to retrieve location.");
-          }
-        },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
-      );
-    };
-
-    // First try high accuracy (GPS), fall back automatically if it times out
     navigator.geolocation.getCurrentPosition(
-      onLocationSuccess,
-      onLocationError,
-      { enableHighAccuracy: true, timeout: 6000, maximumAge: 60000 }
+      (position) => {
+        const coords = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setUserCoords(coords);
+        setNearbyOnly(true);
+        setLoading(false);
+        toast.success("Nearby jobs loaded!", { icon: '📍' });
+      },
+      (error) => {
+        setLoading(false);
+        console.error("Geolocation error:", error);
+        
+        // Error code 1 means Permission Denied. 
+        // On mobile, this happens automatically WITHOUT A PROMPT if the site is not HTTPS (e.g. testing on local IP).
+        if (error.code === 1) {
+          toast.error("Location permission denied. Ensure you are using HTTPS or check your browser settings.");
+        } else if (error.code === 2) {
+          toast.error("Location unavailable. Please ensure Location/GPS is enabled.");
+        } else if (error.code === 3) {
+          toast.error("Location request timed out. Please try again.");
+        } else {
+          toast.error("Unable to retrieve location.");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 
