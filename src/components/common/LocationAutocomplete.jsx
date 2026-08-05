@@ -168,7 +168,11 @@ const LocationAutocomplete = ({
           console.error('Geolocation error:', finalErr);
           let msg = 'Failed to fetch location';
           if (finalErr.code === finalErr.PERMISSION_DENIED) {
-            msg = 'Location permission denied. Please allow location access in your browser settings.';
+            if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+              msg = 'Location access blocked. Mobile browsers require HTTPS (or localhost) for location features.';
+            } else {
+              msg = 'Location permission denied. Please allow location access in your browser settings.';
+            }
           } else if (finalErr.code === finalErr.POSITION_UNAVAILABLE) {
             msg = 'Location information is unavailable.';
           } else if (finalErr.code === finalErr.TIMEOUT) {

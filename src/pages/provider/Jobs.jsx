@@ -944,7 +944,11 @@ const ProviderJobs = () => {
         setLoading(false);
         console.error("Geolocation error:", error);
         if (error.code === 1) {
-          toast.error("Location access denied. Please allow location permissions in your device/browser settings.");
+          if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            toast.error("Location access blocked. Mobile browsers require HTTPS (or localhost) for location features.");
+          } else {
+            toast.error("Location access denied. Please allow location permissions in your device/browser settings.");
+          }
         } else if (error.code === 2) {
           toast.error("Location information is unavailable on this device.");
         } else if (error.code === 3) {
