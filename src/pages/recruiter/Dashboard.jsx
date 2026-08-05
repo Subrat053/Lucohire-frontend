@@ -171,7 +171,9 @@ const Dashboard = () => {
     candidates: activeJobs.reduce((acc, job) => acc + (job.interestedCount || 0), 0),
     shortlisted: shortlistedCount,
     aiTasks: tasks.filter(t => t.aiSuggested).length || tasks.length,
-    pendingTasks: tasks.filter(t => t.status !== 'done').length || 0
+    pendingTasks: tasks.filter(t => t.status !== 'done').length || 0,
+    interviews: activeJobs.reduce((acc, job) => acc + (job.candidates?.filter(c => c.status === 'interview').length || 0), 0),
+    offers: activeJobs.reduce((acc, job) => acc + (job.candidates?.filter(c => c.status === 'offer' || c.status === 'hired').length || 0), 0),
   };
 
   const getMatchScore = (job) => {
@@ -264,7 +266,7 @@ const Dashboard = () => {
                       </div>
                       <div className="text-xs text-gray-900 font-bold">{t("New Applications")}</div>
                     </div>
-                    <div className="text-2xl font-black text-gray-900 mb-2">{topStats.candidates || 18}</div>
+                    <div className="text-2xl font-black text-gray-900 mb-2">{topStats.candidates || 0}</div>
                     <Link to="/recruiter/jobs" className="text-xs font-bold text-indigo-600 hover:underline mt-auto">{t("View application list →")}</Link>
                   </div>
                   <div className="p-4 text-center flex flex-col items-center">
@@ -274,7 +276,7 @@ const Dashboard = () => {
                       </div>
                       <div className="text-xs text-gray-900 font-bold">{t("Interviews")}</div>
                     </div>
-                    <div className="text-2xl font-black text-gray-900 mb-2">0</div>
+                    <div className="text-2xl font-black text-gray-900 mb-2">{topStats.interviews || 0}</div>
                     <Link to="/recruiter/interviews" className="text-xs font-bold text-indigo-600 hover:underline mt-auto">{t("View schedule →")}</Link>
                   </div>
                   <div className="p-4 text-center flex flex-col items-center">
@@ -284,7 +286,7 @@ const Dashboard = () => {
                       </div>
                       <div className="text-xs text-gray-900 font-bold">{t("Offers")}</div>
                     </div>
-                    <div className="text-2xl font-black text-gray-900 mb-2">0</div>
+                    <div className="text-2xl font-black text-gray-900 mb-2">{topStats.offers || 0}</div>
                     <Link to="/recruiter/offers" className="text-xs font-bold text-indigo-600 hover:underline mt-auto">{t("View offers →")}</Link>
                   </div>
                   <div className="p-4 text-center flex flex-col items-center">
@@ -301,31 +303,7 @@ const Dashboard = () => {
               )}
             </div>
 
-            {/* AI Limits Widget */}
-            {!usageLoading && aiUsage && aiUsage.limits && Object.keys(aiUsage.limits).length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col p-5">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">{t("AI Plan Limits")}</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {Object.entries(aiUsage.limits).map(([key, limit]) => {
-                    if (key === '_id') return null;
-                    const used = aiUsage.usage[key] || 0;
-                    const remaining = limit === -1 ? 'Unlimited' : Math.max(0, limit - used);
-                    const percentage = limit === -1 ? 0 : Math.min(100, (used / limit) * 100);
-                    return (
-                      <div key={key} className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                        <div className="text-xs text-gray-500 font-bold mb-1 capitalize">{key.replace(/ai/g, '').replace(/([A-Z])/g, ' $1').trim()}</div>
-                        <div className="text-xl font-black text-gray-900">{remaining} <span className="text-xs font-bold text-gray-400">{limit !== -1 && 'left'}</span></div>
-                        {limit !== -1 && (
-                          <div className="w-full bg-gray-200 rounded-full h-1 mt-2">
-                            <div className={`h-1 rounded-full ${percentage > 80 ? 'bg-red-500' : 'bg-indigo-600'}`} style={{ width: `${percentage}%` }}></div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+
           </div>
 
           {/* Right Column (1/3 width) - AI Insights */}

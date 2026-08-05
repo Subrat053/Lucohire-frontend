@@ -361,7 +361,7 @@ const LeftPanel = ({ mode }) => {
 
       <div className="relative z-10 max-w-lg mb-10">
         <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 font-bold">AI-Powered</span><br/>
+          <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-indigo-400 font-bold">AI-Powered</span><br/>
           Global Jobs & <br/>Hiring Platform.
         </h1>
         <p className="text-lg text-gray-300 font-medium leading-relaxed mb-8">
@@ -959,7 +959,15 @@ const AuthPage = () => {
 
   const redirectAfterAuth = (data) => {
     console.log("[AUTH DEBUG] Starting redirectAfterAuth with data:", data);
-    const authData = data?.token && data?.user ? data : null;
+    
+    let authData = null;
+    if (data?.token) {
+      if (data.user) authData = data;
+      else {
+        const { token, ...userObj } = data;
+        authData = { token, user: userObj };
+      }
+    }
     if (!authData) {
       console.log("[AUTH DEBUG] No valid authData, going to /");
       return;
@@ -1184,7 +1192,7 @@ const AuthPage = () => {
 
         const { data } = await authAPI.phoneLogin(payload);
         console.log("[PHONE LOGIN RESPONSE]", data);
-        redirectAfterAuth(data?.data);
+        redirectAfterAuth(data?.data || data);
       }
     } catch (err) {
       console.error("Firebase OTP Verify Error:", err);
@@ -1237,7 +1245,7 @@ const AuthPage = () => {
       });
       const { data } = await authAPI.loginEmail(payload);
 
-      redirectAfterAuth(data?.data);
+      redirectAfterAuth(data?.data || data);
     } catch (err) {
       if (err.response?.data?.requiresEmailVerification) {
         setEmailOtpSource("login");
@@ -1367,7 +1375,7 @@ const AuthPage = () => {
       // If backend returns auth data directly (e.g. cross-role registration for verified users)
       if (data?.data?.user && data?.data?.token) {
         toast.success("Profile added successfully!");
-        redirectAfterAuth(data?.data);
+        redirectAfterAuth(data?.data || data);
         return;
       }
 
@@ -1403,7 +1411,7 @@ const AuthPage = () => {
         isWhatsappSameAsMobile: form.isWhatsappSameAsMobile !== false,
       });
 
-      redirectAfterAuth(data?.data);
+      redirectAfterAuth(data?.data || data);
     } catch (err) {
       toast.error(err.response?.data?.message || t("auth.otpFailed"));
     }
@@ -1428,7 +1436,7 @@ const AuthPage = () => {
       });
 
       console.log("[GOOGLE LOGIN RESPONSE]", data);
-      redirectAfterAuth(data?.data);
+      redirectAfterAuth(data?.data || data);
     } catch (err) {
       const message = err.response?.data?.message;
       toast.error(message || t("auth.googleFailed"));
