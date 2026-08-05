@@ -995,7 +995,9 @@ const AuthPage = () => {
       savedUser?.activeRole || savedUser?.role || savedUser?.roles?.[0];
 
     console.log("[AUTH DEBUG] resolvedRole:", resolvedRole);
-    redirectToDashboard(resolvedRole);
+    setTimeout(() => {
+      redirectToDashboard(resolvedRole);
+    }, 100);
   };
 
   const handleOtpBox = (idx, e) => {
@@ -1464,6 +1466,19 @@ const AuthPage = () => {
     triggerGoogleLogin();
   };
 
+  useEffect(() => {
+    // For mobile webviews or browsers that force popup to redirect to the website
+    const hash = window.location.hash;
+    if (hash && hash.includes("access_token=")) {
+      const params = new URLSearchParams(hash.replace("#", "?"));
+      const accessToken = params.get("access_token");
+      if (accessToken) {
+        window.location.hash = ""; // Clear hash
+        handleGoogleAuthSuccess(accessToken);
+      }
+    }
+  }, []);
+
   const handleEmailResend = async () => {
     if (resendTimer > 0 || !form.email) return;
 
@@ -1590,6 +1605,7 @@ const AuthPage = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
             <button
+              type="button"
               onClick={handleGoogleAuth}
               disabled={isSubmitting}
               className="flex items-center justify-center gap-2 border-2 border-gray-200 bg-white py-3.5 rounded-2xl text-sm font-semibold hover:bg-gray-50 transition shadow-sm"
