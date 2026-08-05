@@ -429,10 +429,10 @@ const Navbar = () => {
                         key={path}
                         to={path}
                         onClick={(e) => handleNavClick(e, path, () => setMobileOpen(false))}
-                        className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-gray-50"}`}
+                        className={`flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${active ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-gray-50"}`}
                       >
                         <Icon
-                          className={`w-4 h-4 ${active ? "text-emerald-600" : "text-gray-400"}`}
+                          className={`w-5 h-5 ${active ? "text-emerald-600" : "text-gray-400"}`}
                         />
                         <span>{label}</span>
                       </Link>
@@ -460,9 +460,9 @@ const Navbar = () => {
                         key={path}
                         to={path}
                         onClick={(e) => handleNavClick(e, path, () => setMobileOpen(false))}
-                        className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-amber-50 text-amber-700" : "text-gray-700 hover:bg-gray-50"}`}
+                        className={`flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${active ? "bg-amber-50 text-amber-700" : "text-gray-700 hover:bg-gray-50"}`}
                       >
-                        <Icon className={`w-4 h-4 ${active ? "text-amber-600" : "text-gray-400"}`} />
+                        <Icon className={`w-5 h-5 ${active ? "text-amber-600" : "text-gray-400"}`} />
                         <span>{label}</span>
                       </Link>
                     );
@@ -496,10 +496,10 @@ const Navbar = () => {
                         key={path}
                         to={path}
                         onClick={(e) => handleNavClick(e, path, () => setMobileOpen(false))}
-                        className={`flex items-center space-x-3 rounded-xl px-3 py-2 text-xs font-medium transition ${active ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-gray-50"}`}
+                        className={`flex items-center space-x-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${active ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-gray-50"}`}
                       >
                         <Icon
-                          className={`w-4 h-4 ${active ? "text-emerald-600" : "text-gray-400"}`}
+                          className={`w-5 h-5 ${active ? "text-emerald-600" : "text-gray-400"}`}
                         />
                         <span>{label}</span>
                       </Link>

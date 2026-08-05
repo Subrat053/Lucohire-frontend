@@ -108,7 +108,7 @@ export default function LiveJobsCarousel({ isLoadingJobs, liveJobsList, onJobCli
   const showNextArrow = !isLoadingJobs && liveJobsList.length > 0 && (currentPage < TOTAL_PAGES - 1 || !scrollState.isAtEnd);
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 pb-1">
+    <div className="w-full pb-1">
       <div className="max-w-7xl mx-auto bg-[#f4f7ff] border border-blue-100 rounded-[24px] p-2 sm:p-4 relative shadow-sm">
         <div className="flex justify-between items-center mb-1 sm:mb-3 px-2 sm:px-4">
           <div className="flex items-center gap-2">
