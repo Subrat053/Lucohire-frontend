@@ -478,9 +478,9 @@ export default function JobDetail() {
           {/* ── Company Header ── */}
           <div className="bg-white rounded-2xl border border-gray-100 p-0 shadow-sm overflow-hidden">
             <div className="p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-[60px] h-[60px] rounded-[16px] border border-gray-100 flex flex-col items-center justify-center shadow-sm bg-white overflow-hidden shrink-0">
+              <div className="flex items-start justify-between gap-3 sm:gap-4">
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                  <div className="w-[50px] h-[50px] sm:w-[60px] sm:h-[60px] rounded-[12px] sm:rounded-[16px] border border-gray-100 flex flex-col items-center justify-center shadow-sm bg-white overflow-hidden shrink-0">
                     {job.companyLogo ? (
                       <img
                         src={job.companyLogo}
@@ -488,40 +488,48 @@ export default function JobDetail() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="font-extrabold text-2xl text-gray-900 tracking-tighter capitalize">
+                      <span className="font-extrabold text-xl sm:text-2xl text-gray-900 tracking-tighter capitalize">
                         {job.companyName?.substring(0, 1) || "C"}
                       </span>
                     )}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-extrabold text-gray-900 text-lg">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+                      <span className="font-extrabold text-gray-900 text-base sm:text-lg truncate max-w-full">
                         {job.companyName || job.recruiter?.name || "Company"}
                       </span>
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
-                        <HiCheckCircle className="w-3 h-3" /> Verified
+                      <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 sm:px-2 py-0.5 rounded-full shrink-0">
+                        <HiCheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Verified
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-[13px] text-gray-500 font-medium">
                       <span className="text-yellow-400">★</span>
                       <span className="font-bold text-gray-700">4.6</span>
                       <span>(12.4K reviews)</span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                  <button
+                    onClick={() => handleSave()}
+                    className={`flex items-center justify-center w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-xl transition ${saved ? "text-emerald-700 bg-emerald-50 hover:bg-emerald-100" : "text-gray-700 hover:bg-gray-50"}`}
+                  >
+                    {saved ? <HiBookmark className="w-[18px] h-[18px]" /> : <HiOutlineBookmark className="w-[18px] h-[18px]" />}
+                    <span className="hidden sm:block text-[13px] font-bold ml-1.5">{saved ? "Saved" : "Save"}</span>
+                  </button>
                   <button
                     onClick={() => handleShare("copy")}
-                    className="flex items-center gap-1.5 text-[13px] font-bold text-gray-700 hover:bg-gray-50 px-3 py-1.5 rounded-xl transition"
+                    className="flex items-center justify-center w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-xl text-gray-700 hover:bg-gray-50 transition"
                   >
-                    <HiShare className="w-4 h-4" /> Share
+                    <HiShare className="w-[18px] h-[18px]" />
+                    <span className="hidden sm:block text-[13px] font-bold ml-1.5">Share</span>
                   </button>
                 </div>
               </div>
 
               {/* Title */}
-              <div className="mt-6">
-                <h1 className="font-extrabold text-3xl text-gray-900">
+              <div className="mt-5 sm:mt-6">
+                <h1 className="font-extrabold text-2xl sm:text-3xl text-gray-900 leading-tight">
                   {job.title}
                 </h1>
                 <div className="flex flex-wrap items-center gap-4 mt-3 text-[13px] font-medium text-gray-500">
@@ -567,20 +575,9 @@ export default function JobDetail() {
                   )}
                 </div>
 
-                {/* Save button and info row */}
-                <div className="flex items-center justify-between border-t border-gray-100 mt-6 pt-5">
-                  <button
-                    onClick={() => handleSave()}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold border transition ${saved ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"}`}
-                  >
-                    {saved ? (
-                      <HiBookmark className="w-[18px] h-[18px]" />
-                    ) : (
-                      <HiOutlineBookmark className="w-[18px] h-[18px]" />
-                    )}
-                    {saved ? "Saved" : "Save"}
-                  </button>
-                  <div className="flex flex-col items-end gap-1">
+                {/* Info row */}
+                <div className="flex items-center justify-end border-t border-gray-100 mt-5 pt-4">
+                  <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4">
                     <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-500">
                       <HiClock className="w-3.5 h-3.5 text-emerald-500" /> Apply
                       takes less than 2 minutes
@@ -593,19 +590,19 @@ export default function JobDetail() {
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Tabs */}
-            <div className="border-t border-gray-100 flex items-center gap-8 px-6 pt-1">
-              {["Overview", "About Company"].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`py-4 text-[13px] font-bold border-b-2 transition-colors ${activeTab === tab ? "border-emerald-600 text-emerald-700" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
+          {/* Tabs */}
+          <div className="flex items-center gap-6 sm:gap-8 px-2">
+            {["Overview", "About Company"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`py-2 text-[14px] sm:text-[15px] font-bold border-b-2 transition-colors ${activeTab === tab ? "border-emerald-600 text-emerald-700" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
 
           {/* ── Tab Content ── */}
