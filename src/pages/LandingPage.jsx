@@ -122,7 +122,16 @@ export default function LandingPage() {
         handleJobSearch={handleJobSearch}
         isLoadingJobs={isLoadingJobs}
         liveJobsList={liveJobsList}
-        onJobClick={(job) => navigate(`/job/${job._id || job.id}`)}
+        onJobClick={(job) => {
+          const jobId = job._id || job.id;
+          if (user?.activeRole === 'provider') {
+            navigate(`/provider/job/${jobId}`);
+          } else if (user?.activeRole === 'recruiter') {
+            navigate(`/recruiter/jobs/${jobId}`);
+          } else {
+            navigate(`/job/${jobId}`);
+          }
+        }}
       />
       
       <TopTalentCarousel 
