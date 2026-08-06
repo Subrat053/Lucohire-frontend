@@ -327,7 +327,9 @@ const RecruiterPlans = () => {
       slug: p.slug + '-quarterly',
       duration: 90,
       price: p.price > 0 ? Math.round(p.price * 3 * 0.9) : 0,
-      monthlyEquivalent: p.price > 0 ? Math.round(p.price * 0.9) : 0
+      monthlyEquivalent: p.price > 0 ? Math.round(p.price * 0.9) : 0,
+      originalMonthlyPrice: p.price,
+      discountPercent: 10
     }));
   }
 
@@ -338,7 +340,9 @@ const RecruiterPlans = () => {
       slug: p.slug + '-yearly',
       duration: 365,
       price: p.price > 0 ? Math.round(p.price * 12 * 0.8) : 0,
-      monthlyEquivalent: p.price > 0 ? Math.round(p.price * 0.8) : 0
+      monthlyEquivalent: p.price > 0 ? Math.round(p.price * 0.8) : 0,
+      originalMonthlyPrice: p.price,
+      discountPercent: 20
     }));
   }
   
@@ -494,12 +498,26 @@ const RecruiterPlans = () => {
                               <>
                                 <span className="text-3xl font-extrabold text-slate-900">₹{(plan.monthlyEquivalent || plan.price).toLocaleString('en-IN')}</span>
                                 <span className="text-xs text-slate-500 font-semibold">{t("/month")}</span>
+                                {plan.discountPercent > 0 && (
+                                  <span className="text-xs text-slate-400 line-through font-medium">₹{(plan.originalMonthlyPrice || 0).toLocaleString('en-IN')}</span>
+                                )}
                               </>
                             )}
                           </div>
-                          <div className="mt-2.5 text-[11px] font-semibold text-slate-400">
-                            {plan.price === 0 ? 'Forever Free' : `Billed ${activePeriod.toLowerCase()} at ₹${plan.price.toLocaleString('en-IN')} total`}
-                          </div>
+                          {plan.price === 0 ? (
+                            <div className="mt-2.5 text-[11px] font-semibold text-slate-400">
+                              Forever Free
+                            </div>
+                          ) : plan.discountPercent > 0 ? (
+                            <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/60 text-[11px] font-bold text-emerald-700">
+                              <span>Billed {activePeriod.toLowerCase()} at ₹{plan.price.toLocaleString('en-IN')} total</span>
+                              <span className="bg-emerald-600 text-white text-[9px] px-1.5 py-0.5 rounded font-extrabold">{plan.discountPercent}% OFF</span>
+                            </div>
+                          ) : (
+                            <div className="mt-2.5 text-[11px] font-semibold text-slate-400">
+                              Billed {activePeriod.toLowerCase()}
+                            </div>
+                          )}
                           <p className="text-xs text-slate-500 mt-2 h-4">{theme.sub}</p>
                         </div>
 
