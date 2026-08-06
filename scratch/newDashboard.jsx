@@ -81,7 +81,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* MAIN GRID - 3 Columns on Large Screens */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
@@ -123,7 +123,7 @@ const Dashboard = () => {
                   <button onClick={() => setPrioritiesCollapsed(!prioritiesCollapsed)} className="flex items-center gap-1 hover:text-indigo-600">
                     {prioritiesCollapsed ? 'Expand' : 'Collapse'} {prioritiesCollapsed ? <FiChevronDown /> : <FiChevronRight className="-rotate-90" />}
                   </button>
-                  <label className="flex items-center gap-2 cursor-pointer hidden sm:flex">
+                  <label className="flex items-center gap-2 cursor-pointer sm:flex">
                     <span className="text-gray-500">Remember my preference</span>
                     <div className="relative inline-block w-8 h-4 bg-indigo-600 rounded-full">
                       <div className="absolute right-1 top-0.5 w-3 h-3 bg-white rounded-full"></div>
