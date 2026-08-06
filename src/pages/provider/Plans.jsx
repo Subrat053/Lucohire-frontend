@@ -465,6 +465,7 @@ const ProviderPlans = () => {
         modal: {
           ondismiss: () => {
             setCheckoutLoading(false);
+            toast.error('Payment cancelled by user.');
           }
         }
       };
@@ -549,8 +550,11 @@ const ProviderPlans = () => {
   };
 
   const handleCheckout = async () => {
+    setCheckoutLoading(true);
+
     if (!selectedPlan) {
       toast.error('Select a plan to continue.');
+      setCheckoutLoading(false);
       return;
     }
 
@@ -578,16 +582,16 @@ const ProviderPlans = () => {
     }
 
     const hasWhatsappAddon = selectedAddons.some(id => {
-      const p = plans.find(a => a._id === id);
+      const p = availableAddons.find(a => a._id === id);
       return p && p.slug === 'whatsapp-alerts';
     });
 
     if (hasWhatsappAddon && !whatsappConsentOpen && (!whatsappConsent1 || !whatsappConsent2)) {
       setWhatsappConsentOpen(true);
+      setCheckoutLoading(false);
       return;
     }
 
-    setCheckoutLoading(true);
     try {
       const payload = {
         planId: selectedPlan._id,
