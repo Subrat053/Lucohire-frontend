@@ -824,28 +824,54 @@ const RecruiterPlans = () => {
         </div>
         
         {showBreakdownModal && breakdownData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 border border-slate-100">
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <HiOutlineLightningBolt className="w-5 h-5" />
+          (() => {
+            const pendingPlan = [...plansByDuration.Monthly, ...plansByDuration.Quarterly, ...plansByDuration.Yearly].find(p => p._id === pendingPurchasePlanId);
+            const hasDiscount = pendingPlan?.discountPercent > 0;
+            const originalAmount = hasDiscount ? pendingPlan.originalMonthlyPrice * (pendingPlan.duration === 90 ? 3 : pendingPlan.duration === 365 ? 12 : 1) : 0;
+            const discountAmount = hasDiscount ? originalAmount - breakdownData.baseAmount : 0;
+            
+            return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+              <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 border border-slate-100">
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                      <HiOutlineLightningBolt className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">{t("Secure Order Invoice")}</h3>
+                      <p className="text-xs text-gray-500">{t("Recalculated securely on backend ledger servers")}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">{t("Secure Order Invoice")}</h3>
-                    <p className="text-xs text-gray-500">{t("Recalculated securely on backend ledger servers")}</p>
-                  </div>
-                </div>
-
-                <div className="divide-y divide-slate-100 bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-500 font-medium">{t("Base Plan Amount")}</span>
-                    <span className="font-bold text-slate-800">₹{breakdownData.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-200">
-                    <span className="text-gray-900 font-extrabold">{t("Final Payable Total")}</span>
-                    <span className="text-lg font-black text-indigo-600">₹{breakdownData.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+  
+                  <div className="divide-y divide-slate-100 bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
+                    {hasDiscount && (
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-500 font-medium">{t("Original Plan Value")}</span>
+                        <span className="font-medium text-slate-400 line-through">₹{originalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                    {hasDiscount && (
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-emerald-600 font-bold">{t("Upfront Discount")} ({pendingPlan.discountPercent}%)</span>
+                        <span className="font-bold text-emerald-600">-₹{discountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-500 font-medium">{hasDiscount ? t("Discounted Base Amount") : t("Base Plan Amount")}</span>
+                      <span className="font-bold text-slate-800">₹{breakdownData.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    {breakdownData.gstAmount > 0 && (
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-500 font-medium">{t("Taxes")} ({breakdownData.gstPercent}%)</span>
+                        <span className="font-bold text-slate-800">₹{breakdownData.gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+  
+                    <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-200">
+                      <span className="text-gray-900 font-extrabold">{t("Final Payable Total")}</span>
+                      <span className="text-lg font-black text-indigo-600">₹{breakdownData.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    </div>
                   </div>
                 </div>
 
