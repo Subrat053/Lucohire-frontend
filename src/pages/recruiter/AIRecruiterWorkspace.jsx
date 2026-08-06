@@ -197,8 +197,9 @@ export default function AIRecruiterWorkspace() {
         toast.error(res.data.message || "Failed to send message");
       }
     } catch (error) {
-      toast.error("AI request failed");
+      toast.error(error.response?.data?.message || "AI request failed");
       setMessages(newMsgs); // revert or keep as is
+      await fetchUsage(); // Sync UI in case of limit issues
     } finally {
       setLoading(false);
     }
