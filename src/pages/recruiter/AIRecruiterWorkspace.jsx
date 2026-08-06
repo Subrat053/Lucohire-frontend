@@ -188,8 +188,13 @@ export default function AIRecruiterWorkspace() {
           ...newMsgs,
           { role: "assistant", content: res.data.data.message },
         ]);
-        setActiveConversationId(res.data.data.conversationId);
-        fetchConversations();
+        if (res.data.data.conversationId) {
+          setActiveConversationId(res.data.data.conversationId);
+          fetchConversations();
+        }
+        await fetchUsage(); // Refresh UI credits!
+      } else {
+        toast.error(res.data.message || "Failed to send message");
       }
     } catch (error) {
       toast.error("AI request failed");
