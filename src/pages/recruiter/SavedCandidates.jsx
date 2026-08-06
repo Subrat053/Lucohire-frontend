@@ -599,15 +599,15 @@ const Candidates = () => {
                   const email = user.email || candidate.email || '';
                   const name = candidate.name || user.name || "Candidate";
                   const avatar = candidate.profilePhoto || toOptimizedMediaUrl(user.profilePhoto || user.avatar, 'profile', 150) || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
-                  const title = candidate.title || candidate.role || candidate.headline || candidate.skills?.[0] || 'Professional';
-                  const city = candidate.location || candidate.city || userProfile.location || 'Bangalore, Karnataka';
+                  const title = candidate.title || candidate.role || userProfile.role || candidate.headline || candidate.skills?.[0] || 'Professional';
+                  const city = candidate.location || candidate.city || userProfile.location || 'Not specified';
                   
                   // Connect fields directly to userProfile dynamically as requested
-                  const exp = candidate.experience || userProfile.experience || '5.2 yrs';
-                  const ctc = candidate.pricing || candidate.currentCTC || userProfile.currentCTC || '₹18 LPA';
-                  const notice = candidate.noticePeriod || userProfile.noticePeriod || '30 Days';
+                  const exp = candidate.experience || userProfile.experience || 'Not specified';
+                  const ctc = candidate.pricing || candidate.currentCTC || userProfile.currentCTC || 'Not specified';
+                  const notice = candidate.noticePeriod || userProfile.noticePeriod || 'Not specified';
 
-                  const skills = candidate.skills || ['React', 'TypeScript', 'Next.js', 'Redux', 'Node.js', 'Tailwind CSS'];
+                  const skills = candidate.skills || userProfile.skills || [];
                   const displayedSkills = skills.slice(0, 5);
                   const extraSkills = skills.length > 5 ? skills.length - 5 : 0;
                   const isSelected = selectedCandidates.includes(id);
@@ -628,7 +628,9 @@ const Candidates = () => {
                                     {scoreData.score}% Match
                                   </span>
                                 )}
-                                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">Premium</span>
+                                {userProfile?.whatsappFreelancePlanActive && (
+                                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">Premium</span>
+                                )}
                               </div>
                               <div className="text-sm font-bold text-gray-700 mb-1">{title}</div>
                               <div className="text-xs font-semibold text-gray-400 flex items-center gap-1">
