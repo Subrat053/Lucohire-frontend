@@ -883,7 +883,7 @@ const RecruiterPlans = () => {
   
                     <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-200">
                       <span className="text-gray-900 font-extrabold">{t("Final Payable Total")}</span>
-                      <span className="text-lg font-black text-indigo-600">₹{breakdownData.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      <span className="text-lg font-black text-indigo-600">₹{breakdownData.finalPayableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                     </div>
                   </div>
                 </div>
