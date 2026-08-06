@@ -197,6 +197,8 @@ const FindProviders = () => {
   const [compareOpen, setCompareOpen] = useState(false);
   const [topMatches, setTopMatches] = useState([]);
   const [showMatchesDropdown, setShowMatchesDropdown] = useState(false);
+  const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {}, planDetails: {} });
+  const [usageLoading, setUsageLoading] = useState(true);
   const searchRef = useRef(null);
   const skillDropdownRef = useRef(null);
 
@@ -249,6 +251,15 @@ const FindProviders = () => {
     subscriptionAPI.getMySubscription()
       .then(r => setSubscription(r.data))
       .catch(() => {});
+
+    recruiterAPI.getAiUsage()
+      .then(res => {
+        if (res.data?.success) {
+          setAiUsage(res.data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setUsageLoading(false));
 
     // Fetch skill categories for autocomplete
     categoriesAPI.getCategories()
@@ -373,11 +384,12 @@ const FindProviders = () => {
       }
     } finally {
       setUnlocking(null);
+      // refresh usage limits after unlock attempt
+      recruiterAPI.getAiUsage().then(res => {
+        if (res.data?.success) setAiUsage(res.data);
+      });
     }
   }, [subscription]);
-
-  const planName = subscription?.plan?.name;
-  const unlockCredits = subscription?.remainingUnlocks;
 
   return (
     <div className="min-h-screen bg-gray-50" onClick={() => setShowMatchesDropdown(false)}>
@@ -386,18 +398,30 @@ const FindProviders = () => {
         <div className="max-w-5xl mx-auto">
           <h1 className="text-2xl font-extrabold text-white mb-1">{t("Find Providers")}</h1>
           <p className="text-blue-100 text-sm">{t("Search skilled professionals for your requirements")}</p>
-          <div className="flex flex-wrap gap-3 mt-3">
-            {planName && (
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs text-white font-medium">
-                <HiSparkles className="w-3.5 h-3.5" />
-                {planName}{t("Plan")}</div>
-            )}
-            {unlockCredits !== undefined && (
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs text-white font-medium">
-                <HiLockOpen className="w-3.5 h-3.5" />
-                {unlockCredits}{t("unlocks remaining")}</div>
-            )}
-          </div>
+          
+          {!usageLoading && (
+            <div className="mt-6 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
+                <div className="flex flex-col">
+                  <span className="text-blue-100 text-xs mb-0.5">{t('common.currentPlan', 'Current Plan')}</span>
+                  <span className="text-white font-bold bg-white/20 px-2 py-0.5 rounded text-xs uppercase tracking-wide border border-white/30 self-start">
+                    {aiUsage.planDetails?.name || aiUsage.planDetails?.slug || 'Free'}
+                  </span>
+                </div>
+                <div className="h-8 w-px bg-white/20 hidden md:block"></div>
+                <div className="flex flex-col">
+                  <span className="text-blue-100 text-xs flex items-center gap-1"><HiLockOpen className="w-3 h-3 text-blue-200"/> {t('recruiter.profileUnlocks', 'Profile Unlocks')}</span>
+                  <span className="text-white font-bold text-sm">
+                    {aiUsage.limits?.unlockCredits === -1 ? 'Unlimited' : 
+                      `${Math.max(0, aiUsage.planDetails?.unlocksRemaining || 0)} / ${aiUsage.limits?.unlockCredits || 0} ${t('common.credits', 'Credits')}`}
+                  </span>
+                </div>
+              </div>
+              <button type="button" onClick={() => navigate('/recruiter/plans')} className="text-xs font-bold text-indigo-700 bg-white hover:bg-blue-50 px-3 py-1.5 rounded-lg transition">
+                {t('common.upgrade', 'Upgrade Plan')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-2 lg:px-4 py-2 lg:py-6">

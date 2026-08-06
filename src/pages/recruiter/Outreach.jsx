@@ -35,7 +35,7 @@ const Outreach = () => {
   useEffect(() => {
     recruiterAPI.getAiUsage().then(res => {
       if (res.data?.success) {
-        setAiUsage({ limits: res.data.limits || {}, usage: res.data.usage || {} });
+        setAiUsage(res.data);
       }
     }).catch(err => console.error(err))
       .finally(() => setUsageLoading(false));
@@ -74,7 +74,7 @@ const Outreach = () => {
       
       recruiterAPI.getAiUsage().then(usageRes => {
         if (usageRes.data?.success) {
-          setAiUsage({ limits: usageRes.data.limits || {}, usage: usageRes.data.usage || {} });
+          setAiUsage(usageRes.data);
         }
       });
     } catch (err) {
@@ -143,8 +143,29 @@ const Outreach = () => {
         <p className="text-sm text-gray-500 mt-2 max-w-2xl">{t(
           "Automate candidate sourcing. Run targeted email campaigns to matching candidates for your active job postings."
         )}</p>
+        
+        {!usageLoading && aiUsage?.limits && (
+          <div className="mt-6 bg-white rounded-xl border border-indigo-100 p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <div className="flex flex-col">
+                <span className="text-gray-500 text-xs mb-0.5">{t('common.currentPlan', 'Current Plan')}</span>
+                <span className="text-indigo-600 font-bold capitalize bg-indigo-50 px-2 py-0.5 rounded text-xs tracking-wide border border-indigo-100 self-start">
+                  {aiUsage.planDetails?.name || aiUsage.planDetails?.slug || 'Free'}
+                </span>
+              </div>
+              <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
+              <div className="flex flex-col">
+                <span className="text-gray-500 text-xs flex items-center gap-1"><FiSend className="w-3 h-3 text-indigo-500"/> {t('recruiter.outreachLimit', 'Outreach Campaigns')}</span>
+                <span className="text-slate-800 font-bold text-sm">
+                  {aiUsage.limits.outreachCampaigns === -1 ? 'Unlimited' : 
+                    `${Math.max(0, (aiUsage.limits.outreachCampaigns || 0) - (aiUsage.usage?.outreachCampaigns || 0))} / ${aiUsage.limits.outreachCampaigns || 0} ${t('common.credits', 'Credits')}`}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {loading ? (
           <div className="flex items-center justify-center h-48">

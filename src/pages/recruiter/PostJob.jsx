@@ -307,6 +307,39 @@ const PostJob = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Plan Limits Card */}
+          {!usageLoading && aiUsage?.limits && (
+            <div className="bg-white rounded-xl border border-indigo-100 p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs mb-0.5">{t('common.currentPlan', 'Current Plan')}</span>
+                  <span className="text-indigo-600 font-bold capitalize bg-indigo-50 px-2 py-0.5 rounded text-xs tracking-wide border border-indigo-100 self-start">
+                    {aiUsage.planDetails?.name || aiUsage.planDetails?.slug || 'Free'}
+                  </span>
+                </div>
+                <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs flex items-center gap-1"><HiBriefcase className="w-3 h-3 text-blue-500"/> {t('recruiter.jobPostLimit', 'Job Postings')}</span>
+                  <span className="text-slate-800 font-bold text-sm">
+                    {aiUsage.limits.jobPostLimit === -1 ? 'Unlimited' : 
+                      `${Math.max(0, aiUsage.planDetails?.boostJobsRemaining || 0)} / ${aiUsage.limits.jobPostLimit || aiUsage.limits.jobBoostJobsLimit || 0} ${t('common.credits', 'Credits')}`}
+                  </span>
+                </div>
+                <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs flex items-center gap-1"><FaBullhorn className="w-3 h-3 text-orange-500"/> {t('recruiter.aiJdGenerator', 'AI JD Generator')}</span>
+                  <span className="text-slate-800 font-bold text-sm">
+                    {aiUsage.limits.aiJdGenerator === -1 ? 'Unlimited' : 
+                      `${Math.max(0, (aiUsage.limits.aiJdGenerator || 0) - (aiUsage.usage?.aiJdGenerator || 0))} / ${aiUsage.limits.aiJdGenerator || 0} ${t('common.credits', 'Credits')}`}
+                  </span>
+                </div>
+              </div>
+              <button type="button" onClick={() => navigate('/recruiter/plans')} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition">
+                {t('common.upgrade', 'Upgrade Plan')}
+              </button>
+            </div>
+          )}
+
           <div className="bg-white rounded-2xl border border-blue-100 p-4">
             <p className="text-sm font-semibold text-blue-800 mb-2">{t('recruiter.aiHelper', 'AI Job Description Helper')}</p>
             <div className="grid sm:grid-cols-[1fr_auto] gap-2">

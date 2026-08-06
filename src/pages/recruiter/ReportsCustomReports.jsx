@@ -83,6 +83,28 @@ export default function CustomReportsPage() {
           <h2 className="text-base font-bold text-gray-900">{t("Custom Report Builder")}</h2>
           <p className="text-xs text-gray-500 mt-0.5">{t("Create tailored reports with the metrics you care about.")}</p>
         </div>
+        
+        {!usageLoading && aiUsage?.limits && (
+          <div className="bg-white rounded-xl border border-indigo-100 p-3 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <div className="flex flex-col">
+                <span className="text-gray-500 text-[10px] mb-0.5">{t('common.currentPlan', 'Current Plan')}</span>
+                <span className="text-indigo-600 font-bold capitalize bg-indigo-50 px-2 py-0.5 rounded text-[10px] uppercase tracking-wide border border-indigo-100 self-start">
+                  {aiUsage.planDetails?.name || aiUsage.planDetails?.slug || 'Free'}
+                </span>
+              </div>
+              <div className="h-6 w-px bg-gray-200 hidden md:block"></div>
+              <div className="flex flex-col">
+                <span className="text-gray-500 text-[10px] flex items-center gap-1"><FiFileText className="w-2.5 h-2.5 text-indigo-500"/> {t('recruiter.reportsLimit', 'Custom Reports')}</span>
+                <span className="text-slate-800 font-bold text-xs">
+                  {aiUsage.limits.customReports === -1 ? 'Unlimited' : 
+                    `${Math.max(0, (aiUsage.limits.customReports || 0) - (aiUsage.usage?.customReports || 0))} / ${aiUsage.limits.customReports || 0} ${t('common.credits', 'Credits')}`}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <button
           onClick={() => setShowBuilder(!showBuilder)}
           className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition"
