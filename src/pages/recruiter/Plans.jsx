@@ -67,13 +67,17 @@ const PLATFORM_FEATURES = [
 ];
 
 const RECRUITER_FEATURES = [
+  { key: 'unlockCredits', label: 'Profile Unlocks', isTopLevel: true },
   { key: 'jobPostLimit', label: 'Job Posts' },
   { key: 'jobBoostJobsLimit', label: 'Job Boosts' },
   { key: 'jobBoostDaysLimit', label: 'Boost Duration (Days)' },
-  { key: 'aiCopilot', label: 'AI Copilot Prompts' },
   { key: 'outreachCampaigns', label: 'Outreach Campaigns' },
-  { key: 'customReports', label: 'Custom Reports' },
-  { key: 'directMessaging', label: 'Direct Messages' }
+  { key: 'directMessaging', label: 'Direct Messages' },
+  { key: 'aiJdGenerator', label: 'AI JD Generator' },
+  { key: 'aiJdParsing', label: 'JD Parsing & Match' },
+  { key: 'aiCopilot', label: 'AI Copilot Prompts' },
+  { key: 'interviewKits', label: 'AI Interview Kits' },
+  { key: 'customReports', label: 'Custom Reports' }
 ];
 
 const DEFAULT_THEME = {
@@ -512,8 +516,8 @@ const RecruiterPlans = () => {
                               });
                             })()}
                             
-                            {plan.aiLimits && RECRUITER_FEATURES.map(({ key, label }) => {
-                              const val = plan.aiLimits[key];
+                            {RECRUITER_FEATURES.map(({ key, label, isTopLevel }) => {
+                              const val = isTopLevel ? plan[key] : plan.aiLimits?.[key];
                               if (val === undefined || val === null) return null;
                               const isIncluded = val !== 0;
                               return (
