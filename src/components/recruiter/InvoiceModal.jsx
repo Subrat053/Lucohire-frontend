@@ -134,18 +134,7 @@ export default function InvoiceModal({ isOpen, onClose, profileData, fetchProfil
       
       // Totals
       const amount = Number(payment.amount);
-      const base = (amount * 0.82).toFixed(2);
-      const gst = (amount * 0.18).toFixed(2);
       
-      doc.setTextColor(100, 100, 100);
-      doc.text("Subtotal", 130, 130);
-      doc.setTextColor(0, 0, 0);
-      doc.text(`INR ${base}`, 170, 130);
-      
-      doc.setTextColor(100, 100, 100);
-      doc.text("GST (18%)", 130, 138);
-      doc.setTextColor(0, 0, 0);
-      doc.text(`INR ${gst}`, 170, 138);
       
       doc.line(130, 144, 196, 144);
       

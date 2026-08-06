@@ -543,7 +543,7 @@ const AdminCommissionSettings = () => {
             </div>
             
             <p className="text-xs text-slate-400">
-              Configure custom GST/tax percentages per country. These settings override the default fallback rate (18%) during checkout.
+              Configure custom GST/tax percentages per country. These settings override the default fallback rate (0%) during checkout.
             </p>
 
             {/* Input Row for adding new rules */}
@@ -715,7 +715,7 @@ const AdminCommissionSettings = () => {
               ) : (
                 <div className="text-center py-6 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
                   <p className="text-xs text-slate-400 font-medium">No country-specific GST overrides defined.</p>
-                  <p className="text-[10px] text-slate-400 mt-1">Checkouts will fallback to standard 18% GST.</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Checkouts will fallback to standard 0% GST.</p>
                 </div>
               )}
             </div>
@@ -897,7 +897,7 @@ const AdminCommissionSettings = () => {
                             ))}
                           </div>
                         ) : (
-                          <span className="text-slate-400 font-medium">Default (18%)</span>
+                          <span className="text-slate-400 font-medium">Default (0%)</span>
                         )}
                       </td>
                       <td className="py-4 px-2 text-slate-500">
