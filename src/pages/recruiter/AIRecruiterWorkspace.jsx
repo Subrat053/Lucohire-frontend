@@ -192,7 +192,17 @@ export default function AIRecruiterWorkspace() {
           setActiveConversationId(res.data.data.conversationId);
           fetchConversations();
         }
-        await fetchUsage(); // Refresh UI credits!
+        // Optimistically update the UI to avoid backend db race condition
+        setAiUsage(prev => {
+          if (!prev || !prev.usage) return prev;
+          return {
+            ...prev,
+            usage: {
+              ...prev.usage,
+              aiCopilot: (prev.usage.aiCopilot || 0) + 1
+            }
+          };
+        });
       } else {
         toast.error(res.data.message || "Failed to send message");
       }
