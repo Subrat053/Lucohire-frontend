@@ -150,6 +150,10 @@ const ProviderPlans = () => {
   const [cancelBankMethod, setCancelBankMethod] = useState(null);
   const [isInvoiceMinimized, setIsInvoiceMinimized] = useState(false);
   const [addonDurations, setAddonDurations] = useState({}); // {addonId: months}
+  const [queueModalData, setQueueModalData] = useState(null);
+  const [whatsappConsentOpen, setWhatsappConsentOpen] = useState(false);
+  const [whatsappConsent1, setWhatsappConsent1] = useState(false);
+  const [whatsappConsent2, setWhatsappConsent2] = useState(false);
 
   const [availableSkills, setAvailableSkills] = useState([]);
   const [skillsLoading, setSkillsLoading] = useState(false);
@@ -456,7 +460,13 @@ const ProviderPlans = () => {
           // Show success UI locally
           setPaymentSuccessData(confirmRes?.subscription || subscription);
           window.scrollTo(0, 0);
+          setCheckoutLoading(false);
         },
+        modal: {
+          ondismiss: () => {
+            setCheckoutLoading(false);
+          }
+        }
       };
       const razorpay = new window.Razorpay(options);
       razorpay.open();
@@ -471,8 +481,10 @@ const ProviderPlans = () => {
       
       setPaymentSuccessData(subscription);
       window.scrollTo(0, 0);
+      setCheckoutLoading(false);
     } else {
       toast.error('Failed to initiate checkout.');
+      setCheckoutLoading(false);
     }
   };
 
@@ -565,6 +577,16 @@ const ProviderPlans = () => {
       }
     }
 
+    const hasWhatsappAddon = selectedAddons.some(id => {
+      const p = plans.find(a => a._id === id);
+      return p && p.slug === 'whatsapp-alerts';
+    });
+
+    if (hasWhatsappAddon && !whatsappConsentOpen && (!whatsappConsent1 || !whatsappConsent2)) {
+      setWhatsappConsentOpen(true);
+      return;
+    }
+
     setCheckoutLoading(true);
     try {
       const payload = {
@@ -584,17 +606,19 @@ const ProviderPlans = () => {
       const { checkout, subscription, queueWarning } = response || {};
 
       if (queueWarning) {
-        const confirmQueue = window.confirm(queueWarning + '\n\nDo you want to proceed to payment?');
-        if (!confirmQueue) {
-          setCheckoutLoading(false);
-          return;
-        }
+        setQueueModalData({
+          message: queueWarning,
+          checkout,
+          subscription,
+          plan: selectedPlan
+        });
+        setCheckoutLoading(false);
+        return;
       }
 
       await processCheckoutResponse(checkout, subscription, selectedPlan);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to start checkout.');
-    } finally {
       setCheckoutLoading(false);
     }
   };
@@ -1612,6 +1636,109 @@ const ProviderPlans = () => {
           </div> */}
 
       {/* Configuration & Checkout Modal */}
+      {/* Queue Warning Modal */}
+      {queueModalData && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              </div>
+              <h2 className="text-xl font-extrabold text-emerald-950">{t("Plan Queue Notice")}</h2>
+            </div>
+            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+              {queueModalData.message}
+            </p>
+            <div className="flex justify-end gap-3 mt-auto">
+              <button
+                onClick={() => { setQueueModalData(null); setCheckoutLoading(false); }}
+                className="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+              >
+                {t("Cancel")}
+              </button>
+              <button
+                onClick={async () => {
+                  const data = queueModalData;
+                  setQueueModalData(null);
+                  setCheckoutLoading(true);
+                  try {
+                    await processCheckoutResponse(data.checkout, data.subscription, data.plan);
+                  } catch(e) {
+                    setCheckoutLoading(false);
+                    toast.error("Error proceeding with checkout");
+                  }
+                }}
+                className="px-5 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+              >
+                {t("Proceed to Payment")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* WhatsApp Consent Modal */}
+      {whatsappConsentOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                <FaWhatsapp className="w-5 h-5 text-emerald-600" />
+              </div>
+              <h2 className="text-xl font-extrabold text-emerald-950">{t("WhatsApp Alerts Consent")}</h2>
+            </div>
+            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+              {t("By proceeding with the WhatsApp Alerts addon, your profile and contact details will be made publicly visible so recruiters can reach out to you directly.")}
+            </p>
+            
+            <div className="flex flex-col gap-3 mb-6">
+              <label className="flex items-start gap-3 cursor-pointer p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={whatsappConsent1}
+                  onChange={(e) => setWhatsappConsent1(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                />
+                <span className="text-sm text-slate-700 font-medium leading-tight">
+                  {t("I agree to show my profile publicly")}
+                </span>
+              </label>
+              
+              <label className="flex items-start gap-3 cursor-pointer p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={whatsappConsent2}
+                  onChange={(e) => setWhatsappConsent2(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                />
+                <span className="text-sm text-slate-700 font-medium leading-tight">
+                  {t("I agree to share my contact details with recruiters")}
+                </span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-auto">
+              <button
+                onClick={() => { setWhatsappConsentOpen(false); setCheckoutLoading(false); }}
+                className="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+              >
+                {t("Cancel")}
+              </button>
+              <button
+                onClick={() => {
+                  setWhatsappConsentOpen(false);
+                  handleCheckout();
+                }}
+                disabled={!whatsappConsent1 || !whatsappConsent2}
+                className="px-5 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors"
+              >
+                {t("Accept & Continue")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Cancel Confirmation Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
