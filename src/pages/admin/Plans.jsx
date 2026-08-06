@@ -620,6 +620,35 @@ const AdminPlans = () => {
                         <HiStar className="w-4 h-4 text-blue-600" />
                         Recruiter Feature Limits (-1 for unlimited)
                       </h3>
+                      <div className="text-sm font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
+                        Est. Cost: 
+                        {(() => {
+                          const PRICING = {
+                            unlockCredits: 10,
+                            jobPostLimit: 500,
+                            jobBoostJobsLimit: 1000,
+                            jobBoostDaysLimit: 50,
+                            outreachCampaigns: 1500,
+                            directMessaging: 500,
+                            aiJdGenerator: 500,
+                            aiJdParsing: 3000,
+                            aiCopilot: 2000,
+                            interviewKits: 1500,
+                            customReports: 500
+                          };
+                          let totalCost = 0;
+                          let hasUnlimited = false;
+                          
+                          Object.entries(PRICING).forEach(([key, price]) => {
+                            const val = key === 'unlockCredits' ? form[key] : (form.aiLimits?.[key] || 0);
+                            if (val === -1) hasUnlimited = true;
+                            else if (val > 0) totalCost += val * price;
+                          });
+
+                          if (hasUnlimited) return "Unlimited (Varies)";
+                          return ' ₹' + totalCost.toLocaleString('en-IN');
+                        })()}
+                      </div>
                     </div>
 
                     {[
