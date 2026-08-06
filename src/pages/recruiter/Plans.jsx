@@ -883,7 +883,8 @@ const RecruiterPlans = () => {
                 </div>
               </div>
             </div>
-          </div>
+            );
+          })()
         )}
 
         {showCustomPlanModal && (
