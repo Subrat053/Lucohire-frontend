@@ -342,7 +342,7 @@ const RecruiterPlans = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
 
         {loading ? <LoadingSpinner /> : (
           <>
@@ -453,8 +453,8 @@ const RecruiterPlans = () => {
               });
 
               const colClass = hasCustomRequest
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5';
+                ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4'
+                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5';
 
               return (
                 <div className={`grid ${colClass} gap-4 mb-20`}>
