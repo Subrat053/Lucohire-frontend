@@ -149,6 +149,7 @@ const ProviderPlans = () => {
   const [cancelConfirmed, setCancelConfirmed] = useState(false);
   const [cancelBankMethod, setCancelBankMethod] = useState(null);
   const [isInvoiceMinimized, setIsInvoiceMinimized] = useState(false);
+  const [addonDurations, setAddonDurations] = useState({}); // {addonId: months}
 
   const [availableSkills, setAvailableSkills] = useState([]);
   const [skillsLoading, setSkillsLoading] = useState(false);
@@ -570,6 +571,7 @@ const ProviderPlans = () => {
         planId: selectedPlan._id,
         durationMonths: selectedDuration,
         addonIds: selectedAddons,
+        addonDurations,
         configuration: {
           skills: resolvedSkills,
           pincodes: resolvedPincode ? [resolvedPincode] : [],
@@ -1140,30 +1142,50 @@ const ProviderPlans = () => {
                         </div>
                         <p className="text-xs text-slate-500 mt-1">{addon.description}</p>
                       </div>
-                      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <span className="font-extrabold text-emerald-700">₹{addon.priceMonthly || addon.price || 0}<span className="text-[10px] text-slate-500 font-medium">/mo</span></span>
-                        <div className="flex gap-2">
+                      <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-extrabold text-emerald-700">₹{addon.priceMonthly || addon.price || 0}<span className="text-[10px] text-slate-500 font-medium">/mo</span></span>
+                          <select
+                            value={addonDurations[addon._id] || 1}
+                            onChange={e => setAddonDurations(prev => ({ ...prev, [addon._id]: Number(e.target.value) }))}
+                            className="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:border-emerald-400"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            {[1,2,3,4,5,6,9,12].map(m => (
+                              <option key={m} value={m}>{m} month{m > 1 ? 's' : ''} — ₹{(addon.priceMonthly || addon.price || 0) * m}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex gap-2 justify-end">
                           <button onClick={() => {
                               const isAddonSelected = selectedAddons.includes(addon._id);
                               const isBasePlanAddon = selectedPlan?._id === addon._id;
                               
                               if (isBasePlanAddon) {
-                                setSelectedPlan(null);
+                                if (selectedAddons.length > 0) {
+                                  const nextAddon = availableAddons.find(a => a._id === selectedAddons[0]);
+                                  setSelectedPlan(nextAddon);
+                                  setSelectedAddons(selectedAddons.filter(id => id !== nextAddon._id));
+                                } else {
+                                  setSelectedPlan(null);
+                                }
                               } else if (isAddonSelected) {
                                 setSelectedAddons(selectedAddons.filter(id => id !== addon._id));
                               } else {
                                 if (selectedPlan && !ADDON_SLUGS.includes(selectedPlan.slug)) {
-                                  const waAddon = availableAddons.find(a => a.slug === 'whatsapp-alerts');
+                                  const waAddon = availableAddons.find(a => a.slug.includes('whatsapp'));
                                   const newAddons = waAddon && selectedAddons.includes(waAddon._id) ? [waAddon._id] : [];
                                   setSelectedAddons([...newAddons, addon._id]);
+                                } else if (selectedPlan && selectedPlan.slug.includes('whatsapp')) {
+                                  setSelectedPlan(addon);
+                                  setSelectedAddons([selectedPlan._id]);
                                 } else {
                                   setSelectedPlan(addon);
-                                  setSelectedAddons([]);
+                                  const waAddon = availableAddons.find(a => a.slug.includes('whatsapp'));
+                                  const newAddons = waAddon && selectedAddons.includes(waAddon._id) ? [waAddon._id] : [];
+                                  setSelectedAddons(newAddons);
                                 }
                                 setIsInvoiceMinimized(false);
-                                setTimeout(() => {
-                                  document.getElementById('invoice-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                }, 100);
                               }
                             }}
                             className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors border ${selectedPlan?._id === addon._id || selectedAddons.includes(addon._id) ? 'bg-emerald-50 text-emerald-700 border-emerald-200 ring-2 ring-emerald-500/20' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}
@@ -1204,28 +1226,47 @@ const ProviderPlans = () => {
                         </div>
                         <p className="text-xs text-slate-500 mt-1">{addon.description}</p>
                       </div>
-                      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <span className="font-extrabold text-emerald-700">₹{addon.priceMonthly || addon.price || 0}<span className="text-[10px] text-slate-500 font-medium">/mo</span></span>
-                        <div className="flex gap-2">
+                      <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-extrabold text-emerald-700">₹{addon.priceMonthly || addon.price || 0}<span className="text-[10px] text-slate-500 font-medium">/mo</span></span>
+                          <select
+                            value={addonDurations[addon._id] || 1}
+                            onChange={e => setAddonDurations(prev => ({ ...prev, [addon._id]: Number(e.target.value) }))}
+                            className="text-xs border border-[#25D366]/40 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:border-[#25D366]"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            {[1,2,3,4,5,6,9,12].map(m => (
+                              <option key={m} value={m}>{m} month{m > 1 ? 's' : ''} — ₹{(addon.priceMonthly || addon.price || 0) * m}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex gap-2 justify-end">
                           <button onClick={() => {
                               const isAddonSelected = selectedAddons.includes(addon._id);
                               const isBasePlanAddon = selectedPlan?._id === addon._id;
                               
                               if (isBasePlanAddon) {
-                                setSelectedPlan(null);
+                                if (selectedAddons.length > 0) {
+                                  const nextAddon = availableAddons.find(a => a._id === selectedAddons[0]);
+                                  setSelectedPlan(nextAddon);
+                                  setSelectedAddons(selectedAddons.filter(id => id !== nextAddon._id));
+                                } else {
+                                  setSelectedPlan(null);
+                                }
                               } else if (isAddonSelected) {
                                 setSelectedAddons(selectedAddons.filter(id => id !== addon._id));
                               } else {
                                 if (selectedPlan && !ADDON_SLUGS.includes(selectedPlan.slug)) {
-                                  setSelectedAddons([...selectedAddons, addon._id]);
+                                  const visAddon = availableAddons.find(a => !a.slug.includes('whatsapp') && selectedAddons.includes(a._id));
+                                  const newAddons = visAddon ? [visAddon._id] : [];
+                                  setSelectedAddons([...newAddons, addon._id]);
+                                } else if (selectedPlan && !selectedPlan.slug.includes('whatsapp')) {
+                                  setSelectedAddons([addon._id]);
                                 } else {
                                   setSelectedPlan(addon);
                                   setSelectedAddons([]);
                                 }
                                 setIsInvoiceMinimized(false);
-                                setTimeout(() => {
-                                  document.getElementById('invoice-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                }, 100);
                               }
                             }}
                             className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors border ${selectedPlan?._id === addon._id || selectedAddons.includes(addon._id) ? 'bg-[#25D366]/10 text-[#075E54] border-[#25D366] ring-2 ring-[#25D366]/20' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}
@@ -1355,42 +1396,46 @@ const ProviderPlans = () => {
                       </td>
                     </tr>
 
-                    {/* Add-on Row */}
-                    {selectedAddons.length > 0 && availableAddons.find(a => a._id === selectedAddons[0]) && (
-                      <tr className="hover:bg-slate-50 transition-colors group/row relative">
-                        <td className="py-4 px-4">
-                          <div className="font-bold text-slate-800 flex items-start gap-1.5">
-                            <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-[2px]" />
-                            <span className="leading-tight">{availableAddons.find(a => a._id === selectedAddons[0]).name}</span>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-1">{t("Optional Add-on")}</p>
-                          <div className="mt-2 text-[11px] text-slate-600">
-                            <p><span className="font-medium text-slate-500">{t("Next Billing Date")}:</span> {(() => { const d = new Date(); d.setDate(d.getDate() + 30); return d.toLocaleDateString(); })()}</p>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-medium capitalize">
-                            <Clock className="w-3 h-3" />
-                            1
-                          </span>
-                        </td>
-                        <td className="py-4 px-4 text-right font-bold text-slate-800 relative">
-                          <div className="flex items-center justify-end gap-3">
-                            {formatCurrency(
-                              availableAddons.find(a => a._id === selectedAddons[0]).priceMonthly || availableAddons.find(a => a._id === selectedAddons[0]).price,
+                    {/* Add-on Rows */}
+                    {selectedAddons.map(addonId => {
+                      const addon = availableAddons.find(a => a._id === addonId);
+                      if (!addon) return null;
+                      return (
+                        <tr key={addonId} className="hover:bg-slate-50 transition-colors group/row relative">
+                          <td className="py-4 px-4">
+                            <div className="font-bold text-slate-800 flex items-start gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-[2px]" />
+                              <span className="leading-tight">{addon.name}</span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1">{t("Optional Add-on")}</p>
+                            <div className="mt-2 text-[11px] text-slate-600">
+                              <p><span className="font-medium text-slate-500">{t("Next Billing Date")}:</span> {(() => { const d = new Date(); d.setDate(d.getDate() + 30); return d.toLocaleDateString(); })()}</p>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 text-center">
+                            <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-medium capitalize">
+                              <Clock className="w-3 h-3" />
+                              {addonDurations[addonId] || 1} mo
+                            </span>
+                          </td>
+                          <td className="py-4 px-4 text-right font-bold text-slate-800 relative">
+                            <div className="flex items-center justify-end gap-3">
+                              {formatCurrency(
+                              (addon.priceMonthly || addon.price || 0) * (addonDurations[addonId] || 1),
                               selectedPlan.currencySymbol
                             )}
-                            <button 
-                              onClick={() => setSelectedAddons([])}
-                              className="no-print opacity-0 group-hover/row:opacity-100 transition-opacity p-1 hover:bg-red-100 text-red-500 rounded-full"
-                              title={t("Remove item")}
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
+                              <button 
+                                onClick={() => setSelectedAddons(selectedAddons.filter(id => id !== addonId))}
+                                className="no-print opacity-0 group-hover/row:opacity-100 transition-opacity p-1 hover:bg-red-100 text-red-500 rounded-full"
+                                title={t("Remove item")}
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1403,7 +1448,10 @@ const ProviderPlans = () => {
                     <span className="font-bold text-slate-800">
                       {formatCurrency(
                         buildLocalPreview(selectedPlan, selectedDuration).subtotal + 
-                        (selectedAddons.length > 0 ? (availableAddons.find(a => a._id === selectedAddons[0])?.priceMonthly || availableAddons.find(a => a._id === selectedAddons[0])?.price || 0) : 0),
+                        selectedAddons.reduce((sum, id) => {
+                          const a = availableAddons.find(addon => addon._id === id);
+                          return sum + (a ? (a.priceMonthly || a.price || 0) * (addonDurations[id] || 1) : 0);
+                        }, 0),
                         selectedPlan.currencySymbol
                       )}
                     </span>
@@ -1417,7 +1465,10 @@ const ProviderPlans = () => {
                     <span className="font-black text-slate-900 text-2xl">
                       {formatCurrency(
                         buildLocalPreview(selectedPlan, selectedDuration).subtotal + 
-                        (selectedAddons.length > 0 ? (availableAddons.find(a => a._id === selectedAddons[0])?.priceMonthly || availableAddons.find(a => a._id === selectedAddons[0])?.price || 0) : 0),
+                        selectedAddons.reduce((sum, id) => {
+                          const a = availableAddons.find(addon => addon._id === id);
+                          return sum + (a ? (a.priceMonthly || a.price || 0) * (addonDurations[id] || 1) : 0);
+                        }, 0),
                         selectedPlan.currencySymbol
                       )}
                     </span>
@@ -1523,7 +1574,7 @@ const ProviderPlans = () => {
                   {t("By subscribing, you agree to our Terms & Conditions, Privacy Policy, and Refund Policy.")}
                 </p>
               </div>
-              <div className="flex-1 bg-white/60 p-4 rounded-xl border border-amber-100/50">
+              {/* <div className="flex-1 bg-white/60 p-4 rounded-xl border border-amber-100/50">
                 <span className="font-bold text-amber-900 block mb-1 flex items-center gap-1">
                   <ShieldCheck className="w-4 h-4" />
                   {t("AI disclaimer")}
@@ -1531,14 +1582,14 @@ const ProviderPlans = () => {
                 <p className="text-xs text-amber-800/80 leading-relaxed">
                   {t("AI-generated scores, recommendations and career insights are intended to assist users and do not guarantee interviews, recruiter responses or employment outcomes.")}
                 </p>
-              </div>
+              </div> */}
             </div>
           </div>
 
         {/* Empty Comparison Table (Removed) */}
 
           {/* Bottom Bar */}
-          <div className="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
+          {/* <div className="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
             <div className="flex items-center gap-4">
               <div 
                 role="button"
@@ -1558,7 +1609,7 @@ const ProviderPlans = () => {
               <div className="flex items-center gap-1.5 sm:gap-2"><RefreshCw className="w-4 h-4 text-emerald-600 shrink-0" />{t("Cancel Anytime")}</div>
               <div className="flex items-center gap-1.5 sm:gap-2"><BadgeCheck className="w-4 h-4 text-emerald-600 shrink-0" />{t("7-Day Money Back Guarantee (T&C Apply)")}</div>
             </div>
-          </div>
+          </div> */}
 
       {/* Configuration & Checkout Modal */}
       {/* Cancel Confirmation Modal */}
