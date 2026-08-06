@@ -322,7 +322,7 @@ const PostJob = () => {
                   <span className="text-gray-500 text-xs flex items-center gap-1"><HiBriefcase className="w-3 h-3 text-blue-500"/> {t('recruiter.jobPostLimit', 'Job Postings')}</span>
                   <span className="text-slate-800 font-bold text-sm">
                     {aiUsage.limits.jobPostLimit === -1 ? 'Unlimited' : 
-                      `${Math.max(0, aiUsage.planDetails?.boostJobsRemaining || 0)} / ${aiUsage.limits.jobPostLimit || aiUsage.limits.jobBoostJobsLimit || 0} ${t('common.credits', 'Credits')}`}
+                      `${Math.max(0, (aiUsage.limits.jobPostLimit || 0) - (aiUsage.usage?.activeJobs || 0))} / ${aiUsage.limits.jobPostLimit || 0} ${t('common.credits', 'Credits')}`}
                   </span>
                 </div>
                 <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
