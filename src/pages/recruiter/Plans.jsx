@@ -104,9 +104,7 @@ const RecruiterPlans = () => {
   const { initiatePayment, loading: paymentLoading } = useRazorpay();
   const { formatPrice } = useLocale();
 
-  const [showBreakdownModal, setShowBreakdownModal] = useState(false);
-  const [breakdownData, setBreakdownData] = useState(null);
-  const [pendingPurchasePlanId, setPendingPurchasePlanId] = useState(null);
+
 
   const [showCustomPlanModal, setShowCustomPlanModal] = useState(false);
   const [confirmModal, setConfirmModal] = useState(null); // { title, message, onConfirm }
@@ -193,32 +191,9 @@ const RecruiterPlans = () => {
       return;
     }
 
-    try {
-      setLoading(true);
-      const { data } = await paymentAPI.calculateBreakdown({
-        amount: plan.price,
-        context: 'subscription'
-      });
-      if (data?.success) {
-        setBreakdownData(data.data);
-        setPendingPurchasePlanId(planId);
-        setShowBreakdownModal(true);
-      } else {
-        toast.error('Failed to compute secure payment breakdown.');
-      }
-    } catch (err) {
-      toast.error('Unable to fetch transaction cost breakdown.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const confirmPurchase = () => {
-    setShowBreakdownModal(false);
-    setActivePlanId(pendingPurchasePlanId);
-    const plan = getPlanWithVariants(pendingPurchasePlanId);
+    setActivePlanId(planId);
     initiatePayment({
-      planId: pendingPurchasePlanId,
+      planId: planId,
       planName: plan?.name,
       onSuccess: () => { setActivePlanId(null); fetchPlans(); },
       onFailure: () => setActivePlanId(null),
@@ -231,23 +206,15 @@ const RecruiterPlans = () => {
       if (!offer?.price) return toast.error("Invalid offer details");
       if (!offer.planId) return toast.error("Offer is being prepared. Please try again in a moment or contact support.");
       
-      setLoading(true);
-      const { data } = await paymentAPI.calculateBreakdown({
-        amount: offer.price,
-        context: 'subscription'
+      setActivePlanId(offer.planId);
+      initiatePayment({
+        planId: offer.planId,
+        planName: 'Custom Offer',
+        onSuccess: () => { setActivePlanId(null); fetchPlans(); },
+        onFailure: () => setActivePlanId(null),
       });
-      
-      if (data?.success) {
-        setBreakdownData(data.data);
-        setPendingPurchasePlanId(offer.planId);
-        setShowBreakdownModal(true);
-      } else {
-        toast.error('Failed to compute secure payment breakdown.');
-      }
     } catch {
       toast.error("Could not initiate payment for offer.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -591,6 +558,7 @@ const RecruiterPlans = () => {
                             </button>
                           ) : (
                             <button
+                              id={`select-btn-${plan._id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handlePurchaseClick(plan._id);
@@ -836,69 +804,7 @@ const RecruiterPlans = () => {
           </table>
         </div>
         
-        {showBreakdownModal && breakdownData && (
-          (() => {
-            const pendingPlan = [...plansByDuration.Monthly, ...plansByDuration.Quarterly, ...plansByDuration.Yearly].find(p => p._id === pendingPurchasePlanId);
-            const hasDiscount = pendingPlan?.discountPercent > 0;
-            const originalAmount = hasDiscount ? pendingPlan.originalMonthlyPrice * (pendingPlan.duration === 90 ? 3 : pendingPlan.duration === 365 ? 12 : 1) : 0;
-            const discountAmount = hasDiscount ? originalAmount - breakdownData.baseAmount : 0;
-            
-            return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-              <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 border border-slate-100">
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                      <HiOutlineLightningBolt className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">{t("Secure Order Invoice")}</h3>
-                      <p className="text-xs text-gray-500">{t("Recalculated securely on backend ledger servers")}</p>
-                    </div>
-                  </div>
-  
-                  <div className="divide-y divide-slate-100 bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
-                    {hasDiscount && (
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500 font-medium">{t("Original Plan Value")}</span>
-                        <span className="font-medium text-slate-400 line-through">₹{originalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                    )}
-                    {hasDiscount && (
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-emerald-600 font-bold">{t("Upfront Discount")} ({pendingPlan.discountPercent}%)</span>
-                        <span className="font-bold text-emerald-600">-₹{discountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500 font-medium">{hasDiscount ? t("Discounted Base Amount") : t("Base Plan Amount")}</span>
-                      <span className="font-bold text-slate-800">₹{breakdownData.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                    </div>
-                    {breakdownData.gstAmount > 0 && (
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500 font-medium">{t("Taxes")} ({breakdownData.gstPercent}%)</span>
-                        <span className="font-bold text-slate-800">₹{breakdownData.gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                    )}
-  
-                    <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-200">
-                      <span className="text-gray-900 font-extrabold">{t("Final Payable Total")}</span>
-                      <span className="text-lg font-black text-indigo-600">₹{breakdownData.finalPayableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="flex gap-3 mt-6">
-                  <button onClick={() => setShowBreakdownModal(false)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">{t("Cancel")}</button>
-                  <button onClick={confirmPurchase} disabled={paymentLoading} className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-600/15">
-                    {paymentLoading ? 'Processing...' : 'Proceed to Checkout'}
-                  </button>
-                </div>
-              </div>
-            </div>
-            );
-          })()
-        )}
 
         {showCustomPlanModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
