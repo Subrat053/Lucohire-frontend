@@ -606,12 +606,21 @@ const Candidates = () => {
                   const exp = candidate.experience || userProfile.experience || 'Not specified';
                   
                   let expectedSalary = candidate.expectedCtc || userProfile.expectedCtc;
-                  if (!expectedSalary && (candidate.pricing || userProfile.pricing)) {
+                  const pricingType = candidate.pricingType || userProfile.pricingType || '';
+                  
+                  if (expectedSalary) {
+                    if (pricingType === 'hourly' || String(expectedSalary).toLowerCase().includes('hr') || String(expectedSalary).toLowerCase().includes('hour')) {
+                      const rate = parseInt(String(expectedSalary).replace(/[^0-9]/g, ''));
+                      if (!isNaN(rate) && rate > 0) {
+                        expectedSalary = `₹${(rate * 160).toLocaleString()}/month (est)`;
+                      }
+                    }
+                  } else if (candidate.pricing || userProfile.pricing) {
                     const pricing = candidate.pricing || userProfile.pricing;
-                    const pricingType = candidate.pricingType || userProfile.pricingType || 'hourly';
-                    if (pricingType === 'hourly' || pricing.toLowerCase().includes('hr') || pricing.toLowerCase().includes('hour')) {
+                    const pType = pricingType || 'hourly';
+                    if (pType === 'hourly' || String(pricing).toLowerCase().includes('hr') || String(pricing).toLowerCase().includes('hour')) {
                       // Extract number
-                      const rate = parseInt(pricing.replace(/[^0-9]/g, ''));
+                      const rate = parseInt(String(pricing).replace(/[^0-9]/g, ''));
                       if (!isNaN(rate) && rate > 0) {
                         expectedSalary = `₹${(rate * 160).toLocaleString()}/month (est)`;
                       } else {
