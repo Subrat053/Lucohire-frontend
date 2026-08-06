@@ -332,7 +332,7 @@ export default function AIRecruiterWorkspace() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
@@ -350,7 +350,7 @@ export default function AIRecruiterWorkspace() {
               <div className="flex flex-col md:flex-row md:items-center gap-4">
                 <div className="flex flex-col">
                   <span className="text-gray-500 text-[10px] mb-0.5">{t('common.currentPlan', 'Current Plan')}</span>
-                  <span className="text-indigo-600 font-bold capitalize bg-indigo-50 px-2 py-0.5 rounded text-[10px] uppercase tracking-wide border border-indigo-100 self-start">
+                  <span className="text-indigo-600 font-bold capitalize bg-indigo-50 px-2 py-0.5 rounded text-[10px] tracking-wide border border-indigo-100 self-start">
                     {aiUsage.planDetails?.name || aiUsage.planDetails?.slug || 'Free'}
                   </span>
                 </div>

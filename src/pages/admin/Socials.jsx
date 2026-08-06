@@ -68,7 +68,9 @@ const Socials = () => {
         list = data;
       } else if (typeof data === 'object') {
         const defaultKeys = ['facebook', 'twitter', 'linkedin', 'instagram'];
-        const allKeys = Array.from(new Set([...defaultKeys, ...Object.keys(data)]));
+        const metaKeys = ['_list', '_id', '__v', 'createdAt', 'updatedAt'];
+        const allKeys = Array.from(new Set([...defaultKeys, ...Object.keys(data)]))
+          .filter(key => !metaKeys.includes(key));
         
         list = allKeys.map(key => ({
           key,
@@ -104,7 +106,7 @@ const Socials = () => {
   const handleDeletePlatform = (index) => {
     const updated = platforms.filter((_, i) => i !== index);
     setPlatforms(updated);
-    toast.success('Platform removed');
+    handleSave(updated);
   };
 
   const handleAddPlatform = (e) => {
@@ -128,23 +130,26 @@ const Socials = () => {
     const preset = getPlatformMeta(key, name);
     const url = formatUrl(newPlatform.url) || preset.defaultUrl;
 
-    setPlatforms([
+    const updated = [
       ...platforms,
       { key, name, url }
-    ]);
+    ];
+    setPlatforms(updated);
 
     toast.success(`Added ${name}!`);
     setAddModalOpen(false);
     setNewPlatform({ presetKey: 'youtube', customName: '', url: '' });
+    
+    handleSave(updated);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (platformsToSave = platforms) => {
     setSaving(true);
     try {
       const payloadObj = {};
       const payloadArr = [];
 
-      platforms.forEach(p => {
+      platformsToSave.forEach(p => {
         const formatted = formatUrl(p.url);
         if (formatted) {
           payloadObj[p.key] = formatted;
@@ -158,7 +163,7 @@ const Socials = () => {
       });
 
       await adminAPI.updateContent('socials', { ...payloadObj, _list: payloadArr });
-      toast.success('Social links updated successfully!');
+      toast.success('Changes saved automatically!');
     } catch (error) {
       toast.error('Failed to save social links');
     } finally {
@@ -183,19 +188,12 @@ const Socials = () => {
           <p className="text-sm text-gray-500 mt-1">Update the social media links displayed in the website footer.</p>
         </div>
         <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-400 mr-2">{saving ? 'Saving...' : 'All changes saved automatically'}</span>
           <button
             onClick={() => setAddModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 font-medium text-sm rounded-lg hover:bg-gray-200 transition"
           >
             <HiPlus className="w-4 h-4 text-gray-700" /> Add Social Platform
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition text-sm font-medium"
-          >
-            {saving ? <HiRefresh className="animate-spin w-4 h-4" /> : <HiCheck className="w-4 h-4" />}
-            {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
@@ -238,6 +236,7 @@ const Socials = () => {
                   type="url"
                   value={p.url || ''}
                   onChange={(e) => handleUrlChange(idx, e.target.value)}
+                  onBlur={() => handleSave(platforms)}
                   placeholder={`https://${p.key}.com/...`}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
                 />

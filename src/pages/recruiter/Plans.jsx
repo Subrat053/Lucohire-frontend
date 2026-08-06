@@ -66,6 +66,16 @@ const PLATFORM_FEATURES = [
   { id: 'data_export', label: 'Advanced Data Export', basePrice: 500 }
 ];
 
+const RECRUITER_FEATURES = [
+  { key: 'jobPostLimit', label: 'Job Posts' },
+  { key: 'jobBoostJobsLimit', label: 'Job Boosts' },
+  { key: 'jobBoostDaysLimit', label: 'Boost Duration (Days)' },
+  { key: 'aiCopilot', label: 'AI Copilot Prompts' },
+  { key: 'outreachCampaigns', label: 'Outreach Campaigns' },
+  { key: 'customReports', label: 'Custom Reports' },
+  { key: 'directMessaging', label: 'Direct Messages' }
+];
+
 const DEFAULT_THEME = {
   tag: 'PLAN', sub: 'For professionals', button: 'Choose Plan',
   buttonClass: 'bg-indigo-700 text-white hover:bg-indigo-800',
@@ -189,8 +199,10 @@ const RecruiterPlans = () => {
   const confirmPurchase = () => {
     setShowBreakdownModal(false);
     setActivePlanId(pendingPurchasePlanId);
+    const plan = plans.find(p => p._id === pendingPurchasePlanId);
     initiatePayment({
       planId: pendingPurchasePlanId,
+      planName: plan?.name,
       onSuccess: () => { setActivePlanId(null); fetchPlans(); },
       onFailure: () => setActivePlanId(null),
     });
@@ -449,79 +461,99 @@ const RecruiterPlans = () => {
                     const isCurrent = currentPlan === plan.slug || (baseSlug === 'free' && currentBaseSlug === 'free');
                     
                     return (
-                      <div key={plan._id} className={`rounded-3xl flex flex-col relative transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[#4a24ba]/10 ${theme.cardClass || 'border border-slate-200 bg-white'}`}>
+                      <div key={plan._id} className="bg-white rounded-3xl p-6 relative flex flex-col border border-indigo-100 shadow-md transition-all duration-300 hover:border-2 hover:border-indigo-600 hover:shadow-xl hover:scale-105 hover:z-10 cursor-pointer">
                         {theme.badge && (
-                          <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#4a24ba] text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap shadow-md shadow-[#4a24ba]/30">
+                          <div className="absolute top-4 right-4 bg-indigo-100 text-indigo-700 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
                             {theme.badge}
                           </div>
                         )}
-                        <div className="p-5 lg:p-6 flex flex-col flex-1">
-                          {/* Plan name & subtitle */}
-                          <div className="text-center mb-5">
-                            <h3 className={`text-xs font-black uppercase tracking-widest mb-1 ${theme.tagClass || 'text-slate-900'}`}>{theme.tag}</h3>
-                            <p className="text-[11px] text-slate-500 font-medium">{theme.sub}</p>
-                          </div>
-
-                          {/* Price block */}
-                          <div className="text-center mb-5 flex flex-col items-center justify-center">
-                            {theme.isCustom ? (
-                              <div className="text-3xl font-black text-slate-900 mb-1">{t("Custom")}</div>
+                        <div className="mb-6">
+                          <h3 className={`text-sm font-bold uppercase tracking-wider mb-2 ${theme.tagClass || 'text-indigo-600'}`}>
+                            {plan.name}
+                          </h3>
+                          <div className="flex items-baseline gap-2">
+                            {plan.price === 0 ? (
+                              <span className="text-3xl font-extrabold text-slate-900">₹0</span>
                             ) : (
-                              <div>
-                                <div className="flex justify-center items-end gap-1 mb-1">
-                                  {plan.price === 0 ? (
-                                    <span className="text-3xl font-black text-slate-900">₹0</span>
-                                  ) : (
-                                    <>
-                                      <span className="text-3xl font-black text-slate-900">₹{plan.price.toLocaleString('en-IN')}</span>
-                                      <span className="text-[11px] text-slate-400 font-bold mb-1">{t("/month")}</span>
-                                    </>
-                                  )}
-                                </div>
-                                <div className="text-[10px] font-semibold text-slate-400">
-                                  {plan.price === 0 ? 'Forever Free' : `Billed ${activePeriod.toLowerCase()}`}
-                                </div>
-                              </div>
+                              <>
+                                <span className="text-3xl font-extrabold text-slate-900">₹{plan.price.toLocaleString('en-IN')}</span>
+                                <span className="text-xs text-slate-500 font-semibold">{t("/month")}</span>
+                              </>
                             )}
                           </div>
-
-                          {/* CTA Button */}
-                          <button 
-                            onClick={() => !isCurrent && handlePurchaseClick(plan._id)}
-                            disabled={isCurrent || paymentLoading}
-                            className={`w-full py-3 rounded-xl font-bold text-sm transition-all mb-5 ${isCurrent ? 'bg-green-100 text-green-700 border border-green-200' : theme.buttonClass}`}
-                          >
-                            {isCurrent ? '✓ Current Plan' : theme.button}
-                          </button>
-
-                          {/* Best for */}
-                          <div className="text-center mb-4 pb-4 border-b border-slate-100">
-                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">{t("Best for")}</p>
-                            <p className={`text-[11px] font-black whitespace-pre-line leading-tight ${theme.tagClass || 'text-slate-800'}`}>{theme.bestFor}</p>
+                          <div className="mt-2.5 text-[11px] font-semibold text-slate-400">
+                            {plan.price === 0 ? 'Forever Free' : `Billed ${activePeriod.toLowerCase()}`}
                           </div>
+                          <p className="text-xs text-slate-500 mt-2 h-4">{theme.sub}</p>
+                        </div>
 
-                          {/* Time saving badge */}
-                          {theme.featureBadge && (
-                            <div className={`text-[9px] font-black rounded-lg py-1.5 px-2 text-center mb-4 border flex items-center justify-center gap-1.5 ${theme.featureBadgeClass || 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
-                              <FaRegClock className="shrink-0" /> {theme.featureBadge}
-                            </div>
-                          )}
-
-                          {/* Features list */}
-                          <ul className="space-y-2.5 mt-auto">
+                        <div className="flex-1">
+                          <p className="text-xs font-bold text-slate-900 mb-4 uppercase tracking-wider">
+                            {t('WHAT\'S INCLUDED')}
+                          </p>
+                          <ul className="space-y-3">
                             {(() => {
                               const baseFeatures = Array.isArray(plan.features) ? [...plan.features] : [];
                               if (plan.unlockCredits) baseFeatures.unshift(`Profile Unlocks: ${plan.unlockCredits}`);
                               if (plan.duration || plan.durationDays) baseFeatures.unshift(`Plan Duration: ${plan.duration || plan.durationDays} Days`);
-                              return baseFeatures.map((f, i) => (
-                                <li key={i} className="flex items-start gap-2 text-[11px] font-semibold text-slate-600 leading-tight">
-                                  <HiCheck className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${theme.checkClass || 'text-slate-400'}`} />
-                                  {f}
-                                </li>
-                              ));
+                              return baseFeatures.map((f, i) => {
+                                const split = f.split(':');
+                                const name = split[0];
+                                const val = split.slice(1).join(':');
+                                return (
+                                  <li key={`f-${i}`} className="flex items-start justify-between text-xs gap-3">
+                                    <div className="flex items-start gap-2 text-slate-900 font-medium">
+                                      <HiCheck className="w-4 h-4 text-indigo-500 shrink-0" />
+                                      <span>{name.trim()}</span>
+                                    </div>
+                                    {val && <span className="text-slate-500 text-right shrink-0 font-bold">{val.trim()}</span>}
+                                  </li>
+                                );
+                              });
                             })()}
+                            
+                            {plan.aiLimits && RECRUITER_FEATURES.map(({ key, label }) => {
+                              const val = plan.aiLimits[key];
+                              if (val === undefined || val === null) return null;
+                              const isIncluded = val !== 0;
+                              return (
+                                <li key={`ai-${key}`} className={`flex items-start justify-between text-xs gap-3 ${!isIncluded ? 'opacity-50' : ''}`}>
+                                  <div className={`flex items-start gap-2 font-medium ${isIncluded ? 'text-slate-900' : 'text-slate-500'}`}>
+                                    {isIncluded ? (
+                                      <HiCheck className="w-4 h-4 text-indigo-500 shrink-0" />
+                                    ) : (
+                                      <HiX className="w-4 h-4 text-red-500 shrink-0" />
+                                    )}
+                                    <span className={!isIncluded ? 'line-through' : ''}>{label}</span>
+                                  </div>
+                                  {isIncluded && <span className="text-slate-500 text-right shrink-0 font-bold">{val === -1 ? 'Unlimited' : val}</span>}
+                                </li>
+                              );
+                            })}
                           </ul>
-
+                        </div>
+                        
+                        <div className="mt-8 pt-4 border-t border-slate-100">
+                          {isCurrent ? (
+                            <button
+                              disabled
+                              className="w-full py-3 rounded-xl font-bold text-sm transition-all shadow-sm flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200 cursor-default"
+                            >
+                              <HiCheck className="w-5 h-5" />
+                              {t("Current Plan")}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePurchaseClick(plan._id);
+                              }}
+                              disabled={paymentLoading}
+                              className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-sm border-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200`}
+                            >
+                              {t("Select")} {plan.name.split(' ')[0]}
+                            </button>
+                          )}
                         </div>
                       </div>
                     );

@@ -441,7 +441,7 @@ const ProviderPlans = () => {
         amount: checkout.amount,
         currency: checkout.currency || 'INR',
         order_id: checkout.orderId,
-        name: 'ServiceHub',
+        name: 'Lucohire',
         description: plan?.name || 'Subscription',
         handler: async (payment) => {
           const confirmRes = await confirmPaymentSuccess({

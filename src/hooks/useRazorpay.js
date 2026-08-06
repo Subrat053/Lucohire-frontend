@@ -58,8 +58,8 @@ export default function useRazorpay() {
         key: data.keyId,
         amount: data.order.amount,
         currency: data.order.currency,
-        name: 'ServiceHub',
-        description: `${data.plan.name} Plan Purchase`,
+        name: 'Lucohire',
+        description: `${planName || 'Lucohire'} Plan Purchase`,
         order_id: data.order.id,
         prefill: {
           name: userName || '',
