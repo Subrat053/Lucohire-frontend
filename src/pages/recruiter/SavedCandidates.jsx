@@ -604,7 +604,25 @@ const Candidates = () => {
                   
                   // Connect fields directly to userProfile dynamically as requested
                   const exp = candidate.experience || userProfile.experience || 'Not specified';
-                  const ctc = candidate.pricing || candidate.currentCTC || userProfile.currentCTC || 'Not specified';
+                  
+                  let expectedSalary = candidate.expectedCtc || userProfile.expectedCtc;
+                  if (!expectedSalary && (candidate.pricing || userProfile.pricing)) {
+                    const pricing = candidate.pricing || userProfile.pricing;
+                    const pricingType = candidate.pricingType || userProfile.pricingType || 'hourly';
+                    if (pricingType === 'hourly' || pricing.toLowerCase().includes('hr') || pricing.toLowerCase().includes('hour')) {
+                      // Extract number
+                      const rate = parseInt(pricing.replace(/[^0-9]/g, ''));
+                      if (!isNaN(rate) && rate > 0) {
+                        expectedSalary = `₹${(rate * 160).toLocaleString()}/month (est)`;
+                      } else {
+                        expectedSalary = pricing;
+                      }
+                    } else {
+                      expectedSalary = pricing;
+                    }
+                  }
+                  expectedSalary = expectedSalary || 'Not specified';
+                  
                   const notice = candidate.noticePeriod || userProfile.noticePeriod || 'Not specified';
 
                   const skills = candidate.skills || userProfile.skills || [];
@@ -661,8 +679,8 @@ const Candidates = () => {
                             <div className="text-[11px] font-semibold text-gray-400 mt-0.5">Experience</div>
                           </div>
                           <div>
-                            <div className="text-sm font-extrabold text-gray-900">{ctc}</div>
-                            <div className="text-[11px] font-semibold text-gray-400 mt-0.5">Current CTC</div>
+                            <div className="text-sm font-extrabold text-gray-900">{expectedSalary}</div>
+                            <div className="text-[11px] font-semibold text-gray-400 mt-0.5">Expected Salary</div>
                           </div>
                           <div>
                             <div className="text-sm font-extrabold text-gray-900">{notice}</div>
