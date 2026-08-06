@@ -326,7 +326,19 @@ const RecruiterPlans = () => {
       _id: p._id + '_quarterly',
       slug: p.slug + '-quarterly',
       duration: 90,
-      price: p.price > 0 ? Math.round(p.price * 0.9) : 0
+      price: p.price > 0 ? Math.round(p.price * 3 * 0.9) : 0,
+      monthlyEquivalent: p.price > 0 ? Math.round(p.price * 0.9) : 0
+    }));
+  }
+
+  if (plansByDuration.Yearly.length === 0 && plansByDuration.Monthly.length > 0) {
+    plansByDuration.Yearly = plansByDuration.Monthly.map(p => ({
+      ...p,
+      _id: p._id + '_yearly',
+      slug: p.slug + '-yearly',
+      duration: 365,
+      price: p.price > 0 ? Math.round(p.price * 12 * 0.8) : 0,
+      monthlyEquivalent: p.price > 0 ? Math.round(p.price * 0.8) : 0
     }));
   }
   
@@ -480,13 +492,13 @@ const RecruiterPlans = () => {
                               <span className="text-3xl font-extrabold text-slate-900">₹0</span>
                             ) : (
                               <>
-                                <span className="text-3xl font-extrabold text-slate-900">₹{plan.price.toLocaleString('en-IN')}</span>
+                                <span className="text-3xl font-extrabold text-slate-900">₹{(plan.monthlyEquivalent || plan.price).toLocaleString('en-IN')}</span>
                                 <span className="text-xs text-slate-500 font-semibold">{t("/month")}</span>
                               </>
                             )}
                           </div>
                           <div className="mt-2.5 text-[11px] font-semibold text-slate-400">
-                            {plan.price === 0 ? 'Forever Free' : `Billed ${activePeriod.toLowerCase()}`}
+                            {plan.price === 0 ? 'Forever Free' : `Billed ${activePeriod.toLowerCase()} at ₹${plan.price.toLocaleString('en-IN')} total`}
                           </div>
                           <p className="text-xs text-slate-500 mt-2 h-4">{theme.sub}</p>
                         </div>
