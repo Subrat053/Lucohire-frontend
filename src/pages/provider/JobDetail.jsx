@@ -180,6 +180,7 @@ export default function JobDetail() {
 
   const [showFullReport, setShowFullReport] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [applying, setApplying] = useState(false);
   const [activeTab, setActiveTab] = useState("Overview");
 
   useEffect(() => {
@@ -264,6 +265,27 @@ export default function JobDetail() {
       toast.error("Could not save job");
     }
   }, [job]);
+
+  const handleApply = useCallback(async () => {
+    if (!job) return;
+    if (job.isExternal || job.source !== 'internal') {
+      const extUrl = job.applyUrl || job.apply_url || job.externalUrl || job.url;
+      if (extUrl) window.open(extUrl, '_blank', 'noopener,noreferrer');
+      else toast.error('Application link not available for this job.');
+      return;
+    }
+    if (hasApplied) { toast('You have already applied to this job.'); return; }
+    try {
+      setApplying(true);
+      await providerAPI.applyToJob(job._id, {});
+      setHasApplied(true);
+      toast.success('Application submitted successfully!');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to apply. Please try again.');
+    } finally {
+      setApplying(false);
+    }
+  }, [job, hasApplied]);
 
   const handleShare = async (platform) => {
     const publicUrl = `${window.location.origin}/job/${job._id}`;
@@ -445,21 +467,11 @@ export default function JobDetail() {
         <div className="xl:hidden fixed bottom-4 left-0 right-0 z-50 pointer-events-none flex justify-center">
           <div className="w-[85%] max-w-[340px]">
             <button
-              onClick={() => {
-                if (job.isExternal || job.source !== "internal") {
-                  const extUrl = job.applyUrl || job.apply_url || job.externalUrl || job.url || "#";
-                  if (extUrl && extUrl !== "#") {
-                    window.open(extUrl, "_blank", "noopener,noreferrer");
-                  } else {
-                    alert("Application link is not available for this job.");
-                  }
-                } else {
-                  navigate(`/candidate-landing`);
-                }
-              }}
-              className="pointer-events-auto w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[17px] sm:text-[15px] font-bold rounded-xl shadow-[0_8px_20px_-4px_rgba(5,150,105,0.4)] transition flex items-center justify-center gap-2"
+              onClick={handleApply}
+              disabled={applying || (hasApplied && job?.source === 'internal')}
+              className="pointer-events-auto w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-[17px] sm:text-[15px] font-bold rounded-xl shadow-[0_8px_20px_-4px_rgba(5,150,105,0.4)] transition flex items-center justify-center gap-2"
             >
-              Apply Now
+              {applying ? 'Submitting...' : hasApplied && job?.source === 'internal' ? 'Applied ✓' : 'Apply Now'}
             </button>
           </div>
         </div>
@@ -567,10 +579,6 @@ export default function JobDetail() {
                       <p className="text-[15px] sm:text-[13px] font-bold text-gray-700 mb-1">
                         Unlock Premium AI Features
                       </p>
-                      <p className="text-[13px] sm:text-[11px] text-gray-500 mb-3">
-                        Purchase a plan to see exactly why you match this job
-                        and how to improve your chances.
-                      </p>
                       <button
                         onClick={() => navigate("/provider/plans")}
                         className="text-[14px] sm:text-[12px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-lg transition inline-flex items-center gap-1.5"
@@ -585,28 +593,11 @@ export default function JobDetail() {
               {/* Right Action Block */}
               <div className="w-full xl:w-[200px] shrink-0 xl:border-l border-gray-100 xl:pl-8 space-y-4 pt-4 xl:pt-0 border-t xl:border-t-0 flex flex-col justify-center">
                 <button
-                  onClick={() => {
-                    if (job.isExternal || job.source !== "internal") {
-                      const extUrl =
-                        job.applyUrl ||
-                        job.apply_url ||
-                        job.externalUrl ||
-                        job.url ||
-                        "#";
-                      if (extUrl && extUrl !== "#") {
-                        window.open(extUrl, "_blank", "noopener,noreferrer");
-                      } else {
-                        alert(
-                          "Application link is not available for this job.",
-                        );
-                      }
-                    } else {
-                      navigate(`/candidate-landing`);
-                    }
-                  }}
-                  className="hidden xl:block w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[15px] sm:text-[13px] font-bold rounded-xl shadow-sm transition"
+                  onClick={handleApply}
+                  disabled={applying || (hasApplied && job?.source === 'internal')}
+                  className="hidden xl:block w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-[15px] sm:text-[13px] font-bold rounded-xl shadow-sm transition"
                 >
-                  Apply Now
+                  {applying ? 'Submitting...' : hasApplied && job?.source === 'internal' ? 'Applied ✓' : 'Apply Now'}
                 </button>
                 <div className="hidden sm:flex items-start gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">

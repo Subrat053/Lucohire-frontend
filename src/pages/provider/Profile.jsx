@@ -3821,10 +3821,12 @@ const ProviderProfile = () => {
               </button>
               <button
                 type="button"
-                onClick={async () => {
-                  await fetchProfile(); // This resets the local isDirty state effectively!
-                  window.lucodeProfileIsDirty = false; // Override immediately just in case
+                onClick={() => {
                   setShowUnsavedWarning(false);
+                  window.lucodeProfileIsDirty = false;
+                  
+                  fetchProfile(); // run in background, don't block UI
+
                   if (pendingTab === 'POP_STATE_BACK') {
                     window.history.back();
                   } else if (pendingTab === 'LOGOUT') {

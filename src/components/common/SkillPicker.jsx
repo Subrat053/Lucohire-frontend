@@ -137,10 +137,13 @@ const SkillPicker = ({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && search.trim()) {
-                    // If exact match exists in filtered, pick first; else treat as custom
-                    const match = filtered?.find((s) => s.name.toLowerCase() === search.trim().toLowerCase());
-                    addSkill(match ? match.name : search.trim());
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (search.trim()) {
+                      // If exact match exists in filtered, pick first; else treat as custom
+                      const match = filtered?.find((s) => s.name.toLowerCase() === search.trim().toLowerCase());
+                      addSkill(match ? match.name : search.trim());
+                    }
                   }
                   if (e.key === 'Escape') { setOpen(false); setSearch(''); }
                 }}

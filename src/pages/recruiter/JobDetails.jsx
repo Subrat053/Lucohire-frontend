@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   FiMapPin, FiClock, FiCalendar, FiExternalLink, FiMoreHorizontal, 
   FiSearch, FiFilter, FiChevronDown, FiFileText, FiMessageSquare, 
-  FiLoader, FiChevronRight, FiCheckCircle, FiEye, FiUsers, FiTrendingUp, FiBarChart2, FiUser, FiPlus, FiMinus
+  FiLoader, FiChevronRight, FiCheckCircle, FiEye, FiUsers, FiTrendingUp, FiBarChart2, FiUser, FiPlus, FiMinus, FiTrash2, FiPower
 } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi';
 import { useParams, Link } from 'react-router-dom';
@@ -134,6 +134,33 @@ export default function JobDetails() {
     }
   };
 
+  const handleDeleteJob = async () => {
+    if (window.confirm("Are you sure you want to delete this job? This action cannot be undone.")) {
+      try {
+        await recruiterAPI.deleteJob(jobId);
+        toast.success("Job deleted successfully");
+        navigate("/recruiter/jobs");
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to delete job");
+      }
+    }
+  };
+
+  const handleToggleStatus = async () => {
+    const newStatus = job.status === 'active' ? 'inactive' : 'active';
+    if (window.confirm(`Are you sure you want to ${newStatus === 'active' ? 'activate' : 'deactivate'} this job?`)) {
+      try {
+        await recruiterAPI.updateJob(jobId, { status: newStatus });
+        toast.success(`Job ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
+        fetchData();
+      } catch (err) {
+        console.error(err);
+        toast.error(`Failed to ${newStatus === 'active' ? 'activate' : 'deactivate'} job`);
+      }
+    }
+  };
+
   const executeBoost = async () => {
     if (!boostDays || boostDays <= 0) {
       return toast.error("Please enter a valid number of days");
@@ -238,6 +265,18 @@ export default function JobDetails() {
                   <HiSparkles className="w-4 h-4" />{t("Boost Job")}
                 </button>
               )}
+              <button 
+                onClick={handleToggleStatus}
+                className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-white border border-gray-200 text-orange-600 hover:text-orange-700 hover:bg-orange-50 hover:border-orange-200 hover:shadow-md hover:-translate-y-0.5 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200"
+              >
+                <FiPower className="w-4 h-4" /> {job.status === 'active' ? t("Deactivate") : t("Activate")}
+              </button>
+              <button 
+                onClick={handleDeleteJob}
+                className="flex-1 md:flex-none justify-center items-center flex gap-1.5 bg-white border border-gray-200 text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-200 hover:shadow-md hover:-translate-y-0.5 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200"
+              >
+                <FiTrash2 className="w-4 h-4" /> {t("Delete")}
+              </button>
             </div>
           </div>
           

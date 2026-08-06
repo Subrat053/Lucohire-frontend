@@ -63,11 +63,10 @@ const PostJob = () => {
   const [usageLoading, setUsageLoading] = useState(true);
   const draftTimerRef = useRef(null);
   const [form, setForm] = useState({
-    title: '', skill: '', city: '', budgetMin: '', budgetMax: '',
+    title: '', skills: [], city: '', budgetMin: '', budgetMax: '',
     budgetType: 'negotiable', description: '', requirements: '',
     location: null,
     workMode: 'onsite',
-    requiredSkillLevel: 'semi-skilled',
     urgency: 'normal'
   });
 
@@ -158,7 +157,6 @@ const PostJob = () => {
         skill: (data.skills && data.skills.length > 0) ? data.skills[0] : prev.skill,
         city: resolvedCity || prev.city,
         location: resolvedLoc || prev.location,
-        requirements: Array.isArray(data.duties) ? data.duties.join(', ') : prev.requirements,
         budgetMin: data.budget?.min ? String(data.budget.min) : prev.budgetMin,
         budgetMax: data.budget?.max ? String(data.budget.max) : prev.budgetMax,
         budgetType: data.budget?.type || prev.budgetType,
@@ -184,8 +182,8 @@ const PostJob = () => {
     return new Promise((resolve) => {
       setTimeout(() => {
         if (currentStep === 1) {
-          if (!form.title.trim() || !form.skill || !form.city.trim()) {
-            setStepError(t('recruiter.step1Required', 'Add title, skill, and city to continue.'));
+          if (!form.title.trim() || !form.skills.length || !form.city.trim()) {
+            setStepError(t('recruiter.step1Required', 'Add title, at least one skill, and city to continue.'));
             resolve(false);
             return;
           }
@@ -222,6 +220,8 @@ const PostJob = () => {
     try {
       const payload = {
         ...form,
+        skill: form.skills[0] || '',
+        skillsTags: form.skills,
         budgetMin: form.budgetMin ? parseInt(form.budgetMin) : 0,
         budgetMax: form.budgetMax ? parseInt(form.budgetMax) : 0,
         aiGenerated: aiMeta ? { status: aiMeta.status, model: aiMeta.model || '' } : null,
@@ -264,7 +264,7 @@ const PostJob = () => {
           </p>
           <div className="flex gap-3 mt-6">
             <button
-              onClick={() => { setSubmitted(false); setForm({ title: '', skill: '', city: '', budgetMin: '', budgetMax: '', budgetType: 'negotiable', description: '', requirements: '' }); }}
+              onClick={() => { setSubmitted(false); setForm({ title: '', skills: [], city: '', budgetMin: '', budgetMax: '', budgetType: 'negotiable', description: '', requirements: '' }); }}
               className="flex-1 border-2 border-blue-200 text-blue-700 font-bold py-2.5 rounded-xl hover:bg-blue-50 transition text-sm"
             >
               {t('recruiter.postAnother', 'Post Another')}
@@ -391,12 +391,12 @@ const PostJob = () => {
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <Label text={t('recruiter.skillRequired', 'Skill Required')} required />
+                      <Label text={t('recruiter.skillRequired', 'Skills Required')} required />
                       <SkillPicker
-                        selectedSkills={form.skill ? [form.skill] : []}
-                        onChange={(skills) => setForm({ ...form, skill: skills[skills.length - 1] || '' })}
-                        maxSkills={1}
-                        placeholder={t('recruiter.pickSkill', 'Pick one skill…')}
+                        selectedSkills={form.skills}
+                        onChange={(skills) => setForm({ ...form, skills })}
+                        maxSkills={10}
+                        placeholder={t('recruiter.pickSkill', 'Add up to 10 skills…')}
                       />
                     </div>
                     <div>
@@ -417,14 +417,6 @@ const PostJob = () => {
                         <option value="remote">{t("Remote")}</option>
                         <option value="hybrid">{t("Hybrid")}</option>
                         <option value="travel">{t("Travel")}</option>
-                      </select>
-                    </div>
-                    <div>
-                      <Label text={t('common.skillLevel', 'Skill Level')} />
-                      <select name="requiredSkillLevel" value={form.requiredSkillLevel} onChange={set('requiredSkillLevel')} className={inputCls}>
-                        <option value="unskilled">{t("Unskilled")}</option>
-                        <option value="semi-skilled">{t("Semi-skilled")}</option>
-                        <option value="skilled">{t("Skilled")}</option>
                       </select>
                     </div>
                     <div>
@@ -485,7 +477,7 @@ const PostJob = () => {
               </SectionCard>
             </div>
 
-            <SectionCard icon={HiDocumentText} iconColor="text-purple-500" title={t('common.descAndReq', 'Description & Requirements')}>
+            <SectionCard icon={HiDocumentText} iconColor="text-purple-500" title={t('common.jobDescription', 'Job Description & Requirements')}>
               <div className="space-y-4">
                 <div>
                   <Label text={t('common.jobDescription', 'Job Description')} required />

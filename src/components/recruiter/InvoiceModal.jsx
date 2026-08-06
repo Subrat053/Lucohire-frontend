@@ -194,7 +194,7 @@ export default function InvoiceModal({ isOpen, onClose, profileData, fetchProfil
               <button 
                 onClick={handleSaveGst}
                 disabled={savingGst || gstNumber === (profileData?.gstNumber || '')}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition shadow-sm disabled:opacity-50 h-[42px]"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition shadow-sm disabled:opacity-50 h-10.5"
               >
                 {savingGst ? 'Saving...' : 'Save Details'}
               </button>

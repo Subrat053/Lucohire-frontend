@@ -677,7 +677,7 @@ const ProviderPlans = () => {
 
   if (paymentSuccessData) {
     const invoiceNumber = `INV-${(paymentSuccessData._id || 'PAYMENT').toString().slice(-6).toUpperCase()}`;
-    const rawAmount = paymentSuccessData.finalAmount || paymentSuccessData.totalAmount || paymentSuccessData.subtotal || 0;
+    const rawAmount = paymentSuccessData.finalAmount || paymentSuccessData.totalAmount || paymentSuccessData.amount || paymentSuccessData.subtotal || 0;
     const amount = Math.round(rawAmount * 100) / 100;
     const currency = paymentSuccessData.currency || 'INR';
     const addonsTotal = (paymentSuccessData.selectedAddons || []).reduce((acc, addon) => acc + (addon.totalPrice || addon.price || 0), 0);
@@ -686,7 +686,7 @@ const ProviderPlans = () => {
     
     return (
       <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8 font-sans flex flex-col items-center justify-center">
-        <div className="w-full max-w-3xl bg-white border border-slate-200 rounded-xl shadow-sm p-8 text-center animate-in zoom-in duration-500">
+        <div className="w-full max-w-3xl bg-white border border-slate-200 rounded-xl shadow-sm p-4 sm:p-8 text-center animate-in zoom-in duration-500">
           <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <Check className="w-8 h-8" />
           </div>
@@ -704,7 +704,7 @@ const ProviderPlans = () => {
             </div>
 
             {/* Company & Date Details */}
-            <div className="bg-emerald-50 flex flex-col md:flex-row justify-between items-start md:items-start mb-6 md:mb-8 gap-4 md:gap-6 pb-6 border-b border-emerald-100 p-6 relative z-10">
+            <div className="bg-emerald-50 flex flex-col md:flex-row justify-between items-start md:items-start mb-6 md:mb-8 gap-4 md:gap-6 pb-6 border-b border-emerald-100 p-4 sm:p-6 relative z-10">
               <div className="hidden md:flex items-start gap-4">
                 <div className="w-16 h-16 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center shrink-0">
                   <img src="/lucologo.png" alt="Lucohire Logo" className="w-full h-auto object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
@@ -743,8 +743,8 @@ const ProviderPlans = () => {
             </div>
 
             {/* Invoice Items Table */}
-            <div className="px-6 relative z-10">
-              <table className="w-full text-left border-collapse">
+            <div className="px-4 sm:px-6 relative z-10 overflow-x-auto w-full">
+              <table className="w-full text-left border-collapse min-w-[300px]">
                 <thead>
                   <tr className="border-b-2 border-slate-800">
                     <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[140px] sm:w-1/2">{t("Description")}</th>
@@ -807,7 +807,7 @@ const ProviderPlans = () => {
             </div>
 
             {/* Bill To Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mt-10 pt-8 border-t border-slate-200 gap-6 px-6 relative z-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mt-10 pt-8 border-t border-slate-200 gap-6 px-4 sm:px-6 relative z-10">
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">{t("Bill To")}</p>
                 <p className="text-base font-bold text-slate-800">{user?.name || "Provider Name"}</p>
