@@ -116,33 +116,8 @@ const RecruiterPlans = () => {
   const location = useLocation();
 
   useEffect(() => { 
-    const query = new URLSearchParams(location.search);
-    const paymentStatus = query.get('payment');
-    const sessionId = query.get('session_id');
-
-    if (paymentStatus === 'success' && sessionId) {
-      verifyStripePayment(sessionId);
-    } else {
-      fetchPlans(); 
-    }
-  }, [location.search]);
-
-  const verifyStripePayment = async (sessionId) => {
-    try {
-      setLoading(true);
-      const res = await paymentAPI.verifyPayment({ sessionId });
-      if (res.data?.success) {
-        toast.success(res.data.message || 'Payment successful! Plan activated.');
-        // Clean URL
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to verify payment. Contact support if you were charged.');
-    } finally {
-      fetchPlans();
-    }
-  };
+    fetchPlans(); 
+  }, []);
 
   const fetchPlans = async () => {
     try {
@@ -534,12 +509,17 @@ const RecruiterPlans = () => {
 
                           {/* Features list */}
                           <ul className="space-y-2.5 mt-auto">
-                            {(plan.features || []).slice(0,4).map((f, i) => (
-                              <li key={i} className="flex items-start gap-2 text-[11px] font-semibold text-slate-600 leading-tight">
-                                <HiCheck className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${theme.checkClass || 'text-slate-400'}`} />
-                                {f}
-                              </li>
-                            ))}
+                            {(() => {
+                              const baseFeatures = Array.isArray(plan.features) ? [...plan.features] : [];
+                              if (plan.unlockCredits) baseFeatures.unshift(`Profile Unlocks: ${plan.unlockCredits}`);
+                              if (plan.duration || plan.durationDays) baseFeatures.unshift(`Plan Duration: ${plan.duration || plan.durationDays} Days`);
+                              return baseFeatures.map((f, i) => (
+                                <li key={i} className="flex items-start gap-2 text-[11px] font-semibold text-slate-600 leading-tight">
+                                  <HiCheck className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${theme.checkClass || 'text-slate-400'}`} />
+                                  {f}
+                                </li>
+                              ));
+                            })()}
                           </ul>
 
                         </div>
