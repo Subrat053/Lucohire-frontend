@@ -60,6 +60,8 @@ export default function AIRecruiterWorkspace() {
   const [aiUsage, setAiUsage] = useState({ limits: {}, usage: {} });
   const [usageLoading, setUsageLoading] = useState(true);
 
+  const isLimitReached = !usageLoading && aiUsage?.limits?.aiCopilot !== undefined && aiUsage?.limits?.aiCopilot !== -1 && (aiUsage?.usage?.aiCopilot || 0) >= (aiUsage?.limits?.aiCopilot || 0);
+
   useEffect(() => {
     fetchConversations();
     fetchData();
@@ -167,6 +169,10 @@ export default function AIRecruiterWorkspace() {
   };
 
   const handleSend = async (overridePrompt = null) => {
+    if (isLimitReached) {
+      toast.error(t("recruiter.aiCopilotLimitReached", "AI Copilot limit reached. Please upgrade your plan to continue chatting."));
+      return;
+    }
     const text = overridePrompt || chatInput;
     if (!text.trim()) return;
 
@@ -547,7 +553,6 @@ export default function AIRecruiterWorkspace() {
                     </div>
                   )}
                   {messages.map((msg, i) => {
-                    const isLimitReached = !usageLoading && aiUsage.limits.aiCopilot !== -1 && aiUsage.usage.aiCopilot >= (aiUsage.limits.aiCopilot || 0);
                     const shouldBlur = isLimitReached && msg.role === "assistant";
                     
                     return (
@@ -616,7 +621,7 @@ export default function AIRecruiterWorkspace() {
                     />
                     <button
                       onClick={() => handleSend()}
-                      disabled={loading || !chatInput.trim() || (aiUsage.limits.aiCopilot !== -1 && aiUsage.usage.aiCopilot >= (aiUsage.limits.aiCopilot || 0))}
+                      disabled={loading || !chatInput.trim() || isLimitReached}
                       className="w-auto px-3 min-w-[3rem] h-10 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg flex flex-col items-center justify-center transition shrink-0 ml-2 shadow-sm mb-0.5"
                     >
                       {loading ? (
