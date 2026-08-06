@@ -168,11 +168,11 @@ const RecruiterPlans = () => {
     if (!id) return null;
     if (id.endsWith('_quarterly')) {
       const base = plans.find(p => p._id === id.replace('_quarterly', ''));
-      return base ? { ...base, price: base.price > 0 ? Math.round(base.price * 3 * 0.9) : 0 } : null;
+      return base ? { ...base, price: base.price > 0 ? Number((base.price * 3 * 0.9).toFixed(2)) : 0 } : null;
     }
     if (id.endsWith('_yearly')) {
       const base = plans.find(p => p._id === id.replace('_yearly', ''));
-      return base ? { ...base, price: base.price > 0 ? Math.round(base.price * 12 * 0.8) : 0 } : null;
+      return base ? { ...base, price: base.price > 0 ? Number((base.price * 12 * 0.8).toFixed(2)) : 0 } : null;
     }
     return plans.find(p => p._id === id);
   };
@@ -339,8 +339,8 @@ const RecruiterPlans = () => {
       _id: p._id + '_quarterly',
       slug: p.slug + '-quarterly',
       duration: 90,
-      price: p.price > 0 ? Math.round(p.price * 3 * 0.9) : 0,
-      monthlyEquivalent: p.price > 0 ? Math.round(p.price * 0.9) : 0,
+      price: p.price > 0 ? Number((p.price * 3 * 0.9).toFixed(2)) : 0,
+      monthlyEquivalent: p.price > 0 ? Number((p.price * 0.9).toFixed(2)) : 0,
       originalMonthlyPrice: p.price,
       discountPercent: 10
     }));
@@ -352,8 +352,8 @@ const RecruiterPlans = () => {
       _id: p._id + '_yearly',
       slug: p.slug + '-yearly',
       duration: 365,
-      price: p.price > 0 ? Math.round(p.price * 12 * 0.8) : 0,
-      monthlyEquivalent: p.price > 0 ? Math.round(p.price * 0.8) : 0,
+      price: p.price > 0 ? Number((p.price * 12 * 0.8).toFixed(2)) : 0,
+      monthlyEquivalent: p.price > 0 ? Number((p.price * 0.8).toFixed(2)) : 0,
       originalMonthlyPrice: p.price,
       discountPercent: 20
     }));
