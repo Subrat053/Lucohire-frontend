@@ -1642,21 +1642,21 @@ const ProviderPlans = () => {
       {/* Configuration & Checkout Modal */}
       {/* Queue Warning Modal */}
       {queueModalData && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-5 sm:p-7">
+            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
               </div>
-              <h2 className="text-xl font-extrabold text-emerald-950">{t("Plan Queue Notice")}</h2>
+              <h2 className="text-lg sm:text-xl font-extrabold text-emerald-950">{t("Plan Queue Notice")}</h2>
             </div>
-            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 mb-6 sm:mb-8 leading-relaxed">
               {queueModalData.message}
             </p>
             <div className="flex justify-end gap-3 mt-auto">
               <button
                 onClick={() => { setQueueModalData(null); setCheckoutLoading(false); }}
-                className="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-sm sm:text-base font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
               >
                 {t("Cancel")}
               </button>
@@ -1672,7 +1672,7 @@ const ProviderPlans = () => {
                     toast.error("Error proceeding with checkout");
                   }
                 }}
-                className="px-5 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-sm sm:text-base font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-600/20"
               >
                 {t("Proceed to Payment")}
               </button>
@@ -1683,39 +1683,39 @@ const ProviderPlans = () => {
 
       {/* WhatsApp Consent Modal */}
       {whatsappConsentOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                <FaWhatsapp className="w-5 h-5 text-emerald-600" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-5 sm:p-7">
+            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                <FaWhatsapp className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
               </div>
-              <h2 className="text-xl font-extrabold text-emerald-950">{t("WhatsApp Alerts Consent")}</h2>
+              <h2 className="text-lg sm:text-xl font-extrabold text-emerald-950">{t("WhatsApp Alerts Consent")}</h2>
             </div>
-            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 mb-6 sm:mb-8 leading-relaxed">
               {t("By proceeding with the WhatsApp Alerts addon, your profile and contact details will be made publicly visible so recruiters can reach out to you directly.")}
             </p>
             
-            <div className="flex flex-col gap-3 mb-6">
-              <label className="flex items-start gap-3 cursor-pointer p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
+            <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <label className="flex items-start gap-3 sm:gap-4 cursor-pointer p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
                 <input
                   type="checkbox"
                   checked={whatsappConsent1}
                   onChange={(e) => setWhatsappConsent1(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                  className="mt-1 w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
                 />
-                <span className="text-sm text-slate-700 font-medium leading-tight">
+                <span className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
                   {t("I agree to show my profile publicly")}
                 </span>
               </label>
               
-              <label className="flex items-start gap-3 cursor-pointer p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
+              <label className="flex items-start gap-3 sm:gap-4 cursor-pointer p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
                 <input
                   type="checkbox"
                   checked={whatsappConsent2}
                   onChange={(e) => setWhatsappConsent2(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                  className="mt-1 w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
                 />
-                <span className="text-sm text-slate-700 font-medium leading-tight">
+                <span className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
                   {t("I agree to share my contact details with recruiters")}
                 </span>
               </label>
@@ -1724,7 +1724,7 @@ const ProviderPlans = () => {
             <div className="flex justify-end gap-3 mt-auto">
               <button
                 onClick={() => { setWhatsappConsentOpen(false); setCheckoutLoading(false); }}
-                className="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-sm sm:text-base font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
               >
                 {t("Cancel")}
               </button>
@@ -1734,7 +1734,7 @@ const ProviderPlans = () => {
                   handleCheckout();
                 }}
                 disabled={!whatsappConsent1 || !whatsappConsent2}
-                className="px-5 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-sm sm:text-base font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors shadow-sm shadow-emerald-600/20"
               >
                 {t("Accept & Continue")}
               </button>
