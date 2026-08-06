@@ -33,9 +33,17 @@ export default function LandingPage() {
         
         let fetchedJobs = [];
         if (user && user.activeRole === 'provider') {
-          const { data } = await providerAPI.getJobs(params);
+          // Fetch jobs tailored to their profile (omit forced skill)
+          const { data } = await providerAPI.getJobs({ limit: 50 });
           fetchedJobs = (data?.data?.jobs) || data?.jobs || [];
+          
+          // Fallback to global tech jobs if their tailored search returns 0
+          if (fetchedJobs.length === 0) {
+            const fallback = await jobsAPI.getAvailableJobs(params);
+            fetchedJobs = (fallback.data?.data?.jobs) || fallback.data?.jobs || [];
+          }
         } else {
+          // Fetch global tech jobs for logged-out users
           const { data } = await jobsAPI.getAvailableJobs(params);
           fetchedJobs = (data?.data?.jobs) || data?.jobs || [];
         }
