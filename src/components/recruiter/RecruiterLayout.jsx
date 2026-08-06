@@ -141,75 +141,7 @@ const RecruiterLayout = ({ children }) => {
         })}
         </div>
 
-        {/* Subscription Usage Widget */}
-        {(!collapsed && stats) && (
-          <div className="mt-8 mb-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm mx-1 shrink-0">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-bold text-gray-900">{t("Subscription Usage")}</p>
-            </div>
-            
-            <div className="space-y-3">
-              <div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <HiBriefcase className="w-3 h-3 text-blue-500" />
-                  <span className="text-[10px] font-semibold text-gray-700">{t("Job Postings")}</span>
-                </div>
-                <div className="text-sm font-bold text-gray-900 mb-1">
-                  {stats.remainingPostLimit === 'unlimited' ? '∞' : stats.remainingPostLimit}
-                  {stats.remainingPostLimit !== 'unlimited' && <span className="text-gray-400 font-medium ml-1">{t("left")}</span>}
-                </div>
-                {stats.remainingPostLimit !== 'unlimited' && (
-                  <div className="w-full bg-gray-100 rounded-full h-1.5">
-                    <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${Math.min(100, Math.max(0, (stats.remainingPostLimit / Math.max(1, (stats.remainingPostLimit + (stats.totalJobsPosted || 0)))) * 100))}%` }}></div>
-                  </div>
-                )}
-              </div>
-              
-              <div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <HiUsers className="w-3 h-3 text-green-500" />
-                  <span className="text-[10px] font-semibold text-gray-700">{t("Candidate Unlocks")}</span>
-                </div>
-                <div className="text-sm font-bold text-gray-900 mb-1">
-                  {stats.unlocksRemaining} <span className="text-gray-400 font-medium">{t("left")}</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-1.5">
-                  <div className="bg-green-700 h-1.5 rounded-full" style={{ width: `${stats.unlocksRemaining > 0 ? 100 : 0}%` }}></div>
-                </div>
-              </div>
 
-              {(stats.boostJobsRemaining > 0 || stats.currentPlan === 'custom') && (
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <HiLightningBolt className="w-3 h-3 text-amber-500" />
-                    <span className="text-[10px] font-semibold text-gray-700">{t("Job Boosts")}</span>
-                  </div>
-                  <div className="text-sm font-bold text-gray-900 mb-1">
-                    {stats.boostJobsRemaining || 0} <span className="text-gray-400 font-medium">{t("left")}</span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-1.5">
-                    <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${stats.boostJobsRemaining > 0 ? 100 : 0}%` }}></div>
-                  </div>
-                </div>
-              )}
-
-              {(stats.boostDaysRemaining > 0 || stats.currentPlan === 'custom') && (
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <HiCalendar className="w-3 h-3 text-purple-500" />
-                    <span className="text-[10px] font-semibold text-gray-700">{t("Boost Days")}</span>
-                  </div>
-                  <div className="text-sm font-bold text-gray-900 mb-1">
-                    {stats.boostDaysRemaining || 0} <span className="text-gray-400 font-medium">{t("left")}</span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-1.5">
-                    <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: `${stats.boostDaysRemaining > 0 ? 100 : 0}%` }}></div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </nav>
 
       <div className="shrink-0 px-2 pb-4 border-t border-gray-100 pt-3">
