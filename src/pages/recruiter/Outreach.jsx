@@ -161,6 +161,20 @@ const Outreach = () => {
                     `${Math.max(0, (aiUsage.limits.outreachCampaigns || 0) - (aiUsage.usage?.outreachCampaigns || 0))} / ${aiUsage.limits.outreachCampaigns || 0} ${t('common.credits', 'Credits')}`}
                 </span>
               </div>
+              <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
+              <div className="flex flex-col">
+                <span className="text-gray-500 text-xs flex items-center gap-1"><FiTrendingUp className="w-3 h-3 text-amber-500"/> {t('recruiter.boostJobs', 'Job Boosts')}</span>
+                <span className="text-slate-800 font-bold text-sm">
+                  {aiUsage.planDetails?.boostJobsRemaining || 0} {t('common.credits', 'Credits')}
+                </span>
+              </div>
+              <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
+              <div className="flex flex-col">
+                <span className="text-gray-500 text-xs flex items-center gap-1"><FiClock className="w-3 h-3 text-emerald-500"/> {t('recruiter.boostDays', 'Boost Days')}</span>
+                <span className="text-slate-800 font-bold text-sm">
+                  {aiUsage.planDetails?.boostDaysRemaining || 0} {t('common.days', 'Days')}
+                </span>
+              </div>
             </div>
           </div>
         )}
