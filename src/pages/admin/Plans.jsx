@@ -506,12 +506,12 @@ const AdminPlans = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Max Skills</label>
-                      <input type="number" min="1" value={form.maxSkills} onChange={e => setForm(f => ({ ...f, maxSkills: Number(e.target.value) }))}
+                      <input type="number" min="0" value={form.maxSkills} onChange={e => setForm(f => ({ ...f, maxSkills: Number(e.target.value) }))}
                         className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Boost Weight</label>
-                      <input type="number" min="1" value={form.boostWeight} onChange={e => setForm(f => ({ ...f, boostWeight: Number(e.target.value) }))}
+                      <input type="number" min="0" step="0.1" value={form.boostWeight} onChange={e => setForm(f => ({ ...f, boostWeight: Number(e.target.value) }))}
                         className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm" />
                     </div>
                   </div>
