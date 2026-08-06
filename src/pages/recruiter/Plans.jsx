@@ -610,7 +610,7 @@ const RecruiterPlans = () => {
             <div className="flex-1 space-y-2 text-xs text-amber-800 font-medium">
               <p className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
-                {t("All prices are in INR and exclusive of applicable taxes (GST), where applicable.")}
+                {t("All prices are in INR.")}
               </p>
               <p className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
