@@ -81,7 +81,7 @@ export default function AIRecruiterWorkspace() {
     try {
       const res = await recruiterAPI.getAiUsage();
       if (res.data?.success) {
-        setAiUsage({ limits: res.data.limits || {}, usage: res.data.usage || {} });
+        setAiUsage(res.data);
       }
     } catch (err) {
       console.error(err);
@@ -322,6 +322,27 @@ export default function AIRecruiterWorkspace() {
               {t("How can Luco AI help you hire better today?")}
             </p>
           </div>
+          
+          {!usageLoading && aiUsage?.limits && (
+            <div className="bg-white rounded-xl border border-indigo-100 p-3 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-[10px] mb-0.5">{t('common.currentPlan', 'Current Plan')}</span>
+                  <span className="text-indigo-600 font-bold capitalize bg-indigo-50 px-2 py-0.5 rounded text-[10px] uppercase tracking-wide border border-indigo-100 self-start">
+                    {aiUsage.planDetails?.name || aiUsage.planDetails?.slug || 'Free'}
+                  </span>
+                </div>
+                <div className="h-6 w-px bg-gray-200 hidden md:block"></div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-[10px] flex items-center gap-1"><FiMessageCircle className="w-2.5 h-2.5 text-indigo-500"/> {t('recruiter.aiCopilotLimit', 'AI Copilot Chats')}</span>
+                  <span className="text-slate-800 font-bold text-xs">
+                    {aiUsage.limits.aiCopilot === -1 ? 'Unlimited' : 
+                      `${Math.max(0, (aiUsage.limits.aiCopilot || 0) - (aiUsage.usage?.aiCopilot || 0))} / ${aiUsage.limits.aiCopilot || 0} ${t('common.credits', 'Credits')}`}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
           <button
             onClick={startNewChat}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-sm"
