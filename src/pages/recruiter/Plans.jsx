@@ -164,8 +164,21 @@ const RecruiterPlans = () => {
     }
   };
 
+  const getPlanWithVariants = (id) => {
+    if (!id) return null;
+    if (id.endsWith('_quarterly')) {
+      const base = plans.find(p => p._id === id.replace('_quarterly', ''));
+      return base ? { ...base, price: base.price > 0 ? Math.round(base.price * 3 * 0.9) : 0 } : null;
+    }
+    if (id.endsWith('_yearly')) {
+      const base = plans.find(p => p._id === id.replace('_yearly', ''));
+      return base ? { ...base, price: base.price > 0 ? Math.round(base.price * 12 * 0.8) : 0 } : null;
+    }
+    return plans.find(p => p._id === id);
+  };
+
   const handlePurchaseClick = async (planId) => {
-    const plan = plans.find(p => p._id === planId);
+    const plan = getPlanWithVariants(planId);
     if (!plan) return;
     
     if (plan.price === 0) {
@@ -203,7 +216,7 @@ const RecruiterPlans = () => {
   const confirmPurchase = () => {
     setShowBreakdownModal(false);
     setActivePlanId(pendingPurchasePlanId);
-    const plan = plans.find(p => p._id === pendingPurchasePlanId);
+    const plan = getPlanWithVariants(pendingPurchasePlanId);
     initiatePayment({
       planId: pendingPurchasePlanId,
       planName: plan?.name,
