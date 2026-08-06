@@ -716,7 +716,7 @@ const AdminPlans = () => {
               </div>
               {/* Check plan limits for creation */}
               {!editingPlan && (() => {
-                const addonSlugs = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills', 'whatsapp-alerts', 'whatsapp-alerts-monthly'];
+                const addonSlugs = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills', 'whatsapp-alerts'];
                 const providerCount = plans.filter(p => p.type === 'provider' && p.isActive && !addonSlugs.includes(p.slug)).length;
                 const recruiterCount = plans.filter(p => p.type === 'recruiter' && p.isActive && !addonSlugs.includes(p.slug)).length;
                 const atLimit = (form.type === 'provider' && providerCount >= 3) || (form.type === 'recruiter' && recruiterCount >= 3);
@@ -731,7 +731,7 @@ const AdminPlans = () => {
                 <button 
                   type="submit" 
                   disabled={!editingPlan && (() => {
-                    const addonSlugs = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills', 'whatsapp-alerts', 'whatsapp-alerts-monthly'];
+                    const addonSlugs = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills', 'whatsapp-alerts'];
                     const count = plans.filter(p => p.type === form.type && p.isActive && !addonSlugs.includes(p.slug)).length;
                     return count >= 3;
                   })()}
@@ -746,10 +746,10 @@ const AdminPlans = () => {
 
       {/* Plans Display */}
       {(() => {
-        const topPlanSlugs = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills', 'whatsapp-alerts', 'whatsapp-alerts-monthly'];
+        const topPlanSlugs = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills', 'whatsapp-alerts'];
         const landingPlans = plans.filter(p => p.showOnLandingPage && !topPlanSlugs.includes(p.slug));
         const otherProviderPlans = plans.filter(p => p.type === 'provider' && !p.showOnLandingPage && !topPlanSlugs.includes(p.slug));
-        const topPlans = plans.filter(p => topPlanSlugs.includes(p.slug) && p.slug !== 'whatsapp-alerts-monthly');
+        const topPlans = plans.filter(p => topPlanSlugs.includes(p.slug));
         const otherRecruiterPlans = plans.filter(p => p.type === 'recruiter' && !p.showOnLandingPage);
 
         return (

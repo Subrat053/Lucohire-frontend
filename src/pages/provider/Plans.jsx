@@ -51,7 +51,7 @@ import LocationSearch from '../../components/LocationSearch';
 import SkillSearchSelect from '../../components/common/SkillSearchSelect';
 import { safeReturnPath } from '../../utils/navigation';
 
-const ADDON_SLUGS = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills', 'whatsapp-alerts', 'whatsapp-alerts-monthly'];
+const ADDON_SLUGS = ['top-in-city', 'one-pincode-top', 'show-top-in-country', 'add-multiple-skills', 'whatsapp-alerts'];
 
 const DURATION_OPTIONS = Array.from({ length: 12 }, (_, index) => {
   const months = index + 1;
@@ -250,7 +250,7 @@ const ProviderPlans = () => {
           return !isTopPlan;
         });
         const addons = planList.filter(p =>
-          ADDON_SLUGS.includes(p.slug) && p.slug !== 'whatsapp-alerts-monthly'
+          ADDON_SLUGS.includes(p.slug)
         );
         setPlans(filteredPlans);
         setAvailableAddons(addons);
