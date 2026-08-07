@@ -1580,39 +1580,48 @@ const ProviderProfile = () => {
     }, 100);
   };
 
-  const handleSave = withSaveLock(async (e, overrideToken = null) => {
-    if (e && typeof e.preventDefault === "function") e.preventDefault();
+  const validateForm = () => {
     if (!form.city && form.locations.length === 0) {
-      return goToError("Personal", "basic-info-card", "Please add at least one service location / city (Location is mandatory)");
+      goToError("Personal", "basic-info-card", "Please add at least one service location / city (Location is mandatory)");
+      return false;
     }
     if (form.skills.length === 0) {
-      return goToError("Personal", "role-skills-card", "Please select at least one speciality/skill (Speciality is mandatory)");
+      goToError("Personal", "role-skills-card", "Please select at least one speciality/skill (Speciality is mandatory)");
+      return false;
     }
     if (!form.roles || form.roles.length === 0) {
-      return goToError("Personal", "role-skills-card", "Please select at least one job role (Job Role is mandatory)");
+      goToError("Personal", "role-skills-card", "Please select at least one job role (Job Role is mandatory)");
+      return false;
     }
-    const cleanPhone = form.phone || "";
     const nationalDigits = String(form.nationalNumber || "").replace(/\D/g, "");
     if (!nationalDigits || nationalDigits.length < 7) {
-      return goToError("Personal", "basic-info-card", "Please enter a valid WhatsApp/Contact number (Contact number is mandatory)");
+      goToError("Personal", "basic-info-card", "Please enter a valid WhatsApp/Contact number (Contact number is mandatory)");
+      return false;
     }
     if (form.isWhatsappSameAsMobile === false && form.whatsappNationalNumber) {
       const whatsappDigits = String(form.whatsappNationalNumber || "").replace(/\D/g, "");
       if (whatsappDigits.length < 7) {
-        return goToError("Personal", "basic-info-card", "Please enter a valid WhatsApp number.");
+        goToError("Personal", "basic-info-card", "Please enter a valid WhatsApp number.");
+        return false;
       }
     }
     if (
       !form.tier ||
       !["unskilled", "semi-skilled", "skilled"].includes(form.tier)
     ) {
-      return goToError("Personal", "role-skills-card", "Please select a skill tier (Skill tier is mandatory)");
+      goToError("Personal", "role-skills-card", "Please select a skill tier (Skill tier is mandatory)");
+      return false;
     }
-
     if (String(plan).toLowerCase() === "free" && form.roles.length > 1) {
-      return goToError("Personal", "role-skills-card", "For free plan you can only use one role. Please upgrade your plan or remove extra roles.");
+      goToError("Personal", "role-skills-card", "For free plan you can only use one role. Please upgrade your plan or remove extra roles.");
+      return false;
     }
+    return true;
+  };
 
+  const handleSave = withSaveLock(async (e, overrideToken = null, skipRedirect = false) => {
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+    if (!validateForm()) return;
     const nextPhone = form.phone || (form.countryCode + form.nationalNumber);
     const cleanNextPhone = String(nextPhone || "").replace(/\D/g, "");
 
@@ -1707,7 +1716,7 @@ const ProviderProfile = () => {
       setFirebaseToken("");
       setConfirmationResult(null);
       hasInitialized.current = false;
-      await fetchProfile();
+      fetchProfile(); // Background fetch, don't block ui
 
       if (localStorage.getItem('lastResumeHash')) {
         // Refresh resume-toolkit data on next visit by setting a flag
@@ -1715,7 +1724,9 @@ const ProviderProfile = () => {
       }
       
       // Redirect to Explore Opportunities (Job matches) after saving
-      navigate('/provider/job-for-me');
+      if (!skipRedirect) {
+        navigate('/provider/job-for-me');
+      }
     } catch (err) {
       if (err.response?.data?.upgradeRequired) {
         toast.error(err.response.data.message);
@@ -3846,33 +3857,35 @@ const ProviderProfile = () => {
               </button>
               <button
                 type="button"
-                disabled={saving}
-                onClick={async (e) => {
-                  await handleSave(e, null);
-                  window.lucodeProfileIsDirty = false;
-                  setShowUnsavedWarning(false);
-                  if (pendingTab === 'POP_STATE_BACK') {
-                    window.history.back();
-                  } else if (pendingTab === 'LOGOUT') {
-                    if (typeof window.lucodeAuthLogout === 'function') window.lucodeAuthLogout();
-                  } else if (pendingTab?.startsWith("tab:")) {
-                    setActiveTab(pendingTab.replace("tab:", ""));
+                onClick={(e) => {
+                  if (validateForm()) {
+                    window.lucodeProfileIsDirty = false;
+                    setShowUnsavedWarning(false);
+                    
+                    // Trigger save in background and skip redirect
+                    handleSave(e, null, true).catch(() => {});
+                    
+                    // Navigate immediately
+                    if (pendingTab === 'POP_STATE_BACK') {
+                      window.history.back();
+                    } else if (pendingTab === 'LOGOUT') {
+                      if (typeof window.lucodeAuthLogout === 'function') window.lucodeAuthLogout();
+                    } else if (pendingTab?.startsWith("tab:")) {
+                      setActiveTab(pendingTab.replace("tab:", ""));
+                    } else {
+                      navigate(pendingTab);
+                    }
+                    setPendingTab(null);
+                    window.scrollTo(0, 0);
                   } else {
-                    navigate(pendingTab);
+                    // Validation failed (goToError handled the UI), just close the modal so they can fix it
+                    setShowUnsavedWarning(false);
+                    setPendingTab(null);
                   }
-                  setPendingTab(null);
-                  window.scrollTo(0, 0);
                 }}
-                className="px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors order-1 sm:order-3 disabled:opacity-50 min-w-[120px] flex items-center justify-center"
+                className="px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors order-1 sm:order-3"
               >
-                {saving ? (
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  t("Save & Leave")
-                )}
+                {t("Save & Leave")}
               </button>
             </div>
           </div>
