@@ -215,6 +215,14 @@ const ProviderPlans = () => {
     // Empty state cleanup since location is checked at checkout
   }, [selectedPlan, user, profile]);
 
+  useEffect(() => {
+    if (location.hash === '#addons') {
+      setTimeout(() => {
+        document.getElementById('addons-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 500);
+    }
+  }, [location.hash, availableAddons]);
+
   // =============================================================
   const initials = useMemo(() => {
     const name = user?.name || 'Provider';
@@ -255,7 +263,7 @@ const ProviderPlans = () => {
           return !isTopPlan;
         });
         const addons = planList.filter(p =>
-          ADDON_SLUGS.includes(p.slug)
+          ADDON_SLUGS.includes(p.slug) || (p.slug && p.slug.toLowerCase().includes('whatsapp'))
         );
         setPlans(filteredPlans);
         setAvailableAddons(addons);
@@ -440,16 +448,23 @@ const ProviderPlans = () => {
         key: checkout.publishableKey || checkout.keyId,
         amount: checkout.amount,
         currency: checkout.currency || 'INR',
-        order_id: checkout.orderId,
         name: 'Lucohire',
         description: plan?.name || 'Subscription',
-        handler: async (payment) => {
-          const confirmRes = await confirmPaymentSuccess({
-            subscriptionId: subscription?._id,
-            paymentId: payment?.razorpay_payment_id,
-            orderId: payment?.razorpay_order_id,
-            signature: payment?.razorpay_signature,
-          });
+      };
+
+      if (checkout.isSubscription) {
+        options.subscription_id = checkout.orderId;
+      } else {
+        options.order_id = checkout.orderId;
+      }
+
+      options.handler = async (payment) => {
+        const confirmRes = await confirmPaymentSuccess({
+          subscriptionId: subscription?._id,
+          paymentId: payment?.razorpay_payment_id,
+          orderId: payment?.razorpay_order_id || checkout.orderId,
+          signature: payment?.razorpay_signature,
+        });
           await getMyPlan();
           const updatedUsage = await getProviderUsageMetrics().catch(() => null);
           if (updatedUsage) setUsageSummary(updatedUsage);
@@ -458,15 +473,15 @@ const ProviderPlans = () => {
           sessionStorage.removeItem('paymentReturnSource');
           
           // Show success UI locally
-          setPaymentSuccessData(confirmRes?.subscription || subscription);
-          window.scrollTo(0, 0);
+        setPaymentSuccessData(confirmRes?.subscription || subscription);
+        window.scrollTo(0, 0);
+        setCheckoutLoading(false);
+      }; // Close options.handler
+
+      options.modal = {
+        ondismiss: () => {
           setCheckoutLoading(false);
-        },
-        modal: {
-          ondismiss: () => {
-            setCheckoutLoading(false);
-            toast.error('Payment cancelled by user.');
-          }
+          toast.error('Payment cancelled by user.');
         }
       };
       const razorpay = new window.Razorpay(options);
@@ -1150,7 +1165,7 @@ const ProviderPlans = () => {
         {/* Top Plans Preview Section */}
         {availableAddons.length > 0 && (
           <div id="addons-section" className="mb-8 scroll-mt-24">
-            {availableAddons.filter(a => !a.slug.includes('whatsapp')).length > 0 && (
+            {false && (
               <>
                 <h2 className="text-xl font-extrabold text-slate-800 mb-4 flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-emerald-500" /> {t("Visibility Add-ons")}

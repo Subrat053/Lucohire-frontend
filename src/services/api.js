@@ -812,6 +812,13 @@ export const planAPI = {
   getPlansByAudience: (audience) => API.get("/plans", { params: { audience } }),
 };
 
+export const recruiterPlanAPI = {
+  getAvailablePlans: () => API.get("/recruiter-plans/available"),
+  getMyPlan: () => API.get("/recruiter-plans/my-plan"),
+  generateCheckoutSession: (data) => API.post("/recruiter-plans/checkout", data),
+  verifyPayment: (data) => API.post("/recruiter-plans/verify", data),
+};
+
 // Notification APIs
 export const notificationAPI = {
   getMyNotifications: (params) => API.get("/notifications", { params }),
@@ -841,7 +848,9 @@ export const reviewAPI = {
 export const paymentAPI = {
   getConfig: () => API.get("/payments/config"),
   createOrder: (data) => API.post("/payments/create-order", data),
+  createSubscription: (data) => API.post("/payments/create-subscription", data),
   verifyPayment: (data) => API.post("/payments/verify", data), // body: { sessionId }
+  verifySubscription: (data) => API.post("/payments/verify-subscription", data),
   paymentFailed: (data) => API.post("/payments/failed", data), // body: { sessionId, errorMessage }
   getMyPayments: () => API.get("/payments/my-payments"),
   getPaymentById: (id) => API.get(`/payments/${id}`),

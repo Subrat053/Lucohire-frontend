@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { HiCheck, HiOutlineLightningBolt, HiX, HiClock } from 'react-icons/hi';
 import { FaRegClock, FaChartLine, FaWallet, FaShieldAlt, FaHeadset, FaRocket, FaSearch } from 'react-icons/fa';
-import { paymentAPI, recruiterAPI } from '../../services/api';
+import { paymentAPI, recruiterAPI, recruiterPlanAPI } from '../../services/api';
 import useRazorpay from '../../hooks/useRazorpay';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -133,8 +133,8 @@ const RecruiterPlans = () => {
 
   const fetchPlans = async () => {
     try {
-      const { data } = await recruiterAPI.getPlans();
-      setPlans(data || []);
+      const response = await recruiterPlanAPI.getAvailablePlans();
+      setPlans(response.data?.data || []);
       const dashboard = await recruiterAPI.getDashboard();
       setCurrentPlan(dashboard.data?.stats?.currentPlan || 'free');
       setPlanEndDate(dashboard.data?.stats?.planEndDate || null);
@@ -192,9 +192,21 @@ const RecruiterPlans = () => {
     }
 
     setActivePlanId(planId);
+    
+    // Calculate duration based on the active tab (monthly, quarterly, yearly)
+    let durationMonths = 1;
+    if (activePeriod === 'Quarterly') durationMonths = 3;
+    else if (activePeriod === 'Yearly') durationMonths = 12;
+
     initiatePayment({
       planId: planId,
       planName: plan?.name,
+      checkoutFn: () => recruiterPlanAPI.generateCheckoutSession({ 
+        planId: planId.replace('_quarterly', '').replace('_yearly', ''), 
+        durationMonths, 
+        isAutoRenew: true 
+      }),
+      verifyFn: (data) => recruiterPlanAPI.verifyPayment(data),
       onSuccess: () => { setActivePlanId(null); fetchPlans(); },
       onFailure: () => setActivePlanId(null),
     });
@@ -210,6 +222,12 @@ const RecruiterPlans = () => {
       initiatePayment({
         planId: offer.planId,
         planName: 'Custom Offer',
+        checkoutFn: () => recruiterPlanAPI.generateCheckoutSession({ 
+          planId: offer.planId, 
+          durationMonths: offer.durationMonths || 1, 
+          isAutoRenew: false // Custom plans are typically non-renewing orders
+        }),
+        verifyFn: (data) => recruiterPlanAPI.verifyPayment(data),
         onSuccess: () => { setActivePlanId(null); fetchPlans(); },
         onFailure: () => setActivePlanId(null),
       });
@@ -294,37 +312,38 @@ const RecruiterPlans = () => {
   };
 
   const plansByDuration = { Monthly: [], Quarterly: [], Yearly: [] };
-  plans.forEach(p => {
-    if (p.duration >= 365) plansByDuration.Yearly.push(p);
-    else if (p.duration >= 90) plansByDuration.Quarterly.push(p);
-    else plansByDuration.Monthly.push(p);
-  });
-  
-  if (plansByDuration.Quarterly.length === 0 && plansByDuration.Monthly.length > 0) {
-    plansByDuration.Quarterly = plansByDuration.Monthly.map(p => ({
-      ...p,
-      _id: p._id + '_quarterly',
-      slug: p.slug + '-quarterly',
-      duration: 90,
-      price: p.price > 0 ? Number((p.price * 3 * 0.9).toFixed(2)) : 0,
-      monthlyEquivalent: p.price > 0 ? Number((p.price * 0.9).toFixed(2)) : 0,
-      originalMonthlyPrice: p.price,
-      discountPercent: 10
-    }));
-  }
+  const freePlan = plans.find(p => p.price === 0);
+  const paidMonthlyPlans = plans.filter(p => p.price > 0 && p.duration < 90);
 
-  if (plansByDuration.Yearly.length === 0 && plansByDuration.Monthly.length > 0) {
-    plansByDuration.Yearly = plansByDuration.Monthly.map(p => ({
-      ...p,
-      _id: p._id + '_yearly',
-      slug: p.slug + '-yearly',
-      duration: 365,
-      price: p.price > 0 ? Number((p.price * 12 * 0.8).toFixed(2)) : 0,
-      monthlyEquivalent: p.price > 0 ? Number((p.price * 0.8).toFixed(2)) : 0,
-      originalMonthlyPrice: p.price,
-      discountPercent: 20
-    }));
-  }
+  // Populate Monthly
+  if (freePlan) plansByDuration.Monthly.push(freePlan);
+  plansByDuration.Monthly.push(...paidMonthlyPlans);
+
+  // Populate Quarterly
+  if (freePlan) plansByDuration.Quarterly.push(freePlan);
+  plansByDuration.Quarterly.push(...paidMonthlyPlans.map(p => ({
+    ...p,
+    _id: p._id + '_quarterly',
+    slug: p.slug + '-quarterly',
+    duration: 90,
+    price: Number((p.price * 3 * 0.9).toFixed(2)),
+    monthlyEquivalent: Number((p.price * 0.9).toFixed(2)),
+    originalMonthlyPrice: p.price,
+    discountPercent: 10
+  })));
+
+  // Populate Yearly
+  if (freePlan) plansByDuration.Yearly.push(freePlan);
+  plansByDuration.Yearly.push(...paidMonthlyPlans.map(p => ({
+    ...p,
+    _id: p._id + '_yearly',
+    slug: p.slug + '-yearly',
+    duration: 365,
+    price: Number((p.price * 12 * 0.8).toFixed(2)),
+    monthlyEquivalent: Number((p.price * 0.8).toFixed(2)),
+    originalMonthlyPrice: p.price,
+    discountPercent: 20
+  })));
   
   const displayedPlans = plansByDuration[activePeriod] || [];
 
@@ -449,8 +468,8 @@ const RecruiterPlans = () => {
               });
 
               const colClass = hasCustomRequest
-                ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4'
-                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5';
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
 
               return (
                 <div className={`grid ${colClass} gap-4 mb-20`}>

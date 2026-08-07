@@ -179,30 +179,6 @@ const ProviderDashboard = () => {
     }
   }, [location.search, navigate, loadDashboard]);
 
-  const handleWhatsappCheckout = async () => {
-    try {
-      if (!dashboard?.subscription?.whatsappPlanId) {
-        toast.error('WhatsApp plan configuration not found.');
-        return;
-      }
-      toast.loading('Redirecting to checkout...', { id: 'whatsapp-checkout' });
-      const payload = {
-        planId: dashboard.subscription.whatsappPlanId,
-        durationMonths: 1,
-        isAutoSubscription: false,
-      };
-      const response = await purchaseFixedPlan(payload);
-      const { checkout } = response || {};
-      if (checkout?.url) {
-        window.location.href = checkout.url;
-      } else {
-        toast.error('Could not get checkout URL', { id: 'whatsapp-checkout' });
-      }
-    } catch (err) {
-      console.error('WhatsApp Checkout error:', err);
-      toast.error(err.response?.data?.message || 'Failed to initiate checkout', { id: 'whatsapp-checkout' });
-    }
-  };
 
   const handleToggleSave = async (jobId, isExternal, e) => {
     e.preventDefault();
@@ -552,10 +528,10 @@ const ProviderDashboard = () => {
                 </div>
               ) : (
                 <>
-                  <button onClick={handleWhatsappCheckout} className="w-full bg-white hover:bg-gray-50 text-[#0b5d49] font-extrabold py-3.5 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
+                  <button onClick={() => navigate('/provider/plans#addons')} className="w-full bg-white hover:bg-gray-50 text-[#0b5d49] font-extrabold py-3.5 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
                     Enable Alerts <FaWhatsapp className="w-4 h-4 text-[#075E54]" />
                   </button>
-                  <div className="text-center text-sm text-teal-300 mt-3 font-medium">Cancel anytime</div>
+                  <div className="text-center text-sm text-teal-300 mt-3 font-medium">Get listed on Top Talent</div>
                 </>
               )}
             </div>

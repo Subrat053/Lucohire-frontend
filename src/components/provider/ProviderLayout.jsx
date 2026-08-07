@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   HiTrendingUp,
   HiUsers,
@@ -162,6 +162,7 @@ const ProviderLayout = ({ children }) => {
   const { user, profile, logout } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showFreelanceModal, setShowFreelanceModal] = useState(false);
@@ -512,7 +513,7 @@ const ProviderLayout = ({ children }) => {
           {profile?.whatsappFreelancePlanActive !== true && (
             <div className="fixed bottom-6 right-6 z-50">
               <button
-                onClick={() => setShowFreelanceModal(true)}
+                onClick={() => navigate('/provider/plans#addons')}
                 className="bg-white hover:bg-gray-50 text-gray-900 rounded-full pl-2 pr-5 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-3 transition transform hover:scale-105 border border-gray-100 group"
               >
                 <div className="w-12 h-12 bg-[#075E54] rounded-full flex items-center justify-center shadow-inner group-hover:bg-[#20bd5a] transition-colors">

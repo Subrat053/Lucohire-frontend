@@ -64,9 +64,10 @@ export default function LandingPage() {
     
     const fetchTopTalent = async () => {
       try {
-        const { data } = await providerAPI.getTopTalent({ limit: 10 });
+        const { data } = await providerAPI.getTopTalent({ limit: 30 });
         if (data?.success && data?.data) {
-          setTopTalent(data.data);
+          const shuffled = [...data.data].sort(() => 0.5 - Math.random());
+          setTopTalent(shuffled);
         }
       } catch (err) {
         console.error('Error fetching top talent:', err);
@@ -79,8 +80,15 @@ export default function LandingPage() {
     const intervalId = setInterval(() => {
       fetchLiveJobs();
     }, 10 * 60 * 1000); // 10 minutes
+    
+    const talentIntervalId = setInterval(() => {
+      fetchTopTalent();
+    }, 3 * 60 * 1000); // 3 minutes
 
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+      clearInterval(talentIntervalId);
+    };
   }, [user, profile]);
 
   const handleJobSearch = (e) => {
