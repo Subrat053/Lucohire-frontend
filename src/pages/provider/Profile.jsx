@@ -3810,17 +3810,18 @@ const ProviderProfile = () => {
             <div className="flex flex-col sm:flex-row justify-end gap-3">
               <button
                 type="button"
-                onClick={async (e) => {
-                  await handleSave(e);
+                disabled={saving}
+                onClick={() => {
                   setShowUnsavedWarning(false);
                   setPendingTab(null);
                 }}
-                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors border border-slate-200 order-3 sm:order-1"
+                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors border border-slate-200 order-3 sm:order-1 disabled:opacity-50"
               >
                 {t("Keep Editing")}
               </button>
               <button
                 type="button"
+                disabled={saving}
                 onClick={() => {
                   setShowUnsavedWarning(false);
                   window.lucodeProfileIsDirty = false;
@@ -3839,12 +3840,13 @@ const ProviderProfile = () => {
                   setPendingTab(null);
                   window.scrollTo(0, 0);
                 }}
-                className="px-4 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors order-2 sm:order-2"
+                className="px-4 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors order-2 sm:order-2 disabled:opacity-50"
               >
                 {t("Discard")}
               </button>
               <button
                 type="button"
+                disabled={saving}
                 onClick={async (e) => {
                   await handleSave(e, null);
                   window.lucodeProfileIsDirty = false;
@@ -3861,9 +3863,16 @@ const ProviderProfile = () => {
                   setPendingTab(null);
                   window.scrollTo(0, 0);
                 }}
-                className="px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors order-1 sm:order-3"
+                className="px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors order-1 sm:order-3 disabled:opacity-50 min-w-[120px] flex items-center justify-center"
               >
-                {t("Save & Leave")}
+                {saving ? (
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  t("Save & Leave")
+                )}
               </button>
             </div>
           </div>
